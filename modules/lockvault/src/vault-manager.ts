@@ -58,7 +58,31 @@ export interface LockVaultInput {
   currencyHint?: 'USD' | 'SOL';
   autoWithdraw?: boolean; // If true, auto-send funds to user's registered wallet when lock expires
   disclaimerAccepted: boolean; // MUST be true for crypto compliance
+  unlockSchedule?: LockVaultTrancheInput[];
 }
+
+export interface LockVaultTrancheInput {
+  amountRaw: string;
+  offsetMinutes: number;
+  label?: string;
+}
+
+export interface LockVaultTrancheRecord {
+  id: string;
+  amountSOL: number;
+  unlockAt: number;
+  offsetMs: number;
+  status: 'pending' | 'released';
+  releasedAt?: number;
+  label?: string;
+}
+
+export interface WithdrawalGuardianApproval {
+  guardianId: string;
+  approvedAt: number;
+}
+
+type WithdrawalProposalStatus = 'pending' | 'approved' | 'execution-pending' | 'executed';
 
 export interface LockVaultRecord {
   id: string;
@@ -67,19 +91,28 @@ export interface LockVaultRecord {
   vaultType: 'disposable' | 'linked' | 'magic';
   createdAt: number;
   unlockAt: number;
-  lockedAmountSOL: number; // normalized to SOL
+  lockedAmountSOL: number; // current remaining vault balance (locked + released - executed withdrawals)
+  originalLockedAmountSOL: number; // original deposit amount before staged releases/withdrawals
+  releasedAmountSOL: number; // currently released and eligible for withdrawal
+  withdrawnAmountSOL: number; // executed withdrawals debited from the vault balance
   originalInput: string;
-  status: 'locked' | 'unlock-requested' | 'unlocked' | 'extended' | 'emergency-unlocked';
+  status: 'locked' | 'unlock-requested' | 'unlocked' | 'extended' | 'emergency-unlocked' | 'partially-unlocked';
   history: { ts: number; action: string; note?: string }[];
   reason?: string;
   extendedCount: number;
   vaultSecret?: string; // AES-256-GCM encrypted for legacy disposable vaults only
   autoWithdraw?: boolean; // If true, auto-send to user's wallet on timer expiry
-  secondOwnerId?: string;
+  guardianIds?: string[];
+  approvalThreshold?: number;
+  secondOwnerId?: string; // legacy alias for the first configured guardian
+  unlockSchedule?: LockVaultTrancheRecord[];
   withdrawalProposal?: {
     amountSOL: number;
     initiatedBy: string;
     initiatedAt: number;
+    guardianIds?: string[];
+    approvalThreshold?: number;
+    approvals?: WithdrawalGuardianApproval[];
     approvedAt?: number;
     approvedBy?: string;
     executionRequestedAt?: number;
@@ -90,7 +123,7 @@ export interface LockVaultRecord {
     lastRecoveryReason?: 'execution-timeout';
     executedAt?: number;
     executedBy?: string;
-    status: 'pending' | 'approved' | 'execution-pending' | 'executed';
+    status: WithdrawalProposalStatus;
   };
 }
 
@@ -128,6 +161,161 @@ export interface WalletActionLock {
 
 function now() { return Date.now(); }
 function generateId() { return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
+function normalizeSolAmount(value: number): number {
+  return Math.round(value * 1_000_000_000) / 1_000_000_000;
+}
+
+function isPositiveSolAmount(value: number): boolean {
+  return Number.isFinite(value) && value > 0.0000000005;
+}
+
+function normalizeUserIdList(values: unknown): string[] {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+  const entries = Array.isArray(values) ? values : [];
+  for (const value of entries) {
+    const userId = typeof value === 'string'
+      ? value.trim()
+      : value && typeof value === 'object' && typeof (value as { userId?: unknown }).userId === 'string'
+        ? (value as { userId: string }).userId.trim()
+        : '';
+    if (!userId || seen.has(userId)) continue;
+    seen.add(userId);
+    normalized.push(userId);
+  }
+  return normalized;
+}
+
+function normalizeGuardianIds(rawGuardianIds: unknown, legacySecondOwnerId?: unknown): string[] {
+  const guardianIds = normalizeUserIdList(rawGuardianIds);
+  if (guardianIds.length > 0) {
+    return guardianIds;
+  }
+  if (typeof legacySecondOwnerId === 'string' && legacySecondOwnerId.trim()) {
+    return [legacySecondOwnerId.trim()];
+  }
+  return [];
+}
+
+function getDefaultApprovalThreshold(
+  guardianIds: string[],
+  legacySecondOwnerId?: unknown,
+): number {
+  if (guardianIds.length === 0) return 0;
+  if (guardianIds.length === 1) return 1;
+  if (typeof legacySecondOwnerId === 'string' && legacySecondOwnerId.trim()) {
+    return 1;
+  }
+  return guardianIds.length;
+}
+
+function normalizeApprovalThreshold(value: unknown, guardianCount: number, fallback: number): number {
+  if (guardianCount <= 0) return 0;
+  const parsed = Number(value);
+  const normalized = Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : fallback;
+  return Math.max(1, Math.min(guardianCount, normalized));
+}
+
+function normalizeGuardianApprovals(
+  rawApprovals: unknown,
+  guardianIds: string[],
+  proposalStatus: WithdrawalProposalStatus,
+  fallbackApprovedBy?: unknown,
+  fallbackApprovedAt?: unknown,
+  fallbackInitiatedAt?: unknown,
+): WithdrawalGuardianApproval[] {
+  const approvals = Array.isArray(rawApprovals) ? rawApprovals : [];
+  const seen = new Set<string>();
+  const normalized: WithdrawalGuardianApproval[] = [];
+  for (const approval of approvals) {
+    const guardianId = approval && typeof approval === 'object' && typeof (approval as { guardianId?: unknown }).guardianId === 'string'
+      ? (approval as { guardianId: string }).guardianId.trim()
+      : '';
+    if (!guardianId || seen.has(guardianId) || (guardianIds.length > 0 && !guardianIds.includes(guardianId))) continue;
+    seen.add(guardianId);
+    const approvedAt = approval && typeof approval === 'object' && Number.isFinite(Number((approval as { approvedAt?: unknown }).approvedAt))
+      ? Number((approval as { approvedAt?: unknown }).approvedAt)
+      : Number.isFinite(Number(fallbackApprovedAt))
+        ? Number(fallbackApprovedAt)
+        : Number.isFinite(Number(fallbackInitiatedAt))
+          ? Number(fallbackInitiatedAt)
+          : now();
+    normalized.push({ guardianId, approvedAt });
+  }
+
+  if (
+    normalized.length === 0
+    && guardianIds.length > 0
+    && (proposalStatus === 'approved' || proposalStatus === 'execution-pending' || proposalStatus === 'executed')
+  ) {
+    const fallbackGuardianId = typeof fallbackApprovedBy === 'string' && guardianIds.includes(fallbackApprovedBy.trim())
+      ? fallbackApprovedBy.trim()
+      : guardianIds[0];
+    if (fallbackGuardianId) {
+      normalized.push({
+        guardianId: fallbackGuardianId,
+        approvedAt: Number.isFinite(Number(fallbackApprovedAt))
+          ? Number(fallbackApprovedAt)
+          : Number.isFinite(Number(fallbackInitiatedAt))
+            ? Number(fallbackInitiatedAt)
+            : now(),
+      });
+    }
+  }
+
+  return normalized.sort((left, right) => left.approvedAt - right.approvedAt);
+}
+
+function getVaultGuardianIds(vault: Pick<LockVaultRecord, 'guardianIds' | 'secondOwnerId'>): string[] {
+  return normalizeGuardianIds(vault.guardianIds, vault.secondOwnerId);
+}
+
+function getVaultApprovalThreshold(vault: Pick<LockVaultRecord, 'guardianIds' | 'approvalThreshold' | 'secondOwnerId'>): number {
+  const guardianIds = getVaultGuardianIds(vault);
+  return normalizeApprovalThreshold(
+    vault.approvalThreshold,
+    guardianIds.length,
+    getDefaultApprovalThreshold(guardianIds, vault.secondOwnerId),
+  );
+}
+
+function getProposalGuardianIds(vault: LockVaultRecord, proposal: NonNullable<LockVaultRecord['withdrawalProposal']>): string[] {
+  const proposalGuardianIds = normalizeUserIdList(proposal.guardianIds);
+  return proposalGuardianIds.length > 0 ? proposalGuardianIds : getVaultGuardianIds(vault);
+}
+
+function getProposalApprovalThreshold(vault: LockVaultRecord, proposal: NonNullable<LockVaultRecord['withdrawalProposal']>): number {
+  const guardianIds = getProposalGuardianIds(vault, proposal);
+  return normalizeApprovalThreshold(
+    proposal.approvalThreshold,
+    guardianIds.length,
+    guardianIds.length > 0 ? getVaultApprovalThreshold(vault) : 0,
+  );
+}
+
+function syncLegacySecondOwnerAlias(vault: LockVaultRecord) {
+  const guardianIds = getVaultGuardianIds(vault);
+  if (guardianIds.length > 0) {
+    vault.guardianIds = guardianIds;
+    vault.secondOwnerId = guardianIds[0];
+    vault.approvalThreshold = normalizeApprovalThreshold(
+      vault.approvalThreshold,
+      guardianIds.length,
+      getDefaultApprovalThreshold(guardianIds, vault.secondOwnerId),
+    );
+    return;
+  }
+  delete vault.guardianIds;
+  delete vault.secondOwnerId;
+  vault.approvalThreshold = 0;
+}
+
+function createValidationError(message: string): Error & { code: string; httpStatus: number } {
+  const error = new Error(message) as Error & { code: string; httpStatus: number };
+  error.code = 'LOCKVAULT_VALIDATION_ERROR';
+  error.httpStatus = 400;
+  return error;
+}
 
 function parsePositiveIntegerEnv(value: string | undefined, fallback: number): number {
   const parsed = Number(value);
@@ -215,9 +403,10 @@ class VaultManager {
       if (!fs.existsSync(this.persistencePath)) return;
       const raw = JSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
       for (const v of raw.vaults || []) {
-        this.vaults.set(v.id, v);
-        if (!this.byUser.has(v.userId)) this.byUser.set(v.userId, new Set());
-        this.byUser.get(v.userId)!.add(v.id);
+        const record = this.hydrateVaultRecord(v);
+        this.vaults.set(record.id, record);
+        if (!this.byUser.has(record.userId)) this.byUser.set(record.userId, new Set());
+        this.byUser.get(record.userId)!.add(record.id);
       }
       for (const [userId, settings] of Object.entries(raw.autoVaults || {})) {
         this.autoVaults.set(userId, settings as AutoVaultSettings);
@@ -237,6 +426,311 @@ class VaultManager {
     }
   }
 
+  private hydrateVaultRecord(rawVault: Partial<LockVaultRecord> & Record<string, unknown>): LockVaultRecord {
+    const currentLockedAmountSOL = normalizeSolAmount(Number(rawVault.lockedAmountSOL || 0));
+    const executedProposalAmount = rawVault.withdrawalProposal?.status === 'executed'
+      ? normalizeSolAmount(Number(rawVault.withdrawalProposal.amountSOL || 0))
+      : 0;
+    const originalLockedAmountSOL = normalizeSolAmount(
+      Number(rawVault.originalLockedAmountSOL ?? (currentLockedAmountSOL + executedProposalAmount))
+    );
+    const isLegacyUnlocked = rawVault.status === 'unlocked' || rawVault.status === 'emergency-unlocked';
+    const releasedAmountSOL = normalizeSolAmount(
+      Number(rawVault.releasedAmountSOL ?? (isLegacyUnlocked ? currentLockedAmountSOL : 0))
+    );
+    const withdrawnAmountSOL = normalizeSolAmount(
+      Number(rawVault.withdrawnAmountSOL ?? executedProposalAmount)
+    );
+    const unlockSchedule = Array.isArray(rawVault.unlockSchedule)
+      ? rawVault.unlockSchedule
+          .map((tranche) => ({
+            id: typeof tranche.id === 'string' && tranche.id.trim() ? tranche.id : generateId(),
+            amountSOL: normalizeSolAmount(Number(tranche.amountSOL || 0)),
+            unlockAt: Number(tranche.unlockAt || rawVault.unlockAt || 0),
+            offsetMs: Number(tranche.offsetMs || 0),
+            status: tranche.status === 'released' ? 'released' as const : 'pending' as const,
+            releasedAt: tranche.releasedAt ? Number(tranche.releasedAt) : undefined,
+            label: typeof tranche.label === 'string' && tranche.label.trim() ? tranche.label.trim() : undefined,
+          }))
+          .filter((tranche) => isPositiveSolAmount(tranche.amountSOL) && Number.isFinite(tranche.unlockAt))
+          .sort((left, right) => left.unlockAt - right.unlockAt)
+      : undefined;
+    const guardianIds = normalizeGuardianIds(rawVault.guardianIds, rawVault.secondOwnerId);
+    const approvalThreshold = normalizeApprovalThreshold(
+      rawVault.approvalThreshold,
+      guardianIds.length,
+      getDefaultApprovalThreshold(guardianIds, rawVault.secondOwnerId),
+    );
+    const rawProposal = rawVault.withdrawalProposal;
+    const proposalGuardianIds = rawProposal
+      ? (() => {
+          const normalizedProposalGuardianIds = normalizeUserIdList(rawProposal.guardianIds);
+          return normalizedProposalGuardianIds.length > 0 ? normalizedProposalGuardianIds : guardianIds;
+        })()
+      : [];
+    const proposalThreshold = rawProposal
+      ? normalizeApprovalThreshold(
+          rawProposal.approvalThreshold,
+          proposalGuardianIds.length,
+          guardianIds.length > 0 ? approvalThreshold : getDefaultApprovalThreshold(proposalGuardianIds, guardianIds[0]),
+        )
+      : 0;
+    const withdrawalProposal: LockVaultRecord['withdrawalProposal'] = rawProposal
+      ? {
+          amountSOL: normalizeSolAmount(Number(rawProposal.amountSOL || 0)),
+          initiatedBy: String(rawProposal.initiatedBy || rawVault.userId || ''),
+          initiatedAt: Number(rawProposal.initiatedAt || rawVault.createdAt || now()),
+          guardianIds: proposalGuardianIds,
+          approvalThreshold: proposalThreshold,
+          approvals: normalizeGuardianApprovals(
+            rawProposal.approvals,
+            proposalGuardianIds,
+            rawProposal.status === 'approved' || rawProposal.status === 'execution-pending' || rawProposal.status === 'executed'
+              ? rawProposal.status
+              : 'pending',
+            rawProposal.approvedBy,
+            rawProposal.approvedAt,
+            rawProposal.initiatedAt,
+          ),
+          approvedAt: rawProposal.approvedAt ? Number(rawProposal.approvedAt) : undefined,
+          approvedBy: typeof rawProposal.approvedBy === 'string' ? rawProposal.approvedBy : undefined,
+          executionRequestedAt: rawProposal.executionRequestedAt ? Number(rawProposal.executionRequestedAt) : undefined,
+          executionRequestId: typeof rawProposal.executionRequestId === 'string' ? rawProposal.executionRequestId : undefined,
+          executionTimeoutAt: rawProposal.executionTimeoutAt ? Number(rawProposal.executionTimeoutAt) : undefined,
+          executionAttempts: rawProposal.executionAttempts ? Number(rawProposal.executionAttempts) : undefined,
+          lastRecoveryAt: rawProposal.lastRecoveryAt ? Number(rawProposal.lastRecoveryAt) : undefined,
+          lastRecoveryReason: rawProposal.lastRecoveryReason === 'execution-timeout' ? 'execution-timeout' as const : undefined,
+          executedAt: rawProposal.executedAt ? Number(rawProposal.executedAt) : undefined,
+          executedBy: typeof rawProposal.executedBy === 'string' ? rawProposal.executedBy : undefined,
+          status: rawProposal.status === 'approved'
+            ? 'approved'
+            : rawProposal.status === 'execution-pending'
+              ? 'execution-pending'
+              : rawProposal.status === 'executed'
+                ? 'executed'
+                : 'pending',
+        }
+      : undefined;
+
+    const record: LockVaultRecord = {
+      id: String(rawVault.id || generateId()),
+      userId: String(rawVault.userId || ''),
+      vaultAddress: String(rawVault.vaultAddress || ''),
+      vaultType: (rawVault.vaultType === 'magic' || rawVault.vaultType === 'disposable') ? rawVault.vaultType : 'linked',
+      createdAt: Number(rawVault.createdAt || now()),
+      unlockAt: Number(rawVault.unlockAt || now()),
+      lockedAmountSOL: currentLockedAmountSOL,
+      originalLockedAmountSOL,
+      releasedAmountSOL,
+      withdrawnAmountSOL,
+      originalInput: String(rawVault.originalInput || ''),
+      status: rawVault.status === 'partially-unlocked'
+        ? 'partially-unlocked'
+        : rawVault.status === 'unlock-requested'
+          ? 'unlock-requested'
+          : rawVault.status === 'unlocked'
+            ? 'unlocked'
+            : rawVault.status === 'extended'
+              ? 'extended'
+              : rawVault.status === 'emergency-unlocked'
+                ? 'emergency-unlocked'
+                : 'locked',
+      history: Array.isArray(rawVault.history) ? rawVault.history : [],
+      reason: typeof rawVault.reason === 'string' ? rawVault.reason : undefined,
+      extendedCount: Number(rawVault.extendedCount || 0),
+      vaultSecret: typeof rawVault.vaultSecret === 'string' ? rawVault.vaultSecret : undefined,
+      autoWithdraw: rawVault.autoWithdraw === true,
+      guardianIds,
+      approvalThreshold,
+      secondOwnerId: guardianIds[0],
+      unlockSchedule,
+      withdrawalProposal,
+    };
+
+    syncLegacySecondOwnerAlias(record);
+    this.syncVaultReleaseState(record, now(), false);
+    return record;
+  }
+
+  private convertAmountToSol(amountRaw: string, currencyHint?: 'USD' | 'SOL'): number {
+    const amountParse = parseAmount(amountRaw);
+    if (!amountParse.success || !amountParse.data) {
+      throw createValidationError(amountParse.error || 'Unable to parse amount');
+    }
+    if (amountParse.data.isAll) {
+      throw createValidationError('Locking "all" is not currently supported.');
+    }
+
+    const parsedValue = amountParse.data.value;
+    let amountSOL: number;
+    if (currencyHint === 'USD' || amountParse.data.currency === 'USD') {
+      const solPrice = getUsdPriceSync('SOL');
+      if (!solPrice || solPrice <= 0) {
+        throw createValidationError('Unable to fetch SOL price. Please try again later.');
+      }
+      amountSOL = parsedValue / solPrice;
+    } else {
+      amountSOL = parsedValue;
+    }
+
+    const normalized = normalizeSolAmount(amountSOL);
+    if (!isPositiveSolAmount(normalized)) {
+      throw createValidationError('Lock amount must be a positive number.');
+    }
+    return normalized;
+  }
+
+  private buildUnlockSchedule(
+    input: LockVaultInput,
+    totalAmountSOL: number,
+    durationMs: number,
+    createdAt: number,
+  ): LockVaultTrancheRecord[] | undefined {
+    if (!Array.isArray(input.unlockSchedule) || input.unlockSchedule.length === 0) {
+      return undefined;
+    }
+
+    const unlockSchedule = input.unlockSchedule.map((entry, index) => {
+      const amountSOL = this.convertAmountToSol(entry.amountRaw, input.currencyHint);
+      const offsetMinutes = Number(entry.offsetMinutes);
+      if (!Number.isFinite(offsetMinutes) || offsetMinutes <= 0) {
+        throw createValidationError(`Unlock schedule row ${index + 1} must define a positive offsetMinutes value.`);
+      }
+      const offsetMs = Math.trunc(offsetMinutes) * 60 * 1000;
+      if (offsetMs > durationMs) {
+        throw createValidationError(`Unlock schedule row ${index + 1} exceeds the lock duration.`);
+      }
+      return {
+        id: generateId(),
+        amountSOL,
+        unlockAt: createdAt + offsetMs,
+        offsetMs,
+        status: 'pending' as const,
+        label: typeof entry.label === 'string' && entry.label.trim() ? entry.label.trim() : undefined,
+      };
+    }).sort((left, right) => left.unlockAt - right.unlockAt);
+
+    const totalScheduledSOL = normalizeSolAmount(unlockSchedule.reduce((sum, tranche) => sum + tranche.amountSOL, 0));
+    if (totalScheduledSOL > totalAmountSOL + 0.000000001) {
+      throw createValidationError('Unlock schedule cannot release more than the locked amount.');
+    }
+
+    const remainderSOL = normalizeSolAmount(totalAmountSOL - totalScheduledSOL);
+    const lastScheduledUnlockAt = unlockSchedule[unlockSchedule.length - 1]?.unlockAt ?? createdAt;
+    const finalUnlockAt = createdAt + durationMs;
+
+    if (!isPositiveSolAmount(remainderSOL) && lastScheduledUnlockAt < finalUnlockAt) {
+      throw createValidationError('The staged unlock schedule must end at the full lock duration or leave a final remainder for that expiry.');
+    }
+
+    if (isPositiveSolAmount(remainderSOL)) {
+      unlockSchedule.push({
+        id: generateId(),
+        amountSOL: remainderSOL,
+        unlockAt: finalUnlockAt,
+        offsetMs: durationMs,
+        status: 'pending',
+        label: 'Final release',
+      });
+    }
+
+    return unlockSchedule;
+  }
+
+  private getAvailableToWithdraw(vault: LockVaultRecord): number {
+    return normalizeSolAmount(Math.max(0, vault.releasedAmountSOL));
+  }
+
+  private getLockedRemainder(vault: LockVaultRecord): number {
+    return normalizeSolAmount(Math.max(0, vault.lockedAmountSOL - vault.releasedAmountSOL));
+  }
+
+  private getNextPendingTranche(vault: LockVaultRecord): LockVaultTrancheRecord | null {
+    if (!Array.isArray(vault.unlockSchedule)) return null;
+    return vault.unlockSchedule.find((tranche) => tranche.status === 'pending') ?? null;
+  }
+
+  private syncVaultReleaseState(vault: LockVaultRecord, nowTs: number, emitEvents: boolean): boolean {
+    let changed = false;
+    let newlyReleasedSOL = 0;
+
+    if (Array.isArray(vault.unlockSchedule) && vault.unlockSchedule.length > 0) {
+      for (const tranche of vault.unlockSchedule) {
+        if (tranche.status === 'pending' && nowTs >= tranche.unlockAt) {
+          tranche.status = 'released';
+          tranche.releasedAt = nowTs;
+          newlyReleasedSOL += tranche.amountSOL;
+          changed = true;
+        }
+      }
+
+      if (isPositiveSolAmount(newlyReleasedSOL)) {
+        vault.releasedAmountSOL = normalizeSolAmount(vault.releasedAmountSOL + newlyReleasedSOL);
+        vault.history.push({
+          ts: nowTs,
+          action: 'tranche-released',
+          note: `released=${normalizeSolAmount(newlyReleasedSOL).toFixed(9)} SOL available=${this.getAvailableToWithdraw(vault).toFixed(9)} SOL`,
+        });
+      }
+
+      const priorStatus = vault.status;
+      const lockedRemainderSOL = this.getLockedRemainder(vault);
+      if (!isPositiveSolAmount(lockedRemainderSOL)) {
+        vault.status = 'unlocked';
+      } else if (isPositiveSolAmount(vault.releasedAmountSOL)) {
+        vault.status = 'partially-unlocked';
+      } else if (vault.extendedCount > 0 || vault.status === 'extended') {
+        vault.status = 'extended';
+      } else {
+        vault.status = 'locked';
+      }
+
+      if (vault.status !== priorStatus) {
+        changed = true;
+        if (vault.status === 'unlocked') {
+          vault.history.push({
+            ts: nowTs,
+            action: 'auto-unlocked',
+            note: 'All staged unlock tranches have released. Remaining funds are fully available.',
+          });
+          if (emitEvents) {
+            void eventRouter.publish('vault.unlocked', 'lockvault', {
+              id: vault.id,
+              userId: vault.userId,
+              address: vault.vaultAddress,
+              amountSOL: vault.lockedAmountSOL,
+              autoUnlocked: true,
+            });
+          }
+        }
+      }
+
+      return changed;
+    }
+
+    const shouldUnlock = (vault.status === 'locked' || vault.status === 'extended') && nowTs >= vault.unlockAt;
+    if (shouldUnlock) {
+      vault.releasedAmountSOL = normalizeSolAmount(vault.lockedAmountSOL);
+      vault.status = 'unlocked';
+      vault.history.push({ ts: nowTs, action: 'auto-unlocked', note: 'Timer expired — funds available to claim or withdraw' });
+      changed = true;
+      if (emitEvents) {
+        void eventRouter.publish('vault.unlocked', 'lockvault', {
+          id: vault.id,
+          userId: vault.userId,
+          address: vault.vaultAddress,
+          amountSOL: vault.lockedAmountSOL,
+          autoUnlocked: true,
+        });
+      }
+    } else if ((vault.status === 'unlocked' || vault.status === 'emergency-unlocked') && vault.releasedAmountSOL !== vault.lockedAmountSOL) {
+      vault.releasedAmountSOL = normalizeSolAmount(vault.lockedAmountSOL);
+      changed = true;
+    }
+
+    return changed;
+  }
+
   async lock(input: LockVaultInput): Promise<LockVaultRecord> {
     if (input.autoWithdraw) {
       throw createFeatureNotImplementedError(
@@ -246,26 +740,7 @@ class VaultManager {
     if (!input.disclaimerAccepted) {
       throw new Error('You must explicitly acknowledge the Digital Asset Risk and Zero Custody disclosures before deploying a LockVault.');
     }
-    const amountParse = parseAmount(input.amountRaw);
-    if (!amountParse.success || !amountParse.data) throw new Error(amountParse.error || 'Unable to parse amount');
-    const parsedValue = amountParse.data.value;
-    const isAll = amountParse.data.isAll;
-    // Convert USD to SOL if needed using oracle
-    let amountSOL: number;
-    if (isAll) {
-      throw new Error('Locking "all" is not currently supported.');
-    } else if (input.currencyHint === 'USD' || amountParse.data.currency === 'USD') {
-      const solPrice = getUsdPriceSync('SOL');
-      if (!solPrice || solPrice <= 0) {
-        throw new Error('Unable to fetch SOL price. Please try again later.');
-      }
-      amountSOL = parsedValue / solPrice;
-    } else {
-      amountSOL = parsedValue;
-    }
-    if (!Number.isFinite(amountSOL) || amountSOL <= 0) {
-      throw new Error('Lock amount must be a positive number.');
-    }
+    const amountSOL = this.convertAmountToSol(input.amountRaw, input.currencyHint);
     const durationMs = parseDuration(input.durationRaw);
     if (durationMs < 10 * 60 * 1000) throw new Error('Minimum lock is 10m');
     if (durationMs > 30 * 24 * 60 * 60 * 1000) throw new Error('Maximum lock is 30d');
@@ -311,20 +786,34 @@ class VaultManager {
       );
     }
 
+    const createdAt = now();
+    const unlockSchedule = this.buildUnlockSchedule(input, amountSOL, durationMs, createdAt);
+    const finalUnlockAt = unlockSchedule?.[unlockSchedule.length - 1]?.unlockAt ?? (createdAt + durationMs);
+
     const record: LockVaultRecord = {
       id: generateId(),
       userId: input.userId,
       vaultAddress,
       vaultType,
-      createdAt: now(),
-      unlockAt: now() + durationMs,
+      createdAt,
+      unlockAt: finalUnlockAt,
       lockedAmountSOL: amountSOL,
+      originalLockedAmountSOL: amountSOL,
+      releasedAmountSOL: 0,
+      withdrawnAmountSOL: 0,
       originalInput: input.amountRaw,
       status: 'locked',
-      history: [{ ts: now(), action: 'locked', note: `duration=${input.durationRaw}, type=${vaultType}` }],
+      history: [{
+        ts: createdAt,
+        action: 'locked',
+        note: unlockSchedule?.length
+          ? `duration=${input.durationRaw}, type=${vaultType}, staged=${unlockSchedule.length}`
+          : `duration=${input.durationRaw}, type=${vaultType}`,
+      }],
       reason: input.reason,
       extendedCount: 0,
       autoWithdraw: input.autoWithdraw ?? false,
+      unlockSchedule,
     };
 
     this.vaults.set(record.id, record);
@@ -377,15 +866,27 @@ class VaultManager {
     const vault = this.vaults.get(vaultId);
     if (!vault || vault.userId !== userId) throw new Error('Vault not found');
     const nowTs = now();
-    if (nowTs < vault.unlockAt) {
-      throw new Error(`Cannot unlock yet. Remaining ${(vault.unlockAt - nowTs) / 1000 | 0}s`);
+    const availableBefore = this.getAvailableToWithdraw(vault);
+    const changed = this.syncVaultReleaseState(vault, nowTs, true);
+    const nextPendingTranche = this.getNextPendingTranche(vault);
+    if (!changed && !isPositiveSolAmount(this.getAvailableToWithdraw(vault))) {
+      if (nextPendingTranche) {
+        throw new Error(`Cannot unlock yet. Remaining ${(nextPendingTranche.unlockAt - nowTs) / 1000 | 0}s`);
+      }
+      if (nowTs < vault.unlockAt) {
+        throw new Error(`Cannot unlock yet. Remaining ${(vault.unlockAt - nowTs) / 1000 | 0}s`);
+      }
     }
-    // If a background task already auto-unlocked this vault, make unlock() idempotent and just return the decrypted secret.
-    if (vault.status !== 'unlocked') {
-      vault.status = 'unlocked';
-      vault.history.push({ ts: nowTs, action: 'unlocked' });
+    if (changed) {
+      vault.history.push({
+        ts: nowTs,
+        action: 'unlocked',
+        note: `available=${this.getAvailableToWithdraw(vault).toFixed(9)} SOL previouslyAvailable=${availableBefore.toFixed(9)} SOL`,
+      });
       this.schedulePersist();
-      void eventRouter.publish('vault.unlocked', 'lockvault', { id: vault.id, userId: vault.userId });
+    } else if (vault.status === 'unlocked' || vault.status === 'partially-unlocked') {
+      // keep manual release idempotent once funds are already available
+      this.schedulePersist();
     }
     // Decrypt secret before returning to caller so they can use it
     const result = { ...vault };
@@ -403,9 +904,17 @@ class VaultManager {
   extend(userId: string, vaultId: string, additionalRaw: string): LockVaultRecord {
     const vault = this.vaults.get(vaultId);
     if (!vault || vault.userId !== userId) throw new Error('Vault not found');
-    if (vault.status !== 'locked' && vault.status !== 'extended') throw new Error('Cannot extend now');
+    if (vault.status !== 'locked' && vault.status !== 'extended' && vault.status !== 'partially-unlocked') throw new Error('Cannot extend now');
     const addMs = parseDuration(additionalRaw);
     vault.unlockAt += addMs;
+    if (Array.isArray(vault.unlockSchedule)) {
+      for (const tranche of vault.unlockSchedule) {
+        if (tranche.status === 'pending') {
+          tranche.unlockAt += addMs;
+          tranche.offsetMs += addMs;
+        }
+      }
+    }
     vault.status = 'extended';
     vault.extendedCount += 1;
     vault.history.push({ ts: now(), action: 'extended', note: `+${additionalRaw}` });
@@ -424,6 +933,7 @@ class VaultManager {
     const nowTs = now();
     let changed = false;
     for (const record of records) {
+      changed = this.syncVaultReleaseState(record, nowTs, false) || changed;
       changed = this.recoverStaleExecutionPending(record, nowTs) || changed;
     }
     if (changed) {
@@ -435,7 +945,12 @@ class VaultManager {
   get(vaultId: string): LockVaultRecord | undefined {
     const vault = this.vaults.get(vaultId);
     if (!vault) return undefined;
+    let changed = false;
+    changed = this.syncVaultReleaseState(vault, now(), false) || changed;
     if (this.recoverStaleExecutionPending(vault, now())) {
+      changed = true;
+    }
+    if (changed) {
       this.schedulePersist();
     }
     return vault;
@@ -466,7 +981,7 @@ class VaultManager {
     if (!ids || ids.size === 0) throw new Error('No vault found for user');
     const records = Array.from(ids)
       .map((id) => this.vaults.get(id))
-      .filter((v): v is LockVaultRecord => Boolean(v) && (v!.status === 'locked' || v!.status === 'extended'))
+      .filter((v): v is LockVaultRecord => Boolean(v) && (v!.status === 'locked' || v!.status === 'extended' || v!.status === 'partially-unlocked'))
       .sort((a, b) => b.createdAt - a.createdAt);
     if (records.length === 0) throw new Error('No active locked vault found for user');
     return records[0];
@@ -504,7 +1019,7 @@ class VaultManager {
         if (recoverStaleExecution) {
           changed = this.recoverStaleExecutionPending(v, nowTs) || changed;
         }
-        if (!v.secondOwnerId) return false;
+        if (getVaultGuardianIds(v).length === 0) return false;
         if (!requiredStates) return true;
         return Boolean(v.withdrawalProposal?.status && requiredStates.includes(v.withdrawalProposal.status));
       })
@@ -517,18 +1032,22 @@ class VaultManager {
       if (requiredStates?.includes('approved') || requiredStates?.includes('execution-pending')) {
         throw new Error('Withdrawal must be approved before execution.');
       }
-      throw new Error('No dual-owner vault found for user');
+      throw new Error('No guardian-protected vault found for user');
     }
     return records[0];
   }
 
-  getWithdrawalApprovals(secondOwnerId: string): LockVaultRecord[] {
+  getWithdrawalApprovals(guardianId: string): LockVaultRecord[] {
     const nowTs = now();
     let changed = false;
     const approvals = Array.from(this.vaults.values())
       .filter((vault) => {
         changed = this.recoverStaleExecutionPending(vault, nowTs) || changed;
-        return vault.secondOwnerId === secondOwnerId && vault.withdrawalProposal?.status === 'pending';
+        const proposal = vault.withdrawalProposal;
+        if (!proposal || proposal.status !== 'pending') return false;
+        const proposalGuardianIds = getProposalGuardianIds(vault, proposal);
+        if (!proposalGuardianIds.includes(guardianId)) return false;
+        return !proposal.approvals?.some((approval) => approval.guardianId === guardianId);
       })
       .sort((a, b) => b.createdAt - a.createdAt);
 
@@ -539,13 +1058,58 @@ class VaultManager {
     return approvals;
   }
 
+  setGuardians(userId: string, guardianIds: string[], approvalThreshold?: number): LockVaultRecord {
+    const normalizedGuardianIds = normalizeUserIdList(guardianIds);
+    if (normalizedGuardianIds.length === 0) throw new Error('At least one guardianId is required.');
+    if (normalizedGuardianIds.includes(userId)) throw new Error('guardianIds must not include userId.');
+
+    const vault = this.getLatestVaultForUser(userId);
+    if (
+      vault.withdrawalProposal
+      && (
+        vault.withdrawalProposal.status === 'pending'
+        || vault.withdrawalProposal.status === 'approved'
+        || vault.withdrawalProposal.status === 'execution-pending'
+      )
+    ) {
+      throw new Error('Cannot change guardians while a withdrawal is in progress.');
+    }
+
+    vault.guardianIds = normalizedGuardianIds;
+    vault.approvalThreshold = normalizeApprovalThreshold(
+      approvalThreshold,
+      normalizedGuardianIds.length,
+      normalizedGuardianIds.length,
+    );
+    syncLegacySecondOwnerAlias(vault);
+    vault.history.push({
+      ts: now(),
+      action: 'guardians-configured',
+      note: `guardians=${normalizedGuardianIds.join(',')} threshold=${vault.approvalThreshold}`,
+    });
+    this.schedulePersist();
+    return vault;
+  }
+
   addSecondOwner(userId: string, secondOwnerId: string): LockVaultRecord {
     const normalizedSecondOwner = secondOwnerId.trim();
     if (!normalizedSecondOwner) throw new Error('secondOwnerId is required');
     if (normalizedSecondOwner === userId) throw new Error('secondOwnerId must be different from userId');
 
     const vault = this.getLatestVaultForUser(userId);
-    vault.secondOwnerId = normalizedSecondOwner;
+    if (
+      vault.withdrawalProposal
+      && (
+        vault.withdrawalProposal.status === 'pending'
+        || vault.withdrawalProposal.status === 'approved'
+        || vault.withdrawalProposal.status === 'execution-pending'
+      )
+    ) {
+      throw new Error('Cannot change guardians while a withdrawal is in progress.');
+    }
+    vault.guardianIds = [normalizedSecondOwner];
+    vault.approvalThreshold = 1;
+    syncLegacySecondOwnerAlias(vault);
     vault.history.push({ ts: now(), action: 'second-owner-added', note: normalizedSecondOwner });
     this.schedulePersist();
     return vault;
@@ -557,16 +1121,20 @@ class VaultManager {
     }
 
     const vault = this.getLatestDualOwnerVaultForUser(userId);
+    const guardianIds = getVaultGuardianIds(vault);
+    const approvalThreshold = getVaultApprovalThreshold(vault);
+    if (guardianIds.length === 0 || approvalThreshold <= 0) {
+      throw new Error('Configure at least one guardian before initiating withdrawal.');
+    }
     const nowTs = now();
-    if ((vault.status === 'locked' || vault.status === 'extended') && nowTs >= vault.unlockAt) {
-      vault.status = 'unlocked';
-      vault.history.push({ ts: nowTs, action: 'auto-unlocked', note: 'Timer expired during withdrawal initiation' });
+    if (this.syncVaultReleaseState(vault, nowTs, false)) {
+      this.schedulePersist();
     }
-    if (vault.status !== 'unlocked') {
-      throw new Error('Vault must be unlocked before initiating withdrawal.');
+    if (vault.status !== 'unlocked' && vault.status !== 'partially-unlocked') {
+      throw new Error('Vault must have released funds before initiating withdrawal.');
     }
-    if (amount > vault.lockedAmountSOL) {
-      throw new Error('Withdrawal amount exceeds locked balance.');
+    if (amount > this.getAvailableToWithdraw(vault)) {
+      throw new Error('Withdrawal amount exceeds released balance.');
     }
     if (
       vault.withdrawalProposal
@@ -583,32 +1151,50 @@ class VaultManager {
       amountSOL: amount,
       initiatedBy: userId,
       initiatedAt: nowTs,
+      guardianIds,
+      approvalThreshold,
+      approvals: [],
       status: 'pending',
     };
-    vault.history.push({ ts: nowTs, action: 'withdrawal-initiated', note: `${amount} SOL` });
+    vault.history.push({
+      ts: nowTs,
+      action: 'withdrawal-initiated',
+      note: `${amount} SOL guardians=${guardianIds.join(',')} threshold=${approvalThreshold}`,
+    });
     this.schedulePersist();
     return vault;
   }
 
   approveWithdrawal(ownerUserId: string, approverUserId: string): LockVaultRecord {
     const vault = this.getLatestDualOwnerVaultForUser(ownerUserId, 'pending');
-    if (!vault.secondOwnerId) {
-      throw new Error('Vault does not have a second owner configured.');
-    }
-    if (approverUserId !== vault.secondOwnerId) {
-      throw new Error('Only the second owner can approve this withdrawal.');
-    }
-
     const proposal = vault.withdrawalProposal;
     if (!proposal || proposal.status !== 'pending') {
       throw new Error('No pending withdrawal to approve.');
     }
+    const guardianIds = getProposalGuardianIds(vault, proposal);
+    if (guardianIds.length === 0) {
+      throw new Error('Vault does not have guardians configured.');
+    }
+    if (!guardianIds.includes(approverUserId)) {
+      throw new Error('Only configured guardians can approve this withdrawal.');
+    }
+    if (proposal.approvals?.some((approval) => approval.guardianId === approverUserId)) {
+      throw new Error('This guardian already approved the withdrawal.');
+    }
 
     const nowTs = now();
-    proposal.status = 'approved';
-    proposal.approvedAt = nowTs;
-    proposal.approvedBy = approverUserId;
-    vault.history.push({ ts: nowTs, action: 'withdrawal-approved', note: `approvedBy=${approverUserId}` });
+    proposal.approvals = [...(proposal.approvals || []), { guardianId: approverUserId, approvedAt: nowTs }];
+    const approvalThreshold = getProposalApprovalThreshold(vault, proposal);
+    if (proposal.approvals.length >= approvalThreshold) {
+      proposal.status = 'approved';
+      proposal.approvedAt = nowTs;
+      proposal.approvedBy = approverUserId;
+    }
+    vault.history.push({
+      ts: nowTs,
+      action: 'withdrawal-approved',
+      note: `approvedBy=${approverUserId} progress=${proposal.approvals.length}/${approvalThreshold}`,
+    });
     this.schedulePersist();
     return vault;
   }
@@ -618,12 +1204,11 @@ class VaultManager {
     const proposal = vault.withdrawalProposal;
     const nowTs = now();
 
-    if ((vault.status === 'locked' || vault.status === 'extended') && nowTs >= vault.unlockAt) {
-      vault.status = 'unlocked';
-      vault.history.push({ ts: nowTs, action: 'auto-unlocked', note: 'Timer expired during withdrawal execution' });
+    if (this.syncVaultReleaseState(vault, nowTs, false)) {
+      this.schedulePersist();
     }
-    if (vault.status !== 'unlocked') {
-      throw new Error('Vault must be unlocked before executing withdrawal.');
+    if (vault.status !== 'unlocked' && vault.status !== 'partially-unlocked') {
+      throw new Error('Vault must have released funds before executing withdrawal.');
     }
 
     if (!proposal) {
@@ -638,8 +1223,8 @@ class VaultManager {
     if (proposal.status !== 'approved') {
       throw new Error('Withdrawal must be approved before execution.');
     }
-    if (proposal.amountSOL > vault.lockedAmountSOL) {
-      throw new Error('Withdrawal amount exceeds available vault balance.');
+    if (proposal.amountSOL > this.getAvailableToWithdraw(vault)) {
+      throw new Error('Withdrawal amount exceeds released vault balance.');
     }
 
     const executionRequestId = generateId();
@@ -652,11 +1237,14 @@ class VaultManager {
     delete proposal.lastRecoveryAt;
     delete proposal.lastRecoveryReason;
     delete proposal.executionTimeoutAt;
-    vault.lockedAmountSOL = Math.max(0, vault.lockedAmountSOL - proposal.amountSOL);
+    vault.lockedAmountSOL = normalizeSolAmount(Math.max(0, vault.lockedAmountSOL - proposal.amountSOL));
+    vault.releasedAmountSOL = normalizeSolAmount(Math.max(0, vault.releasedAmountSOL - proposal.amountSOL));
+    vault.withdrawnAmountSOL = normalizeSolAmount(vault.withdrawnAmountSOL + proposal.amountSOL);
+    this.syncVaultReleaseState(vault, nowTs, false);
     vault.history.push({
       ts: nowTs,
       action: 'withdrawal-executed',
-      note: `${proposal.amountSOL} SOL requestId=${executionRequestId} remaining=${vault.lockedAmountSOL.toFixed(9)} SOL`,
+      note: `${proposal.amountSOL} SOL requestId=${executionRequestId} remaining=${vault.lockedAmountSOL.toFixed(9)} SOL available=${vault.releasedAmountSOL.toFixed(9)} SOL lockedRemainder=${this.getLockedRemainder(vault).toFixed(9)} SOL`,
     });
     void eventRouter.publish('vault.withdrawal_execution_requested', 'lockvault', {
       id: vault.id,
@@ -665,6 +1253,8 @@ class VaultManager {
       vaultType: vault.vaultType,
       amountSOL: proposal.amountSOL,
       executionRequestId,
+      guardianIds: getProposalGuardianIds(vault, proposal),
+      approvalThreshold: getProposalApprovalThreshold(vault, proposal),
       secondOwnerId: vault.secondOwnerId,
     });
     this.schedulePersist();
@@ -840,33 +1430,21 @@ class VaultManager {
   private processExpiredVaults() {
     const t = now();
     for (const vault of this.vaults.values()) {
-      if ((vault.status === 'locked' || vault.status === 'extended') && t >= vault.unlockAt) {
-        // Auto-unlock the vault (funds are accessible, no action required from user)
-        vault.status = 'unlocked';
-        vault.history.push({ ts: t, action: 'auto-unlocked', note: 'Timer expired — funds available to claim or withdraw' });
+      if (this.syncVaultReleaseState(vault, t, true)) {
         this.schedulePersist();
+        console.log(`[LockVault] Vault ${vault.id} release state advanced for user ${vault.userId}`);
+      }
 
-        console.log(`[LockVault] Vault ${vault.id} auto-unlocked for user ${vault.userId}`);
-
-        void eventRouter.publish('vault.unlocked', 'lockvault', {
-          id: vault.id,
-          userId: vault.userId,
-          address: vault.vaultAddress,
-          amountSOL: vault.lockedAmountSOL,
-          autoUnlocked: true,
+      // Auto-withdraw stays disabled until a real execution consumer exists.
+      if (vault.autoWithdraw && vault.status === 'unlocked') {
+        vault.autoWithdraw = false;
+        vault.history.push({
+          ts: t,
+          action: 'auto-withdraw-disabled',
+          note: 'Auto-withdraw was requested before the execution path existed. Funds remain in the unlocked vault.',
         });
-
-        // Auto-withdraw stays disabled until a real execution consumer exists.
-        if (vault.autoWithdraw) {
-          vault.autoWithdraw = false;
-          vault.history.push({
-            ts: t,
-            action: 'auto-withdraw-disabled',
-            note: 'Auto-withdraw was requested before the execution path existed. Funds remain in the unlocked vault.',
-          });
-          this.schedulePersist();
-          console.warn(`[LockVault] Auto-withdraw disabled for vault ${vault.id}; no execution consumer is registered.`);
-        }
+        this.schedulePersist();
+        console.warn(`[LockVault] Auto-withdraw disabled for vault ${vault.id}; no execution consumer is registered.`);
       }
     }
   }
@@ -919,6 +1497,9 @@ export function getReloadSchedule(userId: string) { return vaultManager.getReloa
 export function startLockVaultBackgroundTasks() { return vaultManager.startBackgroundTasks(); }
 export function stopLockVaultBackgroundTasks() { return vaultManager.stopBackgroundTasks(); }
 export function depositToVault(userId: string, amount: number) { return vaultManager.deposit(userId, amount); }
+export async function setVaultGuardians(userId: string, guardianIds: string[], approvalThreshold?: number) {
+  return vaultManager.setGuardians(userId, guardianIds, approvalThreshold);
+}
 export async function addSecondOwner(userId: string, secondOwnerId: string) { 
   return vaultManager.addSecondOwner(userId, secondOwnerId);
 }

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import CasinoProofPage from '@/components/CasinoProofPage';
 import { CASINOS, getCasinoBySlug } from '@/lib/casino-trust';
+import { getCasinoSeedAuditSurface } from '@/lib/seed-audit-surface';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -22,8 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${casino.name} Trust Proof | TiltCheck`;
-  const description = `Public trust proof page for ${casino.name}. Live trust, domain, scam, bonus, and RTP evidence only appears when TiltCheck can actually verify it.`;
+  const title = `${casino.name} Trust Evidence | TiltCheck`;
+  const description = `Public trust evidence page for ${casino.name}. Manual bet verification lives on /tools/verify while this page separates seed health, proof quality, licensing, payout, scam, bonus, and RTP evidence.`;
   const url = `https://tiltcheck.me/casinos/${casino.slug}`;
 
   return {
@@ -48,5 +49,7 @@ export default async function CasinoProofRoute({ params }: Props) {
     notFound();
   }
 
-  return <CasinoProofPage casino={casino} />;
+  const seedAudit = await getCasinoSeedAuditSurface(casino);
+
+  return <CasinoProofPage casino={casino} seedAudit={seedAudit} />;
 }

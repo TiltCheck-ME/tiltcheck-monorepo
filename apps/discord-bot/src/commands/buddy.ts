@@ -13,22 +13,14 @@ import {
 } from 'discord.js';
 import type { Command } from '../types.js';
 import { getUserBuddies, insert } from '@tiltcheck/db';
-
-function getDashboardBaseUrl(): string {
-  const configuredUrl = process.env.DASHBOARD_URL?.trim();
-  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
-    return configuredUrl.replace(/\/+$/, '');
-  }
-
-  return 'https://dashboard.tiltcheck.me';
-}
+import { getDashboardAppUrl } from '../utils/dashboard-url.js';
 
 function buildBuddyControlsRow(): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setLabel('Open Buddy Controls')
       .setStyle(ButtonStyle.Link)
-      .setURL(`${getDashboardBaseUrl()}/dashboard?tab=buddies`)
+      .setURL(getDashboardAppUrl({ tab: 'buddies' }))
   );
 }
 

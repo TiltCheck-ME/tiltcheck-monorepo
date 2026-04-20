@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -176,7 +176,7 @@ const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
 
 // Configuration
 const isProd = process.env.NODE_ENV === 'production';
-const HUB_BASE_URL = isProd ? 'https://hub.tiltcheck.me' : `http://localhost:${PORT}`;
+const CANONICAL_DASHBOARD_BASE_URL = isProd ? 'https://dashboard.tiltcheck.me' : `http://localhost:${PORT}`;
 const CANONICAL_API_BASE_URL = process.env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me';
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
@@ -296,12 +296,12 @@ app.get('/auth/discord', async (req, res) => {
   const redirectBase = isProd ? 'https://api.tiltcheck.me' : 'http://localhost:3000';
   const requestedRedirect = typeof req.query.redirect === 'string' ? req.query.redirect.trim() : '';
   const targetPath = isAllowedHubRedirect(requestedRedirect) ? requestedRedirect : '/dashboard';
-  const targetUrl = targetPath.startsWith('http') ? targetPath : `${HUB_BASE_URL}${targetPath}`;
+  const targetUrl = normalizeDashboardRedirectTarget(targetPath);
 
   try {
     const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
     if (result.valid && result.session?.discordId) {
-      res.redirect(targetPath);
+      res.redirect(targetUrl);
       return;
     }
   } catch (error) {
@@ -520,13 +520,23 @@ function getCanonicalApiErrorMessage(error: unknown, fallback: string): string {
 
 function summarizeVaultPayload(payload: any) {
   const locks = Array.isArray(payload?.vault?.locks) ? payload.vault.locks : [];
-  const activeLock = locks.find((entry: any) => entry?.status === 'locked' || entry?.status === 'extended') ?? null;
+  const activeLock = locks.find((entry: any) =>
+    (entry?.status === 'locked' || entry?.status === 'extended' || entry?.status === 'partially-unlocked') &&
+    normalizeFiniteNumber(entry?.lockedRemainderSOL ?? entry?.lockedAmountSOL) > 0
+  ) ?? null;
   const history = [...locks].sort((left: any, right: any) => {
     const rightTs = parseTimestamp(right?.createdAt ?? right?.unlockAt ?? 0) ?? 0;
     const leftTs = parseTimestamp(left?.createdAt ?? left?.unlockAt ?? 0) ?? 0;
     return rightTs - leftTs;
   });
   const latestVault = history[0] ?? null;
+  const guardianIds = Array.isArray(latestVault?.guardianIds)
+    ? latestVault.guardianIds
+    : latestVault?.secondOwnerId
+      ? [latestVault.secondOwnerId]
+      : [];
+  const approvalThreshold = normalizeFiniteNumber(latestVault?.approvalThreshold);
+  const primaryGuardianId = latestVault?.primaryGuardianId ?? latestVault?.guardianIds?.[0] ?? latestVault?.secondOwnerId ?? null;
 
   return {
     success: payload?.success === true,
@@ -535,11 +545,19 @@ function summarizeVaultPayload(payload: any) {
     activeLock,
     walletLock: payload?.walletLock ?? { locked: false },
     locked: Boolean(activeLock),
-    unlockAt: activeLock?.unlockAt ? new Date(activeLock.unlockAt).toISOString() : null,
-    amount: normalizeFiniteNumber(activeLock?.lockedAmountSOL),
+    unlockAt: activeLock?.nextUnlockAt ?? (activeLock?.unlockAt ? new Date(activeLock.unlockAt).toISOString() : null),
+    finalUnlockAt: activeLock?.unlockAt ? new Date(activeLock.unlockAt).toISOString() : null,
+    amount: normalizeFiniteNumber(activeLock?.lockedRemainderSOL ?? activeLock?.lockedAmountSOL),
+    releasedAmountSOL: normalizeFiniteNumber(activeLock?.releasedAmountSOL),
+    availableToWithdrawSOL: normalizeFiniteNumber(latestVault?.availableToWithdrawSOL ?? latestVault?.releasedAmountSOL),
+    lockedRemainderSOL: normalizeFiniteNumber(latestVault?.lockedRemainderSOL ?? activeLock?.lockedRemainderSOL ?? activeLock?.lockedAmountSOL),
+    unlockSchedule: Array.isArray(latestVault?.unlockSchedule) ? latestVault.unlockSchedule : [],
     history,
     latestVault,
-    secondOwnerId: latestVault?.secondOwnerId ?? null,
+    guardianIds,
+    approvalThreshold: approvalThreshold > 0 ? approvalThreshold : guardianIds.length,
+    primaryGuardianId,
+    secondOwnerId: latestVault?.secondOwnerId ?? primaryGuardianId,
     withdrawalProposal: latestVault?.withdrawalProposal ?? null,
   };
 }
@@ -756,7 +774,7 @@ async function notifyNftIdentityReady(
     'You already handled the hard part: terms accepted and wallet linked.',
     'When the identity mint opens, you are first-wave ready.',
     '',
-    'Hub: https://hub.tiltcheck.me/dashboard',
+    'Dashboard: https://dashboard.tiltcheck.me/dashboard',
     '',
     'Made for Degens. By Degens.',
   ].join('\n');
@@ -992,6 +1010,24 @@ function isAllowedHubRedirect(value: string): boolean {
   }
 }
 
+function normalizeDashboardRedirectTarget(value: string): string {
+  if (value.startsWith('/')) {
+    return `${CANONICAL_DASHBOARD_BASE_URL}${value}`;
+  }
+
+  try {
+    const parsed = new URL(value);
+
+    if (parsed.protocol === 'https:' && parsed.hostname.toLowerCase() === 'hub.tiltcheck.me') {
+      parsed.hostname = 'dashboard.tiltcheck.me';
+    }
+
+    return parsed.toString();
+  } catch {
+    return `${CANONICAL_DASHBOARD_BASE_URL}/dashboard`;
+  }
+}
+
 app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (req: DashboardRequest, res) => {
   const discordId = requireAuthorizedDiscordId(req, res);
   if (!discordId) return;
@@ -1201,6 +1237,7 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
 
     const amountSol = Number(req.body?.amountSol);
     const durationMs = Number(req.body?.durationMs);
+    const unlockSchedule = Array.isArray(req.body?.unlockSchedule) ? req.body.unlockSchedule : undefined;
 
     if (!Number.isFinite(amountSol) || amountSol <= 0) {
       res.status(400).json({ error: 'Invalid amount' });
@@ -1210,6 +1247,26 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
       res.status(400).json({ error: 'Minimum lock duration is 1 hour' });
       return;
     }
+    if (req.body?.unlockSchedule !== undefined && !Array.isArray(req.body.unlockSchedule)) {
+      res.status(400).json({ error: 'unlockSchedule must be an array when provided' });
+      return;
+    }
+
+    const normalizedUnlockSchedule = unlockSchedule?.map((entry: any, index: number) => {
+      const trancheAmount = Number(entry?.amount);
+      const offsetMinutes = Number(entry?.offsetMinutes);
+      if (!Number.isFinite(trancheAmount) || trancheAmount <= 0) {
+        throw new Error(`unlockSchedule[${index}].amount must be a positive number`);
+      }
+      if (!Number.isFinite(offsetMinutes) || offsetMinutes <= 0) {
+        throw new Error(`unlockSchedule[${index}].offsetMinutes must be a positive number`);
+      }
+      return {
+        amount: trancheAmount,
+        offsetMinutes: Math.trunc(offsetMinutes),
+        label: typeof entry?.label === 'string' && entry.label.trim() ? entry.label.trim() : undefined,
+      };
+    });
 
     const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/lock`, {
       method: 'POST',
@@ -1217,6 +1274,7 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
         amount: amountSol,
         durationMinutes: Math.max(1, Math.trunc(durationMs / 60000)),
         reason: 'Dashboard safety lock',
+        unlockSchedule: normalizedUnlockSchedule,
       }),
     });
 
@@ -1268,6 +1326,40 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
   }
 });
 
+app.post('/api/user/:discordId/vault/guardians', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const guardianIds = Array.isArray(req.body?.guardianIds)
+      ? req.body.guardianIds
+          .map((guardianId: unknown) => typeof guardianId === 'string' ? guardianId.trim() : '')
+          .filter(Boolean)
+      : [];
+    const approvalThreshold = Number(req.body?.approvalThreshold);
+    if (guardianIds.length === 0) {
+      res.status(400).json({ error: 'At least one withdrawal guardian Discord ID is required.' });
+      return;
+    }
+    if (!Number.isFinite(approvalThreshold) || approvalThreshold <= 0 || approvalThreshold > guardianIds.length) {
+      res.status(400).json({ error: 'Approval threshold must be between 1 and the withdrawal guardian count.' });
+      return;
+    }
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/guardians`, {
+      method: 'POST',
+      body: JSON.stringify({
+        guardianIds,
+        approvalThreshold: Math.trunc(approvalThreshold),
+      }),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault GUARDIANS]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save guardians') });
+  }
+});
+
 app.post('/api/user/:discordId/vault/second-owner', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
@@ -1275,7 +1367,7 @@ app.post('/api/user/:discordId/vault/second-owner', authenticateToken, async (re
 
     const secondOwnerId = typeof req.body?.secondOwnerId === 'string' ? req.body.secondOwnerId.trim() : '';
     if (!secondOwnerId) {
-      res.status(400).json({ error: 'Second owner Discord ID is required.' });
+      res.status(400).json({ error: 'Second owner Discord ID is required. Use withdrawal guardian IDs for new clients.' });
       return;
     }
 
@@ -1285,8 +1377,8 @@ app.post('/api/user/:discordId/vault/second-owner', authenticateToken, async (re
     });
     sendCanonicalApiResponse(res, response);
   } catch (error) {
-    console.error('[Vault SECOND OWNER]', error);
-    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save second owner') });
+    console.error('[Vault SECOND OWNER LEGACY ALIAS]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save legacy second-owner alias') });
   }
 });
 

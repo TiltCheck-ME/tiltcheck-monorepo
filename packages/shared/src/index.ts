@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 // v0.1.0 — 2026-02-25
 
 /**
@@ -43,6 +43,11 @@ export * from './legal.js';
 
 // Fairness exports
 export { FairnessService } from './fairness.js';
+export {
+  SeedHealthAuditor,
+  seedHealthAuditor,
+  auditSeedHealth,
+} from './seed-audit.js';
 
 // Trivia exports
 export * from './trivia.js';

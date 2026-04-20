@@ -100,68 +100,182 @@ describe('LockVault Module', () => {
     expect(countEvents('vault.unlocked')).toBe(1);
   });
 
-  it('adds second owner and stores it on latest vault', async () => {
+  it('supports staged unlock tranches and leaves the locked remainder in place', async () => {
+    const rec = await vaultManager.lock({
+      userId: 'u1',
+      amountRaw: '5',
+      durationRaw: '24h',
+      disclaimerAccepted: true,
+      unlockSchedule: [
+        { amountRaw: '1', offsetMinutes: 60, label: 'first cut' },
+        { amountRaw: '2', offsetMinutes: 720, label: 'mid cut' },
+      ],
+    });
+
+    expect(rec.unlockSchedule).toHaveLength(3);
+    expect(rec.unlockSchedule?.[2]?.amountSOL).toBeCloseTo(2, 6);
+
+    vi.advanceTimersByTime(60 * 60 * 1000);
+    const released = vaultManager.unlock('u1', rec.id);
+    expect(released.status).toBe('partially-unlocked');
+    expect(released.releasedAmountSOL).toBeCloseTo(1, 6);
+    expect(released.lockedAmountSOL).toBeCloseTo(5, 6);
+    expect(released.unlockSchedule?.filter((tranche) => tranche.status === 'released')).toHaveLength(1);
+    expect(released.history.some((entry) => entry.action === 'tranche-released')).toBe(true);
+  });
+
+  it('configures multiple guardians and stores the threshold on the latest vault', async () => {
     await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    const updated = vaultManager.addSecondOwner('u1', 'u2');
+    const updated = vaultManager.setGuardians('u1', ['u2', 'u3', 'u4'], 2);
+    expect(updated.guardianIds).toEqual(['u2', 'u3', 'u4']);
+    expect(updated.approvalThreshold).toBe(2);
     expect(updated.secondOwnerId).toBe('u2');
   });
 
-  it('runs initiate -> approve -> execute withdrawal lifecycle for unlocked dual-owner vault', async () => {
+  it('keeps the legacy second-owner helper mapped to a single guardian threshold', async () => {
+    await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
+    const updated = vaultManager.addSecondOwner('u1', 'u2');
+    expect(updated.guardianIds).toEqual(['u2']);
+    expect(updated.approvalThreshold).toBe(1);
+    expect(updated.secondOwnerId).toBe('u2');
+  });
+
+  it('runs initiate -> multi-guardian approve -> execute withdrawal lifecycle for unlocked guarded vault', async () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    vaultManager.addSecondOwner('u1', 'u2');
+    vaultManager.setGuardians('u1', ['u2', 'u3', 'u4'], 2);
     vi.advanceTimersByTime(10 * 60 * 1000);
     vaultManager.unlock('u1', rec.id);
 
     const initiated = vaultManager.initiateWithdrawal('u1', 1.25);
     expect(initiated.withdrawalProposal?.status).toBe('pending');
     expect(initiated.withdrawalProposal?.amountSOL).toBe(1.25);
+    expect(initiated.withdrawalProposal?.approvalThreshold).toBe(2);
+    expect(initiated.withdrawalProposal?.approvals).toEqual([]);
 
-    const approved = vaultManager.approveWithdrawal('u1', 'u2');
+    const partiallyApproved = vaultManager.approveWithdrawal('u1', 'u2');
+    expect(partiallyApproved.withdrawalProposal?.status).toBe('pending');
+    expect(partiallyApproved.withdrawalProposal?.approvals).toHaveLength(1);
+
+    const approved = vaultManager.approveWithdrawal('u1', 'u3');
     expect(approved.withdrawalProposal?.status).toBe('approved');
+    expect(approved.withdrawalProposal?.approvals).toHaveLength(2);
 
     const executed = vaultManager.executeWithdrawal('u1');
     expect(executed.withdrawalProposal?.status).toBe('executed');
     expect(executed.withdrawalProposal?.executionRequestId).toBeTruthy();
     expect(executed.withdrawalProposal?.executedBy).toBe('u1');
     expect(executed.lockedAmountSOL).toBeCloseTo(1.75, 6);
+    expect(executed.releasedAmountSOL).toBeCloseTo(1.75, 6);
     expect(countEvents('vault.withdrawal_execution_requested')).toBe(1);
   });
 
-  it('lists pending approvals for the configured co-owner', async () => {
+  it('only allows staged withdrawals against the released balance', async () => {
+    const rec = await vaultManager.lock({
+      userId: 'u1',
+      amountRaw: '4',
+      durationRaw: '24h',
+      disclaimerAccepted: true,
+      unlockSchedule: [
+        { amountRaw: '1', offsetMinutes: 60 },
+      ],
+    });
+    vaultManager.setGuardians('u1', ['u2', 'u3'], 2);
+    vi.advanceTimersByTime(60 * 60 * 1000);
+    vaultManager.unlock('u1', rec.id);
+
+    expect(() => vaultManager.initiateWithdrawal('u1', 1.5)).toThrow(/released balance/i);
+
+    const initiated = vaultManager.initiateWithdrawal('u1', 1);
+    expect(initiated.withdrawalProposal?.status).toBe('pending');
+    vaultManager.approveWithdrawal('u1', 'u2');
+    vaultManager.approveWithdrawal('u1', 'u3');
+    const executed = vaultManager.executeWithdrawal('u1');
+    expect(executed.lockedAmountSOL).toBeCloseTo(3, 6);
+    expect(executed.releasedAmountSOL).toBeCloseTo(0, 6);
+    expect(executed.withdrawnAmountSOL).toBeCloseTo(1, 6);
+    expect(executed.status).toBe('locked');
+  });
+
+  it('lists pending approvals only for guardians who still need to approve', async () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    vaultManager.addSecondOwner('u1', 'u2');
+    vaultManager.setGuardians('u1', ['u2', 'u3', 'u4'], 2);
     vi.advanceTimersByTime(10 * 60 * 1000);
     vaultManager.unlock('u1', rec.id);
     vaultManager.initiateWithdrawal('u1', 1.25);
-    const approvals = getWithdrawalApprovalsForUser('u2');
-    expect(approvals).toHaveLength(1);
-    expect(approvals[0]?.userId).toBe('u1');
-    expect(approvals[0]?.withdrawalProposal?.status).toBe('pending');
+
+    const approvalsBefore = getWithdrawalApprovalsForUser('u2');
+    expect(approvalsBefore).toHaveLength(1);
+    expect(approvalsBefore[0]?.userId).toBe('u1');
+    expect(approvalsBefore[0]?.withdrawalProposal?.status).toBe('pending');
+
+    vaultManager.approveWithdrawal('u1', 'u2');
+    expect(getWithdrawalApprovalsForUser('u2')).toHaveLength(0);
+    expect(getWithdrawalApprovalsForUser('u3')).toHaveLength(1);
   });
 
-  it('rejects approval from non-second-owner account', async () => {
+  it('rejects approval from non-guardian account and duplicate guardian approvals', async () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    vaultManager.addSecondOwner('u1', 'u2');
+    vaultManager.setGuardians('u1', ['u2', 'u3'], 2);
     vi.advanceTimersByTime(10 * 60 * 1000);
     vaultManager.unlock('u1', rec.id);
     vaultManager.initiateWithdrawal('u1', 1);
-    expect(() => vaultManager.approveWithdrawal('u1', 'u1')).toThrow(/Only the second owner/);
+    expect(() => vaultManager.approveWithdrawal('u1', 'u1')).toThrow(/Only configured guardians/);
+    vaultManager.approveWithdrawal('u1', 'u2');
+    expect(() => vaultManager.approveWithdrawal('u1', 'u2')).toThrow(/already approved/i);
   });
 
-  it('rejects withdrawal initiation when second owner is missing', async () => {
+  it('rejects withdrawal initiation when guardians are missing', async () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
     vi.advanceTimersByTime(10 * 60 * 1000);
     vaultManager.unlock('u1', rec.id);
-    expect(() => vaultManager.initiateWithdrawal('u1', 1)).toThrow(/No dual-owner vault/);
+    expect(() => vaultManager.initiateWithdrawal('u1', 1)).toThrow(/No guardian-protected vault/);
   });
 
-  it('rejects execution before approval', async () => {
+  it('rejects execution before the threshold is met', async () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    vaultManager.addSecondOwner('u1', 'u2');
+    vaultManager.setGuardians('u1', ['u2', 'u3'], 2);
     vi.advanceTimersByTime(10 * 60 * 1000);
     vaultManager.unlock('u1', rec.id);
     vaultManager.initiateWithdrawal('u1', 1);
+    vaultManager.approveWithdrawal('u1', 'u2');
     expect(() => vaultManager.executeWithdrawal('u1')).toThrow(/approved/);
+  });
+
+  it('hydrates legacy second-owner records into guardian approvals safely', async () => {
+    const hydrated = (vaultManager as any).hydrateVaultRecord({
+      id: 'legacy-v1',
+      userId: 'u1',
+      vaultAddress: 'linked-wallet-u1',
+      vaultType: 'linked',
+      createdAt: Date.now() - 60_000,
+      unlockAt: Date.now() - 30_000,
+      lockedAmountSOL: 1.5,
+      releasedAmountSOL: 1.5,
+      withdrawnAmountSOL: 0,
+      originalLockedAmountSOL: 1.5,
+      originalInput: '1.5',
+      status: 'unlocked',
+      history: [],
+      extendedCount: 0,
+      secondOwnerId: 'u2',
+      withdrawalProposal: {
+        amountSOL: 0.75,
+        initiatedBy: 'u1',
+        initiatedAt: Date.now() - 20_000,
+        approvedBy: 'u2',
+        approvedAt: Date.now() - 10_000,
+        status: 'approved',
+      },
+    });
+
+    expect(hydrated.guardianIds).toEqual(['u2']);
+    expect(hydrated.approvalThreshold).toBe(1);
+    expect(hydrated.secondOwnerId).toBe('u2');
+    expect(hydrated.withdrawalProposal?.guardianIds).toEqual(['u2']);
+    expect(hydrated.withdrawalProposal?.approvalThreshold).toBe(1);
+    expect(hydrated.withdrawalProposal?.approvals).toEqual([
+      expect.objectContaining({ guardianId: 'u2' }),
+    ]);
   });
 
   it('gates paid early unlock until fee routing exists', async () => {

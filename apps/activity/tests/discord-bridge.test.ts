@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * @vitest-environment jsdom
  */
@@ -72,11 +72,11 @@ describe('DiscordBridge', () => {
     await expect(bridge.initialize()).rejects.toThrow(
       'Discord SDK unavailable outside Discord: frame_id query param is not defined'
     );
-    await expect(bridge.openExternalLink('https://hub.tiltcheck.me')).resolves.toBeUndefined();
+    await expect(bridge.openExternalLink('https://dashboard.tiltcheck.me/dashboard')).resolves.toBeUndefined();
     await expect(bridge.inviteUserToActivity()).resolves.toBeUndefined();
     await expect(bridge.setRichPresence('demo', 'safe mode')).resolves.toBeUndefined();
 
-    expect(openSpy).toHaveBeenCalledWith('https://hub.tiltcheck.me', '_blank', 'noopener,noreferrer');
+    expect(openSpy).toHaveBeenCalledWith('https://dashboard.tiltcheck.me/dashboard', '_blank', 'noopener,noreferrer');
     expect(bridge.getAccessToken()).toBeNull();
   });
 

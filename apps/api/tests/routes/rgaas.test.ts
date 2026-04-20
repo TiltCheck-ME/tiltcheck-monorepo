@@ -36,6 +36,9 @@ vi.mock('../../src/middleware/auth.js', () => ({
         };
         next();
     },
+    optionalAuthMiddleware: (_req: any, _res: unknown, next: (err?: unknown) => void) => {
+        next();
+    },
 }));
 
 vi.mock('@tiltcheck/trust-engines', () => ({

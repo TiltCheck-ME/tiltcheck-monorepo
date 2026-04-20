@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 
 import {
   SlashCommandBuilder,
@@ -9,17 +9,7 @@ import {
 } from 'discord.js';
 import { getUserTiltStats, getUserTiltHistory } from '../handlers/tilt-events-handler.js';
 import type { Command } from '../types.js';
-
-function getDashboardBaseUrl(): string {
-  const configuredUrl = process.env.DASHBOARD_URL?.trim();
-  if (configuredUrl && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredUrl)) {
-    return configuredUrl;
-  }
-
-  return 'https://dashboard.tiltcheck.me';
-}
-
-const DASHBOARD_URL = getDashboardBaseUrl();
+import { getDashboardAppUrl } from '../utils/dashboard-url.js';
 
 export const dashboard: Command = {
   data: new SlashCommandBuilder()
@@ -124,7 +114,7 @@ export const dashboard: Command = {
       const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setLabel('Full Dashboard')
-          .setURL(`${DASHBOARD_URL}?userId=${userId}`)
+          .setURL(getDashboardAppUrl({ userId }))
           .setStyle(ButtonStyle.Link),
         new ButtonBuilder()
           .setCustomId(`view_history_${userId}`)

@@ -9,6 +9,7 @@ const isOnCooldownMock = vi.fn(() => false);
 const recordViolationMock = vi.fn();
 const needsOnboardingMock = vi.fn(() => false);
 const checkAndOnboardMock = vi.fn();
+const isUserOnboardedMock = vi.fn(() => true);
 
 vi.mock('../../src/config.js', () => ({
   config: {
@@ -52,6 +53,7 @@ vi.mock('../../src/handlers/onboarding.js', () => ({
   checkAndOnboard: checkAndOnboardMock,
   handleOnboardingInteraction: vi.fn(),
   needsOnboarding: needsOnboardingMock,
+  isUserOnboarded: isUserOnboardedMock,
 }));
 
 vi.mock('../../src/services/elastic-telemetry.js', () => ({

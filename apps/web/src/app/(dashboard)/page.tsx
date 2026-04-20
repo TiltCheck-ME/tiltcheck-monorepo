@@ -8,8 +8,9 @@ export default function DashboardPage() {
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Dashboard handoff</p>
         <h1 className="mt-3 text-4xl font-black uppercase tracking-tighter text-white">Canonical controls moved to user-dashboard</h1>
         <p className="mt-4 max-w-3xl text-sm text-gray-400">
-          This legacy dashboard shell stays here only to route you into the canonical control surface. Profile, vault,
-          safety, and buddy ownership now live in user-dashboard.
+          This legacy dashboard shell stays here only to route you into the canonical control surface. Profile,
+          LockVault timers, Wallet Lock cooldowns, AutoVault rules, safety filters, and buddy ownership now live in
+          user-dashboard.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <a
@@ -37,7 +38,7 @@ export default function DashboardPage() {
           {
             href: getDashboardHandoffUrl('/tools/auto-vault'),
             title: 'Vault lane',
-            copy: 'LockVault, wallet safety locks, and auto-vault rules now live in the dashboard vault lane.',
+            copy: 'LockVault timers, Wallet Lock cooldowns, and AutoVault rules now live in the dashboard vault lane.',
           },
           {
             href: getDashboardHandoffUrl('/tools/buddy-system'),

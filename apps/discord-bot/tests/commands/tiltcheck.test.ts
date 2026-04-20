@@ -7,6 +7,13 @@ vi.mock('../../src/commands/ping.js', () => ({
 vi.mock('../../src/commands/help.js', () => ({ help: { execute: vi.fn() } }));
 vi.mock('../../src/commands/casino.js', () => ({ casino: { execute: vi.fn() } }));
 vi.mock('../../src/commands/setstate.js', () => ({ setstate: { execute: vi.fn() } }));
+vi.mock('../../src/commands/status.js', () => ({ status: { execute: vi.fn() } }));
+vi.mock('../../src/commands/goal.js', () => ({ goal: { execute: vi.fn() } }));
+vi.mock('../../src/commands/intervene.js', () => ({ intervene: { execute: vi.fn() } }));
+vi.mock('../../src/commands/cooldown.js', () => ({
+  cooldown: { execute: vi.fn() },
+  tilt: { execute: vi.fn() },
+}));
 vi.mock('../../src/commands/report.js', () => ({ default: { execute: vi.fn() } }));
 vi.mock('../../src/commands/suslink.js', () => ({ linkCmd: { execute: vi.fn() } }));
 vi.mock('../../src/commands/buddy.js', () => ({ buddy: { execute: vi.fn() } }));
@@ -19,25 +26,84 @@ vi.mock('@tiltcheck/tiltcheck-core', () => ({
   getUserActivity: vi.fn().mockReturnValue(null),
 }));
 
-import { tiltcheck } from '../../src/commands/tiltcheck.js';
-import { ping } from '../../src/commands/ping.js';
+import { session } from '../../src/commands/session.js';
+import { status } from '../../src/commands/status.js';
+import { goal } from '../../src/commands/goal.js';
+import { cooldown, tilt } from '../../src/commands/cooldown.js';
+import { intervene } from '../../src/commands/intervene.js';
+import { setstate } from '../../src/commands/setstate.js';
 
-describe('TiltCheck Command', () => {
+describe('Session Command', () => {
   it('registers top-level command and key subcommands', () => {
-    const json = tiltcheck.data.toJSON();
-    expect(json.name).toBe('tiltcheck');
+    const json = session.data.toJSON();
+    expect(json.name).toBe('session');
     const optionNames = (json.options || []).map((opt: any) => opt.name);
-    expect(optionNames).toEqual(expect.arrayContaining(['ping', 'status', 'history', 'cooldown']));
+    expect(optionNames).toEqual(expect.arrayContaining(['status', 'history', 'goal', 'cooldown', 'intervene', 'state']));
   });
 
-  it('routes ping subcommand to ping command executor', async () => {
+  it('routes status subcommand to status executor', async () => {
     const interaction: any = {
       options: {
         getSubcommandGroup: vi.fn().mockReturnValue(null),
-        getSubcommand: vi.fn().mockReturnValue('ping'),
+        getSubcommand: vi.fn().mockReturnValue('status'),
       },
     };
-    await tiltcheck.execute(interaction);
-    expect((ping as any).execute).toHaveBeenCalledWith(interaction);
+    await session.execute(interaction);
+    expect((status as any).execute).toHaveBeenCalledWith(interaction);
+  });
+
+  it('routes history subcommand to tilt executor', async () => {
+    const interaction: any = {
+      options: {
+        getSubcommandGroup: vi.fn().mockReturnValue(null),
+        getSubcommand: vi.fn().mockReturnValue('history'),
+      },
+    };
+    await session.execute(interaction);
+    expect((tilt as any).execute).toHaveBeenCalledWith(interaction);
+  });
+
+  it('routes goal subcommand to goal executor', async () => {
+    const interaction: any = {
+      options: {
+        getSubcommandGroup: vi.fn().mockReturnValue(null),
+        getSubcommand: vi.fn().mockReturnValue('goal'),
+      },
+    };
+    await session.execute(interaction);
+    expect((goal as any).execute).toHaveBeenCalledWith(interaction);
+  });
+
+  it('routes cooldown subcommand to cooldown executor', async () => {
+    const interaction: any = {
+      options: {
+        getSubcommandGroup: vi.fn().mockReturnValue(null),
+        getSubcommand: vi.fn().mockReturnValue('cooldown'),
+      },
+    };
+    await session.execute(interaction);
+    expect((cooldown as any).execute).toHaveBeenCalledWith(interaction);
+  });
+
+  it('routes intervene subcommand to intervene executor', async () => {
+    const interaction: any = {
+      options: {
+        getSubcommandGroup: vi.fn().mockReturnValue(null),
+        getSubcommand: vi.fn().mockReturnValue('intervene'),
+      },
+    };
+    await session.execute(interaction);
+    expect((intervene as any).execute).toHaveBeenCalledWith(interaction);
+  });
+
+  it('routes state subcommand to setstate executor', async () => {
+    const interaction: any = {
+      options: {
+        getSubcommandGroup: vi.fn().mockReturnValue(null),
+        getSubcommand: vi.fn().mockReturnValue('state'),
+      },
+    };
+    await session.execute(interaction);
+    expect((setstate as any).execute).toHaveBeenCalledWith(interaction);
   });
 });

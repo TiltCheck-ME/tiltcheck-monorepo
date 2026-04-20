@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * @tiltcheck/api - CollectClock Bonuses Proxy Routes
  *
@@ -8,6 +8,8 @@
 
 import { Router, Request, Response } from 'express';
 import { getActiveEmailBonusEntries, readEmailBonusFeed } from '../lib/email-bonus-feed.js';
+import { optionalAuthMiddleware } from '../middleware/auth.js';
+import { resolveExclusionProfileForRequest, suppressBonusEntries } from '../services/bonus-suppression.js';
 
 const router = Router();
 
@@ -29,16 +31,26 @@ const COLLECTCLOCK_BONUS_URL =
 // GET /bonuses
 // Fetches CollectClock bonus-data.json, caches for 1 hour, returns with CORS.
 // ---------------------------------------------------------------------------
-router.get('/', async (_req: Request, res: Response): Promise<void> => {
+router.get('/', optionalAuthMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const cached = cache.get('bonus-data');
     const now = Date.now();
+    const profile = await resolveExclusionProfileForRequest(req);
 
     if (cached && now - cached.fetchedAt < CACHE_TTL_MS) {
+      const suppression = suppressBonusEntries(Array.isArray(cached.data) ? cached.data as Record<string, unknown>[] : [], profile);
       res.setHeader('X-Cache', 'HIT');
       res.setHeader('X-Cache-Age', String(Math.floor((now - cached.fetchedAt) / 1000)));
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.json({ source: 'collectclock', cached: true, data: cached.data });
+      res.json({
+        source: 'collectclock',
+        cached: true,
+        data: suppression.entries,
+        suppression: {
+          active: suppression.active,
+          hiddenCount: suppression.hiddenCount,
+        },
+      });
       return;
     }
 
@@ -57,10 +69,19 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
 
     const data = await response.json();
     cache.set('bonus-data', { data, fetchedAt: now });
+    const suppression = suppressBonusEntries(Array.isArray(data) ? data as Record<string, unknown>[] : [], profile);
 
     res.setHeader('X-Cache', 'MISS');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.json({ source: 'collectclock', cached: false, data });
+    res.json({
+      source: 'collectclock',
+      cached: false,
+      data: suppression.entries,
+      suppression: {
+        active: suppression.active,
+        hiddenCount: suppression.hiddenCount,
+      },
+    });
   } catch (err) {
     console.error('[Bonuses] Failed to fetch CollectClock data:', err);
     res.status(502).json({
@@ -74,21 +95,30 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
 // GET /bonuses/inbox
 // Returns the persisted inbox bonus feed for the web bonus hub.
 // ---------------------------------------------------------------------------
-router.get('/inbox', (_req: Request, res: Response): void => {
+router.get('/inbox', optionalAuthMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const feed = readEmailBonusFeed();
     const activeBonuses = getActiveEmailBonusEntries();
+    const profile = await resolveExclusionProfileForRequest(req);
+    const suppression = suppressBonusEntries(activeBonuses, profile);
+    const message = suppression.entries.length === 0
+      ? suppression.hiddenCount > 0 && suppression.active
+        ? 'Inbox bonus feed is live, but your active filters suppressed every matching casino bonus.'
+        : 'Inbox bonus feed is empty or no active email bonuses are available.'
+      : undefined;
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.json({
       source: 'email-inbox',
-      available: activeBonuses.length > 0,
+      available: suppression.entries.length > 0,
       updatedAt: feed.updatedAt,
-      total: activeBonuses.length,
-      data: activeBonuses,
-      message: activeBonuses.length === 0
-        ? 'Inbox bonus feed is empty or no active email bonuses are available.'
-        : undefined,
+      total: suppression.entries.length,
+      data: suppression.entries,
+      message,
+      suppression: {
+        active: suppression.active,
+        hiddenCount: suppression.hiddenCount,
+      },
     });
   } catch (error) {
     console.error('[Bonuses] Failed to load inbox bonus feed:', error);

@@ -1,11 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * Last Updated: 2026-04-19
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 
 /* Prevent horizontal overflow globally */
 html, body {
@@ -1900,6 +1893,15 @@ header {
 .vault-status-badge.unlocked { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border-subtle); }
 .vault-amount { font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem; }
 .vault-countdown { font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; }
+.vault-release-summary { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; }
+.vault-schedule-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.vault-schedule-item { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.65rem 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; }
+.vault-schedule-copy { display: flex; flex-direction: column; gap: 0.2rem; }
+.vault-schedule-title { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+.vault-schedule-meta { font-size: 0.76rem; color: var(--text-muted); }
+.vault-schedule-status { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; align-self: center; padding: 4px 8px; border-radius: 999px; }
+.vault-schedule-status.pending { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+.vault-schedule-status.released { background: rgba(34, 211, 166, 0.15); color: var(--color-primary); }
 .profit-guard-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-subtle); }
 .vault-label { font-size: 0.8rem; color: var(--text-muted); }
 .vault-quick-actions { display: flex; gap: 0.5rem; }
@@ -1921,6 +1923,13 @@ header {
 .lock-form { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
 .form-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.staged-toggle-row { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-transform: none; letter-spacing: 0; color: var(--text-primary); }
+.form-helper { margin: 0.35rem 0 0; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.vault-staged-config { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.9rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(255,255,255,0.02); }
+.vault-staged-rows { display: flex; flex-direction: column; gap: 0.75rem; }
+.vault-stage-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr) auto; gap: 0.5rem; align-items: end; }
+.vault-stage-row .input { min-width: 0; }
+.vault-stage-remove-btn { white-space: nowrap; }
 
 .input { background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); padding: 0.6rem 0.75rem; font-size: 0.875rem; outline: none; transition: border-color 0.2s; width: 100%; }
 .input:focus { border-color: var(--color-primary); }

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 
 "use client";
 
@@ -208,9 +208,9 @@ export default function TouchGrassPage() {
               className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
               <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">TOOL</div>
-              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Provably Fair Checker</h3>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Manual Bet Verifier</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Verify every game result from your last session. Find out if you actually got rinsed or if the math just hates you today.
+                Re-run the raw HMAC math for one bet from your last session. Good for receipts. Not a seed hygiene audit or full trust read.
               </p>
               <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Run Check →</div>
             </a>

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 
 import {
   SlashCommandBuilder,
@@ -9,9 +9,7 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import type { Command } from '../types.js';
-
-const COLLECTCLOCK_URL =
-  'https://raw.githubusercontent.com/TiltCheck-ME/CollectClock/main/bonus-data.json';
+import { config } from '../config.js';
 
 const MAX_RESULTS = 10;
 
@@ -23,14 +21,32 @@ interface BonusEntry {
   code: string | null;
 }
 
-async function fetchBonuses(): Promise<BonusEntry[]> {
-  const res = await fetch(COLLECTCLOCK_URL, {
-    headers: { 'Cache-Control': 'no-cache' },
+interface BonusFeedResponse {
+  data?: BonusEntry[];
+  suppression?: {
+    active?: boolean;
+    hiddenCount?: number;
+  };
+}
+
+async function fetchBonuses(discordId: string): Promise<{ entries: BonusEntry[]; hiddenCount: number }> {
+  const url = new URL('/bonuses', config.backendUrl);
+  url.searchParams.set('discordId', discordId);
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      'Cache-Control': 'no-cache',
+      'x-internal-secret': config.internalApiSecret,
+    },
   });
   if (!res.ok) {
-    throw new Error(`CollectClock responded with HTTP ${res.status}`);
+    throw new Error(`Bonus API responded with HTTP ${res.status}`);
   }
-  return (await res.json()) as BonusEntry[];
+  const body = await res.json() as BonusFeedResponse;
+  return {
+    entries: Array.isArray(body.data) ? body.data : [],
+    hiddenCount: Math.max(0, Number(body.suppression?.hiddenCount ?? 0)),
+  };
 }
 
 export const bonuses: Command = {
@@ -50,11 +66,14 @@ export const bonuses: Command = {
     const filter = interaction.options.getString('filter')?.toLowerCase().trim() ?? null;
 
     let data: BonusEntry[];
+    let hiddenCount: number;
     try {
-      data = await fetchBonuses();
+      const response = await fetchBonuses(interaction.user.id);
+      data = response.entries;
+      hiddenCount = response.hiddenCount;
     } catch {
       await interaction.editReply(
-        '[ERROR] Failed to retrieve bonus data from CollectClock. Try again shortly.'
+        '[ERROR] Failed to retrieve bonus data from the TiltCheck bonus feed. Try again shortly.'
       );
       return;
     }
@@ -65,8 +84,10 @@ export const bonuses: Command = {
 
     if (data.length === 0) {
       const msg = filter
-        ? `[NO RESULTS] No bonuses found matching "${filter}".`
-        : '[NO RESULTS] No bonus data available at this time.';
+        ? `[NO RESULTS] No bonuses found matching "${filter}".${hiddenCount > 0 ? ` ${hiddenCount} hidden by your active filters.` : ''}`
+        : hiddenCount > 0
+          ? `[NO RESULTS] ${hiddenCount} matching casinos are hidden by your active filters.`
+          : '[NO RESULTS] No bonus data available at this time.';
       await interaction.editReply(msg);
       return;
     }
@@ -87,6 +108,9 @@ export const bonuses: Command = {
     descLines.push(
       `Showing ${results.length} of ${totalCount} result${totalCount !== 1 ? 's' : ''}.`
     );
+    if (hiddenCount > 0) {
+      descLines.push(`${hiddenCount} hidden by your active filters.`);
+    }
     embed.setDescription(descLines.join('\n'));
 
     for (const entry of results) {

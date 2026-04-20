@@ -63,10 +63,28 @@ describe('user-dashboard safety control routes', () => {
         locks: [
           {
             id: 'v-active',
-            status: 'locked',
+            status: 'partially-unlocked',
             unlockAt: Date.now() + 60_000,
             createdAt: Date.now() - 60_000,
             lockedAmountSOL: 1.25,
+            lockedRemainderSOL: 0.75,
+            releasedAmountSOL: 0.5,
+            availableToWithdrawSOL: 0.5,
+            nextUnlockAt: new Date(Date.now() + 60_000).toISOString(),
+            unlockSchedule: [
+              {
+                id: 't1',
+                amountSOL: 0.5,
+                unlockAt: new Date(Date.now() - 30_000).toISOString(),
+                status: 'released',
+              },
+              {
+                id: 't2',
+                amountSOL: 0.75,
+                unlockAt: new Date(Date.now() + 60_000).toISOString(),
+                status: 'pending',
+              },
+            ],
           },
           {
             id: 'v-old',
@@ -97,14 +115,19 @@ describe('user-dashboard safety control routes', () => {
       }),
     );
     expect(res.body.locked).toBe(true);
-    expect(res.body.amount).toBeCloseTo(1.25, 6);
+    expect(res.body.amount).toBeCloseTo(0.75, 6);
     expect(res.body.balance).toBeCloseTo(4.5, 6);
+    expect(res.body.availableToWithdrawSOL).toBeCloseTo(0.5, 6);
+    expect(res.body.unlockSchedule).toHaveLength(2);
     expect(res.body.walletLock.locked).toBe(true);
     expect(Array.isArray(res.body.history)).toBe(true);
+    expect(res.body.guardianIds).toEqual([]);
+    expect(res.body.approvalThreshold).toBe(0);
+    expect(res.body.primaryGuardianId).toBeNull();
     expect(res.body.secondOwnerId).toBeNull();
   });
 
-  it('forwards lock requests to the canonical vault API contract', async () => {
+  it('forwards lock requests and staged unlock schedules to the canonical vault API contract', async () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
       success: true,
       vault: {
@@ -121,7 +144,13 @@ describe('user-dashboard safety control routes', () => {
     const res = await request(app)
       .post('/api/user/u1/vault/lock')
       .set('Authorization', 'Bearer test-token')
-      .send({ amountSol: 1.5, durationMs: 3_600_000 });
+      .send({
+        amountSol: 1.5,
+        durationMs: 3_600_000,
+        unlockSchedule: [
+          { amount: 0.5, offsetMinutes: 30, label: 'first cut' },
+        ],
+      });
 
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledWith(
@@ -132,6 +161,9 @@ describe('user-dashboard safety control routes', () => {
           amount: 1.5,
           durationMinutes: 60,
           reason: 'Dashboard safety lock',
+          unlockSchedule: [
+            { amount: 0.5, offsetMinutes: 30, label: 'first cut' },
+          ],
         }),
       }),
     );
@@ -198,6 +230,42 @@ describe('user-dashboard safety control routes', () => {
     expect(res.body.data.modes).toHaveLength(2);
   });
 
+  it('forwards guardian configuration requests to the canonical vault API', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      success: true,
+      vault: {
+        id: 'v1',
+        guardianIds: ['g1', 'g2', 'g3'],
+        approvalThreshold: 2,
+      },
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const { app } = await import('../src/index.js');
+    const res = await request(app)
+      .post('/api/user/u1/vault/guardians')
+      .set('Authorization', 'Bearer test-token')
+      .send({
+        guardianIds: ['g1', 'g2', 'g3'],
+        approvalThreshold: 2,
+      });
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.test/vault/u1/guardians',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          guardianIds: ['g1', 'g2', 'g3'],
+          approvalThreshold: 2,
+        }),
+      }),
+    );
+    expect(res.body.success).toBe(true);
+  });
+
   it('forwards withdrawal approval queue requests to the canonical vault API', async () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
       success: true,
@@ -206,9 +274,14 @@ describe('user-dashboard safety control routes', () => {
           id: 'v1',
           userId: 'owner-1',
           lockedAmountSOL: 2,
+          guardianIds: ['u1', 'u2', 'u3'],
+          approvalThreshold: 2,
           withdrawalProposal: {
             amountSOL: 0.5,
             status: 'pending',
+            approvalThreshold: 2,
+            approvalCount: 1,
+            pendingGuardianIds: ['u1', 'u3'],
           },
         },
       ],
@@ -232,7 +305,7 @@ describe('user-dashboard safety control routes', () => {
     expect(res.body.approvals).toHaveLength(1);
   });
 
-  it('forwards approval decisions for assigned co-owners', async () => {
+  it('forwards approval decisions for assigned withdrawal guardians', async () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
       success: true,
       vault: {

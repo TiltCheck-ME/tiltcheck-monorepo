@@ -27,6 +27,7 @@ const lockvaultMock = vi.hoisted(() => ({
   approveAdminWalletUnlockForUser: vi.fn(),
   requestPaidWalletUnlockForUser: vi.fn(),
   settlePaidWalletUnlockForUser: vi.fn(),
+  setVaultGuardians: vi.fn(),
   addSecondOwner: vi.fn(),
   getWithdrawalApprovalsForUser: vi.fn(),
   initiateWithdrawal: vi.fn(),
@@ -57,8 +58,26 @@ describe('Vault Routes', () => {
     lockvaultMock.getVaultBalance.mockReturnValue(0);
     lockvaultMock.getVaultStatus.mockReturnValue([]);
     lockvaultMock.depositToVault.mockReturnValue(10);
-    lockvaultMock.lockVault.mockResolvedValue({ id: 'v1' });
-    lockvaultMock.unlockVault.mockReturnValue({ id: 'v1', lockedAmountSOL: 1.23 });
+    lockvaultMock.lockVault.mockResolvedValue({
+      id: 'v1',
+      status: 'locked',
+      createdAt: Date.now(),
+      unlockAt: Date.now() + 60 * 60_000,
+      lockedAmountSOL: 1.5,
+      releasedAmountSOL: 0,
+      originalLockedAmountSOL: 1.5,
+      withdrawnAmountSOL: 0,
+    });
+    lockvaultMock.unlockVault.mockReturnValue({
+      id: 'v1',
+      status: 'unlocked',
+      createdAt: Date.now(),
+      unlockAt: Date.now() - 1000,
+      lockedAmountSOL: 1.23,
+      releasedAmountSOL: 1.23,
+      originalLockedAmountSOL: 1.23,
+      withdrawnAmountSOL: 0,
+    });
     lockvaultMock.getWalletActionLockStatus.mockReturnValue({ locked: false });
     lockvaultMock.requestAdminWalletUnlockForUser.mockReturnValue({
       userId: 'user-1',
@@ -72,18 +91,58 @@ describe('Vault Routes', () => {
       createdAt: Date.now(),
       earlyUnlockRequest: { mode: 'admin_approval', status: 'approved' },
     });
+    lockvaultMock.setVaultGuardians.mockResolvedValue({
+      id: 'v1',
+      guardianIds: ['user-2', 'user-3'],
+      approvalThreshold: 2,
+    });
     lockvaultMock.addSecondOwner.mockResolvedValue({ id: 'v1', secondOwnerId: 'user-2' });
     lockvaultMock.getWithdrawalApprovalsForUser.mockReturnValue([]);
-    lockvaultMock.initiateWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'pending' } });
-    lockvaultMock.approveWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'approved' } });
+    lockvaultMock.initiateWithdrawal.mockResolvedValue({
+      id: 'v1',
+      guardianIds: ['user-2', 'user-3'],
+      approvalThreshold: 2,
+      withdrawalProposal: {
+        status: 'pending',
+        guardianIds: ['user-2', 'user-3'],
+        approvalThreshold: 2,
+        approvals: [],
+      },
+    });
+    lockvaultMock.approveWithdrawal.mockResolvedValue({
+      id: 'v1',
+      guardianIds: ['user-2', 'user-3'],
+      approvalThreshold: 2,
+      withdrawalProposal: {
+        status: 'approved',
+        guardianIds: ['user-2', 'user-3'],
+        approvalThreshold: 2,
+        approvals: [
+          { guardianId: 'user-2', approvedAt: Date.now() - 1000 },
+          { guardianId: 'user-3', approvedAt: Date.now() },
+        ],
+        approvedBy: 'user-3',
+      },
+    });
     lockvaultMock.executeWithdrawal.mockResolvedValue({
       id: 'v1',
       lockedAmountSOL: 0.5,
+      releasedAmountSOL: 0.5,
+      originalLockedAmountSOL: 1.25,
+      withdrawnAmountSOL: 0.75,
+      guardianIds: ['user-2', 'user-3'],
+      approvalThreshold: 2,
       withdrawalProposal: {
         status: 'executed',
         executionRequestId: 'req-1',
         amountSOL: 0.75,
         executedBy: 'user-1',
+        guardianIds: ['user-2', 'user-3'],
+        approvalThreshold: 2,
+        approvals: [
+          { guardianId: 'user-2', approvedAt: Date.now() - 1000 },
+          { guardianId: 'user-3', approvedAt: Date.now() },
+        ],
       },
     });
   });
@@ -95,11 +154,29 @@ describe('Vault Routes', () => {
 
   it('returns vault balance and locks for owner', async () => {
     lockvaultMock.getVaultBalance.mockReturnValue(12.5);
-    lockvaultMock.getVaultStatus.mockReturnValue([{ id: 'v1' }]);
+    lockvaultMock.getVaultStatus.mockReturnValue([{
+      id: 'v1',
+      guardianIds: ['user-2', 'user-3'],
+      approvalThreshold: 2,
+      withdrawalProposal: {
+        status: 'pending',
+        amountSOL: 0.75,
+        guardianIds: ['user-2', 'user-3'],
+        approvalThreshold: 2,
+        approvals: [
+          { guardianId: 'user-2', approvedAt: Date.now() - 1000 },
+        ],
+      },
+    }]);
     const res = await request(app).get('/vault/user-1');
     expect(res.status).toBe(200);
     expect(res.body.vault.balance).toBe(12.5);
     expect(res.body.vault.locks).toHaveLength(1);
+    expect(res.body.vault.locks[0].guardianIds).toEqual(['user-2', 'user-3']);
+    expect(res.body.vault.locks[0].approvalThreshold).toBe(2);
+    expect(res.body.vault.locks[0].primaryGuardianId).toBe('user-2');
+    expect(res.body.vault.locks[0].withdrawalProposal.approvalCount).toBe(1);
+    expect(res.body.vault.locks[0].withdrawalProposal.pendingGuardianIds).toEqual(['user-3']);
     expect(res.body.walletLock.locked).toBe(false);
   });
 
@@ -150,6 +227,24 @@ describe('Vault Routes', () => {
     expect(res.status).toBe(409);
     expect(res.body.code).toBe('LOCKVAULT_IDENTITY_REQUIRED');
     expect(res.body.error).toMatch(/linked wallet or Degen Identity/i);
+  });
+
+  it('forwards staged unlock schedule rows to lockVault', async () => {
+    const res = await request(app).post('/vault/user-1/lock').send({
+      amount: 10,
+      durationMinutes: 120,
+      unlockSchedule: [
+        { amount: 3, offsetMinutes: 60, label: 'midpoint' },
+      ],
+    });
+
+    expect(res.status).toBe(200);
+    expect(lockvaultMock.lockVault).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'user-1',
+      unlockSchedule: [
+        { amountRaw: '3 SOL', offsetMinutes: 60, label: 'midpoint' },
+      ],
+    }));
   });
 
   it('does not report unlocked vault-status as actively locked', async () => {
@@ -259,13 +354,22 @@ describe('Vault Routes', () => {
     expect(res.body.code).toBe('FEATURE_NOT_IMPLEMENTED');
   });
 
-  it('adds a second owner for an authenticated user', async () => {
+  it('configures guardians and threshold for an authenticated user', async () => {
+    const res = await request(app).post('/vault/user-1/guardians').send({
+      guardianIds: ['user-2', 'user-3', 'user-4'],
+      approvalThreshold: 2,
+    });
+    expect(res.status).toBe(200);
+    expect(lockvaultMock.setVaultGuardians).toHaveBeenCalledWith('user-1', ['user-2', 'user-3', 'user-4'], 2);
+  });
+
+  it('keeps the legacy second-owner alias working for an authenticated user', async () => {
     const res = await request(app).post('/vault/user-1/add-second-owner').send({ secondOwnerId: 'user-2' });
     expect(res.status).toBe(200);
     expect(lockvaultMock.addSecondOwner).toHaveBeenCalledWith('user-1', 'user-2');
   });
 
-  it('returns 501 when second-owner feature is flagged as not implemented', async () => {
+  it('returns 501 when the legacy second-owner alias is flagged as not implemented', async () => {
     const err = createVaultError('not implemented', 'FEATURE_NOT_IMPLEMENTED', 501);
     lockvaultMock.addSecondOwner.mockRejectedValueOnce(err);
     const res = await request(app).post('/vault/user-1/add-second-owner').send({ secondOwnerId: 'user-2' });
@@ -292,7 +396,7 @@ describe('Vault Routes', () => {
     expect(executeRes.body.executionRequestId).toBe('req-1');
   });
 
-  it('lists approvals assigned to the authenticated co-owner', async () => {
+  it('lists approvals assigned to the authenticated withdrawal guardian', async () => {
     lockvaultMock.getWithdrawalApprovalsForUser.mockReturnValueOnce([
       {
         id: 'v1',
@@ -302,11 +406,17 @@ describe('Vault Routes', () => {
         unlockAt: Date.now() + 60_000,
         createdAt: Date.now() - 60_000,
         lockedAmountSOL: 2.25,
-        secondOwnerId: 'user-1',
+        guardianIds: ['user-1', 'user-2', 'user-3'],
+        approvalThreshold: 2,
         withdrawalProposal: {
           amountSOL: 0.75,
           initiatedAt: Date.now() - 10_000,
           status: 'pending',
+          guardianIds: ['user-1', 'user-2', 'user-3'],
+          approvalThreshold: 2,
+          approvals: [
+            { guardianId: 'user-2', approvedAt: Date.now() - 5000 },
+          ],
         },
       },
     ]);
@@ -317,5 +427,7 @@ describe('Vault Routes', () => {
     expect(lockvaultMock.getWithdrawalApprovalsForUser).toHaveBeenCalledWith('user-1');
     expect(res.body.approvals).toHaveLength(1);
     expect(res.body.approvals[0].userId).toBe('user-9');
+    expect(res.body.approvals[0].withdrawalProposal.approvalCount).toBe(1);
+    expect(res.body.approvals[0].withdrawalProposal.pendingGuardianIds).toEqual(['user-1', 'user-3']);
   });
 });

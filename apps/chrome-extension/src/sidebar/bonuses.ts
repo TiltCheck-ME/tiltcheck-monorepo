@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 
 import { SidebarUI } from './types.js';
 
@@ -33,11 +33,21 @@ interface BonusCache {
   fetchedAt: number;
 }
 
+interface BonusApiResponse {
+  data?: unknown[];
+  bonuses?: unknown[];
+  suppression?: {
+    active?: boolean;
+    hiddenCount?: number;
+  };
+}
+
 export class BonusManager {
   private ui: SidebarUI;
   private bonuses: BonusEntry[] = [];
   private loading = false;
   private expanded = false;
+  private hiddenCount = 0;
 
   constructor(ui: SidebarUI) {
     this.ui = ui;
@@ -83,9 +93,11 @@ export class BonusManager {
       }
 
       const data = await this.fetchFromNetwork();
-      if (data && data.length > 0) {
+      if (data) {
         this.bonuses = data;
-        await this.setCache(data);
+        if (data.length > 0) {
+          await this.setCache(data);
+        }
         this.render();
       } else {
         this.setStatus('No bonus data available.');
@@ -99,17 +111,24 @@ export class BonusManager {
   }
 
   private async fetchFromNetwork(): Promise<BonusEntry[] | null> {
+    const authToken = await this.getAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : undefined;
+
     // Try primary endpoint first, fall back to CollectClock GitHub data
     try {
-      const resp = await fetch(BONUSES_PRIMARY_URL, { signal: AbortSignal.timeout(6000) });
+      const resp = await fetch(BONUSES_PRIMARY_URL, { headers, signal: AbortSignal.timeout(6000) });
       if (resp.ok) {
-        const json = await resp.json();
+        const json = await resp.json() as BonusApiResponse;
+        this.hiddenCount = Math.max(0, Number(json?.suppression?.hiddenCount ?? 0));
         const entries = this.normalizeResponse(json);
         if (entries.length > 0) return entries;
+        if (this.hiddenCount > 0) return [];
       }
     } catch {
       // Primary failed — fall through to fallback
     }
+
+    this.hiddenCount = 0;
 
     try {
       const resp = await fetch(BONUSES_FALLBACK_URL, { signal: AbortSignal.timeout(8000) });
@@ -126,11 +145,12 @@ export class BonusManager {
 
   /**
    * Normalize API responses to BonusEntry[]. Handles both shapes:
+   *   - { data: [...] }
    *   - { bonuses: [...] }
    *   - [...]
    */
   private normalizeResponse(json: any): BonusEntry[] {
-    const raw: any[] = Array.isArray(json) ? json : (json?.bonuses ?? []);
+    const raw: any[] = Array.isArray(json) ? json : (json?.data ?? json?.bonuses ?? []);
     return raw
       .filter((item: any) => item && typeof item.brand === 'string')
       .map((item: any): BonusEntry => ({
@@ -151,7 +171,9 @@ export class BonusManager {
     if (!list) return;
 
     if (this.bonuses.length === 0) {
-      list.innerHTML = '<div class="tg-bonus-empty">No bonuses found.</div>';
+      list.innerHTML = this.hiddenCount > 0
+        ? `<div class="tg-bonus-empty">All matching bonuses are hidden by your active filters. ${this.hiddenCount} suppressed.</div>`
+        : '<div class="tg-bonus-empty">No bonuses found.</div>';
       return;
     }
 
@@ -167,7 +189,10 @@ export class BonusManager {
         </div>
       `
       )
-      .join('');
+      .join('')
+      + (this.hiddenCount > 0
+        ? `<div class="tg-bonus-empty">${this.hiddenCount} hidden by your active filters.</div>`
+        : '');
   }
 
   private renderClaimAction(claimUrl?: string): string {
@@ -249,5 +274,15 @@ export class BonusManager {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  private async getAuthToken(): Promise<string | null> {
+    try {
+      const result = await this.ui.getStorage(['authToken']);
+      const token = typeof result['authToken'] === 'string' ? result['authToken'].trim() : '';
+      return token || null;
+    } catch {
+      return null;
+    }
   }
 }

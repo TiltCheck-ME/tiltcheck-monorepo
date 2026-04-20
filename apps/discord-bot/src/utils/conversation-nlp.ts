@@ -37,7 +37,7 @@ export function detectConversationIntent(message: string): ConversationIntent {
 export function buildPersonaReply(intent: ConversationIntent): string {
   switch (intent) {
     case 'safety':
-      return 'On it. `/status` audits your session, `/cooldown` locks you out, `/scan` checks a link, `/casino` rates a site. Run `/help` for the rest.';
+      return 'On it. `/session status` audits your session, `/session cooldown` locks you out, `/scan` checks a link, `/casino` rates a site. Run `/help` for the rest.';
     case 'help':
       return 'TiltCheck — the reluctant babysitter for degens. Run `/help` for the full command map. Tipping lives in JustTheTip bot. Card games live in Degens Against Decency bot.';
     case 'tip':
@@ -45,7 +45,7 @@ export function buildPersonaReply(intent: ConversationIntent): string {
     case 'deposit':
       return 'Deposits run through JustTheTip bot. Non-custodial — your keys, your funds, your regrets.';
     case 'withdraw':
-      return 'Withdrawals are in JustTheTip bot. While you\'re here: `/status` to make sure you\'re actually up before you cash out.';
+      return 'Withdrawals are in JustTheTip bot. While you\'re here: `/session status` to make sure you\'re actually up before you cash out.';
     case 'wallet':
       return 'Wallet registration for tips is in JustTheTip bot. For trust scoring and session tracking, use `/linkwallet` here. Different wallets, different purpose.';
     case 'game':

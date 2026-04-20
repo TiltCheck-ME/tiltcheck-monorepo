@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 
 'use strict';
 
@@ -10,16 +10,24 @@ let ws = null;
 let vaultState = {
     locked: false,
     unlockAt: null,
+    finalUnlockAt: null,
     amount: 0,
     balance: 0,
     activeLock: null,
     latestVault: null,
-    secondOwnerId: null,
+    guardianIds: [],
+    approvalThreshold: 0,
+    secondOwnerId: null, // legacy single-guardian alias from older API payloads
     withdrawalProposal: null,
-    readyToRelease: false
+    readyToRelease: false,
+    releasedAmountSOL: 0,
+    availableToWithdrawSOL: 0,
+    lockedRemainderSOL: 0,
+    unlockSchedule: []
 };
 let walletLockState = { locked: false, lockUntil: null, remainingMs: 0, reason: null, earlyUnlockRequest: null };
 let vaultApprovalQueue = [];
+let stagedUnlockRows = [];
 let exclusions = [];
 let vaultRules = [];
 let exclusionTaxonomy = {
@@ -518,17 +526,30 @@ async function loadVaults() {
         const res = await apiRequest(`/api/user/${currentUser.discordId}/vault`);
         if (!res.ok) return;
         const data = await res.json();
+        const guardianIds = Array.isArray(data.guardianIds)
+            ? data.guardianIds
+            : (data.primaryGuardianId || data.secondOwnerId)
+                ? [data.primaryGuardianId || data.secondOwnerId]
+                : [];
+        const approvalThreshold = Number(data.approvalThreshold ?? 0);
 
         vaultState = {
             locked: data.locked ?? false,
             unlockAt: data.unlockAt ? new Date(data.unlockAt) : null,
+            finalUnlockAt: data.finalUnlockAt ? new Date(data.finalUnlockAt) : (data.unlockAt ? new Date(data.unlockAt) : null),
             amount: data.amount ?? 0,
             balance: data.balance ?? 0,
             activeLock: data.activeLock ?? null,
             latestVault: data.latestVault ?? null,
-            secondOwnerId: data.secondOwnerId ?? null,
+            guardianIds,
+            approvalThreshold: approvalThreshold > 0 ? approvalThreshold : guardianIds.length,
+            secondOwnerId: data.secondOwnerId ?? data.primaryGuardianId ?? null,
             withdrawalProposal: data.withdrawalProposal ?? null,
-            readyToRelease: Boolean(data.unlockAt && new Date(data.unlockAt).getTime() <= Date.now())
+            readyToRelease: Boolean(data.availableToWithdrawSOL > 0 || data.readyToRelease),
+            releasedAmountSOL: Number(data.releasedAmountSOL ?? 0),
+            availableToWithdrawSOL: Number(data.availableToWithdrawSOL ?? data.releasedAmountSOL ?? 0),
+            lockedRemainderSOL: Number(data.lockedRemainderSOL ?? data.amount ?? 0),
+            unlockSchedule: Array.isArray(data.unlockSchedule) ? data.unlockSchedule : []
         };
 
         renderVaultStatus();
@@ -549,6 +570,29 @@ async function loadVaults() {
     } catch (err) { console.error('[Vault]', err); }
 }
 
+function formatVaultUnlockMoment(value) {
+    if (!value) return 'No timer';
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return 'No timer';
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function parseGuardianIdsInput(value) {
+    return Array.from(new Set(String(value || '')
+        .split(/[\s,]+/)
+        .map((entry) => entry.trim())
+        .filter(Boolean)));
+}
+
+function formatGuardianIdsInput(guardianIds) {
+    return Array.isArray(guardianIds) ? guardianIds.join('\n') : '';
+}
+
+function formatGuardianRoster(guardianIds) {
+    if (!Array.isArray(guardianIds) || guardianIds.length === 0) return 'No withdrawal guardians set';
+    return guardianIds.join(', ');
+}
+
 async function loadVaultApprovals() {
     try {
         const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/approvals`);
@@ -565,30 +609,77 @@ function renderVaultStatus() {
     const badge = document.getElementById('vault-status-label');
     const amountEl = document.getElementById('vault-locked-amount');
     const countdownEl = document.getElementById('vault-countdown');
+    const releaseSummaryEl = document.getElementById('vault-release-summary');
+    const scheduleEl = document.getElementById('vault-schedule-status');
     const extendBtn = document.getElementById('vault-extend-btn');
     const unlockBtn = document.getElementById('vault-unlock-btn');
+    const hasSchedule = Array.isArray(vaultState.unlockSchedule) && vaultState.unlockSchedule.length > 0;
+    const hasReleasedFunds = Number(vaultState.availableToWithdrawSOL || 0) > 0;
+    const hasLockedRemainder = Number(vaultState.lockedRemainderSOL || 0) > 0;
 
     if (!badge) return;
 
     if (vaultState.locked && vaultState.unlockAt) {
-        badge.textContent = 'LOCKED';
+        badge.textContent = hasReleasedFunds ? 'PARTIAL RELEASE' : (hasSchedule ? 'STAGED LOCK' : 'LOCKED');
         badge.className = 'vault-status-badge locked';
-        if (amountEl) { amountEl.textContent = vaultState.amount.toFixed(3) + ' SOL locked'; amountEl.style.display = 'block'; }
+        if (amountEl) {
+            amountEl.textContent = `${Number(vaultState.lockedRemainderSOL || vaultState.amount).toFixed(3)} SOL still locked`;
+            amountEl.style.display = 'block';
+        }
         if (countdownEl) countdownEl.style.display = 'block';
         if (extendBtn) extendBtn.style.display = 'inline-block';
         if (unlockBtn) {
-            unlockBtn.style.display = vaultState.readyToRelease ? 'inline-block' : 'none';
-            unlockBtn.textContent = vaultState.readyToRelease ? 'Release Ready Lock' : 'Release Unavailable';
+            unlockBtn.style.display = hasReleasedFunds ? 'inline-block' : 'none';
+            unlockBtn.textContent = 'Review Released Amount';
         }
         startVaultCountdown(vaultState.unlockAt);
+        if (releaseSummaryEl) {
+            releaseSummaryEl.style.display = 'block';
+            releaseSummaryEl.textContent = hasReleasedFunds
+                ? `${Number(vaultState.availableToWithdrawSOL).toFixed(3)} SOL is already released. ${Number(vaultState.lockedRemainderSOL).toFixed(3)} SOL stays locked until later tranches clear.`
+                : hasSchedule
+                    ? `Next release hits ${formatVaultUnlockMoment(vaultState.unlockAt)}. Final lock expiry is ${formatVaultUnlockMoment(vaultState.finalUnlockAt)}.`
+                    : `Nothing releases early. Full amount clears at ${formatVaultUnlockMoment(vaultState.finalUnlockAt)}.`;
+        }
     } else {
         badge.textContent = 'UNLOCKED';
         badge.className = 'vault-status-badge unlocked';
-        if (amountEl) amountEl.style.display = 'none';
+        if (amountEl) {
+            if (vaultState.latestVault) {
+                amountEl.textContent = `${Number(vaultState.availableToWithdrawSOL || vaultState.balance || 0).toFixed(3)} SOL available`;
+                amountEl.style.display = 'block';
+            } else {
+                amountEl.style.display = 'none';
+            }
+        }
         if (countdownEl) countdownEl.style.display = 'none';
         if (extendBtn) extendBtn.style.display = 'none';
-        if (unlockBtn) unlockBtn.style.display = 'none';
+        if (unlockBtn) unlockBtn.style.display = hasReleasedFunds ? 'inline-block' : 'none';
         if (vaultCountdownTimer) { clearInterval(vaultCountdownTimer); vaultCountdownTimer = null; }
+        if (releaseSummaryEl) {
+            releaseSummaryEl.style.display = vaultState.latestVault ? 'block' : 'none';
+            releaseSummaryEl.textContent = vaultState.latestVault
+                ? `${Number(vaultState.availableToWithdrawSOL || vaultState.balance || 0).toFixed(3)} SOL is clear for withdrawal.`
+                : '';
+        }
+    }
+
+    if (scheduleEl) {
+        if (hasSchedule) {
+            scheduleEl.style.display = 'flex';
+            scheduleEl.innerHTML = vaultState.unlockSchedule.map((tranche) => `
+                <div class="vault-schedule-item">
+                    <div class="vault-schedule-copy">
+                        <div class="vault-schedule-title">${Number(tranche.amountSOL || 0).toFixed(3)} SOL${tranche.label ? ` · ${escapeHtml(tranche.label)}` : ''}</div>
+                        <div class="vault-schedule-meta">${tranche.status === 'released' ? `Released ${timeAgo(tranche.releasedAt || tranche.unlockAt)}` : `Unlocks ${timeUntil(tranche.unlockAt)}`} · ${formatVaultUnlockMoment(tranche.unlockAt)}</div>
+                    </div>
+                    <span class="vault-schedule-status ${escapeHtml(tranche.status || 'pending')}">${String(tranche.status || 'pending').toUpperCase()}</span>
+                </div>
+            `).join('');
+        } else {
+            scheduleEl.style.display = 'none';
+            scheduleEl.innerHTML = '';
+        }
     }
 }
 
@@ -605,19 +696,44 @@ function startVaultCountdown(unlockDate) {
 }
 
 function renderWithdrawalManager() {
-    const secondOwnerInput = document.getElementById('vault-second-owner-input');
+    const guardianIdsInput = document.getElementById('vault-guardian-ids-input');
+    const approvalThresholdInput = document.getElementById('vault-approval-threshold-input');
     const amountInput = document.getElementById('vault-withdrawal-amount-input');
     const summaryEl = document.getElementById('vaultApprovalSummary');
     const requestBtn = document.getElementById('vault-initiate-withdrawal-btn');
     const executeBtn = document.getElementById('vault-execute-withdrawal-btn');
     const proposal = vaultState.withdrawalProposal;
     const latestVault = vaultState.latestVault;
-    const secondOwnerId = vaultState.secondOwnerId || latestVault?.secondOwnerId || '';
-    const isUnlocked = latestVault?.status === 'unlocked' || (!vaultState.locked && latestVault);
+    const guardianIds = Array.isArray(vaultState.guardianIds) && vaultState.guardianIds.length > 0
+        ? vaultState.guardianIds
+        : Array.isArray(latestVault?.guardianIds) && latestVault.guardianIds.length > 0
+            ? latestVault.guardianIds
+            : vaultState.secondOwnerId || latestVault?.primaryGuardianId || latestVault?.secondOwnerId
+                ? [vaultState.secondOwnerId || latestVault?.primaryGuardianId || latestVault?.secondOwnerId]
+                : [];
+    const approvalThresholdRaw = Number(
+        latestVault?.approvalThreshold
+        ?? proposal?.approvalThreshold
+        ?? vaultState.approvalThreshold
+    );
+    const approvalThreshold = approvalThresholdRaw > 0 ? approvalThresholdRaw : guardianIds.length;
+    const availableToWithdrawSOL = Number(latestVault?.availableToWithdrawSOL ?? vaultState.availableToWithdrawSOL ?? 0);
+    const lockedRemainderSOL = Number(latestVault?.lockedRemainderSOL ?? vaultState.lockedRemainderSOL ?? 0);
+    const isUnlocked = latestVault?.status === 'unlocked' || latestVault?.status === 'partially-unlocked' || (!vaultState.locked && latestVault);
     const hasActiveProposal = proposal && ['pending', 'approved', 'execution-pending'].includes(proposal.status);
+    const approvedGuardianIds = Array.isArray(proposal?.approvals)
+        ? proposal.approvals.map((approval) => approval.guardianId).filter(Boolean)
+        : [];
+    const pendingGuardianIds = Array.isArray(proposal?.pendingGuardianIds)
+        ? proposal.pendingGuardianIds
+        : guardianIds.filter((guardianId) => !approvedGuardianIds.includes(guardianId));
 
-    if (secondOwnerInput) {
-        secondOwnerInput.value = secondOwnerId;
+    if (guardianIdsInput) {
+        guardianIdsInput.value = formatGuardianIdsInput(guardianIds);
+    }
+
+    if (approvalThresholdInput) {
+        approvalThresholdInput.value = approvalThreshold > 0 ? String(approvalThreshold) : (guardianIds.length > 0 ? String(guardianIds.length) : '1');
     }
 
     if (amountInput && !amountInput.value && proposal?.amountSOL) {
@@ -625,7 +741,7 @@ function renderWithdrawalManager() {
     }
 
     if (requestBtn) {
-        requestBtn.disabled = !latestVault || !isUnlocked || !secondOwnerId || Boolean(hasActiveProposal);
+        requestBtn.disabled = !latestVault || !isUnlocked || guardianIds.length === 0 || approvalThreshold <= 0 || availableToWithdrawSOL <= 0 || Boolean(hasActiveProposal);
     }
 
     if (executeBtn) {
@@ -635,35 +751,35 @@ function renderWithdrawalManager() {
     if (!summaryEl) return;
 
     if (!latestVault) {
-        summaryEl.textContent = 'No vault record yet. Lock funds first, then add a co-owner before requesting a withdrawal.';
+        summaryEl.textContent = 'No vault record yet. Lock funds first, then add withdrawal guardians before requesting a withdrawal.';
         return;
     }
 
-    if (!secondOwnerId) {
-        summaryEl.textContent = 'Add a co-owner Discord ID first. Without that second signer, this flow stays shut.';
+    if (guardianIds.length === 0) {
+        summaryEl.textContent = 'Add at least one withdrawal guardian Discord ID first. No withdrawal guardian approvals, no withdrawal.';
         return;
     }
 
     if (!proposal) {
         summaryEl.textContent = isUnlocked
-            ? `Co-owner ${secondOwnerId} is set. Request a withdrawal when you are ready to move funds out of the current LockVault record.`
-            : `Co-owner ${secondOwnerId} is set. The vault still has to unlock before a withdrawal request can start.`;
+            ? `${formatGuardianRoster(guardianIds)} can approve this withdrawal. Threshold ${approvalThreshold}/${guardianIds.length}. ${availableToWithdrawSOL.toFixed(3)} SOL is released for withdrawal.${lockedRemainderSOL > 0 ? ` ${lockedRemainderSOL.toFixed(3)} SOL is still locked behind the remaining tranches.` : ''}`
+            : `${formatGuardianRoster(guardianIds)} are set with threshold ${approvalThreshold}/${guardianIds.length}. The vault still has to release funds before a withdrawal request can start.`;
         return;
     }
 
     if (proposal.status === 'pending') {
-        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL is waiting on co-owner ${secondOwnerId}. Requested ${timeAgo(proposal.initiatedAt)}.`;
+        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL is waiting on ${approvedGuardianIds.length}/${approvalThreshold} withdrawal guardian approvals. Pending: ${pendingGuardianIds.length > 0 ? pendingGuardianIds.join(', ') : 'none'}. Requested ${timeAgo(proposal.initiatedAt)}.`;
         return;
     }
 
     if (proposal.status === 'approved') {
-        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL was approved by ${proposal.approvedBy || secondOwnerId}. Execute when you want the current LockVault balance reduced.`;
+        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL cleared ${approvalThreshold}/${guardianIds.length} withdrawal guardian approvals. Final approval came from ${proposal.approvedBy || 'a withdrawal guardian'}. Execute when you want the released LockVault balance reduced.`;
         return;
     }
 
     if (proposal.status === 'executed') {
         const remainingLockedAmount = Number(latestVault?.lockedAmountSOL ?? vaultState.amount ?? 0);
-        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL executed ${proposal.executedAt ? timeAgo(proposal.executedAt) : 'recently'}. ${remainingLockedAmount.toFixed(3)} SOL remains in the current vault record.`;
+        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL executed ${proposal.executedAt ? timeAgo(proposal.executedAt) : 'recently'}. ${remainingLockedAmount.toFixed(3)} SOL remains in the current vault record, with ${availableToWithdrawSOL.toFixed(3)} SOL available right now.`;
         return;
     }
 
@@ -685,6 +801,8 @@ function renderVaultApprovalQueue() {
                 <div class="safety-list-title">${Number(approval.withdrawalProposal?.amountSOL ?? 0).toFixed(3)} SOL for ${escapeHtml(approval.userId)}</div>
                 <div class="safety-list-meta">
                     Requested ${timeAgo(approval.withdrawalProposal?.initiatedAt || approval.createdAt)} ·
+                    ${Number(approval.withdrawalProposal?.approvalCount ?? 0)}/${Number(approval.withdrawalProposal?.approvalThreshold ?? 0)} approvals ·
+                    Pending ${escapeHtml((approval.withdrawalProposal?.pendingGuardianIds || []).join(', ') || 'none')} ·
                     Vault balance ${Number(approval.lockedAmountSOL ?? 0).toFixed(3)} SOL
                 </div>
             </div>
@@ -956,17 +1074,17 @@ async function saveWalletLock() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            setFormMessage('walletLockStatusMsg', data.error || 'Failed to save wallet lock.', true);
+            setFormMessage('walletLockStatusMsg', data.error || 'Failed to save Wallet Lock.', true);
             return;
         }
 
-        setFormMessage('walletLockStatusMsg', 'Wallet lock saved.');
+        setFormMessage('walletLockStatusMsg', 'Wallet Lock saved.');
         showNotification('Wallet safety lock updated.', 'success');
         loadWalletLock();
         loadVaults();
     } catch (err) {
         console.error('[Wallet Lock Save]', err);
-        setFormMessage('walletLockStatusMsg', 'Failed to save wallet lock.', true);
+        setFormMessage('walletLockStatusMsg', 'Failed to save Wallet Lock.', true);
     }
 }
 
@@ -1464,6 +1582,7 @@ function activateTab(tab) {
 function setupVaultPanel() {
     const profitGuardToggle = document.getElementById('profit-guard-toggle');
     const profitGuardThreshold = document.getElementById('profit-guard-threshold');
+    const stagedToggle = document.getElementById('vault-staged-toggle');
 
     profitGuardToggle?.addEventListener('change', e => {
         onboardingSettings.cooldownEnabled = e.target.checked;
@@ -1498,6 +1617,19 @@ function setupVaultPanel() {
         selectedVaultDuration = parseInt(e.target.value, 10) * 3600000;
     });
 
+    stagedToggle?.addEventListener('change', () => {
+        toggleStagedUnlockEditor(stagedToggle.checked);
+    });
+    document.getElementById('vault-add-stage-btn')?.addEventListener('click', () => {
+        stagedUnlockRows.push({ amount: '', hours: '', label: '' });
+        renderStagedUnlockEditor();
+    });
+    document.getElementById('vault-clear-stages-btn')?.addEventListener('click', () => {
+        stagedUnlockRows = [];
+        renderStagedUnlockEditor();
+    });
+    toggleStagedUnlockEditor(false);
+
     document.querySelectorAll('.threshold-examples .chip').forEach(chip => {
         chip.addEventListener('click', () => {
             document.querySelectorAll('.threshold-examples .chip').forEach(c => c.classList.remove('active'));
@@ -1516,10 +1648,16 @@ function setupVaultPanel() {
         try {
             const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/lock`, {
                 method: 'POST',
-                body: JSON.stringify({ amountSol: amount, durationMs: selectedVaultDuration })
+                body: JSON.stringify({
+                    amountSol: amount,
+                    durationMs: selectedVaultDuration,
+                    unlockSchedule: readStagedUnlockSchedule()
+                })
             });
             if (res.ok) {
                 showNotification('Vault locked. Your profit is secured.', 'success');
+                if (amountInput) amountInput.value = '';
+                toggleStagedUnlockEditor(false);
                 loadVaults();
             } else {
                 const err = await res.json();
@@ -1543,36 +1681,153 @@ function setupVaultPanel() {
         } catch (err) { showNotification('Error releasing vault.', 'error'); }
     });
 
-    document.getElementById('vault-save-second-owner-btn')?.addEventListener('click', saveVaultSecondOwner);
+    document.getElementById('vault-save-guardians-btn')?.addEventListener('click', saveVaultGuardians);
     document.getElementById('vault-initiate-withdrawal-btn')?.addEventListener('click', requestVaultWithdrawal);
     document.getElementById('vault-execute-withdrawal-btn')?.addEventListener('click', executeVaultWithdrawal);
 }
 
-async function saveVaultSecondOwner() {
-    const secondOwnerId = document.getElementById('vault-second-owner-input')?.value?.trim() || '';
-    if (!secondOwnerId) {
-        setFormMessage('vaultApprovalStatusMsg', 'Enter a co-owner Discord ID first.', true);
+function toggleStagedUnlockEditor(enabled) {
+    const config = document.getElementById('vault-staged-config');
+    const toggle = document.getElementById('vault-staged-toggle');
+    if (toggle) toggle.checked = enabled;
+    if (config) config.style.display = enabled ? 'flex' : 'none';
+    if (enabled && stagedUnlockRows.length === 0) {
+        stagedUnlockRows = [{ amount: '', hours: '', label: '' }];
+    }
+    if (!enabled) {
+        stagedUnlockRows = [];
+    }
+    renderStagedUnlockEditor();
+}
+
+function renderStagedUnlockEditor() {
+    const rowsEl = document.getElementById('vault-staged-rows');
+    const config = document.getElementById('vault-staged-config');
+    const toggle = document.getElementById('vault-staged-toggle');
+    if (!rowsEl || !config || !toggle) return;
+
+    if (!toggle.checked) {
+        config.style.display = 'none';
+        rowsEl.innerHTML = '';
         return;
     }
 
-    setFormMessage('vaultApprovalStatusMsg', 'Saving co-owner...');
+    config.style.display = 'flex';
+    rowsEl.innerHTML = stagedUnlockRows.map((row, index) => `
+        <div class="vault-stage-row" data-stage-index="${index}">
+            <div class="form-group">
+                <label class="form-label">Amount (SOL)</label>
+                <input type="number" class="input vault-stage-amount" value="${escapeHtml(row.amount || '')}" min="0.01" step="0.01" placeholder="0.25" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unlock after (hours)</label>
+                <input type="number" class="input vault-stage-hours" value="${escapeHtml(row.hours || '')}" min="0.1" step="0.1" placeholder="6" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Label</label>
+                <input type="text" class="input vault-stage-label" value="${escapeHtml(row.label || '')}" maxlength="40" placeholder="Mid-session release" />
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm vault-stage-remove-btn" data-stage-remove="${index}">Remove</button>
+        </div>
+    `).join('');
+
+    rowsEl.querySelectorAll('.vault-stage-amount').forEach((input) => {
+        input.addEventListener('input', (event) => {
+            const row = event.target.closest('[data-stage-index]');
+            const index = Number(row?.dataset.stageIndex);
+            if (!Number.isNaN(index) && stagedUnlockRows[index]) stagedUnlockRows[index].amount = event.target.value;
+        });
+    });
+    rowsEl.querySelectorAll('.vault-stage-hours').forEach((input) => {
+        input.addEventListener('input', (event) => {
+            const row = event.target.closest('[data-stage-index]');
+            const index = Number(row?.dataset.stageIndex);
+            if (!Number.isNaN(index) && stagedUnlockRows[index]) stagedUnlockRows[index].hours = event.target.value;
+        });
+    });
+    rowsEl.querySelectorAll('.vault-stage-label').forEach((input) => {
+        input.addEventListener('input', (event) => {
+            const row = event.target.closest('[data-stage-index]');
+            const index = Number(row?.dataset.stageIndex);
+            if (!Number.isNaN(index) && stagedUnlockRows[index]) stagedUnlockRows[index].label = event.target.value;
+        });
+    });
+    rowsEl.querySelectorAll('[data-stage-remove]').forEach((button) => {
+        button.addEventListener('click', () => {
+            stagedUnlockRows = stagedUnlockRows.filter((_, index) => index !== Number(button.dataset.stageRemove));
+            if (stagedUnlockRows.length === 0) {
+                stagedUnlockRows = [{ amount: '', hours: '', label: '' }];
+            }
+            renderStagedUnlockEditor();
+        });
+    });
+}
+
+function readStagedUnlockSchedule() {
+    const toggle = document.getElementById('vault-staged-toggle');
+    if (!toggle?.checked) return [];
+
+    const durationMinutes = Math.max(1, Math.trunc(selectedVaultDuration / 60000));
+    const schedule = [];
+    for (const row of stagedUnlockRows) {
+        const amount = Number(row.amount);
+        const hours = Number(row.hours);
+        const label = typeof row.label === 'string' ? row.label.trim() : '';
+        const rowIsBlank = !String(row.amount || '').trim() && !String(row.hours || '').trim() && !label;
+        if (rowIsBlank) continue;
+        if (!Number.isFinite(amount) || amount <= 0) {
+            throw new Error('Each staged unlock row needs a positive SOL amount.');
+        }
+        if (!Number.isFinite(hours) || hours <= 0) {
+            throw new Error('Each staged unlock row needs a positive unlock offset in hours.');
+        }
+        const offsetMinutes = Math.trunc(hours * 60);
+        if (offsetMinutes > durationMinutes) {
+            throw new Error('A staged unlock cannot exceed the full lock duration.');
+        }
+        schedule.push({
+            amount,
+            offsetMinutes,
+            ...(label ? { label } : {})
+        });
+    }
+
+    return schedule;
+}
+
+async function saveVaultGuardians() {
+    const guardianIds = parseGuardianIdsInput(document.getElementById('vault-guardian-ids-input')?.value || '');
+    const approvalThreshold = Number(document.getElementById('vault-approval-threshold-input')?.value || 0);
+    if (guardianIds.length === 0) {
+        setFormMessage('vaultApprovalStatusMsg', 'Enter at least one withdrawal guardian Discord ID first.', true);
+        return;
+    }
+    if (!Number.isFinite(approvalThreshold) || approvalThreshold <= 0 || approvalThreshold > guardianIds.length) {
+        setFormMessage('vaultApprovalStatusMsg', 'Set an approval threshold between 1 and the withdrawal guardian count.', true);
+        return;
+    }
+
+    setFormMessage('vaultApprovalStatusMsg', 'Saving withdrawal guardians...');
     try {
-        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/second-owner`, {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/guardians`, {
             method: 'POST',
-            body: JSON.stringify({ secondOwnerId })
+            body: JSON.stringify({
+                guardianIds,
+                approvalThreshold
+            })
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            setFormMessage('vaultApprovalStatusMsg', data.error || 'Failed to save co-owner.', true);
+            setFormMessage('vaultApprovalStatusMsg', data.error || 'Failed to save withdrawal guardians.', true);
             return;
         }
 
-        setFormMessage('vaultApprovalStatusMsg', 'Co-owner saved.');
-        showNotification('Vault co-owner saved.', 'success');
+        setFormMessage('vaultApprovalStatusMsg', 'Withdrawal guardians saved.');
+        showNotification('Withdrawal guardians saved.', 'success');
         loadVaults();
     } catch (err) {
-        console.error('[Vault Second Owner]', err);
-        setFormMessage('vaultApprovalStatusMsg', 'Failed to save co-owner.', true);
+        console.error('[Vault Guardians]', err);
+        setFormMessage('vaultApprovalStatusMsg', 'Failed to save withdrawal guardians.', true);
     }
 }
 
@@ -1595,7 +1850,7 @@ async function requestVaultWithdrawal() {
             return;
         }
 
-        setFormMessage('vaultApprovalStatusMsg', 'Withdrawal request submitted. Waiting on your co-owner.');
+        setFormMessage('vaultApprovalStatusMsg', 'Withdrawal request submitted. Waiting on withdrawal guardian approvals.');
         showNotification('Withdrawal request submitted.', 'success');
         loadVaults();
         loadVaultApprovals();

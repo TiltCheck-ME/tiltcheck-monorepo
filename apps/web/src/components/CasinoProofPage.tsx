@@ -16,6 +16,7 @@ import {
   getScoreColor,
   gradeFromNumericScore,
 } from '@/lib/casino-trust';
+import type { CasinoSeedAuditSurface } from '@/lib/seed-audit-surface';
 
 const LOGIN_URL = '/login?redirect=%2Fdashboard';
 
@@ -94,6 +95,7 @@ interface ProofState {
   bonusStatus: FetchState;
   bonusMessage: string | null;
   bonusUpdatedAt: string | null;
+  bonusHiddenCount: number;
   bonusMatches: BonusEntry[];
 }
 
@@ -119,6 +121,7 @@ const INITIAL_PROOF_STATE: ProofState = {
   bonusStatus: 'loading',
   bonusMessage: null,
   bonusUpdatedAt: null,
+  bonusHiddenCount: 0,
   bonusMatches: [],
 };
 
@@ -214,7 +217,7 @@ function ProofCard({
   );
 }
 
-export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
+export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoEntry; seedAudit: CasinoSeedAuditSurface }) {
   const { user, loading: authLoading } = useAuth();
   const [proof, setProof] = useState<ProofState>(INITIAL_PROOF_STATE);
 
@@ -249,7 +252,15 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
             { signal: controller.signal, cache: 'no-store' },
           )
           : Promise.resolve(null),
-        fetch(`${apiUrl}/bonuses/inbox`, { signal: controller.signal, cache: 'no-store' }),
+        fetch(`${apiUrl}/bonuses/inbox`, {
+          signal: controller.signal,
+          cache: 'no-store',
+          credentials: 'include',
+          headers: (() => {
+            const token = typeof window !== 'undefined' ? window.localStorage.getItem('tc_token')?.trim() || null : null;
+            return token ? { Authorization: `Bearer ${token}` } : undefined;
+          })(),
+        }),
       ]);
 
       if (cancelled) {
@@ -363,6 +374,10 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
           available?: boolean;
           updatedAt?: string | null;
           message?: string;
+          suppression?: {
+            active?: boolean;
+            hiddenCount?: number;
+          };
           data?: BonusEntry[];
         };
         const normalizedBrand = normalizeName(casino.name);
@@ -377,6 +392,7 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
         nextState.bonusStatus = bonusPayload.available ? 'ready' : 'unavailable';
         nextState.bonusMessage = bonusPayload.message ?? null;
         nextState.bonusUpdatedAt = bonusPayload.updatedAt ?? null;
+        nextState.bonusHiddenCount = Math.max(0, Number(bonusPayload.suppression?.hiddenCount ?? 0));
         nextState.bonusMatches = bonusMatches.sort((left, right) => Date.parse(right.verified) - Date.parse(left.verified));
       } else {
         nextState.bonusStatus = 'unavailable';
@@ -417,6 +433,8 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
     : hasLiveFeed
       ? 'No live match timestamp'
       : 'Feed unavailable';
+  const seedAuditStatus = seedAudit.summary.statusTone;
+  const seedAuditRequiredFields = seedAudit.support.requiredFields;
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
@@ -430,11 +448,11 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div>
-              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Public trust proof</p>
+              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Public trust evidence</p>
               <h1 className="text-4xl font-black uppercase tracking-tighter md:text-6xl">{casino.name}</h1>
               <p className="mt-5 max-w-3xl text-base text-gray-400 md:text-lg">
-                Public proof page for {casino.name}. Static grading stays visible. Live proof modules only show what the API can actually verify right now.
-                If a feed is blank or missing, it says so directly.
+                This page frames the broader trust read for {casino.name}. Manual bet verification stays on /tools/verify.
+                Here, TiltCheck separates proof quality, public verification coverage, and other trust evidence without faking certainty.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -470,6 +488,27 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
                 >
                   Open supporting modules
                 </a>
+              </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-3">
+                <div className="rounded-2xl border border-[#283347] bg-black/30 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Manual bet verification</p>
+                  <p className="mt-2 text-sm text-gray-400">
+                    /tools/verify is the raw math checker. Use it when you already have the seeds, nonce, and exact bet inputs.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#283347] bg-black/30 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Proof quality</p>
+                  <p className="mt-2 text-sm text-gray-400">
+                    This page shows partial proof when feeds are thin and says insufficient sample when public coverage is missing or stale.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#283347] bg-black/30 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Other trust evidence</p>
+                  <p className="mt-2 text-sm text-gray-400">
+                    Licensing, payout friction, scam flags, bonus evidence, and RTP references stay separate so one proof lane does not pretend to cover all of them.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -511,9 +550,97 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
       <section className="px-4 py-12">
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
           <ProofCard
+            eyebrow="Seed health auditor"
+            title="Proof quality + seed hygiene"
+            description="Engine-backed read of the proof inputs attached to this surface. Manual single-bet verification stays separate."
+            status={seedAuditStatus}
+          >
+            <div className="space-y-4 text-sm">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Current read</p>
+                  <p className="mt-2 text-sm font-black uppercase text-white">{seedAudit.summary.categoryLabel}</p>
+                  <p className="mt-2 text-sm text-gray-400">{seedAudit.result.proofQuality.summary}</p>
+                </div>
+                <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Confidence + sample</p>
+                  <p className="mt-2 text-sm font-black uppercase text-white">{seedAudit.result.proofQuality.confidence} confidence</p>
+                  <p className="mt-2 text-sm text-gray-400">{seedAudit.summary.sampleSummary}</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Formula comparison</p>
+                <p className="mt-2 text-sm text-white">{seedAudit.summary.formulaSummary}</p>
+                <p className="mt-2 text-sm text-gray-400">{seedAudit.summary.continuitySummary}</p>
+              </div>
+
+              <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Seed-health findings</p>
+                {seedAudit.summary.highlightedFindings.length > 0 ? (
+                  <ul className="mt-3 space-y-3">
+                    {seedAudit.summary.highlightedFindings.map((finding) => (
+                      <li key={`${finding.code}-${finding.summary}`} className="border border-[#283347] bg-black/40 p-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">
+                          {finding.code.replace(/-/g, ' ')}
+                        </p>
+                        <p className="mt-2 text-sm text-white">{finding.summary}</p>
+                        {finding.recommendation && (
+                          <p className="mt-2 text-sm text-gray-400">{finding.recommendation}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-gray-400">{seedAudit.summary.findingSummary}</p>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Support metadata</p>
+                <p className="mt-2 text-sm text-white">{seedAudit.support.summary}</p>
+                <dl className="mt-3 space-y-2 text-sm text-gray-400">
+                  <div className="flex items-start justify-between gap-4">
+                    <dt>Algorithm</dt>
+                    <dd className="text-right text-white">{seedAudit.support.algorithmName}</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <dt>Hash family</dt>
+                    <dd className="text-right text-white">{seedAudit.support.hashFamily}</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <dt>Formula variant</dt>
+                    <dd className="text-right text-white">{seedAudit.support.formulaVariant}</dd>
+                  </div>
+                </dl>
+                {seedAuditRequiredFields.length > 0 && (
+                  <p className="mt-3 text-[11px] font-mono text-gray-500">
+                    Needs: {seedAuditRequiredFields.join(' · ')}
+                  </p>
+                )}
+                {seedAudit.summary.highlightedEvidence.length > 0 && (
+                  <ul className="mt-3 space-y-2 text-[11px] font-mono text-gray-500">
+                    {seedAudit.summary.highlightedEvidence.map((evidence) => (
+                      <li key={`${evidence.code}-${evidence.summary}`}>{evidence.summary}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {seedAudit.summary.proofNotes.length > 0 && (
+                <ul className="space-y-2 text-[11px] font-mono text-gray-500">
+                  {seedAudit.summary.proofNotes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </ProofCard>
+
+          <ProofCard
             eyebrow="Live trust engine"
             title="Casino score"
-            description="Pulled from the live trust-rollup feed when available."
+            description="Pulled from the live trust-rollup feed when available. This is a proof-quality read, not manual bet verification."
             status={liveProofStatus}
           >
             {proof.liveScore ? (
@@ -534,15 +661,15 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
             ) : (
               <p className="text-sm text-gray-400">
                 {hasLiveFeed
-                  ? 'The live trust feed is up, but it returned no current casino or domain match for this proof page.'
-                  : 'Live trust feed unavailable. The page falls back to curated baseline only.'}
+                  ? 'The live trust feed is up, but it returned no current casino or domain match for this page. Treat that as partial proof, not a clean read.'
+                  : 'Live trust feed unavailable. The page falls back to curated baseline only, which is an insufficient sample for live proof quality.'}
               </p>
             )}
           </ProofCard>
 
           <ProofCard
             eyebrow="Registry + domain"
-            title="License and domain proof"
+            title="License and domain verification"
             description="Runs the current monitored domain through the license registry and SusLink."
             status={licenseProofStatus}
           >
@@ -610,7 +737,7 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
           <ProofCard
             eyebrow="Blacklist check"
             title="Scam registry"
-            description="Checks the repository-backed scam domain blacklist only."
+            description="Checks the repository-backed scam domain blacklist only. This is one trust lane, not the whole proof story."
             status={
               proof.scamStatus === 'available'
                 ? proof.scamMatches.length > 0 ? 'warning' : 'live'
@@ -659,7 +786,7 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
                   ))
                 ) : (
                   <p className="text-sm text-gray-400">
-                    No live payout or ToS volatility events matched this casino in the current feed window.
+                    No live payout or ToS volatility events matched this casino in the current feed window. That is limited evidence, not a safety verdict.
                   </p>
                 )}
                 {proof.shadowSupportedSignals.length > 0 && (
@@ -677,8 +804,8 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
 
           <ProofCard
             eyebrow="RTP drift"
-            title="Provider discrepancy proof"
-            description="Reads submitted RTP reports for this platform. No reports means no proof."
+            title="Provider discrepancy evidence"
+            description="Reads submitted RTP reports for this platform. No reports means insufficient sample, not a clean bill."
             status={proof.rtpStatus === 'ready' ? (proof.rtpProviders.length > 0 ? 'live' : 'warning') : 'unavailable'}
           >
             {proof.rtpStatus === 'ready' ? (
@@ -711,7 +838,7 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
 
           <ProofCard
             eyebrow="Inbox + bonus feed"
-            title="Bonus proof"
+            title="Bonus evidence"
             description="Checks active inbox-discovered bonus offers tied to this casino."
             status={proof.bonusStatus === 'ready' ? (proof.bonusMatches.length > 0 ? 'live' : 'warning') : 'unavailable'}
           >
@@ -725,11 +852,18 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
                       <p className="mt-2 text-[11px] font-mono text-gray-500">Verified {formatDate(entry.verified)}</p>
                     </div>
                   ))}
+                  {proof.bonusHiddenCount > 0 && (
+                    <p className="text-[11px] font-mono text-[#17c3b2]">
+                      {proof.bonusHiddenCount} matching promo{proof.bonusHiddenCount === 1 ? '' : 's'} hidden by your active filters.
+                    </p>
+                  )}
                   <p className="text-[11px] font-mono text-gray-500">Feed updated: {formatDate(proof.bonusUpdatedAt)}</p>
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">
-                  Inbox feed is live, but it returned no active bonus evidence for this casino.
+                  {proof.bonusHiddenCount > 0
+                    ? 'Inbox feed is live, but your active filters suppressed the matching promo evidence for this casino.'
+                    : 'Inbox feed is live, but it returned no active bonus evidence for this casino.'}
                 </p>
               )
             ) : (
@@ -745,11 +879,11 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Supporting proof modules</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Supporting evidence modules</p>
               <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">Open the underlying evidence lanes</h2>
             </div>
             <p className="max-w-2xl text-sm text-gray-400">
-              This page stays canonical for {casino.name}. Use these supporting modules when you need the broader feed, reference dataset, or a manual domain check.
+              This page stays canonical for {casino.name}. Use these modules when you need raw bet verification, the broader feed, reference datasets, or a manual domain check.
             </p>
           </div>
 
@@ -778,12 +912,12 @@ export default function CasinoProofPage({ casino }: { casino: CasinoEntry }) {
               <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Curated baseline</p>
               <h2 className="text-3xl font-black uppercase tracking-tight">What the static grade already says</h2>
               <p className="mt-3 max-w-3xl text-sm text-gray-400">
-                Static grading stays on the page so the proof story does not collapse when a live feed goes dark.
+                Static grading stays on the page so the trust read does not collapse when a live feed goes dark.
                 This is baseline evidence, not live telemetry.
               </p>
               <div className="mt-8 space-y-4">
                 <PillarBar label="Financial integrity" score={casino.financialPayouts} color={staticScoreColor} />
-                <PillarBar label="Fairness & transparency" score={casino.fairnessTransparency} color={staticScoreColor} />
+                <PillarBar label="Proof quality & transparency" score={casino.fairnessTransparency} color={staticScoreColor} />
                 <PillarBar label="Promotional honesty" score={casino.promotionalHonesty} color={staticScoreColor} />
                 <PillarBar label="Operational support" score={casino.operationalSupport} color={staticScoreColor} />
                 <PillarBar label="Community reputation" score={casino.communityReputation} color={staticScoreColor} />

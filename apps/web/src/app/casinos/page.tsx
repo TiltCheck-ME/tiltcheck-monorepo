@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import PublicPageHero, { PublicPageSectionHeader } from '@/components/PublicPageHero';
 import {
   ALL_CATEGORIES,
   CASINOS,
@@ -79,53 +80,72 @@ export default function CasinosPage() {
   }, [category, query]);
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] text-white">
-      <section className="border-b border-[#283347] px-4 py-20">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Public trust lookup</p>
-          <h1 className="text-4xl font-black uppercase tracking-tighter md:text-6xl">
+    <main className="public-page text-white">
+      <PublicPageHero
+        eyebrow="Public trust lookup"
+        title={
+          <>
             Look up the casino.
             <br />
             Read the proof.
-          </h1>
-          <p className="mx-auto mt-6 max-w-4xl text-base text-gray-400 md:text-lg">
-            /casinos is the lookup hub. Search the operator, open the proof page, then check live trust, domain, scam, bonus,
-            and RTP modules without pretending missing data exists.
+          </>
+        }
+        description={
+          <p>
+            /casinos is the lookup hub. Search the operator, open the trust page, then separate manual bet verification,
+            proof quality, and other evidence without pretending missing data exists.
           </p>
+        }
+        stats={[
+          {
+            label: 'Tracked casinos',
+            value: `${CASINOS.length}`,
+            description: 'Directory first. Canonical trust read second. No fake all-in-one shortcuts.',
+          },
+          {
+            label: 'Live matches',
+            value: `${liveMatchedCount}`,
+            description: 'Live scores are shown only when the feed actually matches a curated casino record.',
+          },
+          {
+            label: 'Evidence rule',
+            value: 'No fallback',
+            description: 'If a feed is missing, the public read says it directly instead of manufacturing confidence.',
+          },
+        ]}
+        panel={
+          <>
+            <p className="public-page-panel__eyebrow">Trust journey</p>
+            <h2 className="public-page-panel__title">Lookup, open the trust read, then escalate only if you need more.</h2>
+            <ul className="public-page-list">
+              <li>Search by casino name or monitored domain.</li>
+              <li>Open /casinos/[slug] for the canonical proof page.</li>
+              <li>Use tools and dashboard handoffs after the trust read, not instead of it.</li>
+            </ul>
+          </>
+        }
+      />
 
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-[#283347] bg-black/30 p-5 text-left">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">1. Lookup</p>
-              <p className="mt-2 text-sm text-gray-400">Search by casino name or domain. This page is the directory, not the destination.</p>
-            </div>
-            <div className="rounded-2xl border border-[#283347] bg-black/30 p-5 text-left">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">2. Proof page</p>
-              <p className="mt-2 text-sm text-gray-400">Open /casinos/[slug] for the public proof page. Supporting modules live there.</p>
-            </div>
-            <div className="rounded-2xl border border-[#283347] bg-black/30 p-5 text-left">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">3. Handoff</p>
-              <p className="mt-2 text-sm text-gray-400">Dashboard handles auth-bound actions. Extension handles live session telemetry.</p>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <div className="public-page-card">
+            <div className="public-page-meta-strip">
+              <span>{CASINOS.length} tracked casinos</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>{liveMatchedCount} live trust matches</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>feed source: {liveFeedLabel}</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>trust read lives on /casinos/[slug]</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>no fake fallback evidence</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-[#283347] bg-black/20 px-4 py-4">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 text-[11px] font-mono uppercase tracking-[0.18em] text-gray-400">
-          <span>{CASINOS.length} tracked casinos</span>
-          <span className="text-gray-600">/</span>
-          <span>{liveMatchedCount} live trust matches</span>
-          <span className="text-gray-600">/</span>
-          <span>feed source: {liveFeedLabel}</span>
-          <span className="text-gray-600">/</span>
-          <span>proof lives on /casinos/[slug]</span>
-          <span className="text-gray-600">/</span>
-          <span>no fake fallback proof</span>
-        </div>
-      </section>
-
-      <section className="px-4 py-10">
-        <div className="mx-auto max-w-6xl">
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
           <div className="mb-8 flex flex-col gap-4 lg:flex-row">
             <input
               type="text"
@@ -205,22 +225,22 @@ export default function CasinosPage() {
 
                     <div className="mt-5 space-y-3">
                       <PillarBar label="Financial" score={casino.financialPayouts} color={scoreColor} />
-                      <PillarBar label="Fairness" score={casino.fairnessTransparency} color={scoreColor} />
+                      <PillarBar label="Proof quality" score={casino.fairnessTransparency} color={scoreColor} />
                       <PillarBar label="Promo honesty" score={casino.promotionalHonesty} color={scoreColor} />
                     </div>
 
                     <div className="mt-5 rounded-xl border border-[#283347] bg-black/30 p-4">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Canonical proof route</p>
                       <p className="mt-2 text-sm text-gray-400">
-                        This lookup card only gets you to the read. The canonical proof page carries live trust, domain, scam,
-                        payout-delay, bonus, and RTP modules with explicit unavailable states.
+                        This lookup card only gets you to the read. The canonical page separates proof quality from licensing,
+                        payout, scam, bonus, and RTP evidence with explicit unavailable states.
                       </p>
                     </div>
 
                     <div className="mt-5 rounded-xl border border-[#283347] bg-black/30 p-4">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Supporting modules</p>
                       <p className="mt-2 text-sm text-gray-400">
-                        Domain verifier, scam blacklist, bonus intel, and RTP reference pages support the proof story. They do not replace it.
+                        Raw bet verification, domain checks, scam intel, bonus evidence, and RTP reference pages support the trust story. They do not replace it.
                       </p>
                     </div>
 
@@ -229,7 +249,7 @@ export default function CasinosPage() {
                         href={`/casinos/${casino.slug}`}
                         className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
                       >
-                        Open canonical proof
+                        Open canonical trust read
                       </Link>
                       {casino.affiliateUrl && (
                         <a
@@ -274,17 +294,18 @@ export default function CasinosPage() {
         </div>
       </section>
 
-      <section className="border-t border-[#283347] bg-black/20 px-4 py-12">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Supporting proof modules</p>
-              <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">Use these after the proof page, not instead of it</h2>
-            </div>
-            <p className="max-w-2xl text-sm text-gray-400">
-              /casinos is the lookup hub. /casinos/[slug] is the canonical proof read. These pages widen the evidence trail when you need the underlying feed or reference data.
-            </p>
-          </div>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <PublicPageSectionHeader
+            eyebrow="Supporting evidence modules"
+            title="Use these after the trust page, not instead of it."
+            description={
+              <p>
+                /casinos is the lookup hub. /casinos/[slug] is the canonical trust read. These pages widen the evidence
+                trail when you need raw verification, underlying feeds, or reference data.
+              </p>
+            }
+          />
 
           <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {PUBLIC_TRUST_SUPPORT_MODULES.map((module) => (
@@ -304,17 +325,21 @@ export default function CasinosPage() {
         </div>
       </section>
 
-      <section className="border-t border-[#283347] bg-black/30 px-4 py-12">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-black uppercase tracking-tight text-white">How this trust journey works</h2>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <PublicPageSectionHeader
+            eyebrow="Trust journey"
+            title="How this trust journey works"
+            description={<p>The path stays ordered so users know where the canonical answer lives and where supporting tools fit.</p>}
+          />
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Public proof first</p>
-              <p className="mt-2 text-sm text-gray-400">The public page is the canonical read. Other tools now support that page instead of competing with it.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Trust read first</p>
+              <p className="mt-2 text-sm text-gray-400">The public page is the canonical read. Manual bet verification and other tools support that page instead of competing with it.</p>
             </div>
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Explicit gaps</p>
-              <p className="mt-2 text-sm text-gray-400">If a feed is unavailable, the proof page says it directly. Blank data is not rewritten into fake confidence.</p>
+              <p className="mt-2 text-sm text-gray-400">If a feed is unavailable, the trust page says it directly. Blank data is not rewritten into fake confidence.</p>
             </div>
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Escalate only when needed</p>
@@ -331,8 +356,17 @@ export default function CasinosPage() {
         </div>
       </section>
 
-      <section className="border-t border-[#283347] px-4 py-8 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Made for Degens. By Degens.</p>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <div className="public-page-cta-band">
+            <p className="public-page-panel__eyebrow">Public trust read</p>
+            <h2 className="public-page-cta-band__title">Made for Degens. By Degens.</h2>
+            <p className="public-page-cta-band__copy">
+              The directory tells you where to look. The slug page tells you what the proof actually says. Everything
+              else exists to widen that evidence trail without muddying it.
+            </p>
+          </div>
+        </div>
       </section>
     </main>
   );

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -16,9 +16,15 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/',
+        has: [{ type: 'host', value: 'hub.tiltcheck.me' }],
+        destination: 'https://dashboard.tiltcheck.me/dashboard',
+        permanent: true,
+      },
+      {
         source: '/:path*',
         has: [{ type: 'host', value: 'hub.tiltcheck.me' }],
-        destination: 'https://tiltcheck.me/dashboard/:path*',
+        destination: 'https://dashboard.tiltcheck.me/:path*',
         permanent: true,
       },
       {
