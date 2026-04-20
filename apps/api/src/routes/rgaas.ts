@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 /**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
@@ -19,7 +19,7 @@ import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus, evaluateRtpLegalTrigger } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
-import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { authMiddleware, AuthRequest, optionalAuthMiddleware } from '../middleware/auth.js';
 import type { CasinoTrustRecord, GameCategory, RtpReportSubmittedEvent, TrustEvent } from '@tiltcheck/types';
 import { isGameBlocked } from '../services/exclusion-cache.js';
 import { findUserByDiscordId } from '@tiltcheck/db';
@@ -32,6 +32,7 @@ import {
   persistEmailBonusIntel,
 } from '../lib/email-bonus-feed.js';
 import type { EmailIntelData } from '../lib/email-parser.js';
+import { resolveExclusionProfileForRequest, suppressBonusEntries } from '../services/bonus-suppression.js';
 
 const router: Router = Router();
 
@@ -980,14 +981,20 @@ router.post('/email-ingest', async (req, res) => {
  * GET /rgaas/bonus-feed
  * Returns the active inbox bonus feed for the web bonus hub.
  */
-router.get('/bonus-feed', (_req, res) => {
+router.get('/bonus-feed', optionalAuthMiddleware, async (req, res) => {
   const bonuses = getActiveEmailBonusEntries();
+  const profile = await resolveExclusionProfileForRequest(req);
+  const suppression = suppressBonusEntries(bonuses, profile);
   res.json({
     success: true,
-    bonuses,
+    bonuses: suppression.entries,
     source: 'email-inbox',
     file: getEmailBonusFeedPath(),
     updatedAt: bonuses[0]?.updatedAt ?? null,
+    suppression: {
+      active: suppression.active,
+      hiddenCount: suppression.hiddenCount,
+    },
   });
 });
 

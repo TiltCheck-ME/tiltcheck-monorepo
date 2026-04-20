@@ -20,7 +20,7 @@ const heroSignals = [
   {
     label: "Seed receipts",
     value: "HMAC verified",
-    description: "When provably fair gets sloppy, you get the math instead of the excuse.",
+    description: "Manual bet verification when you need the raw HMAC receipt.",
   },
 ];
 

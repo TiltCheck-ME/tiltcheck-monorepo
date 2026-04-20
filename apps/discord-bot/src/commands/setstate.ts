@@ -67,7 +67,7 @@ export const setstate: Command = {
     if (!stateInput && !topicInput) {
       if (!current) {
         await interaction.reply({
-          content: 'No context saved. Run /setstate whenever you want the rulebook dialed in.',
+          content: 'No context saved. Run /session state whenever you want the rulebook dialed in.',
           ephemeral: true,
         });
         return;

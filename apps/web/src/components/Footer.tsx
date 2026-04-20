@@ -24,7 +24,7 @@ const footerGroups = [
       links: [
         { href: "/#tools", label: "All tools" },
         { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Vault Controls" },
-        { href: "/tools/verify", label: "Forensic Seed Audit" },
+        { href: "/tools/verify", label: "Manual Bet Verifier" },
         { href: "/tools/session-stats", label: "RTP Drift Monitor" },
         { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
     ],

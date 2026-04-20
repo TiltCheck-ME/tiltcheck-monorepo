@@ -20,6 +20,7 @@ import {
   type GameCategory,
   type ForbiddenGamesProfile,
 } from '@tiltcheck/types';
+import { getDashboardAppUrl } from '../utils/dashboard-url.js';
 
 const GAME_CATEGORIES: { name: string; value: GameCategory }[] = GAME_EXCLUSION_CATEGORIES.map((value) => ({
   name: GAME_EXCLUSION_CATEGORY_LABELS[value],
@@ -47,17 +48,8 @@ function formatExclusionTarget(exclusion: {
   return 'Unknown exclusion target';
 }
 
-function getDashboardBaseUrl(): string {
-  const configuredUrl = process.env.DASHBOARD_URL?.trim();
-  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
-    return configuredUrl.replace(/\/+$/, '');
-  }
-
-  return 'https://dashboard.tiltcheck.me';
-}
-
 function getSafetyControlsUrl(): string {
-  return `${getDashboardBaseUrl()}/dashboard?tab=safety`;
+  return getDashboardAppUrl({ tab: 'safety' });
 }
 
 function buildSafetyControlsRow(): ActionRowBuilder<ButtonBuilder> {

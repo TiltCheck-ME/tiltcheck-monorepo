@@ -20,11 +20,13 @@ export const help: Command = {
       {
         name: 'Session Audit',
         value:
-          '`/status` — See how cooked your session looks right now\n' +
+          '`/session status` — See how cooked your session looks right now\n' +
+          '`/session history` — Read the last stretch of tilt flags and spiral velocity\n' +
           '`/buddy` — Pick who gets the "yo, this degen is spiraling" ping\n' +
-          '`/goal` — Set the number where you leave with your bag intact\n' +
-          '`/cooldown` — Hit your own brakes before the session gets stupid\n' +
-          '`/intervene` — Toggle the hard brake: DM and accountability ping always, VC move only when you allow it',
+          '`/session goal` — Set the number where you leave with your bag intact\n' +
+          '`/session cooldown` — Hit your own brakes before the session gets stupid\n' +
+          '`/session intervene` — Toggle the hard brake: DM and accountability ping always, VC move only when you allow it\n' +
+          '`/session state` — Save or clear your rules context without another top-level command',
         inline: false,
       },
       {
@@ -39,11 +41,11 @@ export const help: Command = {
       {
         name: 'Math and Trust',
         value:
-          '`/odds` — Pull the house edge and RTP so "im due" dies on impact\n' +
-          '`/verify` — Check the provably fair math instead of trusting casino vibes\n' +
-          '`/casino` — Audit a casino before it audits your bankroll\n' +
-          '`/reputation` — Pull a trust read on users or platforms\n' +
-          '`/bonuses` — Pull the latest bonus digest from CollectClock',
+           '`/odds` — Pull the house edge and RTP so "im due" dies on impact\n' +
+           '`/verify` — Check the provably fair math instead of trusting casino vibes\n' +
+           '`/casino` — Audit a casino before it audits your bankroll\n' +
+           '`/reputation` — Pull a trust read on users or platforms\n' +
+           '`/bonuses` — Pull the latest bonus digest, with your active casino filters suppressing matching promos',
         inline: false,
       },
       {
@@ -56,9 +58,7 @@ export const help: Command = {
       {
         name: 'Dashboard and Stats',
         value:
-          '`/status` — Fast read on your live risk state\n' +
           '`/dashboard` — Open the 7-day tilt trail and event history\n' +
-          '`/setstate` — Save your state and rules topic so TiltCheck stops guessing\n' +
           '`/beta apply` — Apply for beta without leaving Discord\n' +
           '`/beta status` — Check where your Discord beta app sits in the queue\n' +
           '`/support` — Send a bug report without the helpdesk cosplay\n' +
@@ -70,7 +70,7 @@ export const help: Command = {
         value:
           '**JustTheTip** handles the bag-moving stuff — `/juicedrop`, `/linkwallet`, `/lockvault`\n' +
           '**DAD** handles card games and trivia — `/lobby`, `/triviadrop`\n' +
-          'Full dashboard: https://dashboard.tiltcheck.me',
+          'Full dashboard: https://dashboard.tiltcheck.me/dashboard',
         inline: false,
       },
       {

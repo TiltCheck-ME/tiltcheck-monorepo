@@ -1,160 +1,186 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
-import React from 'react';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+import Link from "next/link";
+import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
+
+const workflowStats = [
+  {
+    label: "Install path",
+    value: "1 load",
+    description: "Sideload the extension once, then let the audit layer stay inside the tab where the session happens.",
+  },
+  {
+    label: "Signal job",
+    value: "Live drift",
+    description: "Session telemetry, RTP gaps, and trust signals get read in real time instead of after the damage.",
+  },
+  {
+    label: "Escalation",
+    value: "Receipt ready",
+    description: "Evidence only gets surfaced when the numbers are strong enough to say something worth saying.",
+  },
+];
+
+const workflowSteps = [
+  {
+    step: "01",
+    title: "Deploy the audit layer",
+    body: "Install the extension and sync your forensic node. It needs storage, active tab access, and site permissions so it can inspect session telemetry without custody and without warning the casino it is being watched.",
+    note: "One install. Zero custody. A forensic layer between you and the shadow-nerfed math.",
+  },
+  {
+    step: "02",
+    title: "Run the live audit",
+    body: "Every spin gets cross-referenced against GLI-certified RTP tiers and supporting trust signals. If a casino is pushing a greedier config than the certified top line, TiltCheck flags the gap and translates it into an actual cost.",
+    note: "Live example: certified 96.5%, platform running 92.0%, greed premium charged back to the player per $100 wagered.",
+  },
+  {
+    step: "03",
+    title: "Enforce and escalate",
+    body: "When the math breaks, the system does not throw weak evidence over the wall. It waits until the sample is strong enough, builds the packet, and locks the bag before tilt takes another bite.",
+    note: "The point is not to complain louder. The point is to show up with numbers that hold.",
+  },
+];
+
+const faqs = [
+  {
+    question: "Do you see my wallet key?",
+    answer:
+      "No. We never ask for it, store it, or want it. The audit layer reads casino activity and session-visible signals. Your keys stay yours.",
+  },
+  {
+    question: 'What is a "Greed Premium"?',
+    answer:
+      "Slot providers certify multiple RTP tiers. A game certified at 96.5% can still be deployed lower. The gap between the certified top line and the live observed tier is the greed premium players are paying.",
+  },
+  {
+    question: "How does the Evidence Packet work?",
+    answer:
+      "The trigger stays locked until the sample is statistically worth something. Once it crosses that line, the packet assembles the supporting data and formats the receipts for escalation.",
+  },
+  {
+    question: "What if I'm already in crisis?",
+    answer:
+      "TiltCheck is harm reduction, not treatment. If you've lost money you cannot afford to lose, contact the National Council on Problem Gambling at 1-800-GAMBLER or visit ncpg.org.",
+  },
+];
 
 export default function HowItWorksPage() {
   return (
-    <main className="min-h-screen bg-[#0a0c10] text-white">
-      <section className="border-b border-[#283347] py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="HOW WE ENFORCE THE MATH">
-            HOW WE ENFORCE THE MATH
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            The house wins because they control the math. TiltCheck is the forensic layer that cross-references every spin against GLI-certified manufacturer RTP tiers. We don't monitor you. <span className="text-[#17c3b2] font-bold">We prosecute them.</span>
+    <main className="public-page text-white">
+      <PublicPageHero
+        eyebrow="How the stack works"
+        title={
+          <>
+            Audit the session.
+            <br />
+            Enforce the line.
+          </>
+        }
+        description={
+          <p>
+            The house wins because it controls the math. TiltCheck inserts a forensic layer between the player and the
+            platform so drift, proof quality, and exit conditions stop being guesses.
           </p>
-        </div>
-      </section>
+        }
+        actions={
+          <>
+            <Link href="/extension" className="btn btn-primary" data-text="INSTALL THE EXTENSION">
+              INSTALL THE EXTENSION
+            </Link>
+            <a
+              href="https://discord.gg/gdBsEJfCar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary"
+              data-text="JOIN DISCORD"
+            >
+              JOIN DISCORD
+            </a>
+          </>
+        }
+        stats={workflowStats}
+        panel={
+          <>
+            <p className="public-page-panel__eyebrow">System flow</p>
+            <h2 className="public-page-panel__title">Read-only telemetry in. Hard exits and receipts out.</h2>
+            <ul className="public-page-list">
+              <li>Extension watches supported casino tabs in real time.</li>
+              <li>Certified RTP ranges and trust signals frame what &quot;normal&quot; looks like.</li>
+              <li>Guardrails lock the bag and route you to the next sane move.</li>
+            </ul>
+          </>
+        }
+      />
 
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="space-y-16">
-            {/* Step 1 */}
-            <div className="flex gap-8 items-start">
-              <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-16 w-16 rounded-none bg-[#17c3b2] text-black font-black text-xl">
-                  01
-                </div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  DEPLOY
-                </h2>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  Install the extension and sync your forensic node. It requires storage, active tab access, and site permissions — the minimum needed for the Audit Layer to inspect game telemetry and sync session state without phoning home. Your seed phrase stays yours, your keys stay yours, and the casino gets zero warning it's being audited.
-                </p>
-                <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
-                  → One install. Zero custody. A forensic layer between you and the shadow-nerfed math.
-                </div>
-              </div>
-            </div>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <PublicPageSectionHeader
+            eyebrow="Workflow"
+            title="Three steps. No mystery theater."
+            description={<p>The homepage sets the tone. This page carries the same structure deeper into the actual operating flow.</p>}
+          />
 
-            {/* Step 2 */}
-            <div className="flex gap-8 items-start">
-              <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-16 w-16 rounded-none bg-[#17c3b2] text-black font-black text-xl">
-                  02
+          <div className="public-page-grid public-page-grid--3">
+            {workflowSteps.map((step) => (
+              <article key={step.step} className="public-page-card">
+                <p className="public-page-card__eyebrow">Step {step.step}</p>
+                <h2 className="public-page-card__title">{step.title}</h2>
+                <p className="public-page-card__copy">{step.body}</p>
+                <div className="public-page-card__body">
+                  <p>{step.note}</p>
                 </div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  THE LIVE AUDIT
-                </h2>
-                <p className="text-gray-400 leading-relaxed mb-2">
-                  We don't just monitor you. Every spin is cross-referenced in real-time against our database of <span className="text-white font-bold">GLI-certified manufacturer RTP tiers</span> — the gold standard that slot providers certify before a game ships.
-                </p>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  When the casino deploys the "Greedy" version of your slot (88% instead of the certified 96.5%), the Delta Engine flags it immediately and surfaces the Greed Premium you're paying per $100 wagered.
-                </p>
-                <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
-                  → Live example: "Gates of Olympus — certified 96.5% / platform running 92.0%. Greed Premium: $4.50 per $100 wagered."
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex gap-8 items-start">
-              <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-16 w-16 rounded-none bg-[#17c3b2] text-black font-black text-xl">
-                  03
-                </div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  ENFORCE
-                </h2>
-                <p className="text-gray-400 leading-relaxed mb-2">
-                  When the math breaks, we don't just alert you. The "Generate Evidence" trigger stays locked until the community sample reaches 5,000+ spins — enough for a statistically valid binomial z-test.
-                </p>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  Once unlocked, the system generates a <span className="text-white font-bold">Certified Evidence Packet</span> — binomial z-score, GLI tier proof, and scraped casino metadata — pre-formatted for direct upload to the Malta Gaming Authority or Curacao eGaming complaint portals. Your bag is locked simultaneously before the tilt-tax takes the rest.
-                </p>
-                <div className="p-4 bg-[#ef4444]/5 border border-[#ef4444]/20 text-sm text-gray-300 font-mono">
-                  → When the math breaks, we generate the receipts and lock your bag. They picked the wrong degens to nerf.
-                </div>
-              </div>
-            </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-20 px-4 border-t border-[#283347] bg-black/40">
-        <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-12 text-center">
-            COMMON FEARS
-          </h2>
-          
-          <div className="space-y-6">
-            <details className="group cursor-pointer">
-              <summary className="flex items-center justify-between p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20 hover:bg-[#17c3b2]/10 transition-all">
-                <span className="font-black uppercase tracking-tight">Do you see my wallet key?</span>
-                <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
-              </summary>
-              <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                No. We never ask for it. We don't want it. We don't store it. The forensic node reads your browser's activity on gambling sites — nothing else. Your keys are yours.
-              </div>
-            </details>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <PublicPageSectionHeader
+            eyebrow="Common fears"
+            title="The questions people ask right before they install."
+            description={<p>Good. Skepticism is healthy. The point is to answer it with specifics instead of vague product comfort copy.</p>}
+            split={false}
+          />
 
-            <details className="group cursor-pointer">
-              <summary className="flex items-center justify-between p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20 hover:bg-[#17c3b2]/10 transition-all">
-                <span className="font-black uppercase tracking-tight">What is a "Greed Premium"?</span>
-                <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
-              </summary>
-              <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                Slot providers certify their games at multiple RTP tiers. A game certified at 96.5% can be legally deployed by a casino at 88%. That 8.5% gap is the Greed Premium — money extracted from you above and beyond the already unfavorable base odds. The Delta Engine shows you this number in real-time, per $100 wagered.
-              </div>
-            </details>
-
-            <details className="group cursor-pointer">
-              <summary className="flex items-center justify-between p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20 hover:bg-[#17c3b2]/10 transition-all">
-                <span className="font-black uppercase tracking-tight">How does the Evidence Packet work?</span>
-                <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
-              </summary>
-              <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                <p className="mb-2">The trigger stays locked until the community sample hits 5,000+ spins — the minimum for a statistically valid binomial z-test. Below that, it stays locked. We will not send you to a regulator with junk data.</p>
-                <p>When it unlocks, the packet is pre-filled for direct upload to the Malta Gaming Authority or Curacao eGaming complaint portals.</p>
-              </div>
-            </details>
-
-            <details className="group cursor-pointer">
-              <summary className="flex items-center justify-between p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20 hover:bg-[#17c3b2]/10 transition-all">
-                <span className="font-black uppercase tracking-tight">What if I'm already in crisis?</span>
-                <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
-              </summary>
-              <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                This tool is harm reduction, not treatment. If you've lost money you can't afford to lose, reach out to the National Council on Problem Gambling (1-800-GAMBLER) or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">ncpg.org</a>. Real talk: get help.
-              </div>
-            </details>
+          <div className="public-page-grid">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="public-page-card group">
+                <summary className="cursor-pointer list-none text-left">
+                  <div className="flex items-center justify-between gap-4">
+                    <h3 className="public-page-card__title !mt-0">{faq.question}</h3>
+                    <span className="public-page-card__eyebrow text-[#17c3b2] transition-transform group-open:rotate-45">
+                      +
+                    </span>
+                  </div>
+                </summary>
+                <div className="public-page-card__body">
+                  <p>{faq.answer}</p>
+                </div>
+              </details>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 text-center border-t border-[#283347]">
-        <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-6">
-            READY TO SEE WHAT THE CASINO DOESN&apos;T WANT YOU TO SEE?
-          </h2>
-          <p className="text-gray-400 mb-8">
-            Install the forensic node. The Delta Engine (our live RTP cross-reference layer) does the rest. They picked the wrong degens to nerf.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a href="/extension" className="btn btn-primary py-3 px-6 font-black">
-              Install the Extension →
-            </a>
-            <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer" className="btn btn-secondary py-3 px-6 font-black">
-              Join Discord
-            </a>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <div className="public-page-cta-band">
+            <p className="public-page-panel__eyebrow">Next move</p>
+            <h2 className="public-page-cta-band__title">Ready to see what the casino does not want you to see?</h2>
+            <p className="public-page-cta-band__copy">
+              Install the forensic node. Let the live audit layer do the boring math while you decide whether the
+              session still deserves your money.
+            </p>
+            <div className="public-page-cta-band__actions">
+              <Link href="/extension" className="btn btn-primary" data-text="OPEN EXTENSION PAGE">
+                OPEN EXTENSION PAGE
+              </Link>
+              <Link href="/casinos" className="btn btn-secondary" data-text="CHECK TRUST SCORES">
+                CHECK TRUST SCORES
+              </Link>
+            </div>
           </div>
         </div>
       </section>

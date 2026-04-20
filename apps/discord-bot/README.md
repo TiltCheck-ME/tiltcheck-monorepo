@@ -16,7 +16,7 @@ Discord bot for the TiltCheck ecosystem.
 - `/casino` - Trust/fairness lookup for casino domains
 - `/buddy` - Accountability buddy management
 - `/report` - Safety/moderation report logging
-- `/setstate` - Optional state/topic context for regulation-aware responses
+- `/session state` - Optional state/topic context for regulation-aware responses
 - `/ping` - Check bot status
 - `/help` - Show command routing and feature summary
 

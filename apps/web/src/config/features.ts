@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 export type Tool = {
   href: string;
   icon: string;
@@ -23,8 +23,8 @@ export const features: Tool[] = [
     href: "/tools/verify",
     icon: "/assets/canva/shield-checkmark.jpg",
     category: "RECEIPTS",
-    title: "Forensic Seed Audit",
-    description: "Provably fair is a lie until we audit the seed. Paste the HMAC-SHA256 seeds. We run the math. If they lied, we'll find it. Works with TiltCheck 4-Key mode and every legacy casino format.",
+    title: "Manual Bet Verifier",
+    description: "Paste the exact seeds and nonce. We rerun the raw HMAC math for one bet. Good for receipts, not a proof-quality grade or full trust read. Works with TiltCheck 4-Key mode and legacy formats.",
     status: "live",
     gridClasses: "",
   },

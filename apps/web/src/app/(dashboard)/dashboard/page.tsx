@@ -38,8 +38,9 @@ export default function DashboardPage() {
             Web does not own the dashboard anymore.
           </h1>
           <p className="mt-5 max-w-3xl text-sm text-gray-400 md:text-base">
-            The canonical authenticated control surface now lives in user-dashboard. Profile, vault, safety, and buddy
-            controls moved there. This page is just the handoff shell.
+            The canonical authenticated control surface now lives in user-dashboard. Profile, LockVault timers,
+            Wallet Lock cooldowns, AutoVault rules, safety filters, and buddy controls moved there. This page is just
+            the handoff shell.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -57,7 +58,7 @@ export default function DashboardPage() {
               href={dashboardUrl}
               className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/30"
             >
-              Open hub directly
+              Open dashboard directly
             </a>
           </div>
 
@@ -73,7 +74,7 @@ export default function DashboardPage() {
             {
               href: vaultUrl,
               title: 'Vault controls',
-              copy: 'LockVault, wallet safety locks, and auto-vault rules live in the dashboard vault lane.',
+              copy: 'LockVault timers, Wallet Lock cooldowns, and AutoVault rules live in the dashboard vault lane.',
             },
             {
               href: safetyUrl,

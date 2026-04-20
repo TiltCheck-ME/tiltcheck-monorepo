@@ -271,7 +271,7 @@ export const SCAM_FLAGS = [
 ];
 
 export interface PublicTrustSupportModule {
-  key: 'domain' | 'scams' | 'bonuses' | 'rtp';
+  key: 'verification' | 'domain' | 'scams' | 'bonuses' | 'rtp';
   eyebrow: string;
   title: string;
   href: string;
@@ -281,11 +281,19 @@ export interface PublicTrustSupportModule {
 
 export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
   {
+    key: 'verification',
+    eyebrow: 'Manual verification',
+    title: 'Check a single bet',
+    href: '/tools/verify',
+    description: 'Recompute one result from seeds, nonce, and public inputs. This is raw verification, not a proof-quality or seed-hygiene grade.',
+    ctaLabel: 'Open bet verifier',
+  },
+  {
     key: 'domain',
     eyebrow: 'Registry + domain',
     title: 'Verify the monitored domain',
     href: '/tools/domain-verifier',
-    description: 'Run a direct domain scan and license check when you need to inspect a hostname outside the canonical proof page.',
+    description: 'Run a direct domain scan and license check when you need to inspect a hostname outside the canonical trust page.',
     ctaLabel: 'Open domain verifier',
   },
   {
@@ -293,7 +301,7 @@ export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
     eyebrow: 'Blacklist check',
     title: 'Read the scam blacklist',
     href: '/intel/scams',
-    description: 'Review the repository-backed blacklist feed directly. If the source is empty or down, that page says it.',
+    description: 'Review the repository-backed blacklist feed directly. No hit means no blacklist match, not a clean bill.',
     ctaLabel: 'Open scam intel',
   },
   {
@@ -301,7 +309,7 @@ export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
     eyebrow: 'Inbox + bonus feed',
     title: 'Inspect bonus evidence',
     href: '/bonuses',
-    description: 'Check inbox-discovered and CollectClock bonus coverage when the proof page shows a bonus gap or stale evidence.',
+    description: 'Check inbox-discovered and CollectClock bonus coverage when the trust page only has partial proof or stale evidence.',
     ctaLabel: 'Open bonus intel',
   },
   {
@@ -309,7 +317,7 @@ export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
     eyebrow: 'RTP drift',
     title: 'Review RTP reference data',
     href: '/intel/rtp',
-    description: 'Use the certified RTP database to understand deployment risk before escalating into live session telemetry.',
+    description: 'Use the certified RTP database to judge proof quality and deployment risk before escalating into live session telemetry.',
     ctaLabel: 'Open RTP intel',
   },
 ];

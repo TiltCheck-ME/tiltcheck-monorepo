@@ -9,7 +9,7 @@ export type DashboardLane =
   | 'bonuses'
   | 'agent';
 
-const PROD_DASHBOARD_URL = 'https://hub.tiltcheck.me';
+const PROD_DASHBOARD_URL = 'https://dashboard.tiltcheck.me';
 const DEV_DASHBOARD_URL = 'http://localhost:6001';
 
 const DASHBOARD_ROUTE_TABS: Record<string, DashboardLane> = {
@@ -20,6 +20,37 @@ const DASHBOARD_ROUTE_TABS: Record<string, DashboardLane> = {
 
 function trimTrailingSlash(value: string): string {
   return value.endsWith('/') ? value.slice(0, -1) : value;
+}
+
+function normalizeDashboardBaseUrl(value: string): string {
+  try {
+    const parsed = new URL(value);
+
+    if (parsed.hostname.toLowerCase() === 'hub.tiltcheck.me') {
+      parsed.hostname = 'dashboard.tiltcheck.me';
+    }
+
+    parsed.search = '';
+    parsed.hash = '';
+
+    return trimTrailingSlash(parsed.toString());
+  } catch {
+    return trimTrailingSlash(value);
+  }
+}
+
+function normalizeDashboardAbsoluteUrl(value: string): string {
+  try {
+    const parsed = new URL(value);
+
+    if (parsed.hostname.toLowerCase() === 'hub.tiltcheck.me') {
+      parsed.hostname = 'dashboard.tiltcheck.me';
+    }
+
+    return parsed.toString();
+  } catch {
+    return value;
+  }
 }
 
 function normalizeDashboardLane(value: string | null): DashboardLane | null {
@@ -45,12 +76,12 @@ function getRequestedLane(path: string): DashboardLane {
 export function getDashboardBaseUrl(): string {
   const configuredUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL?.trim();
   const fallbackUrl = process.env.NODE_ENV === 'production' ? PROD_DASHBOARD_URL : DEV_DASHBOARD_URL;
-  return trimTrailingSlash(configuredUrl && /^https?:\/\//i.test(configuredUrl) ? configuredUrl : fallbackUrl);
+  return normalizeDashboardBaseUrl(configuredUrl && /^https?:\/\//i.test(configuredUrl) ? configuredUrl : fallbackUrl);
 }
 
 export function getDashboardHandoffUrl(path = '/dashboard'): string {
   if (/^https?:\/\//i.test(path)) {
-    return path;
+    return normalizeDashboardAbsoluteUrl(path);
   }
 
   const lane = getRequestedLane(path);

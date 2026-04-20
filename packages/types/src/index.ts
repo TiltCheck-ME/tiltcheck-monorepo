@@ -960,6 +960,8 @@ export interface VaultWithdrawalExecutionRequestedEventData {
   vaultType: 'disposable' | 'linked' | 'magic';
   amountSOL: number;
   executionRequestId: string;
+  guardianIds?: string[];
+  approvalThreshold?: number;
   secondOwnerId?: string;
 }
 
@@ -1528,6 +1530,245 @@ export interface RtpConfidenceResult {
   confidenceTier: 'insufficient_data' | 'plausible_variance' | 'likely_nerf' | 'confirmed_nerf';
   /** Human-readable summary for the "Review Evidence" screen */
   evidenceSummary: string;
+}
+
+// ============================================
+// Seed Audit / Provably Fair Types
+// ============================================
+
+export type SeedAuditScope = 'single-bet' | 'session-export';
+
+export type SeedAuditResultCategory =
+  | 'verified'
+  | 'partial'
+  | 'suspicious'
+  | 'insufficient-sample';
+
+export type SeedAuditConfidenceTier = 'high' | 'medium' | 'low' | 'unknown';
+
+export type SeedAuditSampleCoverage = 'full' | 'partial' | 'fragmented' | 'unknown';
+
+export type SeedAuditHashFamily =
+  | 'hmac-sha256'
+  | 'hmac-sha512'
+  | 'sha256'
+  | 'sha512'
+  | 'custom';
+
+export type SeedAuditFormulaVariant =
+  | 'server-seed-client-seed-nonce'
+  | 'server-seed-client-seed-nonce-cursor'
+  | 'server-seed-client-seed-round'
+  | 'external-entropy-client-seed-nonce'
+  | 'external-entropy-client-seed-nonce-cursor'
+  | 'custom';
+
+export type SeedAuditValueEncoding =
+  | 'utf8'
+  | 'hex'
+  | 'base64'
+  | 'decimal'
+  | 'json'
+  | 'unknown';
+
+export type SeedAuditInputRole =
+  | 'server-seed'
+  | 'server-seed-hash'
+  | 'client-seed'
+  | 'nonce'
+  | 'cursor'
+  | 'round'
+  | 'external-entropy'
+  | 'reported-hash'
+  | 'reported-outcome'
+  | 'commitment-hash';
+
+export interface SeedAuditFormulaField {
+  role: SeedAuditInputRole;
+  label: string;
+  required: boolean;
+  order?: number;
+  encoding?: SeedAuditValueEncoding;
+  separator?: string;
+  notes?: string[];
+}
+
+export interface SeedAuditAlgorithmReference {
+  algorithmId: string;
+  name: string;
+  hashFamily: SeedAuditHashFamily;
+  formulaVariant: SeedAuditFormulaVariant;
+}
+
+export interface SeedAuditAlgorithmMetadata extends SeedAuditAlgorithmReference {
+  description?: string;
+  fields: SeedAuditFormulaField[];
+  outputEncoding?: SeedAuditValueEncoding;
+  outputDomain?: 'hash' | 'float' | 'game-result' | 'custom';
+  supportsCursor?: boolean;
+  supportsRound?: boolean;
+  notes?: string[];
+  sourceUrl?: string;
+}
+
+export interface SeedAuditContext {
+  casinoId?: string;
+  casinoName?: string;
+  providerId?: string;
+  providerName?: string;
+  gameId?: string;
+  gameName?: string;
+  sessionId?: string;
+  source?: 'web' | 'api' | 'extension' | 'manual' | 'import';
+  capturedAt?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SeedAuditBetRecord {
+  recordId?: string;
+  betId?: string;
+  roundId?: string;
+  timestamp?: number;
+  serverSeed?: string;
+  serverSeedHash?: string;
+  clientSeed?: string;
+  nonce?: number;
+  cursor?: number | string;
+  round?: number | string;
+  externalEntropy?: string;
+  reportedHash?: string;
+  reportedOutcome?: unknown;
+  commitmentHash?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SeedAuditSingleBetVerificationInput {
+  scope: 'single-bet';
+  context?: SeedAuditContext;
+  algorithm: SeedAuditAlgorithmReference;
+  record: SeedAuditBetRecord;
+}
+
+export interface SeedAuditSessionExportMetadata {
+  formatId?: string;
+  formatVersion?: string;
+  exportedAt?: number;
+  sourceFileName?: string;
+  recordCount?: number;
+  notes?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface SeedAuditSessionExportInput {
+  scope: 'session-export';
+  context?: SeedAuditContext;
+  algorithm: SeedAuditAlgorithmReference;
+  export: SeedAuditSessionExportMetadata;
+  records: SeedAuditBetRecord[];
+}
+
+export interface SeedAuditEvidence {
+  code: string;
+  category: SeedAuditResultCategory;
+  kind: 'formula' | 'outcome' | 'commitment' | 'hygiene' | 'sample' | 'export';
+  summary: string;
+  detail?: string;
+  expected?: unknown;
+  observed?: unknown;
+  relatedRoles?: SeedAuditInputRole[];
+  recordIds?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export type SeedHygieneFindingCode =
+  | 'seed-reuse'
+  | 'default-client-seed'
+  | 'missing-server-seed-reveal'
+  | 'missing-server-seed-hash'
+  | 'missing-client-seed'
+  | 'missing-external-entropy'
+  | 'nonce-gap'
+  | 'nonce-reset'
+  | 'cursor-gap'
+  | 'round-gap'
+  | 'commitment-mismatch'
+  | 'commitment-missing'
+  | 'export-row-incomplete'
+  | 'unsupported-formula'
+  | 'insufficient-evidence'
+  | 'unknown';
+
+export interface SeedHygieneFinding {
+  code: SeedHygieneFindingCode;
+  category: SeedAuditResultCategory;
+  severity: 'info' | 'low' | 'medium' | 'high';
+  summary: string;
+  detail?: string;
+  confidence?: SeedAuditConfidenceTier;
+  sampleSize?: number;
+  affectedRecordIds?: string[];
+  evidence?: SeedAuditEvidence[];
+  recommendation?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SeedAuditSampleNote {
+  observedSamples: number;
+  recommendedMinimum?: number;
+  coverage: SeedAuditSampleCoverage;
+  incompleteSamples?: number;
+  note?: string;
+}
+
+export interface SeedAuditFormulaVerification {
+  category: SeedAuditResultCategory;
+  summary: string;
+  checkedRecords: number;
+  matchedRecords: number;
+  mismatchedRecords: number;
+  evidence: SeedAuditEvidence[];
+}
+
+export interface SeedAuditProofQualityResult {
+  category: SeedAuditResultCategory;
+  confidence: SeedAuditConfidenceTier;
+  summary: string;
+  sample: SeedAuditSampleNote;
+  notes: string[];
+}
+
+export interface SeedAuditRecordResult {
+  recordId?: string;
+  category: SeedAuditResultCategory;
+  summary: string;
+  evidence: SeedAuditEvidence[];
+  hygieneFindings: SeedHygieneFinding[];
+}
+
+export interface SeedAuditBaseResult {
+  scope: SeedAuditScope;
+  category: SeedAuditResultCategory;
+  algorithm: SeedAuditAlgorithmReference;
+  context?: SeedAuditContext;
+  formulaVerification: SeedAuditFormulaVerification;
+  proofQuality: SeedAuditProofQualityResult;
+  hygieneFindings: SeedHygieneFinding[];
+  evidence: SeedAuditEvidence[];
+  generatedAt: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SeedAuditSingleBetVerificationResult extends SeedAuditBaseResult {
+  scope: 'single-bet';
+  record: SeedAuditBetRecord;
+  recordResult: SeedAuditRecordResult;
+}
+
+export interface SeedAuditSessionExportResult extends SeedAuditBaseResult {
+  scope: 'session-export';
+  export?: SeedAuditSessionExportMetadata;
+  auditedRecords: number;
+  recordResults: SeedAuditRecordResult[];
 }
 
 /**

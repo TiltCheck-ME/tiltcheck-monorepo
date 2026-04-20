@@ -51,6 +51,11 @@ vi.mock('@tiltcheck/tiltcheck-core', () => ({
   evaluateRtpLegalTrigger: vi.fn(),
 }));
 
+vi.mock('../../src/middleware/auth.js', () => ({
+  authMiddleware: (_req: any, _res: any, next: any) => next(),
+  optionalAuthMiddleware: (_req: any, _res: any, next: any) => next(),
+}));
+
 const app = express();
 app.use(express.json());
 app.use('/rgaas', rgaasRouter);

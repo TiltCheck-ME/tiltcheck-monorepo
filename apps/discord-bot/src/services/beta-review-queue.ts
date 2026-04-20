@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * Beta review queue
  *
@@ -23,6 +23,7 @@ import {
 } from '@tiltcheck/db';
 import { config } from '../config.js';
 import { registerButtonHandler } from '../handlers/button-handlers.js';
+import { getDashboardAppUrl } from '../utils/dashboard-url.js';
 
 type QueueEventType = 'submitted' | 'reviewed';
 
@@ -36,16 +37,6 @@ const DEFAULT_REVIEW_CHANNEL_ID = process.env.BETA_APPLICATION_REVIEW_CHANNEL_ID
 const DEFAULT_BETA_ROLE_ID = process.env.BETA_TESTER_ROLE_ID?.trim() || '1492283508456947904';
 const SITE_URL = (process.env.SITE_URL || 'https://tiltcheck.me').replace(/\/+$/, '');
 
-function getDashboardBaseUrl(): string {
-  const configuredUrl = process.env.DASHBOARD_URL?.trim();
-  if (configuredUrl && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredUrl)) {
-    return configuredUrl.replace(/\/+$/, '');
-  }
-
-  return 'https://dashboard.tiltcheck.me';
-}
-
-const DASHBOARD_URL = getDashboardBaseUrl();
 const BACKEND_URL = (process.env.BACKEND_URL || 'https://api.tiltcheck.me').replace(/\/+$/, '');
 
 let discordClient: Client | null = null;
@@ -168,7 +159,7 @@ function buildApplicantLinkButtons(signup: BetaSignup): ActionRowBuilder<ButtonB
       new ButtonBuilder()
         .setLabel('Open Dashboard')
         .setStyle(ButtonStyle.Link)
-        .setURL(`${DASHBOARD_URL}/dashboard`)
+        .setURL(getDashboardAppUrl())
     );
   }
 

@@ -1,7 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface BonusEntry {
   brand: string;
@@ -13,6 +14,38 @@ export interface BonusEntry {
 
 interface BonusGridProps {
   bonuses: BonusEntry[];
+}
+
+interface BonusFeedResponse {
+  data?: BonusEntry[];
+  available?: boolean;
+  suppression?: {
+    active?: boolean;
+    hiddenCount?: number;
+  };
+}
+
+function normalizeBonusKey(entry: BonusEntry): string {
+  return `${entry.brand.trim().toLowerCase()}::${entry.bonus.trim().toLowerCase()}::${entry.url.trim().toLowerCase()}`;
+}
+
+function mergeBonuses(...sources: BonusEntry[][]): BonusEntry[] {
+  const byKey = new Map<string, BonusEntry>();
+
+  for (const source of sources) {
+    for (const entry of source) {
+      const key = normalizeBonusKey(entry);
+      const existing = byKey.get(key);
+
+      if (!existing || Date.parse(entry.verified) > Date.parse(existing.verified)) {
+        byKey.set(key, entry);
+      }
+    }
+  }
+
+  return [...byKey.values()].sort(
+    (left, right) => Date.parse(right.verified) - Date.parse(left.verified)
+  );
 }
 
 function BonusCard({ entry }: { entry: BonusEntry }) {
@@ -113,17 +146,84 @@ function BonusCard({ entry }: { entry: BonusEntry }) {
 }
 
 export default function BonusGrid({ bonuses }: BonusGridProps) {
+  const { user, loading } = useAuth();
   const [query, setQuery] = useState('');
+  const [visibleBonuses, setVisibleBonuses] = useState(bonuses);
+  const [hiddenCount, setHiddenCount] = useState(0);
+  const [suppressionActive, setSuppressionActive] = useState(false);
 
-  const filtered = query.trim()
-    ? bonuses.filter((b) =>
+  useEffect(() => {
+    setVisibleBonuses(bonuses);
+  }, [bonuses]);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('tc_token')?.trim() || null : null;
+    if (!user && !token) {
+      setHiddenCount(0);
+      setSuppressionActive(false);
+      return;
+    }
+
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
+    const controller = new AbortController();
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+    Promise.all([
+      fetch(`${apiBase}/bonuses`, {
+        credentials: 'include',
+        headers,
+        signal: controller.signal,
+        cache: 'no-store',
+      }),
+      fetch(`${apiBase}/bonuses/inbox`, {
+        credentials: 'include',
+        headers,
+        signal: controller.signal,
+        cache: 'no-store',
+      }),
+    ])
+      .then(async ([collectClockResponse, inboxResponse]) => {
+        if (!collectClockResponse.ok || !inboxResponse.ok) {
+          return;
+        }
+
+        const collectClockBody = await collectClockResponse.json() as BonusFeedResponse;
+        const inboxBody = await inboxResponse.json() as BonusFeedResponse;
+        const collectClockBonuses = Array.isArray(collectClockBody.data) ? collectClockBody.data : [];
+        const inboxBonuses = Array.isArray(inboxBody.data) ? inboxBody.data : [];
+
+        setVisibleBonuses(mergeBonuses(inboxBonuses, collectClockBonuses));
+        setHiddenCount(
+          Math.max(0, Number(collectClockBody.suppression?.hiddenCount ?? 0))
+          + Math.max(0, Number(inboxBody.suppression?.hiddenCount ?? 0))
+        );
+        setSuppressionActive(Boolean(collectClockBody.suppression?.active) || Boolean(inboxBody.suppression?.active));
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [loading, user]);
+
+  const filtered = useMemo(() => (query.trim()
+    ? visibleBonuses.filter((b) =>
         b.brand.toLowerCase().includes(query.trim().toLowerCase())
       )
-    : bonuses;
+    : visibleBonuses), [query, visibleBonuses]);
 
   return (
     <div>
       {/* Search bar */}
+      {suppressionActive && hiddenCount > 0 && (
+        <div className="mb-6 border border-[#17c3b2]/30 bg-[#0d1117] px-4 py-3">
+          <p className="text-xs font-mono uppercase tracking-widest text-[#17c3b2]">
+            [{hiddenCount} HIDDEN] Your active casino filters are suppressing matching bonus promos.
+          </p>
+        </div>
+      )}
       <div className="mb-8">
         <div className="relative max-w-lg">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#17c3b2] font-mono text-sm select-none pointer-events-none">

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -19,6 +19,7 @@ import {
 } from 'discord.js';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getRandomQuote, ONBOARDING_QUESTIONS, calculateSuggestedRisk } from '@tiltcheck/utils';
+import { getDashboardAppUrl } from '../utils/dashboard-url.js';
 
 // Supabase client for persistent storage (free tier)
 let supabase: SupabaseClient | null = null;
@@ -37,16 +38,6 @@ const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
 
-function getDashboardBaseUrl(): string {
-  const configuredUrl = process.env.DASHBOARD_URL?.trim();
-  if (configuredUrl && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredUrl)) {
-    return configuredUrl;
-  }
-
-  return 'https://dashboard.tiltcheck.me';
-}
-
-const DASHBOARD_URL = getDashboardBaseUrl();
 const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || 'https://discord.gg/gdBsEJfCar';
 
 interface UserPreferences {
@@ -238,7 +229,7 @@ export function getWebsiteOnboardingUrl(): string {
 }
 
 export function getDashboardUrl(): string {
-  return DASHBOARD_URL;
+  return getDashboardAppUrl();
 }
 
 export function getBetaTesterUrl(): string {
@@ -326,7 +317,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
-        `IF YOU WANT THE HARD BRAKE, RUN \`/intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
+        `IF YOU WANT THE HARD BRAKE, RUN \`/session intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
         `WANT BETA ACCESS? LINK DISCORD ON THE SITE FIRST. THE BETA FORM NOW USES YOUR REAL DISCORD ID SO APPROVALS AND ROLE GRANTS DO NOT TURN INTO A SCAVENGER HUNT.\n` +
         `LINK DISCORD: ${getWebsiteOnboardingUrl()}\n\n` +
         `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
@@ -433,7 +424,7 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
     .setDescription(
       `Before we proceed:\n\n` +
       `**Safety First**\n` +
-      `TiltCheck provides tools like status audits, buddy alerts, /intervene voice brakes, and fair-game verification to keep you objective.\n\n` +
+      `TiltCheck provides tools like /session status audits, buddy alerts, /session intervene voice brakes, and fair-game verification to keep you objective.\n\n` +
       `**Your Responsibility**\n` +
       `You are responsible for your own session. Use these tools as data, not as a ruleset.\n\n` +
       `**No Financial Advice**\n` +
@@ -556,13 +547,13 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
     .setDescription(
       `**TiltCheck** is a safety bot for responsible play in Discord.\n\n` +
       `**Check your status**\n` +
-      `/status\n\n` +
+      `/session status\n\n` +
       `**House Edge check**\n` +
       `/odds\n\n` +
       `**Link some safety**\n` +
       `/buddy link user:<@user>\n\n` +
       `**Hard brake on critical tilt**\n` +
-      `/intervene enabled:true\n\n` +
+      `/session intervene enabled:true\n\n` +
       `**Check a casino**\n` +
       `/casino\n\n` +
       `**Ecosystem**\n` +
@@ -609,7 +600,7 @@ async function showPreferences(
 
   const description = isSuggested
     ? `**Audit Calibration Complete.**\nBased on your answers, I suggest a **${prefs.riskLevel.toUpperCase()}** profile. You can still tweak these below.`
-    : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.\n\n**Voice Intervention**\nUse \`/intervene enabled:true\` later if you want TiltCheck to auto-move you into accountability VC on critical tilt.`;
+    : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.\n\n**Voice Intervention**\nUse \`/session intervene enabled:true\` later if you want TiltCheck to auto-move you into accountability VC on critical tilt.`;
 
   const prefsEmbed = new EmbedBuilder()
     .setColor(0x22d3a6)
@@ -685,7 +676,7 @@ export async function showPreferencesMessage(channel: DMChannel, _userId: string
       `Conservative - More cooldown reminders, lower limits suggested\n` +
       `Moderate - Balanced approach (default)\n` +
       `Full Degen - Minimal hand-holding\n\n` +
-      `Need the hard brake too? Run \`/intervene enabled:true\` after setup to allow emergency voice moves on critical tilt.`
+      `Need the hard brake too? Run \`/session intervene enabled:true\` after setup to allow emergency voice moves on critical tilt.`
     )
     .setFooter({ text: 'Made for Degens. By Degens.' });
 
@@ -790,9 +781,9 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `- MONITORING: ${notifications}\n` +
       `- VOICE INTERVENTION: ${prefs?.voiceInterventionEnabled ? 'ENABLED' : 'OFF'}\n\n` +
       `**AUDIT COMMANDS:**\n` +
-      `/status - QUERY SAFETY STATE\n` +
+      `/session status - QUERY SAFETY STATE\n` +
       `/buddy - LINK YOUR ACCOUNTABILITY LINE\n` +
-      `/intervene enabled:true - ALLOW AUTO-MOVE INTO ACCOUNTABILITY VC ON CRITICAL TILT\n` +
+      `/session intervene enabled:true - ALLOW AUTO-MOVE INTO ACCOUNTABILITY VC ON CRITICAL TILT\n` +
       `/odds - HOUSE EDGE AUDIT\n` +
       `/verify - PROVABLY FAIR VERIFIER\n\n` +
       `**NEXT STEP:** Install the TiltCheck extension to get the full session auditing layer running.\n` +

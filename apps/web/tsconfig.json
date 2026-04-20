@@ -37,8 +37,7 @@
       ]
     },
     "target": "ES2017",
-    "composite": true,
-    "rootDir": "."
+    "composite": true
   },
   "include": [
     "next-env.d.ts",
@@ -51,6 +50,9 @@
     "node_modules"
   ],
   "references": [
+    {
+      "path": "../../packages/types"
+    },
     {
       "path": "../../packages/shared"
     }

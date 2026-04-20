@@ -34,25 +34,25 @@ const INTENT_PATTERNS: Array<{
     extract: (m) => ({ domain: m[1] }),
     reply: 'Before you deposit a single cent — `/casino domain:{domain}`. Trust the audit, not the promo banner.',
   },
-  // /status — tilt status
+  // /session status — tilt status
   {
     pattern: /(?:how am i|my status|am i (?:ok|fine|tilting|on tilt)|check me|audit me|tilt check|how bad|my risk|am i good)/i,
     command: 'status',
-    reply: 'The fact you\'re asking is already a signal. Run `/status` and let the data tell you what you don\'t want to hear.',
+    reply: 'The fact you\'re asking is already a signal. Run `/session status` and let the data tell you what you don\'t want to hear.',
   },
-  // /cooldown — break requests
+  // /session cooldown — break requests
   {
     pattern: /(?:i need a break|start cooldown|take a break|pause|stop me|lock me out|cool(?:down)?(?:\s+(\d+))?)/i,
     command: 'cooldown',
     extract: (m) => (m[1] ? { duration: m[1] } : {} as Record<string, string>),
-    reply: 'Smartest thing you\'ve said all session. `/cooldown` — add `duration:` in minutes if you know yourself.',
+    reply: 'Smartest thing you\'ve said all session. `/session cooldown` — add `duration:` in minutes if you know yourself.',
   },
-  // /goal — set profit target
+  // /session goal — set profit target
   {
     pattern: /(?:set (?:my )?goal|cash out at|profit target|i want to (?:win|make)|redeem at)\s+\$?([\d.]+)/i,
     command: 'goal',
     extract: (m) => ({ redeem_point: m[1] }),
-    reply: 'Redeem-to-win. Use `/goal starting_balance:{amount} redeem_point:{target}` — and actually stick to it this time.',
+    reply: 'Redeem-to-win. Use `/session goal starting_balance:{amount} redeem_point:{target}` — and actually stick to it this time.',
   },
   // /odds — game odds
   {

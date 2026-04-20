@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * Exclusion Cache Service
  * Redis-backed cache for ForbiddenGamesProfile.
@@ -12,13 +12,18 @@
 import { buildForbiddenGamesProfile } from '@tiltcheck/db';
 import type { ForbiddenGamesProfile, GameCategory } from '@tiltcheck/types';
 
+export interface ExclusionLookupTarget {
+  gameId?: string | null;
+  category?: GameCategory | null;
+  provider?: string | null;
+  casino?: string | null;
+}
+
 const CACHE_TTL_SECONDS = 300; // 5 minutes
 const KEY_PREFIX = 'excl:';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let redisClient: any = null;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getRedis(): Promise<any> {
   if (redisClient) return redisClient;
   const url = process.env['REDIS_URL'];
@@ -52,6 +57,33 @@ function normalizeSlugValue(value?: string | null): string | null {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
   return normalized.length > 0 ? normalized : null;
+}
+
+function tokenMatches(blockedValue: string, candidateValue: string): boolean {
+  return candidateValue === blockedValue
+    || candidateValue.startsWith(`${blockedValue}-`)
+    || blockedValue.startsWith(`${candidateValue}-`);
+}
+
+export function profileBlocksTarget(
+  profile: ForbiddenGamesProfile,
+  target: ExclusionLookupTarget,
+): boolean {
+  const normalizedGameId = normalizeLookupValue(target.gameId);
+  const normalizedProvider = normalizeSlugValue(target.provider);
+  const normalizedCasino = normalizeSlugValue(target.casino);
+
+  if (normalizedGameId && profile.blockedGameIds.some((entry) => normalizeLookupValue(entry) === normalizedGameId)) return true;
+  if (target.category && profile.blockedCategories.includes(target.category)) return true;
+  if (normalizedProvider && profile.blockedProviders.some((entry) => {
+    const blockedProvider = normalizeSlugValue(entry);
+    return blockedProvider ? tokenMatches(blockedProvider, normalizedProvider) : false;
+  })) return true;
+  if (normalizedCasino && profile.blockedCasinos.some((entry) => {
+    const blockedCasino = normalizeSlugValue(entry);
+    return blockedCasino ? tokenMatches(blockedCasino, normalizedCasino) : false;
+  })) return true;
+  return false;
 }
 
 /**
@@ -121,13 +153,5 @@ export async function isGameBlocked(
   if (!gameId && !category && !provider && !casino) return false;
 
   const profile = await getForbiddenGamesProfile(userId);
-  const normalizedGameId = normalizeLookupValue(gameId);
-  const normalizedProvider = normalizeSlugValue(provider);
-  const normalizedCasino = normalizeSlugValue(casino);
-
-  if (normalizedGameId && profile.blockedGameIds.some((entry) => normalizeLookupValue(entry) === normalizedGameId)) return true;
-  if (category && profile.blockedCategories.includes(category)) return true;
-  if (normalizedProvider && profile.blockedProviders.some((entry) => normalizeSlugValue(entry) === normalizedProvider)) return true;
-  if (normalizedCasino && profile.blockedCasinos.some((entry) => normalizeSlugValue(entry) === normalizedCasino)) return true;
-  return false;
+  return profileBlocksTarget(profile, { gameId, category, provider, casino });
 }

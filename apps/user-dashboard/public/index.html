@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-  <!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 -->
+  <!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -302,7 +302,7 @@
         <!-- TAB: VAULT -->
         <section id="vault-tab" class="tab-section">
           <div class="section-header"><h1>Vault</h1></div>
-          <p class="section-desc">Dashboard owns LockVault, co-owner approvals, and wallet safety settings. The extension stays on enforcement and quick actions, not durable rule management.</p>
+          <p class="section-desc">Dashboard owns LockVault timers, withdrawal guardian approvals, Wallet Lock cooldowns, and AutoVault rules. The extension stays on enforcement and quick actions, not durable rule management.</p>
 
           <div id="vault-status-card" class="vault-hero">
             <div class="vault-status-header">
@@ -314,6 +314,8 @@
             </div>
             <div id="vault-locked-amount" class="vault-amount" style="display:none;"></div>
             <div id="vault-countdown" class="vault-countdown" style="display:none;"></div>
+            <div id="vault-release-summary" class="vault-release-summary" style="display:none;"></div>
+            <div id="vault-schedule-status" class="vault-schedule-list" style="display:none;"></div>
             <div class="profit-guard-row">
               <span class="vault-label">Profit Guard</span>
               <label class="toggle">
@@ -346,6 +348,20 @@
                   </div>
                   <input type="number" id="vault-custom-duration" class="input" placeholder="Hours" style="display:none; margin-top:0.5rem;" />
                 </div>
+                <div class="form-group">
+                  <label class="form-label staged-toggle-row" for="vault-staged-toggle">
+                    <input type="checkbox" id="vault-staged-toggle" />
+                    <span>Enable staged unlocks</span>
+                  </label>
+                  <p class="form-helper">Set partial releases before the final expiry. Any remainder not assigned here stays locked until the end of the lock period.</p>
+                </div>
+                <div id="vault-staged-config" class="vault-staged-config" style="display:none;">
+                  <div class="inline-action-row">
+                    <button id="vault-add-stage-btn" type="button" class="btn btn-secondary btn-sm">Add Stage</button>
+                    <button id="vault-clear-stages-btn" type="button" class="btn btn-ghost btn-sm">Clear</button>
+                  </div>
+                  <div id="vault-staged-rows" class="vault-staged-rows"></div>
+                </div>
                 <button id="vault-lock-btn" class="btn btn-primary">Lock Vault</button>
               </div>
             </div>
@@ -359,14 +375,18 @@
 
           <div class="card-row">
             <div class="card">
-              <h3 class="card-title">Withdrawal Approval Flow</h3>
-              <p class="section-desc section-desc-inline">Current LockVault flow only executes after the vault owner and the assigned co-owner both act. No fake success screens.</p>
+              <h3 class="card-title">Withdrawal Guardian Flow</h3>
+              <p class="section-desc section-desc-inline">Current LockVault withdrawal flow only executes after the vault owner requests it and the configured withdrawal guardians clear the approval threshold. No fake success screens.</p>
               <div class="form-group">
-                <label class="form-label" for="vault-second-owner-input">Co-owner Discord ID</label>
-                <input type="text" id="vault-second-owner-input" class="input" placeholder="Discord ID for the approval co-owner" />
+                <label class="form-label" for="vault-guardian-ids-input">Withdrawal Guardian Discord IDs</label>
+                <textarea id="vault-guardian-ids-input" class="input" rows="4" placeholder="One Discord ID per line or comma-separated"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vault-approval-threshold-input">Approval threshold</label>
+                <input type="number" id="vault-approval-threshold-input" class="input" placeholder="1" min="1" step="1" />
               </div>
               <div class="inline-action-row">
-                <button id="vault-save-second-owner-btn" class="btn btn-secondary">Save Co-owner</button>
+                <button id="vault-save-guardians-btn" class="btn btn-secondary">Save Withdrawal Guardians</button>
               </div>
               <div class="form-group">
                 <label class="form-label" for="vault-withdrawal-amount-input">Withdrawal amount (SOL)</label>
@@ -381,8 +401,8 @@
             </div>
 
             <div class="card">
-              <h3 class="card-title">Approvals Assigned to You</h3>
-              <p class="section-desc section-desc-inline">If another degen assigned you as co-owner, approve from here after you verify the amount and owner.</p>
+              <h3 class="card-title">Withdrawal Approvals Assigned to You</h3>
+              <p class="section-desc section-desc-inline">If another degen assigned you as a withdrawal guardian, approve from here after you verify the amount, owner, and threshold progress.</p>
               <div id="vault-approval-queue" class="safety-list">
                 <div class="activity-empty">Loading approval queue...</div>
               </div>
@@ -393,7 +413,7 @@
           <div class="card-row">
             <div class="card">
               <h3 class="card-title">Wallet Safety Lock</h3>
-              <p class="section-desc section-desc-inline">Hard-brake wallet actions from the dashboard. No local shadow timers.</p>
+              <p class="section-desc section-desc-inline">Account-level cooldown that blocks wallet actions from the dashboard. No local shadow timers.</p>
               <div id="wallet-lock-summary" class="safety-summary-stack" style="margin-bottom:1rem;">
                 <div class="safety-stat">
                   <span class="safety-stat-label">Status</span>
@@ -429,7 +449,8 @@
             </div>
 
             <div class="card">
-              <h3 class="card-title">Auto-Vault Rules</h3>
+              <h3 class="card-title">AutoVault Rules</h3>
+              <p class="section-desc section-desc-inline">AutoVault defines automatic deposits into LockVault. It does not replace LockVault timers or the account-level Wallet Lock.</p>
               <div class="form-group">
                 <label class="form-label" for="vault-rule-type">Rule type</label>
                 <select id="vault-rule-type" class="input">
@@ -440,7 +461,7 @@
                 </select>
               </div>
               <div class="form-group" id="vault-rule-percent-group">
-                <label class="form-label" for="vault-rule-percent">Percent to vault</label>
+                <label class="form-label" for="vault-rule-percent">Percent to auto-vault</label>
                 <input type="number" id="vault-rule-percent" class="input" min="1" max="100" placeholder="25" />
               </div>
               <div class="form-group" id="vault-rule-fixed-group" style="display:none;">

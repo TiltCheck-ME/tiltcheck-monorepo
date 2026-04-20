@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -592,7 +592,10 @@ export class SidebarController implements SidebarUI {
   }
 
   public async openPremium() {
-    chrome.tabs.create({ url: `${EXT_CONFIG.HUB_URL}/premium`, active: true });
+    const premiumUrl = new URL(EXT_CONFIG.DASHBOARD_URL);
+    premiumUrl.pathname = '/premium';
+    premiumUrl.search = '';
+    chrome.tabs.create({ url: premiumUrl.toString(), active: true });
     console.log('[SidebarController] Redirecting to premium upgrade page...');
   }
 }

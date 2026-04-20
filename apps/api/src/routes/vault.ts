@@ -19,6 +19,7 @@ import {
   approveAdminWalletUnlockForUser,
   requestPaidWalletUnlockForUser,
   settlePaidWalletUnlockForUser,
+  setVaultGuardians,
   addSecondOwner,
   getWithdrawalApprovalsForUser,
   initiateWithdrawal,
@@ -31,6 +32,151 @@ const router: Router = Router();
 interface VaultError extends Error {
   code?: string;
   httpStatus?: number;
+}
+
+function normalizeVaultAmount(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed * 1_000_000_000) / 1_000_000_000 : 0;
+}
+
+function getSerializedReleasedAmountSOL(vault: any): number {
+  if (Number.isFinite(vault?.releasedAmountSOL)) {
+    return normalizeVaultAmount(vault.releasedAmountSOL);
+  }
+  if (vault?.status === 'unlocked' || vault?.status === 'emergency-unlocked') {
+    return normalizeVaultAmount(vault?.lockedAmountSOL);
+  }
+  return 0;
+}
+
+function serializeUnlockSchedule(schedule: any): Array<Record<string, unknown>> {
+  if (!Array.isArray(schedule)) return [];
+  return schedule
+    .map((tranche) => ({
+      id: tranche?.id ?? null,
+      amountSOL: normalizeVaultAmount(tranche?.amountSOL),
+      unlockAt: tranche?.unlockAt ? new Date(tranche.unlockAt).toISOString() : null,
+      offsetMinutes: Number.isFinite(tranche?.offsetMs) ? Math.trunc(Number(tranche.offsetMs) / 60000) : null,
+      status: tranche?.status === 'released' ? 'released' : 'pending',
+      releasedAt: tranche?.releasedAt ? new Date(tranche.releasedAt).toISOString() : null,
+      label: typeof tranche?.label === 'string' ? tranche.label : null,
+    }))
+    .filter((tranche) => tranche.amountSOL > 0);
+}
+
+function normalizeGuardianIds(value: unknown, legacySecondOwnerId?: unknown): string[] {
+  const values = Array.isArray(value) ? value : [];
+  const seen = new Set<string>();
+  const guardianIds: string[] = [];
+  for (const entry of values) {
+    const guardianId = typeof entry === 'string' ? entry.trim() : '';
+    if (!guardianId || seen.has(guardianId)) continue;
+    seen.add(guardianId);
+    guardianIds.push(guardianId);
+  }
+  if (guardianIds.length > 0) {
+    return guardianIds;
+  }
+  if (typeof legacySecondOwnerId === 'string' && legacySecondOwnerId.trim()) {
+    return [legacySecondOwnerId.trim()];
+  }
+  return [];
+}
+
+function normalizeApprovalThreshold(value: unknown, guardianCount: number): number {
+  if (guardianCount <= 0) return 0;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return guardianCount;
+  }
+  return Math.max(1, Math.min(guardianCount, Math.trunc(parsed)));
+}
+
+function serializeWithdrawalProposal(vault: any) {
+  const proposal = vault?.withdrawalProposal;
+  if (!proposal) return null;
+
+  const proposalGuardianIds = normalizeGuardianIds(proposal?.guardianIds);
+  const fallbackGuardianIds = proposalGuardianIds.length > 0
+    ? proposalGuardianIds
+    : normalizeGuardianIds(vault?.guardianIds, vault?.secondOwnerId);
+  const approvalThreshold = normalizeApprovalThreshold(
+    proposal?.approvalThreshold ?? vault?.approvalThreshold,
+    fallbackGuardianIds.length,
+  );
+  const approvals = Array.isArray(proposal?.approvals)
+    ? proposal.approvals
+        .map((approval: any) => ({
+          guardianId: typeof approval?.guardianId === 'string' ? approval.guardianId : null,
+          approvedAt: approval?.approvedAt ? new Date(approval.approvedAt).toISOString() : null,
+        }))
+        .filter((approval: any) => typeof approval.guardianId === 'string' && approval.guardianId.length > 0)
+    : [];
+  const approvedGuardianIds = approvals.map((approval: any) => approval.guardianId);
+  const pendingGuardianIds = fallbackGuardianIds.filter((guardianId) => !approvedGuardianIds.includes(guardianId));
+
+  return {
+    ...proposal,
+    amountSOL: normalizeVaultAmount(proposal?.amountSOL),
+    initiatedAt: proposal?.initiatedAt ? new Date(proposal.initiatedAt).toISOString() : null,
+    guardianIds: fallbackGuardianIds,
+    approvalThreshold,
+    approvals,
+    approvalCount: approvals.length,
+    remainingApprovals: Math.max(0, approvalThreshold - approvals.length),
+    pendingGuardianIds,
+    readyToExecute: proposal?.status === 'approved',
+    approvedAt: proposal?.approvedAt ? new Date(proposal.approvedAt).toISOString() : null,
+    executionRequestedAt: proposal?.executionRequestedAt ? new Date(proposal.executionRequestedAt).toISOString() : null,
+    executionTimeoutAt: proposal?.executionTimeoutAt ? new Date(proposal.executionTimeoutAt).toISOString() : null,
+    lastRecoveryAt: proposal?.lastRecoveryAt ? new Date(proposal.lastRecoveryAt).toISOString() : null,
+    executedAt: proposal?.executedAt ? new Date(proposal.executedAt).toISOString() : null,
+  };
+}
+
+function serializeVaultRecord(vault: any) {
+  const lockedAmountSOL = normalizeVaultAmount(vault?.lockedAmountSOL);
+  const releasedAmountSOL = getSerializedReleasedAmountSOL(vault);
+  const lockedRemainderSOL = normalizeVaultAmount(Math.max(0, lockedAmountSOL - releasedAmountSOL));
+  const unlockSchedule = serializeUnlockSchedule(vault?.unlockSchedule);
+  const nextUnlockAt = unlockSchedule.find((tranche) => tranche.status === 'pending')?.unlockAt ?? null;
+  const guardianIds = normalizeGuardianIds(vault?.guardianIds, vault?.secondOwnerId);
+  const approvalThreshold = normalizeApprovalThreshold(vault?.approvalThreshold, guardianIds.length);
+
+  return {
+    ...vault,
+    createdAt: vault?.createdAt ? new Date(vault.createdAt).toISOString() : null,
+    unlockAt: vault?.unlockAt ? new Date(vault.unlockAt).toISOString() : null,
+    lockedAmountSOL,
+    originalLockedAmountSOL: normalizeVaultAmount(vault?.originalLockedAmountSOL ?? lockedAmountSOL),
+    releasedAmountSOL,
+    availableToWithdrawSOL: releasedAmountSOL,
+    lockedRemainderSOL,
+    withdrawnAmountSOL: normalizeVaultAmount(vault?.withdrawnAmountSOL),
+    stagedUnlockEnabled: unlockSchedule.length > 0,
+    nextUnlockAt,
+    readyToRelease: releasedAmountSOL > 0,
+    fullyUnlocked: lockedRemainderSOL <= 0.000000001,
+    guardianIds,
+    guardianCount: guardianIds.length,
+    approvalThreshold,
+    primaryGuardianId: guardianIds[0] ?? null,
+    secondOwnerId: guardianIds[0] ?? null,
+    withdrawalProposal: serializeWithdrawalProposal(vault),
+    unlockSchedule,
+  };
+}
+
+function parseGuardianConfigBody(body: any): { guardianIds: string[]; approvalThreshold: number } | null {
+  const guardianIds = normalizeGuardianIds(body?.guardianIds, body?.secondOwnerId);
+  if (guardianIds.length === 0) {
+    return null;
+  }
+  const approvalThreshold = normalizeApprovalThreshold(
+    body?.approvalThreshold ?? (body?.secondOwnerId ? 1 : guardianIds.length),
+    guardianIds.length,
+  );
+  return { guardianIds, approvalThreshold };
 }
 
 function handleVaultError(error: unknown): { status: number; body: { error: string; code?: string } } {
@@ -85,6 +231,7 @@ function walletLockBlockedResponse(userId: string) {
 
 function buildWithdrawalExecutionResponse(record: Awaited<ReturnType<typeof executeWithdrawal>>) {
   const proposal = record.withdrawalProposal;
+  const serializedRecord = serializeVaultRecord(record);
   if (proposal?.status === 'execution-pending') {
     const executionTimeoutAt = proposal.executionTimeoutAt ?? null;
     const remainingMs = executionTimeoutAt ? Math.max(0, executionTimeoutAt - Date.now()) : null;
@@ -98,7 +245,7 @@ function buildWithdrawalExecutionResponse(record: Awaited<ReturnType<typeof exec
         executionRequestId: proposal.executionRequestId ?? null,
         executionTimeoutAt: executionTimeoutAt ? new Date(executionTimeoutAt).toISOString() : null,
         remainingMs,
-        vault: record,
+        vault: serializedRecord,
       },
     };
   }
@@ -113,7 +260,7 @@ function buildWithdrawalExecutionResponse(record: Awaited<ReturnType<typeof exec
         code: 'WITHDRAWAL_EXECUTION_STALE',
         message: 'The previous withdrawal execution request went stale and was reset. Review the vault status and retry execution if funds did not move.',
         recoveredAt: proposal.lastRecoveryAt ? new Date(proposal.lastRecoveryAt).toISOString() : null,
-        vault: record,
+        vault: serializedRecord,
       },
     };
   }
@@ -124,7 +271,7 @@ function buildWithdrawalExecutionResponse(record: Awaited<ReturnType<typeof exec
       success: true,
       withdrawalExecuted: proposal?.status === 'executed',
       executionRequestId: proposal?.executionRequestId ?? null,
-      vault: record,
+      vault: serializedRecord,
     },
   };
 }
@@ -143,7 +290,7 @@ router.get('/:userId', authMiddleware, async (req, res) => {
   }
 
   const balance = getVaultBalance(userId);
-  const locks = getVaultStatus(userId);
+  const locks = getVaultStatus(userId).map(serializeVaultRecord);
   const walletLock = getWalletActionLockStatus(userId);
 
   res.json({
@@ -170,7 +317,10 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
   }
 
   const locks = getVaultStatus(userId);
-  const activeLock = locks.find(v => v.status === 'locked' || v.status === 'extended');
+  const activeLock = locks.map(serializeVaultRecord).find((v) =>
+    (v.status === 'locked' || v.status === 'extended' || v.status === 'partially-unlocked') &&
+    Number(v.lockedRemainderSOL) > 0
+  );
 
   if (!activeLock) {
     res.json({ success: true, locked: false });
@@ -180,12 +330,17 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
   res.json({
     success: true,
     locked: true,
-    amount: activeLock.lockedAmountSOL,
+    amount: activeLock.lockedRemainderSOL,
     amountUnit: 'SOL',
-    unlockTime: new Date(activeLock.unlockAt).toISOString(),
-    createdAt: new Date(activeLock.createdAt).toISOString(),
+    unlockTime: activeLock.nextUnlockAt || activeLock.unlockAt,
+    finalUnlockTime: activeLock.unlockAt,
+    createdAt: activeLock.createdAt,
     id: activeLock.id,
-    readyToRelease: Date.now() >= activeLock.unlockAt
+    readyToRelease: activeLock.readyToRelease,
+    releasedAmountSOL: activeLock.releasedAmountSOL,
+    lockedRemainderSOL: activeLock.lockedRemainderSOL,
+    nextUnlockAt: activeLock.nextUnlockAt,
+    unlockSchedule: activeLock.unlockSchedule,
   });
 });
 
@@ -415,7 +570,7 @@ router.post('/:userId/deposit', authMiddleware, async (req, res) => {
  */
 router.post('/:userId/lock', authMiddleware, async (req, res) => {
   const userId = param(req, 'userId');
-  const { amount, durationMinutes, reason } = req.body;
+  const { amount, durationMinutes, reason, unlockSchedule } = req.body;
   const auth = (req as AuthRequest).user;
 
   if (!isAuthorized(auth, userId)) {
@@ -439,20 +594,46 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
     res.status(400).json({ error: 'Invalid durationMinutes' });
     return;
   }
+  if (unlockSchedule !== undefined && !Array.isArray(unlockSchedule)) {
+    res.status(400).json({ error: 'unlockSchedule must be an array when provided' });
+    return;
+  }
 
   try {
+    const normalizedUnlockSchedule = Array.isArray(unlockSchedule)
+      ? unlockSchedule.map((entry, index) => {
+          const trancheAmount = Number(entry?.amount);
+          const offsetMinutes = Number(entry?.offsetMinutes);
+          if (!Number.isFinite(trancheAmount) || trancheAmount <= 0) {
+            throw new Error(`unlockSchedule[${index}].amount must be a positive number`);
+          }
+          if (!Number.isFinite(offsetMinutes) || offsetMinutes <= 0) {
+            throw new Error(`unlockSchedule[${index}].offsetMinutes must be a positive number`);
+          }
+          if (offsetMinutes > parsedDurationMinutes) {
+            throw new Error(`unlockSchedule[${index}].offsetMinutes cannot exceed durationMinutes`);
+          }
+          return {
+            amountRaw: `${trancheAmount} SOL`,
+            offsetMinutes: Math.trunc(offsetMinutes),
+            label: typeof entry?.label === 'string' && entry.label.trim() ? entry.label.trim() : undefined,
+          };
+        })
+      : undefined;
+
     const record = await lockVault({
       userId,
       amountRaw: `${parsedAmount} SOL`,
       durationRaw: `${Math.trunc(parsedDurationMinutes)}m`,
       reason: reason || 'Manual Lock',
       currencyHint: 'SOL',
-      disclaimerAccepted: true
+      disclaimerAccepted: true,
+      unlockSchedule: normalizedUnlockSchedule,
     });
 
     res.json({
       success: true,
-      vault: record
+      vault: serializeVaultRecord(record)
     });
   } catch (error) {
     const handled = handleVaultError(error);
@@ -490,11 +671,12 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
     
     // If no vaultId provided, find the first unlockable one
     if (!targetVaultId) {
-      const locks = getVaultStatus(userId);
-      const ready = locks.find(v =>
-        (v.status === 'locked' || v.status === 'extended' || v.status === 'unlocked') &&
-        Date.now() >= v.unlockAt
-      );
+      const ready = getVaultStatus(userId)
+        .map(serializeVaultRecord)
+        .find((v) =>
+          Number(v.availableToWithdrawSOL) > 0 ||
+          (typeof v.unlockAt === 'string' && new Date(v.unlockAt).getTime() <= Date.now())
+        );
       if (!ready) {
         res.status(400).json({ error: 'No vaults ready for release' });
         return;
@@ -503,12 +685,13 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
     }
 
     const record = unlockVault(userId, targetVaultId);
+    const serializedRecord = serializeVaultRecord(record);
     
     res.json({
       success: true,
-      amount: record.lockedAmountSOL,
+      amount: serializedRecord.availableToWithdrawSOL,
       amountUnit: 'SOL',
-      vault: record
+      vault: serializedRecord
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -517,8 +700,39 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
 });
 
 /**
+ * POST /vault/:userId/guardians
+ * Configure withdrawal guardians for the latest vault
+ */
+router.post('/:userId/guardians', authMiddleware, async (req, res) => {
+    const userId = param(req, 'userId');
+    const auth = (req as AuthRequest).user;
+    const guardianConfig = parseGuardianConfigBody(req.body);
+
+    if (!isAuthorized(auth, userId)) {
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    if (!guardianConfig) {
+      res.status(400).json({ error: 'guardianIds must contain at least one withdrawal guardian Discord ID' });
+      return;
+    }
+
+    try {
+      const record = await setVaultGuardians(userId, guardianConfig.guardianIds, guardianConfig.approvalThreshold);
+      res.json({
+        success: true,
+        vault: serializeVaultRecord(record)
+      });
+    } catch (error) {
+      const { status, body } = handleVaultError(error);
+      res.status(status).json(body);
+    }
+});
+
+/**
  * POST /vault/:userId/add-second-owner
- * Add a second owner to the vault
+ * Legacy alias to configure a single withdrawal guardian
  */
 router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
     const userId = param(req, 'userId');
@@ -531,7 +745,7 @@ router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
   }
 
     if (!secondOwnerId || typeof secondOwnerId !== 'string') {
-        res.status(400).json({ error: 'Invalid secondOwnerId' });
+        res.status(400).json({ error: 'Invalid secondOwnerId. Use guardianIds for new clients.' });
         return;
     }
 
@@ -539,7 +753,7 @@ router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
         const record = await addSecondOwner(userId, secondOwnerId);
         res.json({
             success: true,
-            vault: record
+            vault: serializeVaultRecord(record)
         });
     } catch (error) {
         const { status, body } = handleVaultError(error);
@@ -571,7 +785,7 @@ router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => 
         const record = await initiateWithdrawal(userId, parsedAmount);
         res.json({
             success: true,
-            vault: record
+            vault: serializeVaultRecord(record)
         });
     } catch (error) {
         const { status, body } = handleVaultError(error);
@@ -593,15 +807,7 @@ router.get('/:userId/withdrawal-approvals', authMiddleware, async (req, res) => 
     }
 
     const approvals = getWithdrawalApprovalsForUser(userId).map((vault) => ({
-      id: vault.id,
-      userId: vault.userId,
-      vaultAddress: vault.vaultAddress,
-      vaultType: vault.vaultType,
-      unlockAt: new Date(vault.unlockAt).toISOString(),
-      createdAt: new Date(vault.createdAt).toISOString(),
-      lockedAmountSOL: vault.lockedAmountSOL,
-      secondOwnerId: vault.secondOwnerId ?? null,
-      withdrawalProposal: vault.withdrawalProposal ?? null,
+      ...serializeVaultRecord(vault),
     }));
 
     res.json({
@@ -628,7 +834,7 @@ router.post('/:userId/approve-withdrawal', authMiddleware, async (req, res) => {
         const record = await approveWithdrawal(userId, approverId);
         res.json({
             success: true,
-            vault: record
+            vault: serializeVaultRecord(record)
         });
     } catch (error) {
         const { status, body } = handleVaultError(error);

@@ -1,7 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import React from 'react';
 import type { Metadata } from 'next';
 import BonusGrid, { BonusEntry } from '@/components/BonusGrid';
+import PublicPageHero from '@/components/PublicPageHero';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Daily Bonus Tracker | TiltCheck',
@@ -122,57 +125,72 @@ export default async function BonusesPage() {
   const sourceLabel = inboxFeed.available ? 'COLLECTCLOCK + EMAIL INBOX' : 'COLLECTCLOCK';
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] text-white">
-      {/* Page header */}
-        <section className="border-b border-[#283347] py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="brand-eyebrow">
-            BONUS INTEL // COLLECTCLOCK + EMAIL FEED
-          </p>
-          <h1 className="brand-page-title">
-            <span className="text-[#17c3b2]">Claim first.</span>
+    <main className="public-page text-white">
+      <PublicPageHero
+        eyebrow="Bonus intel // CollectClock + email feed"
+        title={
+          <>
+            Claim first.
             <br />
             Deposit later.
-          </h1>
-          <p className="brand-lead mx-auto mb-6">
-            Extend your play without depositing real money. CollectClock keeps the broad tracker live, and inbox-ingested casino emails fill in fresh drops that hit the community first.
+          </>
+        }
+        description={
+          <p>
+            Extend your play without depositing real money. CollectClock keeps the broad tracker live, and inbox-ingested
+            casino emails fill in fresh drops that hit the community first.
           </p>
+        }
+        actions={
           <a
             href={COLLECTCLOCK_SITE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-mono font-bold uppercase tracking-widest text-[#17c3b2] border border-[#17c3b2]/40 px-4 py-2 hover:bg-[#17c3b2]/10 transition-all duration-200"
+            className="btn btn-primary"
+            data-text="VIEW COLLECTCLOCK"
           >
-            VIEW COLLECTCLOCK &rarr;
+            VIEW COLLECTCLOCK
           </a>
+        }
+        stats={[
+          {
+            label: 'Tracked offers',
+            value: `${bonuses.length}`,
+            description: `Merged from ${sourceLabel.toLowerCase()} so fresh drops do not live in disconnected silos.`,
+          },
+          {
+            label: 'Refresh cadence',
+            value: 'Hourly',
+            description: 'CollectClock stays on the broad watch while inbox intel fills in faster community sightings.',
+          },
+          {
+            label: 'Player move',
+            value: 'Claim first',
+            description: 'Use the tracker to stretch sessions with free value before real-money deposits even enter the picture.',
+          },
+        ]}
+      />
+
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <div className="public-page-card">
+            <div className="public-page-meta-strip">
+              <span>Live feed</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>{bonuses.length} bonus{bonuses.length !== 1 ? 'es' : ''} tracked</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>refreshes hourly</span>
+              <span className="public-page-meta-strip__separator">/</span>
+              <span>sources: {sourceLabel.toLowerCase()}</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Stats bar */}
-      <div className="border-b border-[#283347] bg-[#0d1117]">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6 flex-wrap">
-          <span className="text-xs font-mono uppercase tracking-widest text-[#8a97a8]">
-            LIVE FEED:
-          </span>
-          <span className="text-xs font-mono font-bold text-[#17c3b2]">
-            {bonuses.length} BONUS{bonuses.length !== 1 ? 'ES' : ''} TRACKED
-          </span>
-          <span className="text-xs font-mono text-[#4B5563]">|</span>
-          <span className="text-xs font-mono text-[#8a97a8] uppercase tracking-widest">
-            REFRESHES HOURLY
-          </span>
-          <span className="text-xs font-mono text-[#4B5563]">|</span>
-          <span className="text-xs font-mono text-[#8a97a8] uppercase tracking-widest">
-            SOURCES: {sourceLabel}
-          </span>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <section className="py-12 px-4">
-        <div className="max-w-7xl mx-auto">
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
           {!collectClockFeed.available && inboxFeed.available && (
-            <div className="mb-6 border border-[#17c3b2]/30 bg-[#0d1117] px-4 py-3">
+            <div className="mb-6 public-page-card public-page-card--accent">
               <p className="text-xs font-mono uppercase tracking-widest text-[#17c3b2]">
                 [COLLECTCLOCK OFFLINE] Showing inbox-discovered bonuses only.
               </p>
@@ -180,7 +198,7 @@ export default async function BonusesPage() {
           )}
 
           {!hasAnyFeed ? (
-            <div className="py-20 text-center border border-[#283347] bg-[#0d1117]/40">
+            <div className="public-page-card py-20 text-center">
               <p className="font-mono text-xs uppercase tracking-widest text-[#17c3b2] mb-2">
                 [DATA UNAVAILABLE]
               </p>
@@ -203,15 +221,17 @@ export default async function BonusesPage() {
         </div>
       </section>
 
-      {/* Footer note */}
-      <section className="border-t border-[#283347] py-8 px-4 bg-[#0d1117]/60">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-xs font-mono uppercase tracking-widest text-[#4B5563] mb-2">
-            Bonus data sourced from CollectClock and the TiltCheck casino inbox. Always verify before claiming.
-          </p>
-          <p className="text-sm font-black uppercase tracking-widest text-[#17c3b2]">
-            Made for Degens. By Degens.
-          </p>
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <div className="public-page-cta-band">
+            <p className="public-page-panel__eyebrow">Feed note</p>
+            <h2 className="public-page-cta-band__title">Bonus data stays useful only if you still verify before claiming.</h2>
+            <p className="public-page-cta-band__copy">
+              CollectClock covers the broad tracker. TiltCheck inbox intel fills in newer drops. The tracker is a signal
+              surface, not a replacement for checking terms with your own eyes.
+            </p>
+            <p className="public-page-cta-band__tagline">Made for Degens. By Degens.</p>
+          </div>
         </div>
       </section>
     </main>
