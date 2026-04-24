@@ -37,12 +37,12 @@ export default function DashboardPage() {
             Dashboard handoff
           </p>
           <h1 className="text-4xl font-black uppercase tracking-tighter md:text-5xl">
-            Web does not own dashboard controls anymore.
+            Open your TiltCheck dashboard.
           </h1>
           <p className="mt-5 max-w-3xl text-sm text-gray-400 md:text-base">
-            The canonical authenticated control surface now lives in the TiltCheck dashboard.
-            Profile, LockVault timers, Wallet Lock cooldowns, AutoVault rules, safety filters, and
-            buddy controls live there. This page is just the handoff shell.
+            Log in once, then move into the control surface that owns your profile, vault rules,
+            safety filters, and buddy settings. This page exists to get you there without making
+            the route hunt feel like part of the product.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -58,7 +58,7 @@ export default function DashboardPage() {
                 ? 'Checking session...'
                 : user
                   ? 'Open dashboard controls'
-                  : 'Log in on web first'}
+                  : 'Log in to open dashboard'}
             </a>
             <a
               href={dashboardUrl}

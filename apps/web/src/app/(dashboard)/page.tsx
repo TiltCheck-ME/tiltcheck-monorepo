@@ -9,19 +9,19 @@ export default function DashboardPage() {
           Dashboard handoff
         </p>
         <h1 className="mt-3 text-4xl font-black uppercase tracking-tighter text-white">
-          Canonical controls moved to the dashboard
+          Open your TiltCheck dashboard
         </h1>
         <p className="mt-4 max-w-3xl text-sm text-gray-400">
-          This legacy dashboard shell stays here only to route you into the canonical control
-          surface. Profile, LockVault timers, Wallet Lock cooldowns, AutoVault rules, safety
-          filters, and buddy ownership now live in the TiltCheck dashboard.
+          Log in once, then move straight into your dashboard controls. Profile, LockVault timers,
+          Wallet Lock cooldowns, AutoVault rules, safety filters, and buddy settings all live
+          there.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <a
             href={getWebLoginRedirect('/dashboard')}
             className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
           >
-            Log in on web first
+            Log in to open dashboard
           </a>
           <a
             href={getDashboardHandoffUrl('/dashboard')}
