@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -46,6 +46,9 @@ export default function ExtensionPage() {
               download
               className="btn btn-primary"
               data-text="DOWNLOAD THE ZIP"
+              data-funnel-event="extension_download_click"
+              data-funnel-source="web-extension-hero"
+              data-funnel-label="Download the zip"
             >
               DOWNLOAD THE ZIP
             </a>
