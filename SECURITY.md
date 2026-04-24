@@ -113,6 +113,7 @@ The command reports secret-bearing filenames that appear anywhere in git history
 ### Current known historical blocker
 
 - `apps/api/.env.test` appears in git history and remains the primary known non-example secret-bearing path that must be reviewed for rotation impact.
+- Current audit evidence shows it was added on `2026-03-13T07:12:11-05:00` and removed from the tree on `2026-03-13T07:24:36-05:00`. That narrows the historical exposure window in repo history, but does not by itself prove whether any credentials inside were later rotated.
 
 ### Non-destructive remediation checklist
 
