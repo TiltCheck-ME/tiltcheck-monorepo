@@ -1,5 +1,5 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
-name: Run Tests on Changed Packages (PR)
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+name: Validate Changed Packages (PR)
 
 on:
   pull_request:
@@ -7,9 +7,9 @@ on:
       - main
 
 jobs:
-  test-changed:
+  validate-changed:
     runs-on: ubuntu-latest
-    name: Test Changed Packages
+    name: Validate Changed Packages
 
     steps:
       - name: Checkout repository
@@ -28,6 +28,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build changed packages
+        run: pnpm --filter="...[origin/main]" build
+
+      - name: Run root integration tests
+        run: pnpm test
 
       - name: Run tests on changed packages
         run: pnpm --filter="...[origin/main]" test

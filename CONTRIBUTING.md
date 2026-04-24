@@ -1,3 +1,5 @@
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+
 # Contributing to TiltCheck
 
 Thank you for contributing to TiltCheck.
@@ -8,6 +10,22 @@ Thank you for contributing to TiltCheck.
 2. Follow the architecture docs in `docs/tiltcheck/`.
 3. Never introduce custodial behavior or hidden fund custody paths.
 4. Keep changes focused, testable, and well-scoped.
+
+## Product focus rules
+
+TiltCheck is currently refocusing around one product loop:
+
+- **Web** proves trust and drives installs.
+- **Chrome extension** protects live sessions.
+- **Dashboard** owns durable controls, history, exclusions, vault settings, and accountability setup.
+- **Discord** handles alerts, summaries, and nudges.
+- **API** handles auth, scoring, routing, and enforcement.
+
+Contributors should default to this filter:
+
+1. Prefer work that improves trust proof, extension activation, durable protections, or retained protected usage.
+2. Deprioritize side quests, novelty surfaces, and off-core experiments until the main loop is cleaner.
+3. Do not put internal or admin functionality into the public user journey.
 
 ## Brand voice
 
