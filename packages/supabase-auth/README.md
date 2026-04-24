@@ -1,5 +1,7 @@
 # @tiltcheck/supabase-auth
 
+> Deprecated compatibility package. New TiltCheck auth work should use `@tiltcheck/auth`.
+
 Supabase Authentication integration for the TiltCheck ecosystem.
 
 ## Overview

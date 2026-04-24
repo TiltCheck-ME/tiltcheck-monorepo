@@ -2,7 +2,8 @@
 /**
  * @tiltcheck/auth-flow
  *
- * Public surface: JWT issuance and verification.
+ * DEPRECATED: compatibility surface for legacy JWT issuance and verification.
+ * New code should import token helpers from @tiltcheck/auth instead.
  */
 
 export { issueToken, verifyToken } from './jwt.js';

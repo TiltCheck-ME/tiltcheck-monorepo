@@ -1,10 +1,13 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/supabase-auth
- * 
+ *
+ * DEPRECATED: compatibility surface for older Supabase-oriented auth helpers.
+ * New code should use @tiltcheck/auth for shared TiltCheck auth flows.
+ *
  * Supabase Authentication integration for TiltCheck ecosystem
  * Implements authentication following: https://supabase.com/docs/guides/auth
- * 
+ *
  * Features:
  * - Email/Password authentication
  * - OAuth providers (Discord, Google, GitHub, etc.)
