@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 import React from "react";
 import {
   BadgeCheck,
@@ -131,8 +131,8 @@ export default function ValueProposition() {
             </div>
             <BenefitList items={playerBenefits} />
             <div className="vp-column-cta">
-              <a href="/beta-tester" className="btn btn-primary">
-                GET EARLY ACCESS
+              <a href="/extension" className="btn btn-primary">
+                INSTALL THE EXTENSION
               </a>
             </div>
           </div>
