@@ -67,6 +67,30 @@ function getCommitsForPath(filePath) {
   return output ? output.split(/\r?\n/).filter(Boolean) : [];
 }
 
+function getCommitEventForPath(filePath, diffFilter) {
+  const output = runGit([
+    'log',
+    '--all',
+    '--follow',
+    `--diff-filter=${diffFilter}`,
+    '--format=%H|%cI|%s',
+    '--',
+    filePath,
+  ]);
+
+  const [line] = output ? output.split(/\r?\n/).filter(Boolean) : [];
+  if (!line) {
+    return null;
+  }
+
+  const [commit, committedAt, ...subjectParts] = line.split('|');
+  return {
+    commit,
+    committedAt,
+    subject: subjectParts.join('|'),
+  };
+}
+
 function main() {
   const historyPaths = [...new Set(getHistoryFilePaths())];
   const findings = historyPaths
@@ -77,11 +101,15 @@ function main() {
       }
 
       const commits = getCommitsForPath(filePath);
+      const firstAdded = getCommitEventForPath(filePath, 'A');
+      const removedFromTree = getCommitEventForPath(filePath, 'D');
       return {
         file: filePath,
         classification,
         example: classification === 'example-env-file',
         commits,
+        firstAdded,
+        removedFromTree,
       };
     })
     .filter((entry) => entry !== null)
