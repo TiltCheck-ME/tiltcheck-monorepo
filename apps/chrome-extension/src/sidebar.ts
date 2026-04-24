@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 /**
  * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
@@ -33,7 +33,7 @@ const authManager = new AuthManager({
   showMainContent,
   syncAccountUi,
   updateStatus: (msg, type) => updateStatus(msg, type),
-  updateRealityCheck: () => { },
+  updateRealityCheck: () => {},
   updateLicense: (data) => updateLicense(data),
   updateTilt: (score, ind) => updateTilt(score, ind),
   updateStats: (stats) => updateStats(stats),
@@ -59,7 +59,7 @@ let showSettings = false;
 let apiKeys: any = {
   openai: '',
   anthropic: '',
-  custom: ''
+  custom: '',
 };
 const SIDEBAR_WIDTH = 340;
 const MINIMIZED_WIDTH = 40;
@@ -69,7 +69,7 @@ let sessionStats = {
   totalBets: 0,
   totalWagered: 0,
   totalWon: 0,
-  currentBalance: 0
+  currentBalance: 0,
 };
 let lockTimerInterval: any = null;
 let lastProfit = 0;
@@ -104,9 +104,7 @@ let demoLockRecord: any = {
   lockedAmountSOL: 1.2754,
   createdAt: Date.now() - 7 * 60 * 1000,
   unlockAt: Date.now() + 8 * 60 * 1000,
-  history: [
-    { ts: Date.now() - 7 * 60 * 1000, action: 'locked', note: 'demo lock initialized' },
-  ],
+  history: [{ ts: Date.now() - 7 * 60 * 1000, action: 'locked', note: 'demo lock initialized' }],
 };
 
 function parseJsonBody(raw: any): Record<string, any> {
@@ -125,7 +123,10 @@ function parseJsonBody(raw: any): Record<string, any> {
 function getDemoLocks() {
   if (!demoLockRecord) return [];
   const now = Date.now();
-  if ((demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') && now >= demoLockRecord.unlockAt) {
+  if (
+    (demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') &&
+    now >= demoLockRecord.unlockAt
+  ) {
     demoLockRecord.status = 'unlocked';
     demoLockRecord.history.push({ ts: now, action: 'auto-unlocked', note: 'Demo timer expired' });
   }
@@ -145,7 +146,9 @@ function mockApiCall(endpoint: string, options: any = {}) {
       scan: {
         isSafe: !risky,
         trustScore: risky ? 18 : 92,
-        details: risky ? 'Mock demo result: suspicious patterns detected.' : 'Mock demo result: no obvious risk indicators.',
+        details: risky
+          ? 'Mock demo result: suspicious patterns detected.'
+          : 'Mock demo result: no obvious risk indicators.',
       },
     };
   }
@@ -216,7 +219,10 @@ function mockApiCall(endpoint: string, options: any = {}) {
   const releaseMatch = endpoint.match(/^\/vault\/[^/]+\/release$/);
   if (releaseMatch && method === 'POST') {
     if (!demoLockRecord) return { success: false, error: 'No demo vault is ready to release yet.' };
-    if ((demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') && now < demoLockRecord.unlockAt) {
+    if (
+      (demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') &&
+      now < demoLockRecord.unlockAt
+    ) {
       return { success: false, error: 'No demo vault is ready to release yet.' };
     }
     demoLockRecord.status = 'unlocked';
@@ -227,7 +233,8 @@ function mockApiCall(endpoint: string, options: any = {}) {
   const depositMatch = endpoint.match(/^\/vault\/[^/]+\/deposit$/);
   if (depositMatch && method === 'POST') {
     const amount = Number(body.amount || 0);
-    if (!Number.isFinite(amount) || amount <= 0) return { success: false, error: 'Amount looks invalid.' };
+    if (!Number.isFinite(amount) || amount <= 0)
+      return { success: false, error: 'Amount looks invalid.' };
     demoVaultBalance += amount;
     return { success: true, vault: { balance: Number(demoVaultBalance.toFixed(2)) } };
   }
@@ -266,16 +273,16 @@ function mockApiCall(endpoint: string, options: any = {}) {
 
 function getRandomQuote(): string {
   const quotes = [
-    "Trust everybody, but cut the cards.",
+    'Trust everybody, but cut the cards.',
     "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m.",
     "The house always wins, unless you're the architect.",
-    "A gambler never makes the same mistake twice. He makes it three or four times just to be sure.",
-    "Risk is the price you pay for the chance to be right.",
-    "Fortune favors the bold, but the bold usually go broke at 4 AM.",
-    "What is a programmers favorite drink? Java!",
-    "Zero drift. Zero mercy.",
+    'A gambler never makes the same mistake twice. He makes it three or four times just to be sure.',
+    'Risk is the price you pay for the chance to be right.',
+    'Fortune favors the bold, but the bold usually go broke at 4 AM.',
+    'What is a programmers favorite drink? Java!',
+    'Zero drift. Zero mercy.',
     "Math doesn't care about your gut feeling.",
-    "The machine has a memory. You have a prayer."
+    'The machine has a memory. You have a prayer.',
   ];
   return quotes[Math.floor(Math.random() * quotes.length)];
 }
@@ -286,17 +293,17 @@ function getRandomQuote(): string {
 async function startSurgicalWalkthrough() {
   const messages = [
     "Welcome back. I've initiated the Surgical Onboarding Protocol.",
-    "1. YOUR HUD: Real-time mathematical audit of your session below.",
+    '1. YOUR HUD: Real-time mathematical audit of your session below.',
     "2. RISK NUDGE: I'll warn you if I detect tilt or predatory house patterns.",
     "3. BRAKE: If you're spiraling, I'll suggest a cooldown.",
-    "Tutorial complete. Good luck. Stay objective."
+    'Tutorial complete. Good luck. Stay objective.',
   ];
 
   for (const msg of messages) {
     addFeedMessage(msg);
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise((r) => setTimeout(r, 3000));
   }
-  
+
   chrome.storage.local.set({ tutorialCompleted: true });
 }
 
@@ -368,8 +375,9 @@ async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   const state = await apiCall(`/vault/${userData.id}/lock-status`);
   const isLocked = state?.locked === true;
   if (isLocked) {
-    const remainingMs = Number(state?.remainingMs)
-      || Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
+    const remainingMs =
+      Number(state?.remainingMs) ||
+      Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
     const remaining = formatLockRemaining(remainingMs);
     const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
     updateStatus(message, 'warning');
@@ -427,7 +435,12 @@ function setAdvancedToolsVisibility(show: boolean, persist = true) {
   }
 
   if (!show) {
-    const advancedPanels = ['tg-settings-panel', 'tg-config-panel', 'tg-verifier-panel', 'tg-report-panel'];
+    const advancedPanels = [
+      'tg-settings-panel',
+      'tg-config-panel',
+      'tg-verifier-panel',
+      'tg-report-panel',
+    ];
     advancedPanels.forEach((panelId) => {
       const panel = document.getElementById(panelId);
       if (panel) panel.style.display = 'none';
@@ -463,7 +476,7 @@ async function apiCall(endpoint: string, options: any = {}) {
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
-      headers: { ...headers, ...options.headers }
+      headers: { ...headers, ...options.headers },
     });
     return await response.json();
   } catch (error) {
@@ -495,13 +508,13 @@ async function callAIGateway(application: string, data: any = {}) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       },
       body: JSON.stringify({
         application,
         prompt: data.prompt || '',
-        context: data.context || {}
-      })
+        context: data.context || {},
+      }),
     });
 
     if (response && response.ok) {
@@ -1462,7 +1475,9 @@ function syncAccountUi() {
   authToken = authManager.authToken;
 
   const accountText = document.getElementById('tg-account-text');
-  const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
+  const connectBtn = document.getElementById(
+    'tg-connect-discord-inline'
+  ) as HTMLButtonElement | null;
   const logoutBtn = document.getElementById('tg-logout') as HTMLButtonElement | null;
   const usernameEl = document.getElementById('tg-username');
   if (!accountText || !connectBtn || !logoutBtn) return;
@@ -1476,7 +1491,8 @@ function syncAccountUi() {
   }
 
   if (demoMode || !authToken) {
-    accountText.textContent = 'Demo mode is live. Connect Discord if you want synced history and vault progress.';
+    accountText.textContent =
+      'Demo mode is live. Connect Discord if you want synced history and vault progress.';
     connectBtn.disabled = false;
     connectBtn.style.opacity = '1';
     connectBtn.textContent = 'Connect Discord';
@@ -1551,7 +1567,7 @@ function startDiscordLoginFlow() {
     discordAuthPollIntervalId = setInterval(async () => {
       try {
         const stored = await getStorage(['authToken', 'userData']);
-        
+
         // If we got the auth, we're done
         if (stored?.authToken && stored?.userData) {
           await applyDiscordAuthSuccess(stored.authToken, stored.userData);
@@ -1563,11 +1579,13 @@ function startDiscordLoginFlow() {
           lastReadWasUndefined = true;
           pollAttempts++;
           console.log(`[TiltCheck] Storage read returned undefined (attempt ${pollAttempts})`);
-          
+
           // After 3 failed reads without ACK, add extra delay before next attempt
           // This accounts for the race condition where auth-bridge is still writing
           if (pollAttempts >= 3 && !authBridgeAckReceived) {
-            console.log('[TiltCheck] Polling returned undefined 3+ times without ACK. Adding backoff delay.');
+            console.log(
+              '[TiltCheck] Polling returned undefined 3+ times without ACK. Adding backoff delay.'
+            );
           }
         }
 
@@ -1620,7 +1638,7 @@ function startDiscordLoginFlow() {
 function setupEventListeners() {
   window.removeEventListener('message', handleDiscordAuthMessage as EventListener);
   window.addEventListener('message', handleDiscordAuthMessage as EventListener);
-  
+
   // Listen for auth-bridge ACK messages
   window.removeEventListener('message', handleAuthBridgeAck as EventListener);
   window.addEventListener('message', handleAuthBridgeAck as EventListener);
@@ -1759,7 +1777,7 @@ function setupEventListeners() {
       // 3. Create Transaction
       const recipientPubkey = new PublicKey(recipientAddress);
       const transaction = new Transaction();
-      
+
       // Add the Base Tip
       transaction.add(
         SystemProgram.transfer({
@@ -1772,9 +1790,9 @@ function setupEventListeners() {
       // 3b. Add Protocol Fee (GCP Fund) if not Elite
       const isElite = userData?.tier === 'elite';
       if (!isElite) {
-        const bps = EXT_CONFIG.PROTOCOL_FEE_BPS || 250; 
+        const bps = EXT_CONFIG.PROTOCOL_FEE_BPS || 250;
         const feeLamports = Math.floor((amount * LAMPORTS_PER_SOL * bps) / 10000);
-        
+
         if (feeLamports > 0) {
           transaction.add(
             SystemProgram.transfer({
@@ -1790,21 +1808,23 @@ function setupEventListeners() {
 
       // 4. Sign and Send via Bridge
       if (statusText) statusText.textContent = 'Requesting signature...';
-      const _signature = await walletBridge.sendTransaction(transaction, (solanaProvider as any).connection);
-      
+      const _signature = await walletBridge.sendTransaction(
+        transaction,
+        (solanaProvider as any).connection
+      );
+
       if (statusText) {
         statusText.textContent = 'Tip Sent Successfully!';
         statusText.style.color = '#10b981';
       }
       addFeedMessage(`JustTheTip: Sent ${amount} SOL to ${recipientAddress.slice(0, 4)}...`);
       updateStatus('Tip confirmed on-chain.', 'success');
-      
+
       // Close panel after delay
       setTimeout(() => {
         document.getElementById('tg-tip-panel')!.style.display = 'none';
         if (statusText) statusText.textContent = '';
       }, 3000);
-
     } catch (error: any) {
       console.error('[JustTheTip] Error:', error);
       if (statusText) {
@@ -1827,7 +1847,7 @@ function setupEventListeners() {
     }
 
     if (statusText) statusText.textContent = 'Resolving recipient address...';
-    
+
     try {
       let recipientAddress = recipient;
       if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient)) {
@@ -1843,7 +1863,6 @@ function setupEventListeners() {
       if (manualAddress) manualAddress.textContent = recipientAddress;
       if (statusText) statusText.textContent = 'Recipient address resolved below.';
       updateStatus('Manual address ready.', 'success');
-
     } catch (error: any) {
       if (statusText) statusText.textContent = `Error: ${error.message}`;
       updateStatus('Resolution failed.', 'warning');
@@ -1874,7 +1893,9 @@ function setupEventListeners() {
     const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
     if (minsInput) minsInput.value = '15';
     if (agreeCheckbox) agreeCheckbox.checked = true;
-    document.getElementById('start-lock-timer')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    document
+      .getElementById('start-lock-timer')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
   document.getElementById('close-report')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-report-panel');
@@ -1901,7 +1922,7 @@ function setupEventListeners() {
   });
 
   // Picker buttons
-  document.querySelectorAll('.tg-picker-btn').forEach(btn => {
+  document.querySelectorAll('.tg-picker-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const targetId = (e.currentTarget as HTMLElement).dataset.target;
       // Dispatch event for content script to handle
@@ -1910,12 +1931,14 @@ function setupEventListeners() {
   });
 
   // Test buttons
-  document.querySelectorAll('.tg-test-btn').forEach(btn => {
+  document.querySelectorAll('.tg-test-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const targetId = (e.currentTarget as HTMLElement).dataset.target;
       const input = document.getElementById(targetId!) as HTMLInputElement;
       if (input && input.value) {
-        window.dispatchEvent(new CustomEvent('tg-test-selector', { detail: { selector: input.value } }));
+        window.dispatchEvent(
+          new CustomEvent('tg-test-selector', { detail: { selector: input.value } })
+        );
       }
     });
   });
@@ -1937,7 +1960,9 @@ function setupEventListeners() {
       return;
     }
 
-    window.dispatchEvent(new CustomEvent('tg-calc-fairness', { detail: { serverSeed, clientSeed, nonce } }));
+    window.dispatchEvent(
+      new CustomEvent('tg-calc-fairness', { detail: { serverSeed, clientSeed, nonce } })
+    );
   });
 
   // Listen for fairness results
@@ -1955,20 +1980,22 @@ function setupEventListeners() {
       serverSeed: (document.getElementById('fv-server') as HTMLInputElement).value,
       clientSeed: (document.getElementById('fv-client') as HTMLInputElement).value,
       nonce: (document.getElementById('fv-nonce') as HTMLInputElement).value,
-      result: e.detail
+      result: e.detail,
     });
   }) as EventListener);
 
   // Tab switching
-  document.querySelectorAll('.tg-tab').forEach(tab => {
+  document.querySelectorAll('.tg-tab').forEach((tab) => {
     tab.addEventListener('click', (e) => {
       const target = (e.currentTarget as HTMLElement).dataset.target;
       const parent = (e.currentTarget as HTMLElement).closest('.tg-settings-panel');
 
-      parent?.querySelectorAll('.tg-tab').forEach(t => t.classList.remove('active'));
+      parent?.querySelectorAll('.tg-tab').forEach((t) => t.classList.remove('active'));
       (e.currentTarget as HTMLElement).classList.add('active');
 
-      parent?.querySelectorAll('.tg-tab-content').forEach(c => (c as HTMLElement).style.display = 'none');
+      parent
+        ?.querySelectorAll('.tg-tab-content')
+        .forEach((c) => ((c as HTMLElement).style.display = 'none'));
       const content = document.getElementById(target!);
       if (content) content.style.display = 'block';
 
@@ -1990,7 +2017,7 @@ function setupEventListeners() {
       // Visual feedback
       const originalText = target.textContent;
       target.textContent = '';
-      setTimeout(() => target.textContent = originalText, 1000);
+      setTimeout(() => (target.textContent = originalText), 1000);
     }
   });
 
@@ -2039,7 +2066,7 @@ function setupEventListeners() {
       // Call backend API for LinkCheck scan
       const result = await apiCall('/security/scan-url', {
         method: 'POST',
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url }),
       });
 
       if (result.success && result.scan) {
@@ -2049,15 +2076,19 @@ function setupEventListeners() {
           scoreDiv.style.color = scan.isSafe ? '#10b981' : '#ef4444';
         }
         if (detailsDiv) {
-          detailsDiv.textContent = scan.details || (scan.isSafe
-            ? 'Domain age looks solid (>5 years). No reports found.'
-            : 'Domain flagged. Check user reports.');
+          detailsDiv.textContent =
+            scan.details ||
+            (scan.isSafe
+              ? 'Domain age looks solid (>5 years). No reports found.'
+              : 'Domain flagged. Check user reports.');
         }
       } else {
         // Fallback for API failure
         const isSafe = !url.includes('scam');
         if (scoreDiv) {
-          scoreDiv.textContent = isSafe ? 'OK Safe (Trust Score: 95/100)' : 'X High Risk (Trust Score: 10/100)';
+          scoreDiv.textContent = isSafe
+            ? 'OK Safe (Trust Score: 95/100)'
+            : 'X High Risk (Trust Score: 10/100)';
           scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
         }
         if (detailsDiv) {
@@ -2096,7 +2127,7 @@ function setupEventListeners() {
     try {
       const result = await apiCall('/safety/report', {
         method: 'POST',
-        body: JSON.stringify({ type, details, casino: window.location.hostname })
+        body: JSON.stringify({ type, details, casino: window.location.hostname }),
       });
 
       if (result.success) {
@@ -2189,12 +2220,14 @@ function setupEventListeners() {
     try {
       const result = await apiCall(`/vault/${userData.id}/lock`, {
         method: 'POST',
-        body: JSON.stringify({ amount, durationMinutes: mins })
+        body: JSON.stringify({ amount, durationMinutes: mins }),
       });
 
       if (result.success) {
         const lockedSol = Number(result.vault?.lockedAmountSOL || 0);
-        addFeedMessage(`Locked ${lockedSol.toFixed(4)} SOL (${amount.toFixed(2)} USD input) for ${mins}m`);
+        addFeedMessage(
+          `Locked ${lockedSol.toFixed(4)} SOL (${amount.toFixed(2)} USD input) for ${mins}m`
+        );
         updateStatus('Funds locked.', 'success');
         minsInput.value = '';
         agreeCheckbox.checked = false;
@@ -2215,14 +2248,15 @@ function setupEventListeners() {
     if (!userData) return;
 
     const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
-    const amountToRelease = releaseInput && releaseInput.value ? parseFloat(releaseInput.value) : null;
+    const amountToRelease =
+      releaseInput && releaseInput.value ? parseFloat(releaseInput.value) : null;
 
     updateStatus('Releasing funds...', 'thinking');
 
     try {
       const result = await apiCall(`/vault/${userData.id}/release`, {
         method: 'POST',
-        body: JSON.stringify({ amount: amountToRelease })
+        body: JSON.stringify({ amount: amountToRelease }),
       });
 
       if (result.success) {
@@ -2244,21 +2278,21 @@ function setupEventListeners() {
     const resultSelector = (document.getElementById('cfg-result') as HTMLInputElement).value;
 
     // Dynamically import saveCustomCasino or use message passing if needed
-    // Since we are in the same bundle context, we can try to use the global extractor if exposed, 
+    // Since we are in the same bundle context, we can try to use the global extractor if exposed,
     // or just save to storage directly here for simplicity since we are in content script context.
     const config = {
       casinoId: 'custom-' + window.location.hostname,
       domain: window.location.hostname,
       selectors: {
         betAmount: betSelector,
-        gameResult: resultSelector
-      }
+        gameResult: resultSelector,
+      },
     };
 
     const storage = chrome.storage.sync || chrome.storage.local;
     storage.get(['tiltcheck_custom_casinos'], (result) => {
       const current = (result.tiltcheck_custom_casinos || []) as any[];
-      const filtered = current.filter(c => c.domain !== config.domain);
+      const filtered = current.filter((c) => c.domain !== config.domain);
       filtered.push(config);
       storage.set({ tiltcheck_custom_casinos: filtered }, () => {
         alert('Site map saved. Refresh to apply.');
@@ -2283,10 +2317,10 @@ function setupEventListeners() {
     }
   });
 
-
-
   document.getElementById('tg-discord-login')?.addEventListener('click', startDiscordLoginFlow);
-  document.getElementById('tg-connect-discord-inline')?.addEventListener('click', startDiscordLoginFlow);
+  document
+    .getElementById('tg-connect-discord-inline')
+    ?.addEventListener('click', startDiscordLoginFlow);
 
   document.getElementById('tg-logout')?.addEventListener('click', () => {
     void removeStorage(['authToken', 'userData']);
@@ -2354,7 +2388,8 @@ async function checkAuthStatus() {
   setTimeout(() => {
     if (document.getElementById('api-key-openai')) {
       (document.getElementById('api-key-openai') as HTMLInputElement).value = apiKeys.openai || '';
-      (document.getElementById('api-key-anthropic') as HTMLInputElement).value = apiKeys.anthropic || '';
+      (document.getElementById('api-key-anthropic') as HTMLInputElement).value =
+        apiKeys.anthropic || '';
       (document.getElementById('api-key-custom') as HTMLInputElement).value = apiKeys.custom || '';
     }
   }, 100);
@@ -2389,7 +2424,7 @@ async function checkAuthStatus() {
     checkLockStatus();
     initPnLGraph();
     void loadRecentCommunitySignals();
-    
+
     chrome.storage.local.get(['tutorialCompleted'], (res) => {
       if (!res.tutorialCompleted) {
         void startSurgicalWalkthrough();
@@ -2413,8 +2448,13 @@ async function runAutoLinkCheck() {
     if (result?.success && result.scan) {
       const isSafe = !!result.scan.isSafe;
       const trustScore = Number(result.scan.trustScore ?? 0);
-      updateStatus(`LinkCheck: ${isSafe ? 'Safe' : 'Risk'} (${trustScore}/100)`, isSafe ? 'success' : 'warning');
-      addFeedMessage(`LinkCheck ${isSafe ? 'safe' : 'risk'}: ${window.location.hostname} (${trustScore}/100)`);
+      updateStatus(
+        `LinkCheck: ${isSafe ? 'Safe' : 'Risk'} (${trustScore}/100)`,
+        isSafe ? 'success' : 'warning'
+      );
+      addFeedMessage(
+        `LinkCheck ${isSafe ? 'safe' : 'risk'}: ${window.location.hostname} (${trustScore}/100)`
+      );
       return;
     }
 
@@ -2491,7 +2531,8 @@ function renderGoals(goals: VaultGoal[]) {
   goalsList.innerHTML = '';
   goals.forEach((goal, idx) => {
     const goalDiv = document.createElement('div');
-    goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
+    goalDiv.style.cssText =
+      'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
     const label = document.createElement('span');
     label.textContent = `${goal.name} ($${goal.amount})`;
     const btn = document.createElement('button');
@@ -2645,7 +2686,9 @@ function updateLicense(verification: any) {
   if (verification?.isLegitimate) {
     addFeedMessage(`License verified: ${authority}${licenseNumber}`);
   } else {
-    addFeedMessage(`Heads up: ${verification?.warningMessage || verification?.verdict || 'Unlicensed'}`);
+    addFeedMessage(
+      `Heads up: ${verification?.warningMessage || verification?.verdict || 'Unlicensed'}`
+    );
   }
 }
 
@@ -2683,8 +2726,8 @@ async function updateTilt(score: number, _indicators: string[]) {
       context: {
         recentBets: [],
         sessionDuration: Math.floor((Date.now() - sessionStats.startTime) / 60000),
-        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWon)
-      }
+        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWon),
+      },
     });
 
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
@@ -2701,14 +2744,17 @@ function updateStats(stats: any) {
   const minutes = Math.floor(duration / 60);
   const seconds = duration % 60;
   const profit = (sessionStats.totalWon || 0) - (sessionStats.totalWagered || 0);
-  const rtp = sessionStats.totalWagered > 0 ? ((sessionStats.totalWon || 0) / sessionStats.totalWagered * 100) : 0;
+  const rtp =
+    sessionStats.totalWagered > 0
+      ? ((sessionStats.totalWon || 0) / sessionStats.totalWagered) * 100
+      : 0;
 
   const updates = {
     'tg-duration': `${minutes}:${seconds.toString().padStart(2, '0')}`,
     'tg-bets': stats.totalBets.toString(),
     'tg-wagered': `$${stats.totalWagered.toFixed(2)}`,
     'tg-profit': `$${profit.toFixed(2)}`,
-    'tg-rtp': `${rtp.toFixed(1)}%`
+    'tg-rtp': `${rtp.toFixed(1)}%`,
   };
 
   Object.entries(updates).forEach(([id, value]) => {
@@ -2743,7 +2789,7 @@ async function depositToVault(amount: number) {
   if (!userData) return;
   const result = await apiCall(`/vault/${userData.id}/deposit`, {
     method: 'POST',
-    body: JSON.stringify({ amount })
+    body: JSON.stringify({ amount }),
   });
 
   if (result.success) {
@@ -2768,12 +2814,18 @@ async function loadVaultBalance() {
 
 function formatTimelineAction(action: string): string {
   switch (action) {
-    case 'locked': return 'Lock created';
-    case 'extended': return 'Lock extended';
-    case 'auto-unlocked': return 'Auto-unlocked (timer expired)';
-    case 'unlocked': return 'Released';
-    case 'emergency-unlocked': return 'Emergency unlock';
-    default: return action.replace(/-/g, ' ');
+    case 'locked':
+      return 'Lock created';
+    case 'extended':
+      return 'Lock extended';
+    case 'auto-unlocked':
+      return 'Auto-unlocked (timer expired)';
+    case 'unlocked':
+      return 'Released';
+    case 'emergency-unlocked':
+      return 'Emergency unlock';
+    default:
+      return action.replace(/-/g, ' ');
   }
 }
 
@@ -2799,7 +2851,13 @@ function renderVaultTimeline(locks: any[]) {
   const container = document.getElementById('tg-vault-timeline');
   if (!container) return;
 
-  const events: Array<{ ts: number; action: string; note?: string; vaultId: string; amount: number }> = [];
+  const events: Array<{
+    ts: number;
+    action: string;
+    note?: string;
+    vaultId: string;
+    amount: number;
+  }> = [];
   for (const lock of locks) {
     const lockHistory = Array.isArray(lock.history) ? lock.history : [];
     for (const event of lockHistory) {
@@ -2818,20 +2876,22 @@ function renderVaultTimeline(locks: any[]) {
   const topEvents = events.slice(0, 20);
 
   if (topEvents.length === 0) {
-    container.innerHTML = '<div class="tg-vault-timeline-empty">No vault activity yet. Your wins will show up here.</div>';
+    container.innerHTML =
+      '<div class="tg-vault-timeline-empty">No vault activity yet. Your wins will show up here.</div>';
     return;
   }
 
-  container.innerHTML = topEvents.map((event) => {
-    const action = escapeHtml(formatTimelineAction(event.action));
-    const relative = escapeHtml(formatRelativeTime(event.ts));
-    const absolute = escapeHtml(new Date(event.ts).toLocaleString());
-    const metaParts = [
-      `Vault ${escapeHtml(shortVaultId(event.vaultId))}`,
-      `Amount: ${escapeHtml(event.amount.toFixed(4))} SOL`,
-      event.note ? escapeHtml(event.note) : '',
-    ].filter(Boolean);
-    return `
+  container.innerHTML = topEvents
+    .map((event) => {
+      const action = escapeHtml(formatTimelineAction(event.action));
+      const relative = escapeHtml(formatRelativeTime(event.ts));
+      const absolute = escapeHtml(new Date(event.ts).toLocaleString());
+      const metaParts = [
+        `Vault ${escapeHtml(shortVaultId(event.vaultId))}`,
+        `Amount: ${escapeHtml(event.amount.toFixed(4))} SOL`,
+        event.note ? escapeHtml(event.note) : '',
+      ].filter(Boolean);
+      return `
       <div class="tg-vault-timeline-item" title="${absolute}">
         <div class="tg-vault-timeline-row">
           <span class="tg-vault-timeline-action">${action}</span>
@@ -2840,7 +2900,8 @@ function renderVaultTimeline(locks: any[]) {
         <div class="tg-vault-timeline-meta">${metaParts.join(' \u2022 ')}</div>
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 }
 
 async function checkLockStatus() {
@@ -2938,7 +2999,7 @@ function startLockCountdown(unlockTime: number, startTime: number) {
 
 async function openDashboard() {
   addFeedMessage('Opening Dashboard');
-  window.open(`${EXT_CONFIG.WEB_APP_URL}/user-dashboard`, '_blank');
+  window.open(`${EXT_CONFIG.WEB_APP_URL}/dashboard`, '_blank');
 }
 
 async function openVault() {
@@ -2964,7 +3025,7 @@ async function openVault() {
       <div class="row"><span>Active locks</span><span class="tag">${activeLocks}</span></div>
       <div class="row"><span>Total lock history</span><span>${locks.length}</span></div>
     </div>
-    <a href="${EXT_CONFIG.WEB_APP_URL}/user-dashboard" target="_blank">Open Full Dashboard \u2192</a>
+    <a href="${EXT_CONFIG.WEB_APP_URL}/dashboard" target="_blank">Open Full Dashboard \u2192</a>
     </body></html>`);
     win.document.close();
   }
@@ -2992,7 +3053,7 @@ async function openWallet() {
     <div class="card">
       <div class="row"><span>Address</span><span class="mono" title="${escapeHtml(addr)}">${escapeHtml(short)}</span></div>
     </div>
-    <a href="${EXT_CONFIG.WEB_APP_URL}/user-dashboard" target="_blank">Open Full Dashboard \u2192</a>
+    <a href="${EXT_CONFIG.WEB_APP_URL}/dashboard" target="_blank">Open Full Dashboard \u2192</a>
     </body></html>`);
     win.document.close();
   }
@@ -3029,11 +3090,14 @@ function renderVerificationHistory() {
   const history = JSON.parse(localStorage.getItem('tiltcheck_verification_history') || '[]');
 
   if (history.length === 0) {
-    list.innerHTML = '<div class="tg-feed-item">No fairness history yet. Verify a result to start.</div>';
+    list.innerHTML =
+      '<div class="tg-feed-item">No fairness history yet. Verify a result to start.</div>';
     return;
   }
 
-  list.innerHTML = history.map((item: any) => `
+  list.innerHTML = history
+    .map(
+      (item: any) => `
     <div class="tg-history-item">
       <div class="tg-history-header">
         <span>Nonce: ${escapeHtml(item.nonce)}</span>
@@ -3048,7 +3112,9 @@ function renderVerificationHistory() {
         <button class="tg-btn-icon tg-copy-hash" data-hash="${escapeHtml(item.result?.hash)}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">Copy</button>
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 async function notifyBuddy(type: string, data: any) {
@@ -3064,8 +3130,8 @@ async function notifyBuddy(type: string, data: any) {
       body: JSON.stringify({
         type,
         data,
-        timestamp: Date.now()
-      })
+        timestamp: Date.now(),
+      }),
     });
 
     if (result.success) {
@@ -3101,7 +3167,12 @@ function updateStatus(message: string, type: string = 'info') {
 }
 
 if (typeof window !== 'undefined') {
-  (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
+  (window as any).TiltCheckSidebar = {
+    create: createSidebar,
+    updateLicense,
+    updateGuardian,
+    updateTilt,
+    updateStats,
+    notifyBuddy,
+  };
 }
-
-
