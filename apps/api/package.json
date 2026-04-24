@@ -15,7 +15,6 @@
     "@magic-sdk/admin": "^2.8.2",
     "@supabase/supabase-js": "^2.100.1",
     "@tiltcheck/auth": "workspace:*",
-    "@tiltcheck/auth-flow": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/error-factory": "workspace:*",

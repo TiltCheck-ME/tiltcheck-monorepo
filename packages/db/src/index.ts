@@ -109,6 +109,7 @@ export {
   // Buddy queries
   sendBuddyRequest,
   acceptBuddyRequest,
+  declineBuddyRequest,
   getUserBuddies,
   getAccountabilityPartners,
   getPendingBuddyRequests,

@@ -15,7 +15,7 @@ echo "📦 Layer 0: Foundation packages..."
 pnpm --filter @tiltcheck/types --filter @tiltcheck/config --filter @tiltcheck/esm-utils --filter @tiltcheck/ai-client run build
 
 echo "📦 Layer 1: Core infrastructure..."
-pnpm --filter @tiltcheck/shared --filter @tiltcheck/database --filter @tiltcheck/db --filter @tiltcheck/api-client --filter @tiltcheck/auth --filter @tiltcheck/supabase-auth --filter @tiltcheck/natural-language-parser run build
+pnpm --filter @tiltcheck/shared --filter @tiltcheck/database --filter @tiltcheck/db --filter @tiltcheck/api-client --filter @tiltcheck/auth --filter @tiltcheck/natural-language-parser run build
 
 echo "📦 Layer 2: Event system & CLI..."
 pnpm --filter @tiltcheck/event-router --filter @tiltcheck/cli run build

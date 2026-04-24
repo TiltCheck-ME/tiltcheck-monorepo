@@ -16,6 +16,7 @@ import {
     getPendingBuddyRequests,
     sendBuddyRequest,
     acceptBuddyRequest,
+    declineBuddyRequest,
     removeBuddy,
     addExclusion,
     removeExclusion,
@@ -26,7 +27,6 @@ import {
     findOneBy,
 } from '@tiltcheck/db';
 import { ApplicationError, ValidationError, InternalServerError } from '@tiltcheck/error-factory';
-import { db } from '@tiltcheck/database';
 import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
 import {
     EXCLUSION_TARGET_LABELS,
@@ -477,7 +477,7 @@ router.post('/:discordId/buddies/decline', authMiddleware, async (req: Request, 
             return next(new ValidationError('requestId is required'));
         }
 
-        const declined = await db.declineBuddyRequest(String(requestId));
+        const declined = await declineBuddyRequest(String(requestId));
         if (!declined) {
             return next(new InternalServerError('Failed to decline buddy request'));
         }
