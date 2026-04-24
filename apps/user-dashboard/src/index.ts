@@ -18,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join, resolve } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 import { z, ZodError } from 'zod';
+import { resolveCanonicalApiBaseUrl, resolveDashboardPort } from './runtime-config.js';
 
 interface DashboardRequest extends Request {
   user?: {
@@ -170,16 +171,14 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
-const PORT = process.env.USER_DASHBOARD_PORT || (isProd ? process.env.PORT : undefined) || 6001;
+const PORT = resolveDashboardPort(process.env);
 const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback';
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
 
 // Configuration
 const CANONICAL_DASHBOARD_BASE_URL = isProd ? 'https://dashboard.tiltcheck.me' : `http://localhost:${PORT}`;
-const CANONICAL_API_BASE_URL = isProd
-  ? process.env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me'
-  : 'http://localhost:8080';
+const CANONICAL_API_BASE_URL = resolveCanonicalApiBaseUrl(process.env);
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
 
@@ -534,6 +533,83 @@ function getCanonicalApiErrorMessage(error: unknown, fallback: string): string {
   }
 
   return fallback;
+}
+
+function normalizeActivationMetadata(metadata: Record<string, unknown>): Record<string, string> | null {
+  const entries = Object.entries(metadata)
+    .map(([key, value]) => {
+      if (value === undefined || value === null) {
+        return null;
+      }
+
+      const normalizedValue = String(value).trim();
+      if (!normalizedValue) {
+        return null;
+      }
+
+      return [key, normalizedValue] as const;
+    })
+    .filter((entry): entry is readonly [string, string] => entry !== null);
+
+  return entries.length > 0 ? Object.fromEntries(entries) : null;
+}
+
+function logActivationMilestone(
+  req: Request,
+  step: string,
+  source: string,
+  discordId: string,
+  metadata: Record<string, unknown> = {}
+): void {
+  console.info(
+    '[TiltCheck Funnel]',
+    JSON.stringify({
+      type: 'milestone',
+      step,
+      source,
+      path: req.path,
+      discordId,
+      metadata: normalizeActivationMetadata(metadata),
+      receivedAt: new Date().toISOString(),
+      userAgent: req.headers['user-agent'] ?? null,
+    }),
+  );
+}
+
+function getExclusionCount(body: unknown): number {
+  const exclusions = (body as { data?: { exclusions?: unknown } } | null | undefined)?.data?.exclusions;
+  return Array.isArray(exclusions) ? exclusions.length : 0;
+}
+
+function getVaultRuleCount(body: unknown): number {
+  const rules = (body as { rules?: unknown } | null | undefined)?.rules;
+  return Array.isArray(rules) ? rules.length : 0;
+}
+
+function getVaultLockCount(body: unknown): number {
+  const locks = (body as { vault?: { locks?: unknown } } | null | undefined)?.vault?.locks;
+  return Array.isArray(locks) ? locks.length : 0;
+}
+
+async function hasConfiguredProtectionRules(req: Request, discordId: string): Promise<boolean> {
+  const [exclusionsResponse, vaultRulesResponse] = await Promise.all([
+    requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/exclusions`),
+    requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/vault-rules`),
+  ]);
+
+  if (exclusionsResponse.status >= 400 || vaultRulesResponse.status >= 400) {
+    return true;
+  }
+
+  return getExclusionCount(exclusionsResponse.body) > 0 || getVaultRuleCount(vaultRulesResponse.body) > 0;
+}
+
+function getExclusionTargetType(body: Record<string, unknown>): string {
+  if (typeof body.gameId === 'string' && body.gameId.trim()) return 'game';
+  if (typeof body.category === 'string' && body.category.trim()) return 'category';
+  if (typeof body.provider === 'string' && body.provider.trim()) return 'provider';
+  if (typeof body.casino === 'string' && body.casino.trim()) return 'casino';
+  return 'unknown';
 }
 
 function summarizeVaultPayload(payload: any) {
@@ -1252,6 +1328,8 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
+    const priorVaultResponse = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}`);
+    const hadPriorProtectedSession = priorVaultResponse.status >= 400 ? true : getVaultLockCount(priorVaultResponse.body) > 0;
 
     const amountSol = Number(req.body?.amountSol);
     const durationMs = Number(req.body?.durationMs);
@@ -1303,6 +1381,12 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
 
     const vault = (response.body as any)?.vault ?? null;
     const unlockAt = vault?.unlockAt ? new Date(vault.unlockAt).toISOString() : null;
+    if (!hadPriorProtectedSession) {
+      logActivationMilestone(req, 'first_protected_session', 'dashboard-vault-lock', discordId, {
+        amountSol: normalizeFiniteNumber(vault?.lockedAmountSOL ?? amountSol).toFixed(4),
+        durationMinutes: Math.max(1, Math.trunc(durationMs / 60000)),
+      });
+    }
     broadcastToUser(discordId, {
       type: 'vault.locked',
       data: {
@@ -1498,11 +1582,19 @@ app.post('/api/user/:discordId/exclusions', authenticateToken, async (req: Dashb
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
+    const requestBody = (req.body ?? {}) as Record<string, unknown>;
+    const isFirstRule = !(await hasConfiguredProtectionRules(req, discordId));
 
     const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/exclusions`, {
       method: 'POST',
-      body: JSON.stringify(req.body ?? {}),
+      body: JSON.stringify(requestBody),
     });
+    if (response.status < 400 && isFirstRule) {
+      logActivationMilestone(req, 'first_rule_created', 'dashboard-exclusions', discordId, {
+        ruleType: 'exclusion',
+        targetType: getExclusionTargetType(requestBody),
+      });
+    }
     sendCanonicalApiResponse(res, response);
   } catch (error) {
     console.error('[Exclusions POST]', error);
@@ -1738,11 +1830,19 @@ app.post('/api/user/:discordId/vault-rules', authenticateToken, async (req: Dash
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
+    const requestBody = (req.body ?? {}) as Record<string, unknown>;
+    const isFirstRule = !(await hasConfiguredProtectionRules(req, discordId));
 
     const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/vault-rules`, {
       method: 'POST',
-      body: JSON.stringify(req.body ?? {}),
+      body: JSON.stringify(requestBody),
     });
+    if (response.status < 400 && isFirstRule) {
+      logActivationMilestone(req, 'first_rule_created', 'dashboard-vault-rules', discordId, {
+        ruleType: 'vault_rule',
+        ruleMode: requestBody.type,
+      });
+    }
     sendCanonicalApiResponse(res, response);
   } catch (error) {
     console.error('[Vault Rules POST]', error);
