@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 /**
  * @vitest-environment jsdom
  */
@@ -54,8 +54,8 @@ describe('GameBlocker', () => {
           blockedGameIds: [],
           blockedCategories: [],
           blockedProviders: [],
-          blockedCasinos: ['stake'],
-          exclusions: [{ casino: 'stake', reason: 'Whole site is cooked.' }],
+          blockedCasinos: ['localhost'],
+          exclusions: [{ casino: 'localhost', reason: 'Whole site is cooked.' }],
         },
       }),
     }));
@@ -92,5 +92,55 @@ describe('GameBlocker', () => {
 
     expect(document.getElementById('tiltcheck-game-block-overlay')).toBeTruthy();
     blocker.destroy();
+  });
+
+  it('refreshes exclusions when the user returns to the tab', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            blockedGameIds: [],
+            blockedCategories: [],
+            blockedProviders: [],
+            blockedCasinos: [],
+            exclusions: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            blockedGameIds: ['blocked-game'],
+            blockedCategories: [],
+            blockedProviders: [],
+            blockedCasinos: [],
+            exclusions: [{ gameId: 'blocked-game', reason: 'Back from setup.' }],
+          },
+        }),
+      });
+
+    (globalThis as any).fetch = fetchMock;
+
+    const { GameBlocker } = await import('../../src/game-blocker.ts');
+    window.history.pushState({}, '', '/casino/blocked-game');
+
+    const blocker = new GameBlocker('discord-1', 'token-1');
+    try {
+      await blocker.init();
+      expect(document.getElementById('tiltcheck-game-block-overlay')).toBeNull();
+
+      window.dispatchEvent(new Event('focus'));
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      await vi.waitFor(() => {
+        expect(document.getElementById('tiltcheck-game-block-overlay')).toBeTruthy();
+      });
+    } finally {
+      blocker.destroy();
+    }
   });
 });
