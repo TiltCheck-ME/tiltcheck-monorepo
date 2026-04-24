@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 /**
  * Game Blocker — Surgical Self-Exclusion enforcement for the Chrome Extension.
  *
@@ -46,6 +46,17 @@ export class GameBlocker {
   private observer: MutationObserver | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private readonly dismissStorageKey = `tiltcheck_game_block_dismissed:${window.location.hostname.toLowerCase()}`;
+  private readonly handleWindowFocus = () => {
+    void this.refreshAndScan(true);
+  };
+  private readonly handlePageShow = () => {
+    void this.refreshAndScan(true);
+  };
+  private readonly handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      void this.refreshAndScan(true);
+    }
+  };
 
   constructor(discordId: string, authToken: string) {
     this.discordId = discordId;
@@ -57,19 +68,21 @@ export class GameBlocker {
     this.scan();
     this.startObserver();
     this.startPoller();
+    this.attachReturnListeners();
   }
 
   destroy(): void {
     this.observer?.disconnect();
     if (this.pollTimer) clearInterval(this.pollTimer);
+    this.detachReturnListeners();
     this.removeOverlay();
   }
 
   // ─── Profile management ────────────────────────────────────────────────────
 
-  private async refreshProfile(): Promise<void> {
+  private async refreshProfile(force = false): Promise<void> {
     const now = Date.now();
-    if (this.profile && now - this.profileFetchedAt < CACHE_TTL_MS) return;
+    if (!force && this.profile && now - this.profileFetchedAt < CACHE_TTL_MS) return;
     try {
       const resp = await fetch(
         `${EXT_CONFIG.API_BASE_URL}/user/${encodeURIComponent(this.discordId)}/exclusions`,
@@ -89,6 +102,11 @@ export class GameBlocker {
     } catch {
       // Network unavailable — use stale profile if present
     }
+  }
+
+  private async refreshAndScan(force = false): Promise<void> {
+    await this.refreshProfile(force);
+    this.scan();
   }
 
   // ─── Matching helpers ──────────────────────────────────────────────────────
@@ -279,12 +297,23 @@ export class GameBlocker {
     this.observer.observe(document.body, { childList: true, subtree: true, attributes: true });
   }
 
+  private attachReturnListeners(): void {
+    window.addEventListener('focus', this.handleWindowFocus);
+    window.addEventListener('pageshow', this.handlePageShow);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
+  }
+
+  private detachReturnListeners(): void {
+    window.removeEventListener('focus', this.handleWindowFocus);
+    window.removeEventListener('pageshow', this.handlePageShow);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+  }
+
   // ─── Profile refresh poller ───────────────────────────────────────────────
 
   private startPoller(): void {
     this.pollTimer = setInterval(async () => {
-      await this.refreshProfile();
-      this.scan();
+      await this.refreshAndScan();
     }, POLL_INTERVAL_MS);
   }
 

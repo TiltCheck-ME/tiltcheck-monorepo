@@ -13,14 +13,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@tiltcheck/database": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
-    "@tiltcheck/db": "workspace:*",
+    "@tiltcheck/database": "workspace:*",
     "@tiltcheck/discord-monetization": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/shared": "workspace:*",
-    "@tiltcheck/supabase-auth": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "connect-redis": "^9.0.0",
     "express": "^5.2.1",

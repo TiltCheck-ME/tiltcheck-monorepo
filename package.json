@@ -35,6 +35,7 @@
     "a11y:audit:landing": "bash scripts/landing-a11y-audit.sh",
     "test:components": "node scripts/validate-components.cjs",
     "audit:all": "pnpm test:components && pnpm bundle:components && pnpm contrast && pnpm contrast:dom && pnpm a11y:audit && pnpm a11y:audit:landing",
+    "audit:history-secrets": "node scripts/history-secret-audit.mjs",
     "duo:hygiene:check": "node scripts/devx-duo-agent.mjs --check --config scripts/duo-agent.config.json",
     "duo:hygiene:apply": "node scripts/devx-duo-agent.mjs --apply --config scripts/duo-agent.config.json",
     "duo:docs:check": "node scripts/devx-duo-docs-agent.mjs --check --config scripts/duo-docs-agent.config.json",

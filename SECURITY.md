@@ -88,6 +88,45 @@ TiltCheck is open source, but production runtime secrets remain private.
 
 Reference: `docs/governance/OSS-RUNTIME-BOUNDARY.md`
 
+## Internal beta trust gate
+
+TiltCheck may run an internal beta before a broader public launch, but only under a tighter trust bar:
+
+1. current tracked files must not contain live credentials or secret-bearing runtime files
+2. any known historical secret exposure must have an explicit remediation owner and rotation decision
+3. internal beta access must stay maintainer-controlled until historical exposure is either remediated or proven non-live
+
+The known historical reference to `apps/api/.env.test` in git history has been reviewed and the affected credential families have been rotated by the maintainer. That clears the live-secret blocker for internal beta use, but it does not erase the historical file from git history.
+
+The new secret guard workflow prevents common secret-bearing files and high-signal credential patterns from landing again, but it does not erase history. Describe the repository as rotation-remediated, not history-scrubbed, until any optional history cleanup decision is complete.
+
+## Historical secret remediation package
+
+Use the repo-native history audit before any rotation or history cleanup work:
+
+```bash
+pnpm audit:history-secrets
+```
+
+The command reports secret-bearing filenames that appear anywhere in git history and exits non-zero when it finds any non-example paths that still need remediation review.
+
+### Current known historical blocker
+
+- `apps/api/.env.test` remains the primary known non-example secret-bearing path in git history.
+- Current audit evidence shows it was added on `2026-03-13T07:12:11-05:00` and removed from the tree on `2026-03-13T07:24:36-05:00`.
+- The maintainer has since rotated the affected credential families, so the remaining decision is whether history rewrite is still worth doing for repo hygiene and trust posture.
+
+### Non-destructive remediation checklist
+
+1. run `pnpm audit:history-secrets` and capture the actionable non-example paths
+2. identify every credential family that could have lived in those files
+3. assign a human owner for each credential family before touching production systems
+4. rotate any credential that may still be live, even if later replaced
+5. only after rotation is complete, decide whether git history rewrite is still required
+6. update this policy once the known historical blocker is either rotated and closed or proven non-live
+
+This package is intentionally non-destructive. It prepares the rotation and cleanup work without rewriting history from the shared repo by default.
+
 ## Reporting a Vulnerability
 
 If you discover:

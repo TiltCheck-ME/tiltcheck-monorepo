@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -12,17 +12,17 @@ const LOGIN_URL = getWebLoginRedirect('/dashboard');
 type NavLink = { href: string; label: string; accent?: string };
 
 const NAV_LINKS_PRIMARY: NavLink[] = [
-  { href: '/#tools',     label: 'Tools' },
-  { href: '/casinos',    label: 'Casinos' },
-  { href: '/bonuses',    label: 'Bonuses' },
-  { href: '/intel/rtp',  label: 'RTP Intel' },
+  { href: '/extension',   label: 'Extension' },
+  { href: '/casinos',     label: 'Casinos' },
+  { href: '/#tools',      label: 'Tools' },
+  { href: '/how-it-works', label: 'How it works' },
 ];
 
 const NAV_LINKS_SECONDARY: NavLink[] = [
-  { href: '/blog',       label: 'Blog' },
-  { href: '/docs',       label: 'Docs' },
-  { href: '/extension',  label: 'Extension' },
-  { href: '/collab',     label: 'Contact', accent: 'purple' },
+  { href: '/blog',      label: 'Blog' },
+  { href: '/docs',      label: 'Docs' },
+  { href: '/bonuses',   label: 'Bonuses' },
+  { href: '/collab',    label: 'Contact', accent: 'purple' },
 ];
 
 const ALL_LINKS = [...NAV_LINKS_PRIMARY, ...NAV_LINKS_SECONDARY];
@@ -62,7 +62,14 @@ const Nav = () => {
     if (loading) return null;
     if (user) {
       return (
-        <a href={DASHBOARD_URL} onClick={close} className={compact ? 'nav-auth-compact nav-auth-user' : 'nav-auth-full nav-auth-user'}>
+        <a
+          href={DASHBOARD_URL}
+          onClick={close}
+          className={compact ? 'nav-auth-compact nav-auth-user' : 'nav-auth-full nav-auth-user'}
+          data-funnel-event="dashboard_handoff_click"
+          data-funnel-source={compact ? 'web-nav-compact-auth' : 'web-nav-auth'}
+          data-funnel-label="Open dashboard controls"
+        >
           {user.discordUsername || user.username}
         </a>
       );
@@ -89,8 +96,14 @@ const Nav = () => {
           {label}
         </Link>
       ))}
-      <Link href="/beta-tester" className="nav-desktop-link nav-desktop-beta">
-        Early Access
+      <Link
+        href="/extension"
+        className="nav-desktop-link nav-desktop-beta"
+        data-funnel-event="nav_install_click"
+        data-funnel-source="web-nav-desktop"
+        data-funnel-label="Install"
+      >
+        Install
       </Link>
     </>
   );
@@ -107,8 +120,15 @@ const Nav = () => {
           {label}
         </Link>
       ))}
-      <Link href="/beta-tester" onClick={close} className="nav-sidebar-link nav-sidebar-beta">
-        Get Early Access
+      <Link
+        href="/extension"
+        onClick={close}
+        className="nav-sidebar-link nav-sidebar-beta"
+        data-funnel-event="nav_install_click"
+        data-funnel-source="web-nav-mobile"
+        data-funnel-label="Install the Extension"
+      >
+        Install the Extension
       </Link>
     </>
   );

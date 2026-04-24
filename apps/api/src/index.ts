@@ -53,6 +53,7 @@ import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
 import { geoComplianceMiddleware } from './middleware/compliance.js';
+import { resolveApiPort } from './runtime-config.js';
 
 const app = express();
 app.set('trust proxy', 1); // Trust the first proxy
@@ -200,7 +201,7 @@ app.use(errorHandler);
 // Server Start
 // ============================================================================
 
-const PORT = parseInt(process.env.PORT || '8080', 10);
+const PORT = resolveApiPort(process.env);
 const HOST = process.env.HOST || '0.0.0.0';
 
 const server = http.createServer(app);

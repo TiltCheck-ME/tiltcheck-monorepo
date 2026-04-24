@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 'use client';
 
 import React from 'react';
@@ -7,7 +7,7 @@ import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-han
 
 /**
  * DashboardPage
- * Web dashboard shell that hands off to the canonical user-dashboard.
+ * Web dashboard shell that hands off to the canonical TiltCheck dashboard.
  */
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -33,14 +33,16 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-[#0a0c10] text-white">
       <main className="mx-auto max-w-5xl px-4 py-24">
         <section className="rounded-3xl border border-[#17c3b2]/25 bg-black/40 p-8 md:p-12">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Dashboard handoff</p>
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">
+            Dashboard handoff
+          </p>
           <h1 className="text-4xl font-black uppercase tracking-tighter md:text-5xl">
-            Web does not own the dashboard anymore.
+            Open your TiltCheck dashboard.
           </h1>
           <p className="mt-5 max-w-3xl text-sm text-gray-400 md:text-base">
-            The canonical authenticated control surface now lives in user-dashboard. Profile, LockVault timers,
-            Wallet Lock cooldowns, AutoVault rules, safety filters, and buddy controls moved there. This page is just
-            the handoff shell.
+            Log in once, then move into the control surface that owns your profile, vault rules,
+            safety filters, and buddy settings. This page exists to get you there without making
+            the route hunt feel like part of the product.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -52,7 +54,11 @@ export default function DashboardPage() {
                   : 'border-[#17c3b2]/40 bg-[#17c3b2]/10 text-[#17c3b2] hover:bg-[#17c3b2]/20'
               }`}
             >
-              {loading ? 'Checking session...' : user ? 'Open canonical dashboard' : 'Log in on web first'}
+              {loading
+                ? 'Checking session...'
+                : user
+                  ? 'Open dashboard controls'
+                  : 'Log in to open dashboard'}
             </a>
             <a
               href={dashboardUrl}
@@ -64,7 +70,7 @@ export default function DashboardPage() {
 
           {user && (
             <p className="mt-4 text-xs font-mono text-gray-500">
-              Session found. Redirecting you to the canonical dashboard lane now.
+              Session found. Redirecting you to dashboard controls now.
             </p>
           )}
         </section>
@@ -84,10 +90,14 @@ export default function DashboardPage() {
             {
               href: buddiesUrl,
               title: 'Buddy system',
-              copy: 'Accountability partners and alert thresholds now belong to the canonical dashboard flow.',
+              copy: 'Accountability partners and alert thresholds now belong to the dashboard flow.',
             },
           ].map(({ href, title, copy }) => (
-            <a key={title} href={href} className="rounded-2xl border border-[#283347] bg-black/30 p-6 transition-colors hover:border-[#17c3b2]/30">
+            <a
+              key={title}
+              href={href}
+              className="rounded-2xl border border-[#283347] bg-black/30 p-6 transition-colors hover:border-[#17c3b2]/30"
+            >
               <p className="text-sm font-black uppercase tracking-tight text-white">{title}</p>
               <p className="mt-3 text-sm text-gray-400">{copy}</p>
             </a>

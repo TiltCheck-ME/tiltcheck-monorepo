@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
 import Link from "next/link";
 
 import RtpDriftTicker from "@/components/RtpDriftTicker";
@@ -67,11 +67,11 @@ const storyCards = [
 
 const bridgeCards = [
   {
-    href: "/how-it-works",
-    eyebrow: "Product story",
-    title: "Understand what TiltCheck does before you install anything.",
-    description: "See the short version of how the extension watches sessions, checks fairness, and enforces exits.",
-    cta: "Read how it works",
+    href: "/extension",
+    eyebrow: "Install path",
+    title: "Ready to run it live? Start with the extension install flow.",
+    description: "Get the honest beta path: download the bundle, load it cleanly, and open a supported session.",
+    cta: "Open install steps",
   },
   {
     href: "/casinos",
@@ -106,12 +106,29 @@ export default function Home() {
             </p>
 
             <div className="hero-actions">
-              <Link href="/how-it-works" className="btn btn-primary" data-text="SEE HOW IT WORKS">
+              <Link
+                href="/extension"
+                className="btn btn-primary"
+                data-text="INSTALL THE EXTENSION"
+                data-funnel-event="landing_install_click"
+                data-funnel-source="web-home-hero"
+                data-funnel-label="Install the Extension"
+              >
+                INSTALL THE EXTENSION
+              </Link>
+              <Link
+                href="/casinos"
+                className="btn btn-secondary"
+                data-text="CHECK CASINO TRUST"
+                data-funnel-event="landing_trust_click"
+                data-funnel-source="web-home-hero"
+                data-funnel-label="Check Casino Trust"
+              >
+                CHECK CASINO TRUST
+              </Link>
+              <Link href="/how-it-works" className="btn btn-secondary" data-text="SEE HOW IT WORKS">
                 SEE HOW IT WORKS
               </Link>
-              <a href="/beta-tester" className="btn btn-secondary" data-text="GET EARLY ACCESS">
-                GET EARLY ACCESS
-              </a>
               <a href="#tools" className="btn btn-secondary" data-text="SEE THE TOOLS">
                 SEE THE TOOLS
               </a>
@@ -154,8 +171,14 @@ export default function Home() {
                 TiltCheck has one job: show what the casino is doing, show what your session is doing, and make the next
                 sane move easier to take.
               </p>
-              <Link href="/how-it-works" className="hero-panel__link">
-                See how TiltCheck works
+              <Link
+                href="/extension"
+                className="hero-panel__link"
+                data-funnel-event="landing_install_click"
+                data-funnel-source="web-home-signal-board"
+                data-funnel-label="Open the install flow"
+              >
+                Open the install flow
               </Link>
             </div>
           </aside>
@@ -273,7 +296,14 @@ export default function Home() {
 
           <div className="landing-bridge-grid">
             {bridgeCards.map((card) => (
-              <Link key={card.href} href={card.href} className="landing-bridge-card">
+              <Link
+                key={card.href}
+                href={card.href}
+                className="landing-bridge-card"
+                data-funnel-event={card.href === '/extension' ? 'bridge_install_click' : 'bridge_trust_click'}
+                data-funnel-source="web-home-bridge"
+                data-funnel-label={card.cta}
+              >
                 <span className="landing-bridge-card__eyebrow">{card.eyebrow}</span>
                 <h3 className="landing-bridge-card__title">{card.title}</h3>
                 <p className="landing-bridge-card__description">{card.description}</p>

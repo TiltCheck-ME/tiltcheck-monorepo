@@ -9,9 +9,9 @@
  */
 /**
  * Game Arena Server
- * Web-based multiplayer game arena with Supabase Discord authentication
+ * Web-based multiplayer game arena with TiltCheck Discord authentication
  *
- * Uses @tiltcheck/supabase-auth for Discord OAuth via Supabase
+ * Uses @tiltcheck/auth for Discord session verification and shared auth context.
  */
 
 import express from 'express';

@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/auth-flow",
   "version": "0.1.1",
-  "description": "JWT issuance and verification helpers for the TiltCheck ecosystem",
+  "description": "Deprecated compatibility package for legacy JWT helpers; new code should use @tiltcheck/auth",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

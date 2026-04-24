@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
+import { getWebLoginRedirect } from "@/lib/dashboard-handoff";
 
 const extensionStats = [
   {
@@ -22,6 +23,8 @@ const extensionStats = [
 ];
 
 export default function ExtensionPage() {
+  const dashboardSetupHref = getWebLoginRedirect('/dashboard');
+
   return (
     <main className="public-page text-white">
       <PublicPageHero
@@ -46,11 +49,14 @@ export default function ExtensionPage() {
               download
               className="btn btn-primary"
               data-text="DOWNLOAD THE ZIP"
+              data-funnel-event="extension_download_click"
+              data-funnel-source="web-extension-hero"
+              data-funnel-label="Download the zip"
             >
               DOWNLOAD THE ZIP
             </a>
-            <Link href="/beta-tester" className="btn btn-secondary" data-text="APPLY FOR ACCESS">
-              APPLY FOR ACCESS
+            <Link href={dashboardSetupHref} className="btn btn-secondary" data-text="OPEN DASHBOARD SETUP">
+              OPEN DASHBOARD SETUP
             </Link>
           </>
         }
@@ -59,16 +65,16 @@ export default function ExtensionPage() {
           <>
             <p className="public-page-panel__eyebrow">Current beta path</p>
             <h2 className="public-page-panel__title">Sideload now. Store listing later.</h2>
-            <p className="public-page-panel__body">
-              Download the current beta bundle, extract it locally, then load the unpacked folder in Chrome or Brave.
-            </p>
-            <ul className="public-page-list">
-              <li>Current package: tiltcheck-extension.zip</li>
-              <li>Chrome Web Store listing is not live yet.</li>
-              <li>Beta access also unlocks dashboard and testing updates.</li>
-            </ul>
-          </>
-        }
+              <p className="public-page-panel__body">
+                Download the current beta bundle, extract it locally, then load the unpacked folder in Chrome or Brave.
+              </p>
+              <ul className="public-page-list">
+                <li>Current package: tiltcheck-extension.zip</li>
+                <li>Chrome Web Store listing is not live yet.</li>
+                <li>After install, use dashboard setup before opening a supported session.</li>
+              </ul>
+            </>
+          }
       />
 
       <section className="public-page-section px-4">
@@ -109,7 +115,7 @@ export default function ExtensionPage() {
             <PublicPageSectionHeader
               eyebrow="Install flow"
               title="Three steps. Zero guesswork."
-              description={<p>The honest beta path is simple: sideload the bundle, load the extension, and open a supported session.</p>}
+              description={<p>The honest beta path is simple: sideload the bundle, load the extension, and set one guardrail before you test a live session.</p>}
             />
 
           <div className="public-page-grid public-page-grid--3">
@@ -133,13 +139,13 @@ export default function ExtensionPage() {
 
             <article className="public-page-card public-page-card--accent">
               <p className="public-page-card__eyebrow">Step 03</p>
-              <h2 className="public-page-card__title">Open a supported casino tab</h2>
+              <h2 className="public-page-card__title">Set one guardrail in the dashboard</h2>
               <p className="public-page-card__copy">
-                Open a supported casino tab and let TiltCheck watch the session. It tracks telemetry, fairness inputs,
-                and the guardrails you already configured.
+                Open dashboard setup, turn on at least one rule, then open a supported casino tab so TiltCheck has
+                something real to enforce mid-session.
               </p>
               <div className="public-page-card__body">
-                <p>Read only. Player-controlled exits. No mystery.</p>
+                <p>Rule first. Session second. Read only. No mystery.</p>
               </div>
             </article>
           </div>

@@ -1326,6 +1326,16 @@ export async function acceptBuddyRequest(requestId: string): Promise<UserBuddy |
 }
 
 /**
+ * Decline a pending buddy request
+ */
+export async function declineBuddyRequest(requestId: string): Promise<UserBuddy | null> {
+  return update<UserBuddy>('user_buddies', requestId, {
+    status: 'declined',
+    updated_at: new Date(),
+  });
+}
+
+/**
  * Get buddies for a user (accountability partners watching the user)
  */
 export async function getUserBuddies(userId: string): Promise<UserBuddy[]> {

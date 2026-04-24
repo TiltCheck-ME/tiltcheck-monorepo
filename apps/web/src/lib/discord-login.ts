@@ -17,11 +17,25 @@ function getFallbackSiteUrl(): string {
   return process.env.NODE_ENV === 'production' ? PROD_SITE_URL : DEV_SITE_URL;
 }
 
+function isLocalHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return (
+      parsed.protocol === 'http:' &&
+      (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function getDiscordLoginApiBase(): string {
   const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 
   if (configuredApiUrl && /^https?:\/\//i.test(configuredApiUrl)) {
-    return trimTrailingSlash(configuredApiUrl);
+    if (process.env.NODE_ENV === 'production' || isLocalHttpUrl(configuredApiUrl)) {
+      return trimTrailingSlash(configuredApiUrl);
+    }
   }
 
   return getFallbackApiUrl();

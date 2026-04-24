@@ -1,12 +1,12 @@
 {
   "name": "@tiltcheck/user-dashboard",
   "version": "1.0.0",
-  "description": "User dashboard for TiltCheck account and profile management",
+  "description": "Authenticated dashboard service for TiltCheck profile, safety, vault, and accountability controls",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest --run --passWithNoTests"
   },

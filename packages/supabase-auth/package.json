@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/supabase-auth",
   "version": "0.1.0",
-  "description": "Supabase authentication integration for TiltCheck ecosystem",
+  "description": "Deprecated compatibility package for Supabase auth helpers; new code should use @tiltcheck/auth",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
