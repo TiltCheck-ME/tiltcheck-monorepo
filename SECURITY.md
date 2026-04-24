@@ -100,6 +100,31 @@ As of the current refocus pass, the repo includes a known historical reference t
 
 The new secret guard workflow prevents common secret-bearing files and high-signal credential patterns from landing again, but it does not erase history. Do not describe the repository as fully secret-clean until rotation and any required history cleanup are complete.
 
+## Historical secret remediation package
+
+Use the repo-native history audit before any rotation or history cleanup work:
+
+```bash
+pnpm audit:history-secrets
+```
+
+The command reports secret-bearing filenames that appear anywhere in git history and exits non-zero when it finds any non-example paths that still need remediation review.
+
+### Current known historical blocker
+
+- `apps/api/.env.test` appears in git history and remains the primary known non-example secret-bearing path that must be reviewed for rotation impact.
+
+### Non-destructive remediation checklist
+
+1. run `pnpm audit:history-secrets` and capture the actionable non-example paths
+2. identify every credential family that could have lived in those files
+3. assign a human owner for each credential family before touching production systems
+4. rotate any credential that may still be live, even if later replaced
+5. only after rotation is complete, decide whether git history rewrite is still required
+6. update this policy once the known historical blocker is either rotated and closed or proven non-live
+
+This package is intentionally non-destructive. It prepares the rotation and cleanup work without rewriting history from the shared repo by default.
+
 ## Reporting a Vulnerability
 
 If you discover:
