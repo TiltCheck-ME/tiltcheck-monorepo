@@ -4,7 +4,7 @@
  * Handles Discord OAuth, JWT auth, session management, and user info
  */
 
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import { Magic } from '@magic-sdk/admin';
@@ -130,6 +130,47 @@ function getDisplayName(email: string, discordUsername?: string | null): string 
   }
 
   return email.split('@')[0] || email;
+}
+
+function normalizeActivationMetadata(metadata: Record<string, unknown>): Record<string, string> | null {
+  const entries = Object.entries(metadata)
+    .map(([key, value]) => {
+      if (value === undefined || value === null) {
+        return null;
+      }
+
+      const normalizedValue = String(value).trim();
+      if (!normalizedValue) {
+        return null;
+      }
+
+      return [key, normalizedValue] as const;
+    })
+    .filter((entry): entry is readonly [string, string] => entry !== null);
+
+  return entries.length > 0 ? Object.fromEntries(entries) : null;
+}
+
+function logActivationMilestone(
+  req: Request,
+  step: string,
+  source: string,
+  userId: string,
+  metadata: Record<string, unknown> = {}
+): void {
+  console.info(
+    '[TiltCheck Funnel]',
+    JSON.stringify({
+      type: 'milestone',
+      step,
+      source,
+      path: req.path,
+      userId,
+      metadata: normalizeActivationMetadata(metadata),
+      receivedAt: new Date().toISOString(),
+      userAgent: req.headers['user-agent'] ?? null,
+    }),
+  );
 }
 
 // ============================================================================
@@ -428,6 +469,10 @@ router.post('/magic/login', authLimiter, async (req, res) => {
     });
 
     res.setHeader('Set-Cookie', cookie);
+    logActivationMilestone(req, 'auth_success', 'api-magic-login', user.id, {
+      authMethod: 'magic',
+      hasDiscordLinked: Boolean(user.discord_id),
+    });
     res.json({
       success: true,
       token,
@@ -729,6 +774,11 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
     // Set session cookie
     res.setHeader('Set-Cookie', cookie);
+    logActivationMilestone(req, 'auth_success', 'api-discord-callback', user.id, {
+      authMethod: 'discord',
+      source,
+      hasWalletLinked: Boolean(user.wallet_address),
+    });
 
     // Check if source was extension
     res.clearCookie('oauth_source');
