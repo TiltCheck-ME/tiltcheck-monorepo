@@ -23,7 +23,7 @@
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
     "bignumber.js": "^10.0.2",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/uuid": "^11.0.0",
