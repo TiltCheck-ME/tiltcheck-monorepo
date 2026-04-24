@@ -96,9 +96,9 @@ TiltCheck may run an internal beta before a broader public launch, but only unde
 2. any known historical secret exposure must have an explicit remediation owner and rotation decision
 3. internal beta access must stay maintainer-controlled until historical exposure is either remediated or proven non-live
 
-As of the current refocus pass, the repo includes a known historical reference to `apps/api/.env.test` in git history. Treat that as an unresolved trust blocker for any open or public beta until the affected credentials are rotated or formally cleared.
+The known historical reference to `apps/api/.env.test` in git history has been reviewed and the affected credential families have been rotated by the maintainer. That clears the live-secret blocker for internal beta use, but it does not erase the historical file from git history.
 
-The new secret guard workflow prevents common secret-bearing files and high-signal credential patterns from landing again, but it does not erase history. Do not describe the repository as fully secret-clean until rotation and any required history cleanup are complete.
+The new secret guard workflow prevents common secret-bearing files and high-signal credential patterns from landing again, but it does not erase history. Describe the repository as rotation-remediated, not history-scrubbed, until any optional history cleanup decision is complete.
 
 ## Historical secret remediation package
 
@@ -112,8 +112,9 @@ The command reports secret-bearing filenames that appear anywhere in git history
 
 ### Current known historical blocker
 
-- `apps/api/.env.test` appears in git history and remains the primary known non-example secret-bearing path that must be reviewed for rotation impact.
-- Current audit evidence shows it was added on `2026-03-13T07:12:11-05:00` and removed from the tree on `2026-03-13T07:24:36-05:00`. That narrows the historical exposure window in repo history, but does not by itself prove whether any credentials inside were later rotated.
+- `apps/api/.env.test` remains the primary known non-example secret-bearing path in git history.
+- Current audit evidence shows it was added on `2026-03-13T07:12:11-05:00` and removed from the tree on `2026-03-13T07:24:36-05:00`.
+- The maintainer has since rotated the affected credential families, so the remaining decision is whether history rewrite is still worth doing for repo hygiene and trust posture.
 
 ### Non-destructive remediation checklist
 
