@@ -200,7 +200,8 @@ app.use(errorHandler);
 // Server Start
 // ============================================================================
 
-const PORT = parseInt(process.env.PORT || '8080', 10);
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const PORT = parseInt(IS_PRODUCTION ? (process.env.PORT || '8080') : '8080', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
 const server = http.createServer(app);

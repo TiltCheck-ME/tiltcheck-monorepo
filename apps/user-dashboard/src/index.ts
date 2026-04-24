@@ -169,15 +169,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
+const isProd = process.env.NODE_ENV === 'production';
+const PORT = process.env.USER_DASHBOARD_PORT || (isProd ? process.env.PORT : undefined) || 6001;
 const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback';
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
 
 // Configuration
-const isProd = process.env.NODE_ENV === 'production';
 const CANONICAL_DASHBOARD_BASE_URL = isProd ? 'https://dashboard.tiltcheck.me' : `http://localhost:${PORT}`;
-const CANONICAL_API_BASE_URL = process.env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me';
+const CANONICAL_API_BASE_URL = isProd
+  ? process.env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me'
+  : 'http://localhost:8080';
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
 
@@ -310,7 +312,6 @@ app.get('/api/config/public', (_req, res) => {
 
 // === Auth Routes (Redirect to Central Login) ===
 app.get('/auth/discord', async (req, res) => {
-  const redirectBase = isProd ? 'https://api.tiltcheck.me' : 'http://localhost:3000';
   const requestedRedirect = typeof req.query.redirect === 'string' ? req.query.redirect.trim() : '';
   const targetPath = isAllowedHubRedirect(requestedRedirect) ? requestedRedirect : '/dashboard';
   const targetUrl = normalizeDashboardRedirectTarget(targetPath);
@@ -325,7 +326,7 @@ app.get('/auth/discord', async (req, res) => {
     console.warn('[Auth] Existing dashboard session check failed:', error);
   }
 
-  res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(targetUrl)}`);
+  res.redirect(`${CANONICAL_API_BASE_URL}/auth/discord/login?source=web&redirect=${encodeURIComponent(targetUrl)}`);
 });
 
 // For compatibility with any direct callbacks that might still hit this app
@@ -1895,7 +1896,26 @@ app.get('/onboard.html', (_req, res) => {
   res.sendFile(join(__dirname, '../public/onboard.html'));
 });
 
-app.get('/dashboard', authenticateToken, async (req: DashboardRequest, res) => {
+app.get('/dashboard', async (req: DashboardRequest, res) => {
+  try {
+    const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
+    if (!result.valid || !result.session?.discordId) {
+      res.redirect(`/auth/discord?redirect=${encodeURIComponent('/dashboard')}`);
+      return;
+    }
+
+    const user = await findUserByDiscordId(result.session.discordId);
+    req.user = {
+      discordId: result.session.discordId,
+      username: result.session.discordUsername || 'Unknown',
+      avatar: user?.discord_avatar || null,
+    };
+  } catch (error) {
+    console.warn('[Dashboard] Session verification failed:', error);
+    res.redirect(`/auth/discord?redirect=${encodeURIComponent('/dashboard')}`);
+    return;
+  }
+
   const discordId = req.user!.discordId;
   if (db.isConnected()) {
     try {

@@ -88,6 +88,18 @@ TiltCheck is open source, but production runtime secrets remain private.
 
 Reference: `docs/governance/OSS-RUNTIME-BOUNDARY.md`
 
+## Internal beta trust gate
+
+TiltCheck may run an internal beta before a broader public launch, but only under a tighter trust bar:
+
+1. current tracked files must not contain live credentials or secret-bearing runtime files
+2. any known historical secret exposure must have an explicit remediation owner and rotation decision
+3. internal beta access must stay maintainer-controlled until historical exposure is either remediated or proven non-live
+
+As of the current refocus pass, the repo includes a known historical reference to `apps/api/.env.test` in git history. Treat that as an unresolved trust blocker for any open or public beta until the affected credentials are rotated or formally cleared.
+
+The new secret guard workflow prevents common secret-bearing files and high-signal credential patterns from landing again, but it does not erase history. Do not describe the repository as fully secret-clean until rotation and any required history cleanup are complete.
+
 ## Reporting a Vulnerability
 
 If you discover:
