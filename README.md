@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
 
 <p align="center">
   <picture>
@@ -23,10 +23,10 @@
 
 **Built by a degen, for degens.**
 
-TiltCheck is a modular, AI-assisted ecosystem designed to fix the worst parts of online casino culture — scams, unfair bonuses, predatory patterns, tilt-driven decisions, and chaotic Discord communities.
+TiltCheck is a non-custodial gambling-defense product for degens who want proof before trust and hard exits before tilt burns the bankroll.
 
-It doesn't try to stop degens from being degens.  
-It just gives them a smarter, safer, and more transparent way to play.
+It does not try to stop degens from being degens.  
+It helps them verify casinos, protect live sessions, and lock in wins before chaos takes over.
 
 ### Core Philosophy: Redeem-to-Win
 
@@ -57,26 +57,43 @@ Our primary goal is to shift the definition of a "win." Instead of encouraging e
 
 ---
 
-## What Is TiltCheck?
+## North Star Product Loop
 
-TiltCheck is a suite of independent but interoperable tools that help casino communities:
+TiltCheck is being refocused around one clear product loop:
 
-- **reduce scams** (SusLink)
-- **track bonuses** (CollectClock)
-- **tip safely** (JustTheTip)
-- **detect tilt** (TiltCheck Core)
-- **score casinos** (Casino Trust Engine)
-- **score users** (Degen Trust Engine)
-- **play games** (DA&D)
-- **stay accountable** (Accountabilibuddy)
+- **Web** proves trust, explains risk, and drives installs.
+- **Chrome extension** protects users during live sessions.
+- **Dashboard** owns durable controls, history, exclusions, vault rules, and accountability settings.
+- **Discord** sends alerts, summaries, and nudges.
+- **API** handles auth, scoring, routing, and enforcement.
 
-Every module is Discord-first, non-custodial, and optimized for low-cost serverless infrastructure.
+Anything that does not strengthen trust proof, extension activation, durable protections, or retained protected usage is not core.
+
+### Surface ownership
+
+| Surface | Owns | Does not own |
+| --- | --- | --- |
+| **Web** | Trust proof, casino pages, education, install funnel | Durable account controls, internal ops, side experiments in primary nav |
+| **Chrome extension** | Live session detection, warnings, interventions, in-session protection | Long-form account management, broad content discovery |
+| **Dashboard** | Rules, history, exclusions, vault controls, accountability settings | Top-of-funnel discovery, anonymous acquisition |
+| **Discord** | Alerts, summaries, nudges, accountability follow-through | Primary onboarding, complex settings, account management |
+| **API** | Auth, scoring, routing, enforcement, integrations | User-facing product storytelling |
+| **Control-room** | Internal operations, diagnostics, moderation | Public user journey |
+
+### Current focus freeze
+
+Until the core loop is clean, TiltCheck is freezing work that does not directly improve:
+
+- trust proof on web
+- extension install and activation
+- durable protections and history in the dashboard
+- retained protected usage after first setup
 
 ---
 
-## 🚀 RGaaS Pivot: Responsible Gaming as a Service
+## Platform capabilities
 
-TiltCheck has expanded from a consumer toolset into a **Responsible Gaming as a Service (RGaaS)** provider. We expose our core intelligence engines via a unified API for 3rd-party integration:
+TiltCheck exposes its core intelligence engines through a shared API layer, but that platform capability is downstream of the main product loop above:
 
 - **Tilt Detection API**: Behavioral risk analysis for active sessions.
 - **Trust Scoring API**: Real-time reputation checks for casinos and users.
