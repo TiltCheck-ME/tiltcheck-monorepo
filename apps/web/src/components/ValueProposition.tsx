@@ -131,7 +131,13 @@ export default function ValueProposition() {
             </div>
             <BenefitList items={playerBenefits} />
             <div className="vp-column-cta">
-              <a href="/extension" className="btn btn-primary">
+              <a
+                href="/extension"
+                className="btn btn-primary"
+                data-funnel-event="player_value_prop_install_click"
+                data-funnel-source="web-home-value-prop"
+                data-funnel-label="Install the Extension"
+              >
                 INSTALL THE EXTENSION
               </a>
             </div>

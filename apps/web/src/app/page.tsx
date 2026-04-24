@@ -106,10 +106,24 @@ export default function Home() {
             </p>
 
             <div className="hero-actions">
-              <Link href="/extension" className="btn btn-primary" data-text="INSTALL THE EXTENSION">
+              <Link
+                href="/extension"
+                className="btn btn-primary"
+                data-text="INSTALL THE EXTENSION"
+                data-funnel-event="landing_install_click"
+                data-funnel-source="web-home-hero"
+                data-funnel-label="Install the Extension"
+              >
                 INSTALL THE EXTENSION
               </Link>
-              <Link href="/casinos" className="btn btn-secondary" data-text="CHECK CASINO TRUST">
+              <Link
+                href="/casinos"
+                className="btn btn-secondary"
+                data-text="CHECK CASINO TRUST"
+                data-funnel-event="landing_trust_click"
+                data-funnel-source="web-home-hero"
+                data-funnel-label="Check Casino Trust"
+              >
                 CHECK CASINO TRUST
               </Link>
               <Link href="/how-it-works" className="btn btn-secondary" data-text="SEE HOW IT WORKS">
@@ -157,7 +171,13 @@ export default function Home() {
                 TiltCheck has one job: show what the casino is doing, show what your session is doing, and make the next
                 sane move easier to take.
               </p>
-              <Link href="/extension" className="hero-panel__link">
+              <Link
+                href="/extension"
+                className="hero-panel__link"
+                data-funnel-event="landing_install_click"
+                data-funnel-source="web-home-signal-board"
+                data-funnel-label="Open the install flow"
+              >
                 Open the install flow
               </Link>
             </div>
@@ -276,7 +296,14 @@ export default function Home() {
 
           <div className="landing-bridge-grid">
             {bridgeCards.map((card) => (
-              <Link key={card.href} href={card.href} className="landing-bridge-card">
+              <Link
+                key={card.href}
+                href={card.href}
+                className="landing-bridge-card"
+                data-funnel-event={card.href === '/extension' ? 'bridge_install_click' : 'bridge_trust_click'}
+                data-funnel-source="web-home-bridge"
+                data-funnel-label={card.cta}
+              >
                 <span className="landing-bridge-card__eyebrow">{card.eyebrow}</span>
                 <h3 className="landing-bridge-card__title">{card.title}</h3>
                 <p className="landing-bridge-card__description">{card.description}</p>

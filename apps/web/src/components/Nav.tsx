@@ -62,7 +62,14 @@ const Nav = () => {
     if (loading) return null;
     if (user) {
       return (
-        <a href={DASHBOARD_URL} onClick={close} className={compact ? 'nav-auth-compact nav-auth-user' : 'nav-auth-full nav-auth-user'}>
+        <a
+          href={DASHBOARD_URL}
+          onClick={close}
+          className={compact ? 'nav-auth-compact nav-auth-user' : 'nav-auth-full nav-auth-user'}
+          data-funnel-event="dashboard_handoff_click"
+          data-funnel-source={compact ? 'web-nav-compact-auth' : 'web-nav-auth'}
+          data-funnel-label="Open dashboard controls"
+        >
           {user.discordUsername || user.username}
         </a>
       );
@@ -89,7 +96,13 @@ const Nav = () => {
           {label}
         </Link>
       ))}
-      <Link href="/extension" className="nav-desktop-link nav-desktop-beta">
+      <Link
+        href="/extension"
+        className="nav-desktop-link nav-desktop-beta"
+        data-funnel-event="nav_install_click"
+        data-funnel-source="web-nav-desktop"
+        data-funnel-label="Install"
+      >
         Install
       </Link>
     </>
@@ -107,7 +120,14 @@ const Nav = () => {
           {label}
         </Link>
       ))}
-      <Link href="/extension" onClick={close} className="nav-sidebar-link nav-sidebar-beta">
+      <Link
+        href="/extension"
+        onClick={close}
+        className="nav-sidebar-link nav-sidebar-beta"
+        data-funnel-event="nav_install_click"
+        data-funnel-source="web-nav-mobile"
+        data-funnel-label="Install the Extension"
+      >
         Install the Extension
       </Link>
     </>
