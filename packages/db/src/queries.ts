@@ -4,6 +4,7 @@
  * Typed query functions for common database operations
  */
 
+import { randomUUID } from 'crypto';
 import { query, queryOne, insert, update, findById, findOneBy, exists } from './client.js';
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import type {
@@ -455,6 +456,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
  */
 export async function createUser(payload: CreateUserPayload): Promise<User | null> {
   const data = {
+    id: payload.id || randomUUID(),
     ...payload,
     roles: payload.roles || ['user'],
     created_at: new Date(),
