@@ -456,7 +456,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
  */
 export async function createUser(payload: CreateUserPayload): Promise<User | null> {
   const data = {
-    id: payload.id || randomUUID(),
+    id: payload.id ?? randomUUID(),
     ...payload,
     roles: payload.roles || ['user'],
     created_at: new Date(),
