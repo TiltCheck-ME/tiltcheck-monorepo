@@ -33,6 +33,7 @@ export interface User {
  * User creation payload
  */
 export interface CreateUserPayload {
+  id?: string;
   discord_id?: string;
   discord_username?: string;
   discord_avatar?: string;
