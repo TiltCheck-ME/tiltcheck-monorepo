@@ -213,6 +213,18 @@ const trustLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Auth redirect routes (/auth/discord, /dashboard) perform session verification
+// and redirect to the central OAuth login. Rate-limited to match the upstream
+// API authLimiter (20 req / 15 min per IP) so they cannot be used as an
+// amplification vector for filesystem access or auth checks.
+const authRedirectLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
 const paymentClaimLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   max: 5,
@@ -326,7 +338,7 @@ app.get('/api/config/public', (_req, res) => {
 
 
 // === Auth Routes (Redirect to Central Login) ===
-app.get('/auth/discord', async (req, res) => {
+app.get('/auth/discord', authRedirectLimiter, async (req, res) => {
   const requestedRedirect = typeof req.query.redirect === 'string' ? req.query.redirect.trim() : '';
   const targetPath = isAllowedHubRedirect(requestedRedirect) ? requestedRedirect : '/dashboard';
   const targetUrl = normalizeDashboardRedirectTarget(targetPath);
@@ -2020,7 +2032,7 @@ app.get('/onboard.html', (_req, res) => {
   res.sendFile(join(__dirname, '../public/onboard.html'));
 });
 
-app.get('/dashboard', async (req: DashboardRequest, res) => {
+app.get('/dashboard', authRedirectLimiter, async (req: DashboardRequest, res) => {
   if (!JWT_SECRET) {
     // Service is misconfigured — serve the static page so users aren't stuck on Bad Gateway.
     // The page will fail auth API calls with a clear 503 error message.
