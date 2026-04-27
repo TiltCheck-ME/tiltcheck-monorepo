@@ -116,6 +116,7 @@ async function build() {
     { src: 'src/auth-bridge.html', dest: 'dist/auth-bridge.html' },
     { src: 'src/auth-bridge.js', dest: 'dist/auth-bridge.js' },
     { src: 'src/popup.html', dest: 'dist/popup.html' },
+    { src: 'src/warning.html', dest: 'dist/warning.html' },
   ];
 
   for (const file of staticFiles) {
