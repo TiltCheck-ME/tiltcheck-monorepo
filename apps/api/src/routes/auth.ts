@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -84,6 +84,45 @@ function renderExtensionAuthErrorPage(message: string): string {
       </body>
     </html>
   `;
+}
+
+// ============================================================================
+// Server-side OAuth State Registry
+// Fallback for cookie-based CSRF state validation.
+// Chrome 147+ may drop SameSite=None cookies set during extension popup OAuth
+// flows due to storage partitioning changes. States are single-use and expire
+// after 10 minutes to mirror the cookie maxAge.
+// ============================================================================
+
+interface OAuthStateEntry {
+  createdAt: number;
+  redirectUrl?: string; // post-auth redirect URL, if set at login time
+}
+
+const pendingOAuthStates = new Map<string, OAuthStateEntry>(); // state → entry
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const OAUTH_STATE_CLEANUP_THRESHOLD = 200;
+
+function registerOAuthState(state: string, redirectUrl?: string): void {
+  const now = Date.now();
+  pendingOAuthStates.set(state, { createdAt: now, redirectUrl });
+  if (pendingOAuthStates.size > OAUTH_STATE_CLEANUP_THRESHOLD) {
+    for (const [key, entry] of pendingOAuthStates.entries()) {
+      if (now - entry.createdAt > OAUTH_STATE_TTL_MS) {
+        pendingOAuthStates.delete(key);
+      }
+    }
+  }
+}
+
+/**
+ * Consume the state entry (single-use). Returns the entry if valid, null if absent/expired.
+ */
+function consumeOAuthState(state: string): OAuthStateEntry | null {
+  const entry = pendingOAuthStates.get(state);
+  if (entry === undefined) return null;
+  pendingOAuthStates.delete(state);
+  return Date.now() - entry.createdAt <= OAUTH_STATE_TTL_MS ? entry : null;
 }
 
 // ============================================================================
@@ -634,6 +673,10 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     const authUrl = getDiscordAuthUrl(config, state);
+    // Register state server-side as a fallback for cookie loss in Chrome 147+.
+    // Also stores the redirect URL so post-auth redirect works even if the
+    // oauth_redirect cookie is dropped (same SameSite=None partitioning issue).
+    registerOAuthState(state, redirectUrl || undefined);
     res.redirect(authUrl);
   } catch (error) {
     console.error('[Auth] Discord login error:', error);
@@ -676,10 +719,29 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
-    // Verify state CSRF token:
-    // Query state MUST match the stored cookie value to prevent CSRF.
-    // Fallback prefixes (ext_/web_) are removed as they are insecure.
-    const stateValid = !!stateValue && stateValue === storedState;
+    // Verify state CSRF token.
+    // Primary: compare against the cookie value (set at login time).
+    // Fallback: check the server-side state registry for cases where the
+    // oauth_state cookie is dropped by Chrome 147+ Storage Partitioning in
+    // extension popup OAuth flows (SameSite=None cookies can be lost when the
+    // popup navigates from discord.com back to api.tiltcheck.me).
+    // States in the registry are single-use and expire after 10 minutes.
+    // The registry also stores the redirect URL so it can be recovered when
+    // the oauth_redirect cookie is lost by the same mechanism.
+    let stateValid = false;
+    let registryEntry: OAuthStateEntry | null = null;
+    if (stateValue) {
+      if (stateValue === storedState) {
+        stateValid = true;
+        registryEntry = consumeOAuthState(stateValue); // keep registry in sync; grab redirect
+      } else {
+        registryEntry = consumeOAuthState(stateValue);
+        stateValid = registryEntry !== null;
+        if (stateValid) {
+          console.log('[Auth] OAuth state validated via server-side registry (cookie was absent).');
+        }
+      }
+    }
 
     if (!stateValid) {
       console.warn('[Auth] OAuth state mismatch or missing cookie. Potential CSRF blocked.');
@@ -912,14 +974,33 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
-    // Redirect to stored URL or default
+    // Redirect to stored URL or default.
+    // Resolution order:
+    // 1. oauth_redirect cookie (set at login, may be lost by Chrome 147 partitioning)
+    // 2. redirect URL stored in the server-side state registry (recovers cookie loss)
+    // 3. canonical post-auth default
+    // Each candidate is validated by isAllowedPostAuthRedirect before use.
     const redirectCookie = typeof req.cookies?.oauth_redirect === 'string' ? req.cookies.oauth_redirect : '';
-    const redirectUrl = isAllowedPostAuthRedirect(redirectCookie)
-      ? redirectCookie
-      : 'https://tiltcheck.me/play/profile.html';
-    res.clearCookie('oauth_redirect');
+    const registryRedirect = registryEntry?.redirectUrl ?? '';
 
-    res.redirect(redirectUrl);
+    let resolvedRedirect: string;
+    if (isAllowedPostAuthRedirect(redirectCookie)) {
+      resolvedRedirect = redirectCookie;
+    } else if (isAllowedPostAuthRedirect(registryRedirect)) {
+      resolvedRedirect = registryRedirect;
+      console.log('[Auth] Post-auth redirect recovered from state registry (oauth_redirect cookie was absent).');
+    } else {
+      resolvedRedirect = 'https://tiltcheck.me/play/profile.html';
+    }
+
+    res.clearCookie('oauth_redirect');
+    // Defense-in-depth: re-validate immediately before the redirect so CodeQL
+    // can trace that no user-controlled value ever reaches res.redirect()
+    // without passing the allow-list check.
+    if (!isAllowedPostAuthRedirect(resolvedRedirect)) {
+      resolvedRedirect = 'https://tiltcheck.me/play/profile.html';
+    }
+    res.redirect(resolvedRedirect);
   } catch (error) {
     console.error('[Auth] Discord callback error:', error);
     if (source === 'extension') {

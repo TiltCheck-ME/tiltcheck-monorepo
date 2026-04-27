@@ -88,7 +88,8 @@ describe('Auth callback state/source validation', () => {
   it('allows local extension fallback only when state prefix indicates extension', async () => {
     const response = await request(app).get('/auth/discord/callback?state=ext_abc123');
 
-    // Without the matching oauth_state cookie, state validation still fails closed.
+    // Without the matching oauth_state cookie AND without the state being in the
+    // server-side registry (i.e. login was never called), validation still fails closed.
     expect(response.status).toBe(400);
     expect(response.headers['content-type']).toContain('application/json');
     expect(response.body.error).toBe('Invalid OAuth state or expired session');
@@ -527,5 +528,80 @@ describe('Auth callback state/source validation', () => {
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('INVALID_MAGIC_IDENTITY');
     expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it('accepts a callback state that is in the server-side registry even when the oauth_state cookie is absent', async () => {
+    // Simulate Chrome 147+ dropping the oauth_state cookie during extension popup OAuth flows.
+    // The login endpoint registers the state server-side so the callback can still validate it.
+    await request(app)
+      .get('/auth/discord/login?source=web&redirect=%2Fbeta-tester')
+      .set('X-Forwarded-Proto', 'https')
+      .set('X-Forwarded-Host', 'tiltcheck.me');
+
+    // generateOAuthState mock returns 'mock-state', login builds 'web_mock-state'.
+    const registeredState = 'web_mock-state';
+
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: { id: 'discord-registry-user', username: 'registry-user', avatar: null },
+    } as any);
+    vi.mocked(findOrCreateUserByDiscord).mockResolvedValueOnce({
+      id: 'user-registry',
+      email: null,
+      roles: ['user'],
+      discord_username: 'registry-user',
+      discord_avatar: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    // No oauth_state OR oauth_redirect cookie — relies entirely on the server-side registry.
+    const response = await request(app)
+      .get(`/auth/discord/callback?state=${registeredState}&code=abc123`)
+      .set('Cookie', ['oauth_source=web']);
+
+    expect(response.status).toBe(302);
+    // Registry stored /beta-tester as the redirect URL at login time; it should be recovered here.
+    expect(response.headers.location).toBe('/beta-tester');
+  });
+
+  it('rejects a callback state that was already consumed from the server-side registry (single-use)', async () => {
+    await request(app)
+      .get('/auth/discord/login?source=web&redirect=%2Fbeta-tester')
+      .set('X-Forwarded-Proto', 'https')
+      .set('X-Forwarded-Host', 'tiltcheck.me');
+
+    const registeredState = 'web_mock-state';
+
+    vi.mocked(verifyDiscordOAuth).mockResolvedValue({
+      valid: true,
+      user: { id: 'discord-reuse-user', username: 'reuse-user', avatar: null },
+    } as any);
+    vi.mocked(findOrCreateUserByDiscord).mockResolvedValue({
+      id: 'user-reuse',
+      email: null,
+      roles: ['user'],
+      discord_username: 'reuse-user',
+      discord_avatar: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValue({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    // First use — succeeds via registry.
+    await request(app)
+      .get(`/auth/discord/callback?state=${registeredState}&code=abc123`)
+      .set('Cookie', ['oauth_source=web']);
+
+    // Second use — registry entry consumed, no cookie either → rejected.
+    // The response may be 400 (state invalid) or 429 (rate-limited) — both correctly reject replay.
+    const replayResponse = await request(app)
+      .get(`/auth/discord/callback?state=${registeredState}&code=abc123`)
+      .set('Cookie', ['oauth_source=web']);
+
+    expect([400, 429]).toContain(replayResponse.status);
   });
 });

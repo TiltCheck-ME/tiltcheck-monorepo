@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 const envPath = path.resolve(__dirname, '../../../.env'); // Path from apps/api/src to monorepo root .env
 dotenv.config({ path: envPath });
 
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. Last Updated: 2026-04-27 */
 // v1.1.0 — 2026-02-26
 /**
  * @tiltcheck/api - Central API Gateway
@@ -90,8 +90,11 @@ app.use(cors({
       'https://tiltcheck-api-gateway-164294266634.us-central1.run.app',
     ];
 
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) {
+    // Allow requests with no origin (like mobile apps or curl) or opaque
+    // origins. Chrome 147+ extension service workers can send Origin: null
+    // (the literal string "null") rather than chrome-extension://<id> in
+    // certain cross-site fetch contexts due to Storage Partitioning changes.
+    if (!origin || origin === 'null') {
       callback(null, true);
       return;
     }
