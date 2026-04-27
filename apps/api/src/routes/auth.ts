@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -84,6 +84,37 @@ function renderExtensionAuthErrorPage(message: string): string {
       </body>
     </html>
   `;
+}
+
+// ============================================================================
+// Server-side OAuth State Registry
+// Fallback for cookie-based CSRF state validation.
+// Chrome 147+ may drop SameSite=None cookies set during extension popup OAuth
+// flows due to storage partitioning changes. States are single-use and expire
+// after 10 minutes to mirror the cookie maxAge.
+// ============================================================================
+
+const pendingOAuthStates = new Map<string, number>(); // state → createdAt (ms)
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const OAUTH_STATE_CLEANUP_THRESHOLD = 200;
+
+function registerOAuthState(state: string): void {
+  const now = Date.now();
+  pendingOAuthStates.set(state, now);
+  if (pendingOAuthStates.size > OAUTH_STATE_CLEANUP_THRESHOLD) {
+    for (const [key, createdAt] of pendingOAuthStates.entries()) {
+      if (now - createdAt > OAUTH_STATE_TTL_MS) {
+        pendingOAuthStates.delete(key);
+      }
+    }
+  }
+}
+
+function consumeOAuthState(state: string): boolean {
+  const createdAt = pendingOAuthStates.get(state);
+  if (createdAt === undefined) return false;
+  pendingOAuthStates.delete(state);
+  return Date.now() - createdAt <= OAUTH_STATE_TTL_MS;
 }
 
 // ============================================================================
@@ -634,6 +665,9 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     const authUrl = getDiscordAuthUrl(config, state);
+    // Register state server-side as a fallback for cookie loss in Chrome 147+
+    // extension popup OAuth flows (Storage Partitioning drops SameSite=None cookies).
+    registerOAuthState(state);
     res.redirect(authUrl);
   } catch (error) {
     console.error('[Auth] Discord login error:', error);
@@ -676,10 +710,25 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
-    // Verify state CSRF token:
-    // Query state MUST match the stored cookie value to prevent CSRF.
-    // Fallback prefixes (ext_/web_) are removed as they are insecure.
-    const stateValid = !!stateValue && stateValue === storedState;
+    // Verify state CSRF token.
+    // Primary: compare against the cookie value (set at login time).
+    // Fallback: check the server-side state registry for cases where the
+    // oauth_state cookie is dropped by Chrome 147+ Storage Partitioning in
+    // extension popup OAuth flows (SameSite=None cookies can be lost when the
+    // popup navigates from discord.com back to api.tiltcheck.me).
+    // States in the registry are single-use and expire after 10 minutes.
+    let stateValid = false;
+    if (stateValue) {
+      if (stateValue === storedState) {
+        stateValid = true;
+        consumeOAuthState(stateValue); // keep registry in sync
+      } else {
+        stateValid = consumeOAuthState(stateValue);
+        if (stateValid) {
+          console.log('[Auth] OAuth state validated via server-side registry (cookie was absent).');
+        }
+      }
+    }
 
     if (!stateValid) {
       console.warn('[Auth] OAuth state mismatch or missing cookie. Potential CSRF blocked.');
