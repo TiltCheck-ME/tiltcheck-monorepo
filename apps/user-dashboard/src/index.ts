@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -18,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join, resolve } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 import { z, ZodError } from 'zod';
+import { randomUUID } from 'crypto';
 import { resolveCanonicalApiBaseUrl, resolveDashboardPort } from './runtime-config.js';
 
 interface DashboardRequest extends Request {
@@ -182,13 +183,23 @@ const CANONICAL_API_BASE_URL = resolveCanonicalApiBaseUrl(process.env);
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
 
+// Log a clear error if JWT_SECRET is absent but do NOT crash the process.
+// Crashing here causes Railway to return 502 Bad Gateway before the process
+// can even bind to a port, making it impossible to diagnose via /health.
+// Auth-protected routes check JWT_SECRET at request time and return 503.
 if (!JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is required');
+  console.error('[Dashboard] FATAL: JWT_SECRET environment variable is required. All authenticated routes will return 503 until the secret is set in Railway.');
 }
+
+// Use a random per-process sentinel when JWT_SECRET is absent so that an
+// empty or predictable secret never allows forged tokens to pass verification.
+// All authenticated routes return 503 before calling verifySessionCookie when
+// JWT_SECRET is missing, so the sentinel is never exercised in normal operation.
+const JWT_SECRET_EFFECTIVE = JWT_SECRET ?? randomUUID();
 
 // Shared Auth Config
 const jwtConfig: JWTConfig = {
-  secret: JWT_SECRET,
+  secret: JWT_SECRET_EFFECTIVE,
   issuer: 'tiltcheck-api',
   audience: 'tiltcheck-apps',
   expiresIn: '7d'
@@ -271,6 +282,11 @@ app.use(express.static(join(__dirname, '../public')));
 
 // === Auth Middleware (Shared Ecosystem) ===
 function authenticateToken(req: DashboardRequest, res: Response, next: NextFunction) {
+  if (!JWT_SECRET) {
+    res.status(503).json({ error: 'Service misconfigured: JWT_SECRET is not set. Contact the operator.', code: 'SERVICE_UNAVAILABLE' });
+    return;
+  }
+
   const cookieHeader = req.headers.cookie;
   
   verifySessionCookie(cookieHeader, jwtConfig)
@@ -315,14 +331,16 @@ app.get('/auth/discord', async (req, res) => {
   const targetPath = isAllowedHubRedirect(requestedRedirect) ? requestedRedirect : '/dashboard';
   const targetUrl = normalizeDashboardRedirectTarget(targetPath);
 
-  try {
-    const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
-    if (result.valid && result.session?.discordId) {
-      res.redirect(targetUrl);
-      return;
+  if (JWT_SECRET) {
+    try {
+      const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
+      if (result.valid && result.session?.discordId) {
+        res.redirect(targetUrl);
+        return;
+      }
+    } catch (error) {
+      console.warn('[Auth] Existing dashboard session check failed:', error);
     }
-  } catch (error) {
-    console.warn('[Auth] Existing dashboard session check failed:', error);
   }
 
   res.redirect(`${CANONICAL_API_BASE_URL}/auth/discord/login?source=web&redirect=${encodeURIComponent(targetUrl)}`);
@@ -1986,7 +2004,13 @@ app.post('/api/payments/claim-crypto', paymentClaimLimiter, async (req, res) => 
 });
 
 // === Health + dashboard entrypoints ===
-app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/health', (_req, res) => {
+  if (!JWT_SECRET) {
+    res.status(503).json({ status: 'misconfigured', detail: 'JWT_SECRET is not set' });
+    return;
+  }
+  res.json({ status: 'ok' });
+});
 
 app.get('/preview', (_req, res) => {
   res.redirect('/auth/discord?redirect=%2Fdashboard');
@@ -1997,6 +2021,13 @@ app.get('/onboard.html', (_req, res) => {
 });
 
 app.get('/dashboard', async (req: DashboardRequest, res) => {
+  if (!JWT_SECRET) {
+    // Service is misconfigured — serve the static page so users aren't stuck on Bad Gateway.
+    // The page will fail auth API calls with a clear 503 error message.
+    res.sendFile(join(__dirname, '../public/index.html'));
+    return;
+  }
+
   try {
     const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
     if (!result.valid || !result.session?.discordId) {

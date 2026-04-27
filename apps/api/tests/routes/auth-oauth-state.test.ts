@@ -557,12 +557,14 @@ describe('Auth callback state/source validation', () => {
       token: 'session-token',
     } as any);
 
-    // No oauth_state cookie — relies entirely on the server-side registry.
+    // No oauth_state OR oauth_redirect cookie — relies entirely on the server-side registry.
     const response = await request(app)
       .get(`/auth/discord/callback?state=${registeredState}&code=abc123`)
       .set('Cookie', ['oauth_source=web']);
 
     expect(response.status).toBe(302);
+    // Registry stored /beta-tester as the redirect URL at login time; it should be recovered here.
+    expect(response.headers.location).toBe('/beta-tester');
   });
 
   it('rejects a callback state that was already consumed from the server-side registry (single-use)', async () => {
