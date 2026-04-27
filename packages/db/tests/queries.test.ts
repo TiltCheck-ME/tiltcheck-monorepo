@@ -164,4 +164,40 @@ describe('@tiltcheck/db users fallback', () => {
     expect(fallbackClient.update.mock.calls[1][0]).not.toHaveProperty('discord_username');
     warnSpy.mockRestore();
   });
+
+  it('retries updateUser without last_login_at when Supabase users schema is behind', async () => {
+    updateMock.mockRejectedValueOnce(new Error('permission denied for table users'));
+    const fallbackClient = createUpdateFallbackClient([
+      {
+        data: null,
+        error: { message: "Could not find the 'last_login_at' column of 'users' in the schema cache" },
+      },
+      {
+        data: {
+          id: 'user-1',
+          discord_id: 'discord-1',
+          discord_username: 'tester',
+          roles: ['user'],
+          created_at: '2026-04-16T00:00:00.000Z',
+          updated_at: '2026-04-16T00:00:00.000Z',
+          last_login_at: '2026-04-16T00:00:00.000Z',
+        },
+        error: null,
+      },
+    ]);
+    createSupabaseClientMock.mockReturnValueOnce(fallbackClient.client);
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { updateUser } = await loadQueriesModule();
+    const user = await updateUser('user-1', {
+      discord_username: 'tester',
+      last_login_at: new Date('2026-04-16T00:00:00.000Z'),
+    });
+
+    expect(user?.id).toBe('user-1');
+    expect(fallbackClient.update).toHaveBeenCalledTimes(2);
+    expect(fallbackClient.update.mock.calls[0][0]).toMatchObject({ discord_username: 'tester' });
+    expect(fallbackClient.update.mock.calls[1][0]).not.toHaveProperty('last_login_at');
+    warnSpy.mockRestore();
+  });
 });
