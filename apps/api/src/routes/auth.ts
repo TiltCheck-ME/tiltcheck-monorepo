@@ -994,6 +994,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     }
 
     res.clearCookie('oauth_redirect');
+    // Defense-in-depth: re-validate immediately before the redirect so CodeQL
+    // can trace that no user-controlled value ever reaches res.redirect()
+    // without passing the allow-list check.
+    if (!isAllowedPostAuthRedirect(resolvedRedirect)) {
+      resolvedRedirect = 'https://tiltcheck.me/play/profile.html';
+    }
     res.redirect(resolvedRedirect);
   } catch (error) {
     console.error('[Auth] Discord callback error:', error);
