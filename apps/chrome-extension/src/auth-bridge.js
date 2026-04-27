@@ -45,6 +45,12 @@
       parsed.searchParams.set('ext_id', chrome.runtime.id);
     }
 
+    // Always override opener_origin with the current page origin.
+    // auth-bridge.html always runs inside the extension (chrome-extension://<id>),
+    // so window.location.origin is the correct postMessage target for the API callback.
+    // This recovers cases where the sidebar generated the URL before the runtime ID was available.
+    parsed.searchParams.set('opener_origin', window.location.origin);
+
     popupWindow = window.open(parsed.toString(), '_blank', 'popup=yes,width=520,height=760');
     if (!popupWindow) {
       setStatus('Popup blocked. Click "Open Discord Auth" and allow popups for this extension page.');
