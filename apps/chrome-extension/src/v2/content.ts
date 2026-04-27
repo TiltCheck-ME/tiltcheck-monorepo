@@ -1,4 +1,4 @@
-/* © 2026 TiltCheck Ecosystem. All Rights Reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
 
 /**
  * Reality Check v2 - Orchestrator
@@ -51,13 +51,14 @@ class RealityCheckOrchestrator {
     }
     
     // 4. Handle Auth Handoff
-    window.addEventListener('message', (event) => {
-      if (event.data.type === 'discord-auth') {
-        const { user } = event.data;
+    // Auth result is written to chrome.storage.local by auth-bridge.js.
+    // Listen for storage changes to detect when the user has connected Discord.
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local' || !changes.userData) return;
+      const user = changes.userData.newValue as { id?: string; username?: string } | undefined;
+      if (user?.id) {
         console.log('[TiltCheck] Identity established:', user.username);
         this.relay.setUserId(user.id);
-        // Refresh HUD if needed (e.g. show username)
-        alert(`Reality Check: Connected as ${user.username}`);
       }
     });
   }
@@ -83,18 +84,17 @@ class RealityCheckOrchestrator {
   }
 
   private initiateDiscordAuth() {
-    const width = 500;
-    const height = 750;
-    const left = (window.screen.width / 2) - (width / 2);
-    const top = (window.screen.height / 2) - (height / 2);
-    
-    const authUrl = `https://api.tiltcheck.me/auth/discord/login?source=extension&opener_origin=${encodeURIComponent(window.location.origin)}`;
-    
-    window.open(
-      authUrl, 
-      'TiltCheck - Discord Connect', 
-      `width=${width},height=${height},top=${top},left=${left}`
-    );
+    // Route through the background service worker so auth-bridge.html is the
+    // opener. auth-bridge.js sets opener_origin to its own chrome-extension://
+    // origin, which is the only origin the API trusts for postMessage delivery.
+    // Opening the popup directly from a content-script page would pass the
+    // casino-page origin, causing "Missing trusted extension origin" at callback.
+    const authUrl = `https://api.tiltcheck.me/auth/discord/login?source=extension`;
+    chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+      if (chrome.runtime.lastError || !response?.success) {
+        console.error('[TiltCheck] Could not open Discord auth bridge:', chrome.runtime.lastError?.message);
+      }
+    });
   }
 }
 
