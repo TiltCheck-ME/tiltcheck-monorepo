@@ -61,7 +61,7 @@ export default function LimitPage() {
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
 
         <header className="border-b border-[#283347] pb-6">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-2">[RESPONSIBLE GAMING]</p>
+          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-2">[PLAYER ACCOUNTABILITY]</p>
           <h1 className="text-4xl font-black uppercase tracking-tighter text-[#17c3b2]">
             Asset Risk Limits
           </h1>

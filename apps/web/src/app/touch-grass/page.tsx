@@ -16,7 +16,7 @@ export default function TouchGrassPage() {
             TOUCH GRASS PROTOCOL
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            You're here because TiltCheck locked you out, or you made the choice to lock yourself out. Either way, you're finally taking control. We're not judging. We're here to help.
+            You're here because TiltCheck hit The Brakes, or you pulled them yourself. Either way — you stopped. That's the whole point.
           </p>
         </div>
       </section>
@@ -149,7 +149,7 @@ export default function TouchGrassPage() {
               <div className="p-8 border border-[#17c3b2]/30 bg-[#17c3b2]/5 space-y-4">
                 <h2 className="text-2xl font-black uppercase text-[#17c3b2]">About TiltCheck</h2>
                 <p className="text-gray-400 leading-relaxed">
-                  This tool is harm reduction. It's not a replacement for treatment. If you're using TiltCheck and hitting limits frequently, that's your signal that you need actual professional help. Use this as a bridge, not a finish line.
+                  TiltCheck is The Brakes. It's not a replacement for treatment. If you're hitting limits frequently, that's the signal you need actual professional help. Use this as a bridge, not a finish line.
                 </p>
               </div>
 

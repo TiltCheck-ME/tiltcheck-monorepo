@@ -67,7 +67,7 @@ const Footer = () => {
             <h2 className="footer-title">See the math. Protect the bankroll.</h2>
             <p className="footer-copy">
               TiltCheck is a read-only browser extension and public trust layer for casino players. It watches live
-              sessions, checks fairness and RTP drift, and helps you leave with more signal than regret.
+              sessions, checks fairness and RTP drift, and forces you out with proof instead of regret.
             </p>
 
             <div className="footer-actions">

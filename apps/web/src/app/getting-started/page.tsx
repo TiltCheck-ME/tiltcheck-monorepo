@@ -219,7 +219,7 @@ export default function GettingStartedPage() {
           <div className="p-8 border border-[#ef4444]/20 bg-[#ef4444]/5 space-y-3 text-gray-300">
             <p><strong className="text-white">No Magic.</strong> This isn't a guaranteed win system. The math still favors the house long-term. We just give you better visibility and forced stop points.</p>
             <p><strong className="text-white">No Custody.</strong> We don't hold your money. You do. If you send it to the wrong wallet, it's gone. That's on you.</p>
-            <p><strong className="text-white">No Treatment.</strong> If you have a gambling disorder, this is harm reduction, not a cure. Talk to a professional.</p>
+            <p><strong className="text-white">No Cure.</strong> TiltCheck is The Brakes. Addiction needs a doctor — go get one.</p>
             <p><strong className="text-white">No Guarantees.</strong> Casinos can change. Odds shift. Markets move. We audit in real-time, but we're not fortune tellers.</p>
           </div>
         </div>

@@ -60,7 +60,7 @@ const faqs = [
   {
     question: "What if I'm already in crisis?",
     answer:
-      "TiltCheck is harm reduction, not treatment. If you've lost money you cannot afford to lose, contact the National Council on Problem Gambling at 1-800-GAMBLER or visit ncpg.org.",
+      "TiltCheck is The Brakes, not a therapist. If you've lost money you cannot afford to lose, contact the National Council on Problem Gambling at 1-800-GAMBLER or visit ncpg.org.",
   },
 ];
 
@@ -81,7 +81,7 @@ export default function HowItWorksPage() {
         description={
           <p>
             TiltCheck is a read-only browser extension and trust layer for casino players. It watches live sessions,
-            checks fairness and RTP drift, then helps you act before a bad run turns into a dumb decision.
+            checks fairness and RTP drift, then applies The Brakes before a bad run turns into a dumb decision.
           </p>
         }
         actions={

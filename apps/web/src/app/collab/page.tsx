@@ -127,8 +127,8 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
           {[
             { label: 'Partner / Integrate', body: 'API consumers, platforms, or tools that want real-time tilt or trust scores in their UX.' },
-            { label: 'Collab / Create', body: 'Creators, streamers, and communities building content around responsible degen culture.' },
-            { label: 'Press / Research', body: 'Media, academic, and regulatory projects working at the intersection of gambling data and harm reduction.' },
+            { label: 'Collab / Create', body: 'Creators, streamers, and communities building content for degens who actually read their receipts.' },
+            { label: 'Press / Research', body: 'Media, academic, and regulatory projects working at the intersection of gambling data and behavioral protection.' },
             { label: 'Bug / Technical', body: 'Something is broken or behaving wrong. Tell us what, where, and how to reproduce it.' },
           ].map(({ label, body }) => (
             <div key={label} className="p-5 border border-[#283347] bg-black/20">

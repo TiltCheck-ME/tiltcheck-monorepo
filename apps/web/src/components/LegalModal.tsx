@@ -48,7 +48,7 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onAccept, title = "LEGA
 
           <section>
             <h3 className="text-xs font-bold text-[#d946ef] mb-3 uppercase tracking-[0.2em] border-b border-[#283347] pb-1">
-              Responsible Gaming
+              Player Accountability
             </h3>
             <p className="text-sm text-gray-400 leading-relaxed font-medium">
               {LEGAL_DISCLAIMERS.RESPONSIBLE_GAMING}

@@ -31,7 +31,7 @@ const philosophyCards = [
   },
   {
     title: "We enforce accountability, not shame",
-    body: "When your line gets hit, the system should help you act. No fake concern theater. No passive warning wallpaper.",
+    body: "When your line gets hit, The Brakes engage. No fake concern theater. No passive warning wallpaper.",
   },
   {
     title: "We play the long game",

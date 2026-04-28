@@ -240,7 +240,7 @@ export default function ToolsIndexPage() {
             <p className="public-page-panel__eyebrow">Want more</p>
             <h2 className="public-page-cta-band__title">The extension runs these in the tab where The Loop lives.</h2>
             <p className="public-page-cta-band__copy">
-              The tool pages explain the surfaces. The extension is where the circuit breaker keeps up with the session — in real time, at click speed.
+              The tool pages explain the surfaces. The extension is where The Brakes keep up with the session — in real time, at click speed.
             </p>
             <div className="public-page-cta-band__actions">
               <Link href="/extension" className="btn btn-primary" data-text="OPEN EXTENSION PAGE">

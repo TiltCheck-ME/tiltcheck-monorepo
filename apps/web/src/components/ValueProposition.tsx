@@ -20,7 +20,7 @@ type BenefitItem = {
 };
 
 const sectionSignals = [
-  "Players get live Auto-Pilot detection and behavioral circuit breakers.",
+  "Players get live Auto-Pilot detection and The Brakes when they need them.",
   "Platforms get a public way to prove their numbers hold up.",
   "Same audit layer. Honest outcomes for both sides.",
 ];
@@ -77,8 +77,8 @@ const platformBenefits: BenefitItem[] = [
   },
   {
     icon: <Leaf className="vp-benefit-icon vp-benefit-icon--gold" />,
-    label: "Responsible gaming built in",
-    description: "Session guardrails and intervention flows help honest platforms show they take player risk seriously.",
+    label: "The Brakes, built in",
+    description: "Mandatory intervention flows and forced exits prove this platform doesn't hide when a player is spiraling.",
   },
 ];
 

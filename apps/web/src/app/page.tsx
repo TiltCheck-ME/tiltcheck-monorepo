@@ -61,7 +61,7 @@ const storyCards = [
   {
     step: "03",
     title: "Enforce the Exit",
-    description: "We are not a suggestion. We are a circuit breaker. Set your line. We make sure you actually walk away when it hits.",
+    description: "We are not a suggestion. We are The Brakes. Set your line. We make sure you actually walk away when it hits.",
   },
 ];
 
@@ -101,7 +101,7 @@ export default function Home() {
             <span className="brand-eyebrow">Built for Degens. By Degens. To save you from yourself.</span>
             <h1 className="landing-hero-title">The House has the Math. You have a Dopamine Problem. We have the Brakes.</h1>
             <p className="landing-hero-subtitle">
-              TiltCheck is a read-only browser extension and behavioral circuit breaker for casino players. It watches live
+              TiltCheck is a read-only browser extension and behavioral protection layer for casino players. It watches live
               sessions, detects when you've hit Auto-Pilot, and forces the exit before The Loop feeds your win back into the machine.
             </p>
 
@@ -194,7 +194,7 @@ export default function Home() {
             </div>
             <p className="landing-section-copy">
               If you are new here, start with this: TiltCheck is not a casino, not a wallet, and not a prediction engine.
-              It is a read-only circuit breaker for watching sessions, reading receipts, and making sure you actually use the exit when the session turns stupid.
+              It is The Brakes — watching sessions, reading receipts, and making sure you actually use the exit when the session turns stupid.
             </p>
           </div>
 

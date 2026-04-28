@@ -122,7 +122,7 @@ const GuardianManager: React.FC<GuardianManagerProps> = ({ discordId }) => {
                         <div className="text-xs text-gray-600 animate-pulse">Loading your crew...</div>
                     ) : guardians.length === 0 ? (
                         <div className="p-4 border border-[#283347] border-dashed text-xs text-gray-500 italic text-center leading-relaxed">
-                            Nobody linked yet. That&apos;s fine — most people fly solo. But it helps to have someone watching your back when the session gets messy.
+                            Nobody linked yet. Most people fly solo — until the session gets stupid. Add a guardian. Your brain won&apos;t stop you. Someone else will.
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-3">
