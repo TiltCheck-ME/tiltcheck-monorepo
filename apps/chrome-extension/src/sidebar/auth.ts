@@ -1,6 +1,6 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import { getDiscordLoginUrl } from '../config.js';
-import { API_BASE, API_ORIGIN, DISCORD_AUTH_MESSAGE_TYPE } from './constants.js';
+import { API_BASE } from './constants.js';
 import { SidebarUI } from './types.js';
 
 interface AuthSessionResponse {
@@ -36,7 +36,6 @@ interface ExtensionUserData {
 export class AuthManager {
   private ui: SidebarUI;
   private discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
-  private authBridgeAckReceived = false;
 
   public authToken: string | null = null;
   public userData: ExtensionUserData | null = null;
@@ -148,11 +147,14 @@ export class AuthManager {
       if (!normalizedUser) {
           throw new Error('Discord auth payload missing user id');
       }
+      // Clear polling immediately before any await to prevent double-invocation:
+      // the 500ms interval can fire again during persistAuthState / syncSafetyPreferences
+      // and find the same token in storage, triggering a second call.
+      this.clearDiscordAuthPolling();
+      this.isConnecting = false;
 
       await this.persistAuthState(token, normalizedUser);
       await this.syncSafetyPreferences(token);
-      this.clearDiscordAuthPolling();
-      this.isConnecting = false;
       this.demoMode = false;
       this.authToken = token;
       this.userData = { ...normalizedUser, isDemo: false };
@@ -162,21 +164,10 @@ export class AuthManager {
       this.ui.addFeedMessage(`Connected: ${this.userData.username || 'TiltCheck user'}`);
   }
 
-  public handleDiscordAuthMessage(event: MessageEvent) {
-      if (event.origin !== API_ORIGIN) return;
-      const data = event.data as { type?: string; token?: unknown; user?: unknown } | null;
-      if (!data || data.type !== DISCORD_AUTH_MESSAGE_TYPE) return;
-      if (typeof data.token !== 'string' || !data.token) return;
-      if (!data.user || typeof data.user !== 'object') return;
-      void this.applyDiscordAuthSuccess(data.token, data.user as Record<string, unknown>);
-  }
-
-  public handleAuthBridgeAck(event: MessageEvent) {
-      const data = event.data as { type?: string; success?: boolean } | null;
-      if (data?.type === 'auth-bridge-ack') {
-          this.authBridgeAckReceived = true;
-          console.log('[TiltCheck] auth-bridge-ack received');
-      }
+  public handleDiscordAuthMessage(_event: MessageEvent) {
+      // Not wired to window.addEventListener in the active sidebar (sidebar/index.ts).
+      // The OAuth flow completes via chrome.storage.local polling in startDiscordLoginFlow.
+      // Kept as a no-op stub to avoid breaking any future wiring.
   }
 
   public startDiscordLoginFlow() {
@@ -184,41 +175,17 @@ export class AuthManager {
       const maxPollMs = 5 * 60 * 1000;
       const startedAt = Date.now();
       this.clearDiscordAuthPolling();
-      this.authBridgeAckReceived = false;
       this.isConnecting = true;
       this.ui.syncAccountUi();
 
       const startStoragePolling = () => {
-          let pollAttempts = 0;
-          let lastReadWasUndefined = false;
-
           this.discordAuthPollIntervalId = setInterval(async () => {
               try {
                   const stored = await this.ui.getStorage(['authToken', 'userData']);
-                  
-                  // If we got the auth, we're done
+
                   if (stored?.authToken && stored?.userData) {
                       await this.applyDiscordAuthSuccess(stored.authToken, stored.userData);
                       return;
-                  }
-
-                  // Track if reads are returning undefined (indicates storage write hasn't completed yet)
-                  if (!stored?.authToken) {
-                      lastReadWasUndefined = true;
-                      pollAttempts++;
-                      console.log(`[TiltCheck] Storage read returned undefined (attempt ${pollAttempts})`);
-                      
-                      // After 3 failed reads without ACK, add extra delay before next attempt
-                      // This accounts for the race condition where auth-bridge is still writing
-                      if (pollAttempts >= 3 && !this.authBridgeAckReceived) {
-                          console.log('[TiltCheck] Polling returned undefined 3+ times without ACK. Adding backoff delay.');
-                      }
-                  }
-
-                  // If ACK was received, we know storage write completed, so increase check frequency
-                  if (this.authBridgeAckReceived && lastReadWasUndefined) {
-                      console.log('[TiltCheck] ACK received. Storage write should be complete.');
-                      lastReadWasUndefined = false;
                   }
 
                    if (Date.now() - startedAt > maxPollMs) {
@@ -228,7 +195,7 @@ export class AuthManager {
                    console.warn('[TiltCheck] Discord connect polling failed:', error);
                    this.stopConnecting('Discord connect interrupted. Reload the tab and try again.');
                }
-           }, 500); // Poll every 500ms (faster than 1000ms to catch writes sooner)
+           }, 500);
        };
 
        try {
