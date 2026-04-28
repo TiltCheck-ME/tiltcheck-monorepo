@@ -1,5 +1,5 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-15
-import { EXT_CONFIG } from './config.js';
+import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -368,7 +368,21 @@ async function init() {
 
   // Auth
   $('btn-login').addEventListener('click', () => {
-    chrome.tabs.create({ url: `${EXT_CONFIG.API_BASE_URL}/auth/discord/login?source=extension` });
+    // Route through auth-bridge so opener_origin is set to the extension origin.
+    // Directly opening the login URL from a popup context strips the opener and
+    // causes "Missing trusted extension origin" at the OAuth callback.
+    const authUrl = getDiscordLoginUrl('extension');
+    chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+      if (chrome.runtime.lastError || !response?.success) {
+        // Fall back to opening the sidebar on the active casino tab
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, { type: 'open_sidebar' }).catch(() => {});
+          }
+        });
+        toast('Open the sidebar on your casino tab to Connect Discord.', true);
+      }
+    });
   });
   $('btn-magic-login').addEventListener('click', async () => {
     const email = ($<HTMLInputElement>('magic-email')).value.trim();
