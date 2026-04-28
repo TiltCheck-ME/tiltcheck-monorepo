@@ -1,6 +1,6 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * This file is part of the TiltCheck project.
@@ -84,14 +84,32 @@ export class CircuitBreaker {
       }
     }
 
-    // --- 3. THE CHASE (Urgent Friction for loss chasing) ---
-    // Trigger if balance dropped 20% from peak and velocity is spiking
-    if (peakBalance > 0 && currentBalance < peakBalance * 0.8 && betVelocity > 1.5) {
+    // --- 3. DRAIN RATE: 50% of initial deposit lost in under 10 minutes ---
+    const sessionAgeMs = Date.now() - (activity.sessionStartTime ?? Date.now());
+    const sessionAgeMinutes = sessionAgeMs / 60_000;
+    const drainPct = initialDeposit > 0 ? (initialDeposit - (currentBalance ?? initialDeposit)) / initialDeposit : 0;
+
+    if (sessionAgeMinutes <= 10 && drainPct >= 0.5) {
+      await this.triggerIntervention(userId, {
+        riskScore: 90,
+        interventionLevel: 'CRITICAL',
+        action: 'COOLDOWN_LOCK',
+        displayText: `DRAIN RATE CRITICAL. You've lost ${(drainPct * 100).toFixed(0)}% of your starting deposit in under ${sessionAgeMinutes.toFixed(1)} minutes. That is not variance — that is a spiral. Mandatory cooldown: 30 minutes.`,
+        telemetrySnapshot: { balance: currentBalance, peak: peakBalance, velocity: betVelocity, sentiment: 'drain' as const }
+      });
+      return;
+    }
+
+    // --- 4. THE CHASE (Urgent Friction for loss chasing) ---
+    // Trigger if balance dropped 20% from peak AND velocity spiked 40% above rolling baseline.
+    // Velocity spike = behavioral change signal, not raw speed check.
+    const velocitySpiking = betVelocity > (activity.baselineBetVelocity ?? 1) * 1.4;
+    if (peakBalance > 0 && currentBalance < peakBalance * 0.8 && velocitySpiking) {
       await this.triggerIntervention(userId, {
         riskScore: 85,
         interventionLevel: 'WARNING',
         action: 'COOLDOWN_LOCK',
-        displayText: `CHASE ALERT. You've dropped 20% from your peak ($$${peakBalance.toFixed(2)}) and your bet velocity is spiking ($${betVelocity.toFixed(2)}/min). You're spiraling. I'm imposing a mandatory 15-minute cooldown. Go drink water. Walk away. This is how the rinse starts.`,
+        displayText: `CHASE ALERT. You've dropped 20% from your peak ($${peakBalance.toFixed(2)}) and your bet velocity is spiking ($${betVelocity.toFixed(2)}/min — ${((betVelocity / (activity.baselineBetVelocity ?? 1) - 1) * 100).toFixed(0)}% above your baseline). You're spiraling. I'm imposing a mandatory 15-minute cooldown. Go drink water. Walk away. This is how the rinse starts.`,
         telemetrySnapshot: {
           balance: currentBalance,
           peak: peakBalance,
@@ -102,7 +120,7 @@ export class CircuitBreaker {
       return;
     }
 
-    // --- 4. THE CRISIS (Protective intervention for mental breakage) ---
+    // --- 5. THE CRISIS (Protective intervention for mental breakage) ---
     // Trigger based on sentiment analysis of messages
     for (const msg of messages.slice(-5)) { // Check last 5 messages for rapid sentiment detection
       const analysis = analyzeSentiment(msg.content);

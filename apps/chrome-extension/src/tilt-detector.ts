@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 /**
  * TiltCheck - Real-time tilt detection and intervention system
  * 
@@ -89,9 +89,10 @@ export class TiltDetector {
     betIncreaseMultiplier: 2.5, // 2.5x increase after loss
     chasingPattern: 3, // consecutive increasing bets after losses
 
-    // Fast clicks
+    // Fast clicks — "Auto-Pilot Trance" detection.
+    // Triggers when bet events arrive faster than 300ms apart (sub-human pacing = autopilot state).
     clickThreshold: 5, // clicks in window
-    clickWindow: 3000, // ms
+    clickWindow: 300, // ms — reduced from 3000ms to detect Auto-Pilot Trance pattern
 
     // Session duration
     warningDuration: 60 * 60 * 1000, // 1 hour
@@ -290,7 +291,8 @@ export class TiltDetector {
   }
 
   /**
-   * Detect fast/erratic clicking
+   * Detect fast/erratic clicking (Auto-Pilot Trance detection).
+   * At 300ms window, this fires when bet events arrive faster than humanly intentional.
    */
   detectFastClicks(): TiltIndicator | null {
     if (this.clicks.length < this.config.clickThreshold) return null;
@@ -302,14 +304,22 @@ export class TiltDetector {
     if (recentClicks.length >= this.config.clickThreshold) {
       const severity = recentClicks.length > 10 ? 'high' : 'medium';
 
+      // Calculate the delta between the two most recent click timestamps.
+      // Included in the tilt signal metadata so downstream events carry it.
+      const sortedRecent = [...recentClicks].sort((a, b) => b - a);
+      const lastClickDeltaMs = sortedRecent.length >= 2
+        ? sortedRecent[0] - sortedRecent[1]
+        : 0;
+
       return {
         type: 'fast_clicks',
         severity,
         confidence: Math.min(1, recentClicks.length / 10),
-        description: `${recentClicks.length} clicks in ${this.config.clickWindow / 1000} seconds`,
+        description: `${recentClicks.length} clicks in ${this.config.clickWindow}ms — Auto-Pilot Trance detected`,
         evidence: {
           clickCount: recentClicks.length,
-          window: this.config.clickWindow
+          window: this.config.clickWindow,
+          last_click_delta_ms: lastClickDeltaMs
         },
         triggeredAt: Date.now()
       };
@@ -385,6 +395,55 @@ export class TiltDetector {
   }
 
   /**
+   * Detect Martingale Desperation pattern.
+   *
+   * Pattern: loss -> bet * 1.7x-2.5x -> loss -> bet * 1.7x-2.5x -> ... (3+ consecutive steps).
+   * Uses 1.7x floor — real-world players rarely double exactly.
+   */
+  detectMartingale(): TiltIndicator | null {
+    if (this.bets.length < 4) return null;
+
+    const window = this.bets.slice(-6);
+    let consecutiveSteps = 0;
+
+    for (let i = 1; i < window.length; i++) {
+      const prev = window[i - 1];
+      const curr = window[i];
+
+      const prevWasLoss = prev.result === 'loss';
+      const multiplier = prev.amount > 0 ? curr.amount / prev.amount : 0;
+      const isMartingaleStep = prevWasLoss && multiplier >= 1.7 && multiplier <= 2.5;
+
+      if (isMartingaleStep) {
+        consecutiveSteps++;
+      } else {
+        consecutiveSteps = 0;
+      }
+
+      if (consecutiveSteps >= 3) {
+        const increase = curr.amount / window[i - consecutiveSteps].amount;
+        const severity = increase > 8 ? 'critical' : increase > 4 ? 'high' : 'medium';
+
+        return {
+          type: 'emotional_pattern',
+          severity,
+          confidence: Math.min(1, consecutiveSteps / 4),
+          description: `Martingale pattern: ${consecutiveSteps} consecutive loss-double cycles detected`,
+          evidence: {
+            consecutiveSteps,
+            startAmount: window[i - consecutiveSteps].amount,
+            currentAmount: curr.amount,
+            multiplierRange: '1.7x-2.5x',
+          },
+          triggeredAt: Date.now()
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Detect all tilt indicators
    */
   detectAllTiltSigns(): TiltIndicator[] {
@@ -404,6 +463,9 @@ export class TiltDetector {
 
     const duration = this.detectDurationWarning();
     if (duration) indicators.push(duration);
+
+    const martingale = this.detectMartingale();
+    if (martingale) indicators.push(martingale);
 
     return indicators;
   }

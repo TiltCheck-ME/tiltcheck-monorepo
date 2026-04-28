@@ -37,3 +37,32 @@ jobs:
 
       - name: Run tests on changed packages
         run: pnpm --filter="...[origin/main]" test
+
+  e2e:
+    runs-on: ubuntu-latest
+    name: E2E Tests (Playwright)
+    needs: validate-changed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run e2e tests
+        run: pnpm test:e2e
+        env:
+          BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://tiltcheck.me' }}

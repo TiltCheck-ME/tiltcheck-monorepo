@@ -1967,6 +1967,110 @@ app.post('/api/user/:discordId/wallet-unlock-request', authenticateToken, async 
 // === Premium page + crypto payment claim ===
 app.get('/premium', (_req, res) => res.sendFile(join(__dirname, '../public/premium.html')));
 
+// === Safety Resume ===
+// Standalone Proof of Responsible Play ledger — shareable, card-based view
+
+app.get('/safety-resume', async (req: DashboardRequest, res) => {
+  try {
+    const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
+    if (!result.valid || !result.session?.discordId) {
+      res.redirect(`/auth/discord?redirect=${encodeURIComponent('/safety-resume')}`);
+      return;
+    }
+  } catch (error) {
+    console.warn('[Safety Resume] Session verification failed:', error);
+    res.redirect(`/auth/discord?redirect=${encodeURIComponent('/safety-resume')}`);
+    return;
+  }
+
+  res.sendFile(join(__dirname, '../public/safety-resume.html'));
+});
+
+app.get('/api/user/:discordId/safety-resume', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const user = db.isConnected() ? await findUserByDiscordId(discordId).catch(() => null) : null;
+
+    // Total sessions from DB
+    const sessions = user && db.isConnected()
+      ? await db.getUserSessions(user.id, 500).catch(() => [])
+      : [];
+    const totalSessions = sessions.length;
+
+    // Tilt status / intervention counts from canonical API
+    const statusResponse = await requestCanonicalApi(
+      req,
+      `/user/${encodeURIComponent(discordId)}/status`,
+    ).catch(() => null);
+    const statusData = statusResponse && statusResponse.status < 400
+      ? (statusResponse.body as Record<string, unknown>)
+      : null;
+
+    const rawInterventions = statusData?.interventions as Record<string, number> | undefined;
+    const interventions = {
+      vibeCheck:     Number(rawInterventions?.vibeCheck     ?? rawInterventions?.vibe_check     ?? 0),
+      realityBridge: Number(rawInterventions?.realityBridge ?? rawInterventions?.reality_bridge ?? 0),
+      killSwitch:    Number(rawInterventions?.killSwitch    ?? rawInterventions?.kill_switch     ?? 0),
+    };
+    const totalInterventions = interventions.vibeCheck + interventions.realityBridge + interventions.killSwitch;
+
+    const cooldownsTaken   = Number(statusData?.cooldownsTaken   ?? statusData?.cooldowns_taken   ?? 0);
+    const cooldownsIgnored = Number(statusData?.cooldownsIgnored ?? statusData?.cooldowns_ignored ?? 0);
+
+    // Tilt score trend (30 days) — simple array of { date, score } from canonical API
+    const trendResponse = await requestCanonicalApi(
+      req,
+      `/user/${encodeURIComponent(discordId)}/tilt-trend?days=30`,
+    ).catch(() => null);
+    const tiltTrend: Array<{ date: string; score: number }> =
+      trendResponse && trendResponse.status < 400
+        ? ((trendResponse.body as Record<string, unknown>)?.trend as Array<{ date: string; score: number }> ?? [])
+        : [];
+
+    // LockVault activity
+    const vaultResponse = await requestCanonicalApi(
+      req,
+      `/vault/${encodeURIComponent(discordId)}`,
+    ).catch(() => null);
+    const vaultData = vaultResponse && vaultResponse.status < 400
+      ? summarizeVaultPayload(vaultResponse.body)
+      : null;
+    const vaultUsedCount  = vaultData ? vaultData.history.length : 0;
+    const vaultTotalSOL   = vaultData
+      ? vaultData.history.reduce(
+          (sum: number, v: Record<string, unknown>) =>
+            sum + normalizeFiniteNumber(v?.lockedRemainderSOL ?? v?.lockedAmountSOL ?? v?.amount_sol),
+          0,
+        )
+      : 0;
+
+    // Shareable text summary
+    const breakWord = cooldownsTaken === 1 ? 'break' : 'breaks';
+    const sessionWord = totalSessions === 1 ? 'session' : 'sessions';
+    const summaryText =
+      `This player has taken ${cooldownsTaken} cooling ${breakWord} across ${totalSessions} ${sessionWord}. TiltCheck verified.`;
+
+    res.json({
+      totalSessions,
+      interventions,
+      totalInterventions,
+      cooldownsTaken,
+      cooldownsIgnored,
+      lockVault: {
+        usedCount:      vaultUsedCount,
+        totalSOLLocked: parseFloat(vaultTotalSOL.toFixed(4)),
+      },
+      tiltTrend,
+      summaryText,
+    });
+  } catch (err) {
+    console.error('[Safety Resume]', err);
+    res.status(500).json({ error: 'Failed to load safety resume' });
+  }
+});
+
 app.post('/api/payments/claim-crypto', paymentClaimLimiter, async (req, res) => {
   const parseResult = paymentClaimSchema.safeParse(req.body);
   if (!parseResult.success) {

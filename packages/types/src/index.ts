@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -917,9 +917,37 @@ export interface SafetyInterventionTriggeredEventData {
     balance: number;
     peak: number;
     velocity: number; // bets/min or similar
-    sentiment: 'neutral' | 'positive_tilt' | 'chase' | 'crisis';
+    sentiment: 'neutral' | 'positive_tilt' | 'chase' | 'crisis' | 'drain';
   };
+  /** Which intervention type was responsible for this event */
+  intervention_type?: TiltInterventionType;
   metadata?: Record<string, any>;
+}
+
+/**
+ * Union of all named intervention types.
+ * Maps to nudge categories, UI overlays, and telemetry signals.
+ */
+export type TiltInterventionType =
+  | 'VIBE_CHECK'
+  | 'REALITY_BRIDGE'
+  | 'KILL_SWITCH'
+  | 'SHIT_TALK'
+  | 'DRAIN_RATE'
+  | 'MARTINGALE';
+
+/**
+ * Auto-Pilot Trance event — emitted when a user enters a click-storm / autopilot state.
+ * Triggered when bet events arrive faster than 300ms apart across a rolling window.
+ */
+export interface TranceEvent {
+  userId: string;
+  session_start: string; // ISO 8601 timestamp
+  clicks_per_minute: number;
+  last_click_delta_ms: number;
+  tilt_score: number;
+  intervention_type: TiltInterventionType;
+  payload: string;
 }
 
 export interface VaultExpiredEventData {

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24
 import Link from "next/link";
 
 import RtpDriftTicker from "@/components/RtpDriftTicker";
@@ -8,19 +8,19 @@ import { features } from "@/config/features";
 
 const heroSignals = [
   {
-    label: "Session watch",
+    label: "Auto-Pilot detection",
     value: "Live in-tab",
-    description: "TiltCheck reads supported casino tabs in real time so the session stops hiding behind vibes.",
+    description: "TiltCheck tracks your click speed and betting loops in real time. If you're playing like a bot, we wake you up.",
   },
   {
     label: "Guardrails armed",
-    value: "Targets set",
-    description: "Set profit, loss, and cooldown lines so a good session has a clean way to end.",
+    value: "Kryptonite mode",
+    description: "Block specific games that are your weak spot. Not all-or-nothing. Surgical. Chicken? Blocked. Slots? Your call.",
   },
   {
     label: "Fairness receipts",
     value: "Proof ready",
-    description: "Verify seed inputs and keep evidence ready when a casino claim needs receipts.",
+    description: "Translate casino 'hidden tier' math into plain English. If the RTP is drifting, you see the cost.",
   },
 ];
 
@@ -28,40 +28,40 @@ const trustStats = [
   {
     value: "Read-only",
     label: "extension model",
-    description: "TiltCheck watches the session, explains the risk, and does not ask for private keys to do the job.",
+    description: "TiltCheck watches the session from the outside. No private keys. No custody. Just the facts your brain skips when you're in The Loop.",
   },
   {
     value: "3",
     label: "core jobs",
-    description: "Watch the math, flag the risk, and enforce the exit before tilt makes the next move.",
+    description: "Kill the Auto-Pilot. Read the Receipts. Enforce the Exit. That's the product. Nothing else.",
   },
   {
-    value: "Player-owned",
-    label: "wallet control",
-    description: "TiltCheck focuses on evidence and guardrails. Players stay in control of the wallet side.",
+    value: "Surgical",
+    label: "self-exclusion",
+    description: "Block the exact game that's your kryptonite — Chicken, Crash, Pump — without losing access to everything else.",
   },
   {
     value: "Live + public",
     label: "proof surface",
-    description: "Players get session defense. Platforms can earn public trust by proving what they claim.",
+    description: "Players get session defense and a Safety Resume. Platforms earn trust by proving what they claim.",
   },
 ];
 
 const storyCards = [
   {
     step: "01",
-    title: "Watch the session",
-    description: "The extension reads supported casino tabs in real time so bets, RTP drift, and tilt signals stop living in guesswork.",
+    title: "Kill the Auto-Pilot",
+    description: "We track your click-speed and betting loops in real time. If you're playing like a bot — same bet, same speed, same blank stare — we wake you up.",
   },
   {
     step: "02",
-    title: "Explain the risk",
-    description: "TiltCheck translates raw session data into plain-English fairness checks, trust signals, and evidence you can use.",
+    title: "Read the Receipts",
+    description: "We translate the casino's hidden RTP tiers into plain English. If the math is working against you more than advertised, we show you the gap and the cost.",
   },
   {
     step: "03",
-    title: "Protect the bankroll",
-    description: "You set the line. TiltCheck helps enforce the cash-out, cooldown, or stop-loss move when the session turns stupid.",
+    title: "Enforce the Exit",
+    description: "We are not a suggestion. We are a circuit breaker. Set your line. We make sure you actually walk away when it hits.",
   },
 ];
 
@@ -70,14 +70,14 @@ const bridgeCards = [
     href: "/extension",
     eyebrow: "Install path",
     title: "Ready to run it live? Start with the extension install flow.",
-    description: "Get the honest beta path: download the bundle, load it cleanly, and open a supported session.",
+    description: "Install the extension. Load a supported session. Find out what you've been missing while playing in Auto-Pilot mode.",
     cta: "Open install steps",
   },
   {
     href: "/casinos",
     eyebrow: "Casino intel",
-    title: "Compare casinos by trust signals instead of marketing copy.",
-    description: "Check public trust scores, transparency posture, and payout risk before you decide where money goes.",
+    title: "Know which casinos are running the weaker RTP tier before you deposit.",
+    description: "Check public trust scores, RTP transparency posture, and payout risk. Sharp players don't guess — they read the receipts first.",
     cta: "Review trust scores",
   },
 ];
@@ -98,11 +98,11 @@ export default function Home() {
       <section className="hero-surface">
         <div className="landing-shell landing-shell--hero">
           <div className="hero-copy">
-            <span className="brand-eyebrow">Read-only casino audit and bankroll defense</span>
-            <h1 className="landing-hero-title">Catch bad math. Protect your bankroll.</h1>
+            <span className="brand-eyebrow">Built for Degens. By Degens. To save you from yourself.</span>
+            <h1 className="landing-hero-title">The House has the Math. You have a Dopamine Problem. We have the Brakes.</h1>
             <p className="landing-hero-subtitle">
-              TiltCheck is a read-only browser extension and public trust layer for casino players. It watches live
-              sessions, flags fairness drift, and helps you cash out before tilt feeds the win back into the machine.
+              TiltCheck is a read-only browser extension and behavioral circuit breaker for casino players. It watches live
+              sessions, detects when you've hit Auto-Pilot, and forces the exit before The Loop feeds your win back into the machine.
             </p>
 
             <div className="hero-actions">
@@ -190,11 +190,11 @@ export default function Home() {
           <div className="landing-section-heading landing-section-heading--split">
             <div>
               <span className="brand-eyebrow">What TiltCheck actually does</span>
-              <h2 className="landing-section-title">Three jobs. One product. No mystery theater.</h2>
+              <h2 className="landing-section-title">Three jobs. Zero corporate fluff.</h2>
             </div>
             <p className="landing-section-copy">
               If you are new here, start with this: TiltCheck is not a casino, not a wallet, and not a prediction engine.
-              It is a read-only system for watching sessions, explaining risk, and helping players keep their money.
+              It is a read-only circuit breaker for watching sessions, reading receipts, and making sure you actually use the exit when the session turns stupid.
             </p>
           </div>
 
@@ -214,12 +214,11 @@ export default function Home() {
         <div className="landing-shell">
           <div className="landing-section-heading landing-section-heading--split">
             <div>
-              <span className="brand-eyebrow">Trust, without the blind spot</span>
-              <h2 className="landing-section-title">Built to stay useful when money is on the line.</h2>
+              <span className="brand-eyebrow">The house always wins?</span>
+              <h2 className="landing-section-title">They just wait for you to hit Auto-Pilot. We break the Loop.</h2>
             </div>
             <p className="landing-section-copy">
-              No fake badges. No fake urgency. Just the facts that matter when fairness, bankroll protection, and trust
-              quality decide whether a session deserves another dollar.
+              No fake badges. No fake urgency. Just the facts that matter when fairness, bankroll protection, and the actual math decide whether the session deserves another dollar.
             </p>
           </div>
 

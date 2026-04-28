@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Edge Equalizer Nudge Generator
@@ -12,6 +12,7 @@ export interface NudgeMessage {
   severity: 'gentle' | 'moderate' | 'firm' | 'CRITICAL';
   category: string;
   symbol: string;
+  intervention_type: 'VIBE_CHECK' | 'REALITY_BRIDGE' | 'KILL_SWITCH' | 'SHIT_TALK';
 }
 
 // THE RELUCTANT BABYSITTER: TOUGH LOVE AUDIT STRINGS
@@ -19,28 +20,37 @@ export interface NudgeMessage {
 // Gentle = chatty. Moderate = raised eyebrow. Firm = pointed. CRITICAL = no jokes, just truth.
 const NUDGE_MESSAGES: Record<string, NudgeMessage[]> = {
   'rapid-messages': [
-    { text: "You're clicking fast. Like, really fast. The house loves this energy. Maybe slow down?", severity: 'gentle', category: 'pacing', symbol: '[AUDIT]' },
-    { text: "Bold of you to keep that pace up. Anyway, your bet velocity is peaking. The math noticed.", severity: 'moderate', category: 'pacing', symbol: '[SPEED]' },
-    { text: "10 bets in 2 minutes. How's that going for you statistically? Yeah. Thought so. Stop.", severity: 'firm', category: 'pacing', symbol: '[RINSE]' },
+    { text: "Slow down, Turbo. Those buttons aren't going anywhere, but your balance is.", severity: 'gentle', category: 'pacing', symbol: '[AUDIT]', intervention_type: 'SHIT_TALK' },
+    { text: "Bold of you to keep that pace up. Anyway, your bet velocity is peaking. The math noticed.", severity: 'moderate', category: 'pacing', symbol: '[SPEED]', intervention_type: 'SHIT_TALK' },
+    { text: "10 bets in 2 minutes. How's that going for you statistically? Yeah. Thought so. Stop.", severity: 'firm', category: 'pacing', symbol: '[RINSE]', intervention_type: 'REALITY_BRIDGE' },
   ],
   'loss-streak': [
-    { text: "3 losses in a row. The RNG doesn't care about your feelings. Take a breather — we'll be here.", severity: 'moderate', category: 'loss', symbol: '[AUDIT]' },
-    { text: "The house has officially entered its winning streak era. Revenge betting is their favorite thing. Don't give them the satisfaction.", severity: 'firm', category: 'loss', symbol: '[ALERT]' },
-    { text: "You cannot outrun the math. We say this with love. Walk away with what you've got left.", severity: 'CRITICAL', category: 'loss', symbol: '[CRITICAL]' },
+    { text: "3 losses in a row. The RNG doesn't care about your feelings. Take a breather — we'll be here.", severity: 'moderate', category: 'loss', symbol: '[AUDIT]', intervention_type: 'VIBE_CHECK' },
+    { text: "The house has officially entered its winning streak era. Revenge betting is their favorite thing. Don't give them the satisfaction.", severity: 'firm', category: 'loss', symbol: '[ALERT]', intervention_type: 'REALITY_BRIDGE' },
+    { text: "You cannot outrun the math. We say this with love. Walk away with what you've got left.", severity: 'CRITICAL', category: 'loss', symbol: '[CRITICAL]', intervention_type: 'KILL_SWITCH' },
   ],
   'large-bet': [
-    { text: "That's a big bet. Like, a real chunk of your bag. Just making sure that was on purpose.", severity: 'moderate', category: 'bankroll', symbol: '[RISK]' },
-    { text: "You're betting like you've already won. You haven't. Audit your logic before the next one.", severity: 'firm', category: 'bankroll', symbol: '[CASH]' },
+    { text: "That's a big bet. Like, a real chunk of your bag. Just making sure that was on purpose.", severity: 'moderate', category: 'bankroll', symbol: '[RISK]', intervention_type: 'VIBE_CHECK' },
+    { text: "You're betting like you've already won. You haven't. Audit your logic before the next one.", severity: 'firm', category: 'bankroll', symbol: '[CASH]', intervention_type: 'REALITY_BRIDGE' },
   ],
   'playtime-exhaustion': [
-    { text: "Three hours in. Your brain is cooked whether you feel it or not. Go eat something. We'll still be here.", severity: 'moderate', category: 'time', symbol: '[TIME]' },
-    { text: "The longer you play, the better the odds look to you and the worse they actually get. That's not a coincidence. Go outside.", severity: 'firm', category: 'time', symbol: '[NATURE]' },
-  ]
+    { text: "Three hours in. Your brain is cooked whether you feel it or not. Go eat something. We'll still be here.", severity: 'moderate', category: 'time', symbol: '[TIME]', intervention_type: 'VIBE_CHECK' },
+    { text: "The longer you play, the better the odds look to you and the worse they actually get. That's not a coincidence. Go outside.", severity: 'firm', category: 'time', symbol: '[NATURE]', intervention_type: 'REALITY_BRIDGE' },
+  ],
+  'martingale': [
+    { text: "Oh, doubling down again? Bold strategy. Let's see if it pays off. (Narrator: It won't.)", severity: 'moderate', category: 'bankroll', symbol: '[MATH]', intervention_type: 'SHIT_TALK' },
+    { text: "Three consecutive double-ups. That's not a strategy, that's a prayer. The math has no sympathy.", severity: 'firm', category: 'bankroll', symbol: '[MATH]', intervention_type: 'REALITY_BRIDGE' },
+    { text: "Martingale detected. The theoretical infinite loss is approaching the practical one. Stop.", severity: 'CRITICAL', category: 'bankroll', symbol: '[CRITICAL]', intervention_type: 'KILL_SWITCH' },
+  ],
+  'drain-rate': [
+    { text: "Half your deposit in under 10 minutes. The math is currently beating you like a drum. Take 5 before you're eating ramen all week.", severity: 'firm', category: 'drain', symbol: '[DRAIN]', intervention_type: 'SHIT_TALK' },
+    { text: "50% gone in 10 minutes is a velocity problem, not a luck problem. Mandatory stop.", severity: 'CRITICAL', category: 'drain', symbol: '[CRITICAL]', intervention_type: 'KILL_SWITCH' },
+  ],
 };
 
 const GENERIC_NUDGES: NudgeMessage[] = [
-  { text: "Two hours in. How you feeling? The math says... moderate chaos.", severity: 'gentle', category: 'general', symbol: '[HELLO]' },
-  { text: "Still here? The house noticed. They sent a thank-you card. Maybe cash out while you're ahead.", severity: 'moderate', category: 'general', symbol: '[PROFIT]' },
+  { text: "Two hours in. How you feeling? The math says... moderate chaos.", severity: 'gentle', category: 'general', symbol: '[HELLO]', intervention_type: 'VIBE_CHECK' },
+  { text: "Still here? The house noticed. They sent a thank-you card. Maybe cash out while you're ahead.", severity: 'moderate', category: 'general', symbol: '[PROFIT]', intervention_type: 'VIBE_CHECK' },
 ];
 
 /**
@@ -74,8 +84,8 @@ export function getNudgeMessage(signals: TiltSignal[]): NudgeMessage {
  * Format a nudge for Discord (Markdown)
  */
 export function formatNudge(nudge: NudgeMessage): string {
-  // Add bolding and intensity symbols
-  const prefix = nudge.severity === 'CRITICAL' ? '🚀 [!!!] ' : '📊 ';
+  // Add bolding and intensity indicators — no emojis per brand law
+  const prefix = nudge.severity === 'CRITICAL' ? '[!!!] ' : '[>>] ';
   return `${prefix}**${nudge.symbol} ${nudge.text}**`;
 }
 
@@ -83,7 +93,7 @@ export function formatNudge(nudge: NudgeMessage): string {
  * Get the Vibe Check message (Flashbang)
  */
 export function getVibeCheckAlert(userId: string): string {
-  return `🚀 **[VIBE CHECK] SNAP OUT OF IT <@${userId}>** 🚀\n\n**The Audit is Crimson. Your current betting velocity is giving major rinse vibes.** Your Tether has been notified. We are moving you to voice to Audit your head.`;
+  return `**[VIBE CHECK] SNAP OUT OF IT <@${userId}>**\n\n**The Audit is Crimson. Your current betting velocity is giving major rinse vibes.** Your Tether has been notified. We are moving you to voice to Audit your head.`;
 }
 
 /**
@@ -91,9 +101,9 @@ export function getVibeCheckAlert(userId: string): string {
  */
 export function getEscalatedNudges(userId: string): string[] {
   return [
-    `📊 [AUDIT] <@${userId}>, slow down. Momentum is a house advantage.`,
-    `⚠️ [SPEED] Betting velocity is peaking. This is where you donate the bag.`,
-    `🛑 [RINSE] STOP. Your probability of recovery is near zero. End the session.`
+    `[AUDIT] <@${userId}>, slow down. Momentum is a house advantage.`,
+    `[SPEED] Betting velocity is peaking. This is where you donate the bag.`,
+    `[RINSE] STOP. Your probability of recovery is near zero. End the session.`
   ];
 }
 
@@ -101,14 +111,14 @@ export function getEscalatedNudges(userId: string): string[] {
  * Get a message specifically for when a user enters cooldown
  */
 export function getCooldownMessage(): string {
-  return `🔒 **Session locked for 15 minutes.** Not a punishment — the system is doing its job. You crossed your own line. Check your balance, breathe, and come back when you're ready.`;
+  return `**[LOCKED] Session locked for 15 minutes.** Not a punishment — the system is doing its job. You crossed your own line. Check your balance, breathe, and come back when you're ready.`;
 }
 
 /**
  * Get a violation message for when a user ignores earlier nudges
  */
 export function getViolationMessage(): string {
-  return `🚨 **We've been telling you.** This is the third time we've flagged this session. We're looping in your accountability partner now. Seriously — walk away.`;
+  return `**[ESCALATED] We've been telling you.** This is the third time we've flagged this session. We're looping in your accountability partner now. Seriously — walk away.`;
 }
 
 // ============================================================

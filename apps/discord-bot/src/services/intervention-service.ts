@@ -1,9 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-15
 import { Client, TextChannel } from 'discord.js';
 import { getVibeCheckAlert } from '@tiltcheck/tiltcheck-core';
 import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { config } from '../config.js';
 import { getUserPreferences } from '../handlers/onboarding.js';
+import { applyTiltedCooldown } from '../handlers/tilted-role-handler.js';
 
 const DEFAULT_DISCORD_INVITE_URL = 'https://discord.gg/gdBsEJfCar';
 
@@ -69,6 +70,24 @@ export async function handleSafetyIntervention(
         content: `${alertMessage}\n${supportOnlyGuidance}`,
       }).catch(() => null);
       result.accountabilityAlertSent = sentMessage !== null;
+    }
+  }
+
+  // Apply Tilted role + Donation Station nickname on critical PHONE_FRIEND intervention
+  // Score threshold: >= 80 on 0-100 scale (== >= 8 on 0-10 scale)
+  if (intervention.action === 'PHONE_FRIEND' && guildId) {
+    const tiltScore = typeof (metadata as Record<string, unknown> | undefined)?.tiltScore === 'number'
+      ? (metadata as Record<string, unknown>).tiltScore as number
+      : 100; // Default to critical when score is unknown — PHONE_FRIEND is always critical
+    if (tiltScore >= 80) {
+      const displayName = user?.username ?? intervention.userId;
+      await applyTiltedCooldown(
+        client,
+        guildId,
+        intervention.userId,
+        displayName,
+        accountabilityChannelId || null,
+      ).catch(err => console.error('[Intervention] Tilted role apply failed:', err));
     }
   }
 

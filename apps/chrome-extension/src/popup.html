@@ -161,10 +161,35 @@
       margin-bottom: 10px;
     }
     .tilt-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
-    .tilt-score { font-family: var(--mono); font-size: 22px; font-weight: 700; }
-    .score-low  { color: var(--teal); }
-    .score-mid  { color: var(--yellow); }
-    .score-high { color: var(--red); }
+
+    /* --- TILT GAUGE --- */
+    .tilt-gauge {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 5px;
+      transition: color 0.3s, background 0.3s, border-color 0.3s;
+      border: 1px solid transparent;
+    }
+    .tilt-ice    { color: #60a5fa; background: rgba(96,165,250,0.10); border-color: rgba(96,165,250,0.25); }
+    .tilt-warm   { color: #34d399; background: rgba(52,211,153,0.10); border-color: rgba(52,211,153,0.25); }
+    .tilt-hot    { color: #fbbf24; background: rgba(251,191,36,0.10); border-color: rgba(251,191,36,0.25); }
+    .tilt-danger { color: #f97316; background: rgba(249,115,22,0.10); border-color: rgba(249,115,22,0.30); }
+    .tilt-atomic { color: #ef4444; background: rgba(239,68,68,0.12);  border-color: rgba(239,68,68,0.40); animation: glitch 0.38s steps(2) infinite; }
+
+    @keyframes glitch {
+      0%   { transform: translate(0,0) skewX(0deg); opacity: 1; }
+      18%  { transform: translate(-2px,1px) skewX(-3deg); opacity: 0.85; }
+      36%  { transform: translate(2px,-1px) skewX(3deg); opacity: 1; }
+      54%  { transform: translate(-1px,0) skewX(0deg); opacity: 0.9; }
+      72%  { transform: translate(1px,1px) skewX(-1deg); opacity: 1; }
+      90%  { transform: translate(0,-1px) skewX(1deg); opacity: 0.88; }
+      100% { transform: translate(0,0) skewX(0deg); opacity: 1; }
+    }
+
     .meter-track {
       height: 5px;
       background: var(--surface-hi);
@@ -174,7 +199,7 @@
     .meter-fill {
       height: 100%;
       border-radius: 3px;
-      transition: width 0.4s ease;
+      transition: width 0.4s ease, background 0.4s ease;
     }
 
     /* --- STAT ROW --- */
@@ -576,11 +601,11 @@
   <div id="status-content">
     <div class="tilt-block">
       <div class="tilt-row">
-        <span class="tilt-label">Tilt Score</span>
-        <span id="tilt-score" class="tilt-score score-low">--</span>
+        <span class="tilt-label">Tilt Meter</span>
+        <div id="tilt-gauge" class="tilt-gauge tilt-ice">ICE COLD (0/10)</div>
       </div>
       <div class="meter-track">
-        <div id="tilt-fill" class="meter-fill" style="width:0%; background: var(--teal);"></div>
+        <div id="tilt-fill" class="meter-fill" style="width:0%; background: #60a5fa;"></div>
       </div>
     </div>
 

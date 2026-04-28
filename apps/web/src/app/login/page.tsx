@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -30,6 +30,12 @@ export default function LoginPage() {
 
     const params = new URLSearchParams(window.location.search);
     setRedirectTarget(isSafeRedirect(params.get('redirect')));
+
+    // Surface Discord OAuth callback errors to the user.
+    const oauthError = params.get('error');
+    if (oauthError) {
+      setError('Discord login failed. Try again or use email login.');
+    }
   }, []);
 
   const canonicalRedirectUrl = useMemo(() => getDashboardHandoffUrl(redirectTarget), [redirectTarget]);
@@ -81,6 +87,9 @@ export default function LoginPage() {
             >
               Login with Discord
             </a>
+            {error && error.includes('Discord') && (
+              <p className="mt-3 text-xs font-mono text-red-400">{error}</p>
+            )}
             <p className="mt-3 text-[11px] font-mono text-gray-500">
               If you have not linked Discord yet, this is the button you wanted to find in the first place.
             </p>

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -34,7 +34,7 @@ const isExcludedDomain =
   (isDomain(hostname, 'api.tiltcheck.me') && isDiscordAuthRoute);
 
 if (isExcludedDomain) {
-  console.log('[TiltCheck] Skipping - excluded domain:', hostname);
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] Skipping - excluded domain:', hostname);
 }
 
 // Only import and run on allowed casino sites
@@ -81,7 +81,7 @@ const SUPPORT_INTERVENTION_COOLDOWN_MS = 10 * 60 * 1000;
 
 // Intervention state
 let cooldownEndTime: number | null = null;
-let lastRedeemNudgeBalance = 0;
+let lastRedeemNudgeBalance: number | null = null;
 let lastRedeemNudgeThreshold = 0;
 const lastSupportInterventionByType: Record<string, number> = {};
 
@@ -113,9 +113,11 @@ function shouldShowRedeemNudge(data: { amount: number; threshold: number }): boo
 
   const amount = Number(data.amount) || 0;
   const thresholdChanged = threshold !== lastRedeemNudgeThreshold;
-  const meaningfulGain = amount >= lastRedeemNudgeBalance + Math.max(5, threshold * 0.1);
+  // Re-fire if this is the first nudge (null), threshold changed, or a meaningful gain occurred.
+  const meaningfulGain = lastRedeemNudgeBalance !== null &&
+    amount >= lastRedeemNudgeBalance + Math.max(5, threshold * 0.1);
 
-  if (thresholdChanged || lastRedeemNudgeBalance === 0 || meaningfulGain) {
+  if (thresholdChanged || lastRedeemNudgeBalance === null || meaningfulGain) {
     lastRedeemNudgeThreshold = threshold;
     lastRedeemNudgeBalance = amount;
     return true;
@@ -418,18 +420,18 @@ class Highlighter {
  * Initialize on page load
  */
 function initialize() {
-  console.log('[TiltCheck] Initializing on:', window.location.hostname);
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] Initializing on:', window.location.hostname);
 
   // Create sidebar UI
   sidebar = initSidebar();
   // Default hidden on TiltCheck-owned pages, visible on supported casino pages.
   const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
   void restoreSidebarVisibility(defaultVisible);
-  console.log('[TiltCheck] Sidebar created:', !!sidebar);
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] Sidebar created:', !!sidebar);
 
   // Check casino license from footer/legal sections and refresh after delayed page content loads.
   const initialLicenseStatus = refreshLicenseVerification();
-  console.log('[TiltCheck] License verification:', initialLicenseStatus);
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] License verification:', initialLicenseStatus);
   setTimeout(() => refreshLicenseVerification(), 3000);
   setTimeout(() => refreshLicenseVerification(), 8000);
 
@@ -537,7 +539,7 @@ async function startMonitoring() {
   zeroTriggered = false;
   fumbleStrikes = 0;
 
-  console.log('[TiltGuard] Initial balance:', initialBalance);
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Initial balance:', initialBalance);
 
   // Get risk level, redeem threshold, and auth token from storage
   const storageResult = await chrome.storage.local.get(['riskLevel', 'redeemThreshold', 'authToken', SITE_REDEEM_THRESHOLDS_KEY]);
@@ -547,7 +549,7 @@ async function startMonitoring() {
   const redeemThreshold = siteThresholds[siteHost] ?? (Number(storageResult.redeemThreshold) || 0);
   const authToken = storageResult.authToken as string | undefined;
 
-  console.log('[TiltGuard] Using profile:', { riskLevel, redeemThreshold, hasToken: !!authToken });
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Using profile:', { riskLevel, redeemThreshold, hasToken: !!authToken });
 
   // Initialize tilt detector
   tiltDetector = new TiltDetector(initialBalance, riskLevel, redeemThreshold);
@@ -567,13 +569,13 @@ async function startMonitoring() {
 
     try {
       await client.connect();
-      console.log('[TiltGuard] Connected to analyzer server');
+      if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Connected to analyzer server');
       sidebar?.updateRealityCheck(true);
     } catch {
-      console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
+      if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
     }
   } else {
-    console.log('[TiltGuard] Analyzer disabled until Discord auth is connected');
+    if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Analyzer disabled until Discord auth is connected');
     sidebar?.updateRealityCheck(false);
   }
 
@@ -585,7 +587,7 @@ async function startMonitoring() {
   const casinoId = detectCasinoId();
   const gameId = detectGameId();
 
-  console.log('[TiltGuard] Session started:', { sessionId, userId, casinoId, gameId });
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Session started:', { sessionId, userId, casinoId, gameId });
 
   // Start tilt monitoring
   startTiltMonitoring();
@@ -594,7 +596,7 @@ async function startMonitoring() {
   stopObserving = extractor.startObserving((spinData) => {
     if (!spinData) return;
 
-    console.log('[TiltGuard] Spin detected:', spinData);
+    if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Spin detected:', spinData);
 
     // Check if sessionId is valid before using
     if (!sessionId) {
@@ -605,14 +607,14 @@ async function startMonitoring() {
     handleSpinEvent(spinData, { sessionId, userId, casinoId, gameId });
   });
 
-  console.log('[TiltGuard] Monitoring started successfully');
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Monitoring started successfully');
 }
 
 /**
  * Stop monitoring
  */
 function _stopMonitoring() {
-  console.log('[TiltGuard] Stopping monitoring...');
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Stopping monitoring...');
 
   if (stopObserving) {
     stopObserving();
@@ -631,14 +633,16 @@ function _stopMonitoring() {
   isMonitoring = false;
   sidebar?.updateRealityCheck(false);
 
-  console.log('[TiltGuard] Monitoring stopped');
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Monitoring stopped');
 }
 
 /**
  * Handle spin event
  */
 function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, userId: string, casinoId: string, gameId: string }) {
-  if (casinoVerification && !casinoVerification.shouldAnalyze) {
+  // Null means verification has not completed yet; allow analysis until verdict arrives.
+  // Only block when verification has explicitly flagged shouldAnalyze = false.
+  if (casinoVerification != null && !casinoVerification.shouldAnalyze) {
     return;
   }
 
@@ -672,7 +676,9 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
         showRedeemNudge(redeemOpportunity);
       }
     } else {
-      lastRedeemNudgeBalance = 0;
+      // Balance is below the redeem threshold. Reset so the nudge can re-fire if
+      // the player recovers and crosses the threshold again.
+      lastRedeemNudgeBalance = null;
       lastRedeemNudgeThreshold = 0;
     }
 
@@ -825,7 +831,7 @@ function startTiltMonitoring() {
  */
 function handleInterventions(interventions: any[]) {
   for (const intervention of interventions) {
-    console.log('[TiltGuard] Intervention:', intervention);
+    if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Intervention:', intervention);
 
     switch (intervention.type) {
       case 'cooldown':
@@ -1402,7 +1408,9 @@ function setupFairnessListeners() {
               timestamp: Date.now()
             }));
 
-            console.log(`[TiltCheck] Commitment Locked: ${blockHash.substring(0, 8)}...`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`[TiltCheck] Commitment Locked: ${blockHash.substring(0, 8)}...`);
+            }
 
             // Optional: Send Memo to Solana (requires wallet connection)
             // await bridge.connect();
@@ -1423,7 +1431,8 @@ function setupFairnessListeners() {
  * Verify the fairness of a finished spin
  */
 async function verifySpinFairness(spinData: any, gameId: string) {
-  if (casinoVerification && !casinoVerification.shouldAnalyze) {
+  // Null means verification has not completed yet; allow analysis until verdict arrives.
+  if (casinoVerification != null && !casinoVerification.shouldAnalyze) {
     return;
   }
 
@@ -1463,8 +1472,10 @@ async function verifySpinFairness(spinData: any, gameId: string) {
       expectedResult = fairness.getPlinkoPath(expectedHash, rows).join(',');
     }
 
-    console.log(`[TiltCheck] 🎲 Fair Result Calculated (${gameType}):`, expectedResult);
-    console.log(`[TiltCheck] 🔑 Server Hash:`, expectedHash);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[TiltCheck] Fair Result Calculated (${gameType}):`, expectedResult);
+      console.log(`[TiltCheck] Server Hash:`, expectedHash);
+    }
 
     // 3. Verify against Casino Data
     // If the casino provided the hash in the metadata, we can verify strictly
@@ -1487,7 +1498,9 @@ async function verifySpinFairness(spinData: any, gameId: string) {
         if (Math.abs(resultVal - expectedResult) < 0.05) {
           window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: `Fairness Verified (Result: ${resultVal})`, type: 'success' } }));
           showNotification(`✅ Fair Game Verified (Result: ${resultVal})`, "success");
-          console.log(`[TiltCheck] ✅ Scraped result ${resultVal} matches expected ${expectedResult}`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[TiltCheck] Scraped result ${resultVal} matches expected ${expectedResult}`);
+          }
         } else {
           console.warn(`[TiltCheck] ⚠️ Result Mismatch! Expected: ${expectedResult}, Scraped: ${resultVal}`);
         }
@@ -1495,7 +1508,9 @@ async function verifySpinFairness(spinData: any, gameId: string) {
     } else {
       // If no hash provided, we rely on the user checking the console or UI overlay
       // In a full implementation, we would use Analyzer.waitForResult() here to scrape the visual result
-      console.log(`[TiltCheck] Visual Verify: Does the screen show ${expectedResult}?`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[TiltCheck] Visual Verify: Does the screen show ${expectedResult}?`);
+      }
       window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: `Visual Check: Expecting ${expectedResult}`, type: 'info' } }));
     }
 
@@ -1506,7 +1521,7 @@ async function verifySpinFairness(spinData: any, gameId: string) {
 
 // Listen for extension messages
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  console.log('[TiltGuard] Message received:', message.type);
+  if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Message received:', message.type);
 
   // Keep excluded domains isolated even if content script is injected.
   if (isExcludedDomain && message.type !== 'get_sidebar_state') {
@@ -1594,11 +1609,24 @@ function showRedeemNudge(data: any) {
 
   document.body.appendChild(overlay);
 
-  document.getElementById('redeem-btn')?.addEventListener('click', () => {
-    // Notify hub of successful win secure
-    void relayWinSecure(data.amount);
-    overlay.remove();
-    window.close(); // Hard exit
+  document.getElementById('redeem-btn')?.addEventListener('click', (evt) => {
+    const btn = evt.currentTarget as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Securing win...';
+
+    relayWinSecure(data.amount)
+      .then(() => {
+        overlay.remove();
+        window.close(); // Hard exit
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Redeem Now & Quit';
+        const errEl = document.createElement('p');
+        errEl.style.cssText = 'margin-top: 12px; color: #ff4444; font-size: 13px; font-weight: 600;';
+        errEl.textContent = 'Win relay failed. Screenshot this and contact support.';
+        btn.parentElement?.insertAdjacentElement('afterend', errEl);
+      });
   });
 
   document.getElementById('later-btn')?.addEventListener('click', () => {
@@ -1607,15 +1635,16 @@ function showRedeemNudge(data: any) {
 }
 
 async function relayWinSecure(amount: number) {
-  try {
-    const userId = await getUserId();
-    await fetch(`${EXT_CONFIG.HUB_URL}/telemetry/win-secure`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, userId })
-    });
-  } catch (err) {
-    console.warn('[TiltCheck] Win secure relay failed:', err);
+  const userId = await getUserId();
+  const response = await fetch(`${EXT_CONFIG.HUB_URL}/telemetry/win-secure`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount, userId })
+  });
+
+  if (!response.ok) {
+    console.error('[TiltCheck] Win secure relay returned non-OK status:', response.status);
+    throw new Error(`Win secure relay failed with status ${response.status}`);
   }
 }
 
@@ -1624,4 +1653,4 @@ if (!isExcludedDomain) {
   initialize();
 }
 
-console.log('[TiltGuard] Content script loaded');
+if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Content script loaded');

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
 import React from "react";
 import {
   BadgeCheck,
@@ -20,9 +20,9 @@ type BenefitItem = {
 };
 
 const sectionSignals = [
-  "Players get live session defense and proof.",
-  "Platforms get a public way to prove they are not hiding.",
-  "Same audit layer. Clearer outcomes for both sides.",
+  "Players get live Auto-Pilot detection and behavioral circuit breakers.",
+  "Platforms get a public way to prove their numbers hold up.",
+  "Same audit layer. Honest outcomes for both sides.",
 ];
 
 const playerBenefits: BenefitItem[] = [
@@ -30,12 +30,12 @@ const playerBenefits: BenefitItem[] = [
     icon: <Brain className="vp-benefit-icon" />,
     label: "Real-time tilt detection",
     description:
-      "Know when your session is getting sloppy. TiltCheck spots risky patterns before your bankroll pays for them.",
+      "Know when you've hit The Loop. TiltCheck spots Auto-Pilot patterns — rapid clicking, loss chasing, Martingale spirals — before your bankroll pays the tuition.",
   },
   {
     icon: <Vault className="vp-benefit-icon" />,
     label: "Lock wins behind your rules",
-    description: "Set the line, trigger the vault flow, and get profit out of easy reach before you spin it back.",
+    description: "Set the line, trigger the vault flow, and get profit out of easy reach before The Loop convinces you to spin it back.",
   },
   {
     icon: <ShieldCheck className="vp-benefit-icon" />,
@@ -44,13 +44,13 @@ const playerBenefits: BenefitItem[] = [
   },
   {
     icon: <ChartLine className="vp-benefit-icon" />,
-    label: "RTP drift alerts",
-    description: "See when a casino is running a weaker RTP tier than players expect, and what that gap is costing.",
+    label: "RTP drift exposed",
+    description: "See when a casino is running a weaker RTP tier than advertised. Track the gap, see the cost per $100 wagered, and read the actual receipts.",
   },
   {
     icon: <Users className="vp-benefit-icon" />,
     label: "Community-verified intel",
-    description: "Trust scores, scam checks, and player intel in one place instead of scattered across group chats.",
+    description: "Casino trust scores, scam reports, and shadow-ban logs in one place. Community-verified, not casino-sponsored.",
   },
 ];
 
@@ -104,10 +104,9 @@ export default function ValueProposition() {
       <div className="vp-shell">
         <div className="vp-header">
           <span className="brand-eyebrow">One product. Two sides of the market.</span>
-          <h2 className="vp-title">TiltCheck protects players and gives honest platforms a way to prove it.</h2>
+          <h2 className="vp-title">TiltCheck breaks The Loop. For players who know the feeling.</h2>
           <p className="vp-lead">
-            TiltCheck is a shared audit surface. Players use it to protect bankrolls and verify claims. Platforms use it
-            to show that their numbers and behavior hold up in public.
+            TiltCheck is a shared audit surface. Players use it to kill Auto-Pilot mode and protect bankrolls. Platforms use it to show their numbers don't lie.
           </p>
 
           <ul className="vp-signal-list">
@@ -124,9 +123,9 @@ export default function ValueProposition() {
           <div className="vp-column vp-column--player">
             <div className="vp-column-header">
               <span className="vp-column-eyebrow vp-column-eyebrow--player">For players</span>
-              <h3 className="vp-column-title">Protect the bankroll</h3>
+              <h3 className="vp-column-title">Break The Loop</h3>
               <p className="vp-column-subtitle">
-                Use live session data, fairness checks, and hard exits to stop guessing when the session turns on you.
+                Live session data, behavioral triggers, and hard exits — so you stop playing on Auto-Pilot when the session turns stupid.
               </p>
             </div>
             <BenefitList items={playerBenefits} />

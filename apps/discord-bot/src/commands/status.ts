@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 import { 
@@ -44,11 +44,14 @@ export const status: Command = {
     if (activity && activity.lossStreak >= 3) {
       embed.addFields({ name: 'Loss Streak', value: `${activity.lossStreak} in a row. Rinse vibes. Touch grass.`, inline: false });
     } else if (activity && activity.lossStreak === 0 && signalCount > 0) {
-      embed.addFields({ name: 'Session Profile', value: 'Chasing a win? Classic "im due" brain. The math is not moved.', inline: false });
+      embed.addFields({ name: 'Session Profile', value: 'Chasing a win? Classic "I\'m due" brain. The math is not moved.', inline: false });
     }
 
-    // 4. Verification Footer
+    // 4. Verification Footer - include 24h violation count when nonzero
     const violationCount = getViolationHistory(interaction.user.id);
+    if (violationCount > 0) {
+      embed.addFields({ name: 'Cooldown Violations (24h)', value: `${violationCount}`, inline: true });
+    }
     embed.setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });

@@ -57,6 +57,9 @@
       "path": "../../packages/shared"
     },
     {
+      "path": "../../packages/monitoring"
+    },
+    {
       "path": "../../packages/utils"
     }
   ]

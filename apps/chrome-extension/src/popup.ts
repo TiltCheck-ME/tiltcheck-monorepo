@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-15
 import { EXT_CONFIG } from './config.js';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +29,27 @@ interface PopupStorageSnapshot {
   authToken?: string | null;
   activityFeed?: Array<{ msg: string; type?: string; ts?: number }>;
   vaultSessionTotal?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Tilt Gauge
+// ---------------------------------------------------------------------------
+
+interface TiltGaugeState {
+  label: string;
+  cssClass: string;
+  color: string;
+  score10: number;
+}
+
+function getTiltGaugeState(score: number): TiltGaugeState {
+  // score is 0-100 from the API; display normalized to 0-10 scale
+  const score10 = Math.min(10, Math.round(score / 10));
+  if (score <= 20) return { label: 'ICE COLD',        cssClass: 'tilt-ice',    color: '#60a5fa', score10 };
+  if (score <= 40) return { label: 'WARMING UP',      cssClass: 'tilt-warm',   color: '#34d399', score10 };
+  if (score <= 60) return { label: 'RUNNING HOT',     cssClass: 'tilt-hot',    color: '#fbbf24', score10 };
+  if (score <= 80) return { label: 'DANGER ZONE',     cssClass: 'tilt-danger', color: '#f97316', score10 };
+  return              { label: 'ATOMIC MELTDOWN', cssClass: 'tilt-atomic', color: '#ef4444', score10 };
 }
 
 // ---------------------------------------------------------------------------
@@ -104,7 +125,9 @@ function syncCapabilityState() {
     show('limited-auth-note');
     $('session-pill').className = 'status-pill pill-warn';
     $('session-pill-text').textContent = 'Site beta';
-    $('tilt-score').textContent = '--';
+    const gaugeEl = $('tilt-gauge');
+    gaugeEl.textContent = '--';
+    gaugeEl.className = 'tilt-gauge tilt-ice';
     $('tilt-fill').style.width = '0%';
     $('stat-pl').textContent = '--';
     $('stat-session').textContent = '--';
@@ -152,12 +175,12 @@ async function loadStatus() {
 
     const score: number = data.tiltScore ?? 0;
     const fill = $<HTMLDivElement>('tilt-fill');
-    const scoreEl = $('tilt-score');
-
-    scoreEl.textContent = String(score);
-    scoreEl.className = 'tilt-score ' + (score < 40 ? 'score-low' : score < 70 ? 'score-mid' : 'score-high');
+    const gauge = getTiltGaugeState(score);
+    const gaugeEl = $('tilt-gauge');
+    gaugeEl.textContent = `${gauge.label} (${gauge.score10}/10)`;
+    gaugeEl.className = `tilt-gauge ${gauge.cssClass}`;
     fill.style.width = `${score}%`;
-    fill.style.background = score < 40 ? 'var(--teal)' : score < 70 ? 'var(--yellow)' : 'var(--red)';
+    fill.style.background = gauge.color;
 
     const pl: number = data.plToday ?? 0;
     const plEl = $('stat-pl');

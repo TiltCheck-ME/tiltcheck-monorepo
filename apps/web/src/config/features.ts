@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
 export type Tool = {
   href: string;
   icon: string;
@@ -15,7 +15,7 @@ export const features: Tool[] = [
     icon: "/assets/canva/padlock.jpg",
     category: "TOUGH LOVE",
     title: "The Vault",
-    description: "Lock in a win before impulse gives it back. TiltCheck helps route profit toward your vault flow while the player stays in control.",
+    description: "You set the line. The Vault enforces it. Lock wins behind a timer, manage releases, and move profit out of impulse range before The Loop convinces you to spin it back.",
     status: "live",
     gridClasses: "",
   },
@@ -42,7 +42,7 @@ export const features: Tool[] = [
     icon: "/assets/canva/lightning-bolt.jpg",
     category: "TILT TELEMETRY",
     title: "RTP Drift Monitor",
-    description: "See which platforms appear to be running weaker RTP tiers than players expect. Track drift, estimated cost, and cash-out pressure in one place.",
+    description: "The casino has tiers. You probably don't know which one you're on. TiltCheck surfaces the RTP spread and shows you what the gap between max and min is actually costing per session.",
     status: "live",
     gridClasses: "",
   },
@@ -60,7 +60,7 @@ export const features: Tool[] = [
     icon: "/assets/canva/crossed-swords.jpg",
     category: "DEGENS AGAINST DECENCY",
     title: "Degen Trivia",
-    description: "Live trivia already runs through Discord. This page explains the format, round flow, and access path without pretending the web page is the whole product.",
+    description: "Fund the trivia pot on web, test the live room in Activity, and use Discord when you need the public /triviadrop rail.",
     status: "live",
     gridClasses: "",
   },

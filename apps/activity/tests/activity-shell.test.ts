@@ -79,6 +79,8 @@ describe('activity shell play state', () => {
     expect(state.activityRecap.title).toBe('Party loop armed');
     expect(container.textContent).toContain('Lobby');
     expect(container.textContent).toContain('Party Loop');
+    expect(container.textContent).toContain('Funding + test path');
+    expect(container.textContent).toContain('Open Jackpot Funding');
   });
 
   it('moves the play shell from lobby to live round to post-round', () => {

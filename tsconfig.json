@@ -22,6 +22,8 @@
       "@tiltcheck/error-factory/*": ["./packages/error-factory/src/*"],
       "@tiltcheck/utils": ["./packages/utils/src/index.ts"],
       "@tiltcheck/utils/*": ["./packages/utils/src/*"],
+      "@tiltcheck/monitoring": ["./packages/monitoring/src/index.ts"],
+      "@tiltcheck/monitoring/*": ["./packages/monitoring/src/*"],
       "@tiltcheck/event-types": ["./packages/event-types/src/index.ts"],
       "@tiltcheck/event-types/*": ["./packages/event-types/src/*"],
       "@tiltcheck/justthetip": ["./modules/justthetip/src/index.ts"],

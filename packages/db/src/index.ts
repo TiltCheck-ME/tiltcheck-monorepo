@@ -92,6 +92,9 @@ export {
 
   // Identity & Trust queries
   getAggregatedTrustByDiscordId,
+  getDegenIdentity,
+  upsertDegenIdentity,
+  getRecentTrustSignals,
   logTrustSignal,
   findLatestRecoveryApplicationByDiscordUserId,
   findRecoveryApplicationById,
@@ -125,6 +128,15 @@ export {
   // Audit log queries
   createAuditLog,
   getAuditLogsByUser,
+
+  // Supabase compatibility helpers
+  hasSupabaseAdminClient,
+  getVaultHistory,
+  getActiveBonuses,
+  getBonusHistory,
+  getRecentNerfs,
+  claimBonus,
+  getUserSessions,
 
   // Surgical Self-Exclusion queries
   getUserExclusions,
@@ -174,6 +186,7 @@ export type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+  DegenIdentity,
   RecoveryApplication,
   RecoveryApplicationStatus,
   CreateRecoveryApplicationPayload,

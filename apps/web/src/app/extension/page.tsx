@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -55,6 +55,8 @@ export default function ExtensionPage() {
             >
               DOWNLOAD THE ZIP
             </a>
+            {/* Built extension zip lives at apps/web/public/downloads/tiltcheck-extension.zip.
+                Replace that file with each new release build output. */}
             <Link href={dashboardSetupHref} className="btn btn-secondary" data-text="OPEN DASHBOARD SETUP">
               OPEN DASHBOARD SETUP
             </Link>
@@ -70,12 +72,28 @@ export default function ExtensionPage() {
               </p>
               <ul className="public-page-list">
                 <li>Current package: tiltcheck-extension.zip</li>
-                <li>Chrome Web Store listing is not live yet.</li>
+                <li>Currently available as a direct install. Chrome Web Store submission in progress.</li>
                 <li>After install, use dashboard setup before opening a supported session.</li>
               </ul>
             </>
           }
       />
+
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
+          <div className="public-page-card public-page-card--accent" style={{ marginBottom: '2rem' }}>
+            <p className="public-page-card__eyebrow">Direct install — store listing coming soon</p>
+            <h2 className="public-page-card__title">Two steps to install right now</h2>
+            <ol className="public-page-list">
+              <li>Download the zip above and extract it to a local folder.</li>
+              <li>Open chrome://extensions, enable Developer mode, click Load unpacked, and select the extracted folder.</li>
+            </ol>
+            <p className="public-page-card__copy">
+              Sideload install. Not from the Chrome Web Store yet. Read-only by design.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
@@ -166,11 +184,11 @@ export default function ExtensionPage() {
             </article>
 
             <article className="public-page-card public-page-card--danger">
-              <p className="public-page-card__eyebrow">Known beta gap</p>
-              <h2 className="public-page-card__title">The toolbar popup path is not the real entry point yet.</h2>
+              <p className="public-page-card__eyebrow">Beta</p>
+              <h2 className="public-page-card__title">Toolbar popup is not the primary entry point yet.</h2>
               <p className="public-page-card__copy">
-                The extension is currently sidebar-first. The honest beta path is still sideload the package, use the
-                sidebar flow, and treat the store listing as not live yet.
+                The extension runs sidebar-first. Load the unpacked extension via Developer mode, use the sidebar
+                workflow, and treat the Chrome Web Store listing as coming soon.
               </p>
             </article>
           </div>

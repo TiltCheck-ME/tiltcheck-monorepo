@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-15
 /**
  * TiltCheck Discord Bot
  * Main entry point for the safety and moderation bot.
@@ -7,6 +7,7 @@
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import fs from 'fs';
+import { SentryMonitor } from '@tiltcheck/monitoring';
 import { config, validateConfig } from './config.js';
 import {
   CommandHandler,
@@ -44,6 +45,11 @@ async function main() {
     console.log('[Config] Validating configuration...');
     validateConfig();
     console.log('[Config] Configuration validated\n');
+  }
+
+  // Initialize error tracking if DSN is configured
+  if (process.env.SENTRY_DSN) {
+    SentryMonitor.init('discord-bot', process.env.SENTRY_DSN);
   }
 
   const client = new Client({
@@ -393,10 +399,12 @@ async function main() {
 
 process.on('unhandledRejection', (error) => {
   console.error('[Bot] Unhandled rejection:', error);
+  SentryMonitor.captureException(error);
 });
 
 main().catch((error) => {
   console.error('[Bot] Fatal error:', error);
+  SentryMonitor.captureException(error);
   process.exit(1);
 });
 

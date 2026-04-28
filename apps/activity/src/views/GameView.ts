@@ -6,6 +6,10 @@ import type { HubRelay } from '../sdk/HubRelay.js';
 type TriviaPackId = 'rapid-trivia' | 'tilt-check' | 'safe-or-sketchy';
 type TriviaPromptMode = 'rapid-trivia' | 'tilt-or-skill' | 'safe-or-sketchy' | 'cash-out-or-chase';
 
+const TRIVIA_FUNDING_URL = 'https://tiltcheck.me/pay/jackpot?amount=1';
+const TRIVIA_ACTIVITY_URL = 'https://activity.tiltcheck.me';
+const TRIVIA_DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
+
 const TRIVIA_PACKS: Record<
   TriviaPackId,
   { label: string; category: string; theme: string; totalRounds: number; detail: string }
@@ -281,7 +285,7 @@ export class GameView {
             <span class="stage-pill stage-lobby">Lobby</span>
           </div>
           <p class="shell-copy">${this.triviaScheduling ? 'Arming the next pack. Hold the room.' : 'No live party loop is armed. Spin one up and keep it moving.'}</p>
-          <p class="shell-subcopy">This v1 loop stays on the existing trivia rail: fast question, judgment read, reveal, then next round.</p>
+          <p class="shell-subcopy">Testing lives here. Funding the public trivia pot lives on the web and in Discord. Start a pack here when you want to validate the room loop without waiting on a Discord drop.</p>
           <div class="room-list">
             ${Object.entries(TRIVIA_PACKS).map(([id, pack]) => `
               <div class="room-user-card">
@@ -291,6 +295,24 @@ export class GameView {
                 <button class="btn-game trivia-pack-btn" data-pack="${id}">Start ${escapeHtml(pack.label)}</button>
               </div>
             `).join('')}
+          </div>
+          <div class="room-hud" style="margin-top: 1rem;">
+            <p class="section-label">Funding + test path</p>
+            <div class="room-list">
+              <div class="room-user-card">
+                <span class="room-user-name">Fund the pot</span>
+                <span class="waiting-sub">Use the live jackpot page if you want to seed the public trivia prize pool before testing.</span>
+                <a class="btn-secondary" href="${TRIVIA_FUNDING_URL}" target="_blank" rel="noopener noreferrer" style="margin-top: 0.75rem; text-decoration: none; text-align: center;">Open Jackpot Funding</a>
+              </div>
+              <div class="room-user-card">
+                <span class="room-user-name">Run a live test</span>
+                <span class="waiting-sub">Use these pack buttons in the Activity, or jump to Discord if you need the full community drop flow.</span>
+                <div class="btn-row" style="margin-top: 0.75rem;">
+                  <a class="btn-secondary" href="${TRIVIA_ACTIVITY_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; text-align: center;">Open Activity Host</a>
+                  <a class="btn-secondary" href="${TRIVIA_DISCORD_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; text-align: center;">Open Discord</a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       `;

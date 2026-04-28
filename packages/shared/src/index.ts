@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-25
 // v0.1.0 — 2026-02-25
 
 /**
@@ -48,6 +48,17 @@ export {
   seedHealthAuditor,
   auditSeedHealth,
 } from './seed-audit.js';
+export {
+  compareTarotFlipMechanics,
+  parseTarotFlipMechanicsSnapshot,
+  type TarotFlipCardRules,
+  type TarotFlipComparisonResult,
+  type TarotFlipDifficultyComparison,
+  type TarotFlipDifficultyProfile,
+  type TarotFlipDifficultyStep,
+  type TarotFlipDifference,
+  type TarotFlipMechanicsSnapshot,
+} from './tarot-flip-comparison.js';
 
 // Trivia exports
 export * from './trivia.js';

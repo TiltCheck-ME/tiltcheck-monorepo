@@ -7,7 +7,7 @@ const HOW_IT_WORKS = [
   {
     eyebrow: '01 // QUEUE UP',
     title: 'Jump into a live round',
-    body: 'TriviaDrop runs fast rounds built for degens who want action without opening another casino tab. Discord is the live launch surface. This page is the briefing room.',
+    body: 'TriviaDrop runs fast rounds built for degens who want action without opening another casino tab. Activity is the fast test surface. Discord still handles the big public drop flow.',
   },
   {
     eyebrow: '02 // ANSWER FAST',
@@ -24,8 +24,8 @@ const HOW_IT_WORKS = [
 const REASONS_TO_JOIN = [
   'No house edge. No slots. No fake “entertainment” tax.',
   'Built to redirect tilt energy into something skill-based.',
-  'Discord rounds are already live via /triviadrop.',
-  'The web role right now is briefing, routing, and product context — not game launch.',
+  'You can fund the pot on web and test the room in Activity.',
+  'Discord rounds are still live via /triviadrop when you want the public room.',
 ];
 
 const ROUND_FORMAT = [
@@ -45,10 +45,23 @@ const ROUND_FORMAT = [
 
 const RELATED_SURFACES = [
   {
+    title: 'Open the live Activity room',
+    href: 'https://activity.tiltcheck.me',
+    external: true,
+    body: 'Use the Activity when you want to test join flow, prompt flow, and the live room shell without waiting for a Discord drop.',
+    cta: 'Open Activity',
+  },
+  {
+    title: 'Fund the jackpot',
+    href: '/pay/jackpot?amount=1',
+    body: 'The web funding rail is live now. Seed the trivia pot from your own wallet before you run the next round.',
+    cta: 'Fund Pot',
+  },
+  {
     title: 'Join the live Discord drops',
     href: 'https://discord.gg/gdBsEJfCar',
     external: true,
-    body: 'This is where /triviadrop lives right now. If you want rounds today, start there.',
+    body: 'Use Discord when you want the full public drop flow and the existing /triviadrop crowd.',
     cta: 'Join Discord',
   },
   {
@@ -87,22 +100,33 @@ export default function DegensArenaPage() {
               SKILL-ONLY CHAOS
             </h1>
             <div className="mb-6 inline-flex flex-wrap items-center gap-3 border border-[#17c3b2]/30 bg-[#17c3b2]/5 px-4 py-3">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Discord live now</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Activity testing live</span>
               <span className="hidden h-1 w-1 rounded-full bg-[#17c3b2] sm:block" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd700]">Web briefing surface</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd700]">Web funding surface</span>
             </div>
             <p className="max-w-2xl text-lg leading-relaxed text-gray-300 md:text-xl">
-              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. Take the SOL drop. Discord is the real launch surface today. Web stays on briefing duty until that changes on purpose.
+              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. Take the SOL drop. The web now handles jackpot funding, Activity handles fast room testing, and Discord still carries the public drop rail.
             </p>
             <p className="mt-5 max-w-2xl text-sm font-mono leading-relaxed text-gray-500">
-              Current live entry point: <span className="text-[#17c3b2]">/triviadrop</span> in Discord. This page stays as the web-side briefing for what it is, how it works, and where it fits in the TiltCheck loop.
+              Current funding path: <span className="text-[#17c3b2]">/pay/jackpot</span> on web. Current fast test path: <span className="text-[#17c3b2]">activity.tiltcheck.me</span>. Current public drop path: <span className="text-[#17c3b2]">/triviadrop</span> in Discord.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
+              <a
+                href="https://activity.tiltcheck.me"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary px-6 py-3 font-black"
+              >
+                Open Activity
+              </a>
+              <Link href="/pay/jackpot?amount=1" className="btn btn-secondary px-6 py-3 font-black">
+                Fund Jackpot
+              </Link>
               <a
                 href="https://discord.gg/gdBsEJfCar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-primary px-6 py-3 font-black"
+                className="border border-[#283347] px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-[#17c3b2] hover:text-[#17c3b2]"
               >
                 Join Live Drops
               </a>
@@ -119,8 +143,9 @@ export default function DegensArenaPage() {
             {[
               ['Format', 'Live trivia drops'],
               ['Payout Logic', 'Skill only'],
-              ['Current Surface', 'Discord /triviadrop'],
-              ['Web Role', 'Briefing + routing'],
+              ['Funding Surface', 'Web /pay/jackpot'],
+              ['Test Surface', 'Activity host'],
+              ['Public Drop Surface', 'Discord /triviadrop'],
             ].map(([label, value]) => (
               <div key={label} className="border border-[#283347] bg-black/30 p-5">
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-gray-500">{label}</p>

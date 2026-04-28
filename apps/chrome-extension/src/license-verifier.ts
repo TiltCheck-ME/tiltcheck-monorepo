@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
 /**
  * Casino License Verification
  * 
@@ -60,7 +60,7 @@ const LEGITIMATE_AUTHORITIES = [
 const RED_FLAGS = [
   { pattern: /no\s*license/i, label: 'site claims no license' },
   { pattern: /unlicensed/i, label: 'site describes itself as unlicensed' },
-  { pattern: /offshore/i, label: 'offshore licensing language detected' },
+  { pattern: /offshore\s+(unlicensed|unregulated)/i, label: 'offshore unlicensed/unregulated language detected' },
   { pattern: /unregulated/i, label: 'site describes itself as unregulated' },
   { pattern: /bitcoin\s*only/i, label: 'bitcoin-only language detected' },
 ];
@@ -194,8 +194,10 @@ export class CasinoLicenseVerifier {
       warningMessage = 'License found but could not be verified automatically. Proceeding with caution.';
     } else if (licenseInfo.warnings.length > 0) {
       verdict = 'suspicious';
-      shouldAnalyze = false;
-      warningMessage = `Suspicious licensing signals detected: ${licenseInfo.warnings.join(', ')}. Normal TiltCheck analysis is disabled on this site.`;
+      // Suspicious casinos still get analyzed - degens need tilt data most at sketchy sites.
+      // Only fully unlicensed casinos block analysis.
+      shouldAnalyze = true;
+      warningMessage = `Suspicious licensing signals detected: ${licenseInfo.warnings.join(', ')}. Analysis is active with elevated risk indicators.`;
     } else {
       verdict = 'unlicensed';
       shouldAnalyze = false;

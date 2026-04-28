@@ -1,4 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 /**
  * @tiltcheck/db - Type Definitions
  * Database types for the TiltCheck ecosystem
@@ -135,6 +136,36 @@ export interface CreateTrustSignalPayload {
   signal_type: string;
   delta: number;
   metadata?: Record<string, unknown>;
+}
+
+export interface DegenIdentity {
+  discord_id: string;
+  magic_address: string | null;
+  primary_external_address: string | null;
+  tos_accepted: boolean;
+  tos_nft_minted: boolean;
+  tos_nft_paid: boolean;
+  tos_nft_signature: string | null;
+  nft_savings_sol: number;
+  trust_score: number;
+  identity_metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DegenIdentity {
+  discord_id: string;
+  magic_address: string | null;
+  primary_external_address: string | null;
+  tos_accepted: boolean;
+  tos_nft_minted: boolean;
+  tos_nft_paid: boolean;
+  tos_nft_signature: string | null;
+  nft_savings_sol: number;
+  trust_score: number;
+  identity_metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 // ============================================================================
@@ -772,3 +803,49 @@ export interface ForbiddenGamesProfile {
   updatedAt: string;
 }
 
+
+// ============================================================================
+// Tilt Event Types
+// ============================================================================
+
+/**
+ * Union of named intervention types used by the tilt engine.
+ */
+export type TiltInterventionType =
+  | 'VIBE_CHECK'
+  | 'REALITY_BRIDGE'
+  | 'KILL_SWITCH'
+  | 'SHIT_TALK'
+  | 'DRAIN_RATE'
+  | 'MARTINGALE';
+
+/**
+ * Tilt session event stored in the database.
+ */
+export interface TiltSessionEvent {
+  id: string;
+  user_id: string;
+  signal_type: string;
+  severity: number;
+  risk_score: number;
+  intervention_level: 'CAUTION' | 'WARNING' | 'CRITICAL';
+  intervention_type?: TiltInterventionType;
+  display_text: string;
+  metadata: Record<string, unknown>;
+  created_at: Date;
+}
+
+/**
+ * Auto-Pilot Trance event stored when click-storm / autopilot state is detected.
+ */
+export interface TranceEvent {
+  id: string;
+  user_id: string;
+  session_start: string; // ISO 8601
+  clicks_per_minute: number;
+  last_click_delta_ms: number;
+  tilt_score: number;
+  intervention_type: TiltInterventionType;
+  payload: string;
+  created_at: Date;
+}

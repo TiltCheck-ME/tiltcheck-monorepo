@@ -1,4 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 
 import { randomUUID } from 'node:crypto';
 
@@ -206,4 +207,91 @@ export async function createSessionStore(opts: SessionStoreOptions = {}): Promis
  */
 export function createMemorySessionStore(opts: SessionStoreOptions = {}): SessionStore {
   return new MemorySessionStore(opts.ttlMs ?? DEFAULT_TTL_MS);
+}
+
+// ---------------------------------------------------------------------------
+// BetEventWindow — rolling behavioral telemetry window for tilt detection
+// ---------------------------------------------------------------------------
+
+/**
+ * A single recorded bet event used by the tilt detection engine.
+ */
+export interface BetEvent {
+  timestamp: number;
+  amount: number;
+  won: boolean;
+  balanceAfter: number;
+}
+
+/**
+ * Maintains a per-user capped list of recent bet events in Redis.
+ * Used by the tilt detection engine to compute rolling velocity baselines.
+ *
+ * - Uses LPUSH + LTRIM to keep a bounded list per user.
+ * - TTL: 15 minutes.
+ * - Falls back to no-op when Redis is unavailable.
+ */
+export class BetEventWindow {
+  private static readonly MAX_EVENTS = 200;
+  private static readonly TTL_SECONDS = 15 * 60; // 15 minutes
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(private readonly redis: any, private readonly windowMs: number = 10 * 60 * 1000) {}
+
+  private key(userId: string): string {
+    return `bet_window:${userId}`;
+  }
+
+  /**
+   * Push a new bet event onto the user's rolling window.
+   * Trims the list to MAX_EVENTS and refreshes the TTL.
+   */
+  async push(userId: string, event: BetEvent): Promise<void> {
+    const k = this.key(userId);
+    await this.redis.lpush(k, JSON.stringify(event));
+    await this.redis.ltrim(k, 0, BetEventWindow.MAX_EVENTS - 1);
+    await this.redis.expire(k, BetEventWindow.TTL_SECONDS);
+  }
+
+  /**
+   * Return all events in the rolling window for this user, newest first.
+   */
+  async getWindow(userId: string): Promise<BetEvent[]> {
+    const raw: string[] = await this.redis.lrange(this.key(userId), 0, -1);
+    return raw.map(r => JSON.parse(r) as BetEvent);
+  }
+
+  /**
+   * Calculate baseline velocity: bets per minute over the OLDEST 5 minutes
+   * of the window. Used as the rolling baseline for velocity spike detection.
+   */
+  async getBaselineVelocity(userId: string): Promise<number> {
+    const events = await this.getWindow(userId);
+    const now = Date.now();
+    const baselineWindowMs = 5 * 60 * 1000; // oldest 5 min
+
+    // Take events older than (windowMs - baselineWindowMs) but within windowMs
+    const baselineStart = now - this.windowMs;
+    const baselineEnd = now - (this.windowMs - baselineWindowMs);
+
+    const baselineEvents = events.filter(
+      e => e.timestamp >= baselineStart && e.timestamp <= baselineEnd
+    );
+
+    if (baselineEvents.length === 0) return 0;
+    return baselineEvents.length / 5; // bets per minute over 5 minutes
+  }
+
+  /**
+   * Calculate current velocity: bets per minute over the LAST 1 minute.
+   * Compare against getBaselineVelocity() to detect velocity spikes.
+   */
+  async getCurrentVelocity(userId: string): Promise<number> {
+    const events = await this.getWindow(userId);
+    const now = Date.now();
+    const recentMs = 60 * 1000; // last 1 minute
+
+    const recentEvents = events.filter(e => e.timestamp >= now - recentMs);
+    return recentEvents.length; // bets per minute (count over 1 min = rate)
+  }
 }

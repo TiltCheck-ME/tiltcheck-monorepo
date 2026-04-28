@@ -91,6 +91,12 @@ And these permissions:
 - Embed Links
 - Read Message History
 - Use Slash Commands
+- Manage Roles *(required for Tilted role on critical tilt cooldowns)*
+- Manage Nicknames *(required for Donation Station nickname on critical tilt cooldowns)*
+
+> **Note**: Tilted role + nickname changes are ephemeral — they auto-restore after 10 minutes.
+> On bot restart, active cooldown states are not restored (in-memory only, acceptable for MVP).
+> Users with ADMINISTRATOR permission are never affected.
 
 Example URL:
 ```

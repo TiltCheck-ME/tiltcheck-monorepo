@@ -871,6 +871,17 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
         }
     }
 
+    // Final fallback: reconstruct origin from stored extension ID cookie.
+    // This handles cases where the opener_origin was not included in login params
+    // but ext_id was (e.g. older extension versions or cookie-blocked popup contexts).
+    if (!postMessageTarget && source === 'extension' && storedExtensionId) {
+        const reconstructed = getTrustedExtensionOrigin(`chrome-extension://${storedExtensionId}`);
+        if (reconstructed) {
+            console.log('[Auth] Reconstructed extension origin from stored ext_id:', reconstructed);
+            postMessageTarget = reconstructed;
+        }
+    }
+
     if (source === 'extension') {
       // Validate extension runtime ID if extension is making the request
       const incomingExtId = req.query.ext_id as string | undefined;

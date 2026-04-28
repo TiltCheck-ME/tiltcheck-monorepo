@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-15 -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safety Resume — TiltCheck</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #080a0e;
+      --surface:    rgba(255,255,255,0.04);
+      --surface-hi: rgba(255,255,255,0.08);
+      --border:     rgba(255,255,255,0.10);
+      --text:       #ffffff;
+      --muted:      rgba(160,175,190,0.6);
+      --teal:       #17c3b2;
+      --teal-dim:   rgba(23,195,178,0.12);
+      --red:        #ff003c;
+      --yellow:     #fbbf24;
+      --orange:     #f97316;
+      --blue:       #60a5fa;
+      --green:      #34d399;
+      --radius:     10px;
+      --font:       'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono:       'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* --- HEADER --- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,10,14,0.7);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      background: var(--teal);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .header-nav { display: flex; gap: 10px; align-items: center; }
+    .btn-sm {
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-sm:hover { background: var(--surface-hi); border-color: rgba(255,255,255,0.2); text-decoration: none; }
+    .btn-primary-sm {
+      background: var(--teal);
+      color: #000;
+      border-color: var(--teal);
+    }
+    .btn-primary-sm:hover { background: #14a99a; border-color: #14a99a; }
+
+    /* --- PAGE WRAP --- */
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* --- HERO --- */
+    .hero {
+      margin-bottom: 32px;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 8px;
+    }
+    .hero-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+    .hero-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 520px;
+    }
+
+    /* --- CARDS GRID --- */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 560px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .card-wide {
+      grid-column: 1 / -1;
+    }
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .card-value {
+      font-family: var(--mono);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .card-sub {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .card-teal  { border-left: 3px solid var(--teal); }
+    .card-green { border-left: 3px solid var(--green); }
+    .card-blue  { border-left: 3px solid var(--blue); }
+    .card-orange{ border-left: 3px solid var(--orange); }
+
+    /* --- INTERVENTION BREAKDOWN --- */
+    .intervention-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .intervention-item {
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .intervention-count {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .intervention-type {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    /* --- TILT TREND CHART --- */
+    .trend-chart {
+      margin-top: 14px;
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 52px;
+    }
+    .trend-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 3px;
+    }
+    .trend-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      min-height: 3px;
+      transition: background 0.2s;
+    }
+    .trend-date {
+      font-size: 9px;
+      color: var(--muted);
+      font-family: var(--mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      text-align: center;
+    }
+    .trend-empty {
+      color: var(--muted);
+      font-size: 12px;
+      padding: 12px 0;
+    }
+
+    /* --- SUMMARY BOX --- */
+    .summary-box {
+      background: var(--teal-dim);
+      border: 1px solid rgba(23,195,178,0.25);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 20px;
+    }
+    .summary-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--teal);
+      margin-bottom: 8px;
+    }
+    .summary-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+    .summary-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* --- COOLDOWN ROW --- */
+    .cooldown-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .cooldown-pill {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .cooldown-pill .pill-count {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .cooldown-pill .pill-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .pill-taken   { background: rgba(52,211,153,0.10); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+    .pill-ignored { background: rgba(255,0,60,0.08);   color: var(--red);   border: 1px solid rgba(255,0,60,0.2); }
+
+    /* --- LOADING / ERROR --- */
+    .state-block {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+    .state-block strong { display: block; color: var(--text); font-size: 16px; margin-bottom: 8px; }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- DIVIDER --- */
+    hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    /* --- FOOTER --- */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 11px;
+      color: rgba(160,175,190,0.3);
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      text-transform: uppercase;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">TC</div>
+    TiltCheck
+  </div>
+  <nav class="header-nav">
+    <a href="/dashboard" class="btn-sm">Dashboard</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <div class="hero">
+    <div class="hero-eyebrow">Proof of Responsible Play</div>
+    <h1 class="hero-title">Safety Resume</h1>
+    <p class="hero-sub">Your verified record of sessions, cooling breaks, and vault usage. Share it to prove accountability — no clinical jargon, just the receipts.</p>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loading-state" class="state-block">
+    <div class="spinner"></div>
+    Loading your safety data...
+  </div>
+
+  <!-- Error state -->
+  <div id="error-state" class="state-block" style="display:none">
+    <strong>Could not load safety resume.</strong>
+    Check your connection and try again.
+    <br /><br />
+    <a href="/safety-resume" class="btn-sm">Retry</a>
+  </div>
+
+  <!-- Data state -->
+  <div id="data-state" style="display:none">
+
+    <!-- Shareable summary -->
+    <div class="summary-box">
+      <div class="summary-label">Shareable Summary</div>
+      <div class="summary-text" id="summary-text">Loading...</div>
+      <div class="summary-actions">
+        <button class="btn-sm btn-primary-sm" id="btn-copy">Copy Safety Resume</button>
+        <span id="copy-confirm" style="font-size:12px; color:var(--teal); display:none; align-items:center;">Copied to clipboard.</span>
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="cards">
+
+      <div class="card card-teal">
+        <div class="card-label">Sessions Tracked</div>
+        <div class="card-value" id="stat-sessions">--</div>
+        <div class="card-sub">Total sessions with TiltCheck active</div>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-label">LockVault Activity</div>
+        <div class="card-value" id="stat-vault-count">--</div>
+        <div class="card-sub" id="stat-vault-sol">-- SOL locked total</div>
+      </div>
+
+      <div class="card card-wide card-green">
+        <div class="card-label">Cooldowns</div>
+        <div class="cooldown-row">
+          <div class="cooldown-pill pill-taken">
+            <span class="pill-count" id="cooldowns-taken">--</span>
+            <span class="pill-label">Taken</span>
+          </div>
+          <div class="cooldown-pill pill-ignored">
+            <span class="pill-count" id="cooldowns-ignored">--</span>
+            <span class="pill-label">Ignored</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-wide card-orange">
+        <div class="card-label">Interventions Triggered</div>
+        <div id="stat-interventions-total" style="font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:10px;">--</div>
+        <div class="intervention-grid">
+          <div class="intervention-item">
+            <span class="intervention-count" id="int-vibe">--</span>
+            <span class="intervention-type">Vibe Check</span>
+          </div>
+          <div class="intervention-item">
+            <span class="intervention-count" id="int-reality">--</span>
+            <span class="intervention-type">Reality Bridge</span>
+          </div>
+          <div class="intervention-item">
+            <span class="intervention-count" id="int-kill">--</span>
+            <span class="intervention-type">Kill Switch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tilt trend -->
+      <div class="card card-wide">
+        <div class="card-label">Tilt Score Trend (Last 30 Days)</div>
+        <div id="trend-chart" class="trend-chart">
+          <div class="trend-empty">No trend data available yet.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <hr />
+    <p style="font-size:12px; color:var(--muted); line-height:1.7;">
+      Data is sourced from TiltCheck session telemetry. Interventions are counted only when TiltCheck was active during a session.
+      LockVault activity reflects non-custodial Solana transactions — TiltCheck never holds funds.
+    </p>
+
+  </div>
+</main>
+
+<footer class="footer">Made for Degens. By Degens.</footer>
+
+<script>
+  // Safety Resume — data loader
+  // Reads discordId from session via /api/auth/me, then fetches resume
+
+  function getTrendBarColor(score) {
+    if (score <= 20) return '#60a5fa';
+    if (score <= 40) return '#34d399';
+    if (score <= 60) return '#fbbf24';
+    if (score <= 80) return '#f97316';
+    return '#ef4444';
+  }
+
+  function renderTrend(trend) {
+    const container = document.getElementById('trend-chart');
+    if (!trend || trend.length === 0) {
+      container.innerHTML = '<div class="trend-empty">No trend data available yet.</div>';
+      return;
+    }
+
+    const maxScore = Math.max(...trend.map(d => d.score), 1);
+    container.innerHTML = trend.map(d => {
+      const pct = Math.max(4, Math.round((d.score / 100) * 100));
+      const color = getTrendBarColor(d.score);
+      const labelDate = d.date ? d.date.slice(5) : '';
+      return `<div class="trend-bar-wrap">
+        <div class="trend-bar" style="height:${pct}%; background:${color};" title="${d.date}: ${d.score}"></div>
+        <div class="trend-date">${labelDate}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function load() {
+    const loadingEl = document.getElementById('loading-state');
+    const errorEl   = document.getElementById('error-state');
+    const dataEl    = document.getElementById('data-state');
+
+    try {
+      const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!meRes.ok) {
+        window.location.href = '/auth/discord?redirect=' + encodeURIComponent('/safety-resume');
+        return;
+      }
+      const me = await meRes.json();
+
+      const resumeRes = await fetch('/api/user/' + me.discordId + '/safety-resume', { credentials: 'include' });
+      if (!resumeRes.ok) throw new Error('Safety resume API returned ' + resumeRes.status);
+      const data = await resumeRes.json();
+
+      // Populate
+      document.getElementById('summary-text').textContent  = data.summaryText;
+      document.getElementById('stat-sessions').textContent = String(data.totalSessions);
+      document.getElementById('stat-vault-count').textContent = String(data.lockVault.usedCount);
+      document.getElementById('stat-vault-sol').textContent   = data.lockVault.totalSOLLocked + ' SOL locked total';
+      document.getElementById('cooldowns-taken').textContent   = String(data.cooldownsTaken);
+      document.getElementById('cooldowns-ignored').textContent = String(data.cooldownsIgnored);
+      document.getElementById('stat-interventions-total').textContent = String(data.totalInterventions) + ' total';
+      document.getElementById('int-vibe').textContent    = String(data.interventions.vibeCheck);
+      document.getElementById('int-reality').textContent = String(data.interventions.realityBridge);
+      document.getElementById('int-kill').textContent    = String(data.interventions.killSwitch);
+
+      renderTrend(data.tiltTrend);
+
+      loadingEl.style.display = 'none';
+      dataEl.style.display    = '';
+
+      // Copy button
+      document.getElementById('btn-copy').addEventListener('click', () => {
+        const text = document.getElementById('summary-text').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          const confirm = document.getElementById('copy-confirm');
+          confirm.style.display = 'flex';
+          setTimeout(() => { confirm.style.display = 'none'; }, 2400);
+        }).catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity  = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          const confirm = document.getElementById('copy-confirm');
+          confirm.style.display = 'flex';
+          setTimeout(() => { confirm.style.display = 'none'; }, 2400);
+        });
+      });
+
+    } catch (err) {
+      console.error('[SafetyResume] Load error:', err);
+      loadingEl.style.display = 'none';
+      errorEl.style.display   = '';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

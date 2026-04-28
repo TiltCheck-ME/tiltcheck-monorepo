@@ -1,20 +1,39 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-15
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { SentryMonitor } from '@tiltcheck/monitoring';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const envPath = path.resolve(__dirname, '../../../.env'); // Path from apps/api/src to monorepo root .env
 dotenv.config({ path: envPath });
 
-/* Copyright (c) 2026 TiltCheck. All rights reserved. Last Updated: 2026-04-27 */
-// v1.1.0 — 2026-02-26
+// ============================================================================
+// Startup env var validation — fail fast before any service initializes
+// ============================================================================
+const _REQUIRED_ENV_VARS = [
+  'DISCORD_CLIENT_ID',
+  'DISCORD_CLIENT_SECRET',
+  'JWT_SECRET',
+] as const;
+
+for (const key of _REQUIRED_ENV_VARS) {
+  if (!process.env[key]) {
+    throw new Error(`[FATAL] Missing required env var: ${key}. Set it in .env or the deployment environment and restart.`);
+  }
+}
 /**
  * @tiltcheck/api - Central API Gateway
  *
  * The single entry point for all TiltCheck API calls.
  * Handles authentication, session management, and request forwarding.
  */
+
+// Initialize error tracking if DSN is configured
+if (process.env.SENTRY_DSN) {
+  SentryMonitor.init('api', process.env.SENTRY_DSN);
+}
 
 import express from 'express';
 import cors from 'cors';

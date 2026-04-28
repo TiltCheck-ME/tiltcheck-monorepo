@@ -1,7 +1,7 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-// v0.1.0 — 2026-02-25
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+// v0.2.0 — 2026-06-01
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * This file is part of the TiltCheck project.
@@ -145,6 +145,12 @@ export function trackBet(userId: string, amount: number, gameType: string, won: 
   if (betSignal) {
     processTiltSignals(userId, [betSignal]);
   }
+
+  // Check for Martingale Desperation pattern
+  const martingaleSignal = detectMartingalePattern(activity.recentBets, userId);
+  if (martingaleSignal) {
+    processTiltSignals(userId, [martingaleSignal]);
+  }
   
   // Track loss if bet was lost
   if (!won) {
@@ -216,8 +222,58 @@ function detectBetSizingChange(activity: UserActivity, currentBet: number): Tilt
 }
 
 /**
- * Process tilt signals and emit events
+ * Detect Martingale Desperation pattern in recent bets.
+ *
+ * Pattern: loss -> bet * ~2 -> loss -> bet * ~2 -> ... (3+ consecutive occurrences).
+ * Uses 1.7x as the floor multiplier — real-world martingale players rarely double exactly.
+ *
+ * @param bets - Last N bet records (function uses the last 6)
+ * @param userId - User whose activity is being analyzed
+ * @returns TiltSignal at severity 7 if 3+ consecutive martingale steps are detected
  */
+function detectMartingalePattern(bets: BetRecord[], userId: string): TiltSignal | null {
+  // Need at least 4 bets to detect 3 steps (step = loss + next bet increase)
+  if (bets.length < 4) return null;
+
+  const window = bets.slice(-6); // Examine last 6 bets max
+  let consecutiveSteps = 0;
+
+  for (let i = 1; i < window.length; i++) {
+    const prev = window[i - 1];
+    const curr = window[i];
+
+    // A Martingale step: the previous bet was a loss and the current bet is 1.7x-2.5x larger
+    const prevWasLoss = prev.won === false || prev.result === 'loss';
+    const multiplier = prev.amount > 0 ? curr.amount / prev.amount : 0;
+    const isMartingaleStep = prevWasLoss && multiplier >= 1.7 && multiplier <= 2.5;
+
+    if (isMartingaleStep) {
+      consecutiveSteps++;
+    } else {
+      consecutiveSteps = 0; // Chain broken — reset
+    }
+
+    if (consecutiveSteps >= 3) {
+      return {
+        userId,
+        signalType: 'martingale',
+        severity: 7,
+        confidence: Math.min(1, consecutiveSteps / 4),
+        context: {
+          consecutiveSteps,
+          startAmount: window[i - consecutiveSteps].amount,
+          currentAmount: curr.amount,
+          multiplierRange: '1.7x-2.5x',
+        },
+        detectedAt: Date.now(),
+      };
+    }
+  }
+
+  return null;
+}
+
+
 function processTiltSignals(userId: string, signals: TiltSignal[]): void {
   const tiltScore = calculateTiltScore(signals);
   

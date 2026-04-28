@@ -32,6 +32,7 @@ import type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+  DegenIdentity,
   RecoveryApplication,
   CreateRecoveryApplicationPayload,
   UpdateRecoveryApplicationPayload,
@@ -78,6 +79,10 @@ function getSupabaseAdminClient(): SupabaseClient | null {
   return supabaseAdminClient;
 }
 
+export function hasSupabaseAdminClient(): boolean {
+  return getSupabaseAdminClient() !== null;
+}
+
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
@@ -108,6 +113,187 @@ function serializeSupabasePayload(payload: Record<string, unknown>): Record<stri
       return [[key, value]];
     })
   );
+}
+
+export async function getDegenIdentity(discordId: string): Promise<DegenIdentity | null> {
+  const client = getSupabaseAdminClient();
+  if (!client) return null;
+
+  const { data, error } = await client
+    .from('degen_identities')
+    .select('*')
+    .eq('discord_id', discordId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('[DB] Error fetching degen identity:', error);
+    return null;
+  }
+
+  return (data ?? null) as DegenIdentity | null;
+}
+
+export async function upsertDegenIdentity(
+  identity: Partial<DegenIdentity> & { discord_id: string }
+): Promise<DegenIdentity | null> {
+  const client = getSupabaseAdminClient();
+  if (!client) return null;
+
+  const payload = serializeSupabasePayload({
+    ...identity,
+    updated_at: new Date(),
+  });
+
+  const { data, error } = await client
+    .from('degen_identities')
+    .upsert(payload)
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('[DB] Error upserting degen identity:', error);
+    return null;
+  }
+
+  return data as DegenIdentity;
+}
+
+export async function getRecentTrustSignals(
+  discordId: string,
+  limit = 20
+): Promise<{ signal_type: string | null; metadata: { description?: string } | null; created_at: string }[]> {
+  const client = getSupabaseAdminClient();
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('trust_signals')
+    .select('signal_type, metadata, created_at')
+    .eq('discord_id', discordId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('[DB] Error fetching recent trust signals:', error);
+    return [];
+  }
+
+  return (data ?? []) as { signal_type: string | null; metadata: { description?: string } | null; created_at: string }[];
+}
+
+export async function getVaultHistory(userId: string, limit = 5): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseAdminClient();
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('vault_locks')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('[DB] Error fetching vault history:', error);
+    return [];
+  }
+
+  return (data ?? []) as Record<string, unknown>[];
+}
+
+export async function getActiveBonuses(userId: string): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseAdminClient();
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('user_bonuses')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('[DB] Error fetching active bonuses:', error);
+    return [];
+  }
+
+  return (data ?? []) as Record<string, unknown>[];
+}
+
+export async function getBonusHistory(userId: string, limit = 10): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseAdminClient();
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('user_bonuses')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('[DB] Error fetching bonus history:', error);
+    return [];
+  }
+
+  return (data ?? []) as Record<string, unknown>[];
+}
+
+export async function getRecentNerfs(limit = 5): Promise<Record<string, unknown>[]> {
+  const client = getSupabaseAdminClient();
+  if (!client) return [];
+
+  const { data, error } = await client
+    .from('bonus_nerfs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('[DB] Error fetching recent nerfs:', error);
+    return [];
+  }
+
+  return (data ?? []) as Record<string, unknown>[];
+}
+
+export async function claimBonus(discordId: string, bonusId: string): Promise<boolean> {
+  const client = getSupabaseAdminClient();
+  if (!client) return false;
+
+  const { error } = await client
+    .from('user_bonuses')
+    .update({ status: 'claimed', claimed_at: new Date().toISOString() })
+    .eq('id', bonusId)
+    .eq('discord_id', discordId);
+
+  if (error) {
+    console.error('[DB] Error claiming bonus:', error);
+    return false;
+  }
+
+  return true;
+}
+
+export async function getUserSessions(
+  userId: string,
+  days = 7
+): Promise<{ net_pl?: number; duration_ms?: number; [key: string]: unknown }[]> {
+  const client = getSupabaseAdminClient();
+  if (!client) return [];
+
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await client
+    .from('gambling_sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('created_at', since)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[DB] Error fetching user sessions:', error);
+    return [];
+  }
+
+  return (data ?? []) as { net_pl?: number; duration_ms?: number; [key: string]: unknown }[];
 }
 
 function getMissingSupabaseUsersColumn(error: { message?: string } | null): string | null {

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-25 */
 import React from "react";
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -12,6 +12,14 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: "/tools/tarot-flip-comparison",
+    label: "TAROT FLIP DIFF",
+    title: "Tarot Flip Comparison",
+    description:
+      "Compare a stored Tarot flip mechanic snapshot against the current runtime table. Recalculates card odds from raw counts instead of trusting on-screen claims.",
+    status: "beta",
+  },
   {
     href: "/tools/verify",
     label: "THE RECEIPT",
@@ -97,7 +105,7 @@ const TOOLS: Tool[] = [
     label: "DEGENS ARENA",
     title: "Trivia Drop Arena",
     description:
-      "Live trivia drops are already running on Discord via /triviadrop. The web surface is live as the briefing, rules, and access path — not the launch surface.",
+      "Fund the live trivia pot on web, test the room in Activity, and use Discord /triviadrop for the public drop rail.",
     status: "live",
   },
 ];
@@ -139,13 +147,12 @@ export default function ToolsIndexPage() {
           <>
             The tools.
             <br />
-            Built for receipts.
+            Built for degens who read receipts.
           </>
         }
         description={
           <p>
-            Math-backed, no-fluff utilities for degens who want receipts. Verify bets. Track bonuses. Scan scams. Lock
-            wins. Every tool here does one job and is framed the same way the homepage now frames the rest of the stack.
+            Math-backed utilities for players who want to stop playing on Auto-Pilot. Verify bets. Block your kryptonite. Scan scams. Lock wins. Every tool does one job and does it clean.
           </p>
         }
         stats={[
@@ -170,9 +177,9 @@ export default function ToolsIndexPage() {
             <p className="public-page-panel__eyebrow">How to use this index</p>
             <h2 className="public-page-panel__title">Start with the tool that matches the decision you need to make.</h2>
             <ul className="public-page-list">
-              <li>Need proof? Start with verification or trust tooling.</li>
+              <li>Playing Chicken or Crash? Start with Surgical Self-Exclusion — block the exact game that wrecks you, nothing else.</li>
+              <li>Need proof on a bet? Start with verification or trust tooling.</li>
               <li>Need to protect the bag? Start with vault and accountability flows.</li>
-              <li>Need reference intel? Use bonuses, scam logs, and geo guidance after the core read.</li>
             </ul>
           </>
         }
@@ -183,7 +190,7 @@ export default function ToolsIndexPage() {
           <PublicPageSectionHeader
             eyebrow={`Live tools // ${live.length}`}
             title="The current public stack."
-            description={<p>These are the surfaces already doing real work. Same shell. Same spacing logic. Same CTA treatment.</p>}
+            description={<p>These surfaces are live. Each one does one job without burying the core story.</p>}
           />
           <div className="public-page-grid public-page-grid--2">
             {live.map((tool) => (
@@ -231,10 +238,9 @@ export default function ToolsIndexPage() {
         <div className="landing-shell">
           <div className="public-page-cta-band">
             <p className="public-page-panel__eyebrow">Want more</p>
-            <h2 className="public-page-cta-band__title">The extension runs these workflows in the tab where the risk lives.</h2>
+            <h2 className="public-page-cta-band__title">The extension runs these in the tab where The Loop lives.</h2>
             <p className="public-page-cta-band__copy">
-              The public tool pages explain the surfaces. The extension is where the live audit layer keeps up with the
-              session in real time.
+              The tool pages explain the surfaces. The extension is where the circuit breaker keeps up with the session — in real time, at click speed.
             </p>
             <div className="public-page-cta-band__actions">
               <Link href="/extension" className="btn btn-primary" data-text="OPEN EXTENSION PAGE">

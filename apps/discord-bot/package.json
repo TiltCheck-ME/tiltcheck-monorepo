@@ -22,6 +22,7 @@
     "@solana/web3.js": "^1.98.4",
     "@discord/embedded-app-sdk": "^2.4.1",
     "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/monitoring": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/database": "workspace:*",
     "@tiltcheck/discord-activities": "workspace:*",

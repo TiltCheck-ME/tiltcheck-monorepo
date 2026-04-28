@@ -1,7 +1,7 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-// v0.1.0 — 2026-02-25
+// v0.1.0 — 2026-04-24
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * This file is part of the TiltCheck project.
@@ -32,7 +32,7 @@ export class SusLinkModule {
   constructor() {
     this.scanner = new LinkScanner();
     this.setupEventHandlers();
-    console.log('[SusLink] Module initialized ✅');
+    console.log('[SusLink] Module initialized.');
   }
 
   private setupEventHandlers(): void {
@@ -123,7 +123,7 @@ export class SusLinkModule {
 
     // Flag high-risk links separately
     if (result.riskLevel === 'high' || result.riskLevel === 'critical') {
-      console.log(`[SusLink] ⚠️  Flagging risky link: ${result.url} (${result.riskLevel})`);
+      console.log(`[SusLink] Flagging risky link: ${result.url} (${result.riskLevel})`);
       await eventRouter.publish(
         'link.flagged',
         'suslink',
