@@ -5,9 +5,7 @@ import { AuthManager } from './auth.js';
 import { SessionManager } from './session.js';
 import { VaultManager } from './vault.js';
 import { ReportManager } from './reports.js';
-import { BlockchainManager } from './blockchain.js';
 import { BuddyManager } from './buddy.js';
-import { PredictorManager } from './predictor.js';
 import { OnboardingManager } from './onboarding.js';
 import { BonusManager } from './bonuses.js';
 import { MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
@@ -24,9 +22,7 @@ export class SidebarController implements SidebarUI {
   public session: SessionManager;
   public vault: VaultManager;
   public reports: ReportManager;
-  public blockchain: BlockchainManager;
   public buddy: BuddyManager;
-  public predictor: PredictorManager;
   public onboarding: OnboardingManager;
   public bonuses: BonusManager;
   private layoutObserver: MutationObserver | null = null;
@@ -37,9 +33,7 @@ export class SidebarController implements SidebarUI {
     this.session = new SessionManager(this);
     this.vault = new VaultManager(this);
     this.reports = new ReportManager(this, this.auth);
-    this.blockchain = new BlockchainManager(this);
     this.buddy = new BuddyManager(this, this.auth);
-    this.predictor = new PredictorManager(this);
     this.onboarding = new OnboardingManager(this);
     this.bonuses = new BonusManager(this);
   }
@@ -131,14 +125,10 @@ export class SidebarController implements SidebarUI {
       this.setAdvancedToolsVisibility(!this.showAdvancedTools);
     });
 
-    // Predictor
+    // BONUS SCANNER — toggle the daily bonuses section
     document.getElementById('tg-open-predictor')?.addEventListener('click', () => {
-        this.setPanelVisibility('tg-predictor-panel', true);
-        this.predictor.init();
-    });
-    document.getElementById('close-predictor')?.addEventListener('click', () => {
-        this.setPanelVisibility('tg-predictor-panel', false);
-        this.predictor.destroy();
+        const body = document.getElementById('tg-bonuses-body');
+        if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
     });
 
     // Onboarding
@@ -449,7 +439,6 @@ export class SidebarController implements SidebarUI {
         connectBtn.disabled = false;
         connectBtn.textContent = 'Connect Discord';
       }
-      this.blockchain.setWallet(null);
     } else {
       if (accountText) accountText.textContent = `Connected as ${this.auth.userData?.username}`;
       if (usernameEl) usernameEl.textContent = this.auth.userData?.username;
@@ -458,9 +447,6 @@ export class SidebarController implements SidebarUI {
         connectBtn.disabled = false;
         connectBtn.textContent = 'Connect Discord';
       }
-      
-      const walletAddr = this.auth.userData?.walletAddress || null;
-      this.blockchain.setWallet(walletAddr);
     }
   }
 

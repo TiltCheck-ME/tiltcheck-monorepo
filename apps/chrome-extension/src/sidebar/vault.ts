@@ -64,31 +64,22 @@ export class VaultManager {
     }
   }
 
-  public async lockTheBag(amount: number) {
-    // ... logic remains same ...
+  public async lockTheBag(_amount: number) {
     const userId = this.controller.auth.userData?.id;
     if (!userId) {
         this.controller.updateStatus('Connect Discord to use the Vault.', 'warning');
         return;
     }
 
-    try {
-        this.controller.updateStatus('Initializing EMERGENCY BRAKE...', 'thinking');
-        
-        const success = await this.controller.blockchain.lockTokens(amount, 3600); // 1 hour lock
-        
-        if (success) {
-            this.controller.addFeedMessage(`EMERGENCY BRAKE ENGAGED: ${amount} SOL locked for 1 hour.`);
-            this.controller.updateStatus('Bag secured. Go touch grass.', 'success');
-            setTimeout(() => {
-                window.open('https://web.tiltcheck.me/touch-grass.html', '_blank');
-            }, 3000);
-        } else {
-            this.controller.updateStatus('Lock failed. Check wallet balance.', 'danger');
-        }
-    } catch (err) {
-        console.error('[VaultManager] lock error:', err);
-    }
+    this.controller.updateStatus('Opening vault controls...', 'thinking');
+    this.controller.addFeedMessage('EMERGENCY BRAKE: Opening vault dashboard to secure your bag.');
+
+    // Send the user to the vault dashboard — real profit-locking happens there.
+    chrome.runtime.sendMessage({ type: 'open_vault' });
+
+    setTimeout(() => {
+        this.controller.updateStatus('Vault controls opened. Go secure the bag.', 'success');
+    }, 1000);
   }
 
   public async depositToVault(amount: number, userId: string) {

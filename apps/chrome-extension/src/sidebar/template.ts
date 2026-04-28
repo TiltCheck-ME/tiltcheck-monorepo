@@ -144,14 +144,11 @@ export const SIDEBAR_TEMPLATE = `
           <h4>Quick Tools</h4>
           <button class="tg-btn tg-btn-secondary tg-advanced-toggle" id="tg-toggle-advanced" aria-pressed="false">Show Pro Tools</button>
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-predictor">BONUS SCANNER</button>
+            <button class="tg-action-btn" id="tg-open-predictor">DAILY BONUSES</button>
             <button class="tg-action-btn" id="tg-open-dashboard">THE DASHBOARD</button>
           </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
-
-        <!-- Report Panel (toggleable) -->
-        <div class="tg-settings-panel tg-advanced-only" id="tg-report-panel" style="display: none;">
           <h4>THE TILT SIGNAL</h4>
           <div class="tg-input-group">
             <label>Signal Type</label>
@@ -169,18 +166,6 @@ export const SIDEBAR_TEMPLATE = `
           </div>
           <button class="tg-btn tg-btn-primary" id="submit-report">Send Signal</button>
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
-        </div>
-
-        <!-- Bonus Radar Panel -->
-        <div class="tg-settings-panel" id="tg-predictor-panel" style="display: none;">
-          <h4>Bonus Radar</h4>
-          <div id="predictor-list" class="tg-feed" style="max-height: 250px;">
-            <div class="tg-feed-item">Fetching drop windows...</div>
-          </div>
-          <div style="font-size: 10px; opacity: 0.5; margin-top: 10px; font-style: italic;">
-            * Predictions are based on historical social media activity and community signals.
-          </div>
-          <button class="tg-btn tg-btn-secondary" id="close-predictor" style="margin-top: 10px;">Close</button>
         </div>
 
         <!-- Vault Section -->

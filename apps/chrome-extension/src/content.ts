@@ -44,8 +44,6 @@ import { CasinoLicenseVerifier, getAnalysisBlockMessage } from './license-verifi
 import { initSidebar } from './sidebar/index.js';
 import { SidebarUI } from './sidebar/types.js';
 import { Analyzer } from './analyzer.js';
-import { WalletBridge } from './wallet-bridge.js';
-import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
 import { EXT_CONFIG } from './config.js';
 import { GameBlocker } from './game-blocker.js';
@@ -64,8 +62,6 @@ let stopObserving: (() => void) | null = null;
 let isMonitoring = false;
 let casinoVerification: CasinoVerification | null = null;
 let analyzer: Analyzer | null = null;
-let solana: SolanaProvider | null = null;
-let bridge: WalletBridge | null = null;
 let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
 let sidebar: SidebarUI | null = null;
@@ -144,8 +140,6 @@ function ensureAnalysisRuntime() {
   }
 
   analyzer = new Analyzer();
-  bridge = new WalletBridge();
-  solana = new SolanaProvider();
   fairness = new FairnessService();
   setupFairnessListeners();
   analysisRuntimeReady = true;
@@ -1391,31 +1385,14 @@ function setupFairnessListeners() {
         btn.dataset.tiltCheckAttached = "true";
         btn.addEventListener('click', async () => {
           try {
-            if (!solana || !bridge) return;
-
-            // 1. Fetch Entropy (Solana Block Hash)
-            const blockHash = await solana.getLatestBlockHash();
-
-            // 2. Get User Identity (Mocked - in prod get from storage/bridge)
             const discordId = await getUserId();
             const clientSeed = localStorage.getItem('tiltcheck_client_seed') || 'default-seed';
 
-            // 3. Store commitment for the upcoming result
             sessionStorage.setItem('tiltcheck_pending_commitment', JSON.stringify({
-              blockHash,
               discordId,
               clientSeed,
               timestamp: Date.now()
             }));
-
-            if (process.env.NODE_ENV !== 'production') {
-              console.log(`[TiltCheck] Commitment Locked: ${blockHash.substring(0, 8)}...`);
-            }
-
-            // Optional: Send Memo to Solana (requires wallet connection)
-            // await bridge.connect();
-            // await solana.sendCommitmentMemo(bridge, discordId, clientSeed, detectGameId());
-
           } catch (err) {
             console.error("[TiltCheck] Commitment Error:", err);
           }
