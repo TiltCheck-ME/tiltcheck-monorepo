@@ -3,7 +3,7 @@
   "name": "TiltCheck",
   "version": "1.2.2",
   "description": "Real-time gambling behavior tracker, tilt detection, and bankroll management tools.",
-  "privacy_policy": "https://tiltcheck.me/privacy",
+  "privacy_policy_url": "https://tiltcheck.me/privacy",
   "permissions": [
     "storage",
     "tabs",
