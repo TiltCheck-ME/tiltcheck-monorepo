@@ -28,10 +28,7 @@ function getEnvVar(key: string, required = true): string {
 function getDiscordToken(): string {
   for (const envVar of DISCORD_TOKEN_ENV_VARS) {
     const value = process.env[envVar];
-    if (value) {
-      console.log(`[Config] Found token in ${envVar} (Length: ${value.trim().length}, Prefix: ${value.trim().substring(0, 5)}...)`);
-      return value.trim();
-    }
+    if (value) return value.trim();
   }
   return '';
 }
@@ -188,71 +185,11 @@ export const config: BotConfig = {
   supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', false),
 };
 
-// Validate config
 export function validateConfig(): void {
   if (!config.discordToken) {
-    console.error('[Config] [ERROR] No Discord token found in environment variables.');
-    console.error('[Config] Checked: TILT_DISCORD_BOT_TOKEN, DISCORD_TOKEN, DISCORD_BOT_TOKEN');
-
-    console.error('[Config] Debugging keys in process.env:');
-    const relatedKeys = Object.keys(process.env).filter(k => k.includes('DISCORD') || k.includes('TOKEN'));
-    if (relatedKeys.length === 0) {
-      console.error('  (No related keys found)');
-    } else {
-      relatedKeys.forEach(k => {
-        const val = process.env[k];
-        const status = val && val.trim().length > 0 ? '[OK] Set' : '[ERROR] Empty';
-        console.error(`  - ${k}: ${status}`);
-      });
-    }
-
-    throw new Error(
-      `${DISCORD_TOKEN_ENV_VARS.join(' or ')} is required. Please check your .env file.`
-    );
+    throw new Error(`${DISCORD_TOKEN_ENV_VARS.join(' or ')} is required.`);
   }
-
   if (!config.clientId) {
-    throw new Error(
-      'DISCORD_CLIENT_ID is required. Please check your .env file.'
-    );
-  }
-
-  const isProd = config.nodeEnv === 'production';
-  if (isProd) {
-    if (!config.botWalletPrivateKey) {
-      console.warn('⚠️  JUSTTHETIP_BOT_WALLET_PRIVATE_KEY not set - tipping will be disabled');
-    }
-    if (!config.supabaseServiceRoleKey) {
-      console.warn('⚠️  SUPABASE_SERVICE_ROLE_KEY not set - database operations may fail');
-    }
-    if (!config.internalApiSecret) {
-      console.warn('⚠️  INTERNAL_API_SECRET not set - moderation reporting will fail (401)');
-    }
-  }
-
-  console.log('[Config] Configuration loaded successfully');
-  console.log(`[Config] Environment: ${config.nodeEnv}`);
-  console.log(`[Config] Auto-scan links: ${config.suslinkAutoScan}`);
-
-  if (config.alertChannels.trustAlertsChannelId) {
-    console.log(`[Config] Trust alerts channel: ${config.alertChannels.trustAlertsChannelId}`);
-  }
-  if (config.alertChannels.bonusAlertsChannelId) {
-    console.log(`[Config] Bonus alerts channel: ${config.alertChannels.bonusAlertsChannelId}`);
-  }
-  if (config.alertChannels.reportsChannelId) {
-    console.log(`[Config] Reports channel: ${config.alertChannels.reportsChannelId}`);
-  }
-  if (config.alertChannels.supportChannelId) {
-    console.log(`[Config] Support tickets channel: ${config.alertChannels.supportChannelId}`);
-  }
-
-  console.log(`[Config] Mod notifications: ${config.modNotifications.enabled ? 'enabled' : 'disabled'}`);
-  if (config.modNotifications.enabled && config.modNotifications.modChannelId) {
-    console.log(`[Config] Mod channel: ${config.modNotifications.modChannelId}`);
-  }
-
-  if (config.botWalletPrivateKey) {
-    console.log('[Config] Bot wallet: configured (Consolidated Tipping active)');
+    throw new Error('DISCORD_CLIENT_ID is required.');
   }
 }

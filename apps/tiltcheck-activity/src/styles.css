@@ -1,0 +1,312 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. */
+/* TiltCheck Activity — Brutalist dark theme */
+
+:root {
+  --color-primary: #17c3b2;    /* teal — tiltcheck accent */
+  --color-secondary: #8b5cf6;
+  --color-positive: #00ffaa;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-gold: #ffd700;
+
+  --bg-body: #0a0c10;
+  --bg-card: #12161e;
+  --bg-input: #080a0d;
+  --border: #283347;
+  --border-accent: rgba(23, 195, 178, 0.4);
+
+  --text-primary: #ffffff;
+  --text-secondary: #c4ced8;
+  --text-muted: #6b7a8d;
+
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-body);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-body);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar__brand {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.topbar__status {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.topbar__status.live { color: var(--color-positive); }
+
+.topbar__btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.topbar__btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-body);
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--text-secondary); }
+.tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* ── Views ── */
+#app { flex: 1; overflow-y: auto; padding: 1rem; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.card--accent { border-color: var(--border-accent); }
+.card--danger { border-color: rgba(239, 68, 68, 0.4); }
+.card--warning { border-color: rgba(245, 158, 11, 0.4); }
+
+.card__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+}
+
+.card__body {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn--primary {
+  border-color: var(--color-primary);
+  background: rgba(23, 195, 178, 0.1);
+  color: var(--color-primary);
+}
+.btn--primary:hover { background: rgba(23, 195, 178, 0.2); }
+
+.btn--danger {
+  border-color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+}
+.btn--danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Grid ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem; }
+
+/* ── KPI ── */
+.kpi {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.kpi__value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--color-primary);
+}
+
+.kpi__label {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+/* ── RTP bar ── */
+.rtp-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.rtp-bar__fill {
+  height: 100%;
+  transition: width 0.5s ease-out;
+}
+
+/* ── Input row ── */
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.input-field {
+  flex: 1;
+}
+
+.input-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.input-field input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-field input:focus { border-color: var(--color-primary); }
+
+/* ── Trust score display ── */
+.trust-grade {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2.5rem;
+  text-align: center;
+}
+
+/* ── Drift classes ── */
+.drift-positive { color: var(--color-positive); }
+.drift-neutral { color: var(--text-secondary); }
+.drift-negative { color: var(--color-danger); }
+
+/* ── Tilt severity ── */
+.tilt-low { color: var(--color-positive); }
+.tilt-medium { color: var(--color-warning); }
+.tilt-high { color: var(--color-danger); }
+
+/* ── Waiting state ── */
+.waiting {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--text-muted);
+}
+.waiting__icon {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.waiting__text { font-size: 0.75rem; }
+
+/* ── Footer ── */
+.botbar {
+  text-align: center;
+  padding: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}

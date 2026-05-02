@@ -27,27 +27,19 @@ import { handleSafetyIntervention } from './services/intervention-service.js';
 import { initializeBetaReviewQueue, syncBetaReviewQueue } from './services/beta-review-queue.js';
 
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
+import { DiscordActivityManager } from '@tiltcheck/discord-activities';
+import { setLaunchActivityManager } from './commands/launch.js';
 
 import { getUserBuddies, type BetaSignupStatus } from '@tiltcheck/db';
 
 async function main() {
   const startTime = Date.now();
-  console.log('\n' + '='.repeat(60));
-  console.log('TILTCHECK — SESSION AUDIT AND ACCOUNTABILITY BOT');
-  console.log('='.repeat(60));
-  console.log(`SESSION INITIALIZED at: ${new Date().toLocaleString()}`);
-  console.log(`ENV: ${process.env.NODE_ENV || 'production'}`);
-  console.log('='.repeat(60) + '\n');
+  console.log('[TILTCHECK-BOT] Booting...');
 
-  if (process.env.SKIP_DISCORD_LOGIN === 'true') {
-    console.log('[Config] SKIP_DISCORD_LOGIN enabled - skipping Discord auth');
-  } else {
-    console.log('[Config] Validating configuration...');
+  if (process.env.SKIP_DISCORD_LOGIN !== 'true') {
     validateConfig();
-    console.log('[Config] Configuration validated\n');
   }
 
-  // Initialize error tracking if DSN is configured
   if (process.env.SENTRY_DSN) {
     SentryMonitor.init('discord-bot', process.env.SENTRY_DSN);
   }
@@ -63,44 +55,18 @@ async function main() {
     partials: [Partials.Channel],
   });
 
-  console.log('[Handlers] Initializing handlers...');
   const commandHandler = new CommandHandler();
   const eventHandler = new EventHandler(client, commandHandler);
-  console.log('[Handlers] Handlers initialized\n');
 
-  console.log('[Alerts] Initializing alert service...');
   initializeAlertService(client);
-  console.log('[Alerts] Alert service ready\n');
-
-  console.log('[BetaQueue] Initializing beta review queue...');
   initializeBetaReviewQueue(client);
-  console.log('[BetaQueue] Beta review queue ready\n');
-
-  console.log('[Trust] Initializing trust alerts...');
   TrustAlertsHandler.initialize();
-  console.log('[Trust] Trust alerts subscribed\n');
-
-  console.log('[BonusFeed] Initializing bonus feed...');
   BonusFeedHandler.initialize();
-  console.log('[BonusFeed] Bonus feed subscribed\n');
-
-  console.log('[Tilt] Initializing tilt events handler...');
   initializeTiltEventsHandler();
-  console.log('[Tilt] Tilt events handler ready\n');
-
-  console.log('[Accountability] Initializing accountability ping system...');
   initializeAccountabilityPings(client);
-  console.log('[Accountability] Accountability pings active\n');
-
-  console.log('[Elastic] Ensuring telemetry index...');
   await ensureTelemetryIndex();
-  console.log('[Elastic] Telemetry index ready\n');
-
-  console.log('[Elastic] Ensuring tilt-agent context index...');
   await ensureTiltAgentContextIndex();
-  console.log('[Elastic] Tilt-agent context index ready\n');
 
-  console.log('[TiltAgent] Starting background scan loop...');
   startTiltAgentLoop(async (userId, message, severity) => {
     try {
       const user = await client.users.fetch(userId);
@@ -137,7 +103,6 @@ async function main() {
       console.error(`[TiltAgent] Failed to process intervention for ${userId}:`, err);
     }
   });
-  console.log('[TiltAgent] Scan loop active\n');
   if (process.env.ELASTIC_URL && process.env.ELASTIC_API_KEY) {
     const regsChannelId = process.env.REGULATIONS_ALERTS_CHANNEL_ID || '';
     const regsGuildId = process.env.REGULATIONS_ALERTS_GUILD_ID || '';
@@ -150,84 +115,49 @@ async function main() {
       intervalMs: Number(process.env.REGULATIONS_NOTIFIER_INTERVAL_MS || 6 * 60 * 60 * 1000),
       maxRowsInMessage: Number(process.env.REGULATIONS_NOTIFIER_MAX_ROWS || 15),
     });
-  } else {
-    console.log('[Regulations] Skipping notifier (Elastic not configured)');
   }
 
-  console.log('[DM] Registering direct message handler...');
   registerDMHandler(client);
-  console.log('[DM] DM handler ready\n');
-
-  console.log('[Adapter] Starting trust adapter...');
-  startTrustAdapter({
-    onFormatted: (formatted: string) => {
-      console.log('[TrustAdapter]', formatted);
-    },
-  });
-  console.log('[Adapter] Trust adapter ready\n');
-
-  console.log('[Commands] Loading slash commands...');
+  startTrustAdapter({ onFormatted: () => {} });
   commandHandler.loadCommands();
-  console.log('');
 
-  // Auto-register slash commands with Discord on every startup
   if (config.clientId && config.discordToken && process.env.SKIP_DISCORD_LOGIN !== 'true') {
     const { REST, Routes } = await import('discord.js');
     const rest = new REST().setToken(config.discordToken);
     const commandData = commandHandler.getCommandData();
     try {
       if (config.guildId) {
-        // Guild deploy — also clear global to prevent duplicates showing in Discord
         await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: commandData });
         await rest.put(Routes.applicationCommands(config.clientId), { body: [] });
-        console.log(`[Commands] ${commandData.length} guild commands registered, global commands cleared\n`);
       } else {
-        // Global deploy — clear any stale guild commands if guildId was previously set
         await rest.put(Routes.applicationCommands(config.clientId), { body: commandData });
-        console.log(`[Commands] ${commandData.length} global slash commands registered\n`);
       }
+      console.log(`[TILTCHECK-BOT] ${commandData.length} commands registered`);
     } catch (err) {
-      console.error('[Commands] Failed to register slash commands:', err);
+      console.error('[TILTCHECK-BOT] Command registration failed:', err);
     }
   }
 
-  console.log('[Events] Registering Discord events...');
   eventHandler.registerDiscordEvents();
-  console.log('[Events] Discord events registered');
-
-  console.log('[Events] Registering payment events...');
   eventHandler.registerPaymentEvents();
-  console.log('[Events] Payment events registered');
-
-  console.log('[Events] Subscribing to EventRouter...');
   eventHandler.subscribeToEvents();
-  console.log('[Events] EventRouter subscriptions active\n');
 
-  console.log('[Discord] Connecting to Discord...');
   let ready = false;
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
-    console.log('[Discord] CI mode - skipping Discord login');
     ready = true;
-    try {
-      fs.writeFileSync('/tmp/bot-ready', 'ready');
-      console.log('[Health] Ready marker written');
-    } catch (e) {
-      console.error('[Health] Failed to write ready marker:', e);
-    }
+    const activityManager = new DiscordActivityManager('');
+    setLaunchActivityManager(activityManager);
+    try { fs.writeFileSync('/tmp/bot-ready', 'ready'); } catch {}
   } else {
     await client.login(config.discordToken);
     client.once('ready', () => {
+      const activityManager = new DiscordActivityManager(client.application?.id || config.clientId);
+      setLaunchActivityManager(activityManager);
       ready = true;
-      console.log('[Discord] Connected and ready!');
-      try {
-        fs.writeFileSync('/tmp/bot-ready', 'ready');
-        console.log('[Health] Ready marker written');
-      } catch (e) {
-        console.error('[Health] Failed to write ready marker:', e);
-      }
+      console.log('[TILTCHECK-BOT] Ready');
+      try { fs.writeFileSync('/tmp/bot-ready', 'ready'); } catch {}
     });
   }
-  console.log('');
 
   const HEALTH_PORT = process.env.PORT || '8080';
   const PORT = parseInt(HEALTH_PORT, 10);
@@ -257,8 +187,7 @@ async function main() {
   });
 
   healthServer.listen(PORT, () => {
-    console.log(`[Health] Bot health check listening on port ${PORT}`);
-    console.log('[Bot] Ready');
+    console.log(`[TILTCHECK-BOT] Health on :${PORT} | Boot ${Date.now() - startTime}ms`);
   });
 
   healthServer.on('error', (err: NodeJS.ErrnoException) => {
@@ -269,22 +198,11 @@ async function main() {
     throw err;
   });
 
-  const shutdown= async () => {
-    console.log('\n[Bot] Shutting down gracefully...');
-
+  const shutdown = async () => {
     stopTiltAgentLoop();
     stopRegulationsNotifier();
-
-    if (healthServer.listening) {
-      healthServer.close();
-    }
-
-    if (client.isReady()) {
-      console.log('[Bot] Destroying Discord client...');
-      await client.destroy();
-    }
-
-    console.log('[Bot] Shutdown complete.');
+    if (healthServer.listening) healthServer.close();
+    if (client.isReady()) await client.destroy();
     process.exit(0);
   };
 

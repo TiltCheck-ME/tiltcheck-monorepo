@@ -21,3 +21,4 @@ export { terms } from './terms.js';
 export { blockGame, unblockGame, myExclusions } from './exclusions.js';
 export { upgrade } from './upgrade.js';
 export { touchgrass } from './touchgrass.js';
+export { launch } from './launch.js';

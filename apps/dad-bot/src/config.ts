@@ -18,10 +18,7 @@ function getEnvVar(key: string, required = true): string {
 function getDiscordToken(): string {
   for (const envVar of DAD_TOKEN_ENV_VARS) {
     const value = process.env[envVar];
-    if (value) {
-      console.log(`[Config] Found token in ${envVar} (Length: ${value.trim().length}, Prefix: ${value.trim().substring(0, 5)}...)`);
-      return value.trim();
-    }
+    if (value) return value.trim();
   }
   return '';
 }
@@ -64,15 +61,9 @@ export const config: BotConfig = {
 
 export function validateConfig(): void {
   if (!config.discordToken) {
-    console.error('[Config] No DAD Discord token found.');
-    console.error('[Config] Checked: DAD_DISCORD_BOT_TOKEN, DISCORD_TOKEN, DISCORD_BOT_TOKEN');
     throw new Error(`${DAD_TOKEN_ENV_VARS.join(' or ')} is required.`);
   }
-
   if (!config.clientId) {
     throw new Error('DISCORD_CLIENT_ID is required.');
   }
-
-  console.log('[Config] DAD Bot configuration loaded successfully');
-  console.log(`[Config] Environment: ${config.nodeEnv}`);
 }
