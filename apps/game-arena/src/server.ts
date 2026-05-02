@@ -188,6 +188,57 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// ── Director's Booth endpoints (called by control-room trivia-director.js) ────
+
+app.get('/trivia/status', async (_req, res) => {
+  const liveState = triviaManager.getLiveState();
+  res.json({ activeGame: liveState || null });
+});
+
+app.post('/trivia/schedule', async (req, res) => {
+  try {
+    const { category, theme, totalRounds, timerMs, prizeSol } = req.body;
+    const result = await triviaManager.scheduleGame({
+      startTime: Date.now() + 5000,
+      category: category || 'general',
+      theme: theme || category || 'Random Degen Knowledge',
+      totalRounds: totalRounds || 10,
+      prizePool: prizeSol || 0,
+    });
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/trivia/control', async (req, res) => {
+  const { action } = req.body;
+  try {
+    if (action === 'end') {
+      await triviaManager.endGame();
+      io.emit('game-update', { type: 'trivia-reset' });
+      res.json({ success: true, action: 'end' });
+    } else if (action === 'skip') {
+      // Skip triggers reveal immediately then advances
+      const live = triviaManager.getLiveState();
+      if (live?.currentQuestion) {
+        // Force-reveal current round by publishing the event
+        await eventRouter.publish('trivia.round.skip' as any, 'game-arena', { gameId: live.gameId });
+      }
+      res.json({ success: true, action: 'skip' });
+    } else {
+      res.json({ success: true, action, note: `${action} acknowledged (game-arena does not yet implement pause/resume)` });
+    }
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/trivia/swap-question', async (req, res) => {
+  // Placeholder — would require trivia-manager to support hot-swap
+  res.json({ success: false, message: 'Question swap not yet implemented in trivia-manager' });
+});
+
 app.post('/admin/trivia/start', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { category, theme, rounds } = req.body;
@@ -1147,6 +1198,28 @@ eventRouter.subscribe('trivia.completed', (event) => {
     timestamp: Date.now(),
   });
   io.to(`game:${event.data.gameId}`).emit('game-update', { type: 'trivia-completed', ...event.data });
+}, 'game-arena');
+
+// Player elimination / reinstatement events → Activity client
+eventRouter.subscribe('trivia.player.eliminated', (event) => {
+  const d = event.data as { gameId: string; userId: string; username: string };
+  io.to(`game:${d.gameId}`).emit('trivia-player-eliminated', { userId: d.userId, username: d.username });
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.player.reinstated', (event) => {
+  const d = event.data as { gameId: string; userId: string; username: string };
+  io.to(`game:${d.gameId}`).emit('trivia-player-reinstated', { userId: d.userId, username: d.username });
+}, 'game-arena');
+
+// Trivia notification from Director's Booth → broadcast to lobby
+eventRouter.subscribe('trivia.notification', (event) => {
+  const d = event.data as { message: string; type: string };
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: d.message,
+    timestamp: Date.now(),
+  });
 }, 'game-arena');
 
 // Forward tip rain events from discord-bot → socket.io clients (Activity TipView)

@@ -193,8 +193,16 @@ function renderQuestion(): void {
     ${eliminated ? `
       <div class="card card--danger" style="text-align:center;">
         <p class="card__eyebrow">Eliminated</p>
-        <p class="card__body">You're out. Watch the round play out.${buyBackAvailable && me && !me.buyBackUsed ? ' Or buy back in.' : ''}</p>
-        ${buyBackAvailable && me && !me.buyBackUsed ? `<button id="btn-buyback" class="btn btn--primary" style="margin-top:0.5rem;">BUY BACK IN</button>` : ''}
+        <p class="card__body">You're out. Watch the round play out.</p>
+        ${buyBackAvailable && me && !me.buyBackUsed ? `
+          <button id="btn-buyback" class="btn btn--primary" style="margin-top:0.5rem;width:100%;">
+            <span style="font-size:0.8rem;">&#x1F4B0;</span>
+            <span style="margin-left:0.35rem;">BUY BACK IN</span>
+            <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.1rem;">1 per game — rejoin the round</span>
+          </button>
+        ` : `
+          <p style="font-size:0.6rem;color:var(--text-muted);margin-top:0.5rem;">${me?.buyBackUsed ? 'Buy-back already used.' : 'No buy-back available.'}</p>
+        `}
       </div>
     ` : `
       <div class="choice-grid">
@@ -207,9 +215,36 @@ function renderQuestion(): void {
       </div>
 
       ${!answerLocked ? `
-        <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
-          ${shieldAvailable && me && !me.shieldConsumed ? `<button id="btn-shield" class="btn" style="flex:1;" title="Shield: survive one wrong answer this round">SHIELD</button>` : ''}
-          ${!apeInUsedThisRound ? `<button id="btn-apein" class="btn btn--primary" style="flex:1;" title="Ape In: double points if correct, instant elimination if wrong">APE IN</button>` : ''}
+        <div class="card" style="margin-top:0.5rem;">
+          <p class="card__eyebrow">Powerups (1 per game each)</p>
+          <div style="display:flex;gap:0.5rem;">
+            ${shieldAvailable && me && !me.shieldConsumed ? `
+              <button id="btn-shield" class="btn" style="flex:1;">
+                <span style="display:block;font-size:0.8rem;">&#x1F6E1;</span>
+                <span>SHIELD</span>
+                <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">Survive 1 wrong</span>
+              </button>
+            ` : `
+              <div class="btn" style="flex:1;opacity:0.3;cursor:default;flex-direction:column;">
+                <span style="font-size:0.8rem;">&#x1F6E1;</span>
+                <span>SHIELD</span>
+                <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">${me?.shieldConsumed ? 'Used' : 'Locked'}</span>
+              </div>
+            `}
+            ${!apeInUsedThisRound ? `
+              <button id="btn-apein" class="btn btn--primary" style="flex:1;">
+                <span style="display:block;font-size:0.8rem;">&#x1F525;</span>
+                <span>APE IN</span>
+                <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">2x or die</span>
+              </button>
+            ` : `
+              <div class="btn" style="flex:1;opacity:0.3;cursor:default;flex-direction:column;">
+                <span style="font-size:0.8rem;">&#x1F525;</span>
+                <span>APE IN</span>
+                <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">Used</span>
+              </div>
+            `}
+          </div>
         </div>
       ` : `
         <div class="card" style="margin-top:0.5rem;text-align:center;">

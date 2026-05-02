@@ -66,6 +66,7 @@ import { partnerRouter } from './routes/partner.js';
 import { statsRouter } from './routes/stats.js';
 import { blogRouter } from './routes/blog.js';
 import { telemetryRouter } from './routes/telemetry.js';
+import { triviaRouter } from './routes/trivia.js';
 import { startBlogGenerator } from './services/blog-generator.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -222,6 +223,7 @@ app.use('/stats', statsRouter);
 app.use('/partner', partnerRouter);
 app.use('/blog', blogRouter);
 app.use('/telemetry', telemetryRouter);
+app.use('/trivia', triviaRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

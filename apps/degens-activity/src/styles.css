@@ -185,6 +185,10 @@ body {
   color: var(--color-danger);
 }
 
+.btn {
+  flex-direction: column;
+}
+
 .btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;

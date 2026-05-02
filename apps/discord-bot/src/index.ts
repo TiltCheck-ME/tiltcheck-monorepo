@@ -29,6 +29,7 @@ import { initializeBetaReviewQueue, syncBetaReviewQueue } from './services/beta-
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 import { DiscordActivityManager } from '@tiltcheck/discord-activities';
 import { setLaunchActivityManager } from './commands/launch.js';
+import { initializeTriviaNotifier } from './services/trivia-notifier.js';
 
 import { getUserBuddies, type BetaSignupStatus } from '@tiltcheck/db';
 
@@ -118,6 +119,7 @@ async function main() {
   }
 
   registerDMHandler(client);
+  initializeTriviaNotifier(client);
   startTrustAdapter({ onFormatted: () => {} });
   commandHandler.loadCommands();
 

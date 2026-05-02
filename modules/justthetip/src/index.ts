@@ -8,6 +8,7 @@ export * from './types.js';
 export * from './core.js';
 export * from './credits.js';
 export * from './solana.js';
+export * from './rain.js';
 
 import * as core from './core.js';
 import { CreditService } from './credits.js';
