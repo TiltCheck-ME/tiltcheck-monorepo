@@ -16,6 +16,12 @@ import {
   type SharedTriviaTopic,
 } from '@tiltcheck/shared';
 import type { TriviaGameSettings } from '@tiltcheck/types';
+import { redisClient } from './redis-client.js';
+
+const REDIS_SNAPSHOT_KEY = 'game-arena:trivia:snapshot';
+const REDIS_EVENTS_CHANNEL = 'game-arena:trivia:events';
+let preferFilePersistence = false;
+
 
 interface StoredQuestion {
   id: string;
@@ -411,8 +417,40 @@ function resetInMemoryState(): void {
 async function persistState(): Promise<void> {
   try {
     const snapshot = buildSnapshot();
+    const snapshotJson = JSON.stringify({ ...snapshot });
+
+    // If tests or callers explicitly requested file-backed persistence, prefer that unless force flag set
+    const forceRedis = process.env.TRIVIA_FORCE_REDIS === 'true';
+
+    if (preferFilePersistence && !forceRedis) {
+      await mkdir(path.dirname(persistencePath), { recursive: true });
+      await writeFile(persistencePath, snapshotJson, 'utf8');
+      persistenceStats.lastSavedAt = Date.now();
+      persistenceStats.completedGameCount = completedGames.length;
+      return;
+    }
+
+    if (redisClient && redisClient.isAvailable()) {
+      // Persist atomically to Redis
+      await redisClient.setSnapshot(REDIS_SNAPSHOT_KEY, snapshotJson);
+      persistenceStats.lastSavedAt = Date.now();
+      persistenceStats.completedGameCount = completedGames.length;
+
+      // Publish a lightweight event for subscribers
+      try {
+        const sizeBytes = Buffer.byteLength(snapshotJson, 'utf8');
+        await redisClient.publish(REDIS_EVENTS_CHANNEL, { type: 'snapshot.updated', savedAt: persistenceStats.lastSavedAt, sizeBytes });
+      } catch (pubErr) {
+        // Non-fatal: log and continue
+        console.debug('[TriviaManager] Failed to publish snapshot update event:', pubErr);
+      }
+
+      return;
+    }
+
+    // Fallback to file-based persistence
     await mkdir(path.dirname(persistencePath), { recursive: true });
-    await writeFile(persistencePath, JSON.stringify(snapshot), 'utf8');
+    await writeFile(persistencePath, snapshotJson, 'utf8');
     persistenceStats.lastSavedAt = Date.now();
     persistenceStats.completedGameCount = completedGames.length;
   } catch (error) {
@@ -686,50 +724,125 @@ async function startScheduledGame(gameId: string): Promise<boolean> {
 
 async function restoreState(): Promise<void> {
   try {
-    const raw = await readFile(persistencePath, 'utf8');
-    const snapshot = JSON.parse(raw) as TriviaSnapshot;
+    const forceRedis = process.env.TRIVIA_FORCE_REDIS === 'true';
 
-    if (snapshot.version !== 1) {
-      console.warn('[TriviaManager] Ignoring unknown trivia snapshot version');
-      return;
-    }
+    // If we are not forced to use file persistence, try Redis first when available
+    if (!preferFilePersistence || forceRedis) {
+      try {
+        if (redisClient && redisClient.isAvailable()) {
+          const raw = await redisClient.getSnapshot(REDIS_SNAPSHOT_KEY);
+          if (raw) {
+            console.debug('[TriviaManager] Restoring trivia snapshot from Redis');
+            const snapshot = JSON.parse(raw) as TriviaSnapshot;
 
-    completedGames = snapshot.completedGames || [];
-    auditLog = snapshot.auditLog || [];
-    persistenceStats.auditEventCount = auditLog.length;
-    persistenceStats.completedGameCount = completedGames.length;
-    persistenceStats.lastRestoredAt = Date.now();
+            if (snapshot.version !== 1) {
+              console.warn('[TriviaManager] Ignoring unknown trivia snapshot version from Redis');
+            } else {
+              completedGames = snapshot.completedGames || [];
+              auditLog = snapshot.auditLog || [];
+              persistenceStats.auditEventCount = auditLog.length;
+              persistenceStats.completedGameCount = completedGames.length;
+              persistenceStats.lastRestoredAt = Date.now();
 
-    if (!snapshot.activeGame) {
-      persistenceStats.restoredActiveGame = false;
-      return;
-    }
+              if (snapshot.activeGame) {
+                activeGame = deserializeActiveGame(snapshot.activeGame);
+                persistenceStats.restoredActiveGame = true;
 
-    activeGame = deserializeActiveGame(snapshot.activeGame);
-    persistenceStats.restoredActiveGame = true;
+                const restoreDelay =
+                  activeGame.roundEndsAt !== null
+                    ? activeGame.roundEndsAt - Date.now()
+                    : activeGame.startedAt - Date.now();
 
-    const restoreDelay =
-      activeGame.roundEndsAt !== null
-        ? activeGame.roundEndsAt - Date.now()
-        : activeGame.startedAt - Date.now();
+                if (activeGame.roundEndsAt !== null) {
+                  const currentQuestion = activeGame.questions[activeGame.currentRound];
+                  if (currentQuestion) {
+                    scheduleRevealTimer(activeGame, currentQuestion.id, restoreDelay);
+                  } else {
+                    await endGameWithResults(activeGame.gameId);
+                  }
+                } else {
+                  scheduleStartTimer(activeGame, restoreDelay);
+                }
 
-    if (activeGame.roundEndsAt !== null) {
-      const currentQuestion = activeGame.questions[activeGame.currentRound];
-      if (currentQuestion) {
-        scheduleRevealTimer(activeGame, currentQuestion.id, restoreDelay);
-      } else {
-        await endGameWithResults(activeGame.gameId);
+                console.log(`[TriviaManager] Restored trivia game ${activeGame.gameId} from Redis`);
+                return;
+              }
+            }
+          }
+        }
+      } catch (redisErr) {
+        persistenceStats.restoreErrorCount++;
+        console.debug('[TriviaManager] Redis restore failed, falling back to file-based persistence:', redisErr);
       }
-    } else {
-      scheduleStartTimer(activeGame, restoreDelay);
+
+      // Migration: if no Redis snapshot exists but a file snapshot exists, copy it to Redis
+      try {
+        const fileStat = await stat(persistencePath);
+        if (fileStat && redisClient && redisClient.isAvailable()) {
+          try {
+            const rawFile = await readFile(persistencePath, 'utf8');
+            await redisClient.setSnapshot(REDIS_SNAPSHOT_KEY, rawFile);
+            console.debug('[TriviaManager] Migrated file snapshot to Redis');
+          } catch (migErr) {
+            console.debug('[TriviaManager] Migration to Redis failed:', migErr);
+          }
+        }
+      } catch {
+        // file does not exist or cannot be read; continue to file fallback below
+      }
     }
 
-    console.log(`[TriviaManager] Restored trivia game ${activeGame.gameId}`);
+    // File-based restore (fallback)
+    try {
+      const raw = await readFile(persistencePath, 'utf8');
+      const snapshot = JSON.parse(raw) as TriviaSnapshot;
+
+      if (snapshot.version !== 1) {
+        console.warn('[TriviaManager] Ignoring unknown trivia snapshot version');
+        return;
+      }
+
+      completedGames = snapshot.completedGames || [];
+      auditLog = snapshot.auditLog || [];
+      persistenceStats.auditEventCount = auditLog.length;
+      persistenceStats.completedGameCount = completedGames.length;
+      persistenceStats.lastRestoredAt = Date.now();
+
+      if (!snapshot.activeGame) {
+        persistenceStats.restoredActiveGame = false;
+        return;
+      }
+
+      activeGame = deserializeActiveGame(snapshot.activeGame);
+      persistenceStats.restoredActiveGame = true;
+
+      const restoreDelay =
+        activeGame.roundEndsAt !== null
+          ? activeGame.roundEndsAt - Date.now()
+          : activeGame.startedAt - Date.now();
+
+      if (activeGame.roundEndsAt !== null) {
+        const currentQuestion = activeGame.questions[activeGame.currentRound];
+        if (currentQuestion) {
+          scheduleRevealTimer(activeGame, currentQuestion.id, restoreDelay);
+        } else {
+          await endGameWithResults(activeGame.gameId);
+        }
+      } else {
+        scheduleStartTimer(activeGame, restoreDelay);
+      }
+
+      console.log(`[TriviaManager] Restored trivia game ${activeGame.gameId} from file`);
+      return;
+    } catch (error: any) {
+      persistenceStats.restoreErrorCount++;
+      if (error?.code !== 'ENOENT') {
+        console.warn('[TriviaManager] Failed to restore trivia snapshot:', error);
+      }
+    }
   } catch (error: any) {
     persistenceStats.restoreErrorCount++;
-    if (error?.code !== 'ENOENT') {
-      console.warn('[TriviaManager] Failed to restore trivia snapshot:', error);
-    }
+    console.warn('[TriviaManager] Failed to restore trivia snapshot (outer):', error);
   }
 }
 
