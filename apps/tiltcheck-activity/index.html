@@ -1,0 +1,41 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiltCheck — Session Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <!-- Status bar -->
+  <header class="topbar">
+    <span class="topbar__brand">TILTCHECK</span>
+    <span id="status" class="topbar__status">CONNECTING</span>
+    <button id="btn-invite" class="topbar__btn" title="Invite">+</button>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="tab-bar" aria-label="Activity navigation">
+    <button class="tab active" data-view="session">Session</button>
+    <button class="tab" data-view="tilt">Tilt</button>
+    <button class="tab" data-view="trust">Trust</button>
+  </nav>
+
+  <!-- Views -->
+  <main id="app">
+    <section id="view-session" class="view active"></section>
+    <section id="view-tilt" class="view"></section>
+    <section id="view-trust" class="view"></section>
+  </main>
+
+  <footer class="botbar">
+    <span>Made for Degens. By Degens.</span>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
