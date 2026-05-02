@@ -335,3 +335,19 @@ body {
 .waiting__text {
   font-size: 0.75rem;
 }
+
+/* ── Trivia HQ timer pulse ── */
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+#trivia-timer {
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+/* ── Eliminated state ── */
+.card--danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.05);
+}

@@ -4,6 +4,7 @@
 export { lobby } from './lobby.js';
 export { triviadrop } from './triviadrop.js';
 export { jackpot } from './jackpot.js';
+export { rain } from './rain.js';
 export { play } from './play.js';
 export { launch } from './launch.js';
 export { degensHelp } from './dad-help.js';
