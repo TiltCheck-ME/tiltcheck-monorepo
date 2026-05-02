@@ -1,13 +1,10 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import path from 'node:path';
 import { eventRouter } from '@tiltcheck/event-router';
 import { redisClient } from '../src/redis-client.js';
 
 import { triviaManager } from '../src/trivia-manager.js';
-
-const TEST_STATE_FILE = path.resolve(process.cwd(), 'data/trivia-manager.test-state.json');
 
 describe('triviaManager (redis)', () => {
   beforeEach(async () => {

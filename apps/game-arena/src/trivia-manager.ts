@@ -475,7 +475,7 @@ async function persistState(): Promise<void> {
       return;
     }
 
-    if (redisClient && redisClient.isAvailable()) {
+    if (redisClient.isAvailable()) {
       // Persist atomically to Redis
       await redisClient.setSnapshot(REDIS_SNAPSHOT_KEY, snapshotJson);
       persistenceStats.lastSavedAt = Date.now();
