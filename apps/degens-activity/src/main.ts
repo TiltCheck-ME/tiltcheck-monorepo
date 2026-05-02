@@ -56,8 +56,8 @@ async function boot(): Promise<void> {
 
   lobbyView.mount(lobbyEl, switchView, user.username);
   dadView.mount(dadEl, user.id);
-  triviaView.mount(triviaEl);
-  jackpotView.mount(jackpotEl);
+  triviaView.mount(triviaEl, user.id);
+  jackpotView.mount(jackpotEl, user.id);
 
   // Tab navigation
   document.querySelectorAll<HTMLElement>('.tab').forEach((tab) => {

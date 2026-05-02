@@ -16,6 +16,7 @@ import {
   getReportConfig,
   startReportWorker,
 } from './report-requests.js';
+import { registerDirectorRoutes } from './trivia-director.js';
 
 // Payout admin package (file-backed ledger + simple worker)
 import * as payout from '../../../packages/prize-payout/src/index.js';
@@ -770,6 +771,9 @@ wss.on('connection', (ws) => {
     }
   });
 });
+
+// ─── Director's Booth (Live Trivia HQ) ─────────────────────────────────────────
+registerDirectorRoutes(app, requireAuth);
 
 // ─── Health ────────────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', port: PORT }));
