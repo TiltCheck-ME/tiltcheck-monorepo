@@ -20,19 +20,19 @@ const QUOTES = [
 
 const footerGroups = [
   {
-      title: "Tools",
-      links: [
-        { href: "/#tools", label: "All tools" },
-        { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Profit Guardrails" },
-        { href: "/tools/verify", label: "Bet Verifier" },
-        { href: "/tools/session-stats", label: "RTP Drift Watch" },
-        { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
+    title: "Tools",
+    links: [
+      { href: "/tools", label: "All tools" },
+      { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Profit Guardrails" },
+      { href: "/tools/verify", label: "Bet Verifier" },
+      { href: "/tools/session-stats", label: "RTP Drift Watch" },
+      { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
     ],
   },
   {
     title: "Intel",
     links: [
-        { href: "/casinos", label: "Casino Trust Scores" },
+      { href: "/casinos", label: "Casino Trust Scores" },
       { href: "/bonuses", label: "Daily Bonus Tracker" },
       { href: "/intel/rtp", label: "RTP Intel" },
       { href: "/intel/scams", label: "Scam Registry" },
@@ -41,15 +41,16 @@ const footerGroups = [
   },
   {
     title: "Company",
-      links: [
-        { href: "/how-it-works", label: "How it Works" },
-        { href: "/docs", label: "Docs" },
-        { href: "/blog", label: "Blog" },
-        { href: "/about", label: "About" },
-        { href: getDashboardHandoffUrl("/dashboard"), label: "Your Dashboard" },
-      ],
-    },
-  ];
+    links: [
+      { href: "/how-it-works", label: "How it Works" },
+      { href: "/about", label: "About" },
+      { href: "/docs", label: "Docs" },
+      { href: "/blog", label: "Blog" },
+      { href: "/collab", label: "Contact" },
+      { href: getDashboardHandoffUrl("/dashboard"), label: "Your Dashboard" },
+    ],
+  },
+];
 
 const Footer = () => {
   const [quote, setQuote] = useState("");
@@ -111,8 +112,8 @@ const Footer = () => {
           <div className="footer-bottom-links">
             <Link href="/touch-grass">Touch Grass Protocol</Link>
             <Link href="/terms">Terms of Service</Link>
+            <Link href="/privacy">Privacy</Link>
             <Link href="/legal/limit">Asset Risk Limits</Link>
-            <Link href="/terms">Non-Advice Disclosure</Link>
             <a
               href="https://github.com/jmenichole/tiltcheck-monorepo"
               target="_blank"

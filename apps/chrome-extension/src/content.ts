@@ -49,6 +49,72 @@ import { EXT_CONFIG } from './config.js';
 import { GameBlocker } from './game-blocker.js';
 import type { CasinoVerification } from './license-verifier.js';
 
+interface StoredUserData {
+  id?: string;
+  discordId?: string;
+}
+
+interface UserStorageSnapshot {
+  userData?: StoredUserData;
+  tiltguard_user_id?: string;
+}
+
+interface CooldownInterventionData {
+  duration: number;
+}
+
+interface VaultPromptData {
+  suggestedAmount: number;
+}
+
+interface SpendingReminderData {
+  message: string;
+  cost: number;
+}
+
+interface StopLossData {
+  reason: string;
+}
+
+interface RedeemNudgeData {
+  message: string;
+  amount: number;
+}
+
+type RuntimeIntervention =
+  | { type: 'cooldown'; data: CooldownInterventionData }
+  | { type: 'vault_balance'; data: VaultPromptData }
+  | { type: 'spending_reminder'; data: { realWorldComparison: SpendingReminderData } }
+  | { type: 'stop_loss_triggered'; data: StopLossData }
+  | { type: 'phone_friend'; data?: Record<string, unknown> }
+  | { type: 'session_break'; data?: Record<string, unknown> }
+  | { type: 'redeem_nudge'; data: RedeemNudgeData };
+
+type FairnessSpinData = SpinEvent & {
+  rows?: number | null;
+  hash?: string | null;
+};
+
+interface FairnessCommitment {
+  blockHash?: string;
+  discordId: string;
+  clientSeed: string;
+  timestamp: number;
+}
+
+type SidebarStatsUpdate = {
+  startTime: number;
+  totalBets: number;
+  totalWagered: number;
+  totalWon: number;
+};
+
+type TiltCheckWindow = Window & {
+  TiltCheckSidebar?: {
+    updateStats?: (stats: SidebarStatsUpdate) => void;
+  };
+};
+
 // Configuration
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
 
@@ -80,6 +146,25 @@ let cooldownEndTime: number | null = null;
 let lastRedeemNudgeBalance: number | null = null;
 let lastRedeemNudgeThreshold = 0;
 const lastSupportInterventionByType: Record<string, number> = {};
+
+function normalizeInterventionData(data: unknown): Record<string, unknown> {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return {};
+  }
+
+  return data as Record<string, unknown>;
+}
+
+function isFairnessCommitment(value: unknown): value is FairnessCommitment {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return typeof record.discordId === 'string'
+    && typeof record.clientSeed === 'string'
+    && typeof record.timestamp === 'number';
+}
 
 function normalizeSiteHost(value: string): string {
   return value.replace(/^www\./, '').toLowerCase();
@@ -662,7 +747,7 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
       totalWagered: sessionSummary.totalWagered || 0,
       totalWon: sessionSummary.totalWon || 0
     };
-    (window as any).TiltCheckSidebar?.updateStats(stats);
+    (window as TiltCheckWindow).TiltCheckSidebar?.updateStats?.(stats);
 
     const redeemOpportunity = tiltDetector.detectRedeemOpportunity();
     if (redeemOpportunity) {
@@ -823,7 +908,7 @@ function startTiltMonitoring() {
 /**
  * Handle interventions
  */
-function handleInterventions(interventions: any[]) {
+function handleInterventions(interventions: RuntimeIntervention[]) {
   for (const intervention of interventions) {
     if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Intervention:', intervention);
 
@@ -857,7 +942,7 @@ function handleInterventions(interventions: any[]) {
         break;
     }
 
-    notifySupportIntervention(intervention.type, intervention.data ?? {});
+    notifySupportIntervention(intervention.type, normalizeInterventionData(intervention.data));
   }
 }
 
@@ -905,18 +990,22 @@ function endCooldown() {
  */
 function blockBettingUI(block: boolean) {
   // Find common bet buttons
-  const betButtons = document.querySelectorAll(
+  const betButtons = document.querySelectorAll<HTMLElement>(
     'button[class*="bet"], button[class*="spin"], [data-action="bet"], [data-action="spin"]'
   );
 
-  betButtons.forEach((btn: any) => {
+  betButtons.forEach((btn) => {
     if (block) {
-      btn.disabled = true;
+      if (btn instanceof HTMLButtonElement) {
+        btn.disabled = true;
+      }
       btn.style.opacity = '0.5';
       btn.style.cursor = 'not-allowed';
       btn.dataset.tiltguardBlocked = 'true';
     } else if (btn.dataset.tiltguardBlocked) {
-      btn.disabled = false;
+      if (btn instanceof HTMLButtonElement) {
+        btn.disabled = false;
+      }
       btn.style.opacity = '';
       btn.style.cursor = '';
       delete btn.dataset.tiltguardBlocked;
@@ -986,7 +1075,7 @@ function removeCooldownOverlay() {
 /**
  * Show vault prompt
  */
-function showVaultPrompt(vaultData: any) {
+function showVaultPrompt(vaultData: VaultPromptData) {
   const message = `💰 Your balance is ${vaultData.suggestedAmount.toFixed(2)}. Consider vaulting to protect your winnings.`;
   showInteractiveNotification(message, [
     { text: 'Vault Now', action: () => openVaultInterface(vaultData.suggestedAmount) },
@@ -997,7 +1086,7 @@ function showVaultPrompt(vaultData: any) {
 /**
  * Show spending reminder
  */
-function showSpendingReminder(comparison: any) {
+function showSpendingReminder(comparison: SpendingReminderData) {
   showInteractiveNotification(comparison.message, [
     { text: 'Vault & Buy', action: () => openVaultInterface(comparison.cost) },
     { text: 'Remind Me Later', action: () => { } }
@@ -1007,7 +1096,7 @@ function showSpendingReminder(comparison: any) {
 /**
  * Trigger stop loss
  */
-function triggerStopLoss(data: any) {
+function triggerStopLoss(data: StopLossData) {
   triggerEmergencyStop(data.reason);
   showVaultPrompt({ suggestedAmount: tiltDetector?.getSessionSummary().currentBalance || 0 });
 }
@@ -1328,7 +1417,7 @@ async function getUserId(): Promise<string> {
   return new Promise((resolve) => {
     try {
       // 1. Prefer authenticated Discord ID if available
-      chrome.storage.local.get(['userData', 'tiltguard_user_id'], (result: any) => {
+      chrome.storage.local.get(['userData', 'tiltguard_user_id'], (result: UserStorageSnapshot) => {
         if (result.userData?.id) {
           resolve(result.userData.id as string);
         } else if (result.tiltguard_user_id) {
@@ -1363,7 +1452,7 @@ async function getUserId(): Promise<string> {
 async function getLinkedDiscordId(): Promise<string | null> {
   return new Promise((resolve) => {
     try {
-      chrome.storage.local.get(['userData'], (result: any) => {
+      chrome.storage.local.get(['userData'], (result: UserStorageSnapshot) => {
         resolve(typeof result.userData?.discordId === 'string' ? result.userData.discordId : null);
       });
     } catch {
@@ -1407,7 +1496,7 @@ function setupFairnessListeners() {
 /**
  * Verify the fairness of a finished spin
  */
-async function verifySpinFairness(spinData: any, gameId: string) {
+async function verifySpinFairness(spinData: FairnessSpinData, gameId: string) {
   // Null means verification has not completed yet; allow analysis until verdict arrives.
   if (casinoVerification != null && !casinoVerification.shouldAnalyze) {
     return;
@@ -1419,10 +1508,19 @@ async function verifySpinFairness(spinData: any, gameId: string) {
   if (!storedCommitment) return; // No commitment made for this spin
 
   try {
-    const commitment = JSON.parse(storedCommitment);
+    const parsedCommitment: unknown = JSON.parse(storedCommitment);
+    if (!isFairnessCommitment(parsedCommitment)) {
+      return;
+    }
+    const commitment = parsedCommitment;
 
     // Clear immediately to prevent reusing for next spin
     sessionStorage.removeItem('tiltcheck_pending_commitment');
+
+    if (typeof commitment.blockHash !== 'string' || commitment.blockHash.trim() === '') {
+      console.warn('[TiltCheck] Missing block hash for fairness verification');
+      return;
+    }
 
     // 1. Calculate the "Source of Truth" from the commitment
     const expectedHash = await fairness.generateHash(
@@ -1537,7 +1635,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 /**
  * Show high-intensity Redeem Nudge
  */
-function showRedeemNudge(data: any) {
+function showRedeemNudge(data: RedeemNudgeData) {
   const existing = document.getElementById('tiltcheck-redeem-nudge');
   if (existing) {
     existing.remove();

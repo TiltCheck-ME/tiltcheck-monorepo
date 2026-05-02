@@ -4,7 +4,7 @@
  * Degen Breathalyzer and Anti-Tilt interventions.
  */
 
-import { Router } from 'express';
+import { Router, type Response } from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
@@ -16,8 +16,9 @@ import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { LinkScanner } from '@tiltcheck/suslink';
 import { loadDomainBlacklist } from '../lib/live-feed-data.js';
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, type AuthRequest } from '../middleware/auth.js';
 import { z, ZodError } from 'zod';
+import { ApplicationError } from '@tiltcheck/error-factory';
 
 const router = Router();
 const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
@@ -62,6 +63,57 @@ function getErrorMessage(error: ZodError): string {
   return error.issues[0]?.message || 'Invalid request body';
 }
 
+function getBreathalyzerValidationError(body: unknown): ApplicationError | null {
+  const parseResult = breathalyzerSchema.safeParse(body);
+  if (parseResult.success) {
+    return null;
+  }
+
+  const payload = body && typeof body === 'object' && !Array.isArray(body)
+    ? body as Record<string, unknown>
+    : {};
+
+  if (typeof payload.userId !== 'string' || payload.userId.trim() === '') {
+    return new ApplicationError('userId is required', 400, 'INVALID_INPUT');
+  }
+
+  if (typeof payload.eventsInWindow !== 'number' || typeof payload.windowMinutes !== 'number') {
+    return new ApplicationError('eventsInWindow and windowMinutes must be numbers', 400, 'INVALID_INPUT');
+  }
+
+  return new ApplicationError(getErrorMessage(parseResult.error), 400, 'INVALID_INPUT');
+}
+
+function getSuslinkValidationError(body: unknown): ApplicationError | null {
+  const parseResult = suslinkScanSchema.safeParse(body);
+  if (parseResult.success) {
+    return null;
+  }
+
+  const payload = body && typeof body === 'object' && !Array.isArray(body)
+    ? body as Record<string, unknown>
+    : {};
+
+  if (typeof payload.url !== 'string' || payload.url.trim() === '') {
+    return new ApplicationError('url is required', 400, 'INVALID_URL');
+  }
+
+  return new ApplicationError(getErrorMessage(parseResult.error), 400, 'INVALID_INPUT');
+}
+
+function sendApplicationError(
+  res: Response,
+  error: ApplicationError,
+  extra: Record<string, unknown> = {},
+): void {
+  const serialized = error.toJSON();
+  res.status(error.statusCode).json({
+    ...serialized,
+    error: serialized.message,
+    ...extra,
+  });
+}
+
 function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = OUTBOUND_FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -79,13 +131,13 @@ function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = OUTBOUND
  * Evaluate tilt risk based on recent betting velocity and loss context.
  */
 router.post('/breathalyzer/evaluate', (req, res) => {
-  const parseResult = breathalyzerSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+  const validationError = getBreathalyzerValidationError(req.body);
+  if (validationError) {
+    sendApplicationError(res, validationError);
     return;
   }
 
-  const { userId, eventsInWindow, windowMinutes, lossAmountWindow, streakLosses } = parseResult.data;
+  const { userId, eventsInWindow, windowMinutes, lossAmountWindow, streakLosses } = breathalyzerSchema.parse(req.body);
 
   const result = evaluateBreathalyzer({
     userId,
@@ -125,7 +177,7 @@ router.post('/breathalyzer/evaluate', (req, res) => {
 router.post('/anti-tilt/evaluate', (req, res) => {
   const parseResult = antiTiltSchema.safeParse(req.body);
   if (!parseResult.success) {
-    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    sendApplicationError(res, new ApplicationError(getErrorMessage(parseResult.error), 400, 'INVALID_INPUT'));
     return;
   }
 
@@ -163,22 +215,22 @@ router.post('/anti-tilt/evaluate', (req, res) => {
  * Scan a URL for suspicious patterns using the SusLink engine.
  */
 router.post('/suslink/scan', async (req, res) => {
-  const parseResult = suslinkScanSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+  const validationError = getSuslinkValidationError(req.body);
+  if (validationError) {
+    sendApplicationError(res, validationError);
     return;
   }
 
-  const { url } = parseResult.data;
+  const { url } = suslinkScanSchema.parse(req.body);
 
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      res.status(400).json({ error: 'URL must use http:// or https://', code: 'INVALID_PROTOCOL' });
+      sendApplicationError(res, new ApplicationError('URL must use http:// or https://', 400, 'INVALID_PROTOCOL'));
       return;
     }
   } catch {
-    res.status(400).json({ error: 'Invalid URL format', code: 'INVALID_URL_FORMAT' });
+    sendApplicationError(res, new ApplicationError('Invalid URL format', 400, 'INVALID_URL_FORMAT'));
     return;
   }
 
@@ -198,7 +250,7 @@ router.post('/suslink/scan', async (req, res) => {
     });
   } catch (err) {
     console.error('[Safety API] SusLink scan error:', err);
-    res.status(500).json({ error: 'Internal scan error' });
+    sendApplicationError(res, new ApplicationError('Internal scan error', 500, 'SCAN_FAILED'));
   }
 });
 
@@ -206,12 +258,12 @@ router.post('/suslink/scan', async (req, res) => {
  * POST /safety/report
  * Submit a community report about a casino.
  */
-router.post('/report', async (req, res) => {
+router.post('/report', async (req: AuthRequest, res: Response) => {
   const parseResult = reportSchema.safeParse(req.body);
-  const userId = (req as any).user?.id || 'guest';
+  const userId = req.user?.id || 'guest';
 
   if (!parseResult.success) {
-    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    sendApplicationError(res, new ApplicationError(getErrorMessage(parseResult.error), 400, 'INVALID_INPUT'));
     return;
   }
 
@@ -231,7 +283,7 @@ router.post('/report', async (req, res) => {
     console.log(`[Community Signal] User ${userId} reported ${type} for ${casino}: ${details}`);
   } catch (error) {
     console.error('[Community Signal] Failed to persist report:', error);
-    res.status(500).json({ error: 'Failed to store community signal', code: 'SIGNAL_STORE_FAILED' });
+    sendApplicationError(res, new ApplicationError('Failed to store community signal', 500, 'SIGNAL_STORE_FAILED'));
     return;
   }
 
@@ -252,7 +304,7 @@ router.get('/signals/recent', async (_req, res) => {
     res.json({ success: true, signals: signals.slice(0, 8) });
   } catch (error) {
     console.error('[Community Signal] Failed to read recent signals:', error);
-    res.status(500).json({ error: 'Failed to load recent signals', code: 'SIGNAL_READ_FAILED' });
+    sendApplicationError(res, new ApplicationError('Failed to load recent signals', 500, 'SIGNAL_READ_FAILED'));
   }
 });
 
@@ -260,16 +312,16 @@ router.get('/signals/recent', async (_req, res) => {
  * POST /safety/notify-buddy
  * Trigger a support-only buddy accountability notification.
  */
-router.post('/notify-buddy', authMiddleware, async (req, res) => {
+router.post('/notify-buddy', authMiddleware, async (req: AuthRequest, res: Response) => {
   const parseResult = notifyBuddySchema.safeParse(req.body);
   if (!parseResult.success) {
-    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    sendApplicationError(res, new ApplicationError(getErrorMessage(parseResult.error), 400, 'INVALID_INPUT'));
     return;
   }
 
   const { userId, type, data } = parseResult.data;
-  const authenticatedUserId = (req as any).user?.id;
-  const authenticatedDiscordId = (req as any).user?.discordId;
+  const authenticatedUserId = req.user?.id;
+  const authenticatedDiscordId = req.user?.discordId;
   const normalizedAuthenticatedUserId = typeof authenticatedDiscordId === 'string' && authenticatedDiscordId.trim() !== ''
     ? authenticatedDiscordId
     : typeof authenticatedUserId === 'string' && authenticatedUserId.trim() !== ''
@@ -277,12 +329,12 @@ router.post('/notify-buddy', authMiddleware, async (req, res) => {
       : null;
 
   if (!normalizedAuthenticatedUserId) {
-    res.status(401).json({ error: 'Not authenticated', code: 'UNAUTHORIZED' });
+    sendApplicationError(res, new ApplicationError('Not authenticated', 401, 'UNAUTHORIZED'));
     return;
   }
 
   if (typeof userId === 'string' && userId.trim() !== '' && userId !== normalizedAuthenticatedUserId) {
-    res.status(403).json({ error: 'userId must match the authenticated user', code: 'FORBIDDEN' });
+    sendApplicationError(res, new ApplicationError('userId must match the authenticated user', 403, 'FORBIDDEN'));
     return;
   }
 
@@ -309,11 +361,11 @@ router.post('/notify-buddy', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error(`[Buddy System] Failed to deliver intervention ${type} for ${actualUserId}:`, error);
-    res.status(502).json({
-      error: 'Failed to deliver intervention to Discord bot',
-      code: 'BOT_DELIVERY_FAILED',
-      event,
-    });
+    sendApplicationError(
+      res,
+      new ApplicationError('Failed to deliver intervention to Discord bot', 502, 'BOT_DELIVERY_FAILED'),
+      { event },
+    );
   }
 });
 
@@ -328,7 +380,7 @@ const touchGrassLockouts = new Map<string, number>();
 router.post('/touchgrass', (req, res) => {
   const parseResult = touchGrassSchema.safeParse(req.body);
   if (!parseResult.success) {
-    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    sendApplicationError(res, new ApplicationError(getErrorMessage(parseResult.error), 400, 'INVALID_INPUT'));
     return;
   }
 

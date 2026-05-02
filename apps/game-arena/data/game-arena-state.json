@@ -1,1 +1,1 @@
-{"version":1,"savedAt":1774042735235,"games":[],"playerGames":[],"playerProfiles":[],"dadStates":[]}
+{"version":1,"savedAt":1777761471193,"games":[{"id":"c98fca1d-4c5c-4636-a8e2-975de7b81a02","type":"dad","platform":"web","status":"completed","hostId":"admin-user","hostUsername":"Admin","playerCount":1,"maxPlayers":4,"isPrivate":false,"createdAt":1777761471130}],"playerGames":[{"userId":"admin-user","gameId":"c98fca1d-4c5c-4636-a8e2-975de7b81a02"}],"playerProfiles":[{"userId":"admin-user","username":"Admin"}],"dadStates":[]}

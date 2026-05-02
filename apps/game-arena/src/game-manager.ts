@@ -19,6 +19,10 @@ import { eventRouter } from '@tiltcheck/event-router';
 import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { GameLobbyInfo, GameType, Platform } from './types.js';
+import { redisClient } from './redis-client.js';
+
+const REDIS_SNAPSHOT_KEY = 'game-arena:snapshot';
+const REDIS_EVENTS_CHANNEL = 'game-arena:events';
 
 interface GameArenaSnapshot {
   version: 1;
@@ -93,9 +97,32 @@ export class GameManager {
         dadStates,
       };
 
+      const snapshotJson = JSON.stringify(snapshot);
+
+      // Prefer Redis when available for cross-instance consistency
+      if (redisClient && redisClient.isAvailable()) {
+        try {
+          await redisClient.setSnapshot(REDIS_SNAPSHOT_KEY, snapshotJson);
+          this.persistenceStats.lastSavedAt = Date.now();
+
+          try {
+            const sizeBytes = Buffer.byteLength(snapshotJson, 'utf8');
+            await redisClient.publish(REDIS_EVENTS_CHANNEL, { type: 'snapshot.updated', savedAt: this.persistenceStats.lastSavedAt, sizeBytes });
+          } catch (pubErr) {
+            // Non-fatal
+            console.debug('[GameManager] Failed to publish snapshot update event:', pubErr);
+          }
+
+          return;
+        } catch (redisErr) {
+          console.debug('[GameManager] Redis persist failed, falling back to file persistence:', redisErr);
+        }
+      }
+
+      // Fallback to file persistence
       await mkdir(path.dirname(this.stateFilePath), { recursive: true });
       const tempPath = `${this.stateFilePath}.tmp`;
-      await writeFile(tempPath, JSON.stringify(snapshot), 'utf8');
+      await writeFile(tempPath, snapshotJson, 'utf8');
       await rename(tempPath, this.stateFilePath);
       this.persistenceStats.lastSavedAt = Date.now();
     } catch (error) {
@@ -106,46 +133,110 @@ export class GameManager {
 
   private async restoreState(): Promise<void> {
     try {
-      const raw = await readFile(this.stateFilePath, 'utf8');
-      const snapshot = JSON.parse(raw) as GameArenaSnapshot;
+      // Try Redis-first restore when available
+      try {
+        if (redisClient && redisClient.isAvailable()) {
+          const raw = await redisClient.getSnapshot(REDIS_SNAPSHOT_KEY);
+          if (raw) {
+            console.debug('[GameManager] Restoring arena snapshot from Redis');
+            const snapshot = JSON.parse(raw) as GameArenaSnapshot;
 
-      if (snapshot.version !== 1) {
-        console.warn('[GameManager] Ignoring unknown snapshot version');
-        return;
+            if (snapshot.version !== 1) {
+              console.warn('[GameManager] Ignoring unknown arena snapshot version from Redis');
+            } else {
+              this.games = new Map(snapshot.games.map((game) => [game.id, game]));
+              this.playerGames = new Map(snapshot.playerGames.map((entry) => [entry.userId, entry.gameId]));
+              this.playerProfiles = new Map(snapshot.playerProfiles.map((entry) => [entry.userId, entry.username]));
+              const dadStatesByLobbyId = new Map((snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state]));
+
+              // Rebuild underlying module state so lobby metadata points to real games.
+              for (const game of this.games.values()) {
+                const players = snapshot.playerGames
+                  .filter((entry) => entry.gameId === game.id)
+                  .map((entry) => ({ userId: entry.userId, username: this.usernameFor(entry.userId) }));
+
+                if (!players.some((player) => player.userId === game.hostId)) {
+                  players.unshift({ userId: game.hostId, username: game.hostUsername });
+                }
+
+                await this.ensureUnderlyingGame(game, players, dadStatesByLobbyId.get(game.id));
+              }
+
+              await this.persistState();
+              this.persistenceStats.lastRestoredAt = Date.now();
+              this.persistenceStats.restoredGames = this.games.size;
+              console.log(`[GameManager] Restored ${this.games.size} game(s) from Redis snapshot`);
+              return;
+            }
+          }
+        }
+      } catch (redisErr) {
+        this.persistenceStats.restoreErrorCount++;
+        console.debug('[GameManager] Redis restore failed, falling back to file-based persistence:', redisErr);
       }
 
-      this.games = new Map(snapshot.games.map((game) => [game.id, game]));
-      this.playerGames = new Map(snapshot.playerGames.map((entry) => [entry.userId, entry.gameId]));
-      this.playerProfiles = new Map(snapshot.playerProfiles.map((entry) => [entry.userId, entry.username]));
-      const dadStatesByLobbyId = new Map(
-        (snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state])
-      );
+      // Migration: if no Redis snapshot exists but a file snapshot exists, copy it to Redis
+      try {
+        const fileStat = await stat(this.stateFilePath);
+        if (fileStat && redisClient && redisClient.isAvailable()) {
+          try {
+            const rawFile = await readFile(this.stateFilePath, 'utf8');
+            await redisClient.setSnapshot(REDIS_SNAPSHOT_KEY, rawFile);
+            console.debug('[GameManager] Migrated file snapshot to Redis');
+          } catch (migErr) {
+            console.debug('[GameManager] Migration to Redis failed:', migErr);
+          }
+        }
+      } catch {
+        // file does not exist or cannot be read; continue to file fallback below
+      }
 
-      // Rebuild underlying module state so lobby metadata points to real games.
-      for (const game of this.games.values()) {
-        const players = snapshot.playerGames
-          .filter((entry) => entry.gameId === game.id)
-          .map((entry) => ({
-            userId: entry.userId,
-            username: this.usernameFor(entry.userId),
-          }));
+      // File-based restore (fallback)
+      try {
+        const raw = await readFile(this.stateFilePath, 'utf8');
+        const snapshot = JSON.parse(raw) as GameArenaSnapshot;
 
-        if (!players.some((player) => player.userId === game.hostId)) {
-          players.unshift({ userId: game.hostId, username: game.hostUsername });
+        if (snapshot.version !== 1) {
+          console.warn('[GameManager] Ignoring unknown snapshot version');
+          return;
         }
 
-        await this.ensureUnderlyingGame(game, players, dadStatesByLobbyId.get(game.id));
-      }
+        this.games = new Map(snapshot.games.map((game) => [game.id, game]));
+        this.playerGames = new Map(snapshot.playerGames.map((entry) => [entry.userId, entry.gameId]));
+        this.playerProfiles = new Map(snapshot.playerProfiles.map((entry) => [entry.userId, entry.username]));
+        const dadStatesByLobbyId = new Map(
+          (snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state])
+        );
 
-      await this.persistState();
-      this.persistenceStats.lastRestoredAt = Date.now();
-      this.persistenceStats.restoredGames = this.games.size;
-      console.log(`[GameManager] Restored ${this.games.size} game(s) from snapshot`);
+        // Rebuild underlying module state so lobby metadata points to real games.
+        for (const game of this.games.values()) {
+          const players = snapshot.playerGames
+            .filter((entry) => entry.gameId === game.id)
+            .map((entry) => ({
+              userId: entry.userId,
+              username: this.usernameFor(entry.userId),
+            }));
+
+          if (!players.some((player) => player.userId === game.hostId)) {
+            players.unshift({ userId: game.hostId, username: game.hostUsername });
+          }
+
+          await this.ensureUnderlyingGame(game, players, dadStatesByLobbyId.get(game.id));
+        }
+
+        await this.persistState();
+        this.persistenceStats.lastRestoredAt = Date.now();
+        this.persistenceStats.restoredGames = this.games.size;
+        console.log(`[GameManager] Restored ${this.games.size} game(s) from snapshot`);
+      } catch (error: any) {
+        this.persistenceStats.restoreErrorCount++;
+        if (error?.code !== 'ENOENT') {
+          console.warn('[GameManager] Failed to restore arena snapshot:', error);
+        }
+      }
     } catch (error: any) {
       this.persistenceStats.restoreErrorCount++;
-      if (error?.code !== 'ENOENT') {
-        console.warn('[GameManager] Failed to restore arena snapshot:', error);
-      }
+      console.warn('[GameManager] Failed to restore arena snapshot (outer):', error);
     }
   }
 
@@ -592,5 +683,91 @@ export class GameManager {
       trackedPlayers: this.playerGames.size,
       stats: { ...this.persistenceStats },
     };
+  }
+
+  /**
+   * Force-end a lobby game immediately. Marks lobby as completed and attempts
+   * to mark any underlying module game (e.g., DA&D) as completed as well.
+   */
+  public async forceEndGame(gameId: string): Promise<void> {
+    const lobbyInfo = this.games.get(gameId);
+    if (!lobbyInfo) {
+      throw new Error('Game not found');
+    }
+
+    lobbyInfo.status = 'completed';
+
+    // Try to end underlying DA&D game state if present
+    if (lobbyInfo.type === 'dad') {
+      const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
+      const games = dad.getChannelGames(channelId);
+      for (const g of games) {
+        try {
+          // Mutate underlying module state to indicate completion
+          (g as any).status = 'completed';
+          (g as any).completedAt = Date.now();
+        } catch (e) {
+          // Best-effort only
+          console.warn('[GameManager] Failed to force-complete underlying game:', e);
+        }
+      }
+
+      // Emit a high-level event so operators and listeners can react
+      try {
+        await eventRouter.publish('dad.game.completed', 'game-arena', {
+          gameId,
+          reason: 'admin_forced_end',
+        } as any);
+      } catch (e) {
+        console.warn('[GameManager] Failed to publish forced-end event:', e);
+      }
+    }
+
+    await this.persistState();
+  }
+
+  /**
+   * Reload persisted state from disk into memory (admin action)
+   */
+  public async reloadState(): Promise<void> {
+    // Restore from the configured state file
+    await this.restoreState();
+  }
+
+  /**
+   * Replay an in-memory snapshot: import snapshot state and rebuild underlying
+   * games. Useful for debugging or restoring from a provided snapshot object.
+   */
+  public async replaySnapshot(snapshot: any): Promise<void> {
+    try {
+      if (snapshot?.version !== 1) {
+        throw new Error('Unsupported snapshot version');
+      }
+
+      // Rehydrate maps
+      this.games = new Map((snapshot.games || []).map((g: any) => [g.id, g]));
+      this.playerGames = new Map((snapshot.playerGames || []).map((e: any) => [e.userId, e.gameId]));
+      this.playerProfiles = new Map((snapshot.playerProfiles || []).map((e: any) => [e.userId, e.username]));
+
+      const dadStatesByLobbyId = new Map((snapshot.dadStates || []).map((entry: any) => [entry.lobbyGameId, entry.state]));
+
+      // Rebuild underlying module state so lobby metadata points to real games.
+      for (const game of this.games.values()) {
+        const players = (snapshot.playerGames || [])
+          .filter((entry: any) => entry.gameId === game.id)
+          .map((entry: any) => ({ userId: entry.userId, username: this.usernameFor(entry.userId) }));
+
+        if (!players.some((p: any) => p.userId === game.hostId)) {
+          players.unshift({ userId: game.hostId, username: game.hostUsername });
+        }
+
+        await this.ensureUnderlyingGame(game, players, dadStatesByLobbyId.get(game.id));
+      }
+
+      await this.persistState();
+    } catch (error) {
+      this.persistenceStats.restoreErrorCount++;
+      throw error;
+    }
   }
 }

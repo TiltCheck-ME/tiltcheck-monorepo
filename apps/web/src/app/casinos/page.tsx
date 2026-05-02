@@ -1,9 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import PublicPageHero, { PublicPageSectionHeader } from '@/components/PublicPageHero';
+import RtpDriftTicker from '@/components/RtpDriftTicker';
 import {
   ALL_CATEGORIES,
   CASINOS,
@@ -355,6 +356,9 @@ export default function CasinosPage() {
           )}
         </div>
       </section>
+
+      {/* Live RTP drift feed — contextual to casino intel */}
+      <RtpDriftTicker />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">

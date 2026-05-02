@@ -17,6 +17,9 @@ import {
   startReportWorker,
 } from './report-requests.js';
 
+// Payout admin package (file-backed ledger + simple worker)
+import * as payout from '../../../packages/prize-payout/src/index.js';
+
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -344,6 +347,112 @@ app.post('/api/report-requests', requireAuth, (req, res) => {
       outcome: 'error',
       error: error.message,
     });
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ─── Prize Payout Admin Endpoints ─────────────────────────────────────────────
+import * as payout from '../../../packages/prize-payout/src/index.js';
+
+app.get('/api/payouts', requireAuth, (req, res) => {
+  try {
+    auditPrivilegedAction(req, 'payouts.list');
+    const list = payout.listPayouts({ dir: process.env.CONTROL_ROOM_DATA_DIR });
+    res.json({ payouts: list });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/payouts/:id', requireAuth, (req, res) => {
+  try {
+    auditPrivilegedAction(req, 'payouts.get', { payoutId: req.params.id });
+    const p = payout.getPayout(req.params.id, { dir: process.env.CONTROL_ROOM_DATA_DIR });
+    if (!p) return res.status(404).json({ error: 'Payout not found' });
+    res.json({ payout: p });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/payouts/:id/retry', requireAuth, (req, res) => {
+  try {
+    auditPrivilegedAction(req, 'payouts.retry', { payoutId: req.params.id });
+    const p = payout.retryPayout(req.params.id, { dir: process.env.CONTROL_ROOM_DATA_DIR });
+    res.json({ payout: p });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/payouts/reconcile', requireAuth, (req, res) => {
+  try {
+    auditPrivilegedAction(req, 'payouts.reconcile');
+    const result = payout.reconcilePayouts({ dir: process.env.CONTROL_ROOM_DATA_DIR });
+    res.json({ result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ─── Docker Helpers ───────────────────────────────────────────────────────────
+// Trivia moderation endpoints (internal + UI)
+import {
+  listCandidates as _listCandidates,
+  getCandidate as _getCandidate,
+  createCandidate as _createCandidate,
+  publishCandidate as _publishCandidate,
+} from './trivia-moderation.js';
+
+// Internal submission endpoint: accepts x-internal-secret header or requireAuth
+app.post('/api/internal/trivia-candidates', async (req, res) => {
+  const secret = process.env.INTERNAL_API_SECRET || '';
+  const provided = req.headers['x-internal-secret'] || '';
+  if (!req.session.authenticated && !req.isAuthenticated() && secret) {
+    if (provided !== secret) {
+      return res.status(401).json({ error: 'Unauthorized: invalid internal secret' });
+    }
+  }
+
+  try {
+    const { candidate } = req.body || {};
+    if (!candidate || typeof candidate !== 'object') return res.status(400).json({ error: 'candidate required' });
+    const created = _createCandidate(candidate);
+    auditPrivilegedAction(req, 'trivia.create', { outcome: 'success', id: created.id, generatedBy: created.generatedBy });
+    res.status(201).json({ created });
+  } catch (error) {
+    auditPrivilegedAction(req, 'trivia.create', { outcome: 'error', error: error.message });
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/trivia-candidates', requireAuth, (req, res) => {
+  try {
+    const list = _listCandidates();
+    res.json({ candidates: list });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/trivia-candidates/:id', requireAuth, (req, res) => {
+  try {
+    const job = _getCandidate(req.params.id);
+    if (!job) return res.status(404).json({ error: 'candidate not found' });
+    res.json({ candidate: job });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/trivia-candidates/:id/publish', requireAuth, (req, res) => {
+  try {
+    const published = _publishCandidate(req.params.id, req.user?.username || req.session?.authenticated ? 'admin' : 'moderator');
+    auditPrivilegedAction(req, 'trivia.publish', { outcome: 'success', id: published.id });
+    res.json({ published });
+  } catch (error) {
+    auditPrivilegedAction(req, 'trivia.publish', { outcome: 'error', error: error.message });
     res.status(400).json({ error: error.message });
   }
 });

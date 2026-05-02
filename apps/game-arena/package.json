@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "test": "vitest --run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "simulate:multi-instance": "tsx src/scripts/multi-instance-sim.ts"
   },
   "dependencies": {
     "@tiltcheck/dad": "workspace:*",
@@ -26,6 +27,7 @@
     "redis": "^5.11.0",
     "ioredis": "^5.3.2",
     "socket.io": "^4.8.3",
+    "@socket.io/redis-adapter": "^8.1.0",
     "uuid": "^14.0.0"
   },
   "devDependencies": {

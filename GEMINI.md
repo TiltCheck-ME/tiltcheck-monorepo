@@ -53,19 +53,19 @@ Based on current file structure and codebase status:
 
 ### High Priority (Stability & Types)
 
-- [ ] **Type Refinement**: Conduct a monorepo-wide sweep to replace remaining `any` types with defined interfaces in `@tiltcheck/types`.
+- [ ] **Type Refinement**: Continue the remaining `any` cleanup, starting with high-churn debt in `apps/api` and `apps/chrome-extension` before widening the sweep.
 - [x] **Standardize UI/Sitemap**: Audited `apps/web` and implemented shared nav/footer across all 70+ HTML files.
-- [ ] **Error Factory Integration**: Transition all services to use the `@tiltcheck/error-factory` for consistent API responses.
+- [ ] **Error Factory Integration**: Finish transitioning remaining API routes and middleware to `@tiltcheck/error-factory` for consistent responses.
 
 ### Medium Priority (Feature Completeness)
 
-- [ ] **Buddy System V2**: Finalize the "Phone a Friend" accountability system in the Chrome Extension and Dashboard.
+- [ ] **Buddy System V2**: Finish the remaining end-to-end accountability flow now that buddy management, dashboard handoff, and extension notifications already exist.
 - [x] **RTP Scanner Consolidation**: Merged `BonusCheck` and `CollectClock` logic into the `bonuses.html` scanner.
-- [ ] **Geo-Regulation Awareness**: Provide users with information about relevant online gambling laws and regulations based on their region.
+- [ ] **Geo-Regulation Awareness**: Expand the existing geo-laws tool with better coverage, freshness, and region-aware routing.
 
 ### Low Priority (Developer Experience)
 
-- [ ] **Shared Testing Utils**: Consolodate test mocks into a `@tiltcheck/test-utils` package.
+- [x] **Shared Testing Utils**: Consolidated shared mocks and helpers into `@tiltcheck/test-utils`.
 - [x] **Documentation Sync**: Sitemap documented in `docs/sitemap_overview.md` and `site-map.html` updated.
 - [ ] **API Documentation**: Generate API documentation from Zod schemas and TypeScript interfaces.
 

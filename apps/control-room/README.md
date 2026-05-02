@@ -1,3 +1,5 @@
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+
 # TiltCheck Control Room
 
 Admin dashboard for managing the TiltCheck ecosystem.
@@ -145,6 +147,19 @@ This dashboard is designed for:
 - Anyone who needs to monitor/control the TiltCheck ecosystem
 
 **Keep your admin password secure!**
+
+---
+
+### Control Room Admin APIs
+
+The Control Room interacts with service-level admin endpoints in the ecosystem. For the Game Arena service the Control Room may call the following protected endpoints (must be called from trusted operator tooling):
+
+- POST /admin/game/:gameId/force-end  — Force-end a lobby game (X-Admin-Token required)
+- POST /admin/replay-snapshot         — Replay a persisted snapshot into memory (X-Admin-Token required)
+- GET  /admin/export-audit?limit=100  — Export recent audit/event history (X-Admin-Token required)
+- POST /admin/payout-reconcile       — Request payout reconciliation (X-Admin-Token required)
+
+Ensure CONTROL_ROOM tooling provides the X-Admin-Token header when calling downstream services. Do not store or log admin tokens in plain text.
 
 ---
 

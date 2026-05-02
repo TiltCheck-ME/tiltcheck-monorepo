@@ -1,3 +1,5 @@
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+
 # TiltCheck Game Arena
 
 Web-based multiplayer game arena for **Degens Against Decency** (DA&D) and **Texas Hold'em Poker** with Discord authentication.
@@ -351,4 +353,34 @@ Part of the TiltCheck Ecosystem. See main repository for license information.
 
 ---
 
-**Built by degens, for degens** 🎮♠️
+## Admin (Control-Room) API
+
+This service exposes a small set of admin endpoints used by the Control Room. All endpoints are protected by the existing game-arena admin token (X-Admin-Token header) and should only be invoked from trusted operator tooling.
+
+- POST /admin/game/:gameId/force-end
+  - Force-end a lobby game immediately. Marks the lobby as completed and attempts a best-effort completion of underlying module state (DA&D).
+  - Headers: X-Admin-Token: <admin-token>
+  - Response: { success: true, message }
+
+- POST /admin/replay-snapshot
+  - Replay a persisted snapshot object into memory. Body must be the snapshot JSON (version 1 format).
+  - Headers: X-Admin-Token: <admin-token>
+  - Response: { success: true }
+
+- GET /admin/export-audit?limit=100
+  - Export recent event-router audit history as JSON. Optional `limit` query parameter.
+  - Headers: X-Admin-Token: <admin-token>
+  - Response: { success: true, events: [...] }
+
+- POST /admin/payout-reconcile
+  - Request a payout reconciliation workflow. This publishes a `payout.reconcile` event for downstream consumers to act on.
+  - Headers: X-Admin-Token: <admin-token>
+  - Response: { success: true }
+
+Security notes:
+- Configure GAME_ARENA_ADMIN_TOKEN in the environment for a token-based gate. When unset, the admin middleware currently bypasses enforcement (development only).
+- Do not expose admin tokens in public repos or UI.
+
+---
+
+Made for Degens. By Degens.
