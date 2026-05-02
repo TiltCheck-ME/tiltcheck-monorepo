@@ -42,7 +42,7 @@ import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
-import { verifySessionCookie } from '@tiltcheck/auth';
+import { verifySessionCookie, type SessionData } from '@tiltcheck/auth';
 import { getJWTConfig } from './middleware/auth.js';
 
 import { authRouter } from './routes/auth.js';
@@ -73,6 +73,20 @@ import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
 import { geoComplianceMiddleware } from './middleware/compliance.js';
 import { resolveApiPort } from './runtime-config.js';
+
+type AnalyzerRequest = http.IncomingMessage & {
+  session?: SessionData;
+};
+
+function getAuditLogRtp(metadata: unknown): number {
+  if (!metadata || typeof metadata !== 'object') {
+    return 0;
+  }
+
+  const rtp = (metadata as { rtp?: unknown }).rtp;
+  const parsed = Number(rtp);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 const app = express();
 app.set('trust proxy', 1); // Trust the first proxy
@@ -268,7 +282,8 @@ const wss = new WebSocketServer({
       }
 
       if (result.valid) {
-        (info.req as any).session = result.session;
+        const analyzerReq = info.req as AnalyzerRequest;
+        analyzerReq.session = result.session;
         callback(true);
       } else {
         callback(false, 401, 'Unauthorized');
@@ -283,7 +298,8 @@ const wss = new WebSocketServer({
 import { createAuditLog } from '@tiltcheck/db';
 
 wss.on('connection', (ws, req) => {
-  const session = (req as any).session;
+  const analyzerReq = req as AnalyzerRequest;
+  const session = analyzerReq.session;
   console.log(`[Analyzer] Client connected: ${session?.userId || 'unknown'}`);
 
   ws.on('message', async (data) => {
@@ -333,6 +349,14 @@ wss.on('connection', (ws, req) => {
 
         case 'request_report':
           const { getAuditLogsByUser } = await import('@tiltcheck/db');
+          if (!session?.userId) {
+            ws.send(JSON.stringify({
+              type: 'report',
+              sessionId: message.sessionId,
+              error: 'Unauthorized',
+            }));
+            break;
+          }
           
           let allLogs = [];
           let hasMore = true;
@@ -347,7 +371,7 @@ wss.on('connection', (ws, req) => {
           }
 
           const totalSpins = allLogs.length;
-          const totalRTP = allLogs.reduce((acc, log) => acc + (log.metadata as any).rtp, 0);
+          const totalRTP = allLogs.reduce((acc, log) => acc + getAuditLogRtp(log.metadata), 0);
           const averageRTP = totalSpins > 0 ? totalRTP / totalSpins : 0;
           const expectedRTP = 0.96;
           const fairnessScore = 100 - (Math.abs(expectedRTP - averageRTP) * 100);

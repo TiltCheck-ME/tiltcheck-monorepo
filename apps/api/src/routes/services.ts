@@ -5,10 +5,17 @@
  * Internal service-to-service communication proxy
  */
 
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { serviceAuth } from '@tiltcheck/auth/middleware/express';
 
 const router = Router();
+
+interface ServiceRequest extends Request {
+  service?: {
+    id?: string;
+    context?: unknown;
+  };
+}
 
 // All routes require service authentication
 router.use(serviceAuth());
@@ -17,9 +24,9 @@ router.use(serviceAuth());
  * POST /services/internal
  * Generic internal service endpoint
  */
-router.post('/internal', (req, res) => {
+router.post('/internal', (req: ServiceRequest, res) => {
   // The service context is attached by serviceAuth middleware
-  const service = (req as any).service;
+  const service = req.service;
   
   res.json({
     success: true,

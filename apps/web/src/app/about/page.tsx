@@ -1,6 +1,7 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
+import ValueProposition from "@/components/ValueProposition";
 
 const problemStats = [
   {
@@ -176,6 +177,9 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* Value proposition — players + platforms */}
+      <ValueProposition />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">

@@ -1,4 +1,4 @@
-<!-- Copyright 2024-2026 TiltCheck | v1.1.0 | Last Edited: 2026-03-13 -->
+<!-- Copyright 2024-2026 TiltCheck | v1.1.0 | Last Edited: 2026-04-29 -->
 
 # TiltCheck TODO & Incomplete Work List
 
@@ -6,22 +6,22 @@ This list tracks any feature, plan, or concept that is **incomplete**, **not ful
 *As per ecosystem guidelines, ALL team members/agents MUST append items here when encountering incomplete functionality.*
 
 ## Priority: "Redeem-to-Win" Core Feature
-- [ ] **Implement Redeem Nudge in TiltGuard Extension:**
-  - [ ] Track user's balance on supported casino sites in real-time.
-  - [ ] Add a configuration mechanism to store the minimum redeem/cash-out threshold for each site.
-  - [ ] When the user's balance crosses the redeem threshold, trigger a clear and positive UI nudge encouraging them to cash out.
-  - [ ] Create a celebratory notification/UI element when a successful redeem is detected.
-- [ ] **Update Dashboard for Redeem Metrics:**
-  - [ ] Add "Successful Redeems" as a key success metric on the user dashboard.
-  - [ ] Reframe session history to highlight sessions that ended with a redeem as "wins".
+- [ ] **Finish Redeem-to-Win polish across extension + dashboard:**
+  - [x] Track balance and redeem opportunities in the extension.
+  - [x] Store per-site redeem thresholds for supported casinos.
+  - [x] Trigger redeem nudge UI when the threshold is crossed.
+  - [x] Relay secured-win actions to Hub telemetry.
+  - [ ] Detect and confirm real redeem or cash-out completion on more supported sites instead of relying mainly on the secure-win relay.
+  - [ ] Surface secured-win and redeem-window metrics more prominently in the dashboard UI, not just in the backing session summaries and stats payloads.
+  - [ ] Tighten end-to-end tests for redeem telemetry between extension, Hub, and dashboard.
 
 ## Proposed Future Features (From 2026-03-12 & 2026-03-13 Sessions)
 
-- [ ] **Implement Safe vs. Degen Mode:**
-  - Create an interactive onboarding tutorial/quiz for new users.
-  - Use the quiz to determine the user's preferred communication style (e.g., "Safe" or "Degen").
-  - Store this preference.
-  - Adapt all bot replies and communications based on the user's chosen mode.
+- [ ] **Implement Safe vs. Degen Mode fully:**
+  - [x] Store core onboarding risk preference primitives.
+  - [ ] Add an interactive onboarding tutorial or quiz that explicitly selects communication style.
+  - [ ] Persist a clear Safe vs. Degen preference contract across surfaces.
+  - [ ] Adapt bot and product messaging off that preference instead of using a mostly static tone.
 
 - [ ] **BonusCheck 2.0 (Formula Reverse-Engineering):**
   - Allow users to input their weekly wager, P/L, and collected bonuses.
@@ -29,9 +29,10 @@ This list tracks any feature, plan, or concept that is **incomplete**, **not ful
   - Use the derived formula to predict future bonuses and flag if the actual amount is "light," proving a change in the casino's formula.
 
 - [ ] **Tilt-Nudge to Voice Chat:**
-  - When the Chrome Extension's `Tilt Detector` identifies a user is tilted, send an event to the backend.
-  - The backend should trigger the Discord Bot to send a DM to the user.
-  - The DM should contain a "nudge" message, encouraging them to join the "Degen Accountability" voice channel for a cooldown.
+  - [x] Extension and API buddy or intervention plumbing exist.
+  - [ ] Send a first-class tilt event from the extension or API into the Discord delivery path specifically for voice accountability.
+  - [ ] Trigger a Discord DM or equivalent routed intervention that points the user into the right accountability lane.
+  - [ ] Define the cooldown or voice-join UX so the alert is actionable instead of just informational.
 
 ## High-Level Features (Pending Definition/Implementation)
 
@@ -42,6 +43,18 @@ This list tracks any feature, plan, or concept that is **incomplete**, **not ful
   - [x] Event Router webhooks.
 - [x] **Onboarding & Personalization:** AI-driven onboarding interview + tutorials.
 - [x] **Safety & Accountability:** "Phone a Friend" buddy system, Zero Balance tasks.
+
+## Current Debt Priorities
+
+- [ ] **Backlog hygiene:**
+  - [ ] Keep `TODO.md` and `GEMINI.md` aligned with current implementation so completed work is not tracked as untouched.
+- [ ] **API debt reduction:**
+  - [ ] Continue replacing `any` in `apps/api`.
+  - [ ] Finish normalizing route and middleware errors around `@tiltcheck/error-factory`.
+- [ ] **Chrome Extension debt reduction:**
+  - [ ] Continue replacing `any` in `apps/chrome-extension`, especially DOM and intervention helpers.
+- [ ] **Documentation debt:**
+  - [ ] Generate API documentation from Zod schemas and TypeScript interfaces.
 
 ## Bug Fixes TODO List
 

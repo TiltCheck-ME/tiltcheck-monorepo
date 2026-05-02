@@ -12,10 +12,10 @@ const LOGIN_URL = getWebLoginRedirect('/dashboard');
 type NavLink = { href: string; label: string; accent?: string };
 
 const NAV_LINKS_PRIMARY: NavLink[] = [
-  { href: '/extension',   label: 'Extension' },
-  { href: '/casinos',     label: 'Casinos' },
-  { href: '/#tools',      label: 'Tools' },
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/tools',        label: 'Tools' },
+  { href: '/casinos',      label: 'Casinos' },
+  { href: '/about',        label: 'About' },
 ];
 
 const NAV_LINKS_SECONDARY: NavLink[] = [

@@ -17,6 +17,8 @@ import {
 } from '@tiltcheck/shared';
 import type { TriviaGameSettings } from '@tiltcheck/types';
 import { redisClient } from './redis-client.js';
+import * as Sentry from '@sentry/node';
+import * as promClient from 'prom-client';
 
 const REDIS_SNAPSHOT_KEY = 'game-arena:trivia:snapshot';
 const REDIS_EVENTS_CHANNEL = 'game-arena:trivia:events';
@@ -179,6 +181,46 @@ const persistenceStats: TriviaPersistenceStats = {
   auditEventCount: 0,
   completedGameCount: 0,
 };
+
+// Initialize Sentry if configured
+if (process.env.SENTRY_DSN) {
+  Sentry.init({ dsn: process.env.SENTRY_DSN });
+}
+
+// Prometheus metrics (registered on the global registry)
+const metrics = {
+  snapshotSavesTotal: new promClient.Counter({
+    name: 'trivia_snapshot_saves_total',
+    help: 'Total number of trivia snapshot saves',
+    registers: [promClient.register],
+  }),
+  snapshotRestoreSources: new promClient.Counter({
+    name: 'trivia_snapshot_restore_sources_total',
+    help: 'Number of restores by source (file|redis)',
+    labelNames: ['source'],
+    registers: [promClient.register],
+  }),
+  persistenceErrorsTotal: new promClient.Counter({
+    name: 'trivia_persistence_errors_total',
+    help: 'Number of persistence errors by operation',
+    labelNames: ['operation'],
+    registers: [promClient.register],
+  }),
+  timerLagSeconds: new promClient.Gauge({
+    name: 'trivia_timer_lag_seconds',
+    help: 'Observed timer lag in seconds during restore',
+    registers: [promClient.register],
+  }),
+  answersSubmittedTotal: new promClient.Counter({
+    name: 'trivia_answers_submitted_total',
+    help: 'Number of answers submitted',
+    registers: [promClient.register],
+  }),
+  activeGamesGauge: new promClient.Gauge({
+    name: 'trivia_active_games',
+    help: 'Number of active trivia games',
+    registers: [promClient.register],
+  }),};
 
 function toStoredQuestion(question: SharedTriviaQuestion): StoredQuestion {
   return {
@@ -412,6 +454,7 @@ function resetInMemoryState(): void {
   persistenceStats.restoredActiveGame = false;
   persistenceStats.auditEventCount = 0;
   persistenceStats.completedGameCount = 0;
+  try { metrics.activeGamesGauge.set(0); } catch {}
 }
 
 async function persistState(): Promise<void> {
@@ -427,6 +470,8 @@ async function persistState(): Promise<void> {
       await writeFile(persistencePath, snapshotJson, 'utf8');
       persistenceStats.lastSavedAt = Date.now();
       persistenceStats.completedGameCount = completedGames.length;
+      try { metrics.snapshotSavesTotal.inc(); } catch {}
+      try { metrics.activeGamesGauge.set(activeGame ? 1 : 0); } catch {}
       return;
     }
 
@@ -435,6 +480,8 @@ async function persistState(): Promise<void> {
       await redisClient.setSnapshot(REDIS_SNAPSHOT_KEY, snapshotJson);
       persistenceStats.lastSavedAt = Date.now();
       persistenceStats.completedGameCount = completedGames.length;
+      try { metrics.snapshotSavesTotal.inc(); } catch {}
+      try { metrics.activeGamesGauge.set(activeGame ? 1 : 0); } catch {}
 
       // Publish a lightweight event for subscribers
       try {
@@ -453,9 +500,13 @@ async function persistState(): Promise<void> {
     await writeFile(persistencePath, snapshotJson, 'utf8');
     persistenceStats.lastSavedAt = Date.now();
     persistenceStats.completedGameCount = completedGames.length;
+    try { metrics.snapshotSavesTotal.inc(); } catch {}
+    try { metrics.activeGamesGauge.set(activeGame ? 1 : 0); } catch {}
   } catch (error) {
     persistenceStats.persistErrorCount++;
+    try { metrics.persistenceErrorsTotal.inc({ operation: 'persist' }); } catch {}
     console.warn('[TriviaManager] Failed to persist trivia snapshot:', error);
+    try { Sentry.captureException(error); } catch {}
     throw error;
   }
 }
@@ -686,6 +737,7 @@ async function endGameWithResults(gameId: string): Promise<boolean> {
   const completedRecord = buildCompletedRecord(game);
   clearTimers(game);
   activeGame = null;
+  try { metrics.activeGamesGauge.set(0); } catch {}
   completedGames = [...completedGames, completedRecord].slice(-MAX_COMPLETED_GAMES);
   appendAuditRecord('game.completed', game.gameId, {
     completedAt: completedRecord.completedAt,
@@ -744,14 +796,19 @@ async function restoreState(): Promise<void> {
               persistenceStats.completedGameCount = completedGames.length;
               persistenceStats.lastRestoredAt = Date.now();
 
+              try { metrics.snapshotRestoreSources.inc({ source: 'redis' }); } catch {}
+
               if (snapshot.activeGame) {
                 activeGame = deserializeActiveGame(snapshot.activeGame);
                 persistenceStats.restoredActiveGame = true;
+                try { metrics.activeGamesGauge.set(1); } catch {}
 
                 const restoreDelay =
                   activeGame.roundEndsAt !== null
                     ? activeGame.roundEndsAt - Date.now()
                     : activeGame.startedAt - Date.now();
+
+                try { metrics.timerLagSeconds.set(restoreDelay / 1000); } catch {}
 
                 if (activeGame.roundEndsAt !== null) {
                   const currentQuestion = activeGame.questions[activeGame.currentRound];
@@ -772,7 +829,9 @@ async function restoreState(): Promise<void> {
         }
       } catch (redisErr) {
         persistenceStats.restoreErrorCount++;
+        try { metrics.persistenceErrorsTotal.inc({ operation: 'restore' }); } catch {}
         console.debug('[TriviaManager] Redis restore failed, falling back to file-based persistence:', redisErr);
+        try { Sentry.captureException(redisErr); } catch {}
       }
 
       // Migration: if no Redis snapshot exists but a file snapshot exists, copy it to Redis
@@ -785,6 +844,7 @@ async function restoreState(): Promise<void> {
             console.debug('[TriviaManager] Migrated file snapshot to Redis');
           } catch (migErr) {
             console.debug('[TriviaManager] Migration to Redis failed:', migErr);
+            try { Sentry.captureException(migErr); } catch {}
           }
         }
       } catch {
@@ -808,6 +868,8 @@ async function restoreState(): Promise<void> {
       persistenceStats.completedGameCount = completedGames.length;
       persistenceStats.lastRestoredAt = Date.now();
 
+      try { metrics.snapshotRestoreSources.inc({ source: 'file' }); } catch {}
+
       if (!snapshot.activeGame) {
         persistenceStats.restoredActiveGame = false;
         return;
@@ -815,11 +877,14 @@ async function restoreState(): Promise<void> {
 
       activeGame = deserializeActiveGame(snapshot.activeGame);
       persistenceStats.restoredActiveGame = true;
+      try { metrics.activeGamesGauge.set(1); } catch {}
 
       const restoreDelay =
         activeGame.roundEndsAt !== null
           ? activeGame.roundEndsAt - Date.now()
           : activeGame.startedAt - Date.now();
+
+      try { metrics.timerLagSeconds.set(restoreDelay / 1000); } catch {}
 
       if (activeGame.roundEndsAt !== null) {
         const currentQuestion = activeGame.questions[activeGame.currentRound];
@@ -836,13 +901,17 @@ async function restoreState(): Promise<void> {
       return;
     } catch (error: any) {
       persistenceStats.restoreErrorCount++;
+      try { metrics.persistenceErrorsTotal.inc({ operation: 'restore' }); } catch {}
       if (error?.code !== 'ENOENT') {
         console.warn('[TriviaManager] Failed to restore trivia snapshot:', error);
+        try { Sentry.captureException(error); } catch {}
       }
     }
   } catch (error: any) {
     persistenceStats.restoreErrorCount++;
+    try { metrics.persistenceErrorsTotal.inc({ operation: 'restore' }); } catch {}
     console.warn('[TriviaManager] Failed to restore trivia snapshot (outer):', error);
+    try { Sentry.captureException(error); } catch {}
   }
 }
 
@@ -897,6 +966,7 @@ export const triviaManager = {
     };
 
     activeGame = nextGame;
+    try { metrics.activeGamesGauge.set(1); } catch {}
     appendAuditRecord('game.scheduled', gameId, {
       category: settings.category,
       theme: settings.theme,
@@ -916,6 +986,7 @@ export const triviaManager = {
     } catch {
       clearTimers(nextGame);
       activeGame = null;
+      try { metrics.activeGamesGauge.set(0); } catch {}
       return { success: false, message: 'Trivia scheduling failed before the game was armed.' };
     }
 
@@ -935,6 +1006,7 @@ export const triviaManager = {
     const game = activeGame;
     clearTimers(game);
     activeGame = null;
+    try { metrics.activeGamesGauge.set(0); } catch {}
     appendAuditRecord('game.reset', game.gameId, { resetAt: Date.now() });
 
     try {
@@ -1048,6 +1120,8 @@ export const triviaManager = {
     snapshotExists: boolean;
     snapshotSizeBytes: number | null;
     snapshotModifiedAt: number | null;
+    activeGames: number;
+    trackedPlayers: number;
     activeGameId: string | null;
     recentCompletedGames: number;
     recentAuditEvents: number;
@@ -1056,23 +1130,53 @@ export const triviaManager = {
     let snapshotExists = false;
     let snapshotSizeBytes: number | null = null;
     let snapshotModifiedAt: number | null = null;
+    let stateFileOrSource = persistencePath;
 
+    // Prefer Redis when available and a snapshot exists there
     try {
-      const fileStat = await stat(persistencePath);
-      snapshotExists = true;
-      snapshotSizeBytes = fileStat.size;
-      snapshotModifiedAt = fileStat.mtimeMs;
-    } catch (error: any) {
-      if (error?.code !== 'ENOENT') {
-        console.warn('[TriviaManager] Failed to stat trivia snapshot:', error);
+      if (redisClient && redisClient.isAvailable()) {
+        try {
+          const raw = await redisClient.getSnapshot(REDIS_SNAPSHOT_KEY);
+          if (raw) {
+            snapshotExists = true;
+            snapshotSizeBytes = Buffer.byteLength(raw, 'utf8');
+            snapshotModifiedAt = persistenceStats.lastSavedAt ?? null;
+            stateFileOrSource = `redis://${REDIS_SNAPSHOT_KEY}`;
+          }
+        } catch (err) {
+          // Non-fatal: fall back to file check below
+          console.debug('[TriviaManager] Failed to read snapshot from Redis for status check:', err);
+        }
+      }
+    } catch (err) {
+      console.debug('[TriviaManager] Redis availability check failed:', err);
+    }
+
+    // If Redis didn't provide a snapshot, fall back to file-based snapshot
+    if (!snapshotExists) {
+      try {
+        const fileStat = await stat(persistencePath);
+        snapshotExists = true;
+        snapshotSizeBytes = fileStat.size;
+        snapshotModifiedAt = fileStat.mtimeMs;
+        stateFileOrSource = persistencePath;
+      } catch (error: any) {
+        if (error?.code !== 'ENOENT') {
+          console.warn('[TriviaManager] Failed to stat trivia snapshot:', error);
+        }
       }
     }
 
+    const activeGames = activeGame ? 1 : 0;
+    const trackedPlayers = activeGame ? activeGame.players.size : 0;
+
     return {
-      stateFilePath: persistencePath,
+      stateFilePath: stateFileOrSource,
       snapshotExists,
       snapshotSizeBytes,
       snapshotModifiedAt,
+      activeGames,
+      trackedPlayers,
       activeGameId: activeGame?.gameId ?? null,
       recentCompletedGames: completedGames.length,
       recentAuditEvents: auditLog.length,
@@ -1121,10 +1225,15 @@ export const triviaManager = {
       answer: normalizedAnswer,
     });
 
+    // Metrics: count answers and keep active games gauge up to date
+    try { metrics.answersSubmittedTotal.inc(); } catch {}
+    try { metrics.activeGamesGauge.set(activeGame ? 1 : 0); } catch {}
+
     try {
       await persistState();
-    } catch {
+    } catch (err) {
       player.answers.delete(question.id);
+      try { Sentry.captureException(err); } catch {}
       return { success: false, message: 'Answer could not be durably recorded.' };
     }
 

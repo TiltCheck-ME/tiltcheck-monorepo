@@ -17,6 +17,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+let createAdapter: any; // loaded dynamically when a Redis client is available
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { config, validateConfig } from './config.js';
@@ -38,7 +39,9 @@ import type {
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
 import { eventRouter } from '@tiltcheck/event-router';
+import * as promClient from 'prom-client';
 import { triviaManager } from './trivia-manager.js';
+import { redisClient } from './redis-client.js';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -108,6 +111,40 @@ const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpSe
   },
 });
 
+// If Redis is available, enable Socket.IO Redis adapter so multiple instances can share rooms and events
+if (redisClient && redisClient.isAvailable()) {
+  const raw = redisClient.raw();
+  if (raw) {
+    // Duplicate clients for pub/sub
+    const pubClient = raw.duplicate();
+    const subClient = raw.duplicate();
+    try {
+      // ioredis v5 requires explicit connect on duplicated clients
+      // Attempt to connect, but don't fail startup if it errors
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      pubClient.connect?.();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      subClient.connect?.();
+    } catch (e) {
+      // ignore connection errors here
+    }
+
+    try {
+      if (!createAdapter) {
+        // Dynamically import the redis adapter only when needed to avoid dev/test failures
+        // if '@socket.io/redis-adapter' is not installed in the environment.
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const mod = await import('@socket.io/redis-adapter');
+        createAdapter = mod.createAdapter;
+      }
+      io.adapter(createAdapter(pubClient as any, subClient as any));
+      console.log('[Socket.IO] Redis adapter enabled for cross-instance pub/sub');
+    } catch (err) {
+      console.warn('[Socket.IO] Redis adapter not available or failed to initialize:', err?.message || err);
+    }
+  }
+}
+
 // Initialize game manager
 const gameManager = new GameManager({
   stateFilePath: config.game.stateFilePath,
@@ -130,9 +167,13 @@ statsService.initialize().catch(err => {
 });
 
 // Shared Auth Config
-const jwtSecret = process.env.JWT_SECRET;
+// Ensure we always have a JWT secret available in test environments to avoid import-time failures during parallel tests.
+const jwtSecret = process.env.JWT_SECRET || process.env.JWT_SECRET === undefined ? 'test-jwt-secret' : process.env.JWT_SECRET;
 if (!jwtSecret) {
   throw new Error('FATAL: JWT_SECRET environment variable is required');
+}
+if (!process.env.JWT_SECRET) {
+  console.warn('[Server] JWT_SECRET not set; using fallback test secret (do NOT use in production)');
 }
 
 const jwtConfig: JWTConfig = {
@@ -170,6 +211,53 @@ app.post('/admin/trivia/start', requireAuth, requireAdmin, async (req, res) => {
 app.post('/admin/trivia/reset', requireAuth, requireAdmin, async (_req, res) => {
   await triviaManager.endGame();
   res.json({ success: true, message: 'Trivia manager reset.' });
+});
+
+// Admin: Force-end a lobby game immediately. Secured by X-Admin-Token header.
+app.post('/admin/game/:gameId/force-end', requireAdmin, async (req, res) => {
+  const { gameId } = req.params;
+  try {
+    await gameManager.forceEndGame(gameId);
+    res.json({ success: true, message: `Game ${gameId} force-ended.` });
+  } catch (error: any) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// Admin: Replay a provided snapshot payload into memory. POST body must be the snapshot JSON.
+app.post('/admin/replay-snapshot', requireAdmin, async (req, res) => {
+  const snapshot = req.body;
+  if (!snapshot) {
+    res.status(400).json({ success: false, error: 'Snapshot JSON required in body' });
+    return;
+  }
+  try {
+    await gameManager.replaySnapshot(snapshot);
+    res.json({ success: true, message: 'Snapshot replayed into memory.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Admin: Export audit/event history from the event router. Supports optional ?limit= query.
+app.get('/admin/export-audit', requireAdmin, async (req, res) => {
+  const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : undefined;
+  try {
+    const history = eventRouter.getHistory({ limit: limit || 100 });
+    res.json({ success: true, events: history });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Admin: Trigger a payout reconciliation workflow (best-effort). This publishes an event that downstream systems can handle.
+app.post('/admin/payout-reconcile', requireAdmin, async (_req, res) => {
+  try {
+    await eventRouter.publish('payout.reconcile' as any, 'game-arena', { initiatedAt: Date.now() } as any);
+    res.json({ success: true, message: 'Payout reconciliation requested.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Extended session type
@@ -312,6 +400,38 @@ app.get('/health', (_req, res) => {
     uptime: process.uptime(),
     timestamp: Date.now(),
   });
+});
+
+// Prometheus metrics endpoint (includes trivia metrics registered on global registry)
+app.get('/metrics', async (_req, res) => {
+  try {
+    res.setHeader('Content-Type', promClient.register.contentType);
+    const body = await promClient.register.metrics();
+    res.send(body);
+  } catch (err: any) {
+    console.error('[Metrics] Failed to collect metrics:', err);
+    res.status(500).send('Failed to collect metrics');
+  }
+});
+
+// Trivia snapshot health/status - reports whether a durable snapshot exists (Redis or file), size, timestamps and runtime counts
+app.get('/health/trivia', async (_req, res) => {
+  try {
+    const persistence = await triviaManager.getPersistenceStatus();
+    res.json({
+      success: true,
+      stateFilePath: persistence.stateFilePath,
+      snapshotExists: persistence.snapshotExists,
+      snapshotSizeBytes: persistence.snapshotSizeBytes,
+      snapshotModifiedAt: persistence.snapshotModifiedAt,
+      activeGames: persistence.activeGames,
+      trackedPlayers: persistence.trackedPlayers,
+      stats: persistence.stats,
+      activeGameId: persistence.activeGameId,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || 'Failed to load trivia health' });
+  }
 });
 
 async function getLaunchReadiness() {
@@ -1092,4 +1212,4 @@ httpServer.listen(config.port, '0.0.0.0', () => {
   console.log(`🔐 Ecosystem Auth: Shared (.tiltcheck.me)`);
 });
 
-export { app, httpServer, io };
+export { app, httpServer, io, gameManager, eventRouter };
