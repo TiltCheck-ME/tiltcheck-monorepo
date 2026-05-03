@@ -25,6 +25,10 @@ describe('telemetry client', () => {
       userId: 'discord-123',
       bet: 5,
       win: 12.5,
+      sessionId: 'session-1',
+      casinoId: 'stake',
+      gameId: 'dice',
+      timestamp: 1234567890,
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -36,6 +40,10 @@ describe('telemetry client', () => {
           userId: 'discord-123',
           bet: 5,
           win: 12.5,
+          sessionId: 'session-1',
+          casinoId: 'stake',
+          gameId: 'dice',
+          timestamp: 1234567890,
         }),
       },
     );

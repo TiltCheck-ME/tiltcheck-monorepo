@@ -11,6 +11,10 @@ export interface RoundTelemetryPayload {
   userId: string;
   bet: number;
   win: number;
+  sessionId?: string;
+  casinoId?: string;
+  gameId?: string;
+  timestamp?: number;
 }
 
 export interface WinSecurePayload {
