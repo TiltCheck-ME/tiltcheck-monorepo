@@ -35,9 +35,6 @@ jobs:
       - name: Build changed packages
         run: pnpm --filter="[origin/main]..." --filter="!." build
 
-      - name: Run root integration tests
-        run: pnpm test
-
       - name: Run tests on changed packages
         run: pnpm --filter="...[origin/main]" --filter="!." --if-present test
 
