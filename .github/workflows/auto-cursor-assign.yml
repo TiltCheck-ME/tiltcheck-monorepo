@@ -41,7 +41,13 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          existing=$(gh api "repos/${REPO}/issues/${ISSUE_NUMBER}/comments" --jq '[.[] | select(.body | startswith("@cursor"))] | length')
+          # --paginate is required: a busy issue can have >30 comments, and the
+          # default single-page response would miss an existing @cursor comment
+          # buried deeper, causing this workflow to post a duplicate kick.
+          # Per-page --jq emits one line per match; total matches = line count.
+          existing=$(gh api --paginate "repos/${REPO}/issues/${ISSUE_NUMBER}/comments" \
+            --jq '.[] | select(.body | startswith("@cursor")) | .id' \
+            | wc -l | tr -d '[:space:]')
           echo "existing=$existing" >> "$GITHUB_OUTPUT"
           if [ "$existing" -gt 0 ]; then
             echo "Found $existing existing @cursor comment(s); skipping."
@@ -60,6 +66,11 @@ jobs:
           body_file=$(mktemp)
           {
             echo "@cursor please pick this up."
+            echo
+            # Echo the issue title as an H2 so the agent (and humans skimming
+            # comments) immediately see what's being delegated without scrolling
+            # to the verbatim body further down.
+            printf '## %s\n' "$ISSUE_TITLE"
             echo
             echo "## Scope"
             echo
