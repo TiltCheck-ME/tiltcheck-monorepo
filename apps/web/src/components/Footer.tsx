@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 "use client";
 
 import Link from "next/link";
@@ -45,7 +45,6 @@ const footerGroups = [
       { href: "/how-it-works", label: "How it Works" },
       { href: "/about", label: "About" },
       { href: "/operators", label: "Operators" },
-      { href: "/operators/pricing", label: "Operator Pricing" },
       { href: "/docs", label: "Docs" },
       { href: "/blog", label: "Blog" },
       { href: "/collab", label: "Contact" },
@@ -115,6 +114,7 @@ const Footer = () => {
             <Link href="/touch-grass">Touch Grass Protocol</Link>
             <Link href="/terms">Terms of Service</Link>
             <Link href="/privacy">Privacy</Link>
+            <Link href="/operators/pricing">Operator Pricing</Link>
             <Link href="/legal/limit">Asset Risk Limits</Link>
             <a
               href="https://github.com/jmenichole/tiltcheck-monorepo"
