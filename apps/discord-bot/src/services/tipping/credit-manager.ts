@@ -10,7 +10,8 @@ import type { DatabaseClient } from '@tiltcheck/database';
 export { FLAT_FEE_LAMPORTS, MIN_DEPOSIT_LAMPORTS };
 
 /**
- * CreditManager handles custodial balances and transactions.
+ * CreditManager handles transient credit ledger entries and relay transactions.
+ * Non-custodial — credits represent pending transfer state, not held funds.
  * Now using the shared @tiltcheck/justthetip module.
  */
 export class CreditManager extends CreditService {
