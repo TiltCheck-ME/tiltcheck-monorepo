@@ -9,7 +9,13 @@ const WEB_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig([
   ...nextCoreWebVitals,
-  globalIgnores([...sharedIgnorePatterns, 'out/**', 'next-env.d.ts', 'dist/types/**']),
+  globalIgnores([
+    ...sharedIgnorePatterns,
+    'out/**',
+    'public/**',
+    'next-env.d.ts',
+    'dist/types/**',
+  ]),
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
     languageOptions: {
