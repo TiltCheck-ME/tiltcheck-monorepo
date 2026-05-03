@@ -1,15 +1,15 @@
-/* © 2026 TiltCheck Ecosystem. All Rights Reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 
 /**
  * Hub Telemetry Relay (v2)
  * 
- * Pushes round data to the Cloudflare Hub for Discord Activity consumption.
+ * Pushes round data to the canonical API telemetry hub.
  */
 
 import { RoundData } from '../core/Sensor.js';
+import { postRoundTelemetry } from '../../telemetry-client.js';
 
 export class HubRelay {
-  private hubUrl = 'https://hub.tiltcheck.me';
   private userId: string | null = null;
 
   constructor() {
@@ -37,14 +37,10 @@ export class HubRelay {
     }
 
     try {
-      const resp = await fetch(`${this.hubUrl}/telemetry/round`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: this.userId,
-          bet: round.bet,
-          win: round.win
-        })
+      const resp = await postRoundTelemetry({
+        userId: this.userId,
+        bet: round.bet,
+        win: round.win,
       });
 
       if (!resp.ok) {
