@@ -1,0 +1,82 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# Auto-delegate issues to a Cursor cloud agent.
+#
+# Trigger: an issue is opened with the `cursor:assign` label, OR the label is
+# added to an existing open issue.
+#
+# Action: post a single `@cursor` comment that includes the full issue body and
+# a `Closes #<N>` directive, so the Cursor cloud agent picks it up, works in
+# its own VM, and opens a PR back to the repo on completion.
+#
+# Idempotency: skip if any prior comment in this issue already starts with
+# `@cursor` (prevents duplicate kicks if the label is removed and re-added).
+#
+# Requirements:
+# - Cursor GitHub App installed on the repo (already verified via cursor[bot] PRs).
+# - Cloud Agent secrets configured at https://cursor.com/dashboard/cloud-agents
+#   (at minimum: SKIP_ENV_VALIDATION=true, SKIP_DISCORD_LOGIN=true,
+#   VAULT_ENCRYPTION_KEY=<64 hex chars> for dev).
+# - A paid Cursor plan with a spend limit set.
+
+name: Auto-assign issue to Cursor cloud agent
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  delegate:
+    if: contains(github.event.issue.labels.*.name, 'cursor:assign')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if already kicked
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          existing=$(gh api "repos/${REPO}/issues/${ISSUE_NUMBER}/comments" --jq '[.[] | select(.body | startswith("@cursor"))] | length')
+          echo "existing=$existing" >> "$GITHUB_OUTPUT"
+          if [ "$existing" -gt 0 ]; then
+            echo "Found $existing existing @cursor comment(s); skipping."
+          fi
+
+      - name: Post @cursor delegation comment
+        if: steps.check.outputs.existing == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          body_file=$(mktemp)
+          {
+            echo "@cursor please pick this up."
+            echo
+            echo "## Scope"
+            echo
+            echo "Read the issue body below for full task description, files, constraints, and acceptance criteria."
+            echo
+            echo "## Constraints (apply to every cursor:assign issue)"
+            echo
+            echo "- Follow .cursor/rules/core-guardrails.mdc — small, scope-focused changes; no secret leakage; preserve OSS/runtime boundary."
+            echo "- Brand laws: copyright header on new files, no emojis in code or UI copy, no apologetic tone, atomic docs."
+            echo "- Non-custodial: do not introduce code that holds user funds."
+            echo "- Add or update tests for the change; remove dead/broken tests touched by your work."
+            echo "- Use the env shortcuts in AGENTS.md (SKIP_ENV_VALIDATION=true, SKIP_DISCORD_LOGIN=true, dev VAULT_ENCRYPTION_KEY) so builds pass."
+            echo
+            echo "## Issue body (verbatim)"
+            echo
+            printf '%s\n' "$ISSUE_BODY"
+            echo
+            echo "Closes #${ISSUE_NUMBER}."
+          } > "$body_file"
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body-file "$body_file"
