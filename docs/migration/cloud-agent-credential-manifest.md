@@ -156,3 +156,21 @@ Use least-privilege IAM only.
 Ask for approval before any ambiguous architecture/security/cost decision.
 Record milestone outputs in docs/migration/logs/milestone-log.md and docs/migration/logs/cost-pilot.csv.
 ```
+
+## 10) Cursor Cloud Runtime Baseline
+
+For Cursor Cloud development agents, configure the startup command to run:
+
+```bash
+bash scripts/cloud-agent-env-setup.sh
+```
+
+That bootstrap path is the repo-owned baseline for:
+
+- managed Node `20.19.0`
+- managed pnpm `10.29.1`
+- workspace dependency install keyed to `pnpm-lock.yaml`
+- prebuilt shared packages required by `apps/web`
+- validation of `pnpm --filter @tiltcheck/api exec vitest run tests/routes/partner.test.ts`
+
+This is meant to eliminate manual toolchain bootstrap in new cloud shells. It does not paper over unrelated repo-level build failures in untouched routes or packages.
