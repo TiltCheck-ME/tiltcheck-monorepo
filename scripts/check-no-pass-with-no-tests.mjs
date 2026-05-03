@@ -18,10 +18,7 @@ for (const workspaceRoot of workspaceRoots) {
       continue;
     }
 
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
-      name?: string;
-      scripts?: Record<string, string>;
-    };
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     const testScript = packageJson.scripts?.test;
 
     if (typeof testScript === 'string' && testScript.includes('--passWithNoTests')) {
