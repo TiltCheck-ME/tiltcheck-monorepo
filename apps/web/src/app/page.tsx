@@ -31,13 +31,13 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            The House has the math. You have a dopamine problem. We have The Brakes.
+            HOUSE ALWAYS WINS? FUCK THAT.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
             TiltCheck is a read-only browser extension that watches live casino sessions,
             detects Auto-Pilot mode, and forces the exit before The Loop feeds your win
-            back to the machine.
+            back to the machine. The house has the math. Now you do too.
           </p>
 
           <div className="hero-actions">
