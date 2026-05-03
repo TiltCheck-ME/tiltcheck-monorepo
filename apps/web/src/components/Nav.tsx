@@ -22,6 +22,7 @@ const NAV_LINKS_SECONDARY: NavLink[] = [
   { href: '/blog',      label: 'Blog' },
   { href: '/docs',      label: 'Docs' },
   { href: '/bonuses',   label: 'Bonuses' },
+  { href: '/operators', label: 'Operators' },
   { href: '/collab',    label: 'Contact', accent: 'purple' },
 ];
 

@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "TiltCheck RGaaS Sandbox",
+    "_postman_id": "a8eb5216-995a-4fab-9af6-e7dc87b958f6",
+    "description": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03\n\nSandbox collection for self-serve operator signup and smoke validation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "apiBaseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "webBaseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "verificationToken",
+      "value": ""
+    },
+    {
+      "key": "appId",
+      "value": ""
+    },
+    {
+      "key": "secretKey",
+      "value": ""
+    },
+    {
+      "key": "csrfHeaderValue",
+      "value": "XMLHttpRequest"
+    }
+  ],
+  "item": [
+    {
+      "name": "Register sandbox operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "{{csrfHeaderValue}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"ops@examplecasino.com\",\n  \"companyName\": \"Example Casino\",\n  \"casinoDomain\": \"examplecasino.com\",\n  \"intendedUseCase\": \"We want to test trust scoring, breathalyzer checks, and risk-band signals inside our cashier and session monitor UX.\",\n  \"recaptchaToken\": \"dev-recaptcha-pass\",\n  \"honeypot\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{apiBaseUrl}}/partner/register-sandbox",
+          "host": [
+            "{{apiBaseUrl}}"
+          ],
+          "path": [
+            "partner",
+            "register-sandbox"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Verify sandbox operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "{{csrfHeaderValue}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{apiBaseUrl}}/partner/verify-sandbox",
+          "host": [
+            "{{apiBaseUrl}}"
+          ],
+          "path": [
+            "partner",
+            "verify-sandbox"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Sandbox smoke route",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-TiltCheck-App-Id",
+            "value": "{{appId}}"
+          },
+          {
+            "key": "X-TiltCheck-Secret-Key",
+            "value": "{{secretKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{apiBaseUrl}}/partner/sandbox/mock",
+          "host": [
+            "{{apiBaseUrl}}"
+          ],
+          "path": [
+            "partner",
+            "sandbox",
+            "mock"
+          ]
+        }
+      }
+    }
+  ]
+}
