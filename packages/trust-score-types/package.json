@@ -9,7 +9,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run --passWithNoTests tests/trust-score.test.ts"
+    "test": "vitest --run tests/trust-score.test.ts"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
