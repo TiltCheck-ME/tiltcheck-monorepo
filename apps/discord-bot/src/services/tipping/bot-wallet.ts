@@ -2,7 +2,8 @@
 /**
  * Bot Wallet Service
  *
- * Manages the bot's custodial Solana wallet for sending SOL on behalf of users.
+ * Manages the bot's operational relay wallet for executing non-custodial SOL transfers.
+ * Users retain full ownership — this wallet only signs relay transactions.
  */
 
 import {

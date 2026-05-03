@@ -114,6 +114,20 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── Responsible Gaming ── */}
+      <section className="public-page-section px-4" style={{ paddingBottom: '2rem' }}>
+        <div className="landing-shell" style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '0.75rem', color: '#6b7a8d', lineHeight: 1.6 }}>
+            TiltCheck is not a casino, not a bank, and not financial advice. If you or someone you know
+            has a gambling problem, contact{' '}
+            <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" style={{ color: '#17c3b2' }}>
+              NCPG.org
+            </a>{' '}
+            or call <strong style={{ color: '#ffffff' }}>1-800-GAMBLER</strong>.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
