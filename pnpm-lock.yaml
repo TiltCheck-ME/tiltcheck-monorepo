@@ -328,6 +328,9 @@ importers:
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../packages/event-router
+      '@tiltcheck/prize-payout':
+        specifier: workspace:*
+        version: link:../../packages/prize-payout
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../../packages/types
