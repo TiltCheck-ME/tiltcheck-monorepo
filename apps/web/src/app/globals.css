@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -1319,6 +1319,22 @@ body.degen-background > * {
   flex-wrap: wrap;
 }
 
+.hero-actions__secondary-link {
+  align-self: center;
+  color: var(--text-secondary);
+  font-family: var(--font-geist-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.hero-actions__secondary-link:hover {
+  color: var(--color-primary);
+}
+
 @media (max-width: 640px) {
   .hero-actions {
     flex-direction: column;
@@ -1327,6 +1343,10 @@ body.degen-background > * {
   }
   .hero-actions .btn {
     width: 100%;
+  }
+  .hero-actions__secondary-link {
+    width: 100%;
+    text-align: center;
   }
   .hero-stats-strip {
     grid-template-columns: repeat(2, 1fr);
