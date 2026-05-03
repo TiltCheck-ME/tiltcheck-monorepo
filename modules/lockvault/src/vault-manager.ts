@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
 import { db } from '@tiltcheck/database';
@@ -349,6 +349,38 @@ function createLinkedWalletUnavailableError(message: string): Error & { code: st
   return error;
 }
 
+function createWalletActionLockedError(
+  status: {
+    lockUntil?: number;
+    remainingMs?: number;
+    reason?: string;
+    earlyUnlockRequest?: WalletActionLock['earlyUnlockRequest'];
+  },
+): Error & {
+  code: string;
+  httpStatus: number;
+  lockUntil?: number;
+  remainingMs?: number;
+  reason?: string;
+  earlyUnlockRequest?: WalletActionLock['earlyUnlockRequest'];
+} {
+  const error = new Error('Wallet lock is active. Try again after the timer expires.') as Error & {
+    code: string;
+    httpStatus: number;
+    lockUntil?: number;
+    remainingMs?: number;
+    reason?: string;
+    earlyUnlockRequest?: WalletActionLock['earlyUnlockRequest'];
+  };
+  error.code = 'WALLET_LOCK_ACTIVE';
+  error.httpStatus = 423;
+  error.lockUntil = status.lockUntil;
+  error.remainingMs = status.remainingMs;
+  error.reason = status.reason;
+  error.earlyUnlockRequest = status.earlyUnlockRequest;
+  return error;
+}
+
 function parseDuration(raw: string): number {
   const m = raw.trim().toLowerCase().match(/^(\d+)(m|h|d)$/);
   if (!m) throw new Error('Invalid duration format. Use 30m, 12h, 3d');
@@ -641,6 +673,14 @@ class VaultManager {
     return normalizeSolAmount(Math.max(0, vault.releasedAmountSOL));
   }
 
+  private assertWalletActionsUnlocked(userId: string): void {
+    const status = this.getWalletActionLockStatus(userId);
+    if (!status.locked) {
+      return;
+    }
+    throw createWalletActionLockedError(status);
+  }
+
   private getLockedRemainder(vault: LockVaultRecord): number {
     return normalizeSolAmount(Math.max(0, vault.lockedAmountSOL - vault.releasedAmountSOL));
   }
@@ -732,6 +772,7 @@ class VaultManager {
   }
 
   async lock(input: LockVaultInput): Promise<LockVaultRecord> {
+    this.assertWalletActionsUnlocked(input.userId);
     if (input.autoWithdraw) {
       throw createFeatureNotImplementedError(
         'LockVault auto-withdraw is temporarily disabled until a real execution consumer is wired.'
@@ -863,6 +904,7 @@ class VaultManager {
   }
 
   unlock(userId: string, vaultId: string): LockVaultRecord {
+    this.assertWalletActionsUnlocked(userId);
     const vault = this.vaults.get(vaultId);
     if (!vault || vault.userId !== userId) throw new Error('Vault not found');
     const nowTs = now();
@@ -957,6 +999,7 @@ class VaultManager {
   }
 
   deposit(userId: string, amount: number): number {
+    this.assertWalletActionsUnlocked(userId);
     if (!Number.isFinite(amount) || amount <= 0) {
       throw new Error('Deposit amount must be a positive finite number.');
     }
@@ -1059,6 +1102,7 @@ class VaultManager {
   }
 
   setGuardians(userId: string, guardianIds: string[], approvalThreshold?: number): LockVaultRecord {
+    this.assertWalletActionsUnlocked(userId);
     const normalizedGuardianIds = normalizeUserIdList(guardianIds);
     if (normalizedGuardianIds.length === 0) throw new Error('At least one guardianId is required.');
     if (normalizedGuardianIds.includes(userId)) throw new Error('guardianIds must not include userId.');
@@ -1092,6 +1136,7 @@ class VaultManager {
   }
 
   addSecondOwner(userId: string, secondOwnerId: string): LockVaultRecord {
+    this.assertWalletActionsUnlocked(userId);
     const normalizedSecondOwner = secondOwnerId.trim();
     if (!normalizedSecondOwner) throw new Error('secondOwnerId is required');
     if (normalizedSecondOwner === userId) throw new Error('secondOwnerId must be different from userId');
@@ -1116,6 +1161,7 @@ class VaultManager {
   }
 
   initiateWithdrawal(userId: string, amount: number): LockVaultRecord {
+    this.assertWalletActionsUnlocked(userId);
     if (!Number.isFinite(amount) || amount <= 0) {
       throw new Error('Withdrawal amount must be a positive finite number.');
     }
@@ -1200,6 +1246,7 @@ class VaultManager {
   }
 
   executeWithdrawal(userId: string): LockVaultRecord {
+    this.assertWalletActionsUnlocked(userId);
     const vault = this.getLatestDualOwnerVaultForUser(userId, ['approved', 'execution-pending'], false);
     const proposal = vault.withdrawalProposal;
     const nowTs = now();

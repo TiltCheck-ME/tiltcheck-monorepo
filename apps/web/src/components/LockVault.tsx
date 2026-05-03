@@ -1,10 +1,21 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Lock, Unlock, Shield, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+interface VaultLockRecord {
+  id: string;
+  status: 'locked' | 'extended' | string;
+  lockedAmountSOL?: number | null;
+  unlockAt: number | string;
+}
+
+interface VaultErrorResponse {
+  error?: string;
+}
 
 interface ActiveLock {
   id: string;
@@ -27,6 +38,10 @@ interface VaultState {
   walletLockUntil: string | null;
   walletUnlockRequest: EarlyUnlockRequest | null;
   threshold: number;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 function countdown(unlockTime: string): string {
@@ -67,7 +82,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
       if (vaultRes.ok) {
         const data = await vaultRes.json();
         const activeLock = data.vault?.locks?.find(
-          (l: any) => l.status === 'locked' || l.status === 'extended'
+          (lock: VaultLockRecord) => lock.status === 'locked' || lock.status === 'extended'
         );
         setVault(prev => ({
           ...prev,
@@ -77,7 +92,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                 id: activeLock.id,
                 amount: activeLock.lockedAmountSOL ?? 0,
                 unlockTime: new Date(activeLock.unlockAt).toISOString(),
-                readyToRelease: Date.now() >= activeLock.unlockAt,
+                readyToRelease: Date.now() >= new Date(activeLock.unlockAt).getTime(),
               }
             : null,
           walletLocked: data.walletLock?.locked ?? false,
@@ -161,13 +176,13 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         body: JSON.stringify({ amount, durationMinutes: lockHours * 60, reason: 'Manual lock via TiltCheck Hub' }),
       });
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
+        const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       setLockAmount('');
       await fetchVault();
-    } catch (err: any) {
-      setError(err.message || 'Lock failed.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Lock failed.'));
     } finally {
       setWorking(false);
     }
@@ -185,12 +200,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         body: JSON.stringify({ vaultId: vault.activeLock.id }),
       });
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
+        const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       await fetchVault();
-    } catch (err: any) {
-      setError(err.message || 'Release failed.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Release failed.'));
     } finally {
       setWorking(false);
     }
@@ -234,12 +249,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         }),
       });
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
+        const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       await fetchVault();
-    } catch (err: any) {
-      setError(err.message || 'Wallet lock failed.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Wallet lock failed.'));
     } finally {
       setWorking(false);
     }
@@ -257,12 +272,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         body: JSON.stringify({}),
       });
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
+        const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       await fetchVault();
-    } catch (err: any) {
-      setError(err.message || 'Wallet unlock failed.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Wallet unlock failed.'));
     } finally {
       setWorking(false);
     }
@@ -280,12 +295,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         body: JSON.stringify({ mode }),
       });
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
+        const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       await fetchVault();
-    } catch (err: any) {
-      setError(err.message || 'Wallet unlock request failed.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Wallet unlock request failed.'));
     } finally {
       setWorking(false);
     }

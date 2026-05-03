@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
@@ -401,12 +401,11 @@ router.get('/casino-lookup', (req, res) => {
     return;
   }
 
-  const allScores = trustEngines.getCasinoScores() as CasinoTrustRecord[];
-  const match = allScores.find((c: CasinoTrustRecord) => {
-    const name = (c.name || '').toLowerCase();
-    const slug = (c.slug || '').toLowerCase();
-    const domain = (c.monitoredDomain || '').toLowerCase();
-    return name.includes(query) || slug.includes(query) || domain.includes(query);
+  const allScores = Object.entries(trustEngines.getCasinoScores());
+  const match = allScores.find(([casinoName]) => {
+    const name = casinoName.toLowerCase();
+    const slug = casinoName.toLowerCase().replaceAll(/\s+/g, '-');
+    return name.includes(query) || slug.includes(query);
   });
 
   if (!match) {
@@ -414,13 +413,18 @@ router.get('/casino-lookup', (req, res) => {
     return;
   }
 
+  const [casinoName, scoreRecord] = match;
+  const score = scoreRecord.score ?? 0;
+  const grade = score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : 'F';
+  const risk = score >= 80 ? 'low' : score >= 60 ? 'medium' : 'high';
+
   res.json({
     casino: {
-      name: match.name,
-      slug: match.slug,
-      score: match.score ?? 0,
-      grade: match.grade ?? 'N/A',
-      risk: match.risk ?? 'unknown',
+      name: casinoName,
+      slug: casinoName.toLowerCase().replaceAll(/\s+/g, '-'),
+      score,
+      grade,
+      risk,
     },
   });
 });
