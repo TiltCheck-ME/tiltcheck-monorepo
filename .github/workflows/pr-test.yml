@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Enforce root cleanliness
+        run: bash tools/check-root-cleanliness.sh
+
       - name: Enforce no passWithNoTests scripts
         run: node scripts/check-no-pass-with-no-tests.mjs
 

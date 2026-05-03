@@ -1,9 +1,13 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { runner } from './agent.js';
 import { db } from '@tiltcheck/database';
 import type { Session } from '@google/adk';
+
+type RunnerEvent = {
+  content?: unknown;
+};
 
 const MOCK_DISCORD_ID = '123456789';
 const runLiveLlmTests = process.env.ENABLE_LIVE_LLM_TESTS === 'true';
@@ -15,6 +19,7 @@ describe('Degen Intelligence Agent', () => {
   beforeAll(async () => {
     // Create a session from the service before tests run
     session = await runner.sessionService.createSession({ appName: 'TiltCheck Intelligence', sessionId: 'test-session', userId: 'test-user' });
+    expect(session).toBeDefined();
 
     // Mock the database connection and methods for testing
     db.connect = async () => Promise.resolve();
@@ -59,7 +64,7 @@ describe('Degen Intelligence Agent', () => {
       updated_at: new Date().toISOString(),
     });
 
-    db.getUserGameHistory = async (discordId: string, limit: number) => ([
+    db.getUserGameHistory = async (discordId: string, _limit: number) => ([
       { id: '1', game_id: '1', game_type: 'poker', platform: 'discord', channel_id: '1', winner_id: discordId, player_ids: [discordId], duration: 10, completed_at: new Date().toISOString() },
       { id: '2', game_id: '2', game_type: 'dad', platform: 'discord', channel_id: '1', winner_id: 'another_user', player_ids: [discordId, 'another_user'], duration: 10, completed_at: new Date().toISOString() },
     ]);
@@ -79,7 +84,7 @@ describe('Degen Intelligence Agent', () => {
       updated_at: new Date().toISOString(),
     });
 
-    db.getTiltStats = async (userId: string) => ({
+    db.getTiltStats = async (_userId: string) => ({
       totalEvents: 1,
       averageTiltScore: 3.5,
       maxTiltScore: 6,
@@ -88,11 +93,11 @@ describe('Degen Intelligence Agent', () => {
       eventsLast7d: 2,
     });
 
-    db.getTiltHistory = async (discordId: string, options: { limit: number }) => ([
+    db.getTiltHistory = async (discordId: string, _options: { limit: number }) => ([
       { id: '1', user_id: discordId, timestamp: new Date().toISOString(), signals: [], tilt_score: 6, context: 'Lost a big hand in poker', created_at: new Date().toISOString() },
     ]);
 
-    db.getBonusStatus = async (discordId: string) => ([
+    db.getBonusStatus = async (_discordId: string) => ([
       { casino: 'Stake', bonus: 'Daily Reload', status: 'READY' },
       { casino: 'Shuffle', bonus: 'Daily Rakeback', status: 'READY' },
       { casino: 'Rollbit', bonus: 'Hourly', status: 'LOCKED (30m remaining)' }
@@ -103,7 +108,7 @@ describe('Degen Intelligence Agent', () => {
 
   liveIt('should get full stats for a user', async () => {
     const prompt = `What are the full stats for user ${MOCK_DISCORD_ID}?`;
-    const events: any[] = [];
+    const events: RunnerEvent[] = [];
     for await (const event of runner.runAsync({
       userId: 'test-user',
       sessionId: 'test-session',
@@ -122,7 +127,7 @@ describe('Degen Intelligence Agent', () => {
 
   liveIt('should explain trust standing', async () => {
     const prompt = `Is user ${MOCK_DISCORD_ID} tilted? Explain their trust standing.`;
-    const events: any[] = [];
+    const events: RunnerEvent[] = [];
     for await (const event of runner.runAsync({
       userId: 'test-user',
       sessionId: 'test-session',
@@ -141,7 +146,7 @@ describe('Degen Intelligence Agent', () => {
 
   liveIt('should get bonus status', async () => {
     const prompt = `Can user ${MOCK_DISCORD_ID} claim any bonuses right now?`;
-    const events: any[] = [];
+    const events: RunnerEvent[] = [];
     for await (const event of runner.runAsync({
       userId: 'test-user',
       sessionId: 'test-session',
@@ -160,7 +165,7 @@ describe('Degen Intelligence Agent', () => {
   
   liveIt('should get profit and loss', async () => {
     const prompt = `What's my profit and loss? My discord id is ${MOCK_DISCORD_ID}.`;
-    const events: any[] = [];
+    const events: RunnerEvent[] = [];
     for await (const event of runner.runAsync({
       userId: 'test-user',
       sessionId: 'test-session',

@@ -169,8 +169,12 @@ function serializeQuizState(state: SerializedQuizState): string | null {
     });
 }
 
-function buildFallbackCompletedSteps(onboarding: UserOnboarding, quizState: SerializedQuizState): OnboardingStep[] {
+function buildFallbackCompletedSteps(onboarding: UserOnboarding | null, quizState: SerializedQuizState): OnboardingStep[] {
     const completedSteps = new Set<OnboardingStep>(quizState.completedSteps);
+
+    if (!onboarding) {
+        return ONBOARDING_STEPS.filter((step) => completedSteps.has(step));
+    }
 
     if (onboarding.has_accepted_terms) {
         completedSteps.add('terms');

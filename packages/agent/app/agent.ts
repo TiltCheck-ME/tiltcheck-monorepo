@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 
 import { FunctionTool, LlmAgent, Runner, InMemorySessionService, Gemini } from '@google/adk';
 import { z } from 'zod';
@@ -9,6 +9,12 @@ const DiscordIdSchema = z.object({
 });
 
 type DiscordIdParams = z.infer<typeof DiscordIdSchema>;
+
+interface RecentGameRecord {
+  game_type: string;
+  completed_at: string;
+  winner_id: string | null;
+}
 
 /**
  * Tool to fetch user analytics and gaming stats
@@ -41,7 +47,7 @@ const getUserAnalytics = new FunctionTool<typeof DiscordIdSchema>({
         depositedSol: stats?.deposited_amount_sol || 0,
         currentCreditBalance: credits ? (credits.balance_lamports / 1e9).toFixed(4) + ' SOL' : '0 SOL'
       },
-      recentActivity: recentGames.map((g: any) => ({
+      recentActivity: (recentGames as RecentGameRecord[]).map((g) => ({
         type: g.game_type,
         completedAt: g.completed_at,
         won: g.winner_id === discordId

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -32,6 +32,10 @@ const router: Router = Router();
 interface VaultError extends Error {
   code?: string;
   httpStatus?: number;
+  lockUntil?: number;
+  remainingMs?: number;
+  reason?: string;
+  earlyUnlockRequest?: unknown;
 }
 
 function normalizeVaultAmount(value: unknown): number {
@@ -179,12 +183,35 @@ function parseGuardianConfigBody(body: any): { guardianIds: string[]; approvalTh
   return { guardianIds, approvalThreshold };
 }
 
-function handleVaultError(error: unknown): { status: number; body: { error: string; code?: string } } {
+function handleVaultError(error: unknown): {
+  status: number;
+  body: {
+    error: string;
+    code?: string;
+    lockUntil?: string;
+    remainingMs?: number;
+    reason?: string | null;
+    earlyUnlockRequest?: unknown;
+  };
+} {
   if (error instanceof Error) {
     const vaultError = error as VaultError;
     const code = vaultError.code;
     const httpStatus = vaultError.httpStatus;
     if (code && httpStatus) {
+      if (code === 'WALLET_LOCK_ACTIVE') {
+        return {
+          status: httpStatus,
+          body: {
+            error: error.message,
+            code,
+            lockUntil: vaultError.lockUntil ? new Date(vaultError.lockUntil).toISOString() : undefined,
+            remainingMs: vaultError.remainingMs,
+            reason: vaultError.reason || null,
+            earlyUnlockRequest: vaultError.earlyUnlockRequest || null,
+          }
+        };
+      }
       return {
         status: httpStatus,
         body: { error: error.message, code }
@@ -555,13 +582,18 @@ router.post('/:userId/deposit', authMiddleware, async (req, res) => {
     return;
   }
 
-  const newBalance = depositToVault(userId, parsedAmount);
-  res.json({
-    success: true,
-    vault: {
-      balance: newBalance
-    }
-  });
+  try {
+    const newBalance = depositToVault(userId, parsedAmount);
+    res.json({
+      success: true,
+      vault: {
+        balance: newBalance
+      }
+    });
+  } catch (error) {
+    const handled = handleVaultError(error);
+    res.status(handled.status).json(handled.body);
+  }
 });
 
 /**
