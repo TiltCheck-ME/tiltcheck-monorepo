@@ -1,3 +1,5 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+
 # Dependencies
 node_modules/
 .pnpm-store/
@@ -45,6 +47,7 @@ out/
 .env.*.local
 
 # Logs
+# Keep local build/debug log spam in tmp/build-logs/, not at repo root.
 logs/
 !apps/web/admin/logs/
 !apps/web/admin/logs/index.html
