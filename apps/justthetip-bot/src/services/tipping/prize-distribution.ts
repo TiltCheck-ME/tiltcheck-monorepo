@@ -20,10 +20,23 @@ import { v4 as uuidv4 } from 'uuid';
 const FLAT_FEE_SOL = 0.0007; // ~$0.07 at $100/SOL
 const FEE_WALLET = process.env.JUSTTHETIP_FEE_WALLET || '';
 
-// Admin users who can trigger prize distributions (Discord user IDs)
-const ADMIN_USER_IDS = new Set(
-  (process.env.PRIZE_ADMIN_USER_IDS || '').split(',').filter(id => id.trim())
+// Admin users who can trigger prize distributions (Discord user IDs).
+// Founder fallback: if env is unset/empty, only the founder ID is admin.
+// This prevents the legacy "empty list ⇒ everyone is admin" footgun.
+const FOUNDER_ADMIN_ID = '1153034319271559328';
+const _envAdminIds = (process.env.PRIZE_ADMIN_USER_IDS || '')
+  .split(',')
+  .map(id => id.trim())
+  .filter(id => id.length > 0 && id !== 'REPLACE_ME');
+const ADMIN_USER_IDS = new Set<string>(
+  _envAdminIds.length > 0 ? _envAdminIds : [FOUNDER_ADMIN_ID]
 );
+if (_envAdminIds.length === 0) {
+  // Visible warning so we never silently rely on the founder fallback in prod.
+  console.warn(
+    `[prize-distribution] PRIZE_ADMIN_USER_IDS not set; falling back to founder ID ${FOUNDER_ADMIN_ID}. Set PRIZE_ADMIN_USER_IDS in env to override.`
+  );
+}
 
 // Prize distribution status tracking
 export interface PrizeDistribution {
@@ -62,13 +75,11 @@ export interface TransactionLog {
 const transactionLogs: TransactionLog[] = [];
 
 /**
- * Check if a user is an admin for prize distribution
+ * Check if a user is an admin for prize distribution.
+ * Fail-closed: only IDs in ADMIN_USER_IDS pass. If env is unset, the set
+ * already contains the founder ID (see initialization above).
  */
 export function isAdmin(userId: string): boolean {
-  // Allow all users if no admin list is configured (dev mode)
-  if (ADMIN_USER_IDS.size === 0) {
-    return true;
-  }
   return ADMIN_USER_IDS.has(userId);
 }
 
