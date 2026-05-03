@@ -1,7 +1,7 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * Partner Authentication Middleware
- * 
+ *
  * Verifies AppId and SecretKey from headers to authorize partner API calls.
  */
 
@@ -13,6 +13,11 @@ export interface PartnerRequest extends Request {
     id: string;
     name: string;
     appId: string;
+    contactEmail: string | null;
+    mode: string;
+    dailyQuotaLimit: number | null;
+    dailyQuotaUsed: number | null;
+    emailVerifiedAt: Date | null;
     isActive: boolean;
   };
 }
@@ -47,7 +52,6 @@ export async function partnerAuthMiddleware(
       return;
     }
 
-    // Verify secret key correctly (In prod, this might be hashed/hashed in DB)
     if (partner.secret_key !== secretKey) {
       res.status(401).json({
         error: 'Invalid partner secret key',
@@ -56,17 +60,33 @@ export async function partnerAuthMiddleware(
       return;
     }
 
-    // Attach partner info to request
+    if (partner.mode === 'sandbox' && !partner.email_verified_at) {
+      res.status(403).json({
+        error: 'Partner email must be verified before using sandbox credentials',
+        code: 'PARTNER_EMAIL_UNVERIFIED'
+      });
+      return;
+    }
+
+    if (partner.mode === 'sandbox') {
+      res.setHeader('X-Mode', 'sandbox');
+    }
+
     (req as PartnerRequest).partner = {
       id: partner.id,
       name: partner.name,
       appId: partner.app_id,
+      contactEmail: partner.contact_email,
+      mode: partner.mode || 'production',
+      dailyQuotaLimit: partner.daily_quota_limit ?? null,
+      dailyQuotaUsed: partner.daily_quota_used ?? null,
+      emailVerifiedAt: partner.email_verified_at,
       isActive: partner.is_active,
     };
 
     next();
   } catch (error) {
-    console.error('[Partner Auth] Error:', error);
+    console.error('[Partner Auth] Authentication failed');
     res.status(500).json({
       error: 'Partner authentication failed',
       code: 'PARTNER_AUTH_ERROR'

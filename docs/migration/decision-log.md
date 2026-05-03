@@ -25,6 +25,18 @@ Use this file to record approved decisions and avoid assumption drift between se
 
 ## Approved Decisions
 
+- Decision ID: `DEC-20260503-01`
+  - Topic: Self-serve operator portal identity binding
+  - Context: ship sandbox key issuance and a per-operator portal without introducing a net-new operator account model mid-PR
+  - Options considered: verified contact-email binding on existing user auth, separate operator auth service, dashboard-only portal with no web surface
+  - Decision made: bind operator portal access to the verified partner `contact_email` and accept existing Magic/Discord-backed auth on web
+  - Rationale: smallest viable diff that preserves explicit auth boundaries, supports self-serve access immediately, and avoids inventing a second auth stack under time pressure
+  - Impact: operator portal visibility depends on the signed-in user email matching the verified partner contact email; a richer operator membership model can layer on later without blocking sandbox onboarding
+  - Approver: project owner
+  - Date: 2026-05-03
+  - Revisit trigger: multiple operators need shared access to one partner account or partner org-level RBAC becomes required
+  - Status: approved
+
 - Decision ID: `DEC-20260307-01`
   - Topic: Primary GCP region
   - Context: pick low-cost region for migration start

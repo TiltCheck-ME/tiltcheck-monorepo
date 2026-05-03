@@ -44,6 +44,8 @@ const footerGroups = [
     links: [
       { href: "/how-it-works", label: "How it Works" },
       { href: "/about", label: "About" },
+      { href: "/operators", label: "Operators" },
+      { href: "/operators/pricing", label: "Operator Pricing" },
       { href: "/docs", label: "Docs" },
       { href: "/blog", label: "Blog" },
       { href: "/collab", label: "Contact" },
