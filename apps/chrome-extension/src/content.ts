@@ -45,7 +45,7 @@ import { initSidebar } from './sidebar/index.js';
 import { SidebarUI } from './sidebar/types.js';
 import { Analyzer } from './analyzer.js';
 import { FairnessService } from './FairnessService.js';
-import { EXT_CONFIG } from './config.js';
+import { postRoundTelemetry, postWinSecureTelemetry } from './telemetry-client.js';
 import { GameBlocker } from './game-blocker.js';
 import type { CasinoVerification } from './license-verifier.js';
 
@@ -787,14 +787,10 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
   }
 
   // NEW: Push to Hub Relay for Discord Activity
-  fetch(`${EXT_CONFIG.HUB_URL}/telemetry/round`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId: session.userId,
-      bet,
-      win: payout
-    })
+  postRoundTelemetry({
+    userId: session.userId,
+    bet,
+    win: payout
   }).catch(err => console.warn('[TiltCheck] Hub relay failed:', err));
 
   // Check for Bag Fumble or Zero Balance Intervention
@@ -1711,11 +1707,7 @@ function showRedeemNudge(data: RedeemNudgeData) {
 
 async function relayWinSecure(amount: number) {
   const userId = await getUserId();
-  const response = await fetch(`${EXT_CONFIG.HUB_URL}/telemetry/win-secure`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount, userId })
-  });
+  const response = await postWinSecureTelemetry({ amount, userId });
 
   if (!response.ok) {
     console.error('[TiltCheck] Win secure relay returned non-OK status:', response.status);

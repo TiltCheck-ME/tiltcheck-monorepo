@@ -222,6 +222,7 @@ app.use('/collab', collabRouter);
 app.use('/stats', statsRouter);
 app.use('/partner', partnerRouter);
 app.use('/blog', blogRouter);
+app.use('/v1/telemetry', telemetryRouter);
 app.use('/telemetry', telemetryRouter);
 app.use('/trivia', triviaRouter);
 

@@ -1,4 +1,5 @@
 {
+    "copyright":  "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03",
     "lastUpdated":  "2026-03-09",
     "repo":  "tiltcheck-monorepo",
     "objective":  "Migrate project hosting to GCP while preserving open-source code posture.",
@@ -80,7 +81,7 @@
                                            "Conducted full code audit: identified 15 bugs (4 critical: B1-B4).",
                                            "Synthesized Master Task List for Notion Control Plane.",
                                            "Configured Gemini CLI workspace to include monorepo natively.",
-                                           "Installed critical extensions: Cloud Run, Postgres, Conductor, Context7, and Filesystem/Thinking MCPs."
+                                           "Installed critical extensions: Postgres, Conductor, Context7, and Filesystem/Thinking MCPs, plus cloud tooling as needed."
                                        ],
                              "date":  "2026-03-09"
                          },

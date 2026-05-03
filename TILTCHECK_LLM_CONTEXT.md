@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # TiltCheck Ecosystem - LLM Context Source
 
 ## Project Overview
@@ -40,7 +42,7 @@ TiltCheck is a comprehensive "Degen Safety Net" ecosystem designed to provide re
 
 ### Stack
 - **Frontend:** React, HTML5 PWA (Progressive Web App).
-- **Backend:** Node.js (Express) on Google Cloud Run.
+- **Backend:** Node.js (Express) services deployed through GHCR -> Railway where production wiring exists.
 - **Database:** Supabase (PostgreSQL).
 - **Blockchain:** Solana (for entropy, memos, and tipping).
 - **AI:** Google Cloud AI Platform for coaching and analysis.
@@ -51,11 +53,11 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 2. **Entropy:** Solana Block Hash (Public, Immutable).
 3. **Verification:** `HMAC_SHA256(Block_Hash, Discord_ID + Seed)`.
 
-## GCP Services
-- **Google Cloud Run:** Hosts all backend services, including the API and Discord bots, providing a scalable, serverless environment.
-- **Google Cloud Storage:** Used for storing user-uploaded assets and application data.
-- **Google Secret Manager:** Manages all secrets and API keys securely.
-- **Google Cloud Logging:** Centralized logging for all services.
+## Platform Services
+- **Railway + GHCR:** Host the wired container services and publish their deployable images.
+- **Cloudflare Tunnel:** Exposes the public hostnames that front Railway internal services.
+- **Google Cloud Storage:** Used for storing user-uploaded assets and application data where those integrations still exist.
+- **Google Secret Manager:** Manages secrets for GCP-scoped integrations where still in use.
 - **Geo-Information:** The platform aims to inform users about regional online gambling laws and regulations to help them make informed decisions, rather than strictly blocking access based on location.
 
 ## Priority Index (Decide/Delegate/Delete)
@@ -79,10 +81,10 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 - **Legacy CSS:** `base.css` (migrating to `theme.css`).
 
 ## Deployment
-- **Infrastructure:** All services are deployed on Google Cloud Platform (GCP).
-- **Compute:** Services are containerized and deployed to Google Cloud Run.
-- **CI/CD:** Google Cloud Build is used for continuous integration and deployment.
-- **Extension:** Chrome Web Store (Manual load for dev).
+- **Infrastructure:** Wired production services run on Railway with Cloudflare-managed ingress.
+- **Compute:** Services are built in GitHub Actions, pushed to GHCR, and redeployed on Railway.
+- **CI/CD:** `.github/workflows/deploy-railway.yml` is the primary production deploy pipeline in-repo.
+- **Extension:** Chrome Web Store or manual load for dev.
 
 ---
 *Use this file to ground LLM responses in the specific context of the TiltCheck architecture and mission.*

@@ -1,7 +1,8 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 name: Deploy Web to Vercel
 
 on:
-  workflow_dispatch: # Disabled auto-deploy — using GCP Cloud Run. Re-enable push trigger when switching to Vercel.
+  workflow_dispatch: # Manual Vercel fallback only; primary production web deploy is GHCR -> Railway.
 
 jobs:
   deploy-web:

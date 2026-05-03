@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # TiltGuard Chrome Extension — Development Guide
 
@@ -135,7 +135,7 @@ Entry point: `sidebar/index.ts` — call `initSidebar()` from `content.ts`.
 
 ### v2/ (next-generation sensor architecture)
 
-Per-casino sensor classes extending a common `Sensor` base. `SensorRegistry` maps hostnames to sensor instances. `HubRelay` handles telemetry batching and delivery to the API hub via WebSocket.
+Per-casino sensor classes extending a common `Sensor` base. `SensorRegistry` maps hostnames to sensor instances. `HubRelay` posts round telemetry to the canonical API hub at `https://api.tiltcheck.me/v1/telemetry/round`.
 
 Status: active development. Not yet the default in `content.ts`.
 
@@ -153,7 +153,7 @@ Exports `EXT_CONFIG`:
 ```ts
 {
   API_BASE_URL: 'https://api.tiltcheck.me',
-  HUB_URL:      'https://tiltcheck.me/dashboard',
+  HUB_URL:      'https://api.tiltcheck.me',
   AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
   WEB_APP_URL:  'https://tiltcheck.me',
   DISCORD_CLIENT_ID: '1445916179163250860',
@@ -162,7 +162,7 @@ Exports `EXT_CONFIG`:
 }
 ```
 
-Also exports `getDiscordLoginUrl(source?)` which builds the full OAuth URL with extension runtime ID and opener origin.
+Also exports `TELEMETRY_PATH = '/v1/telemetry/round'`, `WIN_SECURE_PATH = '/v1/telemetry/win-secure'`, request headers for API CSRF compatibility, and `getDiscordLoginUrl(source?)` which builds the full OAuth URL with extension runtime ID and opener origin.
 
 ---
 
@@ -208,7 +208,7 @@ pnpm test
 2. Visit a supported casino site.
 3. Verify the sidebar renders on the right side.
 4. Open DevTools (F12) and filter the console for `[TiltCheck]` prefixed messages.
-5. Check the Network tab for calls to `api.tiltcheck.me`.
+5. Check the Network tab for `POST https://api.tiltcheck.me/v1/telemetry/round` returning 2xx/202 and `POST https://api.tiltcheck.me/v1/telemetry/win-secure` returning 2xx.
 6. Test game blocking: add an exclusion via Discord bot or API, then navigate to a matching game URL.
 
 ---

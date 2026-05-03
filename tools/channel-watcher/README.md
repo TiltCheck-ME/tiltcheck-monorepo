@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 # TiltCheck Channel Watcher
 
 Passively watches a Discord channel from your logged-in browser session, then runs scheduled GPT-4o analysis to surface pain points, friction, and community insights — no keyword lists needed.
@@ -232,7 +232,7 @@ npm run comic:publish
 
 Required env values for cloud publish:
 
-- `COMIC_API_URL=https://<your-cloud-run-service>`
+- `COMIC_API_URL=https://<your-comic-api-host>`
 - optional `COMIC_API_INGEST_KEY=<shared-secret>`
 
 ## No API key?

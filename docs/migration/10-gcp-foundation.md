@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # GCP Foundation Baseline
 
 Last updated: 2026-03-07
@@ -11,7 +13,7 @@ Region default: `us-central1`
   - `tiltcheck-prod`
 - Core services:
   - Artifact Registry
-  - Cloud Run
+  - Managed container runtime
   - Secret Manager
   - Cloud Logging/Monitoring
   - Cloud Build
@@ -21,7 +23,7 @@ Region default: `us-central1`
 
 - Human roles (group-based):
   - `tiltcheck-platform-admins` -> project IAM admin for bootstrap only
-  - `tiltcheck-deployers` -> Cloud Run admin + Artifact Registry writer + Service Account User
+  - `tiltcheck-deployers` -> managed runtime admin + Artifact Registry writer + Service Account User
   - `tiltcheck-observers` -> Logging/Monitoring viewer
 - Service accounts:
   - `sa-cloudrun-runtime` (runtime identity for services)

@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Load Testing
 
 This directory provides load testing for the ADK agent.
@@ -22,12 +24,12 @@ make load-test
 
 This runs a load test with 5 concurrent users, 2 requests each against `http://localhost:8000`.
 
-## Remote Load Testing (Cloud Run)
+## Remote Load Testing
 
 Set the `STAGING_URL` environment variable to target a remote instance:
 
 ```bash
-STAGING_URL=https://your-cloud-run-service-url.run.app make load-test
+STAGING_URL=https://your-staging-service.example.com make load-test
 ```
 
 ## Configuration

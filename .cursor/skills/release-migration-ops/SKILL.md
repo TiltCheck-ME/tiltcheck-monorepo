@@ -2,6 +2,8 @@
 name: release-migration-ops
 description: Guides safe solo release and migration operations with incremental rollout, budget guardrails, and milestone logging. Use for deployment planning, GCP migration tasks, release readiness checks, and rollback-aware operations.
 ---
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 
 # Release and Migration Ops
 
@@ -18,7 +20,7 @@ description: Guides safe solo release and migration operations with incremental 
 
 - `scripts/README.md`
 - `scripts/gcp/create-budget-alerts.ps1`
-- `scripts/gcp/deploy-cloud-run-service.ps1`
+- `scripts/gcp/deploy-service.ps1`
 - `scripts/gcp/new-milestone-log.ps1`
 - `infra/gcp/cloudrun/services.env`
 

@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Migration Decision Log
 
 Use this file to record approved decisions and avoid assumption drift between sessions/tools.
@@ -29,7 +31,7 @@ Use this file to record approved decisions and avoid assumption drift between se
   - Options considered: us-central1, us-east1, us-west1, multi-region
   - Decision made: us-central1
   - Rationale: lowest baseline cost with acceptable tradeoff
-  - Impact: lowest-cost starting point for Cloud Run migration
+  - Impact: lowest-cost starting point for the serverless container migration
   - Approver: project owner
   - Date: 2026-03-07
   - Revisit trigger: sustained latency/SLO issues or compliance constraints

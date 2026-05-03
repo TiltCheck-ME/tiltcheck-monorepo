@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Cost Validation Pilot (2-4 Weeks)
 
 Last updated: 2026-03-07
@@ -19,7 +21,7 @@ Measure real migration operating cost and stability before expanding scope.
 
 ## Metrics to Capture
 
-- Cloud Run cost by service
+- Managed runtime cost by service
 - Build and Artifact Registry cost
 - Logging and monitoring cost
 - Network egress and load balancer cost

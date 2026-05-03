@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Comic Generator Service
 
 Cloud-oriented service that turns daily channel context into a generated 3-panel comic with archive persistence in Cloudflare R2.
@@ -53,14 +55,14 @@ This package was migrated off GCS. Use the R2 env vars from `.env.example`:
 - `R2_SECRET_ACCESS_KEY`
 - optional `COMIC_PUBLIC_BASE_URL`
 
-The README still documents the API contract; deployment should follow your current Railway / container flow rather than the old Cloud Run-only examples.
+The README still documents the API contract; deployment should follow your current Railway / container flow rather than the old single-runtime examples.
 
 ## One-command cloud smoke test
 
 From repo root (after deploy):
 
 ```bash
-COMIC_API_URL=<your-cloud-run-url> COMIC_API_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run smoke:cloud
+COMIC_API_URL=https://your-comic-api.example.com COMIC_API_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run smoke:cloud
 ```
 
 The smoke test checks, in order:

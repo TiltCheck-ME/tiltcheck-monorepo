@@ -1,6 +1,6 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
-# TiltCheck Web (Landing Page) - Production Implementation
-# Optimized for Google Cloud Run (Single-Service Subgraph Build)
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# TiltCheck Web (Landing Page) - Production Container
+# Built for GitHub Actions -> GHCR -> Railway deploys in the monorepo
 
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"

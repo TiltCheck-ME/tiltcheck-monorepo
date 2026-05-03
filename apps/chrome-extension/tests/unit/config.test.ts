@@ -1,9 +1,15 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * @vitest-environment jsdom
  */
 import { describe, expect, it } from 'vitest';
-import { getDiscordLoginUrl } from '../../src/config.ts';
+import {
+  TELEMETRY_PATH,
+  TELEMETRY_REQUEST_HEADERS,
+  WIN_SECURE_PATH,
+  getDiscordLoginUrl,
+  getHubEndpoint,
+} from '../../src/config.ts';
 
 describe('extension auth URL builder', () => {
   it('includes trusted extension opener origin for extension login', () => {
@@ -21,5 +27,14 @@ describe('extension auth URL builder', () => {
     expect(url.searchParams.get('source')).toBe('web');
     expect(url.searchParams.get('opener_origin')).toBeNull();
     expect(url.searchParams.get('source_detail')).toBe('web');
+  });
+
+  it('builds canonical telemetry endpoints on the API host', () => {
+    expect(getHubEndpoint(TELEMETRY_PATH)).toBe('https://api.tiltcheck.me/v1/telemetry/round');
+    expect(getHubEndpoint(WIN_SECURE_PATH)).toBe('https://api.tiltcheck.me/v1/telemetry/win-secure');
+    expect(TELEMETRY_REQUEST_HEADERS).toEqual({
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'TiltCheckExtension',
+    });
   });
 });

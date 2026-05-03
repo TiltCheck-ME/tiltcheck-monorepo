@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Service Scope Confirmation (Wave 1)
 
 Last updated: 2026-03-07
@@ -19,7 +21,7 @@ Define which services are in active migration scope for the first GCP wave, base
 - `apps/api` (auth and API routes)
 - `apps/discord-bot` (core Discord commands)
 - `apps/trust-rollup` (optional dependency service; include in wave 1 template, deploy when required)
-- `packages/comic-generator` (already has Cloud Run deploy precedent)
+- `packages/comic-generator` (already has serverless deploy precedent)
 
 ## Deferred (Not in Wave 1)
 

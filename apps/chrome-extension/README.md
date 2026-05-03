@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -34,7 +34,7 @@ OAuth state integrity is validated server-side using signed state prefixes (exte
 
 ## Version
 
-**Current Version:** 1.0.0 (see `manifest.json`)
+**Current Version:** 1.2.2 (see `manifest.json`)
 
 ---
 
@@ -192,6 +192,7 @@ Generic fallback selectors activate on other casino sites.
 - Discord slash commands: `/block-game`, `/unblock-game`, `/my-exclusions`.
 - API endpoints: `GET/POST/DELETE /user/:discordId/exclusions`, `POST /rgaas/check-game`.
 - v2 sensor architecture with per-casino sensor classes and HubRelay telemetry.
+- Canonical telemetry ingest now targets `https://api.tiltcheck.me/v1/telemetry/round` and `.../win-secure`.
 
 ---
 

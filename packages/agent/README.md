@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Degen Intelligence Agent (DIA) - TiltCheck
 *Centralized AI service powered by Vertex AI (Gemini 1.5 Pro) on project `tiltchcek`.*
 
@@ -74,7 +76,7 @@ make install && make playground
 | -------------------- | ------------------------------------------------------------------------------------------- |
 | `make install`       | Install all required dependencies using npm                                                 |
 | `make playground`    | Launch local development environment with backend and frontend - leveraging ADK devtools   |
-| `make deploy`        | Deploy agent to Cloud Run (use `IAP=true` to enable Identity-Aware Proxy, `PORT=8080` to specify container port) |
+| `make deploy`        | Deploy agent using the package's configured target platform (set `IAP=true` to enable Identity-Aware Proxy, `PORT=8080` to specify container port) |
 | `make local-backend` | Launch local development server                                                             |
 | `make test`          | Run unit and integration tests using vitest                                                 |
 | `make lint`          | Run code quality checks using eslint                                                        |
