@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Cloud Agent Credential Manifest
 
 Last updated: 2026-03-07
@@ -121,8 +123,8 @@ If agents perform cutover tasks:
 
 ## 6.1) Wave 1 Assignment (Current)
 
-- `api` (Cloud Run)
-- `web` (Cloud Run or static path via GCP)
+- `api` (GCP managed container runtime)
+- `web` (GCP managed container runtime or static path via GCP)
 
 Defer other services until Wave 1 health/cost validation completes.
 
@@ -154,3 +156,21 @@ Use least-privilege IAM only.
 Ask for approval before any ambiguous architecture/security/cost decision.
 Record milestone outputs in docs/migration/logs/milestone-log.md and docs/migration/logs/cost-pilot.csv.
 ```
+
+## 10) Cursor Cloud Runtime Baseline
+
+For Cursor Cloud development agents, configure the startup command to run:
+
+```bash
+bash scripts/cloud-agent-env-setup.sh
+```
+
+That bootstrap path is the repo-owned baseline for:
+
+- managed Node `20.19.0`
+- managed pnpm `10.29.1`
+- workspace dependency install keyed to `pnpm-lock.yaml`
+- prebuilt shared packages required by `apps/web`
+- validation of `pnpm --filter @tiltcheck/api exec vitest run tests/routes/partner.test.ts`
+
+This is meant to eliminate manual toolchain bootstrap in new cloud shells. It does not paper over unrelated repo-level build failures in untouched routes or packages.

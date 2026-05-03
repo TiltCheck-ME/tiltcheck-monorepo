@@ -147,7 +147,9 @@ export class GameManager {
               this.games = new Map(snapshot.games.map((game) => [game.id, game]));
               this.playerGames = new Map(snapshot.playerGames.map((entry) => [entry.userId, entry.gameId]));
               this.playerProfiles = new Map(snapshot.playerProfiles.map((entry) => [entry.userId, entry.username]));
-              const dadStatesByLobbyId = new Map((snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state]));
+              const dadStatesByLobbyId = new Map<string, SerializedGameState>(
+                (snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state]),
+              );
 
               // Rebuild underlying module state so lobby metadata points to real games.
               for (const game of this.games.values()) {
@@ -204,8 +206,8 @@ export class GameManager {
         this.games = new Map(snapshot.games.map((game) => [game.id, game]));
         this.playerGames = new Map(snapshot.playerGames.map((entry) => [entry.userId, entry.gameId]));
         this.playerProfiles = new Map(snapshot.playerProfiles.map((entry) => [entry.userId, entry.username]));
-        const dadStatesByLobbyId = new Map(
-          (snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state])
+        const dadStatesByLobbyId = new Map<string, SerializedGameState>(
+          (snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state]),
         );
 
         // Rebuild underlying module state so lobby metadata points to real games.
@@ -749,7 +751,9 @@ export class GameManager {
       this.playerGames = new Map((snapshot.playerGames || []).map((e: any) => [e.userId, e.gameId]));
       this.playerProfiles = new Map((snapshot.playerProfiles || []).map((e: any) => [e.userId, e.username]));
 
-      const dadStatesByLobbyId = new Map((snapshot.dadStates || []).map((entry: any) => [entry.lobbyGameId, entry.state]));
+      const dadStatesByLobbyId = new Map<string, SerializedGameState>(
+        (snapshot.dadStates || []).map((entry: any) => [entry.lobbyGameId, entry.state]),
+      );
 
       // Rebuild underlying module state so lobby metadata points to real games.
       for (const game of this.games.values()) {

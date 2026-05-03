@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Technology Stack
 
 This document outlines the technology stack for the TiltCheck ecosystem.
@@ -10,7 +12,7 @@ This document outlines the technology stack for the TiltCheck ecosystem.
 ## Backend
 - **Framework:** Express.js is used for building robust and scalable REST APIs for services like `api` and `user-dashboard`.
 - **Database:** Supabase (PostgreSQL) is the primary database for storing user data, game history, and trust scores.
-- **Deployment:** Services are containerized using Docker and deployed to Google Cloud Run for scalable, serverless execution.
+- **Deployment:** Wired production services are containerized with Docker, published to GHCR, and deployed on Railway behind Cloudflare-managed ingress.
 
 ## Frontend
 - **Primary Interface:** Discord.js is the core library for all Discord bot interactions, serving as the main user interface for the ecosystem.

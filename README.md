@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 
 <p align="center">
   <picture>
@@ -252,15 +252,16 @@ pnpm -C apps/web dev
 # /scan https://example.com
 ```
 
-See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup, **[ONE-LAUNCH-DEPLOYMENT.md](./ONE-LAUNCH-DEPLOYMENT.md)** for one-command Docker deployment, **[DEPLOYMENT.md](./DEPLOYMENT.md)** for full production guide, or **[SPACESHIP-DEPLOYMENT-ENV.md](./SPACESHIP-DEPLOYMENT-ENV.md)** for complete Spaceship/Hyperlift environment variables.
+See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup, **[ONE-LAUNCH-DEPLOYMENT.md](./ONE-LAUNCH-DEPLOYMENT.md)** for one-command Docker deployment, **[docs/DEPLOY.md](./docs/DEPLOY.md)** for the canonical production guide, or **[SPACESHIP-DEPLOYMENT-ENV.md](./SPACESHIP-DEPLOYMENT-ENV.md)** for complete Spaceship/Hyperlift environment variables.
 
 ### Production Deployment
 
-The TiltCheck ecosystem is deployed on Google Cloud Platform (GCP). Services are containerized and orchestrated using Google Cloud Run, with CI/CD pipelines managed by Google Cloud Build.
+Production deploys are wired around GitHub Actions, GHCR, Railway, and a manually reconciled Cloudflare Tunnel. `docs/DEPLOY.md` is the canonical deploy inventory.
 
-For details on the deployment process, see the following documents:
-- **[GCP Deployment Guide](./docs/GCP-DEPLOYMENT-GUIDE.md)** - Complete GCP setup and configuration.
-- **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Pre-deployment verification.
+For current deployment reality, use the following sources of truth:
+- **[Canonical Deploy Inventory](./docs/DEPLOY.md)** - workflows, images, Railway services, required env, and smoke targets.
+- **[Railway Deploy Workflow](./.github/workflows/deploy-railway.yml)** - builds GHCR images and triggers Railway redeploys for the wired services.
+- **[Tunnel Route Workflow](./.github/workflows/configure-tunnel.yml)** - manually reconciles public hostnames and DNS against Railway internal services.
 
 ### Components + A11y Audits
 
@@ -278,6 +279,14 @@ pnpm test:components
 ```
 
 Artifacts are written to `dist/components/` (including Lighthouse reports). See `docs/tiltcheck/17-components-audits.md` for details.
+
+### ESLint layout
+
+- Root `eslint.config.js` is the shared flat-config source for the monorepo.
+- `apps/web/eslint.config.mjs` extends the shared base and layers on `eslint-config-next/core-web-vitals` plus `eslint-config-next/typescript`.
+- `packages/agent/eslint.config.mjs` remains package-local and extends the shared base with package-specific overrides.
+- `.eslintrc.*` files are intentionally removed. If a package needs custom lint behavior, add a local flat config instead of reviving legacy config.
+- `@typescript-eslint/no-explicit-any` is re-enabled as `warn` at the shared layer. Treat new warnings as cleanup debt or add a targeted local suppression with a reason when the type truly cannot be narrowed yet.
 
 ### For Contributors
 
@@ -315,7 +324,7 @@ The custom Copilot Agent can answer questions like:
 ## Tech Stack
 
 - **Discord.js** — Bot framework
-- **Google Cloud Run** — Serverless compute for all backend services
+- **Railway + GHCR** — Container runtime plus image registry for the wired production services
 - **Neon PostgreSQL** — Serverless/Edge database (PostgreSQL 16)
 - **@neondatabase/serverless** — Ultra-fast stateless HTTP driver
 - **Magic.link** — Non-custodial wallet creation

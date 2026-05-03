@@ -1,6 +1,6 @@
 {
   "name": "@tiltcheck/chrome-extension",
-  "copyright": "\u00a9 2024\u20132026 TiltCheck Ecosystem. All Rights Reserved.",
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.",
   "lastUpdated": "2026-05-03",
   "version": "1.2.2",
   "private": true,
@@ -14,7 +14,7 @@
     "build": "node build.js",
     "build:tsc": "tsc",
     "dev": "node build.js --watch",
-    "test": "vitest --run --passWithNoTests"
+    "test": "vitest --run"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.38",

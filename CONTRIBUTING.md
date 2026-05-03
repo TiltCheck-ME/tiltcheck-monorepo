@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 
 # Contributing to TiltCheck
 
@@ -81,6 +81,29 @@ See `docs/governance/OSS-RUNTIME-BOUNDARY.md` for policy details.
 - Note any architecture or deployment impact.
 - Document test coverage and manual verification steps.
 - Use the PR template security checklist.
+
+## Running tests
+
+Root `pnpm test` is the default CI-style test command. It does two things:
+
+1. builds `@tiltcheck/database`, because other tests depend on its generated output
+2. runs the root Vitest config, which discovers unit and integration tests under:
+   - `tests/`
+   - `apps/`
+   - `packages/`
+   - `modules/`
+
+Root `pnpm test` excludes generated output like `node_modules`, `dist`, `.turbo`, `apps/web/.next`, and Playwright e2e tests under `tests/e2e/`.
+
+Useful commands:
+
+- Run the main repo test suite: `pnpm test`
+- Run every workspace package's own `test` script: `pnpm test:all`
+- Run one package/app/module test command: `pnpm --filter @tiltcheck/auth test`
+- Run one file in the root Vitest project: `pnpm test -- packages/auth/src/__tests__/jwt.test.ts`
+- Run Playwright e2e separately: `pnpm test:e2e`
+
+Do not add `--passWithNoTests` to workspace test scripts. CI now fails if that loophole comes back.
 
 ## Security and disclosure
 

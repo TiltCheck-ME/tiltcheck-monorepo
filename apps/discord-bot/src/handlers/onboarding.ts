@@ -1,10 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 /**
  * Onboarding System for TiltCheck Safety Bot
- * Handles first-time user welcome and safety preferences
+ * Handles first-time user welcome and safety preferences.
  *
- * Storage: Uses Supabase (free tier) with in-memory cache for fast reads.
- * Falls back to memory-only if Supabase is not configured.
+ * Canonical storage: API/Postgres via /me/onboarding-status.
  */
 import {
   EmbedBuilder,
@@ -17,28 +16,19 @@ import {
   StringSelectMenuOptionBuilder,
   DMChannel,
 } from 'discord.js';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getRandomQuote, ONBOARDING_QUESTIONS, calculateSuggestedRisk } from '@tiltcheck/utils';
+import { ONBOARDING_QUESTIONS, calculateSuggestedRisk } from '@tiltcheck/utils';
+import { config } from '../config.js';
 import { getDashboardAppUrl } from '../utils/dashboard-url.js';
 
-// Supabase client for persistent storage (free tier)
-let supabase: SupabaseClient | null = null;
-if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
-  console.log('[Onboarding] Using Supabase for persistence (free tier)');
-} else {
-  console.log('[Onboarding] Supabase not configured - onboarding data will be stored in memory only');
-}
-
-// In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
+const pendingLoads = new Map<string, Promise<OnboardingStatusResponse | null>>();
+const pendingWrites = new Map<string, Promise<void>>();
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
-
 const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || 'https://discord.gg/gdBsEJfCar';
+const API_BASE = (config.backendUrl || process.env.API_BASE_URL || 'https://api.tiltcheck.me').replace(/\/+$/, '');
+
+type RiskLevel = 'conservative' | 'moderate' | 'degen';
 
 interface UserPreferences {
   userId: string;
@@ -49,179 +39,232 @@ interface UserPreferences {
     trivia: boolean;
     promos: boolean;
   };
-  riskLevel: 'conservative' | 'moderate' | 'degen';
+  riskLevel: RiskLevel;
   cooldownEnabled: boolean;
   voiceInterventionEnabled: boolean;
   dailyLimit?: number;
   hasAcceptedTerms: boolean;
   quizScores: Record<string, number>;
   tutorialCompleted: boolean;
-  degenId?: string; // Future NFT-based ID
+  degenId?: string;
 }
 
-/**
- * Load onboarding data from Supabase into memory cache
- */
-async function loadOnboardingData(): Promise<void> {
-  if (!supabase) {
-    console.log('[Onboarding] No Supabase configured, starting with empty cache');
+interface OnboardingStatusResponse {
+  completedSteps: string[];
+  completedAt: string | null;
+  hasAcceptedTerms: boolean;
+  riskLevel: RiskLevel | null;
+  quizScores: Record<string, number>;
+  preferences: {
+    cooldownEnabled: boolean;
+    voiceInterventionEnabled: boolean;
+    dailyLimit: number | null;
+    redeemThreshold: number | null;
+    notifyNftIdentityReady: boolean;
+    complianceBypass: boolean;
+    dataSharing: {
+      messageContents: boolean;
+      financialData: boolean;
+      sessionTelemetry: boolean;
+    };
+    notifications: {
+      tips: boolean;
+      trivia: boolean;
+      promos: boolean;
+    };
+  };
+}
+
+interface OnboardingStatusUpdatePayload {
+  step: 'terms' | 'quiz' | 'preferences' | 'completed';
+  hasAcceptedTerms?: boolean;
+  riskLevel?: RiskLevel;
+  quizScores?: Record<string, number>;
+  preferences?: {
+    cooldownEnabled?: boolean;
+    voiceInterventionEnabled?: boolean;
+    dailyLimit?: number | null;
+    redeemThreshold?: number | null;
+    notifyNftIdentityReady?: boolean;
+    complianceBypass?: boolean;
+    dataSharing?: {
+      messageContents?: boolean;
+      financialData?: boolean;
+      sessionTelemetry?: boolean;
+    };
+    notifications?: {
+      tips?: boolean;
+      trivia?: boolean;
+      promos?: boolean;
+    };
+  };
+}
+
+function hasInternalApiAccess(): boolean {
+  return Boolean(config.internalApiSecret?.trim());
+}
+
+function buildInternalHeaders(): HeadersInit {
+  const secret = config.internalApiSecret?.trim();
+  if (!secret) {
+    throw new Error('INTERNAL_API_SECRET is required for bot onboarding sync');
+  }
+
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${secret}`,
+  };
+}
+
+function createDefaultPreferences(userId: string): UserPreferences {
+  return {
+    userId,
+    discordId: userId,
+    joinedAt: Date.now(),
+    notifications: { tips: true, trivia: true, promos: false },
+    riskLevel: 'moderate',
+    cooldownEnabled: true,
+    voiceInterventionEnabled: false,
+    hasAcceptedTerms: false,
+    quizScores: {},
+    tutorialCompleted: false,
+  };
+}
+
+function hydratePreferencesFromStatus(userId: string, status: OnboardingStatusResponse): UserPreferences {
+  const existing = userPreferences.get(userId);
+  const joinedAt = status.completedAt ? Date.parse(status.completedAt) : NaN;
+  return {
+    userId,
+    discordId: userId,
+    joinedAt: Number.isNaN(joinedAt) ? existing?.joinedAt ?? Date.now() : joinedAt,
+    notifications: {
+      tips: status.preferences.notifications.tips,
+      trivia: status.preferences.notifications.trivia,
+      promos: status.preferences.notifications.promos,
+    },
+    riskLevel: status.riskLevel ?? existing?.riskLevel ?? 'moderate',
+    cooldownEnabled: status.preferences.cooldownEnabled,
+    voiceInterventionEnabled: status.preferences.voiceInterventionEnabled,
+    dailyLimit: status.preferences.dailyLimit ?? undefined,
+    hasAcceptedTerms: status.hasAcceptedTerms,
+    quizScores: status.quizScores ?? {},
+    tutorialCompleted: status.completedSteps.includes('completed'),
+    degenId: existing?.degenId,
+  };
+}
+
+function applyStatusToCache(userId: string, status: OnboardingStatusResponse | null): void {
+  if (!status) {
+    onboardedUsers.delete(userId);
+    userPreferences.delete(userId);
     return;
   }
 
-  try {
-    const { data, error } = await supabase
-      .from('user_onboarding')
-      .select('*');
+  const prefs = hydratePreferencesFromStatus(userId, status);
+  userPreferences.set(userId, prefs);
 
-    if (error) {
-      console.error('[Onboarding] Failed to load from Supabase:', error);
-      return;
+  if (status.completedSteps.includes('completed')) {
+    onboardedUsers.add(userId);
+  } else {
+    onboardedUsers.delete(userId);
+  }
+}
+
+async function fetchOnboardingStatusFromApi(userId: string): Promise<OnboardingStatusResponse | null> {
+  if (!hasInternalApiAccess()) {
+    return null;
+  }
+
+  const response = await fetch(`${API_BASE}/me/onboarding-status?discordId=${encodeURIComponent(userId)}`, {
+    headers: buildInternalHeaders(),
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to load onboarding status (${response.status})`);
+  }
+
+  return await response.json() as OnboardingStatusResponse;
+}
+
+async function loadUserOnboardingStatus(userId: string): Promise<OnboardingStatusResponse | null> {
+  const cachedRequest = pendingLoads.get(userId);
+  if (cachedRequest) {
+    return cachedRequest;
+  }
+
+  const request = (async () => {
+    try {
+      const status = await fetchOnboardingStatusFromApi(userId);
+      applyStatusToCache(userId, status);
+      return status;
+    } catch (error) {
+      console.error(`[Onboarding] Failed to load onboarding state for ${userId}:`, error);
+      return null;
+    } finally {
+      pendingLoads.delete(userId);
     }
+  })();
 
-    if (data) {
-      for (const row of data) {
-        if (row.is_onboarded) {
-          onboardedUsers.add(row.discord_id);
-        }
+  pendingLoads.set(userId, request);
+  return request;
+}
 
-        const prefs: UserPreferences = {
-          userId: row.discord_id,
-          discordId: row.discord_id,
-          joinedAt: new Date(row.joined_at).getTime(),
-          notifications: {
-            tips: row.notifications_tips,
-            trivia: row.notifications_trivia,
-            promos: row.notifications_promos,
-          },
-          riskLevel: row.risk_level || 'moderate',
-          cooldownEnabled: row.cooldown_enabled,
-          voiceInterventionEnabled: row.voice_intervention_enabled ?? false,
-          dailyLimit: row.daily_limit,
-          hasAcceptedTerms: row.has_accepted_terms,
-          quizScores: row.quiz_scores ? JSON.parse(row.quiz_scores) : {},
-          tutorialCompleted: row.tutorial_completed || false,
-        };
-        userPreferences.set(row.discord_id, prefs);
+async function postOnboardingUpdate(userId: string, payload: OnboardingStatusUpdatePayload): Promise<void> {
+  if (!hasInternalApiAccess()) {
+    console.warn(`[Onboarding] INTERNAL_API_SECRET missing. Skipping canonical onboarding sync for ${userId}.`);
+    return;
+  }
+
+  const queuedWrite = pendingWrites.get(userId) ?? Promise.resolve();
+  const nextWrite = queuedWrite
+    .catch(() => undefined)
+    .then(async () => {
+      const response = await fetch(`${API_BASE}/me/onboarding-status`, {
+        method: 'POST',
+        headers: buildInternalHeaders(),
+        body: JSON.stringify({
+          discordId: userId,
+          ...payload,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update onboarding status (${response.status})`);
       }
-      console.log(`[Onboarding] Loaded ${onboardedUsers.size} onboarded users from Supabase`);
-    }
-  } catch (error) {
-    console.error('[Onboarding] Failed to load onboarding data:', error);
-  }
+
+      const status = await response.json() as OnboardingStatusResponse;
+      applyStatusToCache(userId, status);
+    })
+    .catch((error) => {
+      console.error(`[Onboarding] Failed to sync onboarding state for ${userId}:`, error);
+      throw error;
+    })
+    .finally(() => {
+      if (pendingWrites.get(userId) === nextWrite) {
+        pendingWrites.delete(userId);
+      }
+    });
+
+  pendingWrites.set(userId, nextWrite);
+  await nextWrite;
 }
 
-/**
- * Save user onboarding to Supabase
- */
-async function saveOnboardingToDb(userId: string, prefs: UserPreferences): Promise<void> {
-  if (!supabase) return;
-
-  try {
-    const { error } = await supabase
-      .from('user_onboarding')
-      .upsert({
-        discord_id: userId,
-        is_onboarded: onboardedUsers.has(userId),
-        has_accepted_terms: prefs.hasAcceptedTerms,
-        risk_level: prefs.riskLevel,
-        cooldown_enabled: prefs.cooldownEnabled,
-        voice_intervention_enabled: prefs.voiceInterventionEnabled,
-        daily_limit: prefs.dailyLimit,
-        quiz_scores: JSON.stringify(prefs.quizScores),
-        tutorial_completed: prefs.tutorialCompleted,
-        notifications_tips: prefs.notifications.tips,
-        notifications_trivia: prefs.notifications.trivia,
-        notifications_promos: prefs.notifications.promos,
-        joined_at: new Date(prefs.joinedAt).toISOString(),
-      }, { onConflict: 'discord_id' });
-
-    if (error) {
-      console.error('[Onboarding] Failed to save to Supabase:', error);
-    } else {
-      console.log(`[Onboarding] Saved user ${userId} to Supabase`);
-    }
-  } catch (error) {
-    console.error('[Onboarding] Failed to save onboarding data:', error);
-  }
-}
-
-/**
- * Mark user as onboarded in Supabase
- */
-async function markOnboardedInDb(userId: string): Promise<void> {
-  if (!supabase) return;
-
-  try {
-    const { error } = await supabase
-      .from('user_onboarding')
-      .upsert({
-        discord_id: userId,
-        is_onboarded: true,
-        joined_at: new Date().toISOString(),
-      }, { onConflict: 'discord_id' });
-
-    if (error) {
-      console.error('[Onboarding] Failed to mark onboarded in Supabase:', error);
-    }
-  } catch (error) {
-    console.error('[Onboarding] Failed to mark onboarded:', error);
-  }
-}
-
-// Load onboarding data on module initialization
-loadOnboardingData().catch(console.error);
-
-/**
- * Check if user needs onboarding
- */
-export function needsOnboarding(userId: string): boolean {
-  return !onboardedUsers.has(userId) && !userPreferences.has(userId);
+export async function needsOnboarding(userId: string): Promise<boolean> {
+  return !(await isUserOnboarded(userId));
 }
 
 export async function isUserOnboarded(userId: string): Promise<boolean> {
-  if (onboardedUsers.has(userId) || userPreferences.has(userId)) {
+  if (onboardedUsers.has(userId)) {
     return true;
   }
 
-  if (!supabase) {
-    return false;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('user_onboarding')
-      .select('*')
-      .eq('discord_id', userId)
-      .maybeSingle();
-
-    if (error || !data || !data.is_onboarded) {
-      return false;
-    }
-
-    onboardedUsers.add(userId);
-    userPreferences.set(userId, {
-      userId: data.discord_id,
-      discordId: data.discord_id,
-      joinedAt: new Date(data.joined_at).getTime(),
-      notifications: {
-        tips: data.notifications_tips,
-        trivia: data.notifications_trivia,
-        promos: data.notifications_promos,
-      },
-      riskLevel: data.risk_level || 'moderate',
-      cooldownEnabled: data.cooldown_enabled,
-      voiceInterventionEnabled: data.voice_intervention_enabled ?? false,
-      dailyLimit: data.daily_limit,
-      hasAcceptedTerms: data.has_accepted_terms,
-      quizScores: data.quiz_scores ? JSON.parse(data.quiz_scores) : {},
-      tutorialCompleted: data.tutorial_completed || false,
-    });
-
-    return true;
-  } catch (error) {
-    console.error('[Onboarding] Failed to query onboarding status:', error);
-    return false;
-  }
+  const status = await loadUserOnboardingStatus(userId);
+  return Boolean(status?.completedSteps.includes('completed'));
 }
 
 export function getWebsiteOnboardingUrl(): string {
@@ -241,11 +284,22 @@ export function getBetaTesterUrl(): string {
  */
 export function markOnboarded(userId: string): void {
   onboardedUsers.add(userId);
-  if (!supabase) {
-    console.warn('[Onboarding] WARNING: No Supabase configured — onboarding state for', userId, 'is MEMORY ONLY and will be lost on restart.');
-  }
-  // Save immediately when user is onboarded
-  markOnboardedInDb(userId).catch(console.error);
+  const prefs = userPreferences.get(userId) ?? createDefaultPreferences(userId);
+  prefs.hasAcceptedTerms = true;
+  prefs.tutorialCompleted = true;
+  userPreferences.set(userId, prefs);
+  void postOnboardingUpdate(userId, {
+    step: 'completed',
+    hasAcceptedTerms: true,
+    riskLevel: prefs.riskLevel,
+    quizScores: prefs.quizScores,
+    preferences: {
+      cooldownEnabled: prefs.cooldownEnabled,
+      voiceInterventionEnabled: prefs.voiceInterventionEnabled,
+      dailyLimit: prefs.dailyLimit ?? null,
+      notifications: prefs.notifications,
+    },
+  });
 }
 
 /**
@@ -255,24 +309,27 @@ export function getUserPreferences(userId: string): UserPreferences | undefined 
   return userPreferences.get(userId);
 }
 
+export function getCachedUserPreferences(userId: string): UserPreferences | undefined {
+  return userPreferences.get(userId);
+}
+
+export async function getUserPreferencesAsync(userId: string): Promise<UserPreferences | undefined> {
+  const cached = userPreferences.get(userId);
+  if (cached) {
+    return cached;
+  }
+
+  await loadUserOnboardingStatus(userId);
+  return userPreferences.get(userId);
+}
+
 export function getOrCreateUserPreferences(userId: string): UserPreferences {
   const existing = userPreferences.get(userId);
   if (existing) {
     return existing;
   }
 
-  const prefs: UserPreferences = {
-    userId,
-    discordId: userId,
-    joinedAt: Date.now(),
-    notifications: { tips: true, trivia: true, promos: false },
-    riskLevel: 'moderate',
-    cooldownEnabled: true,
-    voiceInterventionEnabled: false,
-    hasAcceptedTerms: false,
-    quizScores: {},
-    tutorialCompleted: false,
-  };
+  const prefs = createDefaultPreferences(userId);
   userPreferences.set(userId, prefs);
   return prefs;
 }
@@ -282,21 +339,41 @@ export function getOrCreateUserPreferences(userId: string): UserPreferences {
  */
 export function saveUserPreferences(prefs: UserPreferences): void {
   userPreferences.set(prefs.userId, prefs);
-  onboardedUsers.add(prefs.userId);
-  // Persist to Supabase
-  saveOnboardingToDb(prefs.userId, prefs).catch(console.error);
+  void postOnboardingUpdate(prefs.userId, {
+    step: prefs.tutorialCompleted ? 'completed' : 'preferences',
+    hasAcceptedTerms: prefs.hasAcceptedTerms,
+    riskLevel: prefs.riskLevel,
+    quizScores: prefs.quizScores,
+    preferences: {
+      cooldownEnabled: prefs.cooldownEnabled,
+      voiceInterventionEnabled: prefs.voiceInterventionEnabled,
+      dailyLimit: prefs.dailyLimit ?? null,
+      notifications: prefs.notifications,
+    },
+  });
 }
 
 export async function resetUserOnboarding(userId: string): Promise<void> {
   onboardedUsers.delete(userId);
   userPreferences.delete(userId);
-  if (supabase) {
-    try {
-      await supabase.from('user_onboarding').delete().eq('discord_id', userId);
-      console.log(`[Onboarding] Surgically purged ${userId} from Supabase.`);
-    } catch (e) {
-      console.error('[Onboarding] Delete error:', e);
+  pendingLoads.delete(userId);
+  pendingWrites.delete(userId);
+
+  if (!hasInternalApiAccess()) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/me/onboarding-status?discordId=${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+      headers: buildInternalHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`Reset failed with status ${response.status}`);
     }
+    console.log(`[Onboarding] Surgically purged ${userId} from canonical onboarding store.`);
+  } catch (error) {
+    console.error('[Onboarding] Delete error:', error);
   }
 }
 
@@ -507,18 +584,8 @@ async function handleQuizSelection(interaction: MessageComponentInteraction): Pr
 
   let prefs = userPreferences.get(interaction.user.id);
   if (!prefs) {
-    prefs = {
-      userId: interaction.user.id,
-      discordId: interaction.user.id,
-      joinedAt: Date.now(),
-      notifications: { tips: true, trivia: true, promos: false },
-      riskLevel: 'moderate',
-      cooldownEnabled: true,
-      voiceInterventionEnabled: false,
-      hasAcceptedTerms: true,
-      quizScores: {},
-      tutorialCompleted: false
-    };
+    prefs = createDefaultPreferences(interaction.user.id);
+    prefs.hasAcceptedTerms = true;
   }
 
   prefs.quizScores[question.id] = option.riskWeight;
@@ -760,7 +827,18 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
     prefs.tutorialCompleted = true;
     prefs.hasAcceptedTerms = true;
     userPreferences.set(interaction.user.id, prefs);
-    await saveOnboardingToDb(interaction.user.id, prefs);
+    await postOnboardingUpdate(interaction.user.id, {
+      step: 'completed',
+      hasAcceptedTerms: true,
+      riskLevel: prefs.riskLevel,
+      quizScores: prefs.quizScores,
+      preferences: {
+        cooldownEnabled: prefs.cooldownEnabled,
+        voiceInterventionEnabled: prefs.voiceInterventionEnabled,
+        dailyLimit: prefs.dailyLimit ?? null,
+        notifications: prefs.notifications,
+      },
+    }).catch(() => undefined);
   }
 
   markOnboarded(interaction.user.id);
@@ -786,24 +864,31 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `/session intervene enabled:true - ALLOW AUTO-MOVE INTO ACCOUNTABILITY VC ON CRITICAL TILT\n` +
       `/odds - HOUSE EDGE AUDIT\n` +
       `/verify - PROVABLY FAIR VERIFIER\n\n` +
-      `**NEXT STEP:** Install the TiltCheck extension to get the full session auditing layer running.\n` +
-      `Apply at tiltcheck.me/beta-tester or browse the dashboard at tiltcheck.me/getting-started.\n\n` +
+      `**NEXT STEP:** Open the dashboard lanes that actually matter.\n` +
+      `Vault: ${getDashboardAppUrl({ tab: 'vault' })}\n` +
+      `Safety: ${getDashboardAppUrl({ tab: 'safety' })}\n` +
+      `Bonuses: ${getDashboardAppUrl({ tab: 'bonuses' })}\n\n` +
       `IF YOUR BRAIN IS SMOKING, PULL THE BRAKE.`
     )
     .setFooter({ text: 'Made for Degens. By Degens.' });
 
-  const betaBtn = new ButtonBuilder()
-    .setLabel('Apply for Extension Beta')
+  const vaultBtn = new ButtonBuilder()
+    .setLabel('Open Vault')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://tiltcheck.me/beta-tester');
+    .setURL(getDashboardAppUrl({ tab: 'vault' }));
 
-  const gettingStartedBtn = new ButtonBuilder()
-    .setLabel('Getting Started Guide')
+  const safetyBtn = new ButtonBuilder()
+    .setLabel('Open Safety')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://tiltcheck.me/getting-started');
+    .setURL(getDashboardAppUrl({ tab: 'safety' }));
+
+  const bonusesBtn = new ButtonBuilder()
+    .setLabel('Open Bonuses')
+    .setStyle(ButtonStyle.Link)
+    .setURL(getDashboardAppUrl({ tab: 'bonuses' }));
 
   const row = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(betaBtn, gettingStartedBtn);
+    .addComponents(vaultBtn, safetyBtn, bonusesBtn);
 
   await interaction.update({ embeds: [completedEmbed], components: [row] });
 }
@@ -812,7 +897,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
  * Check if user is onboarded and trigger welcome if not
  */
 export async function checkAndOnboard(user: User): Promise<boolean> {
-  if (!needsOnboarding(user.id)) {
+  if (await isUserOnboarded(user.id)) {
     return false; // Already onboarded
   }
 

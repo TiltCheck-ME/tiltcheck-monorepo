@@ -98,7 +98,7 @@ router.post('/round', async (req, res, next) => {
                 rtp: observedRtp,
                 roundTimestamp: timestamp || Date.now(),
             },
-            ip_address: req.ip || null,
+            ip_address: req.ip || undefined,
         });
 
         res.status(202).json({

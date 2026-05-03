@@ -42,6 +42,7 @@ import { eventRouter } from '@tiltcheck/event-router';
 import * as promClient from 'prom-client';
 import { triviaManager } from './trivia-manager.js';
 import { redisClient } from './redis-client.js';
+import type { TriviaCompletedEventData } from '@tiltcheck/types';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -111,6 +112,14 @@ const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpSe
   },
 });
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getSingleParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 // If Redis is available, enable Socket.IO Redis adapter so multiple instances can share rooms and events
 if (redisClient && redisClient.isAvailable()) {
   const raw = redisClient.raw();
@@ -140,7 +149,7 @@ if (redisClient && redisClient.isAvailable()) {
       io.adapter(createAdapter(pubClient as any, subClient as any));
       console.log('[Socket.IO] Redis adapter enabled for cross-instance pub/sub');
     } catch (err) {
-      console.warn('[Socket.IO] Redis adapter not available or failed to initialize:', err?.message || err);
+      console.warn('[Socket.IO] Redis adapter not available or failed to initialize:', getErrorMessage(err));
     }
   }
 }
@@ -266,7 +275,11 @@ app.post('/admin/trivia/reset', requireAuth, requireAdmin, async (_req, res) => 
 
 // Admin: Force-end a lobby game immediately. Secured by X-Admin-Token header.
 app.post('/admin/game/:gameId/force-end', requireAdmin, async (req, res) => {
-  const { gameId } = req.params;
+  const gameId = getSingleParam(req.params.gameId);
+  if (!gameId) {
+    res.status(400).json({ success: false, error: 'Game ID is required.' });
+    return;
+  }
   try {
     await gameManager.forceEndGame(gameId);
     res.json({ success: true, message: `Game ${gameId} force-ended.` });
@@ -1241,26 +1254,27 @@ eventRouter.subscribe('trivia.round.reveal', (event) => {
 }, 'game-arena');
 
 eventRouter.subscribe('trivia.completed', (event) => {
-  const winnerList = event.data.winners.map((w) => w.username).join(', ');
+  const completed = event.data as TriviaCompletedEventData & { prizePool?: number };
+  const winnerList = completed.winners.map((w) => w.username).join(', ');
   io.emit('chat-message', {
     userId: 'system',
     username: 'TiltLive',
     message: `ROUND LOOP CLOSED. Winners: ${winnerList || 'No one survived the trenches.'}`,
     timestamp: Date.now(),
   });
-  io.to(`game:${event.data.gameId}`).emit('game-update', { type: 'trivia-completed', ...event.data });
+  io.to(`game:${completed.gameId}`).emit('game-update', { type: 'trivia-completed', ...completed });
 
   // Jackpot pool reset on game completion
   io.emit('jackpot-update', {
     pool: 0,
     entries: 0,
-    lastWinner: event.data.winners?.[0]?.username ?? null,
-    lastPayout: event.data.prizePool ?? 0,
+    lastWinner: completed.winners?.[0]?.username ?? null,
+    lastPayout: completed.prizePool ?? 0,
   });
 }, 'game-arena');
 
 // Player elimination / reinstatement events → Activity client
-eventRouter.subscribe('trivia.player.eliminated', (event) => {
+eventRouter.subscribe('trivia.player.eliminated' as any, (event) => {
   const d = event.data as { gameId: string; userId: string; username: string };
   io.to(`game:${d.gameId}`).emit('trivia-player-eliminated', { userId: d.userId, username: d.username });
 }, 'game-arena');
@@ -1271,7 +1285,7 @@ eventRouter.subscribe('trivia.player.reinstated', (event) => {
 }, 'game-arena');
 
 // Trivia notification from Director's Booth → broadcast to lobby
-eventRouter.subscribe('trivia.notification', (event) => {
+eventRouter.subscribe('trivia.notification' as any, (event) => {
   const d = event.data as { message: string; type: string };
   io.emit('chat-message', {
     userId: 'system',

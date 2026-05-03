@@ -2,16 +2,19 @@
   "name": "@tiltcheck/control-room",
   "version": "1.0.0",
   "description": "Admin control room for TiltCheck ecosystem management with trust-based authentication",
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03",
   "type": "module",
   "main": "src/server-trust-auth.js",
   "scripts": {
+    "build": "node --check src/server-trust-auth.js && node --input-type=module -e \"await import('@tiltcheck/prize-payout')\"",
     "dev": "node src/server-trust-auth.js",
     "start": "node src/server-trust-auth.js",
-    "test": "vitest --run --passWithNoTests"
+    "test": "vitest --run"
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.4",
     "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/prize-payout": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "express": "^5.2.1",
     "express-session": "^1.19.0",

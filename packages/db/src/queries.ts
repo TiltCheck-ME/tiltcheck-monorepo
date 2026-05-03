@@ -533,9 +533,30 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
       discord_id, is_onboarded, has_accepted_terms, risk_level, 
       cooldown_enabled, voice_intervention_enabled, share_message_contents, share_financial_data,
       share_session_telemetry, notify_nft_identity_ready, daily_limit, redeem_threshold, quiz_scores, tutorial_completed,
-      notifications_tips, notifications_trivia, notifications_promos, compliance_bypass, updated_at
+      notifications_tips, notifications_trivia, notifications_promos, compliance_bypass, joined_at, updated_at
     ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+    VALUES (
+      $1,
+      COALESCE($2, false),
+      COALESCE($3, false),
+      COALESCE($4, 'moderate'),
+      COALESCE($5, true),
+      COALESCE($6, false),
+      COALESCE($7, false),
+      COALESCE($8, false),
+      COALESCE($9, false),
+      COALESCE($10, false),
+      $11,
+      $12,
+      $13,
+      COALESCE($14, false),
+      COALESCE($15, true),
+      COALESCE($16, true),
+      COALESCE($17, false),
+      COALESCE($18, false),
+      COALESCE($19, NOW()),
+      NOW()
+    )
     ON CONFLICT (discord_id) DO UPDATE SET
       is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
       has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
@@ -554,6 +575,7 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
       notifications_trivia = COALESCE($16, user_onboarding.notifications_trivia),
       notifications_promos = COALESCE($17, user_onboarding.notifications_promos),
       compliance_bypass = COALESCE($18, user_onboarding.compliance_bypass),
+      joined_at = COALESCE(user_onboarding.joined_at, $19),
       updated_at = NOW()
     RETURNING *
   `;
@@ -576,7 +598,8 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     payload.notifications_tips ?? null,
     payload.notifications_trivia ?? null,
     payload.notifications_promos ?? null,
-    payload.compliance_bypass ?? null
+    payload.compliance_bypass ?? null,
+    payload.joined_at ? new Date(payload.joined_at) : null
   ];
 
   return queryOne<UserOnboarding>(sql, values);
@@ -1171,15 +1194,144 @@ export async function findPartnerById(id: string): Promise<Partner | null> {
 }
 
 /**
+ * Find the most recent partner by contact email.
+ */
+export async function findLatestPartnerByContactEmail(
+  contactEmail: string,
+  mode?: string,
+): Promise<Partner | null> {
+  const normalizedEmail = contactEmail.trim().toLowerCase();
+  const values: unknown[] = [normalizedEmail];
+  let sql = `
+    SELECT *
+    FROM partners
+    WHERE LOWER(contact_email) = $1
+  `;
+
+  if (mode) {
+    values.push(mode);
+    sql += ` AND mode = $${values.length}`;
+  }
+
+  sql += ' ORDER BY created_at DESC LIMIT 1';
+  return queryOne<Partner>(sql, values);
+}
+
+/**
+ * List partners for a verified operator email.
+ */
+export async function listPartnersByContactEmail(
+  contactEmail: string,
+  mode?: string,
+): Promise<Partner[]> {
+  const normalizedEmail = contactEmail.trim().toLowerCase();
+  const values: unknown[] = [normalizedEmail];
+  let sql = `
+    SELECT *
+    FROM partners
+    WHERE LOWER(contact_email) = $1
+  `;
+
+  if (mode) {
+    values.push(mode);
+    sql += ` AND mode = $${values.length}`;
+  }
+
+  sql += ' ORDER BY created_at DESC';
+  return query<Partner>(sql, values);
+}
+
+/**
+ * Find a partner by the active verification token ID.
+ */
+export async function findPartnerByVerificationTokenJti(jti: string): Promise<Partner | null> {
+  return findOneBy<Partner>('partners', 'verification_token_jti', jti);
+}
+
+/**
  * Create a new partner
  */
 export async function createPartner(payload: CreatePartnerPayload): Promise<Partner | null> {
   return insert<Partner>('partners', {
     ...payload,
-    is_active: true,
+    is_active: payload.is_active ?? true,
     created_at: new Date(),
     updated_at: new Date(),
   });
+}
+
+/**
+ * Update partner metadata.
+ */
+export async function updatePartner(
+  id: string,
+  payload: Partial<Omit<Partner, 'id' | 'created_at'>>,
+): Promise<Partner | null> {
+  return update<Partner>('partners', id, {
+    ...payload,
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Atomically consume a single-use verification token and activate the partner.
+ */
+export async function consumePartnerVerificationToken(jti: string): Promise<Partner | null> {
+  const sql = `
+    UPDATE partners
+    SET
+      email_verified_at = COALESCE(email_verified_at, NOW()),
+      verification_token_consumed_at = NOW(),
+      is_active = true,
+      updated_at = NOW()
+    WHERE verification_token_jti = $1
+      AND verification_token_expires_at > NOW()
+      AND verification_token_consumed_at IS NULL
+    RETURNING *
+  `;
+
+  return queryOne<Partner>(sql, [jti]);
+}
+
+/**
+ * Increment daily usage for a sandbox partner while preserving a rolling daily window.
+ */
+export async function incrementPartnerDailyQuotaUsage(id: string): Promise<Partner | null> {
+  const sql = `
+    UPDATE partners
+    SET
+      daily_quota_used = CASE
+        WHEN quota_window_started_at IS NULL OR quota_window_started_at <= NOW() - INTERVAL '24 hours'
+          THEN 1
+        ELSE COALESCE(daily_quota_used, 0) + 1
+      END,
+      quota_window_started_at = CASE
+        WHEN quota_window_started_at IS NULL OR quota_window_started_at <= NOW() - INTERVAL '24 hours'
+          THEN NOW()
+        ELSE quota_window_started_at
+      END,
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `;
+
+  return queryOne<Partner>(sql, [id]);
+}
+
+/**
+ * Mark the timestamp of a manual production-access request.
+ */
+export async function markPartnerProductionAccessRequested(id: string): Promise<Partner | null> {
+  const sql = `
+    UPDATE partners
+    SET
+      last_production_access_requested_at = NOW(),
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `;
+
+  return queryOne<Partner>(sql, [id]);
 }
 
 /**

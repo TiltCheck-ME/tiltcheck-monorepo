@@ -1,17 +1,19 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Daily Degen Comic Hackathon Submission Checklist
 
 ## Category Alignment
 
 - [ ] Submit under Creative Storyteller category.
 - [ ] Confirm Gemini is used for multimodal generation.
-- [ ] Confirm backend is hosted on Google Cloud (Cloud Run).
+- [ ] Confirm backend is hosted on the current production container runtime.
 
 ## Required Submission Assets
 
 - [ ] Public code repository URL with full spin-up instructions.
 - [ ] Project write-up: features, stack, data sources, learnings.
 - [ ] Cloud proof:
-  - [ ] screen recording showing Cloud Run deployment + live logs, or
+  - [ ] screen recording showing the live deployment dashboard + logs, or
   - [ ] linked code/config showing Google Cloud services in use.
 - [ ] Architecture diagram attached (see `comic-architecture.md`).
 - [ ] Demo video under 4 minutes with real-time functionality.
@@ -22,7 +24,7 @@
 2. Input capture (40s): channel watcher log + selected daily context.
 3. Generation (70s): cloud endpoint call returning comic + panel images.
 4. Product view (60s): homepage section shows strip, timestamp, archive.
-5. Cloud proof + closing (30-40s): Cloud Run + storage objects.
+5. Cloud proof + closing (30-40s): deployment dashboard + storage objects.
 
 ## Technical Validation
 

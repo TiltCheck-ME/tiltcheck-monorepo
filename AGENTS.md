@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-05 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # TiltCheck Agent Directory
 
@@ -42,19 +42,26 @@ Located in .github/agents/ and .github/workflows/
 | TiltCheck Agent | .github/agents/tiltcheck-agent.yaml | General monorepo task orchestrator. |
 | Scribe Agent | .github/agents/scribe-agent.md | Enforces Zero-Drift policy and project laws. |
 
-## 4. Cloud Readiness (1:1 Mapping)
-All local apps are accounted for in the Cloud environment. Shadow services have been purged.
+## 4. Deployment Reality (GHCR -> Railway)
+This repo does not ship an active tracked GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Non-Railway surfaces either deploy through Cloudflare Workers or stay manual/browser-asset paths.
 
-| Service | Status | Verdict |
-| :--- | :--- | :--- |
-| **api** | Live | Functional (Central Gateway). |
-| **web** | Live | Functional (Landing Page). |
-| **discord-bot** | Live | Functional: Powers tiltcheck-bot & dad-bot. |
-| **game-arena** | Live | Functional: Multiplayer Socket.io server. |
-| **trust-rollup** | Live | Functional: Trust Engine aggregator. |
-| **control-room** | Live | Functional: Admin management panel. |
-| **user-dashboard** | Live | Functional: Primary Degen Hub profile entry point. |
-| **chrome-extension** | Browser-Side | Functional: Linked to production API. |
+| Surface | Delivery | Source of Truth | Verdict |
+| :--- | :--- | :--- | :--- |
+| **api** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Central Gateway. |
+| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `tiltcheck.me` and `www.tiltcheck.me`. |
+| **discord-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: primary TiltCheck bot runtime. |
+| **justthetip-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate tipping bot service. |
+| **dad-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate dad bot service. |
+| **trust-rollup** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Trust Engine aggregator. |
+| **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `admin.tiltcheck.me`. |
+| **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `arena.tiltcheck.me`. |
+| **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `dashboard.tiltcheck.me` and `hub.tiltcheck.me`. |
+| **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `activity.tiltcheck.me`. |
+| **cloudflared** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: tunnel daemon backing public ingress. |
+| **hub** | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | Worker deploy is active, but `hub.tiltcheck.me` still routes to `user-dashboard` until tunnel ingress changes on purpose. |
+| **chrome-extension** | Browser asset | Manual packaging from `apps/chrome-extension` | Functional browser asset pointing at production API. |
+| **degens-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
+| **tiltcheck-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
 
 ## 5. Core System Modules
 Functional code located in modules/
@@ -66,7 +73,7 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-04-05
+Last Updated: 2026-05-03
 
 ## 6. GitHub Copilot Custom Agents
 Located in .github/agents/

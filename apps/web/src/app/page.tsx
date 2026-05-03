@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 import Link from "next/link";
 
 const coreJobs = [
@@ -31,13 +31,13 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            The House has the math. You have a dopamine problem. We have The Brakes.
+            HOUSE ALWAYS WINS? FUCK THAT.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
             TiltCheck is a read-only browser extension that watches live casino sessions,
             detects Auto-Pilot mode, and forces the exit before The Loop feeds your win
-            back to the machine.
+            back to the machine. The house has the math. Now you do too.
           </p>
 
           <div className="hero-actions">
@@ -52,7 +52,7 @@ export default function Home() {
             </Link>
             <Link
               href="/casinos"
-              className="btn btn-secondary"
+              className="hero-actions__secondary-link"
               data-funnel-event="landing_trust_click"
               data-funnel-source="web-home-hero"
               data-funnel-label="Check Casino Trust"
@@ -92,7 +92,7 @@ export default function Home() {
             <p className="public-page-panel__eyebrow">Ready to see it work?</p>
             <h2 className="public-page-cta-band__title">
               Install the extension and let TiltCheck watch your next session.
-              Or check casino trust scores before you deposit.
+              Check casino trust scores before you deposit if you need the receipts first.
             </h2>
             <div className="public-page-cta-band__actions">
               <Link
@@ -103,9 +103,6 @@ export default function Home() {
                 data-funnel-label="Install the Extension"
               >
                 INSTALL THE EXTENSION
-              </Link>
-              <Link href="/how-it-works" className="btn btn-secondary">
-                SEE HOW IT WORKS
               </Link>
               <Link href="/casinos" className="btn btn-secondary">
                 CHECK CASINO TRUST

@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * @tiltcheck/db - Type Definitions
  * Database types for the TiltCheck ecosystem
@@ -485,6 +485,8 @@ export interface UserOnboarding {
   redeem_wins: number;
   total_redeemed: number;
   compliance_bypass: boolean;
+  completed_steps: string[] | null;
+  completed_at: Date | null;
   joined_at: Date;
   updated_at: Date;
 }
@@ -513,6 +515,9 @@ export interface UpsertOnboardingPayload {
   redeem_wins?: number;
   total_redeemed?: number;
   compliance_bypass?: boolean;
+  completed_steps?: string[] | null;
+  completed_at?: Date | string | null;
+  joined_at?: Date | string;
 }
 
 // ============================================================================
@@ -526,8 +531,21 @@ export interface Partner {
   id: string;
   name: string;
   website_url: string | null;
+  contact_email: string | null;
+  casino_domain: string | null;
+  intended_use_case: string | null;
   app_id: string;
   secret_key: string; // Used for HMAC signatures
+  mode: 'production' | 'sandbox' | string;
+  registered_via: 'admin' | 'sandbox_self_serve' | string | null;
+  email_verified_at: Date | null;
+  verification_token_jti: string | null;
+  verification_token_expires_at: Date | null;
+  verification_token_consumed_at: Date | null;
+  daily_quota_limit: number | null;
+  daily_quota_used: number | null;
+  quota_window_started_at: Date | null;
+  last_production_access_requested_at: Date | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -568,8 +586,22 @@ export interface WebhookDelivery {
 export interface CreatePartnerPayload {
   name: string;
   website_url?: string;
+  contact_email?: string;
+  casino_domain?: string;
+  intended_use_case?: string;
   app_id: string;
   secret_key: string;
+  mode?: 'production' | 'sandbox' | string;
+  registered_via?: 'admin' | 'sandbox_self_serve' | string;
+  email_verified_at?: Date | null;
+  verification_token_jti?: string | null;
+  verification_token_expires_at?: Date | null;
+  verification_token_consumed_at?: Date | null;
+  daily_quota_limit?: number | null;
+  daily_quota_used?: number | null;
+  quota_window_started_at?: Date | null;
+  last_production_access_requested_at?: Date | null;
+  is_active?: boolean;
 }
 
 /**

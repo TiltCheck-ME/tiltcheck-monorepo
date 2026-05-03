@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -205,6 +205,35 @@ describe('Vault Routes', () => {
     expect(res.status).toBe(423);
     expect(res.body.code).toBe('WALLET_LOCK_ACTIVE');
     expect(lockvaultMock.depositToVault).not.toHaveBeenCalled();
+  });
+
+  it('surfaces domain-level wallet lock errors when the early route check misses', async () => {
+    const lockUntil = Date.now() + 5 * 60_000;
+    lockvaultMock.getWalletActionLockStatus.mockReturnValueOnce({ locked: false });
+    (lockvaultMock.depositToVault as any).mockImplementationOnce(() => {
+      const error = createVaultError(
+        'Wallet lock is active. Try again after the timer expires.',
+        'WALLET_LOCK_ACTIVE',
+        423,
+      ) as Error & { lockUntil?: number; remainingMs?: number; reason?: string; earlyUnlockRequest?: unknown };
+      error.lockUntil = lockUntil;
+      error.remainingMs = 5 * 60_000;
+      error.reason = 'focus';
+      error.earlyUnlockRequest = { mode: 'admin_approval', status: 'pending' };
+      throw error;
+    });
+
+    const res = await request(app).post('/vault/user-1/deposit').send({ amount: 10 });
+
+    expect(res.status).toBe(423);
+    expect(res.body).toMatchObject({
+      code: 'WALLET_LOCK_ACTIVE',
+      error: 'Wallet lock is active. Try again after the timer expires.',
+      remainingMs: 5 * 60_000,
+      reason: 'focus',
+      earlyUnlockRequest: { mode: 'admin_approval', status: 'pending' },
+    });
+    expect(res.body.lockUntil).toBe(new Date(lockUntil).toISOString());
   });
 
   it('validates lock duration', async () => {

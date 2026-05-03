@@ -116,14 +116,14 @@ async function checkOnboardingStatus(): Promise<void> {
   if (!linkedDiscordId) return;
 
   try {
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/onboarding`, {
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/me/onboarding-status`, {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
     });
     if (!res.ok) return;
     const data = await res.json();
 
-    if (!data.isOnboarded) {
+    if (!Array.isArray(data.completedSteps) || !data.completedSteps.includes('completed')) {
       const banner = document.getElementById('onboarding-banner');
       if (banner) {
         banner.style.display = '';
