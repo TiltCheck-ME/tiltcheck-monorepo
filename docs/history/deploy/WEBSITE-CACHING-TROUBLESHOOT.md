@@ -1,5 +1,3 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-03-14 -->
-
 <!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # Website Changes Not Showing - Caching Troubleshooting Guide
