@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # TiltCheck Project Map
 
 This document outlines the current architecture of the TiltCheck ecosystem.
@@ -14,7 +16,7 @@ TiltCheck = a real-time behavioral safety system for gamblers. It never exploits
 
 The project is organized as a pnpm monorepo with the following components:
 
-### 📱 Applications (`/apps`) - All Live on Cloud Run
+### 📱 Applications (`/apps`) - Current Production Surface
 
 - **api**: Central backend API (api.tiltcheck.me).
 - **chrome-extension**: Browser-based safety guard.
@@ -91,7 +93,7 @@ The project is organized as a pnpm monorepo with the following components:
 
 - **[QUICKSTART.md](../QUICKSTART.md)** - Get running in 5 minutes
 - **[SETUP.md](./SETUP.md)** - Detailed development setup
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide
+- **[DEPLOY.md](./DEPLOY.md)** - Canonical production deployment guide
 - **[docs/tiltcheck/](./tiltcheck/)** - Detailed ecosystem specifications
 
 ---

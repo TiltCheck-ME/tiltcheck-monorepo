@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Cloud Agent Credential Manifest
 
 Last updated: 2026-03-07
@@ -121,8 +123,8 @@ If agents perform cutover tasks:
 
 ## 6.1) Wave 1 Assignment (Current)
 
-- `api` (Cloud Run)
-- `web` (Cloud Run or static path via GCP)
+- `api` (GCP managed container runtime)
+- `web` (GCP managed container runtime or static path via GCP)
 
 Defer other services until Wave 1 health/cost validation completes.
 

@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Deploy Post-Verification and Rollback Notes
 
 This update adds fail-fast verification and rollback guidance for legacy VPS and GCloud VM deploy flows.
@@ -15,7 +17,7 @@ The gate blocks when any of these regress:
 1. Shell syntax validity (`bash -n`) for deploy scripts.
 2. Legacy VPS deploy dry-run flow (`deploy-vps.sh --dry-run` with env guardrails).
 3. GCloud VM preflight guardrails (`scripts/deploy-gcloud.sh --preflight`).
-4. Cloud Run preflight guardrails (`scripts/gcp/deploy-cloud-run-service.sh --preflight <service>`).
+4. Managed runtime preflight guardrails (`<service-deploy-script> --preflight <service>`).
 
 ## Updated scripts
 
@@ -45,7 +47,7 @@ bash scripts/deploy-gcloud-rollback.sh --dry-run
 
 ```bash
 PROJECT_ID=tiltcheck-ci bash scripts/deploy-gcloud.sh --preflight
-PROJECT_ID=tiltcheck-ci bash scripts/gcp/deploy-cloud-run-service.sh --preflight api
+PROJECT_ID=tiltcheck-ci bash <service-deploy-script> --preflight api
 ```
 
 ## Rollback quick command
@@ -111,15 +113,15 @@ Observed outcome:
 - Command rendered full rollback sequence in dry-run mode.
 - No VM changes made.
 
-### 4) Cloud Run preflight drill
+### 4) Managed runtime preflight drill
 
 ```bash
-PROJECT_ID=tiltcheck-ci bash scripts/gcp/deploy-cloud-run-service.sh --preflight api
+PROJECT_ID=tiltcheck-ci bash <service-deploy-script> --preflight api
 ```
 
 Expected output marker:
 
-- `Preflight checks passed for Cloud Run service: api`
+- `Preflight checks passed for service: api`
 
 Observed outcome:
 

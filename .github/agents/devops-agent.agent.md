@@ -2,6 +2,8 @@
 name: devops-agent
 description: Specialized agent for DevOps and deployment tasks in TiltCheck monorepo. Handles building, configuring, deploying, and monitoring infrastructure and CI/CD pipelines. Always verifies compliance with brand laws and documents any bugs or errors encountered.
 ---
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 
 # DevOps Agent
 
@@ -30,9 +32,9 @@ Always adhere to "The Degen Laws":
 
 ## Project Context
 - Work within the pnpm monorepo structure with Turbo for builds.
-- Handle GCP deployments (Cloud Build + Cloud Run) for services like api, web, discord-bot.
+- Handle GHCR -> Railway deployments for services like api, web, discord-bot, and the other wired container surfaces.
 - Manage Docker Compose for local development.
-- Configure cloudbuild*.yaml files for service-specific pipelines.
+- Configure and audit GitHub Actions workflows such as `deploy-railway.yml`, `configure-tunnel.yml`, and related release automation.
 - Ensure compliance with required CI checks (components-a11y, landing-a11y, CodeQL).
 - Use scripts/ordered-build.sh for safe build ordering.
 

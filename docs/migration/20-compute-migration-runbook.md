@@ -1,4 +1,6 @@
-# Compute Migration Runbook (Cloud Run)
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
+# Compute Migration Runbook (GCP Managed Containers)
 
 Last updated: 2026-03-07
 Scope: Wave 1 compute services in `us-central1`
@@ -29,21 +31,21 @@ From `infra/gcp/cloudrun/services.env`:
 ### Bash
 
 ```bash
-PROJECT_ID="your-project-id" REGION="us-central1" bash scripts/gcp/deploy-cloud-run-service.sh api
-PROJECT_ID="your-project-id" REGION="us-central1" bash scripts/gcp/deploy-cloud-run-service.sh discord-bot
-PROJECT_ID="your-project-id" REGION="us-central1" bash scripts/gcp/deploy-cloud-run-service.sh trust-rollup
-PROJECT_ID="your-project-id" REGION="us-central1" bash scripts/gcp/deploy-cloud-run-service.sh web
-PROJECT_ID="your-project-id" REGION="us-central1" bash scripts/gcp/deploy-cloud-run-service.sh comic-generator
+PROJECT_ID="your-project-id" REGION="us-central1" bash <service-deploy-script> api
+PROJECT_ID="your-project-id" REGION="us-central1" bash <service-deploy-script> discord-bot
+PROJECT_ID="your-project-id" REGION="us-central1" bash <service-deploy-script> trust-rollup
+PROJECT_ID="your-project-id" REGION="us-central1" bash <service-deploy-script> web
+PROJECT_ID="your-project-id" REGION="us-central1" bash <service-deploy-script> comic-generator
 ```
 
 ### PowerShell
 
 ```powershell
-.\scripts\gcp\deploy-cloud-run-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "api"
-.\scripts\gcp\deploy-cloud-run-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "discord-bot"
-.\scripts\gcp\deploy-cloud-run-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "trust-rollup"
-.\scripts\gcp\deploy-cloud-run-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "web"
-.\scripts\gcp\deploy-cloud-run-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "comic-generator"
+.\scripts\gcp\deploy-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "api"
+.\scripts\gcp\deploy-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "discord-bot"
+.\scripts\gcp\deploy-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "trust-rollup"
+.\scripts\gcp\deploy-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "web"
+.\scripts\gcp\deploy-service.ps1 -ProjectId "your-project-id" -Region "us-central1" -ServiceName "comic-generator"
 ```
 
 ## Health Checks and Validation
@@ -64,5 +66,5 @@ PROJECT_ID="your-project-id" REGION="us-central1" bash scripts/gcp/deploy-cloud-
 
 ## Rollback
 
-- Redeploy previous Cloud Run revision for impacted service only.
+- Redeploy the previous managed-runtime revision for the impacted service only.
 - Keep rollback per service to avoid broad regression blast radius.

@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-05 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # TiltCheck Copilot Instructions
 
@@ -162,10 +162,10 @@ pnpm test               # full test suite
 ```
 
 ### Deployment Flows
-- **Web & API**: Cloud Build + Cloud Run (GCP)
-- **Discord Bot**: Cloud Run container + event pubsub
+- **Containerized services**: GitHub Actions builds GHCR images and triggers Railway redeploys through `.github/workflows/deploy-railway.yml`
+- **Public routing**: `.github/workflows/configure-tunnel.yml` reconciles Cloudflare Tunnel ingress and DNS
 - **Chrome Extension**: Hosted in browser stores, points to production API
-- See `cloudbuild*.yaml` files for service-specific pipelines
+- See `docs/DEPLOY.md` for the current deploy inventory and smoke targets
 
 ## Common Workflows
 

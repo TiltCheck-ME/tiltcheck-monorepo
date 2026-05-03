@@ -1,4 +1,5 @@
 {
+    "copyright":  "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03",
   "tasks": [
     {
       "key": "MVP-P0-WEB-XSS",
@@ -21,7 +22,7 @@
     {
       "key": "MVP-P0-SECRETS-PREFLIGHT",
       "title": "Secrets and env preflight guardrail",
-      "description": "Batch 1 (P0 Security + Stability). Add required env-key checks, placeholder blocking, and secret-safe logging to deploy-vps.sh, scripts/deploy-gcloud.sh, and scripts/gcp/deploy-cloud-run-service.sh. Labels: mvp, p0, infra, security, prod-readiness.",
+      "description": "Batch 1 (P0 Security + Stability). Add required env-key checks, placeholder blocking, and secret-safe logging to deploy-vps.sh, scripts/deploy-gcloud.sh, and the active GCP service deploy flow. Labels: mvp, p0, infra, security, prod-readiness.",
       "priority": 1
     },
     {
