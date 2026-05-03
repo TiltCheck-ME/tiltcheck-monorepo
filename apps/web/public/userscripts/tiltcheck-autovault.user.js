@@ -765,12 +765,18 @@
 
     // --- Floaty Widget UI (TiltCheck dark palette) ---
     let currentViewMode = 'full';
+    /** 10s refresh for vault-rate cap label; must be cleared when the floaty is removed. */
+    let vaultCountUiInterval = null;
 
     function createVaultFloatyUI(startCallback, stopCallback, getParams, setParams, vaultDisplay) {
         const existing = document.getElementById('tc-autovault-floaty');
         if (existing) existing.remove();
         const existingStealth = document.getElementById('tc-autovault-stealth');
         if (existingStealth) existingStealth.remove();
+        if (vaultCountUiInterval) {
+            clearInterval(vaultCountUiInterval);
+            vaultCountUiInterval = null;
+        }
 
         const style = document.createElement('style');
         style.id = 'tc-autovault-styles';
@@ -1296,6 +1302,10 @@
             minBtn.textContent = '−';
         };
         closeBtn.onclick = () => {
+            if (vaultCountUiInterval) {
+                clearInterval(vaultCountUiInterval);
+                vaultCountUiInterval = null;
+            }
             widget.remove();
             stealthDot.remove();
         };
@@ -1326,6 +1336,7 @@
         const vaultCountEl = content.querySelector('#tcVaultCount');
 
         function updateVaultCountUI() {
+            if (!vaultCountEl || !vaultCountEl.isConnected) return;
             const count = getVaultCountLastHour();
             vaultCountEl.textContent = `${count}/${RATE_LIMIT_MAX}`;
             // Color tracks how close to the cap we are: teal -> gold -> red.
@@ -1337,7 +1348,7 @@
         }
         window.__tcUpdateVaultCountUI = updateVaultCountUI;
         updateVaultCountUI();
-        setInterval(updateVaultCountUI, 10000);
+        vaultCountUiInterval = setInterval(updateVaultCountUI, 10000);
 
         function setRunningState(isRunning) {
             statusDot.classList.toggle('running', isRunning);
@@ -1393,7 +1404,6 @@
 
     // --- Main monitoring state ---
     let vaultInterval = null;
-    let vaultCountInterval = null;
     let apiBalanceInterval = null;
     let vaultDisplay = null;
     let stakeApi = null;
@@ -1775,9 +1785,6 @@
 
             initializeBalance();
             vaultInterval = setInterval(checkBalanceChanges, config.checkInterval * 1000);
-            vaultCountInterval = setInterval(() => {
-                if (ui) ui.updateVaultCount();
-            }, 10000);
 
             log(pickFlavor(FLAVOR.start), 'success');
             log(`Watching ${activeCurrency.toUpperCase()} on ${SITE.name}`, 'info');
@@ -1811,8 +1818,6 @@
         isRunning = false;
         if (vaultInterval) clearInterval(vaultInterval);
         vaultInterval = null;
-        if (vaultCountInterval) clearInterval(vaultCountInterval);
-        vaultCountInterval = null;
         if (SITE.mode === 'stake-api') stopApiBalancePolling();
         log(pickFlavor(FLAVOR.stop), 'info');
     }
