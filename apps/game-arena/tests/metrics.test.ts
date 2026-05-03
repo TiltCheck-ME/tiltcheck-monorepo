@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-02
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-02 */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import * as promClient from 'prom-client';
