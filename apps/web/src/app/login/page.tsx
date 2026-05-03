@@ -50,10 +50,13 @@ export default function LoginPage() {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    fetch(`${apiBase}/user/onboarding`, { credentials: 'include', headers })
+    fetch(`${apiBase}/me/onboarding-status`, { credentials: 'include', headers })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && !data.isOnboarded) {
+        const completedSteps = Array.isArray(data?.completedSteps)
+          ? data.completedSteps.filter((value: unknown): value is string => typeof value === 'string')
+          : [];
+        if (data && !completedSteps.includes('completed')) {
           window.location.assign('/onboarding');
         }
       })

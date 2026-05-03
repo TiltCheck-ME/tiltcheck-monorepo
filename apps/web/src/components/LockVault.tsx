@@ -200,12 +200,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     if (!discordId) return;
     setWorking(true);
     try {
-      const res = await fetch(`${API}/user/${discordId}/onboarding`, {
+      const res = await fetch(`${API}/me/onboarding-status`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          isOnboarded: true,
+          step: 'preferences',
           preferences: {
             redeemThreshold: newThreshold,
           },

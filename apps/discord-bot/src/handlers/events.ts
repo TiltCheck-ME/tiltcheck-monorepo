@@ -88,7 +88,7 @@ export class EventHandler {
         return;
       }
 
-      if (needsOnboarding(member.user.id)) {
+      if (await needsOnboarding(member.user.id)) {
         console.log(`[EventHandler] Automatically onboarding new member: ${member.user.tag}`);
         checkAndOnboard(member.user).catch(err => {
           console.error('[Bot] Failed to send welcome DM to new member:', err);
@@ -125,7 +125,7 @@ export class EventHandler {
 
       const onboarded = await isUserOnboarded(interaction.user.id);
 
-      if (!onboarded && needsOnboarding(interaction.user.id)) {
+      if (!onboarded && await needsOnboarding(interaction.user.id)) {
         checkAndOnboard(interaction.user).catch(err => {
           console.error('[Bot] Failed to send welcome DM:', err);
         });
@@ -387,7 +387,7 @@ export class EventHandler {
         try {
           const { discordId } = event.data;
           const user = await this.client.users.fetch(discordId);
-          if (user && needsOnboarding(user.id)) {
+          if (user && await needsOnboarding(user.id)) {
             console.log(`[EventHandler] Automatically onboarding linked account: ${user.tag}`);
             checkAndOnboard(user).catch(err => {
               console.error('[Bot] Failed to send welcome DM on link:', err);

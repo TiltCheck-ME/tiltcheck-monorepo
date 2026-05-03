@@ -533,9 +533,30 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
       discord_id, is_onboarded, has_accepted_terms, risk_level, 
       cooldown_enabled, voice_intervention_enabled, share_message_contents, share_financial_data,
       share_session_telemetry, notify_nft_identity_ready, daily_limit, redeem_threshold, quiz_scores, tutorial_completed,
-      notifications_tips, notifications_trivia, notifications_promos, compliance_bypass, updated_at
+      notifications_tips, notifications_trivia, notifications_promos, compliance_bypass, joined_at, updated_at
     ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+    VALUES (
+      $1,
+      COALESCE($2, false),
+      COALESCE($3, false),
+      COALESCE($4, 'moderate'),
+      COALESCE($5, true),
+      COALESCE($6, false),
+      COALESCE($7, false),
+      COALESCE($8, false),
+      COALESCE($9, false),
+      COALESCE($10, false),
+      $11,
+      $12,
+      $13,
+      COALESCE($14, false),
+      COALESCE($15, true),
+      COALESCE($16, true),
+      COALESCE($17, false),
+      COALESCE($18, false),
+      COALESCE($19, NOW()),
+      NOW()
+    )
     ON CONFLICT (discord_id) DO UPDATE SET
       is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
       has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
@@ -554,6 +575,7 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
       notifications_trivia = COALESCE($16, user_onboarding.notifications_trivia),
       notifications_promos = COALESCE($17, user_onboarding.notifications_promos),
       compliance_bypass = COALESCE($18, user_onboarding.compliance_bypass),
+      joined_at = COALESCE(user_onboarding.joined_at, $19),
       updated_at = NOW()
     RETURNING *
   `;
@@ -576,7 +598,8 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     payload.notifications_tips ?? null,
     payload.notifications_trivia ?? null,
     payload.notifications_promos ?? null,
-    payload.compliance_bypass ?? null
+    payload.compliance_bypass ?? null,
+    payload.joined_at ? new Date(payload.joined_at) : null
   ];
 
   return queryOne<UserOnboarding>(sql, values);

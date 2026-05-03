@@ -37,6 +37,7 @@ import {
     type GameCategory,
 } from '@tiltcheck/types';
 import { getUserDataConsentState } from '../lib/data-consent.js';
+import { toOnboardingStatusResponse } from './me.js';
 
 const router: Router = Router();
 
@@ -310,37 +311,16 @@ router.get('/onboarding', authMiddleware, async (req: Request, res: Response, ne
         }
 
         const onboarding = await findOnboardingByDiscordId(userPayload.discordId);
-
-        if (!onboarding) {
-            res.json({
-                isOnboarded: false,
-                message: 'Onboarding data not found'
-            });
-            return;
-        }
+        const status = toOnboardingStatusResponse(onboarding);
 
         res.json({
-            isOnboarded: onboarding.is_onboarded,
-            riskLevel: onboarding.risk_level,
-            hasAcceptedTerms: onboarding.has_accepted_terms,
-            preferences: {
-                cooldownEnabled: onboarding.cooldown_enabled,
-                voiceInterventionEnabled: onboarding.voice_intervention_enabled,
-                dailyLimit: onboarding.daily_limit,
-                redeemThreshold: onboarding.redeem_threshold,
-                dataSharing: {
-                    messageContents: onboarding.share_message_contents,
-                    financialData: onboarding.share_financial_data,
-                    sessionTelemetry: onboarding.share_session_telemetry
-                },
-                notifyNftIdentityReady: onboarding.notify_nft_identity_ready,
-                notifications: {
-                    tips: onboarding.notifications_tips,
-                    trivia: onboarding.notifications_trivia,
-                    promos: onboarding.notifications_promos
-                },
-                complianceBypass: onboarding.compliance_bypass
-            }
+            isOnboarded: status.completedSteps.includes('completed'),
+            completedSteps: status.completedSteps,
+            completedAt: status.completedAt,
+            riskLevel: status.riskLevel,
+            hasAcceptedTerms: status.hasAcceptedTerms,
+            quizScores: status.quizScores,
+            preferences: status.preferences,
         });
     } catch (error) {
         console.error('[User API] Get onboarding error:', error);
@@ -366,6 +346,18 @@ router.post('/onboarding', authMiddleware, async (req: Request, res: Response, n
             return next(new ValidationError('User must be linked to Discord to update onboarding'));
         }
 
+        const existing = await findOnboardingByDiscordId(userPayload.discordId);
+        const quizScores = req.body.quizScores;
+        const completedSteps = Array.isArray(req.body.completedSteps)
+            ? req.body.completedSteps.filter((value: unknown): value is string => typeof value === 'string')
+            : [];
+        const nextQuizPayload = quizScores || completedSteps.length > 0
+            ? JSON.stringify({
+                answers: quizScores && typeof quizScores === 'object' ? quizScores : {},
+                completedSteps,
+            })
+            : existing?.quiz_scores;
+
         const result = await upsertOnboarding({
             discord_id: userPayload.discordId,
             is_onboarded: isOnboarded,
@@ -379,15 +371,28 @@ router.post('/onboarding', authMiddleware, async (req: Request, res: Response, n
             notify_nft_identity_ready: preferences?.notifyNftIdentityReady,
             daily_limit: preferences?.dailyLimit,
             redeem_threshold: preferences?.redeemThreshold,
+            quiz_scores: nextQuizPayload,
+            tutorial_completed: isOnboarded === true ? true : existing?.tutorial_completed,
             notifications_tips: preferences?.notifications?.tips,
             notifications_trivia: preferences?.notifications?.trivia,
             notifications_promos: preferences?.notifications?.promos,
-            compliance_bypass: preferences?.complianceBypass
+            compliance_bypass: preferences?.complianceBypass,
+            joined_at: existing?.joined_at ?? new Date(),
         });
 
+        const status = toOnboardingStatusResponse(result);
         res.json({
             success: true,
-            data: result
+            data: result,
+            status: {
+                isOnboarded: status.completedSteps.includes('completed'),
+                completedSteps: status.completedSteps,
+                completedAt: status.completedAt,
+                riskLevel: status.riskLevel,
+                hasAcceptedTerms: status.hasAcceptedTerms,
+                quizScores: status.quizScores,
+                preferences: status.preferences,
+            }
         });
     } catch (error) {
         console.error('[User API] Update onboarding error:', error);

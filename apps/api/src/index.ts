@@ -46,6 +46,7 @@ import { verifySessionCookie, type SessionData } from '@tiltcheck/auth';
 import { getJWTConfig } from './middleware/auth.js';
 
 import { authRouter } from './routes/auth.js';
+import { meRouter } from './routes/me.js';
 import { servicesRouter } from './routes/services.js';
 import { tipRouter } from './routes/tip.js';
 import { healthRouter } from './routes/health.js';
@@ -184,6 +185,9 @@ app.use('/health', healthRouter);
 
 // Authentication routes
 app.use('/auth', authRouter);
+
+// Current-user routes
+app.use('/me', meRouter);
 
 // Internal services proxy (requires service token)
 app.use('/services', servicesRouter);

@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * @tiltcheck/db - Type Definitions
  * Database types for the TiltCheck ecosystem
@@ -485,6 +485,8 @@ export interface UserOnboarding {
   redeem_wins: number;
   total_redeemed: number;
   compliance_bypass: boolean;
+  completed_steps: string[] | null;
+  completed_at: Date | null;
   joined_at: Date;
   updated_at: Date;
 }
@@ -513,6 +515,9 @@ export interface UpsertOnboardingPayload {
   redeem_wins?: number;
   total_redeemed?: number;
   compliance_bypass?: boolean;
+  completed_steps?: string[] | null;
+  completed_at?: Date | string | null;
+  joined_at?: Date | string;
 }
 
 // ============================================================================

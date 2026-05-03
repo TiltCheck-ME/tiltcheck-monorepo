@@ -829,7 +829,9 @@ Read-only browser extension that monitors live casino sessions.
 
 ### Shared State
 
-All surfaces read/write the same Supabase `user_onboarding` table via `GET/POST /user/onboarding`.
+All surfaces now converge on the canonical Postgres `user_onboarding` table behind `apps/api`.
+The canonical contract is `GET/POST /me/onboarding-status`.
+`/user/onboarding` remains as a compatibility alias for older clients, but it reads and writes the same canonical row.
 
 ```
 user_onboarding
@@ -882,7 +884,7 @@ ANY ENTRY POINT (Discord / Web / Extension)
   Discord OAuth (identity)
      │
      ▼
-  GET /user/onboarding → isOnboarded?
+  GET /me/onboarding-status → completed?
      │
      ├── true → proceed to dashboard / extension / bot
      │
@@ -891,7 +893,7 @@ ANY ENTRY POINT (Discord / Web / Extension)
            2. Risk quiz (3 questions)
            3. Notification preferences
            4. Optional: Link extension
-           5. POST /user/onboarding { isOnboarded: true }
+          5. POST /me/onboarding-status { step: 'completed' }
 ```
 
 ### Key Files
@@ -904,7 +906,8 @@ ANY ENTRY POINT (Discord / Web / Extension)
 | `apps/discord-bot/src/handlers/onboarding.ts` | Discord bot DM onboarding flow |
 | `apps/chrome-extension/src/popup.ts` | Extension onboarding banner check |
 | `packages/utils/src/onboarding.ts` | Shared quiz questions + risk calculator |
-| `apps/api/src/routes/user.ts` | `GET/POST /user/onboarding` API endpoints |
+| `apps/api/src/routes/me.ts` | Canonical `GET/POST /me/onboarding-status` API endpoints |
+| `apps/api/src/routes/user.ts` | Backward-compatible `/user/onboarding` alias over the same canonical store |
 | `packages/db/src/index.ts` | `findOnboardingByDiscordId`, `upsertOnboarding` |
 
 ---
