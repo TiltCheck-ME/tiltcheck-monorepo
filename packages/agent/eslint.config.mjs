@@ -1,23 +1,17 @@
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+import { defineConfig } from 'eslint/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createSharedConfig } from '../../eslint.config.js';
 
-export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  {
-    ignores: [
-      'dist/**',
-      'node_modules/**',
-      'deployment/**',
-      '.cloudbuild/**',
-      '*.js',
-      '*.mjs',
-    ],
-  },
-  {
-    rules: {
+const AGENT_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig([
+  ...createSharedConfig({
+    tsconfigRootDir: AGENT_DIR,
+    extraIgnores: ['deployment/**', '.cloudbuild/**'],
+    typeScriptRuleOverrides: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
     },
-  }
-);
+  }),
+]);
