@@ -3,5 +3,6 @@
   "parserOptions": {
     "project": true,
     "tsconfigRootDir": "__dirname"
-  }
+  },
+  "ignorePatterns": ["public/"]
 }
