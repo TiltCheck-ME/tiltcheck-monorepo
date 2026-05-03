@@ -11,6 +11,7 @@ import {
 } from 'discord.js';
 import { v4 as uuidv4 } from 'uuid';
 import type { Command } from '../types.js';
+import { ActivityType } from '@tiltcheck/discord-activities';
 
 let activityManager: any = null;
 
@@ -37,7 +38,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
       userId,
       guildId,
       channelId,
-      activityType: 'trivia',
+      activityType: ActivityType.TRIVIA,
       instanceId,
       sessionToken,
       applicationId: interaction.client.application?.id || '',
