@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 import express from 'express';
 import session from 'express-session';
 import { createServer } from 'http';
@@ -19,7 +19,7 @@ import {
 import { registerDirectorRoutes } from './trivia-director.js';
 
 // Payout admin package (file-backed ledger + simple worker)
-import * as payout from '../../../packages/prize-payout/src/index.js';
+import * as payout from '@tiltcheck/prize-payout';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -353,7 +353,6 @@ app.post('/api/report-requests', requireAuth, (req, res) => {
 });
 
 // ─── Prize Payout Admin Endpoints ─────────────────────────────────────────────
-import * as payout from '../../../packages/prize-payout/src/index.js';
 
 app.get('/api/payouts', requireAuth, (req, res) => {
   try {
