@@ -1,7 +1,8 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
-# DEPRECATED: apps/hub (Cloudflare Worker) was removed. hub.tiltcheck.me now
-# routes through the Cloudflare Tunnel to the user-dashboard Railway service.
-# Tunnel ingress rules are managed by .github/workflows/configure-tunnel.yml.
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# DEPRECATED: apps/hub (Cloudflare Worker) was removed. hub.tiltcheck.me should
+# resolve to the user-dashboard service through whatever public routing is
+# actually active for production (custom domain, proxy, or optional tunnel).
+# If a Cloudflare Tunnel is used, .github/workflows/configure-tunnel.yml manages it.
 # This file is kept for history only and will not trigger.
 name: Deploy Hub to Cloudflare Workers (DEPRECATED)
 
@@ -23,6 +24,6 @@ jobs:
       - name: Notice
         run: |
           echo "This workflow is deprecated. apps/hub no longer exists."
-          echo "hub.tiltcheck.me is now served via Cloudflare Tunnel -> user-dashboard (Railway)."
-          echo "Use .github/workflows/configure-tunnel.yml to manage tunnel routes."
+          echo "hub.tiltcheck.me should resolve to user-dashboard through the active public ingress path."
+          echo "If you are using a tunnel, use .github/workflows/configure-tunnel.yml to manage tunnel routes."
           exit 1

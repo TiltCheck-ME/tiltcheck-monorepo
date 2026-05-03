@@ -163,7 +163,7 @@ pnpm test               # full test suite
 
 ### Deployment Flows
 - **Containerized services**: GitHub Actions builds GHCR images and triggers Railway redeploys through `.github/workflows/deploy-railway.yml`
-- **Public routing**: `.github/workflows/configure-tunnel.yml` reconciles Cloudflare Tunnel ingress and DNS
+- **Public routing**: direct custom domains or optional tunnel/DNS reconciliation are repo-specific; `.github/workflows/configure-tunnel.yml` is only relevant if Cloudflare Tunnel is actually in use
 - **Chrome Extension**: Hosted in browser stores, points to production API
 - See `docs/DEPLOY.md` for the current deploy inventory and smoke targets
 

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 "use client";
 
 import Link from "next/link";
@@ -67,10 +67,11 @@ const Footer = () => {
         <div className="footer-top">
           <div className="footer-brand">
             <span className="brand-eyebrow footer-eyebrow">TiltCheck</span>
-            <h2 className="footer-title">See the math. Protect the bankroll.</h2>
+            <h2 className="footer-title">See the session. Brake before you regret.</h2>
             <p className="footer-copy">
-              TiltCheck is a read-only browser extension and public trust layer for casino players. It watches live
-              sessions, checks fairness and RTP drift, and forces you out with proof instead of regret.
+              TiltCheck is a read-only browser extension and public trust layer. It watches live play for tilt patterns,
+              manipulative pressure, and session drift, then pairs that with trust signals and receipts when the math
+              looks off. The point is simple: catch the spiral before another breathless deposit cooks you.
             </p>
 
             <div className="footer-actions">

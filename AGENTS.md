@@ -48,16 +48,16 @@ This repo does not ship an active GCP deploy workflow. Container services build 
 | Surface | Delivery | Source of Truth | Verdict |
 | :--- | :--- | :--- | :--- |
 | **api** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Central Gateway. |
-| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `tiltcheck.me` and `www.tiltcheck.me`. |
+| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
 | **discord-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: primary TiltCheck bot runtime. |
 | **justthetip-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate tipping bot service. |
 | **dad-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate dad bot service. |
 | **trust-rollup** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Trust Engine aggregator. |
-| **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `admin.tiltcheck.me`. |
-| **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `arena.tiltcheck.me`. |
-| **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `dashboard.tiltcheck.me` and `hub.tiltcheck.me`. |
-| **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `activity.tiltcheck.me`. |
-| **cloudflared** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: tunnel daemon backing public ingress. |
+| **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **cloudflared** | Optional GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Optional tunnel daemon only if Cloudflare Tunnel is the chosen ingress path. |
 | **hub** | Deprecated manual worker path | `.github/workflows/deploy-hub.yml` intentionally blocks deployment | Not separately deployed; hostname routes to `user-dashboard`. |
 | **chrome-extension** | Browser asset | Manual packaging from `apps/chrome-extension` | Functional browser asset pointing at production API. |
 | **degens-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
