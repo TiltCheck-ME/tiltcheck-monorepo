@@ -48,22 +48,26 @@ async function main() {
   io2.adapter(createAdapter(pub2 as any, sub2 as any));
 
   // Start servers
-  await new Promise((res) => server1.listen(4001, res));
-  await new Promise((res) => server2.listen(4002, res));
+  await new Promise<void>((resolve) => {
+    server1.listen(4001, () => resolve());
+  });
+  await new Promise<void>((resolve) => {
+    server2.listen(4002, () => resolve());
+  });
 
   console.log('[Sim] Servers listening on 4001 and 4002');
 
   // Connect clients
-  const clientA = new Client('http://localhost:4001', { transports: ['websocket'] });
-  const clientB = new Client('http://localhost:4002', { transports: ['websocket'] });
+  const clientA = Client('http://localhost:4001', { transports: ['websocket'] });
+  const clientB = Client('http://localhost:4002', { transports: ['websocket'] });
 
-  const receivedOnB: any[] = [];
+  const receivedOnB: Array<{ from: string; ts: number }> = [];
 
   clientB.on('connect', () => {
     console.log('[Sim] clientB connected to server2');
   });
 
-  clientB.on('test-event', (payload) => {
+  clientB.on('test-event', (payload: { from: string; ts: number }) => {
     console.log('[Sim] clientB received test-event:', payload);
     receivedOnB.push(payload);
   });

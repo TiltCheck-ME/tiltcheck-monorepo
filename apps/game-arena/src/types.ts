@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 /**
  * TypeScript type definitions for Game Arena
  */
@@ -71,6 +71,9 @@ export interface ClientToServerEvents {
   'join-game': (gameId: string) => void;
   'spectate-game': (gameId: string) => void;
   'leave-game': () => void;
+  'play-card': (data: { gameId: string; cardId: string; userId: string }) => void;
+  'vote-card': (data: { gameId: string; cardId: string; userId: string }) => void;
+  'claim-rain': (data: { rainId: string; timestamp: number }) => void;
   'game-action': (action: any) => void;
   'chat-message': (message: string) => void;
   // Trivia specific
@@ -87,9 +90,13 @@ export interface ServerToClientEvents {
   'game-update': (gameState: any) => void;
   'spectator-mode': (enabled: boolean) => void;
   'game-error': (error: string) => void;
+  'dad.round': (data: any) => void;
   'chat-message': (data: { userId: string; username: string; message: string; timestamp: number }) => void;
   'player-joined': (data: { userId: string; username: string }) => void;
   'player-left': (data: { userId: string }) => void;
+  'jackpot-update': (data: { pool: number; entries: number; lastWinner?: string | null; lastPayout?: number }) => void;
+  'trivia-player-eliminated': (data: { userId: string; username: string }) => void;
+  'trivia-player-reinstated': (data: { userId: string; username: string }) => void;
   // Trivia specific
   'trivia-round-start': (data: { gameId: string; question: any; roundNumber: number; totalRounds: number; endsAt: number; prizePool?: number; leaderboard?: Array<{ username: string; score: number }>; players?: TriviaLivePlayerState[] }) => void;
   'trivia-round-reveal': (data: { gameId: string; questionId: string; correctChoice: string; explanation?: string; stats: any; leaderboard?: Array<{ username: string; score: number }>; players?: TriviaLivePlayerState[] }) => void;
@@ -97,6 +104,7 @@ export interface ServerToClientEvents {
   'trivia-shield-result': (data: { questionId: string; eliminated: string[] }) => void;
   // Tip events forwarded from discord-bot via event router
   'tip.rain': (data: { id: string; fromUserId: string; fromUsername: string; amountSol: number; amountUsd: number; message: string; expiresAt: number; claimable: boolean }) => void;
+  'tip.rain.claimed': (data: { rainId: string; userId: string; success: boolean }) => void;
   'tip.sent': (data: { id: string; fromUsername: string; toUsername: string; amountSol: number; message: string; timestamp: number; claimed: boolean }) => void;
   'tip.claimed': (data: { rainId: string; claimerId: string }) => void;
 }
