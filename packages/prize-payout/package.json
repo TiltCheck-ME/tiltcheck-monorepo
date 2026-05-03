@@ -1,6 +1,7 @@
 {
   "name": "@tiltcheck/prize-payout",
   "version": "0.1.0",
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03",
   "type": "module",
   "main": "./src/index.js",
   "scripts": {
