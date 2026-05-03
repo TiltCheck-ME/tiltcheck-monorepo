@@ -1,0 +1,32 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# TiltCheck Discord Activity — Cloudflare Named Tunnel
+#
+# A Named Tunnel provides a stable HTTPS origin for Discord Activity local testing.
+#
+# 1. AUTH LOGIN
+#    npx cloudflared tunnel login
+#
+# 2. CREATE TUNNEL
+#    npx cloudflared tunnel create dev-tiltcheck-activity
+#
+# 3. GET THE UUID
+#    Replace the placeholder values below and update the credentials path.
+#
+
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: C:\Users\jmeni\.cloudflared\REPLACE_WITH_TUNNEL_UUID.json
+
+ingress:
+  - hostname: dev-tiltcheck-activity.tiltcheck.me
+    service: http://127.0.0.1:5175
+  - service: http_status:404
+
+# 4. ROUTE DNS (one time)
+#    npx cloudflared tunnel route dns dev-tiltcheck-activity dev-tiltcheck-activity.tiltcheck.me
+#
+# 5. RUN
+#    npx cloudflared tunnel --config ./cloudflare-tunnel.yml run dev-tiltcheck-activity
+#
+# 6. DISCORD DEV PORTAL
+#    Set the Activity root URL mapping to:
+#    https://dev-tiltcheck-activity.tiltcheck.me

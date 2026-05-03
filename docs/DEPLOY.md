@@ -65,11 +65,15 @@ Public hostnames come from `.github/workflows/configure-tunnel.yml`, not from th
 ### `degens-activity` and `tiltcheck-activity`
 
 - Chosen target: static asset publish, not Railway.
-- Reason: both apps are Vite SPAs for Discord Activities, the repo has no Railway service IDs or public tunnel routes for them, and adding placeholder matrix rows would create broken deploy automation.
+- Reason: both apps are Vite SPAs for Discord Activities, the repo has no Railway service IDs or production tunnel routes for them, and adding placeholder matrix rows would create broken deploy automation.
 - Build commands:
   - `pnpm --filter @tiltcheck/degens-activity build`
   - `pnpm --filter @tiltcheck/tiltcheck-activity build`
 - Publish the resulting `dist/` artifacts to the CDN or Discord-managed asset host that backs the Activity configuration outside this repo.
+- Local tunnel support is wired for Discord dev sessions:
+  - `pnpm --filter @tiltcheck/degens-activity dev:tunnel` -> `dev-degens.tiltcheck.me`
+  - `pnpm --filter @tiltcheck/tiltcheck-activity dev:tunnel` -> `dev-tiltcheck-activity.tiltcheck.me`
+  - Replace the placeholder tunnel UUID and credentials path in each app's `cloudflare-tunnel.yml` before use.
 
 ### `chrome-extension`
 
