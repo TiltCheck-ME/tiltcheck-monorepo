@@ -1320,6 +1320,10 @@ body.degen-background > * {
 }
 
 .hero-actions__secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   align-self: center;
   color: var(--text-secondary);
   font-family: var(--font-geist-mono);
@@ -1333,6 +1337,12 @@ body.degen-background > * {
 
 .hero-actions__secondary-link:hover {
   color: var(--color-primary);
+}
+
+.hero-actions__secondary-link:focus-visible {
+  color: var(--color-primary);
+  outline: 2px solid rgba(23, 195, 178, 0.7);
+  outline-offset: 4px;
 }
 
 @media (max-width: 640px) {
