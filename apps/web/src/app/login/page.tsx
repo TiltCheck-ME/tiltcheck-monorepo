@@ -42,6 +42,24 @@ export default function LoginPage() {
   const redirectLabel = useMemo(() => getDashboardLaneLabel(redirectTarget), [redirectTarget]);
   const discordLoginUrl = useMemo(() => getDiscordLoginUrl(canonicalRedirectUrl), [canonicalRedirectUrl]);
 
+  // Gate: if authenticated but not onboarded, redirect to onboarding wizard
+  useEffect(() => {
+    if (loading || !user?.userId) return;
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('tc_token') : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    fetch(`${apiBase}/user/onboarding`, { credentials: 'include', headers })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && !data.isOnboarded) {
+          window.location.assign('/onboarding');
+        }
+      })
+      .catch(() => {});
+  }, [loading, user]);
+
   async function handleMagicSignIn() {
     if (!magicEmail.trim()) {
       setError('Enter your email first.');
