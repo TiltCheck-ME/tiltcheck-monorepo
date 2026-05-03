@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * @vitest-environment jsdom
  */
@@ -45,7 +45,7 @@ describe('Sidebar AuthManager', () => {
     };
   });
 
-  it('accepts trusted discord auth messages and hands them to the API session flow', async () => {
+  it('ignores discord auth window messages because the active flow restores auth from storage polling', async () => {
     const { AuthManager } = await import('../../src/sidebar/auth.ts');
     const ui = new SidebarUiStub();
     const manager = new AuthManager(ui);
@@ -66,11 +66,9 @@ describe('Sidebar AuthManager', () => {
 
     await Promise.resolve();
 
-    expect(applySpy).toHaveBeenCalledWith('jwt-token', {
-      id: 'user_123',
-      username: 'tilt-user',
-      discordId: 'discord_123',
-    });
+    expect(applySpy).not.toHaveBeenCalled();
+    expect(manager.authToken).toBeNull();
+    expect(manager.userData).toBeNull();
   });
 
   it('starts the API auth bridge flow and restores the stored session', async () => {
