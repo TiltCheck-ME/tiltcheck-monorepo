@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # GCP Skills Matrix and Training Plan (Solo Operator)
 
 Last updated: 2026-03-07
@@ -15,7 +17,7 @@ Scale:
 | --- | --- | --- | --- |
 | IAM (roles, service accounts, least privilege) | 1 | 3 | High |
 | Workload Identity Federation (OIDC) | 1 | 3 | High |
-| Cloud Run deploy and revisions | 1 | 3 | High |
+| Managed runtime deploy and revisions | 1 | 3 | High |
 | Secret Manager integration | 1 | 3 | High |
 | Artifact Registry and image flow | 1 | 3 | High |
 | Cloud Build pipeline basics | 1 | 3 | High |
@@ -38,7 +40,7 @@ Done when:
 ### Day 2: Deploy Pipeline (2 hours)
 
 - Build and push one image to Artifact Registry
-- Deploy one Cloud Run service (`api`) using existing scripts
+- Deploy one managed runtime service (`api`) using the active service deploy flow
 - Verify service URL and basic health
 
 Done when:
@@ -48,7 +50,7 @@ Done when:
 ### Day 3: Secrets and Config (1-1.5 hours)
 
 - Create/update one secret in Secret Manager
-- Bind secret to Cloud Run service
+- Bind secret to the managed runtime service
 - Confirm no secret values are committed in repo
 
 Done when:
@@ -94,4 +96,4 @@ Start with:
 
 1. `infra/gcp/bootstrap-gcp.ps1`
 2. `scripts/gcp/create-budget-alerts.ps1`
-3. `scripts/gcp/deploy-cloud-run-service.ps1 -ServiceName api`
+3. `scripts/gcp/deploy-service.ps1 -ServiceName api`

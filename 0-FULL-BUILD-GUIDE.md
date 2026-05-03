@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-03-24 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # The "One True Path": A Start-to-Finish Build Guide
 
@@ -95,13 +95,13 @@ You don't need to do this manually. This happens automatically when your PR is m
 
 1.  **Merge to `main`:** Once your PR is approved and passes all checks, you merge it.
 
-2.  **Cloud Build is Triggered:** A file named `cloudbuild.yaml` tells Google Cloud to wake up.
+2.  **GitHub Actions is Triggered:** `.github/workflows/deploy-railway.yml` wakes up when wired service paths change on `main`.
 
-3.  **Docker Image is Built:** Cloud Build runs a `docker build` command, which packages your application (e.g., the `api` service) into a container.
+3.  **Docker Image is Built:** GitHub Actions builds the container and pushes it to GHCR with both `latest` and SHA tags.
 
-4.  **Cloud Run Deploys:** The new container image is sent to Cloud Run, which seamlessly replaces the old version with the new one.
+4.  **Railway Redeploys:** The workflow updates the matching Railway service to the new SHA-tagged image and triggers a fresh deployment.
 
-The `SESSION_LOG.md` confirms this is the current, live architecture. Your only job is to get your code into the `main` branch by following the workflow in Part 2. The rest is automated.
+`docs/DEPLOY.md` is the current deploy source of truth. Your only job is to get your code into the `main` branch by following the workflow in Part 2. The rest is automated.
 
 ---
 

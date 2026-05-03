@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Daily Degen Comic Hackathon Guide
 
 ## Project Description
@@ -41,7 +43,7 @@ npm --prefix packages/comic-generator install
 - `COMIC_API_INGEST_KEY` (if enabled in service)
 - `COMIC_COMMUNITY_ID=tiltcheck-discord`
 
-1) One-command Cloud Run deploy:
+1) One-command hosted deploy:
 
 ```bash
 COMIC_GCS_BUCKET=<your-bucket> GEMINI_API_KEY=<your-key> COMIC_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run deploy:cloudrun
@@ -60,7 +62,7 @@ Or run your cloud watcher automation, which triggers comic generation and publis
 1) Run one-command cloud smoke test after deploy:
 
 ```bash
-COMIC_API_URL=<your-cloud-run-url> COMIC_API_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run smoke:cloud
+COMIC_API_URL=https://your-comic-api.example.com COMIC_API_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run smoke:cloud
 ```
 
 ## Environment Variables
@@ -76,7 +78,7 @@ COMIC_API_URL=<your-cloud-run-url> COMIC_API_INGEST_KEY=<your-shared-key> npm --
 
 ### `tools/channel-watcher`
 
-- `COMIC_API_URL` (Cloud Run URL)
+- `COMIC_API_URL` (public API URL)
 - `COMIC_API_INGEST_KEY` (must match cloud setting if enabled)
 - `COMIC_COMMUNITY_ID` (default `tiltcheck-discord`)
 - local fallback settings:
@@ -162,5 +164,5 @@ Expected:
 - `Cloud publish skipped`: set `COMIC_API_URL` in watcher `.env`.
 - `401 invalid ingest key`: watcher `COMIC_API_INGEST_KEY` mismatch.
 - `500 COMIC_GCS_BUCKET required`: missing service env var.
-- timeout/network errors: verify Cloud Run service URL and IAM/public access mode.
+- timeout/network errors: verify the deployed service URL and public access mode.
 - local AI fallback only: verify `OLLAMA_URL` and VM/firewall reachability.

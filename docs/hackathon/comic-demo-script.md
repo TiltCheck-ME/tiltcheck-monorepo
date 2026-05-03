@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Daily Degen Comic Demo Script (Under 4 Minutes)
 
 ## 0:00 - 0:25 Problem
@@ -38,7 +40,7 @@ Demonstrate cloud-first loading by showing a generated panel image from storage 
 
 ## 2:45 - 3:30 Cloud Proof
 
-Show Cloud Run service and Cloud Storage objects:
+Show the deployed service dashboard and Cloud Storage objects:
 
 - `current.json`
 - `archive.json`

@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 # MVP Deployment Runbook
 
 This runbook is tailored to the current TiltCheck repo and infra:
@@ -174,7 +174,7 @@ Run these from repo root and confirm the expected markers:
 ALLOW_LEGACY_VPS_DEPLOY=1 bash deploy-vps.sh --dry-run
 PROJECT_ID=tiltcheck-ci bash scripts/deploy-gcloud.sh --preflight
 bash scripts/deploy-gcloud-rollback.sh --dry-run
-PROJECT_ID=tiltcheck-ci bash scripts/gcp/deploy-cloud-run-service.sh --preflight api
+# Container deploy verification now lives in docs/DEPLOY.md and .github/workflows/deploy-railway.yml
 ```
 
 Expected markers:
@@ -182,7 +182,7 @@ Expected markers:
 - VPS dry-run prints `[dry-run] rsync ...` and `[dry-run] ssh ...`
 - GCloud preflight prints `Preflight checks passed.`
 - rollback dry-run prints `[dry-run] gcloud compute ssh ...` with `pm2 restart`
-- Cloud Run preflight prints `Preflight checks passed for Cloud Run service: api`
+- Current container deploy reality lives in `docs/DEPLOY.md` and `.github/workflows/deploy-railway.yml`
 
 For a validated evidence log and command outcomes, see:
 

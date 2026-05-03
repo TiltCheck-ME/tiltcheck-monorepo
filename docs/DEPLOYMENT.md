@@ -1,43 +1,15 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # TiltCheck Deployment Guide
 
-## Summary of the Current Plan
+`docs/DEPLOY.md` is the canonical deployment document for this repo. This file stays in place so older links do not rot.
 
-The entire TiltCheck ecosystem is deployed on **Railway**. All services are containerized via Docker and deployed through the `deploy-railway.yml` GitHub Actions workflow on every push to `main`.
+## Use Instead
 
-- **CI/CD:** `.github/workflows/deploy-railway.yml` builds images to GHCR and deploys via Railway CLI.
-- **Per-service config:** Each app has a `railway.json` in its directory specifying the Dockerfile path, health check, and restart policy.
-- **Setup guide:** [`docs/infra/railway-setup.md`](infra/railway-setup.md)
+- [`docs/DEPLOY.md`](./DEPLOY.md) for the live deploy inventory, workflows, images, env requirements, and smoke targets.
+- [`.github/workflows/deploy-railway.yml`](../.github/workflows/deploy-railway.yml) for the GHCR -> Railway container pipeline.
+- [`.github/workflows/configure-tunnel.yml`](../.github/workflows/configure-tunnel.yml) for public hostname and DNS reconciliation.
 
-## Services Deployed on Railway
+## Why This Redirect Exists
 
-| Service | Directory | Port |
-| :--- | :--- | :--- |
-| API gateway | `apps/api` | 3001 |
-| Landing page | `apps/web` | 3000 |
-| Discord bot | `apps/discord-bot` | 8080 |
-| Trust rollup | `apps/trust-rollup` | 8082 |
-| Control room | `apps/control-room` | 3001 |
-| Game arena | `apps/game-arena` | 8080 |
-| User dashboard | `apps/user-dashboard` | 6001 |
-
-## Exceptions to the Unified Strategy
-
-### Compliance-Edge Worker
-
-The `compliance-edge` service is a Cloudflare Worker that provides informational geo-compliance nudges to users.
-
-- **Purpose:** To inform users of local gambling regulations based on their region, without blocking access.
-- **Justification:** A Cloudflare Worker executes directly on Cloudflare's global network, close to the user, allowing for low-latency location detection and response. This is an intentional exception to the Railway deployment strategy.
-
-## Rollback
-
-To roll back any service, use the Railway dashboard or CLI:
-
-```bash
-railway rollback --service <service-name> --environment production
-```
-
----
-**TiltCheck Ecosystem © 2024–2026**
+Older docs pointed at multiple conflicting deploy stories. The repo now keeps one canonical deploy doc instead of pretending several half-true guides are all current.

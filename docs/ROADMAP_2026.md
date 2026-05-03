@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # TiltCheck 2026: Detailed Implementation Roadmap
 
 This roadmap defines the technical path to a production-ready, audit-hardened TiltCheck ecosystem.
@@ -26,7 +28,7 @@ This roadmap defines the technical path to a production-ready, audit-hardened Ti
   - Add a `globalCleanup` cron job to evict stale metrics and reasons.
 - [ ] **Health Check Parity:**
   - Define `/health` endpoints for all 13 microservices.
-  - Implement `liveness` and `readiness` probes in the GCP Cloud Run manifest.
+  - Implement `liveness` and `readiness` probes in the production service manifests.
 - [ ] **Audit Fix Batch A (Critical):**
   - **B1:** Replace PWA manifest with MV3 manifest in `apps/chrome-extension`.
   - **B3:** Fix `report.ts` auth token bug (replace `DISCORD_TOKEN` with `INTERNAL_API_SECRET`).

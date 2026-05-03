@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # AI Handoff Context (Portable)
 
 Last updated: 2026-03-09
@@ -33,7 +35,7 @@ Quick entry point: `AI-HANDOFF.md` (repo root)
 ## Active Todos (High Level)
 - Confirm production-active services.
 - Define GCP foundation (IAM, budgets, Artifact Registry, Secret Manager, logging).
-- Implement compute migration on Cloud Run.
+- Implement compute migration on the target managed container runtime.
 - Continue to full-GCP data-plane via milestones.
 - Enforce OSS governance and clarity gates.
 - Enforce credit-safe mode and milestone checkpoint logs.
@@ -74,7 +76,7 @@ Start by proposing the next single milestone and expected cost impact before mak
 - Conducted full code audit: identified 15 bugs (4 critical: B1-B4).
 - Synthesized Master Task List for Notion Control Plane.
 - Configured Gemini CLI workspace to include monorepo natively.
-- Installed critical extensions: Cloud Run, Postgres, Conductor, Context7, and Filesystem/Thinking MCPs.
+- Installed critical extensions: Postgres, Conductor, Context7, and Filesystem/Thinking MCPs, plus cloud tooling as needed.
 - Add newest entry at top.
 - Keep entries short and factual.
 

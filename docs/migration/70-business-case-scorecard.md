@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # GCP Migration Business Case Scorecard
 
 Last updated: 2026-03-07
@@ -43,8 +45,8 @@ Proceed with **Wave 1 compute-first migration** because:
 
 ## Unknowns to Resolve During Week 1
 
-- Real egress/logging costs once `api + web` run on Cloud Run
-- Whether existing credits apply to Cloud Run/infra SKUs
+- Real egress/logging costs once `api + web` run on the target managed runtime
+- Whether existing credits apply to managed runtime / infra SKUs
 
 ## Go / No-Go Gate
 
