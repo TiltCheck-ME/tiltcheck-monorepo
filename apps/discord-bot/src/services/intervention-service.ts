@@ -3,7 +3,7 @@ import { Client, TextChannel } from 'discord.js';
 import { getVibeCheckAlert } from '@tiltcheck/tiltcheck-core';
 import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { config } from '../config.js';
-import { getUserPreferences } from '../handlers/onboarding.js';
+import { getCachedUserPreferences, getUserPreferencesAsync } from '../handlers/onboarding.js';
 import { applyTiltedCooldown } from '../handlers/tilted-role-handler.js';
 
 const DEFAULT_DISCORD_INVITE_URL = 'https://discord.gg/gdBsEJfCar';
@@ -28,7 +28,8 @@ export async function handleSafetyIntervention(
 
   const user = await client.users.fetch(intervention.userId).catch(() => null);
   const metadata = intervention.metadata as Record<string, unknown> | undefined;
-  const voiceInterventionEnabled = getUserPreferences(intervention.userId)?.voiceInterventionEnabled ?? false;
+  const cachedPreferences = getCachedUserPreferences(intervention.userId) ?? await getUserPreferencesAsync(intervention.userId);
+  const voiceInterventionEnabled = cachedPreferences?.voiceInterventionEnabled ?? false;
   const guildId = getMetadataString(metadata, 'guildId') || config.guildId;
   const voiceChannelId = process.env.DEGEN_ACCOUNTABILITY_VC_ID || '';
   const accountabilityChannelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '';

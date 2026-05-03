@@ -14,6 +14,7 @@ interface AuthSessionResponse {
 }
 
 interface OnboardingPreferencesResponse {
+  completedSteps?: string[];
   riskLevel?: 'conservative' | 'moderate' | 'degen';
   preferences?: {
     cooldownEnabled?: boolean;
@@ -292,7 +293,7 @@ export class AuthManager {
 
   private async syncSafetyPreferences(token: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE}/user/onboarding`, {
+      const response = await fetch(`${API_BASE}/me/onboarding-status`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,

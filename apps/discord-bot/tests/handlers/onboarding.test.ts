@@ -1,5 +1,5 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     needsOnboarding,
     markOnboarded,
@@ -10,28 +10,53 @@ import {
     getBetaTesterUrl,
     sendWelcomeDM,
 } from '../../src/handlers/onboarding.js';
-
-// We need to mock Supabase to avoid actual DB calls during testing
-vi.mock('@supabase/supabase-js', () => ({
-    createClient: vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({ data: [], error: null }),
-        upsert: vi.fn().mockResolvedValue({ error: null })
-    })
-}));
+import { getDashboardAppUrl } from '../../src/utils/dashboard-url.js';
 
 describe('Onboarding Handler', () => {
-    const mockUserId = '888888888888888888';
+    let fetchMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // Tests are running in the same process, so we use a different ID for each test modifying state
-        // Alternatively, we could export a `clearCache()` function from the module but we don't have that.
+        fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue({
+                completedSteps: [],
+                completedAt: null,
+                hasAcceptedTerms: false,
+                riskLevel: null,
+                quizScores: {},
+                preferences: {
+                    cooldownEnabled: true,
+                    voiceInterventionEnabled: false,
+                    dailyLimit: null,
+                    redeemThreshold: null,
+                    notifyNftIdentityReady: false,
+                    complianceBypass: false,
+                    dataSharing: {
+                        messageContents: false,
+                        financialData: false,
+                        sessionTelemetry: false,
+                    },
+                    notifications: {
+                        tips: true,
+                        trivia: true,
+                        promos: false,
+                    },
+                },
+            }),
+        });
+        vi.stubGlobal('fetch', fetchMock);
+        process.env.INTERNAL_API_SECRET = 'test-internal-secret';
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
     });
 
     describe('needsOnboarding', () => {
-        it('should return true for an unknown user', () => {
-            expect(needsOnboarding('unknown-user-id')).toBe(true);
+        it('should return true for an unknown user', async () => {
+            expect(await needsOnboarding('unknown-user-id')).toBe(true);
         });
     });
 
@@ -67,11 +92,11 @@ describe('Onboarding Handler', () => {
     });
 
     describe('markOnboarded', () => {
-        it('should mark a user as onboarded', () => {
+        it('should mark a user as onboarded', async () => {
             const id = 'onboard-test-123';
-            expect(needsOnboarding(id)).toBe(true);
+            expect(await needsOnboarding(id)).toBe(true);
             markOnboarded(id);
-            expect(needsOnboarding(id)).toBe(false);
+            expect(await needsOnboarding(id)).toBe(false);
         });
     });
 
@@ -96,7 +121,7 @@ describe('Onboarding Handler', () => {
             expect(retrieved?.notifications.trivia).toBe(false);
 
             // Should also be marked as onboarded implicitly
-            expect(needsOnboarding(id)).toBe(false);
+            expect(getUserPreferences(id)?.tutorialCompleted).toBe(false);
         });
     });
 
@@ -140,17 +165,22 @@ describe('Onboarding Handler', () => {
                 notifications: { tips: true, trivia: false, promos: false },
                 riskLevel: 'moderate',
                 cooldownEnabled: true,
-                hasAcceptedTerms: true
+                hasAcceptedTerms: true,
+                quizScores: {},
+                tutorialCompleted: false,
             });
 
             mockInteraction.customId = 'onboard_complete';
             await handleOnboardingInteraction(mockInteraction);
 
             expect(mockUpdate).toHaveBeenCalled();
-            expect(needsOnboarding('interact-user')).toBe(false);
+            expect(await needsOnboarding('interact-user')).toBe(false);
 
             const args = mockUpdate.mock.calls[0][0];
             expect(args.embeds[0].data.title).toContain('PROFILE ACTIVATED');
+            expect(args.components[0].components[0].data.url).toBe(getDashboardAppUrl({ tab: 'vault' }));
+            expect(args.components[0].components[1].data.url).toBe(getDashboardAppUrl({ tab: 'safety' }));
+            expect(args.components[0].components[2].data.url).toBe(getDashboardAppUrl({ tab: 'bonuses' }));
         });
     });
 });

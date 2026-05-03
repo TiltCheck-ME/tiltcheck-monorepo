@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -137,7 +137,7 @@ export default function OnboardingPage() {
     setSaving(true);
     setError(null);
     try {
-      await submitOnboarding({ hasAcceptedTerms: true });
+      await submitOnboarding({ step: 'terms', hasAcceptedTerms: true });
       goNext();
     } catch {
       setError('Failed to save. Try again.');
@@ -168,7 +168,10 @@ export default function OnboardingPage() {
     setError(null);
     try {
       await submitOnboarding({
+        step: 'preferences',
         riskLevel,
+        quizScores,
+        hasAcceptedTerms: true,
         preferences: {
           cooldownEnabled: riskLevel !== 'degen',
           notifications,
@@ -188,7 +191,16 @@ export default function OnboardingPage() {
     setSaving(true);
     setError(null);
     try {
-      await submitOnboarding({ isOnboarded: true });
+      await submitOnboarding({
+        step: 'completed',
+        riskLevel,
+        hasAcceptedTerms: true,
+        quizScores,
+        preferences: {
+          cooldownEnabled: riskLevel !== 'degen',
+          notifications,
+        },
+      });
       setStep('complete');
     } catch {
       setError('Failed to complete onboarding. Try again.');
