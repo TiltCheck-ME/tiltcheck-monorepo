@@ -34,7 +34,7 @@ OAuth state integrity is validated server-side using signed state prefixes (exte
 
 ## Version
 
-**Current Version:** 1.0.0 (see `manifest.json`)
+**Current Version:** 1.2.2 (see `manifest.json`)
 
 ---
 
