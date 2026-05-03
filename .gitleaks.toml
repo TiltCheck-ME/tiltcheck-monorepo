@@ -11,9 +11,9 @@ condition = "AND"
 paths = [
   '''(?:^|/)\.env(?:\.[A-Za-z0-9_-]+)?\.example$''',
 ]
-regexTarget = "match"
+regexTarget = "line"
 regexes = [
-  '''(?i)(?:[A-Z0-9_]+)\s*=\s*(?:ROTATE_THIS_IMMEDIATELY(?:_[A-Z0-9_]+)?|REPLACE_ME(?:_WITH_[A-Z0-9_]+)?|your-[a-z0-9-]+(?:-here)?|<[^>]+>)''',
+  '''(?i)(?:[A-Z0-9_]+)\s*=\s*['"]?(?:ROTATE_THIS_IMMEDIATELY(?:_[A-Z0-9_]+)?|REPLACE_ME(?:_WITH_[A-Z0-9_]+)?|your-[a-z0-9-]+(?:-here)?|<[^>]+>)['"]?''',
 ]
 
 [[allowlists]]
@@ -22,7 +22,7 @@ condition = "AND"
 paths = [
   '''^docs/ops/linear-tasks(?:-mvp-cloud-run)?\.json$''',
 ]
-regexTarget = "match"
+regexTarget = "line"
 regexes = [
   '''"key":\s*"[A-Z0-9]+(?:-[A-Z0-9]+)+"''',
 ]
