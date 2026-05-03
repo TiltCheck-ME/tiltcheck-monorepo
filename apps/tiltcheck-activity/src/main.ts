@@ -48,7 +48,7 @@ async function boot(): Promise<void> {
 
   // Mount views
   sessionView.mount(document.getElementById('view-session')!, user.id, user.channelId ?? 'demo-channel');
-  tiltView.mount(document.getElementById('view-tilt')!);
+  tiltView.mount(document.getElementById('view-tilt')!, relay);
   trustView.mount(document.getElementById('view-trust')!);
 
   // Tab navigation

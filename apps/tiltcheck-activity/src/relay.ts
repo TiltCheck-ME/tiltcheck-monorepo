@@ -48,6 +48,9 @@ export function connect(userId: string, channelId: string): void {
   socket.on('session.update', (d) => emit('session.update', d));
   socket.on('trust.updated', (d) => emit('trust.updated', d));
   socket.on('bonus.available', (d) => emit('bonus.available', d));
+
+  // Tilt events
+  socket.on('tilt.update', (d) => emit('tilt.update', d));
 }
 
 export function pushRound(userId: string, channelId: string, round: SessionRound): void {

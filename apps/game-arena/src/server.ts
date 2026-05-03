@@ -991,6 +991,51 @@ io.on('connection', (socket) => {
     });
   });
 
+  // ── DA&D card play/vote (Activity client) ──────────────────────────────────
+  socket.on('play-card', async (data: { gameId: string; cardId: string; userId: string }) => {
+    if (!user) return;
+    const gameRoom = `game:${data.gameId}`;
+    try {
+      await gameManager.processAction(data.gameId, user.id, { type: 'play-card', cardId: data.cardId });
+      const gameState = gameManager.getGameState(data.gameId, user.id);
+      io.to(gameRoom).emit('game-update', gameState);
+      // Emit dad.round so Activity DA&D view updates
+      io.to(gameRoom).emit('dad.round', gameState);
+    } catch (error: any) {
+      socket.emit('game-error', error.message);
+    }
+  });
+
+  socket.on('vote-card', async (data: { gameId: string; cardId: string; userId: string }) => {
+    if (!user) return;
+    const gameRoom = `game:${data.gameId}`;
+    try {
+      await gameManager.processAction(data.gameId, user.id, { type: 'vote-card', cardId: data.cardId });
+      const gameState = gameManager.getGameState(data.gameId, user.id);
+      io.to(gameRoom).emit('game-update', gameState);
+      io.to(gameRoom).emit('dad.round', gameState);
+    } catch (error: any) {
+      socket.emit('game-error', error.message);
+    }
+  });
+
+  // ── Rain claim (Activity client) ──────────────────────────────────────────
+  socket.on('claim-rain', async (data: { rainId: string; timestamp: number }) => {
+    if (!user) return;
+    try {
+      // Publish claim event — the rain host bot or API handles fulfillment
+      await eventRouter.publish('tip.rain.claim' as any, 'game-arena', {
+        rainId: data.rainId,
+        claimantUserId: user.id,
+        claimantUsername: user.username,
+        timestamp: data.timestamp,
+      });
+      socket.emit('tip.rain.claimed', { rainId: data.rainId, userId: user.id, success: true });
+    } catch (error: any) {
+      socket.emit('game-error', error.message);
+    }
+  });
+
   // Game action
   socket.on('game-action', async (action: any) => {
     if (!user) {
@@ -1179,6 +1224,12 @@ eventRouter.subscribe('trivia.started', (event) => {
     leaderboard: liveTriviaState?.leaderboard ?? [],
     players: liveTriviaState?.players ?? [],
   });
+
+  // Jackpot pool update on game start
+  io.emit('jackpot-update', {
+    pool: event.data.prizePool ?? 0,
+    entries: liveTriviaState?.playerCount ?? 0,
+  });
 }, 'game-arena');
 
 eventRouter.subscribe('trivia.round.start', (event) => {
@@ -1198,6 +1249,14 @@ eventRouter.subscribe('trivia.completed', (event) => {
     timestamp: Date.now(),
   });
   io.to(`game:${event.data.gameId}`).emit('game-update', { type: 'trivia-completed', ...event.data });
+
+  // Jackpot pool reset on game completion
+  io.emit('jackpot-update', {
+    pool: 0,
+    entries: 0,
+    lastWinner: event.data.winners?.[0]?.username ?? null,
+    lastPayout: event.data.prizePool ?? 0,
+  });
 }, 'game-arena');
 
 // Player elimination / reinstatement events → Activity client

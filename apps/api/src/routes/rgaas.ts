@@ -391,6 +391,41 @@ router.post('/audit', (_req, res) => {
 });
 
 /**
+ * GET /rgaas/casino-lookup?q=
+ * Quick casino trust lookup by name or domain. Used by TiltCheck Activity trust view.
+ */
+router.get('/casino-lookup', (req, res) => {
+  const query = typeof req.query.q === 'string' ? req.query.q.trim().toLowerCase() : '';
+  if (!query) {
+    res.status(400).json({ error: 'q parameter required' });
+    return;
+  }
+
+  const allScores = trustEngines.getCasinoScores() as CasinoTrustRecord[];
+  const match = allScores.find((c: CasinoTrustRecord) => {
+    const name = (c.name || '').toLowerCase();
+    const slug = (c.slug || '').toLowerCase();
+    const domain = (c.monitoredDomain || '').toLowerCase();
+    return name.includes(query) || slug.includes(query) || domain.includes(query);
+  });
+
+  if (!match) {
+    res.json({ casino: null });
+    return;
+  }
+
+  res.json({
+    casino: {
+      name: match.name,
+      slug: match.slug,
+      score: match.score ?? 0,
+      grade: match.grade ?? 'N/A',
+      risk: match.risk ?? 'unknown',
+    },
+  });
+});
+
+/**
  * GET /rgaas/trust/casino/:name
  * Get trust score and breakdown for a casino.
  */

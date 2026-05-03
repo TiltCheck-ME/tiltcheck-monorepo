@@ -97,17 +97,25 @@ function render(): void {
   });
 }
 
-export function mount(el: HTMLElement): void {
+export function mount(el: HTMLElement, relayModule: { on: (event: string, handler: (data: unknown) => void) => void }): void {
   container = el;
 
-  // Listen for tilt updates from hub relay
-  // These come as state-update messages through the activity message protocol
-  window.addEventListener('message', (event) => {
-    if (event.data?.event === 'tilt-update') {
-      tiltScore = event.data.tiltScore ?? tiltScore;
-      if (event.data.signals) signals = event.data.signals;
+  // Listen for tilt updates from hub relay via socket.io
+  relayModule.on('session.update', (data) => {
+    const d = data as { tiltScore?: number; signals?: TiltSignal[] };
+    if (d.tiltScore !== undefined) {
+      tiltScore = d.tiltScore;
+      if (d.signals) signals = d.signals;
       render();
     }
+  });
+
+  // Listen for dedicated tilt events
+  relayModule.on('tilt.update', (data) => {
+    const d = data as { tiltScore?: number; signals?: TiltSignal[] };
+    if (d.tiltScore !== undefined) tiltScore = d.tiltScore;
+    if (d.signals) signals = d.signals;
+    render();
   });
 
   render();
