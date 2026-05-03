@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 # TiltCheck Control Room - Production Container
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
@@ -15,6 +15,8 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/control-room...
+RUN pnpm --filter @tiltcheck/prize-payout build
+RUN pnpm --filter @tiltcheck/control-room build
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
