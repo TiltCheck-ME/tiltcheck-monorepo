@@ -25,10 +25,11 @@
 17. [Control Room (Admin)](#17-control-room)
 18. [Chrome Extension](#18-chrome-extension)
 19. [Shared Packages](#19-shared-packages)
-20. [Environment Variables](#20-environment-variables)
-21. [Deployment + CI](#21-deployment--ci)
-22. [Legal Compliance](#22-legal-compliance)
-23. [Troubleshooting](#23-troubleshooting)
+20. [Unified Onboarding](#20-unified-onboarding)
+21. [Environment Variables](#21-environment-variables)
+22. [Deployment + CI](#22-deployment--ci)
+23. [Legal Compliance](#23-legal-compliance)
+24. [Troubleshooting](#24-troubleshooting)
 
 ---
 
@@ -816,7 +817,99 @@ Read-only browser extension that monitors live casino sessions.
 
 ---
 
-## 20. Environment Variables
+## 20. Unified Onboarding
+
+### Entry Points
+
+| Surface | Auth Method | Onboarding Gate |
+|---|---|---|
+| **Discord bot** | Automatic Discord identity | Welcome DM → Terms → Risk Quiz → Preferences → `markOnboarded()` |
+| **Web login** | Discord OAuth or Magic email | `/login` checks `isOnboarded` → redirects to `/onboarding` wizard if false |
+| **Chrome extension** | Discord OAuth via popup | Shows onboarding banner linking to `/onboarding` if not onboarded |
+
+### Shared State
+
+All surfaces read/write the same Supabase `user_onboarding` table via `GET/POST /user/onboarding`.
+
+```
+user_onboarding
+├── discord_id (PK)
+├── is_onboarded (bool)
+├── has_accepted_terms (bool)
+├── risk_level ('conservative' | 'moderate' | 'degen')
+├── cooldown_enabled (bool)
+├── voice_intervention_enabled (bool)
+├── daily_limit (int)
+├── quiz_scores (jsonb)
+├── notifications_tips (bool)
+├── notifications_trivia (bool)
+├── notifications_promos (bool)
+├── share_message_contents (bool)
+├── share_financial_data (bool)
+├── share_session_telemetry (bool)
+└── joined_at (timestamptz)
+```
+
+### Web Onboarding Wizard (`/onboarding`)
+
+Step-by-step flow with progress bar:
+
+```
+1. TERMS — What TiltCheck is/isn't, RG disclaimer, accept terms
+2. RISK QUIZ — 3 questions from @tiltcheck/utils ONBOARDING_QUESTIONS
+   → Calculates suggested risk level (conservative/moderate/degen)
+3. PREFERENCES — Override risk level + notification toggles
+4. EXTENSION — Install/link Chrome extension (optional, can skip)
+5. COMPLETE — Profile activated, dashboard link
+```
+
+Each step persists to API immediately so partial progress is saved.
+
+### Risk Quiz Scoring
+
+```
+avg(riskWeights) <= -0.5 → conservative (hard guardrails, auto-cooldown)
+avg(riskWeights) >= 0.5  → degen (minimal guardrails, data only)
+else                     → moderate (standard warnings, user decides)
+```
+
+### Flow Diagram
+
+```
+ANY ENTRY POINT (Discord / Web / Extension)
+     │
+     ▼
+  Discord OAuth (identity)
+     │
+     ▼
+  GET /user/onboarding → isOnboarded?
+     │
+     ├── true → proceed to dashboard / extension / bot
+     │
+     └── false → onboarding flow:
+           1. Terms acceptance
+           2. Risk quiz (3 questions)
+           3. Notification preferences
+           4. Optional: Link extension
+           5. POST /user/onboarding { isOnboarded: true }
+```
+
+### Key Files
+
+| File | Purpose |
+|---|---|
+| `apps/web/src/app/onboarding/page.tsx` | Web onboarding wizard |
+| `apps/web/src/hooks/useOnboarding.ts` | Onboarding status hook + submit helper |
+| `apps/web/src/app/login/page.tsx` | Login page with onboarding redirect gate |
+| `apps/discord-bot/src/handlers/onboarding.ts` | Discord bot DM onboarding flow |
+| `apps/chrome-extension/src/popup.ts` | Extension onboarding banner check |
+| `packages/utils/src/onboarding.ts` | Shared quiz questions + risk calculator |
+| `apps/api/src/routes/user.ts` | `GET/POST /user/onboarding` API endpoints |
+| `packages/db/src/index.ts` | `findOnboardingByDiscordId`, `upsertOnboarding` |
+
+---
+
+## 21. Environment Variables
 
 ### Discord Bots
 
@@ -857,7 +950,7 @@ Read-only browser extension that monitors live casino sessions.
 
 ---
 
-## 21. Deployment + CI
+## 22. Deployment + CI
 
 ### Docker builds
 
@@ -907,7 +1000,7 @@ cd apps/web && pnpm dev              # :3000
 
 ---
 
-## 22. Legal Compliance
+## 23. Legal Compliance
 
 ### Non-Custodial
 
@@ -955,7 +1048,7 @@ Every source file must start with:
 
 ---
 
-## 23. Troubleshooting
+## 24. Troubleshooting
 
 ### Activity shows "DEMO MODE"
 - Running outside Discord → expected

@@ -107,6 +107,32 @@ function renderAuthState() {
     const name = userData?.username ?? userData?.email ?? userId.slice(0, 10);
     $('stat-user').textContent = name;
     syncCapabilityState();
+    checkOnboardingStatus();
+  }
+}
+
+async function checkOnboardingStatus(): Promise<void> {
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
+
+  try {
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/onboarding`, {
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (!data.isOnboarded) {
+      const banner = document.getElementById('onboarding-banner');
+      if (banner) {
+        banner.style.display = '';
+        const link = banner.querySelector('a');
+        if (link) link.href = `${EXT_CONFIG.WEB_APP_URL}/onboarding`;
+      }
+    }
+  } catch {
+    // Silently fail — onboarding check is not critical for extension operation
   }
 }
 
