@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * @vitest-environment jsdom
  */
@@ -6,8 +6,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { Analyzer } from './analyzer.js';
 
-// Mock the FairnessService to avoid crypto dependencies in DOM tests
-vi.mock('../../../packages/utils/src/FairnessService', () => {
+// Mock the local FairnessService to avoid crypto dependencies in DOM tests.
+vi.mock('./FairnessService.js', () => {
   return {
     FairnessService: class {
       async generateHash() { return 'mocked-hash'; }
