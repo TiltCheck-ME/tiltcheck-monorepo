@@ -111,3 +111,41 @@ These agents are available as GitHub Copilot custom agents within the repository
 - **Categories:** Conversion, messaging, visual hierarchy, friction reduction, mobile, dark mode
 - **Target:** +5-15% engagement and conversion improvements
 - **Files:** `.cursor/agents/frontend-marketing-suggestions.md` + `.github/workflows/frontend-suggestions.yml`
+
+## Cursor Cloud specific instructions
+
+### Monorepo overview
+
+pnpm v10.29.1 workspace managed by Turborepo. Node 20. All packages are ESM (`"type": "module"`).
+Standard commands are in root `package.json` scripts; see the README "Getting Started" section.
+
+### Starting services
+
+| Service | Command | Default port |
+| :--- | :--- | :--- |
+| **web** (Next.js landing) | `pnpm -C apps/web dev` | 3001 |
+| **api** (Express gateway) | `pnpm --filter @tiltcheck/api dev` | 8080 |
+| **discord-bot** | `pnpm --filter @tiltcheck/discord-bot dev` | 8080 (health) |
+| **user-dashboard** | `pnpm --filter @tiltcheck/user-dashboard dev` | 6001 |
+| **control-room** | `pnpm --filter @tiltcheck/control-room dev` | 3003 |
+| **trust-rollup** | `pnpm --filter @tiltcheck/trust-rollup dev` | 3005 |
+| **game-arena** | `pnpm --filter @tiltcheck/game-arena dev` | (Socket.io) |
+
+The API uses `tsx watch --env-file=../../.env` so it picks up the root `.env` automatically.
+The web app (Next.js) reads `NEXT_PUBLIC_*` vars from the root `.env` at build/dev time.
+
+### Environment setup gotchas
+
+- `.env` must be created from `.env.example` before starting services. Set `SKIP_ENV_VALIDATION=true` and `SKIP_DISCORD_LOGIN=true` for local/cloud dev without real credentials.
+- `VAULT_ENCRYPTION_KEY` must be exactly 64 hex characters (32 bytes). Use a dummy key like `0123456789abcdef` repeated 4 times for dev.
+- The API logs `ECONNREFUSED` for PostgreSQL on startup if no DB is running -- this is non-fatal. The server still starts and serves HTTP requests. DB-dependent routes will return errors.
+- Sentry warns `Invalid Sentry Dsn: REPLACE_ME` on API startup -- harmless in dev.
+- `pnpm -r build` fails on `apps/web` due to Next.js prerendering errors. This is a known issue on main. Use `pnpm -C apps/web dev` for development instead of building.
+- Shared packages must be built before running apps: the update script handles this, but if you modify a shared package in `packages/` or `modules/`, rebuild it with `pnpm --filter <pkg>... build` before restarting dependent services.
+- Some native build scripts are ignored by `pnpm.onlyBuiltDependencies` policy. The warning about `pnpm approve-builds` can be safely ignored.
+
+### Lint / test / trust-engine verification
+
+- **Lint:** `pnpm lint` (pre-existing warnings/errors on main are expected)
+- **Test:** `pnpm test` (runs root vitest config; builds `@tiltcheck/database` first)
+- **Trust engine smoke test:** `pnpm trust:start` (builds trust-engines then runs startup verification)
