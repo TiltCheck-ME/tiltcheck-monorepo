@@ -5,6 +5,14 @@ import { getDashboardHandoffUrl } from '@/lib/dashboard-handoff';
 
 const BASE = 'https://tiltcheck.me';
 
+function toAbsoluteSitemapUrl(pathOrFull: string): string {
+  if (/^https?:\/\//i.test(pathOrFull)) {
+    return pathOrFull;
+  }
+  const path = pathOrFull.startsWith('/') ? pathOrFull : `/${pathOrFull}`;
+  return `${BASE}${path}`;
+}
+
 // Priority tiers: core product pages > tools > intel > info > compliance
 const PAGES: Array<{ url: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }> = [
   // Core product
@@ -55,7 +63,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date().toISOString();
   return [
     ...PAGES.map(({ url, changeFrequency, priority }) => ({
-      url: `${BASE}${url}`,
+      url: toAbsoluteSitemapUrl(url),
       lastModified: now,
       changeFrequency,
       priority,

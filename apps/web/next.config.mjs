@@ -1,7 +1,19 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Pin Turbopack's workspace root to the monorepo root (apps/web -> ../..).
+  // Without this, Next.js can pick up stray pnpm-workspace.yaml files higher
+  // up the filesystem (e.g. in a developer's home directory) and silently
+  // resolve modules from the wrong root.
+  turbopack: {
+    root: path.resolve(__dirname, '../..'),
+  },
   transpilePackages: [
     "@tiltcheck/types",
     "@tiltcheck/db",

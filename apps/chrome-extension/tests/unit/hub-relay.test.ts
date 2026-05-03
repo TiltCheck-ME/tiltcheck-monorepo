@@ -54,10 +54,11 @@ describe('HubRelay', () => {
     await Promise.resolve();
     await relay.pushRound({ bet: 5, win: 12 } as any);
 
-    expect(postRoundTelemetryMock).toHaveBeenCalledWith({
+    expect(postRoundTelemetryMock).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'tiltguard-123',
       bet: 5,
       win: 12,
-    });
+      casinoId: 'localhost',
+    }));
   });
 });

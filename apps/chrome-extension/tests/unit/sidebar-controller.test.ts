@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 /**
  * @vitest-environment jsdom
  */
@@ -39,13 +39,6 @@ vi.mock('../../src/sidebar/reports.js', () => ({
     constructor() {}
     submitReport() {}
     fetchRecentSignals() {}
-  },
-}));
-
-vi.mock('../../src/sidebar/blockchain.js', () => ({
-  BlockchainManager: class {
-    public setWallet = vi.fn();
-    constructor() {}
   },
 }));
 
@@ -173,7 +166,7 @@ describe('SidebarController', () => {
     expect(statusBar?.className).toBe('tg-status-bar warning');
   });
 
-  it('passes the normalized walletAddress field into blockchain monitoring', async () => {
+  it('keeps authenticated account state visible without legacy blockchain wiring', async () => {
     const { initSidebar } = await import('../../src/sidebar/index.ts');
     const controller = initSidebar();
 
@@ -187,6 +180,8 @@ describe('SidebarController', () => {
 
     controller.syncAccountUi();
 
-    expect((controller.blockchain as any).setWallet).toHaveBeenCalledWith('Wallet111111111111111111111111111111111');
+    expect(document.getElementById('tg-account-text')?.textContent).toBe('Connected as wallet-user');
+    expect(document.getElementById('tg-username')?.textContent).toBe('wallet-user');
+    expect((document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null)?.hidden).toBe(true);
   });
 });

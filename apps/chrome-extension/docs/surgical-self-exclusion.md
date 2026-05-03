@@ -200,7 +200,7 @@ Gatekeeper endpoint for casino-side integration. Casinos call this before launch
 **Request body:**
 ```json
 {
-  "discordId": "123456789012345678",
+  "discordId": "<discord_user_id>",
   "gameId": "chicken_orig_01",
   "category": "crash"
 }

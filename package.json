@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03",
   "name": "tiltcheck-monorepo",
   "version": "0.1.0",
   "private": true,
@@ -22,8 +23,8 @@
     "test:all": "pnpm --recursive test",
     "coverage": "vitest run --coverage",
     "coverage:ci": "CI=true vitest run --coverage",
-    "lint": "eslint \"apps/**/*.ts\" \"modules/**/*.ts\" \"services/**/*.ts\" \"packages/**/*.ts\"",
-    "lint:fix": "pnpm lint --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "clean": "pnpm --recursive clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "bundle:components": "bash scripts/bundle-components.sh",

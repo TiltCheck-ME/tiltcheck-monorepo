@@ -307,7 +307,7 @@ curl -X POST http://localhost:4000/auth/login \
 
 # Get user info (use token from login response)
 curl http://localhost:4000/auth/me \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+  -H "Authorization: Bearer <jwt_from_login_response>"
 ```
 
 ### CLI Testing
