@@ -433,7 +433,7 @@ importers:
         specifier: ^2.4.1
         version: 2.4.1
       socket.io-client:
-        specifier: ^4.8.3
+        specifier: ^4.8.1
         version: 4.8.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     devDependencies:
       typescript:
@@ -588,7 +588,7 @@ importers:
         specifier: ^4.8.3
         version: 4.8.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       socket.io-client:
-        specifier: ^4.8.1
+        specifier: ^4.8.3
         version: 4.8.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       uuid:
         specifier: ^14.0.0
