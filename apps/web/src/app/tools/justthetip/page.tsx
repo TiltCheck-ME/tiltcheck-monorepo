@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -32,6 +32,10 @@ interface TipResult {
   expiresAt?: number;
   tip?: { amountSol: number };
   error?: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export default function JustTheTipPage() {
@@ -110,8 +114,8 @@ export default function JustTheTipPage() {
         setMessage('');
         await fetchHistory();
       }
-    } catch (err: any) {
-      setResult({ success: false, error: err.message || 'Request failed.' });
+    } catch (err) {
+      setResult({ success: false, error: getErrorMessage(err, 'Request failed.') });
     } finally {
       setSending(false);
     }
