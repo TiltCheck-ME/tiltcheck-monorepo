@@ -43,7 +43,7 @@ Located in .github/agents/ and .github/workflows/
 | Scribe Agent | .github/agents/scribe-agent.md | Enforces Zero-Drift policy and project laws. |
 
 ## 4. Deployment Reality (GHCR -> Railway)
-This repo does not ship an active GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Everything else is manual, deprecated, or shipped as a browser asset.
+This repo does not ship an active tracked GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Non-Railway surfaces either deploy through Cloudflare Workers or stay manual/browser-asset paths.
 
 | Surface | Delivery | Source of Truth | Verdict |
 | :--- | :--- | :--- | :--- |
@@ -58,7 +58,7 @@ This repo does not ship an active GCP deploy workflow. Container services build 
 | **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `dashboard.tiltcheck.me` and `hub.tiltcheck.me`. |
 | **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `activity.tiltcheck.me`. |
 | **cloudflared** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: tunnel daemon backing public ingress. |
-| **hub** | Deprecated manual worker path | `.github/workflows/deploy-hub.yml` intentionally blocks deployment | Not separately deployed; hostname routes to `user-dashboard`. |
+| **hub** | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | Worker deploy is active, but `hub.tiltcheck.me` still routes to `user-dashboard` until tunnel ingress changes on purpose. |
 | **chrome-extension** | Browser asset | Manual packaging from `apps/chrome-extension` | Functional browser asset pointing at production API. |
 | **degens-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
 | **tiltcheck-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
