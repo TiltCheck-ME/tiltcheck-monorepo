@@ -1911,6 +1911,23 @@ body.degen-background > * {
   text-wrap: balance;
 }
 
+.landing-hero-title,
+.public-page-hero__title,
+.public-page-section-heading__title,
+.public-page-panel__title,
+.public-page-card__title,
+.public-page-cta-band__title {
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.95);
+  paint-order: stroke fill;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.95),
+    1px -1px 0 rgba(0, 0, 0, 0.95),
+    -1px 1px 0 rgba(0, 0, 0, 0.95),
+    1px 1px 0 rgba(0, 0, 0, 0.95),
+    0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
 .landing-hero-subtitle {
   max-width: 42rem;
   margin: 1.35rem 0 0;
