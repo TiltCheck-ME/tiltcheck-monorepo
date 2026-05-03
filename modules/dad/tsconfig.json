@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
@@ -12,6 +13,9 @@
     "src/**/*"
   ],
   "references": [
+    {
+      "path": "../../packages/ai-client"
+    },
     {
       "path": "../../packages/types"
     },
