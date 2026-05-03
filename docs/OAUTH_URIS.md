@@ -141,6 +141,31 @@ DISCORD_CALLBACK_URL=https://api.tiltcheck.me/auth/discord/callback
 
 ---
 
+## Control Room (Admin)
+
+**Subdomains**: `admin.tiltcheck.me`, `control-room.tiltcheck.me`, `control.tiltcheck.me`
+
+**Discord OAuth Redirect URIs**:
+```
+https://admin.tiltcheck.me/auth/discord/callback
+```
+
+**Discord Application Setup**:
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Select the "TiltCheck Dashboard" application (shared with main site)
+3. OAuth2 → General → Redirects → Add:
+   - `https://admin.tiltcheck.me/auth/discord/callback`
+4. Save changes
+
+**Environment Variables**:
+```env
+DISCORD_CLIENT_ID=<from_discord_app>
+DISCORD_CLIENT_SECRET=<from_discord_app>
+DISCORD_CALLBACK_URL=https://admin.tiltcheck.me/auth/discord/callback
+```
+
+---
+
 ## Development URIs
 
 For local development, also add these to each Discord application:
@@ -165,6 +190,7 @@ http://localhost:8080/auth/discord/callback    # Alternative port
 | **QualifyFirst** | `qf.tiltcheck.me` | `https://qf.tiltcheck.me/auth/discord/callback` |
 | **Degens (Standalone)** | `dg.tiltcheck.me` | `https://dg.tiltcheck.me/auth/discord/callback` |
 | **Dashboard** | `dashboard.tiltcheck.me` | `https://api.tiltcheck.me/auth/discord/callback` |
+| **Control Room** | `admin.tiltcheck.me` | `https://admin.tiltcheck.me/auth/discord/callback` |
 | **Main Site** | `tiltcheck.me` / `www.tiltcheck.me` | `https://tiltcheck.me/api/auth/discord/callback` and `https://www.tiltcheck.me/api/auth/discord/callback` |
 
 ---
@@ -227,8 +253,10 @@ https://qf.tiltcheck.me/auth/discord/callback
 https://dg.tiltcheck.me/auth/discord/callback
 https://tiltcheck.me/api/auth/discord/callback
 https://www.tiltcheck.me/api/auth/discord/callback
+https://admin.tiltcheck.me/auth/discord/callback
 http://localhost:3000/auth/callback
 http://localhost:3010/auth/discord/callback
+http://localhost:3001/auth/discord/callback
 ```
 
 ---
