@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const databaseMock = vi.hoisted(() => ({
@@ -282,6 +282,30 @@ describe('LockVault Module', () => {
     vaultManager.setWalletActionLock('u1', 30 * 60 * 1000, 'manual');
     expect(() => vaultManager.requestPaidWalletUnlock('u1', 'u1')).toThrow(/temporarily disabled/i);
     expect(() => vaultManager.settlePaidWalletUnlock('u1', 'u1')).toThrow(/temporarily disabled/i);
+  });
+
+  it('rejects direct deposits while a wallet action lock is active', () => {
+    vaultManager.setWalletActionLock('u1', 30 * 60 * 1000, 'manual');
+    expect(() => vaultManager.deposit('u1', 1.25)).toThrow(/wallet lock is active/i);
+    expect(vaultManager.getBalance('u1')).toBe(0);
+  });
+
+  it('rejects direct lock creation while a wallet action lock is active', async () => {
+    vaultManager.setWalletActionLock('u1', 30 * 60 * 1000, 'manual');
+    await expect(
+      vaultManager.lock({ userId: 'u1', amountRaw: '1', durationRaw: '10m', disclaimerAccepted: true })
+    ).rejects.toMatchObject({
+      code: 'WALLET_LOCK_ACTIVE',
+      httpStatus: 423,
+    });
+    expect(vaultManager.status('u1')).toEqual([]);
+  });
+
+  it('rejects direct unlock while a wallet action lock is active', async () => {
+    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '1', durationRaw: '10m', disclaimerAccepted: true });
+    vi.advanceTimersByTime(10 * 60 * 1000);
+    vaultManager.setWalletActionLock('u1', 30 * 60 * 1000, 'manual');
+    expect(() => vaultManager.unlock('u1', rec.id)).toThrow(/wallet lock is active/i);
   });
 
   it('rejects new auto-withdraw locks until a real execution consumer exists', async () => {
