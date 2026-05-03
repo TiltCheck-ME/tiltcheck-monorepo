@@ -54,6 +54,9 @@ export class HubRelay {
         userId: this.userId,
         bet: round.bet,
         win: round.win,
+        casinoId: window.location.hostname,
+        gameId: round.gameId,
+        timestamp: round.timestamp,
       });
 
       if (!resp.ok) {

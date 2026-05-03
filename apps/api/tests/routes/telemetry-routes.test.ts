@@ -5,6 +5,7 @@ import request from 'supertest';
 import { errorHandler } from '../../src/middleware/error.js';
 
 const mockedDb = vi.hoisted(() => ({
+  createAuditLog: vi.fn(),
   findOnboardingByDiscordId: vi.fn(),
   findUserByDiscordId: vi.fn(),
   findUserById: vi.fn(),
@@ -32,6 +33,9 @@ describe('Telemetry consent enforcement', () => {
       discord_id: 'd1',
       discord_username: 'tester',
     });
+    mockedDb.createAuditLog.mockResolvedValueOnce({
+      id: 'audit-1',
+    });
     mockedDb.findOnboardingByDiscordId.mockResolvedValueOnce({
       share_message_contents: false,
       share_financial_data: true,
@@ -42,18 +46,46 @@ describe('Telemetry consent enforcement', () => {
 
     const response = await request(app)
       .post('/v1/telemetry/round')
-      .send({ userId: 'd1', bet: 5, win: 12.5 });
+      .send({
+        userId: 'd1',
+        bet: 5,
+        win: 12.5,
+        sessionId: 'session-1',
+        casinoId: 'stake',
+        gameId: 'dice',
+        timestamp: 1714712400000,
+      });
 
     expect(response.status).toBe(202);
     expect(response.body).toEqual({
       success: true,
       accepted: true,
+      auditLogId: 'audit-1',
       telemetry: {
         userId: 'd1',
         bet: 5,
         win: 12.5,
+        sessionId: 'session-1',
+        casinoId: 'stake',
+        gameId: 'dice',
       },
     });
+    expect(mockedDb.createAuditLog).toHaveBeenCalledWith(expect.objectContaining({
+      admin_id: 'u1',
+      action: 'VERIFY_SPIN',
+      target_type: 'USER',
+      target_id: 'u1',
+      metadata: expect.objectContaining({
+        source: 'chrome-extension',
+        sessionId: 'session-1',
+        casino: 'stake',
+        game: 'dice',
+        bet: 5,
+        payout: 12.5,
+        rtp: 2.5,
+        roundTimestamp: 1714712400000,
+      }),
+    }));
     expect(mockedDb.updateUser).not.toHaveBeenCalled();
   });
 
@@ -81,6 +113,7 @@ describe('Telemetry consent enforcement', () => {
       skipped: true,
       reason: 'telemetry_consent_required',
     });
+    expect(mockedDb.createAuditLog).not.toHaveBeenCalled();
   });
 
   it('rejects malformed round telemetry payloads', async () => {

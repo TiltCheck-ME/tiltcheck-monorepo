@@ -6,7 +6,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { findUserByDiscordId, findUserById, updateUser } from '@tiltcheck/db';
+import { createAuditLog, findUserByDiscordId, findUserById, updateUser } from '@tiltcheck/db';
 import { InternalServerError, ValidationError } from '@tiltcheck/error-factory';
 import { getUserDataConsentState } from '../lib/data-consent.js';
 
@@ -16,6 +16,10 @@ const roundTelemetrySchema = z.object({
     userId: z.string().trim().min(1, 'userId is required'),
     bet: z.number().finite().min(0, 'bet must be a non-negative number'),
     win: z.number().finite().min(0, 'win must be a non-negative number'),
+    sessionId: z.string().trim().min(1).optional(),
+    casinoId: z.string().trim().min(1).optional(),
+    gameId: z.string().trim().min(1).optional(),
+    timestamp: z.number().finite().int().nonnegative().optional(),
 });
 
 const winSecureSchema = z.object({
@@ -52,7 +56,15 @@ router.post('/round', async (req, res, next) => {
             return next(new ValidationError(parsed.error.issues[0]?.message || 'Invalid round telemetry payload'));
         }
 
-        const { userId, bet, win } = parsed.data;
+        const {
+            userId,
+            bet,
+            win,
+            sessionId,
+            casinoId,
+            gameId,
+            timestamp,
+        } = parsed.data;
         const user = await resolveUser(userId);
 
         if (!user) {
@@ -69,6 +81,26 @@ router.post('/round', async (req, res, next) => {
             });
         }
 
+        const payout = win;
+        const observedRtp = bet > 0 ? payout / bet : 0;
+        await createAuditLog({
+            admin_id: user.id,
+            action: 'VERIFY_SPIN',
+            target_type: 'USER',
+            target_id: user.id,
+            metadata: {
+                source: 'chrome-extension',
+                sessionId: sessionId || null,
+                casino: casinoId || 'unknown',
+                game: gameId || 'unknown',
+                bet,
+                payout,
+                rtp: observedRtp,
+                roundTimestamp: timestamp || Date.now(),
+            },
+            ip_address: req.ip || null,
+        });
+
         res.status(202).json({
             success: true,
             accepted: true,
@@ -76,6 +108,9 @@ router.post('/round', async (req, res, next) => {
                 userId: user.discord_id || user.id,
                 bet,
                 win,
+                sessionId: sessionId || null,
+                casinoId: casinoId || 'unknown',
+                gameId: gameId || 'unknown',
             },
         });
     } catch (error) {

@@ -135,7 +135,7 @@ Entry point: `sidebar/index.ts` — call `initSidebar()` from `content.ts`.
 
 ### v2/ (next-generation sensor architecture)
 
-Per-casino sensor classes extending a common `Sensor` base. `SensorRegistry` maps hostnames to sensor instances. `HubRelay` posts round telemetry to the canonical API hub at `https://api.tiltcheck.me/v1/telemetry/round`.
+Per-casino sensor classes extending a common `Sensor` base. `SensorRegistry` maps hostnames to sensor instances. `HubRelay` posts round telemetry to the canonical API hub at `https://api.tiltcheck.me/v1/telemetry/round`, which is persisted into the API audit/activity lane.
 
 Status: active development. Not yet the default in `content.ts`.
 
@@ -209,7 +209,8 @@ pnpm test
 3. Verify the sidebar renders on the right side.
 4. Open DevTools (F12) and filter the console for `[TiltCheck]` prefixed messages.
 5. Check the Network tab for `POST https://api.tiltcheck.me/v1/telemetry/round` returning 2xx/202 and `POST https://api.tiltcheck.me/v1/telemetry/win-secure` returning 2xx.
-6. Test game blocking: add an exclusion via Discord bot or API, then navigate to a matching game URL.
+6. Confirm the linked user's recent activity feed now shows the persisted round in the API-backed audit lane.
+7. Test game blocking: add an exclusion via Discord bot or API, then navigate to a matching game URL.
 
 ---
 

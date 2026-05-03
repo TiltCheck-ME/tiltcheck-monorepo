@@ -790,7 +790,11 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
   postRoundTelemetry({
     userId: session.userId,
     bet,
-    win: payout
+    win: payout,
+    sessionId: session.sessionId,
+    casinoId: session.casinoId,
+    gameId: session.gameId,
+    timestamp: spinData.timestamp,
   }).catch(err => console.warn('[TiltCheck] Hub relay failed:', err));
 
   // Check for Bag Fumble or Zero Balance Intervention
