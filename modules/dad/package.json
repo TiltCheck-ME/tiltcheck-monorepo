@@ -10,7 +10,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "vitest --run --passWithNoTests"
+    "test": "vitest --run"
   },
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",

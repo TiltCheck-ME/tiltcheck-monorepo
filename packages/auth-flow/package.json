@@ -16,7 +16,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run --passWithNoTests"
+    "test": "vitest --run"
   },
   "dependencies": {
     "jose": "^6.2.2"

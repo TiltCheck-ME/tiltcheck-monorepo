@@ -7,7 +7,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest --passWithNoTests",
+    "test": "vitest",
     "test:watch": "vitest",
     "clean": "rm -rf dist"
   },

@@ -9,7 +9,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run --passWithNoTests"
+    "test": "vitest --run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",

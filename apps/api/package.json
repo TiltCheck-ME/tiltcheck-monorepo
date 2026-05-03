@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "vitest --run --passWithNoTests tests"
+    "test": "vitest --run tests"
   },
   "dependencies": {
     "@magic-sdk/admin": "^2.8.2",

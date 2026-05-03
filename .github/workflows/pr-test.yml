@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 name: Validate Changed Packages (PR)
 
 on:
@@ -29,14 +29,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Enforce no passWithNoTests scripts
+        run: node scripts/check-no-pass-with-no-tests.mjs
+
       - name: Build changed packages
-        run: pnpm --filter="...[origin/main]" build
+        run: pnpm --filter="[origin/main]..." --filter="!." build
 
       - name: Run root integration tests
         run: pnpm test
 
       - name: Run tests on changed packages
-        run: pnpm --filter="...[origin/main]" test
+        run: pnpm --filter="...[origin/main]" --filter="!." --if-present test
 
   e2e:
     runs-on: ubuntu-latest
