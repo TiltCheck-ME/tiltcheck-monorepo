@@ -18,6 +18,7 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | Workflow | Required secrets | Notes |
 | :--- | :--- | :--- |
 | `.github/workflows/deploy-railway.yml` | `RAILWAY_TOKEN` | `PACKAGES_TOKEN` is optional but needed if GHCR package visibility updates should succeed without warnings. |
+| `.github/workflows/deploy-hub.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Deploys `apps/hub` with Wrangler to Cloudflare Workers. D1 and KV bindings remain configured in `apps/hub/wrangler.toml`. |
 | `.github/workflows/configure-tunnel.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID` | Reconciles ingress rules and DNS records. |
 | `.github/workflows/deploy-web.yml` | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TOKEN` | Manual fallback only. |
 
@@ -36,10 +37,10 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | `user-dashboard` | `apps/user-dashboard` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-user-dashboard` | `user-dashboard` | `JWT_SECRET`, `MAGIC_SECRET_KEY` when Magic routes stay enabled | `https://dashboard.tiltcheck.me/health` |
 | `activity` | `apps/activity` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-activity` | `activity` | `VITE_DISCORD_CLIENT_ID`, `VITE_API_URL`, `VITE_DASHBOARD_URL` | `https://activity.tiltcheck.me/` |
 | `cloudflared` | `apps/cloudflared` | GHCR -> Railway tunnel daemon | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-cloudflared` | `cloudflared` | `TUNNEL_TOKEN` | No public HTTP probe; verify Railway service health plus `.github/workflows/configure-tunnel.yml` |
-| `hub` | `apps/hub` | Deprecated manual worker path | `.github/workflows/deploy-hub.yml` (blocked by design) | n/a | n/a | Wrangler bindings such as `DB`, `SESSIONS`, and `INTERNAL_API_SECRET` | Worker code exposes `/health`, but `hub.tiltcheck.me` currently routes to `user-dashboard` |
-| `chrome-extension` | `apps/chrome-extension` | Browser asset | none | n/a | n/a | Build/runtime config in `apps/chrome-extension/src/config.ts` | Manual smoke: load built extension and verify API calls against `https://api.tiltcheck.me` |
-| `degens-activity` | `apps/degens-activity` | Browser / Discord activity asset | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_ARENA_URL` | Manual smoke: build and load the SPA; no production host is wired in-repo |
-| `tiltcheck-activity` | `apps/tiltcheck-activity` | Browser / Discord activity asset | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: build and load the SPA; no production host is wired in-repo |
+| `hub` | `apps/hub` | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | n/a | n/a | Wrangler bindings such as `DB`, `SESSIONS`, `API_BASE_URL`, and `INTERNAL_API_SECRET` | `GET /health` on the deployed Worker URL; `hub.tiltcheck.me` remains tunnel-routed to `user-dashboard` until Cloudflare routing is changed explicitly |
+| `chrome-extension` | `apps/chrome-extension` | Browser asset; manual ZIP or Chrome Web Store publish | none | n/a | n/a | Build/runtime config in `apps/chrome-extension/src/config.ts` | Manual smoke: `pnpm -C apps/chrome-extension build`, load built extension, and verify API calls against `https://api.tiltcheck.me` |
+| `degens-activity` | `apps/degens-activity` | Static Discord activity asset; manual publish to CDN or Discord-managed asset host | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_ARENA_URL` | Manual smoke: `pnpm --filter @tiltcheck/degens-activity build` and verify the built SPA in a Discord Activity session; no production host is wired in-repo |
+| `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish to CDN or Discord-managed asset host | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify the built SPA in a Discord Activity session; no production host is wired in-repo |
 
 ## Public Routing
 
@@ -55,13 +56,34 @@ Public hostnames come from `.github/workflows/configure-tunnel.yml`, not from th
 ## Rollback Notes
 
 - Container services: rollback from the Railway dashboard to the prior image or release.
+- `hub` Worker: rollback from the Cloudflare dashboard or redeploy the previous Worker bundle with Wrangler.
 - Tunnel drift: rerun `.github/workflows/configure-tunnel.yml`.
 - Browser assets: republish the previous extension or SPA artifact manually.
+
+## Manual Publish Notes
+
+### `degens-activity` and `tiltcheck-activity`
+
+- Chosen target: static asset publish, not Railway.
+- Reason: both apps are Vite SPAs for Discord Activities, the repo has no Railway service IDs or public tunnel routes for them, and adding placeholder matrix rows would create broken deploy automation.
+- Build commands:
+  - `pnpm --filter @tiltcheck/degens-activity build`
+  - `pnpm --filter @tiltcheck/tiltcheck-activity build`
+- Publish the resulting `dist/` artifacts to the CDN or Discord-managed asset host that backs the Activity configuration outside this repo.
+
+### `chrome-extension`
+
+- Chosen target: manual package publish, not CI deploy.
+- Build with `pnpm -C apps/chrome-extension build`.
+- Package the built output as a ZIP and either:
+  - distribute it directly for developer-mode installs, or
+  - upload it through the Chrome Web Store Developer Dashboard.
+- Store listing and packaging details live in `apps/chrome-extension/docs/publishing.md`.
 
 ## Validation Notes
 
 When this file changes, confirm all three checks before merging:
 
-1. `gh workflow list` shows no `Deploy to GCP` workflow.
-2. Repo search for the retired GCP runtime terms only returns archived history under `docs/history/`.
+1. `git ls-files ".github/workflows/*"` still shows no tracked `deploy-gcp` workflow file in the repo.
+2. If GitHub UI or `gh workflow list` still shows retired workflow metadata, confirm `gh workflow view <id> --yaml` fails before treating it as an active source of truth.
 3. Every deployable row above still matches the active workflow or an explicit manual-only path.
