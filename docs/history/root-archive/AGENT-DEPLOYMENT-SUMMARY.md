@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-03-13 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # Agent Deployment Complete ✅
 
@@ -166,7 +166,7 @@ pnpm audit:brand
 
 ```typescript
 // Hardcoded secret — BLOCKED
-const DISCORD_TOKEN = "NDk4NDU1MzEwNjE0NzI4NzM2.DepBoA.xxxx";
+const DISCORD_TOKEN = "<discord_bot_token>";
 
 // Missing header on new file — REQUESTS CHANGES
 // Missing: © 2024–2026 TiltCheck Ecosystem...
