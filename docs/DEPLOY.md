@@ -73,7 +73,7 @@ Public hostnames come from `.github/workflows/configure-tunnel.yml`, not from th
 - Local tunnel support is wired for Discord dev sessions:
   - `pnpm --filter @tiltcheck/degens-activity dev:tunnel` -> `dev-degens.tiltcheck.me`
   - `pnpm --filter @tiltcheck/tiltcheck-activity dev:tunnel` -> `dev-tiltcheck-activity.tiltcheck.me`
-  - Replace the placeholder tunnel UUID and credentials path in each app's `cloudflare-tunnel.yml` before use.
+- Replace the placeholder tunnel UUID and generic credentials path placeholder in each app's `cloudflare-tunnel.yml` before use.
 
 ### `chrome-extension`
 

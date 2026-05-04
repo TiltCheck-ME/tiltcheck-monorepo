@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 # TiltCheck Discord Activity — Cloudflare Named Tunnel
 #
 # A Named Tunnel provides a STABLE URL that doesn't change when you restart.
@@ -9,11 +10,11 @@
 #    npx cloudflared tunnel create dev-activity
 #
 # 3. GET THE UUID
-#    The output of Step 2 will have a UUID. Replace {UUID} below:
+#    Replace the placeholder values below with the tunnel UUID and credentials path.
 #
 
-tunnel: d066ae5e-0a61-407d-8eaa-825eac967b1c
-credentials-file: C:\Users\jmeni\.cloudflared\d066ae5e-0a61-407d-8eaa-825eac967b1c.json
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: REPLACE_WITH_CREDENTIALS_PATH
 
 ingress:
   - hostname: dev-activity.tiltcheck.me
