@@ -42,4 +42,29 @@ describe('prize-payout ledger', () => {
     const retried = listPayouts({ dir: TEST_DIR }).find(x => x.id === p.id);
     expect(retried.status).toBe('pending');
   });
+
+  it('resets historical attempts on manual retry', () => {
+    initLedger({ dir: TEST_DIR });
+    const payload = { idempotencyKey: 'retry-2', distributionId: 'dist-retry-2', recipients: ['u1'], total: 1 };
+    const p = createPayout(payload, { dir: TEST_DIR });
+
+    for (let i = 0; i < 5; i++) {
+      markPayoutAttempt(p.id, { success: false, error: `transient-${i}` }, { dir: TEST_DIR, maxAttempts: 5 });
+    }
+
+    retryPayout(p.id, { dir: TEST_DIR });
+    const retried = listPayouts({ dir: TEST_DIR }).find(x => x.id === p.id);
+    expect(retried.status).toBe('pending');
+    expect(retried.attempts).toEqual([]);
+
+    const afterRetryFailure = markPayoutAttempt(
+      p.id,
+      { success: false, error: 'post-retry-failure' },
+      { dir: TEST_DIR, maxAttempts: 5 }
+    );
+
+    expect(afterRetryFailure.status).toBe('pending');
+    expect(afterRetryFailure.attempts).toHaveLength(1);
+    expect(afterRetryFailure.lastError).toBe('post-retry-failure');
+  });
 });

@@ -203,6 +203,8 @@ export function retryPayout(id, options = {}) {
 
   payout.status = 'pending';
   payout.updatedAt = new Date().toISOString();
+  // Manual retry starts a fresh attempt budget for the same payout record.
+  payout.attempts = [];
   payout.lastError = null;
   payout.completedAt = null;
   saveState(state, options);

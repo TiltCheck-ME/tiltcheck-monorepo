@@ -10,11 +10,11 @@
 #    npx cloudflared tunnel create dev-degens
 #
 # 3. GET THE UUID
-#    Replace the values below with the UUID and matching credentials file path.
+#    Replace the placeholders below with the tunnel UUID and credentials file path.
 #
 
 tunnel: REPLACE_WITH_TUNNEL_UUID
-credentials-file: C:\Users\jmeni\.cloudflared\REPLACE_WITH_TUNNEL_UUID.json
+credentials-file: REPLACE_WITH_CREDENTIALS_PATH
 
 ingress:
   - hostname: dev-degens.tiltcheck.me
