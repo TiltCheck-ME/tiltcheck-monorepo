@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-04 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 
@@ -80,9 +80,10 @@ export default function HowItWorksPage() {
         }
         description={
           <p>
-            TiltCheck is a read-only browser extension and trust layer for casino players. Math verifiers already exist.
-            TiltCheck covers the psychological gap by watching live sessions for tilt patterns, manipulative pacing,
-            and payout drift, then applying The Brakes before a bad run turns into an even dumber decision.
+            TiltCheck is a read-only browser extension and trust layer for casino players. While math verifiers
+            already exist, TiltCheck covers the psychological gap by watching live sessions for tilt patterns,
+            manipulative pacing, and payout drift, then applying The Brakes before a bad run turns into an even
+            dumber decision.
           </p>
         }
         actions={

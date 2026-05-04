@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-04
 import Link from "next/link";
 
 const coreJobs = [
@@ -37,8 +37,9 @@ export default function Home() {
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
             TiltCheck is a read-only browser extension that watches how you play, not
             just what the reels say. It flags tilt, manipulative pacing, and Auto-Pilot
-            mode before The Loop feeds your win back to the machine. Fairness verifiers
-            already exist. We close the psychological gap before the session cooks you.
+            mode before The Loop feeds your win back to the machine. While fairness
+            verifiers already exist, we close the psychological gap before the session
+            cooks you.
           </p>
 
           <div className="hero-actions">
