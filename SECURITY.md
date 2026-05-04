@@ -95,7 +95,7 @@ Reference: `docs/governance/OSS-RUNTIME-BOUNDARY.md`
 TiltCheck now uses a two-layer secret scanning gate on every pull request targeting `main` and every push to `main`:
 
 1. `.github/workflows/secret-guard.yml` runs `scripts/secret-guard.mjs` as the fast pre-PR sanity check.
-2. The same workflow runs `gitleaks/gitleaks-action@v2` with repo-local tuning from `.gitleaks.toml`.
+2. The same workflow runs the upstream `ghcr.io/gitleaks/gitleaks:v8.30.1` container with repo-local tuning from `.gitleaks.toml`.
 
 `secret-guard.mjs` stays intentionally cheap and high-signal. Gitleaks is the authoritative CI gate for credential detection.
 
