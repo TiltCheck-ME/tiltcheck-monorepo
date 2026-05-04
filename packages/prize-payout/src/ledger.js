@@ -201,6 +201,10 @@ export function retryPayout(id, options = {}) {
     throw new Error(`Payout not found: ${id}`);
   }
 
+  if (payout.status === 'completed') {
+    throw new Error(`Cannot retry a completed payout: ${id}`);
+  }
+
   payout.status = 'pending';
   payout.updatedAt = new Date().toISOString();
   // Manual retry starts a fresh attempt budget for the same payout record.
