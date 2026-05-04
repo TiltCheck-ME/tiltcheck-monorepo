@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "tunnel": "npx cloudflared tunnel --config cloudflare-tunnel.yml run dev-tiltcheck-activity",
+    "dev:tunnel": "node scripts/dev-tunnel.js",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
