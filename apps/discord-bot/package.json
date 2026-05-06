@@ -26,6 +26,7 @@
     "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/database": "workspace:*",
     "@tiltcheck/discord-activities": "workspace:*",
+    "@tiltcheck/discord-monetization": "workspace:*",
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",

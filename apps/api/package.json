@@ -19,6 +19,7 @@
     "@tiltcheck/monitoring": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/db": "workspace:*",
+    "@tiltcheck/discord-monetization": "workspace:*",
     "@tiltcheck/error-factory": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/event-types": "workspace:*",
