@@ -9,7 +9,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run"
+    "test": "vitest --run -c vitest.config.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

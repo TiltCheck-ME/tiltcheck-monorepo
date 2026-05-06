@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltGuard Chrome Extension — Development Guide
 
@@ -162,7 +162,7 @@ Exports `EXT_CONFIG`:
 }
 ```
 
-Also exports `TELEMETRY_PATH = '/v1/telemetry/round'`, `WIN_SECURE_PATH = '/v1/telemetry/win-secure'`, request headers for API CSRF compatibility, and `getDiscordLoginUrl(source?)` which builds the full OAuth URL with extension runtime ID and opener origin.
+Also exports `TELEMETRY_PATH = '/v1/telemetry/round'`, `WIN_SECURE_PATH = '/v1/telemetry/win-secure'`, request headers for API CSRF compatibility, and `getDiscordLoginUrl(source?)` which builds the full OAuth URL with extension runtime ID and opener origin. The `auth-bridge` page adds `extension_handshake` before opening the API login URL; the API runs Discord OAuth with PKCE (server-held `code_verifier`, S256 challenge to Discord) and validates OAuth `state` on callback. No Discord client secret lives in the extension.
 
 ---
 

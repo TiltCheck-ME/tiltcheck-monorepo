@@ -16,11 +16,19 @@
     }
   })();
 
+  const HANDSHAKE_STORAGE_KEY = 'tiltcheck_ext_oauth_hs';
+
   let popupWindow = null;
   let authCompleted = false;
 
   function setStatus(message) {
     if (statusEl) statusEl.textContent = message;
+  }
+
+  function generateExtensionHandshake() {
+    const buf = new Uint8Array(32);
+    crypto.getRandomValues(buf);
+    return Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   function openAuthPopup() {
@@ -51,6 +59,17 @@
     // This recovers cases where the sidebar generated the URL before the runtime ID was available.
     parsed.searchParams.set('opener_origin', window.location.origin);
 
+    // Bind this tab to the API callback: server echoes extHandshake in postMessage only for this value.
+    try {
+      const handshake = generateExtensionHandshake();
+      sessionStorage.setItem(HANDSHAKE_STORAGE_KEY, handshake);
+      parsed.searchParams.set('extension_handshake', handshake);
+    } catch (e) {
+      console.warn('[auth-bridge] handshake init failed', e);
+      setStatus('Could not start secure sign-in. Reload this tab and retry.');
+      return;
+    }
+
     popupWindow = window.open(parsed.toString(), '_blank', 'popup=yes,width=520,height=760');
     if (!popupWindow) {
       setStatus('Popup blocked. Click "Open Discord Auth" and allow popups for this extension page.');
@@ -66,8 +85,28 @@
     const data = event.data || {};
     if (data.type !== 'discord-auth' || typeof data.token !== 'string' || !data.user) return;
 
+    let expectedHandshake = null;
+    try {
+      expectedHandshake = sessionStorage.getItem(HANDSHAKE_STORAGE_KEY);
+    } catch {
+      expectedHandshake = null;
+    }
+    if (expectedHandshake) {
+      if (typeof data.extHandshake !== 'string' || data.extHandshake !== expectedHandshake) {
+        setStatus(
+          'Sign-in handshake mismatch or this helper tab is stale. Close it and click Connect Discord again from the TiltCheck sidebar.'
+        );
+        return;
+      }
+      try {
+        sessionStorage.removeItem(HANDSHAKE_STORAGE_KEY);
+      } catch {
+        // noop
+      }
+    }
+
     authCompleted = true;
-    
+
     // Wrap chrome.storage.local.set in Promise and wait for completion before closing
     (async () => {
       try {
@@ -105,7 +144,7 @@
       } catch (error) {
         console.error('[auth-bridge] Storage write failed:', error);
         setStatus('Auth received but could not save session. Retry Connect Discord.');
-        
+
         // Retry once after 100ms delay
         setTimeout(() => {
           try {
@@ -141,5 +180,3 @@
 
   openAuthPopup();
 })();
-
-
