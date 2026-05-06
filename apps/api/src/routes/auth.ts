@@ -1022,6 +1022,8 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       // Generate JWT for the user to pass back directly
       const token = await generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
       const extHandshakeLiteral = JSON.stringify(flowExtras?.extensionHandshake ?? null);
+      // Web flow clears this at redirect time; extension flow returns early — clear to avoid stale cookies.
+      res.clearCookie('oauth_redirect');
 
       // Branded callback page that posts message to opener
       res.send(`

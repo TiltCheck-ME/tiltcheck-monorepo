@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 
 export type DashboardRuntimeEnv = Record<string, string | undefined> & {
   NODE_ENV?: string;
@@ -21,9 +21,13 @@ export function resolveDashboardPort(env: DashboardRuntimeEnv): string {
 }
 
 export function resolveCanonicalApiBaseUrl(env: DashboardRuntimeEnv): string {
+  const explicit = env.TILT_API_BASE_URL?.trim();
   if (env.NODE_ENV === 'production') {
-    return env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me';
+    return explicit || 'https://api.tiltcheck.me';
   }
-
-  return 'http://localhost:8080';
+  // Local dev (NODE_ENV=development) always uses the local API port; tests run with NODE_ENV=test via vitest.config.
+  if (env.NODE_ENV === 'development') {
+    return 'http://localhost:8080';
+  }
+  return explicit || 'http://localhost:8080';
 }

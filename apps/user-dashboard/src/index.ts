@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -177,9 +177,8 @@ const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://a
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
 
-// Configuration
+// Configuration (API base is resolved per request URL build so tests can set TILT_API_BASE_URL before importing this module.)
 const CANONICAL_DASHBOARD_BASE_URL = isProd ? 'https://dashboard.tiltcheck.me' : `http://localhost:${PORT}`;
-const CANONICAL_API_BASE_URL = resolveCanonicalApiBaseUrl(process.env);
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
 
@@ -355,7 +354,7 @@ app.get('/auth/discord', authRedirectLimiter, async (req, res) => {
     }
   }
 
-  res.redirect(`${CANONICAL_API_BASE_URL}/auth/discord/login?source=web&redirect=${encodeURIComponent(targetUrl)}`);
+  res.redirect(`${resolveCanonicalApiBaseUrl(process.env)}/auth/discord/login?source=web&redirect=${encodeURIComponent(targetUrl)}`);
 });
 
 // For compatibility with any direct callbacks that might still hit this app
@@ -507,7 +506,7 @@ function getRequestAuthorizationHeader(req: Request): string | null {
 
 function getCanonicalApiUrl(pathname: string): string {
   const normalizedPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
-  return `${CANONICAL_API_BASE_URL}${normalizedPath}`;
+  return `${resolveCanonicalApiBaseUrl(process.env)}${normalizedPath}`;
 }
 
 async function requestCanonicalApi(

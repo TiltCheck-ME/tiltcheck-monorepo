@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -128,17 +128,35 @@ describe('user-dashboard safety control routes', () => {
   });
 
   it('forwards lock requests and staged unlock schedules to the canonical vault API contract', async () => {
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
-      success: true,
-      vault: {
-        id: 'v1',
-        unlockAt: Date.now() + 3_600_000,
-        lockedAmountSOL: 1.5,
-      },
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }));
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: true,
+            vault: { locks: [] },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: true,
+            vault: {
+              id: 'v1',
+              unlockAt: Date.now() + 3_600_000,
+              lockedAmountSOL: 1.5,
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      );
 
     const { app } = await import('../src/index.js');
     const res = await request(app)

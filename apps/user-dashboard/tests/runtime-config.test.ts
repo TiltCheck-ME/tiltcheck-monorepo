@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 
 import { describe, expect, it } from 'vitest';
 import { resolveCanonicalApiBaseUrl, resolveDashboardPort } from '../src/runtime-config.js';
@@ -20,5 +20,9 @@ describe('resolveCanonicalApiBaseUrl', () => {
 
   it('uses the configured API base in production', () => {
     expect(resolveCanonicalApiBaseUrl({ NODE_ENV: 'production', TILT_API_BASE_URL: 'https://api.internal.tiltcheck.me' })).toBe('https://api.internal.tiltcheck.me');
+  });
+
+  it('respects TILT_API_BASE_URL for test runs (vitest)', () => {
+    expect(resolveCanonicalApiBaseUrl({ NODE_ENV: 'test', TILT_API_BASE_URL: 'https://api.test' })).toBe('https://api.test');
   });
 });

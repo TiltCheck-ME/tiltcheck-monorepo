@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -6,5 +6,8 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     testTimeout: 20000,
     hookTimeout: 20000,
+    env: {
+      NODE_ENV: 'test',
+    },
   },
 });
