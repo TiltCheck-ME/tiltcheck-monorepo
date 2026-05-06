@@ -1,7 +1,8 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
-# One-shot workflow: finds the Cloudflare Tunnel and sets all public hostname
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+# Optional one-shot workflow: if a Cloudflare Tunnel exists, set public hostname
 # ingress rules pointing to Railway internal services.
-# Trigger manually from Actions tab whenever tunnel config is lost/reset.
+# Trigger manually from Actions tab only when tunnel-based routing is the chosen
+# delivery path. Direct custom-domain routing does not require this workflow.
 
 name: Configure Cloudflare Tunnel Routes
 

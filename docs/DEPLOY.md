@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Deployment Inventory
 
@@ -9,7 +9,7 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 - Containerized services ship through `.github/workflows/deploy-railway.yml`.
 - Images are built in GitHub Actions and pushed to GHCR as `ghcr.io/tiltcheck-me/tiltcheck-<service>`.
 - Railway pulls the SHA-tagged image for each wired service.
-- Public hostnames are reconciled separately through `.github/workflows/configure-tunnel.yml`.
+- Public hostnames may be routed either through direct custom-domain mappings or, when explicitly enabled, through `.github/workflows/configure-tunnel.yml`.
 - `.github/workflows/deploy-web.yml` is a manual Vercel fallback, not the primary production path.
 - There is no active in-repo GCP deploy workflow.
 
@@ -19,7 +19,7 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | :--- | :--- | :--- |
 | `.github/workflows/deploy-railway.yml` | `RAILWAY_TOKEN` | `PACKAGES_TOKEN` is optional but needed if GHCR package visibility updates should succeed without warnings. |
 | `.github/workflows/deploy-hub.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Deploys `apps/hub` with Wrangler to Cloudflare Workers. D1 and KV bindings remain configured in `apps/hub/wrangler.toml`. |
-| `.github/workflows/configure-tunnel.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID` | Reconciles ingress rules and DNS records. |
+| `.github/workflows/configure-tunnel.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID` | Optional: reconciles tunnel ingress rules and DNS when Cloudflare Tunnel is the chosen public ingress path. |
 | `.github/workflows/deploy-web.yml` | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TOKEN` | Manual fallback only. |
 
 ## Deploy Inventory
@@ -32,19 +32,19 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | `justthetip-bot` | `apps/justthetip-bot` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-justthetip-bot` | `justthetip-bot` | `DISCORD_CLIENT_ID`, `JTT_DISCORD_BOT_TOKEN` or fallback token vars, plus `JUSTTHETIP_BOT_WALLET_PRIVATE_KEY` in prod | Railway private `/health` on port `8082` |
 | `dad-bot` | `apps/dad-bot` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-dad-bot` | `dad-bot` | `DISCORD_CLIENT_ID` plus one dad bot token var (`DAD_DISCORD_BOT_TOKEN`, `DISCORD_TOKEN`, or `DISCORD_BOT_TOKEN`) | Railway private `/health` on service port |
 | `trust-rollup` | `apps/trust-rollup` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-trust-rollup` | `trust-rollup` | `TRUST_ROLLUP_*` config and any upstream data-source keys required by enabled fetchers | Railway private `/health` on service port |
-| `control-room` | `apps/control-room` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-control-room` | `control-room` | `ADMIN_PASSWORD`, `SESSION_SECRET` | `https://admin.tiltcheck.me/health` |
-| `game-arena` | `apps/game-arena` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-game-arena` | `game-arena` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SESSION_SECRET` and/or `JWT_SECRET` | `https://arena.tiltcheck.me/health` |
-| `user-dashboard` | `apps/user-dashboard` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-user-dashboard` | `user-dashboard` | `JWT_SECRET`, `MAGIC_SECRET_KEY` when Magic routes stay enabled | `https://dashboard.tiltcheck.me/health` |
-| `activity` | `apps/activity` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-activity` | `activity` | `VITE_DISCORD_CLIENT_ID`, `VITE_API_URL`, `VITE_DASHBOARD_URL` | `https://activity.tiltcheck.me/` |
-| `cloudflared` | `apps/cloudflared` | GHCR -> Railway tunnel daemon | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-cloudflared` | `cloudflared` | `TUNNEL_TOKEN` | No public HTTP probe; verify Railway service health plus `.github/workflows/configure-tunnel.yml` |
-| `hub` | `apps/hub` | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | n/a | n/a | Wrangler bindings such as `DB`, `SESSIONS`, `API_BASE_URL`, and `INTERNAL_API_SECRET` | `GET /health` on the deployed Worker URL; `hub.tiltcheck.me` remains tunnel-routed to `user-dashboard` until Cloudflare routing is changed explicitly |
+| `control-room` | `apps/control-room` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-control-room` | `control-room` | `ADMIN_PASSWORD`, `SESSION_SECRET` | `https://admin.tiltcheck.me/health` when that hostname maps to this service |
+| `game-arena` | `apps/game-arena` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-game-arena` | `game-arena` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SESSION_SECRET` and/or `JWT_SECRET` | `https://arena.tiltcheck.me/health` when that hostname maps to this service |
+| `user-dashboard` | `apps/user-dashboard` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-user-dashboard` | `user-dashboard` | `JWT_SECRET`, `MAGIC_SECRET_KEY` when Magic routes stay enabled | `https://dashboard.tiltcheck.me/health` when that hostname maps to this service |
+| `activity` | `apps/activity` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-activity` | `activity` | `VITE_DISCORD_CLIENT_ID`, `VITE_API_URL`, `VITE_DASHBOARD_URL` | `https://activity.tiltcheck.me/` when that hostname maps to this service |
+| `cloudflared` | `apps/cloudflared` | Optional GHCR -> Railway tunnel daemon | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-cloudflared` | `cloudflared` | `TUNNEL_TOKEN` | Only when tunnel ingress is active: verify Railway service health and optional `.github/workflows/configure-tunnel.yml` reconciliation |
+| `hub` | `apps/hub` | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | n/a | n/a | Wrangler bindings such as `DB`, `SESSIONS`, `API_BASE_URL`, and `INTERNAL_API_SECRET` | `GET /health` on the deployed Worker URL; public `hub.tiltcheck.me` may map here or to `user-dashboard` depending on live ingress |
 | `chrome-extension` | `apps/chrome-extension` | Browser asset; manual ZIP or Chrome Web Store publish | none | n/a | n/a | Build/runtime config in `apps/chrome-extension/src/config.ts` | Manual smoke: `pnpm -C apps/chrome-extension build`, load built extension, and verify API calls against `https://api.tiltcheck.me` |
 | `degens-activity` | `apps/degens-activity` | Static Discord activity asset; manual publish to CDN or Discord-managed asset host | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_ARENA_URL` | Manual smoke: `pnpm --filter @tiltcheck/degens-activity build` and verify the built SPA in a Discord Activity session; no production host is wired in-repo |
 | `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish to CDN or Discord-managed asset host | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify the built SPA in a Discord Activity session; no production host is wired in-repo |
 
 ## Public Routing
 
-Public hostnames come from `.github/workflows/configure-tunnel.yml`, not from the deploy workflow itself. Current mappings in-repo are:
+Public hostnames do not automatically come from the deploy workflow itself. This repo includes an optional Cloudflare Tunnel reconciler at `.github/workflows/configure-tunnel.yml`, but teams may also map Railway custom domains directly. The tunnel workflow mappings currently described in-repo are:
 
 - `api.tiltcheck.me` -> `api.railway.internal:3000`
 - `tiltcheck.me` and `www.tiltcheck.me` -> `web.railway.internal:3000`
@@ -57,7 +57,7 @@ Public hostnames come from `.github/workflows/configure-tunnel.yml`, not from th
 
 - Container services: rollback from the Railway dashboard to the prior image or release.
 - `hub` Worker: rollback from the Cloudflare dashboard or redeploy the previous Worker bundle with Wrangler.
-- Tunnel drift: rerun `.github/workflows/configure-tunnel.yml`.
+- Tunnel drift: rerun `.github/workflows/configure-tunnel.yml` only if tunnel-based ingress is intentionally enabled; otherwise verify direct custom-domain mapping in Railway/Cloudflare.
 - Browser assets: republish the previous extension or SPA artifact manually.
 
 ## Manual Publish Notes

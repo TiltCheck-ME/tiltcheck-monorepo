@@ -1,7 +1,8 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
-# Deploy the standalone hub Worker with Wrangler. This is separate from the
-# public hub.tiltcheck.me hostname, which is still tunnel-routed to the
-# user-dashboard service until Cloudflare routing is changed on purpose.
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+# Deploy the standalone hub Worker with Wrangler (`apps/hub`).
+# Public hub.tiltcheck.me may route to user-dashboard or this Worker depending on
+# active production ingress (Railway custom domain, proxy, or optional Cloudflare Tunnel).
+# Confirm live routing before assuming either path.
 name: Deploy Hub to Cloudflare Workers
 
 on:

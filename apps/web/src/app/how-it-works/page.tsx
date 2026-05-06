@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-04 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 
@@ -11,7 +11,7 @@ const workflowStats = [
   {
     label: "Live job",
     value: "Watch + compare",
-    description: "TiltCheck reads session activity, compares it to expected numbers, and flags problems while you play.",
+    description: "TiltCheck reads session activity, tilt patterns, and platform pressure while you play, then flags the sus parts before they snowball.",
   },
   {
     label: "Output",
@@ -29,9 +29,9 @@ const workflowSteps = [
   },
   {
     step: "02",
-    title: "Watch the math in real time",
-    body: "TiltCheck compares live behavior against certified RTP ranges, trust history, and the rules you set for the session. If payouts look weaker than they should, it flags the gap and shows what it is costing.",
-    note: "You stop relying on gut feel and start seeing the numbers.",
+    title: "Spot drift in behavior and payouts",
+    body: "TiltCheck compares live behavior to trust signals, payout expectations, and the guardrails you set. If the session pacing gets sus or payouts look weaker than they should, it flags both before tilt starts calling the shots.",
+    note: "You stop relying on gut feel and start seeing the trap.",
   },
   {
     step: "03",
@@ -80,8 +80,10 @@ export default function HowItWorksPage() {
         }
         description={
           <p>
-            TiltCheck is a read-only browser extension and trust layer for casino players. It watches live sessions,
-            checks fairness and RTP drift, then applies The Brakes before a bad run turns into a dumb decision.
+            TiltCheck is a read-only browser extension and trust layer for casino players. While math verifiers
+            already exist, TiltCheck covers the psychological gap by watching live sessions for tilt patterns,
+            manipulative pacing, and payout drift, then applying The Brakes before a bad run turns into an even
+            dumber decision.
           </p>
         }
         actions={
@@ -107,7 +109,7 @@ export default function HowItWorksPage() {
             <h2 className="public-page-panel__title">Read-only data in. Plain-English signal out.</h2>
             <ul className="public-page-list">
               <li>The extension watches supported casino tabs in real time.</li>
-              <li>TiltCheck compares live behavior to expected fairness and trust signals.</li>
+              <li>TiltCheck compares live behavior to trust signals, payout expectations, and your own guardrails.</li>
               <li>Your rules handle the exit when the session stops making sense.</li>
             </ul>
           </>
@@ -172,8 +174,8 @@ export default function HowItWorksPage() {
             <p className="public-page-panel__eyebrow">Next move</p>
             <h2 className="public-page-cta-band__title">Ready to see the product in your own tab?</h2>
             <p className="public-page-cta-band__copy">
-              Install the extension, let TiltCheck do the boring math, and decide whether the session still deserves
-              your money.
+              Install the extension, let TiltCheck spot the tilt loop and the weak payout drift, then decide whether
+              that session still deserves another dollar from you.
             </p>
             <div className="public-page-cta-band__actions">
               <Link href="/extension" className="btn btn-primary" data-text="OPEN EXTENSION PAGE">
