@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 
 export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
@@ -24,7 +24,7 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-auth-prompt">
           <h3>TILTCHECK ACTIVE</h3>
           <p>Connect Discord to sync vault history, live session signals, and casino telemetry across the ecosystem. No lectures, just math.</p>
-          <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
+          <button class="tg-btn tg-btn-primary" id="tg-discord-login">Log in with Discord</button>
           <button class="tg-btn tg-btn-secondary" id="tg-guest-login" style="margin-top: 8px;">Continue as Guest</button>
         </div>
       </div>
@@ -41,7 +41,7 @@ export const SIDEBAR_TEMPLATE = `
         </div>
         <div class="tg-account-strip">
           <span id="tg-account-text">Demo mode is live</span>
-          <button class="tg-btn tg-btn-primary tg-btn-inline" id="tg-connect-discord-inline">Connect Discord</button>
+          <button class="tg-btn tg-btn-primary tg-btn-inline" id="tg-connect-discord-inline">Log in with Discord</button>
         </div>
         <div class="tg-focus-note">Quick tip: keep this minimized while you play, then expand when you want a clean reality check.</div>
 

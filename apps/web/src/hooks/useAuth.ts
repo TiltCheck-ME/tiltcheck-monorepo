@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 'use client';
 import { useEffect, useState } from 'react';
 import { fetchAuthSession, type AuthSession } from '@/lib/auth-session';
@@ -10,12 +10,38 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAuthSession()
-      .then((data) => {
-        if (data?.userId) setUser(data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    let alive = true;
+
+    const applySession = () => {
+      fetchAuthSession()
+        .then((data) => {
+          if (!alive) return;
+          if (data?.userId) setUser(data);
+          else setUser(null);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (alive) setLoading(false);
+        });
+    };
+
+    applySession();
+
+    const onExtensionSessionSync = () => {
+      fetchAuthSession()
+        .then((data) => {
+          if (!alive) return;
+          if (data?.userId) setUser(data);
+          else setUser(null);
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener('tiltcheck-ext-session-sync', onExtensionSessionSync);
+    return () => {
+      alive = false;
+      window.removeEventListener('tiltcheck-ext-session-sync', onExtensionSessionSync);
+    };
   }, []);
 
   return { user, loading };
