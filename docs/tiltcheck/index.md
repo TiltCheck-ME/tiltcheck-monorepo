@@ -1,6 +1,7 @@
 ---
 title: TiltCheck Documentation Hub
 layout: default
+copyright: "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06"
 ---
 
 # TiltCheck Ecosystem Docs
@@ -23,6 +24,9 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 - [8 Trust Engines](8-trust-engines.md)
 - [9 Architecture](9-architecture.md)
 - [10 Data Models](10-data-models.md)
+
+## Architecture Decisions
+- [ADR-0001 Ethical Ad Filter MVP Slice](../adr/0001-ethical-ad-filter-mvp-slice.md)
 
 ## System Intelligence & APIs
 - [11 System Prompts](11-system-prompts.md)
