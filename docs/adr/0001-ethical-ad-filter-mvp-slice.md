@@ -3,9 +3,11 @@
 # ADR-0001: Ethical Ad Filter MVP Slice
 
 ## Status
+
 Accepted for v1 planning.
 
 ## Context
+
 Linear issue: TIL-69.
 
 The ethical ad filter MVP needs one track for v1. The candidates are:
@@ -17,6 +19,7 @@ The ethical ad filter MVP needs one track for v1. The candidates are:
 The decision needs to balance mobile platform constraints, privacy posture, and time-to-value. The sharp edge is system-wide blocking: it sounds like the obvious user win, but mobile operating systems make it the slowest, riskiest path.
 
 ## Decision
+
 Choose browser/WebView blocking as the v1 MVP track.
 
 v1 should ship an opted-in browser/WebView filter that uses local rule evaluation for known gambling-ad and high-risk promotion patterns. It should integrate with the existing SusLink/LinkGuard trust shape where practical, expose clear allow, blur, and block tiers, and keep all browsing decisions visible to the user.
@@ -25,11 +28,11 @@ DNS/VPN and research export remain valid future tracks, but they should not anch
 
 ## Option Comparison
 
-| Track | Platform Reach | Privacy Posture | Time-To-Value | Main Risk |
-| :--- | :--- | :--- | :--- | :--- |
-| DNS/VPN | Best theoretical reach, especially Android system-wide filtering. iOS is gated by Network Extension behavior, entitlement/App Review risk, supervised-device limits for some filter configurations, and user trust in VPN-style prompts. | Strong only if all filtering is local. Risk rises fast if traffic or DNS telemetry leaves device. | Slowest. Requires native mobile networking, packet/DNS correctness, platform prompts, persistent OS indicators, and App Store review. | Big yikes platform drag: one VPN slot on Android, sensitive network permissions, and iOS policy constraints can derail v1. |
-| Browser/WebView | Good reach inside owned surfaces and extension-enabled browsers. Not system-wide. | Strong. Evaluate URL/domain rules locally, avoid full browsing-history collection, and show exactly what was filtered. | Fastest useful blocking path because it reuses web/extension primitives and existing trust-domain thinking. | User only gets protection where they browse through the opted-in surface. |
-| Research export | Broadly platform-neutral because it does not block live traffic. | Strongest by default if exports are user-triggered and redacted. | Fast for analysts, weak for end users. | It proves the taxonomy but does not protect a degen at the moment the ad appears. |
+| Track           | Platform Reach                                                                                                                                                                                                                           | Privacy Posture                                                                                                        | Time-To-Value                                                                                                                         | Main Risk                                                                                                                  |
+| :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------- |
+| DNS/VPN         | Best theoretical reach, especially Android system-wide filtering. iOS is gated by Network Extension behavior, entitlement/App Review risk, supervised-device limits for some filter configurations, and user trust in VPN-style prompts. | Strong only if all filtering is local. Risk rises fast if traffic or DNS telemetry leaves device.                      | Slowest. Requires native mobile networking, packet/DNS correctness, platform prompts, persistent OS indicators, and App Store review. | Big yikes platform drag: one VPN slot on Android, sensitive network permissions, and iOS policy constraints can derail v1. |
+| Browser/WebView | Good reach inside owned surfaces and extension-enabled browsers. Not system-wide.                                                                                                                                                        | Strong. Evaluate URL/domain rules locally, avoid full browsing-history collection, and show exactly what was filtered. | Fastest useful blocking path because it reuses web/extension primitives and existing trust-domain thinking.                           | User only gets protection where they browse through the opted-in surface.                                                  |
+| Research export | Broadly platform-neutral because it does not block live traffic.                                                                                                                                                                         | Strongest by default if exports are user-triggered and redacted.                                                       | Fast for analysts, weak for end users.                                                                                                | It proves the taxonomy but does not protect a degen at the moment the ad appears.                                          |
 
 ## Why Browser/WebView Wins v1
 
