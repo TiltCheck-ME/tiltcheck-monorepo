@@ -78,7 +78,7 @@ Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (
 
 1. **Embedded App / Activity URL:** `https://activity.tiltcheck.me/` (keep consistent with what you ship; SPA entry is `index.html`).
 2. **OAuth2 redirects:** include `https://<APPLICATION_ID>.discordsays.com`. The Embedded App SDK `authorize()` flow exchanges codes against this host; `POST /auth/discord/activity/token` on the API defaults to that redirect URI (`apps/api/src/routes/auth.ts`).
-3. **Any “allowed origins” or linked URL fields** for the Activity should list `https://activity.tiltcheck.me` (and dev tunnels such as `https://dev-activity.tiltcheck.me` only if you still use them).
+3. **Any allowed origins or linked URL fields** for the Activity should list https://activity.tiltcheck.me and https://<APPLICATION_ID>.discordsays.com (and dev tunnels such as https://dev-activity.tiltcheck.me only if you still use them).
 
 ### API allowlist (server-side)
 
