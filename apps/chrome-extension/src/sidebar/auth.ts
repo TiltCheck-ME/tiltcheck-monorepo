@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { getDiscordLoginUrl } from '../config.js';
 import { API_BASE } from './constants.js';
 import { SidebarUI } from './types.js';
