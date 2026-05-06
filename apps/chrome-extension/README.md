@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -29,6 +29,18 @@ Two runtime modes:
 - **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so users can explore the product before connecting Discord.
 
 OAuth state integrity is validated server-side using signed state prefixes (extension origin vs web origin) during callback handling.
+
+---
+
+## Server tilt detection (manual E2E)
+
+The sidebar **Server Tilt Check** block calls the central API AI gateway:
+
+- **HTTP:** `POST {AI_GATEWAY_URL}/api/ai` (from `src/config.ts`, production resolves to `https://api.tiltcheck.me/ai/api/ai`).
+- **Auth:** `Authorization: Bearer <JWT>` from Discord OAuth. Demo tabs without a token get `NO_SESSION` in the result panel instead of burning provider quota.
+- **Body:** `{ "application": "tilt-detection", "context": { "sessionDuration", "losses", "recentBets" } }` (matches `@tiltcheck/ai-client` tilt-detection contract).
+- **API env (server):** `JWT_SECRET` plus whichever LLM keys your `AI_PROVIDER_PROFILE` allows (`GEMINI_API_KEY`, `GROQ_API_KEY`, `HF_TOKEN`, etc.). Inspect readiness via `GET /health/ai` on the API host.
+- **Failure UX:** Network errors (`NETWORK`), client abort at 55s (`TIMEOUT`), HTTP 401 from bad/expired JWT, and non-2xx bodies are surfaced as JSON in the panel plus a line in **Live Signals**.
 
 ---
 
