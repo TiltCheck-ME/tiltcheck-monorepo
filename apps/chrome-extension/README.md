@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -26,9 +26,11 @@ TiltGuard is a Manifest V3 Chrome extension that runs as a content script on cas
 Two runtime modes:
 
 - **Authenticated mode** (Discord OAuth): full API-backed flows with persisted account and session data.
-- **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so users can explore the product before connecting Discord.
+- **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so you can explore the product before connecting Discord.
 
-OAuth state integrity is validated server-side using signed state prefixes (extension origin vs web origin) during callback handling.
+Discord OAuth uses **PKCE (S256)** end-to-end: the API stores the `code_verifier` in short-lived httpOnly cookies and the server-side OAuth state registry, sends only `code_challenge` to Discord, and exchanges the authorization code with `code_verifier` at the token endpoint. The OAuth `state` parameter is validated on callback (cookie match or registry fallback for extension popups). The extension `auth-bridge` tab adds an `extension_handshake` query param; the API echoes it as `extHandshake` in `postMessage` so the bridge can reject callbacks that do not belong to the current tab.
+
+**Secrets in the extension:** there is no Discord client secret in the extension bundle. The only long-lived public identifier shipped in source is the Discord **application client id** (same model as a public SPA). Session tokens arrive over HTTPS after server-side OAuth completes; store them only via extension storage APIs, not in page DOM.
 
 ---
 

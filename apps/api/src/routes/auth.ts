@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -16,6 +16,8 @@ import {
   destroySession,
   verifySessionCookie,
   generateOAuthState,
+  generatePkceCodeVerifier,
+  derivePkceCodeChallengeS256,
   createToken,
   verifyToken,
   type DiscordOAuthConfig,
@@ -97,15 +99,24 @@ function renderExtensionAuthErrorPage(message: string): string {
 interface OAuthStateEntry {
   createdAt: number;
   redirectUrl?: string; // post-auth redirect URL, if set at login time
+  /** PKCE verifier (never sent to Discord authorize URL; sent only to token endpoint). */
+  codeVerifier?: string;
+  /** Echoed in extension postMessage so auth-bridge can bind callback to this tab. */
+  extensionHandshake?: string;
 }
 
 const pendingOAuthStates = new Map<string, OAuthStateEntry>(); // state → entry
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const OAUTH_STATE_CLEANUP_THRESHOLD = 200;
 
-function registerOAuthState(state: string, redirectUrl?: string): void {
+function registerOAuthState(state: string, meta?: { redirectUrl?: string; codeVerifier?: string; extensionHandshake?: string }): void {
   const now = Date.now();
-  pendingOAuthStates.set(state, { createdAt: now, redirectUrl });
+  pendingOAuthStates.set(state, {
+    createdAt: now,
+    redirectUrl: meta?.redirectUrl,
+    codeVerifier: meta?.codeVerifier,
+    extensionHandshake: meta?.extensionHandshake,
+  });
   if (pendingOAuthStates.size > OAUTH_STATE_CLEANUP_THRESHOLD) {
     for (const [key, entry] of pendingOAuthStates.entries()) {
       if (now - entry.createdAt > OAUTH_STATE_TTL_MS) {
@@ -116,6 +127,16 @@ function registerOAuthState(state: string, redirectUrl?: string): void {
 }
 
 /**
+ * Read OAuth state entry without consuming (for error detail only).
+ */
+function peekOAuthState(state: string): 'valid' | 'missing' | 'expired' {
+  const entry = pendingOAuthStates.get(state);
+  if (entry === undefined) return 'missing';
+  if (Date.now() - entry.createdAt > OAUTH_STATE_TTL_MS) return 'expired';
+  return 'valid';
+}
+
+/**
  * Consume the state entry (single-use). Returns the entry if valid, null if absent/expired.
  */
 function consumeOAuthState(state: string): OAuthStateEntry | null {
@@ -123,6 +144,39 @@ function consumeOAuthState(state: string): OAuthStateEntry | null {
   if (entry === undefined) return null;
   pendingOAuthStates.delete(state);
   return Date.now() - entry.createdAt <= OAUTH_STATE_TTL_MS ? entry : null;
+}
+
+function resolveOAuthStateFailureDetail(
+  stateValue: string,
+  storedState: string | undefined,
+): { code: string; message: string; hint: string } {
+  if (!stateValue) {
+    return {
+      code: 'OAUTH_STATE_MISSING',
+      message: 'Discord did not return OAuth state.',
+      hint: 'Start Connect Discord again from TiltCheck.',
+    };
+  }
+  const peek = peekOAuthState(stateValue);
+  if (peek === 'expired') {
+    return {
+      code: 'OAUTH_STATE_EXPIRED',
+      message: 'That sign-in session expired.',
+      hint: 'Start Connect Discord again.',
+    };
+  }
+  if (storedState && stateValue !== storedState) {
+    return {
+      code: 'OAUTH_STATE_MISMATCH',
+      message: 'This browser session does not match the sign-in you started.',
+      hint: 'Close extra Discord login tabs and retry from the extension.',
+    };
+  }
+  return {
+    code: 'OAUTH_STATE_INVALID',
+    message: 'Unknown or invalid OAuth state.',
+    hint: 'Start a fresh Connect Discord flow.',
+  };
 }
 
 // ============================================================================
@@ -613,6 +667,16 @@ router.get('/discord/login', authLimiter, (req, res) => {
     const statePrefix = source === 'extension' ? 'ext' : 'web';
     const state = `${statePrefix}${originSuffix}_${generateOAuthState()}`;
 
+    const codeVerifier = generatePkceCodeVerifier();
+    const codeChallenge = derivePkceCodeChallengeS256(codeVerifier);
+
+    const extensionHandshakeRaw =
+      typeof req.query.extension_handshake === 'string' ? req.query.extension_handshake.trim() : '';
+    const extensionHandshake =
+      source === 'extension' && /^[a-f0-9]{64}$/i.test(extensionHandshakeRaw)
+        ? extensionHandshakeRaw.toLowerCase()
+        : undefined;
+
     const isSecure = process.env.NODE_ENV === 'production' || req.hostname === 'localhost';
 
     // Store state in a short-lived cookie
@@ -672,11 +736,24 @@ router.get('/discord/login', authLimiter, (req, res) => {
       });
     }
 
-    const authUrl = getDiscordAuthUrl(config, state);
+    res.cookie('oauth_pkce_verifier', codeVerifier, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: isSecure ? 'none' : 'lax',
+      maxAge: 10 * 60 * 1000,
+    });
+
+    const authUrl = getDiscordAuthUrl(config, state, {
+      pkce: { codeChallenge, codeChallengeMethod: 'S256' },
+    });
     // Register state server-side as a fallback for cookie loss in Chrome 147+.
-    // Also stores the redirect URL so post-auth redirect works even if the
-    // oauth_redirect cookie is dropped (same SameSite=None partitioning issue).
-    registerOAuthState(state, redirectUrl || undefined);
+    // Also stores redirect URL, PKCE verifier, and optional extension handshake
+    // when SameSite=None cookies are dropped in extension popup OAuth flows.
+    registerOAuthState(state, {
+      redirectUrl: redirectUrl || undefined,
+      codeVerifier,
+      extensionHandshake,
+    });
     res.redirect(authUrl);
   } catch (error) {
     console.error('[Auth] Discord login error:', error);
@@ -715,7 +792,17 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
     // Optional integrity check: if both exist, cookie source must match state source.
     if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
-      res.status(400).json({ error: 'Invalid OAuth source' });
+      if (source === 'extension') {
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'OAuth source cookie does not match this sign-in flow. Start Connect Discord again from the extension.',
+            ),
+          );
+      } else {
+        res.status(400).json({ error: 'Invalid OAuth source' });
+      }
       return;
     }
 
@@ -729,14 +816,14 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     // The registry also stores the redirect URL so it can be recovered when
     // the oauth_redirect cookie is lost by the same mechanism.
     let stateValid = false;
-    let registryEntry: OAuthStateEntry | null = null;
+    let flowExtras: OAuthStateEntry | null = null;
     if (stateValue) {
       if (stateValue === storedState) {
         stateValid = true;
-        registryEntry = consumeOAuthState(stateValue); // keep registry in sync; grab redirect
+        flowExtras = consumeOAuthState(stateValue); // keep registry in sync; grab redirect / PKCE extras
       } else {
-        registryEntry = consumeOAuthState(stateValue);
-        stateValid = registryEntry !== null;
+        flowExtras = consumeOAuthState(stateValue);
+        stateValid = flowExtras !== null;
         if (stateValid) {
           console.log('[Auth] OAuth state validated via server-side registry (cookie was absent).');
         }
@@ -744,8 +831,13 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     }
 
     if (!stateValid) {
-      console.warn('[Auth] OAuth state mismatch or missing cookie. Potential CSRF blocked.');
-      res.status(400).json({ error: 'Invalid OAuth state or expired session' });
+      const detail = resolveOAuthStateFailureDetail(stateValue, typeof storedState === 'string' ? storedState : undefined);
+      console.warn('[Auth] OAuth state validation failed:', detail.code);
+      if (source === 'extension') {
+        res.status(400).send(renderExtensionAuthErrorPage(`${detail.message} ${detail.hint}`));
+      } else {
+        res.status(400).json({ error: detail.message, code: detail.code, hint: detail.hint });
+      }
       return;
     }
 
@@ -761,6 +853,27 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
+    const pkceCookie =
+      typeof req.cookies?.oauth_pkce_verifier === 'string' ? req.cookies.oauth_pkce_verifier.trim() : '';
+    const pkceVerifier = pkceCookie || flowExtras?.codeVerifier || '';
+    res.clearCookie('oauth_pkce_verifier');
+
+    if (!pkceVerifier) {
+      console.error('[Auth] PKCE verifier missing after OAuth state validation');
+      if (source === 'extension') {
+        res
+          .status(500)
+          .send(
+            renderExtensionAuthErrorPage(
+              'Sign-in could not complete (PKCE verifier missing). Start Connect Discord again.',
+            ),
+          );
+      } else {
+        res.status(500).json({ error: 'Sign-in could not complete', code: 'OAUTH_PKCE_MISSING' });
+      }
+      return;
+    }
+
     const baseDiscordConfig = getDiscordConfig();
     const discordConfig: DiscordOAuthConfig = {
       ...baseDiscordConfig,
@@ -769,7 +882,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     const jwtConfig = getJWTConfig();
 
     // Exchange code for tokens and get user info
-    const result = await verifyDiscordOAuth(code, discordConfig);
+    const result = await verifyDiscordOAuth(code, discordConfig, { codeVerifier: pkceVerifier });
 
     if (!result.valid || !result.user) {
       if (source === 'extension') {
@@ -908,6 +1021,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       }
       // Generate JWT for the user to pass back directly
       const token = await generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
+      const extHandshakeLiteral = JSON.stringify(flowExtras?.extensionHandshake ?? null);
 
       // Branded callback page that posts message to opener
       res.send(`
@@ -946,6 +1060,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
                 walletAddress: user.wallet_address,
               })};
               const targetOrigin = ${JSON.stringify(postMessageTarget)};
+              const extHandshake = ${extHandshakeLiteral};
               try {
                 if (!window.opener || typeof window.opener.postMessage !== 'function') {
                   document.querySelector('.hint').textContent = 'Return to your extension tab and retry Connect Discord.';
@@ -953,7 +1068,8 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
                   window.opener.postMessage({
                     type: 'discord-auth',
                     token: '${token}',
-                    user: userData
+                    user: userData,
+                    extHandshake
                   }, targetOrigin);
                   setTimeout(() => window.close(), 1500);
                 }
@@ -971,7 +1087,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               function tryManualSync() {
                 try {
                   if (window.opener) {
-                    window.opener.postMessage({ type: 'discord-auth', token: '${token}', user: userData }, targetOrigin);
+                    window.opener.postMessage({ type: 'discord-auth', token: '${token}', user: userData, extHandshake }, targetOrigin);
                     setTimeout(() => window.close(), 1000);
                   }
                 } catch (e) {
@@ -992,7 +1108,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     // 3. canonical post-auth default
     // Each candidate is validated by isAllowedPostAuthRedirect before use.
     const redirectCookie = typeof req.cookies?.oauth_redirect === 'string' ? req.cookies.oauth_redirect : '';
-    const registryRedirect = registryEntry?.redirectUrl ?? '';
+    const registryRedirect = flowExtras?.redirectUrl ?? '';
 
     let resolvedRedirect: string;
     if (isAllowedPostAuthRedirect(redirectCookie)) {

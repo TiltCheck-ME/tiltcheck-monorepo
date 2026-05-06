@@ -1,14 +1,16 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * @tiltcheck/auth - Discord OAuth Module
  * Discord OAuth2 authentication and user verification
  */
 
-import type { 
-  DiscordOAuthConfig, 
-  DiscordUser, 
-  DiscordTokens, 
-  DiscordVerifyResult 
+import { createHash, randomBytes } from 'node:crypto';
+
+import type {
+  DiscordOAuthConfig,
+  DiscordUser,
+  DiscordTokens,
+  DiscordVerifyResult,
 } from './types.js';
 
 /**
@@ -24,12 +26,33 @@ const DISCORD_USER_ME = `${DISCORD_API_BASE}/users/@me`;
  */
 export const DEFAULT_SCOPES = ['identify'];
 
+export type DiscordPkceChallengeMethod = 'S256';
+
+export interface DiscordAuthorizationUrlOptions {
+  pkce?: {
+    codeChallenge: string;
+    codeChallengeMethod: DiscordPkceChallengeMethod;
+  };
+}
+
+/**
+ * RFC 7636 PKCE: random verifier (43-128 chars) for public or confidential OAuth clients.
+ */
+export function generatePkceCodeVerifier(): string {
+  return randomBytes(32).toString('base64url');
+}
+
+export function derivePkceCodeChallengeS256(verifier: string): string {
+  return createHash('sha256').update(verifier).digest('base64url');
+}
+
 /**
  * Generate Discord OAuth2 authorization URL
  */
 export function getAuthorizationUrl(
   config: DiscordOAuthConfig,
-  state?: string
+  state?: string,
+  options?: DiscordAuthorizationUrlOptions,
 ): string {
   const params = new URLSearchParams({
     client_id: config.clientId,
@@ -37,11 +60,17 @@ export function getAuthorizationUrl(
     response_type: 'code',
     scope: (config.scopes ?? ['identify']).join(' '),
   });
-  
+
   if (state) {
     params.set('state', state);
   }
-  
+
+  const pkce = options?.pkce;
+  if (pkce?.codeChallenge && pkce.codeChallengeMethod === 'S256') {
+    params.set('code_challenge', pkce.codeChallenge);
+    params.set('code_challenge_method', 'S256');
+  }
+
   return `${DISCORD_OAUTH_AUTHORIZE}?${params.toString()}`;
 }
 
@@ -50,21 +79,28 @@ export function getAuthorizationUrl(
  */
 export async function exchangeCode(
   code: string,
-  config: DiscordOAuthConfig
+  config: DiscordOAuthConfig,
+  exchangeOptions?: { codeVerifier?: string },
 ): Promise<{ success: boolean; tokens?: DiscordTokens; error?: string }> {
   try {
+    const body = new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: config.redirectUri,
+    });
+    const verifier = exchangeOptions?.codeVerifier?.trim();
+    if (verifier) {
+      body.set('code_verifier', verifier);
+    }
+
     const response = await fetch(DISCORD_OAUTH_TOKEN, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        client_id: config.clientId,
-        client_secret: config.clientSecret,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: config.redirectUri,
-      }),
+      body,
     });
     
     if (!response.ok) {
@@ -202,10 +238,13 @@ export async function getDiscordUser(
  */
 export async function verifyDiscordOAuth(
   code: string,
-  config: DiscordOAuthConfig
+  config: DiscordOAuthConfig,
+  options?: { codeVerifier?: string },
 ): Promise<DiscordVerifyResult> {
   // Exchange code for tokens
-  const tokenResult = await exchangeCode(code, config);
+  const tokenResult = await exchangeCode(code, config, {
+    codeVerifier: options?.codeVerifier,
+  });
   
   if (!tokenResult.success || !tokenResult.tokens) {
     return {
@@ -289,4 +328,9 @@ export function generateState(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export type { DiscordOAuthConfig, DiscordUser, DiscordTokens, DiscordVerifyResult };
+export type {
+  DiscordOAuthConfig,
+  DiscordUser,
+  DiscordTokens,
+  DiscordVerifyResult,
+};
