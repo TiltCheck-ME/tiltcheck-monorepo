@@ -29,6 +29,10 @@ Two runtime modes:
 - **Demo / guest mode** (sidebar): no token; mock-friendly paths until the user logs in.
 - **Magic Link** (popup only): optional email sign-in stores the same `chrome.storage.local` keys; Discord-only tools stay gated until `userData.discordId` exists.
 
+### Marketing site (`tiltcheck.me`)
+
+When you visit **`https://tiltcheck.me`** (or `www.`) with the extension enabled, the content script copies the extension **`authToken`** into the page **`localStorage`** entry **`tc_token`** — the same key `apps/web` uses in `fetchAuthSession`. That keeps the public marketing Next.js app aligned with extension Discord login even if browser storage partitioning makes the API session cookie flaky for `fetch` from the page. Subdomains such as `dashboard.tiltcheck.me` are left alone (different app and token key). Extension **Log out** clears `authToken`; an active marketing tab gets `tc_token` removed via `chrome.storage.onChanged`, or the next full page load re-syncs from storage.
+
 ### Discord Developer Portal redirect URIs
 
 Register the callback URL that matches your API environment (same value the API uses for `redirect_uri` when `source=extension`):

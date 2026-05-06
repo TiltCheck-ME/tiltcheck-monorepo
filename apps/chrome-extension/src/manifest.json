@@ -46,6 +46,7 @@
         "https://*.shuffle.com/*",
         "https://*.gamdom.com/*",
         "https://*.csgoempire.com/*",
+        "https://tiltcheck.me/*",
         "https://*.tiltcheck.me/*"
       ],
       "js": [
@@ -63,6 +64,7 @@
         "https://*.shuffle.com/*",
         "https://*.gamdom.com/*",
         "https://*.csgoempire.com/*",
+        "https://tiltcheck.me/*",
         "https://*.tiltcheck.me/*"
       ],
       "js": [
