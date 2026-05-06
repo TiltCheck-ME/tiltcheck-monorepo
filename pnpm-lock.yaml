@@ -167,6 +167,9 @@ importers:
       '@tiltcheck/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@tiltcheck/discord-monetization':
+        specifier: workspace:*
+        version: link:../../packages/discord-monetization
       '@tiltcheck/error-factory':
         specifier: workspace:*
         version: link:../../packages/error-factory
@@ -475,6 +478,9 @@ importers:
       '@tiltcheck/discord-activities':
         specifier: workspace:*
         version: link:../../packages/discord-activities
+      '@tiltcheck/discord-monetization':
+        specifier: workspace:*
+        version: link:../../packages/discord-monetization
       '@tiltcheck/discord-utils':
         specifier: workspace:*
         version: link:../../packages/discord-utils
@@ -1439,6 +1445,9 @@ importers:
         specifier: '>=1.15.0'
         version: 1.15.0
     devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.6.0
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
@@ -20262,7 +20271,7 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
 
   '@types/bs58@5.0.0':
     dependencies:
@@ -20401,7 +20410,7 @@ snapshots:
 
   '@types/jsdom@28.0.1':
     dependencies:
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
       '@types/tough-cookie': 4.0.5
       parse5: 7.3.0
       undici-types: 7.24.6
@@ -20539,7 +20548,7 @@ snapshots:
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
 
   '@types/serve-static@1.15.10':
     dependencies:
@@ -20550,7 +20559,7 @@ snapshots:
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
 
   '@types/shimmer@1.2.0': {}
 
@@ -20560,7 +20569,7 @@ snapshots:
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
       form-data: 4.0.5
 
   '@types/supertest@7.2.0':
@@ -22399,7 +22408,7 @@ snapshots:
 
   chrome-launcher@1.2.1:
     dependencies:
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 2.0.2
@@ -28123,7 +28132,7 @@ snapshots:
 
   speedline-core@1.4.3:
     dependencies:
-      '@types/node': 25.5.2
+      '@types/node': 25.6.0
       image-ssim: 0.2.0
       jpeg-js: 0.4.4
 

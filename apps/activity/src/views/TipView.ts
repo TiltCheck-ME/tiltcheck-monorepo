@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
 import type { SessionState, TipRain, TipEntry } from '../state/SessionState.js';
 import type { HubRelay } from '../sdk/HubRelay.js';
@@ -264,7 +264,7 @@ export class TipView {
         <span class="elite-status">${isElite ? 'ELITE — 0% FEES' : 'FREE TIER — 2.5% FEE'}</span>
         ${isElite
           ? `<span class="elite-saved">You've saved ${feeSaved.toFixed(4)} SOL in fees</span>`
-          : `<span class="elite-cta">Upgrade to Elite — stop feeding the protocol</span>`
+          : `<span class="elite-cta">Fee waiver: founders, or Discord SKUs in DISCORD_SKU_JTT_FEE_WAIVER_IDS — platform passes are retired.</span>`
         }
       </div>
 

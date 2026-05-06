@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * User Routes - /user/*
  * Handles user profile, onboarding status, and preferences
@@ -24,8 +24,8 @@ import {
     createVaultRule,
     updateVaultRule,
     deleteVaultRule,
-    findOneBy,
 } from '@tiltcheck/db';
+import { DiscordShopManager, getJitFeeWaiverSkuIds } from '@tiltcheck/discord-monetization';
 import { ApplicationError, ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
 import {
@@ -570,8 +570,11 @@ router.get('/:discordId', async (req: Request, res: Response, next: NextFunction
 
 /**
  * GET /user/:id/elite
- * Returns Elite tier status and fees saved for a user.
- * Used by the Activity Tip tab to show 0% fee badge.
+ * Returns fee-waiver (legacy "elite") status for JustTheTip display.
+ * Platform subscription rows are ignored (TIL-36). Waiver comes from founders
+ * or active Discord entitlements for SKUs listed in DISCORD_SKU_JTT_FEE_WAIVER_IDS.
+ *
+ * Rollback: restore subscriptions lookup if platform billing returns.
  */
 router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
     try {
@@ -586,12 +589,6 @@ router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
 
         const totalFees = balance?.total_fees_lamports ?? 0;
 
-        // Check subscriptions table for an active Elite tier
-        interface Subscription { user_id: string; status: string; plan: string; }
-        const sub = await findOneBy<Subscription>('subscriptions', 'user_id', id).catch(() => null);
-        const isElite = sub?.status === 'active' && sub?.plan?.toLowerCase().includes('elite');
-
-        // Founders also get Elite benefits
         const FOUNDER_USERNAMES = (process.env.FOUNDER_USERNAMES || 'jmenichole')
             .split(',')
             .map((u) => u.trim().toLowerCase());
@@ -600,10 +597,34 @@ router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
             ? FOUNDER_USERNAMES.includes(user.discord_username.toLowerCase())
             : false;
 
-        const feeSavedSol = isElite || isFounder ? (totalFees * 1e-9) * 0.01 : 0;
+        let hasDiscordFeeWaiver = false;
+        const feeWaiverSkuIds = getJitFeeWaiverSkuIds();
+        const botToken =
+            process.env.DISCORD_BOT_TOKEN?.trim() ||
+            process.env.TILT_DISCORD_BOT_TOKEN?.trim();
+        const applicationId =
+            process.env.TILT_DISCORD_CLIENT_ID?.trim() ||
+            process.env.DISCORD_CLIENT_ID?.trim();
+
+        if (feeWaiverSkuIds.length > 0 && botToken && applicationId) {
+            const shop = new DiscordShopManager({
+                applicationId,
+                botToken,
+            });
+            const entitlements = await shop.getEntitlements(id, feeWaiverSkuIds);
+            hasDiscordFeeWaiver = entitlements.some(
+                (e) =>
+                    feeWaiverSkuIds.includes(e.sku_id) &&
+                    !e.consumed &&
+                    !e.deleted
+            );
+        }
+
+        const isElite = isFounder || hasDiscordFeeWaiver;
+        const feeSavedSol = isElite ? (totalFees * 1e-9) * 0.01 : 0;
 
         res.json({
-            isElite: isElite || isFounder,
+            isElite,
             feeSavedSol,
             totalFeesPaidSol: totalFees * 1e-9,
         });

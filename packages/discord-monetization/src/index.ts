@@ -1,7 +1,18 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import axios from 'axios';
 import { DISCORD_API_BASE, type DiscordEntitlement, type ShopConfig } from './types.js';
+
+export {
+  normalizeSkuEnv,
+  parseCommaSkuList,
+  getLegacyPlatformMonetizationSkuIds,
+  getConfiguredGameAddonSkuIds,
+  getJitFeeWaiverSkuIds,
+  isLegacyPlatformMonetizationSku,
+  isConfiguredGameAddonSku,
+} from './sku-policy.js';
 
 /**
  * Discord Monetization Manager
