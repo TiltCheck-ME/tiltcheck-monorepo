@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # TiltCheck Security Policy
 
 TiltCheck follows a minimal attack surface philosophy:
@@ -88,6 +90,35 @@ TiltCheck is open source, but production runtime secrets remain private.
 
 Reference: `docs/governance/OSS-RUNTIME-BOUNDARY.md`
 
+## CI secret scanning policy
+
+TiltCheck now uses a two-layer secret scanning gate on every pull request targeting `main` and every push to `main`:
+
+1. `.github/workflows/secret-guard.yml` runs `scripts/secret-guard.mjs` as the fast pre-PR sanity check.
+2. The same workflow runs the upstream `ghcr.io/gitleaks/gitleaks:v8.30.1` container with repo-local tuning from `.gitleaks.toml`.
+
+`secret-guard.mjs` stays intentionally cheap and high-signal. Gitleaks is the authoritative CI gate for credential detection.
+
+### Allowlist rules
+
+Allowlists in `.gitleaks.toml` must stay narrow, path-scoped, and boring:
+
+- only suppress documented false positives
+- prefer obvious placeholders over realistic-looking fake tokens
+- scope ignores to exact files or exact placeholder patterns
+- never allowlist a real credential family across the whole repo just because a doc or fixture was sloppy
+
+If a scan trips on a fake example, fix the example first when possible. Reach for the allowlist only when the placeholder is still useful and the match can be constrained without blinding the scanner.
+
+### GitHub Advanced Security secret scanning
+
+GitHub native secret scanning is separate from the CI workflow above. If the repository owner or org has GitHub Advanced Security available, enable:
+
+- Secret scanning
+- Push protection
+
+This repository does not currently manage those GitHub settings as code, so they must be enabled from the GitHub repository security settings UI.
+
 ## Internal beta trust gate
 
 TiltCheck may run an internal beta before a broader public launch, but only under a tighter trust bar:
@@ -98,7 +129,7 @@ TiltCheck may run an internal beta before a broader public launch, but only unde
 
 The known historical reference to `apps/api/.env.test` in git history has been reviewed and the affected credential families have been rotated by the maintainer. That clears the live-secret blocker for internal beta use, but it does not erase the historical file from git history.
 
-The new secret guard workflow prevents common secret-bearing files and high-signal credential patterns from landing again, but it does not erase history. Describe the repository as rotation-remediated, not history-scrubbed, until any optional history cleanup decision is complete.
+The secret scanning workflow now combines the fast `secret-guard.mjs` sanity check with Gitleaks as the authoritative CI gate. That blocks new secret-shaped content more effectively, but it still does not erase history. Describe the repository as rotation-remediated, not history-scrubbed, until any optional history cleanup decision is complete.
 
 ## Historical secret remediation package
 
@@ -160,4 +191,4 @@ Do NOT open a public issue for security vulnerabilities.
 3. Fix is prepared in private if needed.
 4. Public disclosure follows patch or mitigation release.
 
-TiltCheck Ecosystem © 2024–2025
+TiltCheck Ecosystem © 2024–2026

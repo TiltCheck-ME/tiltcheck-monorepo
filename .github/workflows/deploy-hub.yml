@@ -1,29 +1,49 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
-# DEPRECATED: apps/hub (Cloudflare Worker) was removed. hub.tiltcheck.me should
-# resolve to the user-dashboard service through whatever public routing is
-# actually active for production (custom domain, proxy, or optional tunnel).
-# If a Cloudflare Tunnel is used, .github/workflows/configure-tunnel.yml manages it.
-# This file is kept for history only and will not trigger.
-name: Deploy Hub to Cloudflare Workers (DEPRECATED)
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+# Deploy the standalone hub Worker with Wrangler (`apps/hub`).
+# Public hub.tiltcheck.me may route to user-dashboard or this Worker depending on
+# active production ingress (Railway custom domain, proxy, or optional Cloudflare Tunnel).
+# Confirm live routing before assuming either path.
+name: Deploy Hub to Cloudflare Workers
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/hub/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/deploy-hub.yml'
   workflow_dispatch:
-    inputs:
-      confirm:
-        description: "Type CONFIRM to acknowledge this workflow is deprecated"
-        required: true
 
 permissions:
   contents: read
 
 jobs:
-  noop:
-    name: Deprecated
+  deploy-hub:
+    name: Deploy hub Worker
     runs-on: ubuntu-latest
     steps:
-      - name: Notice
-        run: |
-          echo "This workflow is deprecated. apps/hub no longer exists."
-          echo "hub.tiltcheck.me should resolve to user-dashboard through the active public ingress path."
-          echo "If you are using a tunnel, use .github/workflows/configure-tunnel.yml to manage tunnel routes."
-          exit 1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install hub dependencies
+        run: pnpm install --frozen-lockfile --filter @tiltcheck/hub...
+
+      - name: Deploy hub Worker with Wrangler
+        run: pnpm --filter @tiltcheck/hub run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

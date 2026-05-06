@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 import Link from "next/link";
 
 const coreJobs = [
@@ -54,7 +54,7 @@ export default function Home() {
             </Link>
             <Link
               href="/casinos"
-              className="btn btn-secondary"
+              className="hero-actions__secondary-link"
               data-funnel-event="landing_trust_click"
               data-funnel-source="web-home-hero"
               data-funnel-label="Check Casino Trust"
@@ -94,7 +94,7 @@ export default function Home() {
             <p className="public-page-panel__eyebrow">Ready to see it work?</p>
             <h2 className="public-page-cta-band__title">
               Install the extension and let TiltCheck watch your next session.
-              Or check casino trust scores before you let a sus tab set the tone.
+              Or check casino trust scores before you deposit if you need the receipts first.
             </h2>
             <div className="public-page-cta-band__actions">
               <Link
@@ -105,9 +105,6 @@ export default function Home() {
                 data-funnel-label="Install the Extension"
               >
                 INSTALL THE EXTENSION
-              </Link>
-              <Link href="/how-it-works" className="btn btn-secondary">
-                SEE HOW IT WORKS
               </Link>
               <Link href="/casinos" className="btn btn-secondary">
                 CHECK CASINO TRUST

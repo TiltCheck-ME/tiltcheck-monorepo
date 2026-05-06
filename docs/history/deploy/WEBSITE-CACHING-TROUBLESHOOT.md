@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-03-14 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
 
 # Website Changes Not Showing - Caching Troubleshooting Guide
 
@@ -82,7 +82,7 @@ If you deployed changes to tiltcheck.me, Cloudflare CDN might be caching the old
 ```bash
 curl -X POST "https://api.cloudflare.com/client/v4/zones/{zone_id}/purge_cache" \
   -H "X-Auth-Email: your@email.com" \
-  -H "X-Auth-Key: your-api-key" \
+  -H "X-Auth-Key: <cloudflare_api_key>" \
   -H "Content-Type: application/json" \
   --data '{"purge_everything":true}'
 ```
@@ -91,7 +91,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/{zone_id}/purge_cache" 
 ```bash
 curl -X POST "https://api.cloudflare.com/client/v4/zones/{zone_id}/purge_cache" \
   -H "X-Auth-Email: your@email.com" \
-  -H "X-Auth-Key: your-api-key" \
+  -H "X-Auth-Key: <cloudflare_api_key>" \
   -H "Content-Type: application/json" \
   --data '{"files":["https://tiltcheck.me/","https://tiltcheck.me/index.html"]}'
 ```

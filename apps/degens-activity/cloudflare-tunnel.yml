@@ -1,0 +1,32 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# Degens Discord Activity — Cloudflare Named Tunnel
+#
+# A Named Tunnel provides a stable URL for Discord Activity local testing.
+#
+# 1. AUTH LOGIN
+#    npx cloudflared tunnel login
+#
+# 2. CREATE TUNNEL
+#    npx cloudflared tunnel create dev-degens
+#
+# 3. GET THE UUID
+#    Replace the placeholders below with the tunnel UUID and credentials file path.
+#
+
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: REPLACE_WITH_CREDENTIALS_PATH
+
+ingress:
+  - hostname: dev-degens.tiltcheck.me
+    service: http://127.0.0.1:5174
+  - service: http_status:404
+
+# 4. ROUTE DNS (One-time)
+#    npx cloudflared tunnel route dns dev-degens dev-degens.tiltcheck.me
+#
+# 5. RUN PERSISTENTLY
+#    npx cloudflared tunnel --config ./cloudflare-tunnel.yml run dev-degens
+#
+# 6. DISCORD SETUP
+#    In Discord Dev Portal -> URL Mappings -> Root -> Target:
+#    Set it to: dev-degens.tiltcheck.me

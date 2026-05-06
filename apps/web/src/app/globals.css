@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -1319,6 +1319,32 @@ body.degen-background > * {
   flex-wrap: wrap;
 }
 
+.hero-actions__secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  align-self: center;
+  color: var(--text-secondary);
+  font-family: var(--font-geist-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.hero-actions__secondary-link:hover {
+  color: var(--color-primary);
+}
+
+.hero-actions__secondary-link:focus-visible {
+  color: var(--color-primary);
+  outline: 2px solid rgba(23, 195, 178, 0.7);
+  outline-offset: 4px;
+}
+
 @media (max-width: 640px) {
   .hero-actions {
     flex-direction: column;
@@ -1327,6 +1353,10 @@ body.degen-background > * {
   }
   .hero-actions .btn {
     width: 100%;
+  }
+  .hero-actions__secondary-link {
+    width: 100%;
+    text-align: center;
   }
   .hero-stats-strip {
     grid-template-columns: repeat(2, 1fr);
@@ -1879,6 +1909,23 @@ body.degen-background > * {
   letter-spacing: -0.055em;
   color: #f6fbff;
   text-wrap: balance;
+}
+
+.landing-hero-title,
+.public-page-hero__title,
+.public-page-section-heading__title,
+.public-page-panel__title,
+.public-page-card__title,
+.public-page-cta-band__title {
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.95);
+  paint-order: stroke fill;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.95),
+    1px -1px 0 rgba(0, 0, 0, 0.95),
+    -1px 1px 0 rgba(0, 0, 0, 0.95),
+    1px 1px 0 rgba(0, 0, 0, 0.95),
+    0 6px 18px rgba(0, 0, 0, 0.28);
 }
 
 .landing-hero-subtitle {

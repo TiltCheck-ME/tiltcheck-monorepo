@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 /**
  * Trivia Jackpot Pool — persistent tracking of the Live Trivia prize pool.
  * Tracks contributions from /rain, /triviadrop, and direct Solana Pay deposits.
@@ -32,7 +32,12 @@ const TABLE = 'trivia_jackpot';
 
 async function loadPool(): Promise<void> {
   try {
-    const { data } = await db.from(TABLE).select('*').order('updated_at', { ascending: false }).limit(1).single();
+    const client = db.getClient();
+    if (!client) {
+      return;
+    }
+
+    const { data } = await client.from(TABLE).select('*').order('updated_at', { ascending: false }).limit(1).single();
     if (data) {
       pool = {
         balance: data.balance ?? 0,
@@ -49,7 +54,12 @@ async function loadPool(): Promise<void> {
 
 async function savePool(): Promise<void> {
   try {
-    await db.from(TABLE).upsert({
+    const client = db.getClient();
+    if (!client) {
+      return;
+    }
+
+    await client.from(TABLE).upsert({
       id: 'main',
       balance: pool.balance,
       contributions: pool.contributions,

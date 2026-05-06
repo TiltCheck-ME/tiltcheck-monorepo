@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Agent Directory
 
@@ -43,7 +43,7 @@ Located in .github/agents/ and .github/workflows/
 | Scribe Agent | .github/agents/scribe-agent.md | Enforces Zero-Drift policy and project laws. |
 
 ## 4. Deployment Reality (GHCR -> Railway)
-This repo does not ship an active GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Everything else is manual, deprecated, or shipped as a browser asset.
+This repo does not ship an active tracked GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Non-Railway surfaces either deploy through Cloudflare Workers or stay manual/browser-asset paths.
 
 | Surface | Delivery | Source of Truth | Verdict |
 | :--- | :--- | :--- | :--- |
@@ -58,7 +58,7 @@ This repo does not ship an active GCP deploy workflow. Container services build 
 | **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
 | **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
 | **cloudflared** | Optional GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Optional tunnel daemon only if Cloudflare Tunnel is the chosen ingress path. |
-| **hub** | Deprecated manual worker path | `.github/workflows/deploy-hub.yml` intentionally blocks deployment | Not separately deployed; hostname routes to `user-dashboard`. |
+| **hub** | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | Worker deploy for `apps/hub`; public `hub.tiltcheck.me` may map to `user-dashboard` or this Worker depending on live ingress. Confirm routing before assuming either path. |
 | **chrome-extension** | Browser asset | Manual packaging from `apps/chrome-extension` | Functional browser asset pointing at production API. |
 | **degens-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
 | **tiltcheck-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
@@ -73,7 +73,7 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-05-03
+Last Updated: 2026-05-06
 
 ## 6. GitHub Copilot Custom Agents
 Located in .github/agents/

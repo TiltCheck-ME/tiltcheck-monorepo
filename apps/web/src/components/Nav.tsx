@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -19,10 +19,7 @@ const NAV_LINKS_PRIMARY: NavLink[] = [
 ];
 
 const NAV_LINKS_SECONDARY: NavLink[] = [
-  { href: '/blog',      label: 'Blog' },
-  { href: '/docs',      label: 'Docs' },
   { href: '/bonuses',   label: 'Bonuses' },
-  { href: '/operators', label: 'Operators' },
   { href: '/collab',    label: 'Contact', accent: 'purple' },
 ];
 

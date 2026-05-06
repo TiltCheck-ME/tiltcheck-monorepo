@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # LockVault Module
 
 Disposable time-locked vault wallets for anti-tilt & savings flows.
@@ -32,6 +34,10 @@ LockVaultRecord {
 
 ## Persistence
 Stored JSON at `data/lockvault.json` (configurable via `LOCKVAULT_STORE_PATH`).
+
+## Wallet lock enforcement
+- Account-level wallet locks are enforced inside the LockVault domain layer for owner-driven mutators, including deposit, lock creation, unlock/release, guardian changes, and owner-initiated withdrawal execution paths.
+- The API router still performs early rejects for the primary HTTP flows, but domain checks are the fail-closed source of truth so future callers cannot bypass the lock by skipping one route helper.
 
 ## Future Enhancements
 - Price oracle conversion USD->SOL

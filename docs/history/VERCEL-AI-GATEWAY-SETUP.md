@@ -1,7 +1,9 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+
 # Vercel AI Gateway Configuration
 
-**Status:** ✅ Configured  
-**API Key:** `vck_4gzb6XZkr8xlKoPR7YxX8oktezoCaePWG0gWT2CAfczOCyZfVp3a8bR7`  
+**Status:** Configured  
+**API Key:** `<vercel_ai_gateway_api_key>`  
 **Environment:** `.env.local` (local development)  
 **Deployment:** Ready for Railway production
 
@@ -24,7 +26,7 @@ Vercel AI Gateway is a **managed routing layer** for LLM APIs with built-in feat
 
 ### Local Development (Configured)
 ```
-VERCEL_AI_GATEWAY_API_KEY=vck_4gzb6XZkr8xlKoPR7YxX8oktezoCaePWG0gWT2CAfczOCyZfVp3a8bR7
+VERCEL_AI_GATEWAY_API_KEY=<vercel_ai_gateway_api_key>
 ```
 
 This key is set in `.env.local` for local development and testing.
@@ -35,11 +37,11 @@ To enable in Railway production:
 
 ```bash
 # Via Railway CLI
-railway variables set VERCEL_AI_GATEWAY_API_KEY=vck_4gzb6XZkr8xlKoPR7YxX8oktezoCaePWG0gWT2CAfczOCyZfVp3a8bR7
+railway variables set VERCEL_AI_GATEWAY_API_KEY=<vercel_ai_gateway_api_key>
 
 # Or via Railway Dashboard:
 # 1. Go to Variables tab
-# 2. Add: VERCEL_AI_GATEWAY_API_KEY = vck_4gzb...
+# 2. Add: VERCEL_AI_GATEWAY_API_KEY = <vercel_ai_gateway_api_key>
 # 3. Redeploy services
 ```
 

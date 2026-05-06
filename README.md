@@ -280,6 +280,14 @@ pnpm test:components
 
 Artifacts are written to `dist/components/` (including Lighthouse reports). See `docs/tiltcheck/17-components-audits.md` for details.
 
+### ESLint layout
+
+- Root `eslint.config.js` is the shared flat-config source for the monorepo.
+- `apps/web/eslint.config.mjs` extends the shared base and layers on `eslint-config-next/core-web-vitals` plus `eslint-config-next/typescript`.
+- `packages/agent/eslint.config.mjs` remains package-local and extends the shared base with package-specific overrides.
+- `.eslintrc.*` files are intentionally removed. If a package needs custom lint behavior, add a local flat config instead of reviving legacy config.
+- `@typescript-eslint/no-explicit-any` is re-enabled as `warn` at the shared layer. Treat new warnings as cleanup debt or add a targeted local suppression with a reason when the type truly cannot be narrowed yet.
+
 ### For Contributors
 
 1. **Read the docs** in `/docs/tiltcheck/`

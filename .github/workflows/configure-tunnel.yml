@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 # Optional one-shot workflow: if a Cloudflare Tunnel exists, set public hostname
 # ingress rules pointing to Railway internal services.
 # Trigger manually from Actions tab only when tunnel-based routing is the chosen
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       tunnel_id:
-        description: "Cloudflare Tunnel UUID (find it at: zero-trust dash → Networks → Tunnels). Leave empty to auto-discover (requires CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID secrets)."
+        description: "Cloudflare Tunnel UUID (find it at: zero-trust dash -> Networks -> Tunnels). Leave empty to recover from existing DNS records or auto-discover as a last resort."
         required: false
         type: string
 
@@ -28,6 +28,7 @@ jobs:
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
           TUNNEL_ID="${{ github.event.inputs.tunnel_id }}"
 
@@ -37,18 +38,68 @@ jobs:
             exit 0
           fi
 
-          TUNNEL_ID=$(curl -sf "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel?is_deleted=false" \
-            -H "Authorization: Bearer ${CF_TOKEN}" \
-            | jq -r '.result[] | select(.name | test("tiltcheck"; "i")) | .id' | head -1)
+          echo "No tunnel_id input provided. Trying to recover the tunnel from existing DNS records."
+          mapfile -t DNS_TUNNEL_IDS < <(
+            for HOST in \
+              api.tiltcheck.me \
+              hub.tiltcheck.me \
+              dashboard.tiltcheck.me \
+              activity.tiltcheck.me \
+              arena.tiltcheck.me \
+              admin.tiltcheck.me \
+              www.tiltcheck.me \
+              tiltcheck.me; do
+              curl -sf "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records?name=${HOST}&type=CNAME" \
+                -H "Authorization: Bearer ${CF_TOKEN}" \
+                | jq -r --arg host "$HOST" '.result[] | select(.content | test("^[0-9a-f-]+\\.cfargotunnel\\.com$")) | .content'
+            done \
+            | sed -E 's/\.cfargotunnel\.com$//' \
+            | awk 'NF' \
+            | sort -u
+          )
+
+          if [ "${#DNS_TUNNEL_IDS[@]}" -eq 1 ]; then
+            TUNNEL_ID="${DNS_TUNNEL_IDS[0]}"
+            echo "Recovered tunnel from DNS records: $TUNNEL_ID"
+            echo "id=$TUNNEL_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${#DNS_TUNNEL_IDS[@]}" -gt 1 ]; then
+            echo "Multiple tunnel IDs found in DNS records:"
+            printf ' - %s\n' "${DNS_TUNNEL_IDS[@]}"
+            echo "Refusing to guess. Re-run this workflow with an explicit tunnel_id input."
+            exit 1
+          fi
+
+          echo "DNS recovery failed. Listing active tunnels for manual selection."
+          ACTIVE_TUNNELS=$(curl -sf "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel?is_deleted=false" \
+            -H "Authorization: Bearer ${CF_TOKEN}")
+
+          TUNNEL_ID=$(echo "$ACTIVE_TUNNELS" | jq -r '.result[0].id // empty')
 
           if [ -z "$TUNNEL_ID" ]; then
-            echo "No tiltcheck tunnel found. Listing all tunnels:"
+            echo "No active tunnel found."
+            echo "$ACTIVE_TUNNELS" | jq '[.result[] | {id, name}]'
+            exit 1
+          fi
+
+          ACTIVE_COUNT=$(echo "$ACTIVE_TUNNELS" | jq '.result | length')
+          if [ "$ACTIVE_COUNT" -gt 1 ]; then
+            echo "Multiple active tunnels found:"
+            echo "$ACTIVE_TUNNELS" | jq '[.result[] | {id, name}]'
+            echo "Refusing to guess. Re-run this workflow with an explicit tunnel_id input."
+            exit 1
+          fi
+
+          if [ -z "$TUNNEL_ID" ]; then
+            echo "No active tunnel found. Listing all tunnels:"
             curl -sf "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel?is_deleted=false" \
               -H "Authorization: Bearer ${CF_TOKEN}" | jq '[.result[] | {id, name}]'
             exit 1
           fi
 
-          echo "Found tunnel: $TUNNEL_ID"
+          echo "Using only active tunnel from Cloudflare API: $TUNNEL_ID"
           echo "id=$TUNNEL_ID" >> "$GITHUB_OUTPUT"
 
       - name: Apply ingress rules
