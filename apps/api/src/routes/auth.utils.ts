@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * Utility functions for the authentication routes.
  */
@@ -236,11 +236,91 @@ export function getTrustedExtensionOrigin(value: unknown): string | undefined {
   try {
     const parsed = new URL(value);
     if (parsed.protocol === 'chrome-extension:') {
-      return parsed.origin;
+      // Node's URL implementation sets origin to the string "null" for non-http(s)
+      // schemes. Build the canonical origin from the extension id (hostname).
+      if (parsed.hostname) {
+        return `chrome-extension://${parsed.hostname}`;
+      }
+      return undefined;
     }
   } catch {
     // Ignore invalid input; value is optional and best-effort.
   }
 
   return undefined;
+}
+
+type OAuthCallbackCookieReq = {
+  cookies?: {
+    oauth_opener_origin?: unknown;
+    oauth_extension_id?: unknown;
+    oauth_source?: unknown;
+  };
+  query?: {
+    ext_id?: unknown;
+    state?: unknown;
+  };
+};
+
+/**
+ * Resolves the chrome-extension:// origin used for postMessage handoff on the
+ * Discord OAuth callback. Mirrors the success-path logic so error pages can
+ * notify the auth-bridge tab without trusting arbitrary client input.
+ */
+export function resolveExtensionPostMessageTargetForCallback(
+  req: OAuthCallbackCookieReq,
+  stateValue: string,
+): string | undefined {
+  const openerCookie = getTrustedExtensionOrigin(req.cookies?.oauth_opener_origin);
+  if (openerCookie) {
+    return openerCookie;
+  }
+
+  if (typeof stateValue === 'string' && stateValue.startsWith('ext_')) {
+    const stateParts = stateValue.split('_');
+    if (stateParts.length >= 3 && stateParts[0] === 'ext') {
+      try {
+        const encodedOrigin = stateParts[1];
+        const paddingNeeded = (4 - (encodedOrigin.length % 4)) % 4;
+        const padded = encodedOrigin + '='.repeat(paddingNeeded);
+        const decodedOrigin = Buffer.from(padded, 'base64').toString('utf8');
+        const decoded = getTrustedExtensionOrigin(decodedOrigin);
+        if (decoded) {
+          return decoded;
+        }
+      } catch {
+        // Ignore malformed state segments.
+      }
+    }
+  }
+
+  const storedExtensionId =
+    typeof req.cookies?.oauth_extension_id === 'string' ? req.cookies.oauth_extension_id.trim() : '';
+  if (storedExtensionId) {
+    const reconstructed = getTrustedExtensionOrigin(`chrome-extension://${storedExtensionId}`);
+    if (reconstructed) {
+      return reconstructed;
+    }
+  }
+
+  const incomingExtId = typeof req.query?.ext_id === 'string' ? req.query.ext_id.trim() : '';
+  if (incomingExtId) {
+    return getTrustedExtensionOrigin(`chrome-extension://${incomingExtId}`);
+  }
+
+  return undefined;
+}
+
+/**
+ * True when this callback should return the extension HTML error surface
+ * (readable in the OAuth popup) instead of JSON.
+ */
+export function isExtensionOAuthCallbackSurface(
+  req: OAuthCallbackCookieReq,
+  stateValue: string,
+): boolean {
+  if (typeof stateValue === 'string' && stateValue.startsWith('ext_')) {
+    return true;
+  }
+  return normalizeOAuthSource(req.cookies?.oauth_source) === 'extension';
 }

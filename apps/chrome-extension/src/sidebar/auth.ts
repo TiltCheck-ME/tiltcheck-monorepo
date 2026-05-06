@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { getDiscordLoginUrl } from '../config.js';
 import { API_BASE } from './constants.js';
 import { SidebarUI } from './types.js';
@@ -52,6 +52,17 @@ export class AuthManager {
       if (this.discordAuthPollIntervalId) {
           clearInterval(this.discordAuthPollIntervalId);
           this.discordAuthPollIntervalId = null;
+      }
+  }
+
+  private clearDiscordOauthErrorMarkers(): void {
+      try {
+          chrome.storage.local.remove(
+              ['discord_oauth_error', 'discord_oauth_error_code', 'discord_oauth_error_ts'],
+              () => {},
+          );
+      } catch {
+          // noop
       }
   }
 
@@ -152,6 +163,7 @@ export class AuthManager {
       // the 500ms interval can fire again during persistAuthState / syncSafetyPreferences
       // and find the same token in storage, triggering a second call.
       this.clearDiscordAuthPolling();
+      this.clearDiscordOauthErrorMarkers();
       this.isConnecting = false;
 
       await this.persistAuthState(token, normalizedUser);
@@ -176,13 +188,21 @@ export class AuthManager {
       const maxPollMs = 5 * 60 * 1000;
       const startedAt = Date.now();
       this.clearDiscordAuthPolling();
+      this.clearDiscordOauthErrorMarkers();
       this.isConnecting = true;
       this.ui.syncAccountUi();
 
       const startStoragePolling = () => {
           this.discordAuthPollIntervalId = setInterval(async () => {
               try {
-                  const stored = await this.ui.getStorage(['authToken', 'userData']);
+                  const stored = await this.ui.getStorage(['authToken', 'userData', 'discord_oauth_error']);
+
+                  if (typeof stored?.discord_oauth_error === 'string' && stored.discord_oauth_error.trim()) {
+                      const msg = stored.discord_oauth_error.trim().slice(0, 500);
+                      this.clearDiscordOauthErrorMarkers();
+                      this.stopConnecting(msg);
+                      return;
+                  }
 
                   if (stored?.authToken && stored?.userData) {
                       await this.applyDiscordAuthSuccess(stored.authToken, stored.userData);

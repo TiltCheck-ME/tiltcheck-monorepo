@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -42,6 +42,8 @@ import {
   getOAuthSource,
   getTrustedExtensionOrigin,
   normalizeOAuthSource,
+  resolveExtensionPostMessageTargetForCallback,
+  isExtensionOAuthCallbackSurface,
 } from './auth.utils.js';
 
 
@@ -51,13 +53,43 @@ const router = Router();
 // Configuration
 // ============================================================================
 
-function renderExtensionAuthErrorPage(message: string): string {
+interface ExtensionAuthErrorPageOptions {
+  postMessageTarget?: string;
+  errorCode?: string;
+}
+
+function clipWebAuthMessage(message: string, maxLen = 400): string {
+  return message.replace(/\r|\n/g, ' ').slice(0, maxLen);
+}
+
+function renderExtensionAuthErrorPage(
+  message: string,
+  opts?: ExtensionAuthErrorPageOptions,
+): string {
   const safeMessage = message
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+  const postMessageScript =
+    typeof opts?.postMessageTarget === 'string' && opts.postMessageTarget.length > 0
+      ? `
+    <script>
+      try {
+        if (window.opener && typeof window.opener.postMessage === 'function') {
+          window.opener.postMessage(
+            {
+              type: 'discord-auth-error',
+              message: ${JSON.stringify(clipWebAuthMessage(message))},
+              code: ${JSON.stringify(opts.errorCode || 'auth_failed')},
+            },
+            ${JSON.stringify(opts.postMessageTarget)},
+          );
+        }
+      } catch (_) {}
+    </script>`
+      : '';
   return `
     <html>
       <head>
@@ -81,9 +113,17 @@ function renderExtensionAuthErrorPage(message: string): string {
              Made for Degens. By Degens.
            </div>
         </div>
+        ${postMessageScript}
       </body>
     </html>
   `;
+}
+
+function extensionAuthErrorHandoff(req: Request, stateValue: unknown): ExtensionAuthErrorPageOptions {
+  const sv = typeof stateValue === 'string' ? stateValue : '';
+  return {
+    postMessageTarget: resolveExtensionPostMessageTargetForCallback(req, sv),
+  };
 }
 
 // ============================================================================
@@ -131,7 +171,7 @@ function consumeOAuthState(state: string): OAuthStateEntry | null {
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 auth attempts per 15 minutes
+  max: process.env.VITEST ? 2000 : 20, // 20 auth attempts per 15 minutes (tests hit /auth/discord/login often)
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many authentication attempts', code: 'RATE_LIMIT_EXCEEDED' },
@@ -696,8 +736,22 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     if (error) {
       console.warn('[Auth] Discord returned error:', error, error_description);
       const errorMsg = typeof error_description === 'string' ? error_description : `Discord error: ${error}`;
-      if (source === 'extension') {
-        res.status(400).send(renderExtensionAuthErrorPage(errorMsg));
+      const stateStrForSurface = typeof state === 'string' ? state : '';
+      if (isExtensionOAuthCallbackSurface(req, stateStrForSurface)) {
+        const postTarget = resolveExtensionPostMessageTargetForCallback(req, stateStrForSurface);
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              error === 'access_denied'
+                ? 'Discord sign-in was cancelled or denied. No cap, that happens. Retry Connect Discord when ready.'
+                : errorMsg,
+              {
+                postMessageTarget: postTarget,
+                errorCode: typeof error === 'string' ? error : 'discord_oauth_error',
+              },
+            ),
+          );
       } else {
         res.status(400).json({ error: errorMsg });
       }
@@ -715,7 +769,20 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
     // Optional integrity check: if both exist, cookie source must match state source.
     if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
-      res.status(400).json({ error: 'Invalid OAuth source' });
+      const stateStrForSurface = typeof state === 'string' ? state : '';
+      if (isExtensionOAuthCallbackSurface(req, stateStrForSurface)) {
+        const postTarget = resolveExtensionPostMessageTargetForCallback(req, stateStrForSurface);
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'OAuth session did not line up (cookie vs state). Close this window and start Connect Discord again from the extension.',
+              { postMessageTarget: postTarget, errorCode: 'OAUTH_SOURCE_MISMATCH' },
+            ),
+          );
+      } else {
+        res.status(400).json({ error: 'Invalid OAuth source' });
+      }
       return;
     }
 
@@ -745,7 +812,20 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
     if (!stateValid) {
       console.warn('[Auth] OAuth state mismatch or missing cookie. Potential CSRF blocked.');
-      res.status(400).json({ error: 'Invalid OAuth state or expired session' });
+      const stateStrForSurface = typeof state === 'string' ? state : '';
+      if (isExtensionOAuthCallbackSurface(req, stateStrForSurface)) {
+        const postTarget = resolveExtensionPostMessageTargetForCallback(req, stateStrForSurface);
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'Invalid OAuth state or expired session. If you sat on the Discord screen too long, that flow is cooked. Start Connect Discord again.',
+              { postMessageTarget: postTarget, errorCode: 'INVALID_STATE' },
+            ),
+          );
+      } else {
+        res.status(400).json({ error: 'Invalid OAuth state or expired session' });
+      }
       return;
     }
 
@@ -754,7 +834,14 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
     if (!code || typeof code !== 'string') {
       if (source === 'extension') {
-        res.status(400).send(renderExtensionAuthErrorPage('Missing authorization code from Discord. Please retry.'));
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'Missing authorization code from Discord. Please retry.',
+              { ...extensionAuthErrorHandoff(req, state), errorCode: 'MISSING_CODE' },
+            ),
+          );
         return;
       }
       res.status(400).json({ error: 'Missing authorization code' });
@@ -775,7 +862,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       if (source === 'extension') {
         res
           .status(401)
-          .send(renderExtensionAuthErrorPage(result.error || 'Discord authentication failed. Please retry.'));
+          .send(
+            renderExtensionAuthErrorPage(result.error || 'Discord authentication failed. Please retry.', {
+              ...extensionAuthErrorHandoff(req, state),
+              errorCode: 'DISCORD_VERIFY_FAILED',
+            }),
+          );
         return;
       }
       res.status(401).json({ error: result.error || 'Discord authentication failed' });
@@ -790,7 +882,14 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       if (authenticatedUser.discord_id && authenticatedUser.discord_id !== result.user.id) {
         const message = 'This TiltCheck account is already linked to a different Discord account.';
         if (source === 'extension') {
-          res.status(409).send(renderExtensionAuthErrorPage(message));
+          res
+            .status(409)
+            .send(
+              renderExtensionAuthErrorPage(message, {
+                ...extensionAuthErrorHandoff(req, state),
+                errorCode: 'DISCORD_ALREADY_LINKED',
+              }),
+            );
         } else {
           res.status(409).json({ error: message, code: 'DISCORD_ALREADY_LINKED' });
         }
@@ -800,7 +899,14 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       if (existingDiscordUser && existingDiscordUser.id !== authenticatedUser.id) {
         const message = 'This Discord account is already linked to another TiltCheck account.';
         if (source === 'extension') {
-          res.status(409).send(renderExtensionAuthErrorPage(message));
+          res
+            .status(409)
+            .send(
+              renderExtensionAuthErrorPage(message, {
+                ...extensionAuthErrorHandoff(req, state),
+                errorCode: 'DISCORD_LINK_CONFLICT',
+              }),
+            );
         } else {
           res.status(409).json({ error: message, code: 'DISCORD_LINK_CONFLICT' });
         }
@@ -890,8 +996,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
           .status(400)
           .send(
             renderExtensionAuthErrorPage(
-              'Extension runtime ID mismatch. This may indicate an unauthorized extension. Close this window and restart Connect Discord from the original extension.'
-            )
+              'Extension runtime ID mismatch. This may indicate an unauthorized extension. Close this window and restart Connect Discord from the original extension.',
+              {
+                ...extensionAuthErrorHandoff(req, state),
+                errorCode: 'EXTENSION_ID_MISMATCH',
+              },
+            ),
           );
         return;
       }
@@ -901,8 +1011,9 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
           .status(400)
           .send(
             renderExtensionAuthErrorPage(
-              'Missing trusted extension origin. Close this window and restart Connect Discord from the extension.'
-            )
+              'Missing trusted extension origin. Close this window and restart Connect Discord from the extension.',
+              { ...extensionAuthErrorHandoff(req, state), errorCode: 'MISSING_EXTENSION_ORIGIN' },
+            ),
           );
         return;
       }
@@ -1021,7 +1132,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
           : 'Unknown error';
       res
         .status(500)
-        .send(renderExtensionAuthErrorPage(`Discord sign-in failed: ${detail}. Check Railway logs and retry.`));
+        .send(
+          renderExtensionAuthErrorPage(`Discord sign-in failed: ${detail}. Check Railway logs and retry.`, {
+            ...extensionAuthErrorHandoff(req, req.query?.state),
+            errorCode: 'CALLBACK_EXCEPTION',
+          }),
+        );
       return;
     }
     res.status(500).json({ error: 'Authentication failed' });

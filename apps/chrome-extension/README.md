@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -29,6 +29,8 @@ Two runtime modes:
 - **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so users can explore the product before connecting Discord.
 
 OAuth state integrity is validated server-side using signed state prefixes (extension origin vs web origin) during callback handling.
+
+Full redirect URI list, popup wiring, and failure cases: [docs/discord-oauth.md](./docs/discord-oauth.md).
 
 ---
 
@@ -114,6 +116,7 @@ apps/chrome-extension/
 │   ├── features.md
 │   ├── development.md
 │   ├── publishing.md
+│   ├── discord-oauth.md            # Extension Discord OAuth + redirect URIs
 │   └── surgical-self-exclusion.md  # Surgical Self-Exclusion technical reference
 └── tests/unit/
     ├── background.test.ts

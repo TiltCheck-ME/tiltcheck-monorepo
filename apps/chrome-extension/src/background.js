@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /**
  * MV3 service worker.
  * Sidebar-first controls and shared tab actions.
@@ -14,6 +14,13 @@ function isAllowedAuthUrl(value) {
     const origin = parsed.origin;
     if (ALLOWED_AUTH_ORIGINS.has(origin)) return true;
     if (origin.endsWith('.a.run.app')) return true;
+    if (
+      parsed.protocol === 'http:' &&
+      (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') &&
+      parsed.pathname === '/auth/discord/login'
+    ) {
+      return true;
+    }
     return false;
   } catch {
     return false;

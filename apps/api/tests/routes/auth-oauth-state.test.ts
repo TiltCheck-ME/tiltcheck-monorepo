@@ -1,10 +1,15 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
 vi.mock('@tiltcheck/auth', () => ({
-  getDiscordAuthUrl: vi.fn(() => 'https://discord.com/oauth2/authorize'),
+  getDiscordAuthUrl: vi.fn((cfg: { redirectUri: string }, state: string) => {
+    const { redirectUri } = { ...cfg };
+    const ru = encodeURIComponent(redirectUri);
+    const st = encodeURIComponent(state);
+    return `https://discord.com/oauth2/authorize?redirect_uri=${ru}&state=${st}`;
+  }),
   verifyDiscordOAuth: vi.fn(),
   exchangeDiscordCode: vi.fn(),
   createToken: vi.fn(async () => 'mock-jwt-token'),
@@ -47,7 +52,7 @@ vi.mock('../../src/middleware/auth.js', () => ({
 
 import { authRouter } from '../../src/routes/auth.js';
 import { getDiscordConfig } from '../../src/routes/auth.utils.js';
-import { createSession, exchangeDiscordCode, getDiscordAuthUrl, verifyDiscordOAuth, verifySessionCookie } from '@tiltcheck/auth';
+import { createSession, exchangeDiscordCode, verifyDiscordOAuth, verifySessionCookie } from '@tiltcheck/auth';
 import { createUser, findOrCreateUserByDiscord, findUserByDiscordId, findUserByEmail, findUserById, updateUser } from '@tiltcheck/db';
 
 const app = express();
@@ -66,6 +71,19 @@ app.use((req, _res, next) => {
 app.use(express.json());
 app.use('/auth', authRouter);
 
+function readDiscordRedirectUriFromLogin302(res: { headers: Record<string, unknown> }): string {
+  const loc = res.headers.location;
+  if (typeof loc !== 'string' || !loc) {
+    throw new Error('Expected 302 Location header from Discord login');
+  }
+  const url = new URL(loc);
+  const ru = url.searchParams.get('redirect_uri');
+  if (!ru) {
+    throw new Error('Expected redirect_uri in Discord authorize URL');
+  }
+  return ru;
+}
+
 describe('Auth callback state/source validation', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'development';
@@ -73,6 +91,9 @@ describe('Auth callback state/source validation', () => {
     process.env.DISCORD_CLIENT_SECRET = 'test-client-secret';
     delete process.env.MAGIC_SECRET_KEY;
     delete process.env.MAGIC_PUBLISHABLE_KEY;
+    delete process.env.TILT_DISCORD_REDIRECT_URI;
+    delete process.env.DISCORD_REDIRECT_URI;
+    delete process.env.DISCORD_CALLBACK_URL;
     vi.clearAllMocks();
   });
 
@@ -82,7 +103,9 @@ describe('Auth callback state/source validation', () => {
       .set('Cookie', ['oauth_source=extension']);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Invalid OAuth source');
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('TiltCheck Connect Issue');
+    expect(response.text).toContain('OAuth session did not line up');
   });
 
   it('allows local extension fallback only when state prefix indicates extension', async () => {
@@ -91,8 +114,8 @@ describe('Auth callback state/source validation', () => {
     // Without the matching oauth_state cookie AND without the state being in the
     // server-side registry (i.e. login was never called), validation still fails closed.
     expect(response.status).toBe(400);
-    expect(response.headers['content-type']).toContain('application/json');
-    expect(response.body.error).toBe('Invalid OAuth state or expired session');
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('Invalid OAuth state or expired session');
   });
 
   it('does not allow oauth_source cookie alone to bypass missing oauth_state cookie', async () => {
@@ -101,7 +124,23 @@ describe('Auth callback state/source validation', () => {
       .set('Cookie', ['oauth_source=extension']);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Invalid OAuth state or expired session');
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('Invalid OAuth state or expired session');
+  });
+
+  it('returns HTML when Discord returns access_denied for an extension-shaped callback', async () => {
+    const response = await request(app).get('/auth/discord/callback?error=access_denied&state=ext_xyz');
+
+    expect(response.status).toBe(400);
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('denied');
+  });
+
+  it('returns JSON when Discord returns access_denied for a web-shaped callback', async () => {
+    const response = await request(app).get('/auth/discord/callback?error=access_denied&state=web_xyz');
+
+    expect(response.status).toBe(400);
+    expect(response.headers['content-type']).toContain('application/json');
   });
 
   it('forwards OAuth callback params from /login to /callback', async () => {
@@ -127,12 +166,9 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'https://tiltcheck.me/api/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    expect(readDiscordRedirectUriFromLogin302(response)).toBe('https://tiltcheck.me/api/auth/discord/callback');
+    const loc1 = new URL(String(response.headers.location));
+    expect(loc1.searchParams.get('state')).toMatch(/^web_/);
   });
 
   it('keeps the API host callback for direct web OAuth logins on the API domain', async () => {
@@ -142,12 +178,9 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'api.tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'https://api.tiltcheck.me/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    expect(readDiscordRedirectUriFromLogin302(response)).toBe('https://api.tiltcheck.me/auth/discord/callback');
+    const loc2 = new URL(String(response.headers.location));
+    expect(loc2.searchParams.get('state')).toMatch(/^web_/);
   });
 
   it('keeps the canonical API callback for stale hub dashboard redirects', async () => {
@@ -157,12 +190,9 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'api.tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'https://api.tiltcheck.me/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    expect(readDiscordRedirectUriFromLogin302(response)).toBe('https://api.tiltcheck.me/auth/discord/callback');
+    const loc3 = new URL(String(response.headers.location));
+    expect(loc3.searchParams.get('state')).toMatch(/^web_/);
   });
 
   it('prefers the localhost redirect host for web OAuth during local beta flows', async () => {
@@ -172,12 +202,9 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'api.tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'http://localhost:3000/api/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    expect(readDiscordRedirectUriFromLogin302(response)).toBe('http://localhost:3000/api/auth/discord/callback'); // pragma: allowlist secret
+    const loc4 = new URL(String(response.headers.location));
+    expect(loc4.searchParams.get('state')).toMatch(/^web_/);
   });
 
   it('rejects invalid activity token exchange payload', async () => {
