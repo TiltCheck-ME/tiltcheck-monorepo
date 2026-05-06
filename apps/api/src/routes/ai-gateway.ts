@@ -41,7 +41,7 @@ function contextTooLarge(context: Record<string, unknown> | undefined): boolean 
   if (!context) return false;
   if (Object.keys(context).length > MAX_CONTEXT_KEYS) return true;
   try {
-    return JSON.stringify(context).length > MAX_CONTEXT_JSON_BYTES;
+    return Buffer.byteLength(JSON.stringify(context)) > MAX_CONTEXT_JSON_BYTES;
   } catch {
     return true;
   }
