@@ -1,7 +1,5 @@
 © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
-# TiltCheck Game Arena
-
 Web-based multiplayer game arena for **Degens Against Decency** (DA&D) and **Texas Hold'em Poker** with Discord authentication.
 
 ## Features
@@ -394,6 +392,8 @@ Goal: prove the real-time loop with two browsers or one host plus guests on Dege
 5. All clients auto-call `join-game` with the `gameId` from `trivia-started`, so `trivia-round-start` / `trivia-round-reveal` / completion payloads reach the room instead of dying in the lobby-only subscription.
 6. Play through answers; confirm `trivia-completed` shows winners and leaderboard in the Activity UI.
 7. Late join: join mid-question and confirm the server rejects answers for that buzzer (`Late join: wait for the next question.`). Optional `timestamp` on `submit-trivia-answer` is checked for coarse clock skew.
+
+**Playwright (Activity UI shell):** From the monorepo root, `pnpm test:e2e:degens-trivia` starts Degens Activity via Vite and asserts the Trivia tab, `?triviaHost=1` controls, and the footer. That does not replace the full socket + auth loop above; it catches regressions in the client shell only.
 
 Rollback: revert `joinGame` auto-wiring in `trivia.ts` and the `endGameWithResults` override if a future host-only flow must not auto-join spectators.
 

@@ -1,7 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-16
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // Playwright e2e test configuration for TiltCheck critical user paths.
 
 import { defineConfig, devices } from "@playwright/test";
+
+const degensLocal = process.env.PLAYWRIGHT_DEGENS_LOCAL === "1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -24,5 +26,16 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  // No webServer block — tests run against the deployed URL or BASE_URL override.
+  // Set PLAYWRIGHT_DEGENS_LOCAL=1 when running tests/e2e/degens-activity-trivia.spec.ts to boot Vite (Degens Activity) on 127.0.0.1:5174.
+  ...(degensLocal
+    ? {
+        webServer: {
+          command:
+            "pnpm --filter @tiltcheck/degens-activity exec vite --host 127.0.0.1 --port 5174 --strictPort",
+          url: "http://127.0.0.1:5174",
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      }
+    : {}),
 });
