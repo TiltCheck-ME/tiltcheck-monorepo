@@ -38,6 +38,7 @@ const sections = [
         <li>Session logs: 7 days, then purged.</li>
         <li>Vault events: retained for audit trail until you delete the account.</li>
         <li>Tip history: 90 days for dispute resolution.</li>
+        <li>Ethical ad filter local summaries, if enabled: 7 days and user-clearable.</li>
         <li>Account data: retained until deletion is requested.</li>
       </ul>
     ),

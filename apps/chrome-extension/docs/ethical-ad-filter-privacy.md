@@ -40,9 +40,10 @@ The MVP must keep these gates separate:
 1. Extension install permissions: Chrome-level permission notice for active-tab, storage, supported host domains, and notifications.
 2. Feature enablement: user turns on Ethical ad filtering in the extension.
 3. Optional account sync: user logs in with Discord to sync settings.
-4. Optional telemetry: user explicitly opts in before any ad-filter improvement telemetry leaves the browser.
+4. Optional report submission: user chooses a report type, note, and evidence snippet before anything report-specific leaves the browser.
+5. Optional aggregate metrics: user explicitly opts in before any ad-filter improvement telemetry leaves the browser.
 
-Declining telemetry must not block local ad filtering.
+Declining reports or aggregate metrics must not block local ad filtering.
 
 ## User-Facing Consent Strings
 
