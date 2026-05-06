@@ -49,7 +49,7 @@ Public hostnames do not automatically come from the deploy workflow itself. This
 - `api.tiltcheck.me` -> `api.railway.internal:3000`
 - `tiltcheck.me` and `www.tiltcheck.me` -> `web.railway.internal:3000`
 - `dashboard.tiltcheck.me` and `hub.tiltcheck.me` -> `user-dashboard.railway.internal:6001`
-- `activity.tiltcheck.me` -> `activity.railway.internal` (service port matches the container listen port configured for the Railway `activity` service; the static nginx image listens on `8080` unless overridden)
+- activity.tiltcheck.me -> activity.railway.internal:8080 (matches the container listen port in the Dockerfile)
 - `arena.tiltcheck.me` -> `game-arena.railway.internal:3000`
 - `admin.tiltcheck.me` -> `control-room.railway.internal:3000`
 
