@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -196,5 +196,50 @@ describe('triviaManager', () => {
 
     expect(triviaManager.getLiveState()?.players.find((player) => player.userId === 'user-1')?.eliminated).toBe(false);
     expect(triviaManager.getLiveState()?.players.find((player) => player.userId === 'user-1')?.buyBackUsed).toBe(true);
+  });
+
+  it('blocks mid-round joins from answering the in-flight question', async () => {
+    await triviaManager.scheduleGame({
+      category: 'casino',
+      totalRounds: 1,
+      startTime: Date.now() + 1_000,
+    });
+
+    const game = triviaManager.getLiveState();
+    expect(game).not.toBeNull();
+
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    const live = triviaManager.getLiveState();
+    const q = live!.currentQuestion!;
+    await triviaManager.joinGame('late-user', 'Late', game!.gameId);
+
+    await expect(triviaManager.submitAnswer('late-user', q.id, 'A')).resolves.toEqual({
+      success: false,
+      message: 'Late join: wait for the next question.',
+    });
+  });
+
+  it('rejects answers when client timestamp is far from server time', async () => {
+    await triviaManager.scheduleGame({
+      category: 'casino',
+      totalRounds: 1,
+      startTime: Date.now() + 1_000,
+    });
+
+    const game = triviaManager.getLiveState();
+    expect(game).not.toBeNull();
+    await triviaManager.joinGame('user-1', 'Alice', game!.gameId);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    const liveRound = triviaManager.getLiveState();
+    const skewedTs = Date.now() + 200_000;
+    await expect(
+      triviaManager.submitAnswer('user-1', liveRound!.currentQuestion!.id, 'A', skewedTs),
+    ).resolves.toEqual({
+      success: false,
+      message: 'Answer timestamp rejected (clock skew).',
+    });
   });
 });

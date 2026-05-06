@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // Live Trivia HQ — elimination-style trivia with powerups and prize pool
 // Mirrors trivia-manager lifecycle: waiting → round → reveal → next/completed
 
@@ -95,6 +95,13 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
+function hostControlsEnabled(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return new URLSearchParams(window.location.search).get('triviaHost') === '1';
+}
+
 function getMyPlayer(): Player | undefined {
   return players.find((p) => p.userId === userId);
 }
@@ -153,8 +160,25 @@ function renderWaiting(): void {
     <div class="card card--accent">
       <p class="card__eyebrow">Live Trivia</p>
       <h2 class="card__title">Waiting for game</h2>
-      <p class="card__body">When the host drops a round, you're in. Answer fast. Wrong answer = eliminated. Last degen standing takes the pot.</p>
+      <p class="card__body">When the host drops a round, you auto-join the socket room so questions and the final board actually reach you. Answer fast. Wrong answer = eliminated unless you shield. Last degen standing takes the pot.</p>
     </div>
+
+    <div class="card" style="margin-top:0.5rem;">
+      <p class="card__eyebrow">Fairness (minimal)</p>
+      <p class="card__body" style="font-size:0.65rem;color:var(--text-muted);">
+        One locked answer per question. Server rejects wrong question ids. Join mid-question and you sit out that buzzer (next question is yours).
+        Optional client timestamps outside a loose skew window get dropped so you cannot replay ancient payloads.
+      </p>
+    </div>
+
+    ${hostControlsEnabled() ? `
+      <div class="card" style="margin-top:0.5rem;">
+        <p class="card__eyebrow">Host controls</p>
+        <p class="card__body" style="font-size:0.65rem;color:var(--text-muted);">Add <code>?triviaHost=1</code> to the URL on this device only. This schedules a short general-category run for the room.</p>
+        <button type="button" class="btn btn--primary" id="trivia-host-start" style="width:100%;margin-top:0.35rem;">Start 3-round test (general)</button>
+        <button type="button" class="btn" id="trivia-host-reset" style="width:100%;margin-top:0.35rem;">Reset trivia</button>
+      </div>
+    ` : ''}
 
     ${prizePool > 0 ? `
       <div class="kpi" style="margin-top:0.75rem;">
@@ -196,8 +220,7 @@ function renderQuestion(): void {
         <p class="card__body">You're out. Watch the round play out.</p>
         ${buyBackAvailable && me && !me.buyBackUsed ? `
           <button id="btn-buyback" class="btn btn--primary" style="margin-top:0.5rem;width:100%;">
-            <span style="font-size:0.8rem;">&#x1F4B0;</span>
-            <span style="margin-left:0.35rem;">BUY BACK IN</span>
+            BUY BACK IN
             <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.1rem;">1 per game — rejoin the round</span>
           </button>
         ` : `
@@ -220,26 +243,22 @@ function renderQuestion(): void {
           <div style="display:flex;gap:0.5rem;">
             ${shieldAvailable && me && !me.shieldConsumed ? `
               <button id="btn-shield" class="btn" style="flex:1;">
-                <span style="display:block;font-size:0.8rem;">&#x1F6E1;</span>
                 <span>SHIELD</span>
                 <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">Survive 1 wrong</span>
               </button>
             ` : `
               <div class="btn" style="flex:1;opacity:0.3;cursor:default;flex-direction:column;">
-                <span style="font-size:0.8rem;">&#x1F6E1;</span>
                 <span>SHIELD</span>
                 <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">${me?.shieldConsumed ? 'Used' : 'Locked'}</span>
               </div>
             `}
             ${!apeInUsedThisRound ? `
               <button id="btn-apein" class="btn btn--primary" style="flex:1;">
-                <span style="display:block;font-size:0.8rem;">&#x1F525;</span>
                 <span>APE IN</span>
-                <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">2x or die</span>
+                <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">Crowd read</span>
               </button>
             ` : `
               <div class="btn" style="flex:1;opacity:0.3;cursor:default;flex-direction:column;">
-                <span style="font-size:0.8rem;">&#x1F525;</span>
                 <span>APE IN</span>
                 <span style="display:block;font-size:0.45rem;color:var(--text-muted);margin-top:0.15rem;">Used</span>
               </div>
@@ -464,6 +483,17 @@ export function mount(el: HTMLElement, uid: string): void {
   container = el;
   userId = uid;
 
+  container.addEventListener('click', (ev) => {
+    const t = ev.target as HTMLElement;
+    if (t.closest('#trivia-host-start')) {
+      relay.scheduleTriviaGame({ category: 'general', theme: 'Live room test', totalRounds: 3 });
+      return;
+    }
+    if (t.closest('#trivia-host-reset')) {
+      relay.resetTriviaGame();
+    }
+  });
+
   // Game started (from game-update envelope)
   relay.on('game.update', (data) => {
     const d = data as { type?: string } & Record<string, unknown>;
@@ -473,6 +503,9 @@ export function mount(el: HTMLElement, uid: string): void {
       prizePool = p.prizePool ?? 0;
       totalRounds = p.totalRounds ?? 0;
       phase = 'waiting';
+      if (gameId) {
+        relay.joinGame(gameId);
+      }
       render();
     }
     if (d.type === 'trivia-joined') {
@@ -562,13 +595,10 @@ export function mount(el: HTMLElement, uid: string): void {
   });
 
   // Shield result
-  relay.on('trivia.shield.result', (data) => {
-    const d = data as { activated?: boolean };
-    if (d.activated) {
-      const me = getMyPlayer();
-      if (me) me.shieldConsumed = true;
-      shieldAvailable = false;
-    }
+  relay.on('trivia.shield.result', (_data) => {
+    shieldAvailable = false;
+    const me = getMyPlayer();
+    if (me) me.shieldConsumed = true;
     render();
   });
 
