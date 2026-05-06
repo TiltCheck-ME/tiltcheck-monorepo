@@ -1,9 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
  * Integrates with backend AI services for intelligent tilt detection
- * Last Updated: 2026-04-17
  */
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
@@ -500,9 +499,13 @@ function enableDemoMode() {
 }
 
 /**
- * Call backend AI service for intelligent analysis
+ * Call backend AI service for intelligent analysis (POST /ai/api/ai on API host).
  */
-async function callAIGateway(application: string, data: any = {}) {
+async function callAIGateway(
+  application: string,
+  data: Record<string, unknown> = {},
+  options?: { signal?: AbortSignal }
+) {
   try {
     const response = await fetch(`${AI_GATEWAY_URL}/api/ai`, {
       method: 'POST',
@@ -512,19 +515,114 @@ async function callAIGateway(application: string, data: any = {}) {
       },
       body: JSON.stringify({
         application,
-        prompt: data.prompt || '',
-        context: data.context || {},
+        prompt: (data.prompt as string) || '',
+        context: (data.context as Record<string, unknown>) || {},
       }),
+      signal: options?.signal,
     });
 
-    if (response && response.ok) {
-      return await response.json();
+    let body: Record<string, unknown> = {};
+    try {
+      body = (await response.json()) as Record<string, unknown>;
+    } catch {
+      body = {};
     }
-    console.log('[TiltCheck] Backend AI request failed');
-    return { success: false, error: 'Request did not complete. Try again.' };
-  } catch (err) {
+
+    if (response.ok) {
+      return body;
+    }
+
+    const errMsg =
+      typeof body.error === 'string'
+        ? body.error
+        : typeof body.message === 'string'
+          ? body.message
+          : 'Request did not complete. Try again.';
+    return {
+      success: false,
+      error: errMsg,
+      code: body.code,
+      status: response.status,
+    };
+  } catch (err: unknown) {
+    const name = err instanceof Error ? err.name : '';
+    if (name === 'AbortError') {
+      return { success: false, error: 'Timed out waiting for the tilt engine.', code: 'TIMEOUT' };
+    }
     console.log('[TiltCheck] Backend AI offline or error:', err);
-    return { success: false, error: 'Network issue. Try again.' };
+    return { success: false, error: 'Network issue. Try again.', code: 'NETWORK' };
+  }
+}
+
+const TILT_TEST_CLIENT_MS = 55_000;
+
+async function runTiltDetectionServerTest(): Promise<void> {
+  const out = document.getElementById('tg-tilt-test-result');
+  const btn = document.getElementById('tg-tilt-test-run') as HTMLButtonElement | null;
+  if (!out || !btn) return;
+
+  btn.disabled = true;
+  out.textContent = 'Running...';
+
+  try {
+    if (!authToken) {
+      out.textContent = JSON.stringify(
+        {
+          success: false,
+          code: 'NO_SESSION',
+          error:
+            'No Discord JWT on this session. Connect Discord in the header before running the server tilt check.',
+        },
+        null,
+        2
+      );
+      addFeedMessage('Tilt test blocked: no bearer session (link Discord for the live path).');
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), TILT_TEST_CLIENT_MS);
+
+    const aiResult = (await callAIGateway(
+      'tilt-detection',
+      {
+        context: {
+          recentBets: [],
+          sessionDuration: Math.floor(
+            (Date.now() - (sessionStats.startTime || Date.now())) / 60000
+          ),
+          losses: Math.max(0, (sessionStats.totalWagered || 0) - (sessionStats.totalWon || 0)),
+        },
+      },
+      { signal: controller.signal }
+    )) as Record<string, unknown>;
+
+    window.clearTimeout(timer);
+    out.textContent = JSON.stringify(aiResult, null, 2);
+
+    if (aiResult.success) {
+      addFeedMessage('Server tilt check returned a verdict. Peep the JSON panel.');
+    } else if (aiResult.code === 'TIMEOUT') {
+      addFeedMessage('Tilt test timed out. API or LLM chain is slow; retry when the pipe is less clogged.');
+    } else if (aiResult.status === 401) {
+      addFeedMessage('Tilt test got a 401. Reconnect Discord — that session token is invalid or expired.');
+    } else if (aiResult.code === 'NETWORK') {
+      addFeedMessage('Tilt test could not reach the API. Check network, DNS, or adblock picking a fight with the host.');
+    } else {
+      addFeedMessage(`Tilt test ended rough: ${String(aiResult.error || 'unknown')}`);
+    }
+  } catch (e: unknown) {
+    out.textContent = JSON.stringify(
+      {
+        success: false,
+        code: 'CLIENT',
+        error: e instanceof Error ? e.message : String(e),
+      },
+      null,
+      2
+    );
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -723,6 +821,15 @@ function createSidebar() {
               <span class="tg-metric-value tg-tilt-value" id="tg-score-value">0</span>
             </div>
           </div>
+        </div>
+
+        <div class="tg-section" id="tg-tilt-test-section">
+          <h4>Server Tilt Check</h4>
+          <p style="font-size: 11px; opacity: 0.78; margin: 0 0 8px; line-height: 1.35;">
+            One-shot call to the API tilt-detection stack using your sidebar session stats. Needs a linked Discord JWT; demo-only tabs get a hard NO_SESSION until you connect.
+          </p>
+          <button class="tg-btn tg-btn-secondary" type="button" id="tg-tilt-test-run">Run tilt detection test</button>
+          <pre id="tg-tilt-test-result" style="display: block; margin-top: 10px; max-height: 200px; overflow: auto; padding: 8px; background: rgba(0,0,0,0.35); border-radius: 6px; font-size: 10px; line-height: 1.35; white-space: pre-wrap; word-break: break-word;"></pre>
         </div>
 
         <!-- P/L Graph -->
@@ -1888,6 +1995,10 @@ function setupEventListeners() {
   });
 
   // Emergency lock: 15 min break
+  document.getElementById('tg-tilt-test-run')?.addEventListener('click', () => {
+    void runTiltDetectionServerTest();
+  });
+
   document.getElementById('tg-emergency-lock')?.addEventListener('click', () => {
     const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
     const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
@@ -2722,13 +2833,16 @@ async function updateTilt(score: number, _indicators: string[]) {
     addFeedMessage(`Tilt spike detected: ${Math.round(score)}`);
 
     // Get AI-powered intervention suggestions
-    const aiResult = await callAIGateway('tilt-detection', {
+    const aiResult = (await callAIGateway('tilt-detection', {
       context: {
         recentBets: [],
         sessionDuration: Math.floor((Date.now() - sessionStats.startTime) / 60000),
         losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWon),
       },
-    });
+    })) as {
+      success?: boolean;
+      data?: { interventionSuggestions?: string[] };
+    };
 
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
       aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
