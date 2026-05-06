@@ -287,7 +287,7 @@ export class EventHandler {
       const gameAddonRoleId = (process.env.DISCORD_SKU_GAME_ADDON_ROLE_ID || '').trim();
       if (userId && isConfiguredGameAddonSku(skuId) && gameAddonRoleId) {
         try {
-          const guild = await this.client.guilds.fetch('1488253239643078787');
+          const guild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID || '');
           const member = await guild.members.fetch(userId);
           await member.roles.add([gameAddonRoleId]);
           console.log(`[Payments] Auto-granted game add-on role ${gameAddonRoleId} to user ${userId}`);
