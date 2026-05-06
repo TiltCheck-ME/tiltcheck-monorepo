@@ -264,7 +264,7 @@ export class TipView {
         <span class="elite-status">${isElite ? 'ELITE — 0% FEES' : 'FREE TIER — 2.5% FEE'}</span>
         ${isElite
           ? `<span class="elite-saved">You've saved ${feeSaved.toFixed(4)} SOL in fees</span>`
-          : `<span class="elite-cta">Fee waiver: founders, or Discord SKUs in DISCORD_SKU_JTT_FEE_WAIVER_IDS — platform passes are retired.</span>`
+          : `<span class="elite-cta">Fee waiver: founders or active Discord game add-on entitlements — platform passes are retired.</span>`
         }
       </div>
 
