@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const databaseMock = vi.hoisted(() => ({
@@ -278,10 +278,38 @@ describe('LockVault Module', () => {
     ]);
   });
 
-  it('gates paid early unlock until fee routing exists', async () => {
-    vaultManager.setWalletActionLock('u1', 30 * 60 * 1000, 'manual');
-    expect(() => vaultManager.requestPaidWalletUnlock('u1', 'u1')).toThrow(/temporarily disabled/i);
-    expect(() => vaultManager.settlePaidWalletUnlock('u1', 'u1')).toThrow(/temporarily disabled/i);
+  it('paid early unlock quotes fee then settles with split deductions', async () => {
+    vi.stubEnv('WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE', '2');
+    vi.stubEnv('WALLET_EARLY_UNLOCK_TRIVIA_SHARE_OF_REMAINDER', '0.5');
+    try {
+      const rec = await vaultManager.lock({
+        userId: 'u1',
+        amountRaw: '10',
+        durationRaw: '10m',
+        disclaimerAccepted: true,
+      });
+      vaultManager.setWalletActionLock('u1', 30 * 60 * 1000, 'manual');
+
+      vaultManager.requestPaidWalletUnlock('u1', 'u1', 10);
+      expect(vaultManager.getWalletActionLock('u1')?.earlyUnlockRequest?.feeAmountSOL).toBeCloseTo(1, 5);
+
+      vaultManager.settlePaidWalletUnlock('u1', 'u1');
+
+      const v = vaultManager.get(rec.id);
+      expect(v?.lockedAmountSOL).toBeCloseTo(9, 5);
+
+      const h = v?.history.find((x) => x.action === 'wallet-lock-paid-early-unlock');
+      expect(h).toBeDefined();
+      const payload = JSON.parse(h!.note || '{}');
+      expect(payload.feeTotalSOL).toBeCloseTo(1, 5);
+      expect(payload.devSOL).toBeCloseTo(0.2, 5);
+      expect(payload.triviaSOL).toBeCloseTo(0.4, 5);
+      expect(payload.micrograntSOL).toBeCloseTo(0.4, 5);
+
+      expect(vaultManager.getWalletActionLock('u1')).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('rejects direct deposits while a wallet action lock is active', () => {

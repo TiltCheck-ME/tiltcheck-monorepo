@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -26,8 +26,14 @@ import {
   approveWithdrawal,
   executeWithdrawal
 } from '@tiltcheck/lockvault';
+import { creditEarlyUnlockFeeSplits } from '../services/community-pools.js';
 
 const router: Router = Router();
+
+function earlyUnlockFeePercent(): number {
+  const n = Number(process.env.WALLET_EARLY_UNLOCK_FEE_PERCENT);
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : 10;
+}
 
 interface VaultError extends Error {
   code?: string;
@@ -448,7 +454,7 @@ router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
       remainingMs: status.remainingMs,
       reason: status.reason || null,
       earlyUnlockRequest: status.earlyUnlockRequest || null,
-      unlockOptions: ['admin_approval'],
+      unlockOptions: ['admin_approval', 'paid_early_unlock'],
     });
     return;
   }
@@ -476,18 +482,25 @@ router.post('/:userId/wallet-unlock-request', authMiddleware, async (req, res) =
     return;
   }
   if (mode === 'paid_early_unlock') {
-    res.status(501).json({
-      error: 'Paid early wallet unlock is temporarily disabled until fee routing is implemented.',
-      code: 'FEATURE_NOT_IMPLEMENTED',
-    });
+    try {
+      const actorId = (auth as any)?.discordId || auth?.id || userId;
+      const record = requestPaidWalletUnlockForUser(userId, actorId, earlyUnlockFeePercent());
+      res.json({
+        success: true,
+        locked: true,
+        lockUntil: new Date(record.lockUntil).toISOString(),
+        earlyUnlockRequest: record.earlyUnlockRequest || null,
+      });
+    } catch (error) {
+      const handled = handleVaultError(error);
+      res.status(handled.status).json(handled.body);
+    }
     return;
   }
 
   try {
     const actorId = (auth as any)?.discordId || auth?.id || userId;
-    const record = mode === 'admin_approval'
-      ? requestAdminWalletUnlockForUser(userId, actorId)
-      : requestPaidWalletUnlockForUser(userId, actorId, 10);
+    const record = requestAdminWalletUnlockForUser(userId, actorId);
 
     res.json({
       success: true,
@@ -530,7 +543,7 @@ router.post('/:userId/wallet-unlock-approve', authMiddleware, async (req, res) =
 
 /**
  * POST /vault/:userId/wallet-unlock-pay
- * Pays the 10% early unlock fee from the user's latest active locked vault
+ * Credits trivia jackpot ledger + microgrant pool + structured dev skim log (non-custodial).
  */
 router.post('/:userId/wallet-unlock-pay', authMiddleware, async (req, res) => {
   const userId = param(req, 'userId');
@@ -544,11 +557,28 @@ router.post('/:userId/wallet-unlock-pay', authMiddleware, async (req, res) => {
   const paidBy = (auth as any)?.discordId || auth?.id || userId;
   try {
     const record = settlePaidWalletUnlockForUser(userId, paidBy);
+    const alloc = record.earlyUnlockRequest?.feeAllocationSOL;
+    let feeRouted = true;
+    if (alloc && (alloc.triviaSOL > 0 || alloc.micrograntSOL > 0 || alloc.devSOL > 0)) {
+      try {
+        await creditEarlyUnlockFeeSplits({
+          userId,
+          triviaSOL: alloc.triviaSOL,
+          micrograntSOL: alloc.micrograntSOL,
+          devSOL: alloc.devSOL,
+        });
+      } catch (poolErr) {
+        feeRouted = false;
+        console.error('[vault] Early unlock pool credit failed after vault debit; reconcile manually:', poolErr);
+      }
+    }
     res.json({
       success: true,
       locked: false,
       earlyUnlockRequest: record.earlyUnlockRequest || null,
       feeChargedSOL: record.earlyUnlockRequest?.feeAmountSOL ?? null,
+      feeAllocationSOL: alloc ?? null,
+      feeRouted,
     });
   } catch (error) {
     const handled = handleVaultError(error);
