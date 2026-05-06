@@ -86,7 +86,7 @@ Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (
 
 ### Internal networking (Railway)
 
-- `apps/activity/Dockerfile` nginx proxies `/api/` to the private API service and `/socket.io/` to `game-arena`. Those internal hostnames must resolve inside the same Railway project/environment or bonus feed, auth exchange, and arena realtime features degrade.
+- apps/activity/Dockerfile nginx proxies /api/ to the private API service and /socket.io/ to game-arena (both hardcoded to port :3000 in the Dockerfile). Those internal hostnames must resolve inside the same Railway project/environment or bonus feed, auth exchange, and arena realtime features degrade.
 - If optional Cloudflare Tunnel ingress is enabled (`.github/workflows/configure-tunnel.yml`), keep the tunnel upstream port for `activity.railway.internal` aligned with the Railway private port for the `activity` service (image listens on `8080`; Railway may map a different internal port in project settings).
 
 ### How to verify health end-to-end
