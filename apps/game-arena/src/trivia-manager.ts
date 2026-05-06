@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /**
  * Trivia Manager
  * Shared question-bank-driven trivia engine for the game-arena service.
@@ -45,6 +45,8 @@ interface PlayerState {
   shieldConsumed: boolean;
   shieldQuestionId: string | null;
   buyBackUsed: boolean;
+  /** Lowest question index (0-based) where this player can submit answers and be scored. Mid-round joins skip the in-flight question. */
+  firstScoringRoundIndex: number;
 }
 
 interface ActiveGame {
@@ -69,6 +71,7 @@ interface PersistedPlayerState {
   shieldConsumed: boolean;
   shieldQuestionId: string | null;
   buyBackUsed: boolean;
+  firstScoringRoundIndex?: number;
 }
 
 interface PersistedActiveGame {
@@ -379,6 +382,7 @@ function serializeActiveGame(game: ActiveGame | null): PersistedActiveGame | nul
       shieldConsumed: player.shieldConsumed,
       shieldQuestionId: player.shieldQuestionId,
       buyBackUsed: player.buyBackUsed,
+      firstScoringRoundIndex: player.firstScoringRoundIndex,
     })),
     currentRound: game.currentRound,
     roundEndsAt: game.roundEndsAt,
@@ -403,6 +407,7 @@ function deserializeActiveGame(snapshot: PersistedActiveGame): ActiveGame {
           shieldConsumed: player.shieldConsumed,
           shieldQuestionId: player.shieldQuestionId,
           buyBackUsed: player.buyBackUsed,
+          firstScoringRoundIndex: player.firstScoringRoundIndex ?? 0,
         },
       ])
     ),
@@ -566,7 +571,7 @@ async function emitRoundStart(game: ActiveGame): Promise<boolean> {
   }
 
   if (game.currentRound >= game.questions.length) {
-    return endGameWithResults(game.gameId);
+    return await endGameWithResults(game.gameId, game);
   }
 
   const question = game.questions[game.currentRound];
@@ -643,6 +648,10 @@ async function revealRound(gameId: string, expectedQuestionId: string): Promise<
       continue;
     }
 
+    if (previousCurrentRound < player.firstScoringRoundIndex) {
+      continue;
+    }
+
     const chosen = player.answers.get(question.id);
     const shieldActiveForRound = player.shieldQuestionId === question.id;
 
@@ -709,7 +718,7 @@ async function revealRound(gameId: string, expectedQuestionId: string): Promise<
   );
 
   if (game.currentRound >= game.questions.length) {
-    return endGameWithResults(game.gameId);
+    return await endGameWithResults(game.gameId, game);
   }
 
   if (game.nextRoundTimerId) {
@@ -728,15 +737,23 @@ async function revealRound(gameId: string, expectedQuestionId: string): Promise<
   return true;
 }
 
-async function endGameWithResults(gameId: string): Promise<boolean> {
-  if (!activeGame || activeGame.gameId !== gameId) {
+/**
+ * Completes the active trivia run, persists, and emits trivia.completed.
+ * Pass gameOverride when the module-level activeGame slot was cleared between scoring and completion
+ * (for example by another subscriber on the shared event bus calling endGame during trivia.round.reveal).
+ */
+async function endGameWithResults(gameId: string, gameOverride?: ActiveGame): Promise<boolean> {
+  const gameRef = gameOverride ?? activeGame;
+  if (!gameRef || gameRef.gameId !== gameId) {
     return false;
   }
 
-  const game = activeGame;
+  const game = gameRef;
   const completedRecord = buildCompletedRecord(game);
   clearTimers(game);
-  activeGame = null;
+  if (activeGame?.gameId === gameId) {
+    activeGame = null;
+  }
   try { metrics.activeGamesGauge.set(0); } catch {}
   completedGames = [...completedGames, completedRecord].slice(-MAX_COMPLETED_GAMES);
   appendAuditRecord('game.completed', game.gameId, {
@@ -815,7 +832,7 @@ async function restoreState(): Promise<void> {
                   if (currentQuestion) {
                     scheduleRevealTimer(activeGame, currentQuestion.id, restoreDelay);
                   } else {
-                    await endGameWithResults(activeGame.gameId);
+                    await endGameWithResults(activeGame.gameId, activeGame);
                   }
                 } else {
                   scheduleStartTimer(activeGame, restoreDelay);
@@ -891,7 +908,7 @@ async function restoreState(): Promise<void> {
         if (currentQuestion) {
           scheduleRevealTimer(activeGame, currentQuestion.id, restoreDelay);
         } else {
-          await endGameWithResults(activeGame.gameId);
+          await endGameWithResults(activeGame.gameId, activeGame);
         }
       } else {
         scheduleStartTimer(activeGame, restoreDelay);
@@ -1188,6 +1205,7 @@ export const triviaManager = {
     userId: string,
     questionId: string,
     answer: string,
+    clientTimestamp?: number,
   ): Promise<{ success: boolean; message: string }> => {
     if (!activeGame) {
       return { success: false, message: 'No game in progress.' };
@@ -1206,8 +1224,19 @@ export const triviaManager = {
     if (!player) {
       return { success: false, message: 'Join the live trivia game first.' };
     }
+    if (activeGame.currentRound < player.firstScoringRoundIndex) {
+      return { success: false, message: 'Late join: wait for the next question.' };
+    }
     if (player.eliminated) {
       return { success: false, message: 'You are eliminated.' };
+    }
+
+    const ANSWER_CLOCK_SKEW_MS = 120_000;
+    if (typeof clientTimestamp === 'number' && Number.isFinite(clientTimestamp)) {
+      const skew = Math.abs(Date.now() - clientTimestamp);
+      if (skew > ANSWER_CLOCK_SKEW_MS) {
+        return { success: false, message: 'Answer timestamp rejected (clock skew).' };
+      }
     }
     if (player.answers.has(question.id)) {
       return { success: false, message: 'Answer already locked in.' };
@@ -1255,6 +1284,9 @@ export const triviaManager = {
       return { success: true, message: 'Already in game.' };
     }
 
+    const midRound = isRoundActive(activeGame);
+    const firstScoringRoundIndex = midRound ? activeGame.currentRound + 1 : activeGame.currentRound;
+
     activeGame.players.set(userId, {
       userId,
       username,
@@ -1264,6 +1296,7 @@ export const triviaManager = {
       shieldConsumed: false,
       shieldQuestionId: null,
       buyBackUsed: false,
+      firstScoringRoundIndex,
     });
 
     appendAuditRecord('player.joined', activeGame.gameId, { userId, username });
@@ -1301,6 +1334,9 @@ export const triviaManager = {
     const player = activeGame.players.get(userId);
     if (!player || player.eliminated) {
       return { success: false, message: 'Only active trivia players can use Ape In.' };
+    }
+    if (activeGame.currentRound < player.firstScoringRoundIndex) {
+      return { success: false, message: 'Not eligible for this round yet.' };
     }
 
     const stats: Record<string, number> = {};
@@ -1344,6 +1380,9 @@ export const triviaManager = {
     }
     if (player.eliminated) {
       return { success: false, message: 'You are already eliminated.' };
+    }
+    if (activeGame.currentRound < player.firstScoringRoundIndex) {
+      return { success: false, message: 'Not eligible for this round yet.' };
     }
     if (player.shieldConsumed) {
       return { success: false, message: 'Shield already used.' };

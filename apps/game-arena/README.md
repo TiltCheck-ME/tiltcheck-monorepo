@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
 # TiltCheck Game Arena
 
@@ -380,6 +380,22 @@ This service exposes a small set of admin endpoints used by the Control Room. Al
 Security notes:
 - Configure GAME_ARENA_ADMIN_TOKEN in the environment for a token-based gate. When unset, the admin middleware currently bypasses enforcement (development only).
 - Do not expose admin tokens in public repos or UI.
+
+---
+
+## Live trivia dry run (TIL-17)
+
+Goal: prove the real-time loop with two browsers or one host plus guests on Degens Activity.
+
+1. Run game-arena locally (default port from package config, often 3010) with a valid `JWT_SECRET` and optional Discord activity token path if you are not using the Activity SDK mock.
+2. Point Degens Activity at that arena: set `VITE_ARENA_URL` (or rely on the Vite proxy in dev) so `socket.io-client` hits the same host as `apps/degens-activity` dev server.
+3. Open two sessions (two browsers or one normal window plus a private window) logged in as different Discord identities so both sockets authenticate.
+4. Host: open the Trivia tab with `?triviaHost=1` on the URL. Click **Start 3-round test** to emit `schedule-trivia-game`. Everyone else stays on Trivia without the query param.
+5. All clients auto-call `join-game` with the `gameId` from `trivia-started`, so `trivia-round-start` / `trivia-round-reveal` / completion payloads reach the room instead of dying in the lobby-only subscription.
+6. Play through answers; confirm `trivia-completed` shows winners and leaderboard in the Activity UI.
+7. Late join: join mid-question and confirm the server rejects answers for that buzzer (`Late join: wait for the next question.`). Optional `timestamp` on `submit-trivia-answer` is checked for coarse clock skew.
+
+Rollback: revert `joinGame` auto-wiring in `trivia.ts` and the `endGameWithResults` override if a future host-only flow must not auto-join spectators.
 
 ---
 
