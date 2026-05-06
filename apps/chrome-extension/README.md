@@ -25,12 +25,40 @@ TiltGuard is a Manifest V3 Chrome extension that runs as a content script on cas
 
 Two runtime modes:
 
-- **Authenticated mode** (Discord OAuth): full API-backed flows with persisted account and session data.
-- **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so you can explore the product before connecting Discord.
+- **Discord-linked account** (primary): user clicks **Log in with Discord** in the sidebar (toolbar icon on supported casino pages). OAuth runs in a small API-driven flow; the API callback page `postMessage`s a JWT plus user payload to `auth-bridge.html` (packaged inside the extension). The bridge writes **`chrome.storage.local`** (`authToken`, `userData`, and `tiltguard_user_id`). That storage is origin-scoped to the extension, persists across browser restarts, and is what the sidebar polls after login. The API also sets an **httpOnly session cookie** on `api.tiltcheck.me` during the OAuth round-trip in the browser; the extension does not read that cookie. API calls from the extension send **`Authorization: Bearer <authToken>`** where required. The built `popup.html` flow matches the same storage contract for builds that set `action.default_popup` in the manifest.
+- **Demo / guest mode** (sidebar): no token; mock-friendly paths until the user logs in.
+- **Magic Link** (popup only): optional email sign-in stores the same `chrome.storage.local` keys; Discord-only tools stay gated until `userData.discordId` exists.
 
-Discord OAuth uses **PKCE (S256)** end-to-end: the API stores the `code_verifier` in short-lived httpOnly cookies and the server-side OAuth state registry, sends only `code_challenge` to Discord, and exchanges the authorization code with `code_verifier` at the token endpoint. The OAuth `state` parameter is validated on callback (cookie match or registry fallback for extension popups). The extension `auth-bridge` tab adds an `extension_handshake` query param; the API echoes it as `extHandshake` in `postMessage` so the bridge can reject callbacks that do not belong to the current tab.
+### Marketing site (`tiltcheck.me`)
 
-**Secrets in the extension:** there is no Discord client secret in the extension bundle. The only long-lived public identifier shipped in source is the Discord **application client id** (same model as a public SPA). Session tokens arrive over HTTPS after server-side OAuth completes; store them only via extension storage APIs, not in page DOM.
+When you visit **`https://tiltcheck.me`** (or `www.`) with the extension enabled, the content script copies the extension **`authToken`** into the page **`localStorage`** entry **`tc_token`** — the same key `apps/web` uses in `fetchAuthSession`. That keeps the public marketing Next.js app aligned with extension Discord login even if browser storage partitioning makes the API session cookie flaky for `fetch` from the page. Subdomains such as `dashboard.tiltcheck.me` are left alone (different app and token key). Extension **Log out** clears `authToken`; an active marketing tab gets `tc_token` removed via `chrome.storage.onChanged`, or the next full page load re-syncs from storage.
+
+### Discord Developer Portal redirect URIs
+
+Register the callback URL that matches your API environment (same value the API uses for `redirect_uri` when `source=extension`):
+
+| Environment | Redirect URI to register in Discord |
+| :--- | :--- |
+| Production (extension OAuth) | `https://api.tiltcheck.me/auth/discord/callback` |
+| Local API (`NODE_ENV` not production, host `localhost` / `127.0.0.1`) | Whatever your API `DISCORD_REDIRECT_URI` / `TILT_DISCORD_REDIRECT_URI` resolves to (often `http://localhost:8080/auth/discord/callback`). |
+
+The extension never uses `https://<extension-id>.chromiumapp.org/` for this flow; the auth bridge keeps `opener_origin` as `chrome-extension://<id>` so the callback can target the bridge tab safely.
+
+### Log out
+
+Sidebar header control and popup **Log out** call `POST /auth/logout` with the bearer token when present, then clear the same `chrome.storage.local` keys so UI returns to signed-out state everywhere.
+
+---
+
+## Server tilt detection (manual E2E)
+
+The sidebar **Server Tilt Check** block calls the central API AI gateway:
+
+- **HTTP:** `POST {AI_GATEWAY_URL}/api/ai` (from `src/config.ts`, production resolves to `https://api.tiltcheck.me/ai/api/ai`).
+- **Auth:** `Authorization: Bearer <JWT>` from Discord OAuth. Demo tabs without a token get `NO_SESSION` in the result panel instead of burning provider quota.
+- **Body:** `{ "application": "tilt-detection", "context": { "sessionDuration", "losses", "recentBets" } }` (matches `@tiltcheck/ai-client` tilt-detection contract).
+- **API env (server):** `JWT_SECRET` plus whichever LLM keys your `AI_PROVIDER_PROFILE` allows (`GEMINI_API_KEY`, `GROQ_API_KEY`, `HF_TOKEN`, etc.). Inspect readiness via `GET /health/ai` on the API host.
+- **Failure UX:** Network errors (`NETWORK`), client abort at 55s (`TIMEOUT`), HTTP 401 from bad/expired JWT, and non-2xx bodies are surfaced as JSON in the panel plus a line in **Live Signals**.
 
 ---
 
@@ -42,7 +70,7 @@ Discord OAuth uses **PKCE (S256)** end-to-end: the API stores the `code_verifier
 
 ## Known Gaps
 
-- `manifest.json` declares `"default_popup": "popup.html"` under the `action` key, but `popup.html` does not exist in the source tree or the `dist/` output. The extension currently operates in sidebar-only mode; the popup entry point is not implemented. Until this file is created, clicking the toolbar icon will show an error in Chrome. This is a tracked gap, not a regression.
+- Toolbar icon behavior follows `src/manifest.json`. Rebuild (`pnpm build` in this package) so `dist/` matches source before loading unpacked in Chrome.
 
 ---
 
@@ -51,7 +79,7 @@ Discord OAuth uses **PKCE (S256)** end-to-end: the API stores the `code_verifier
 ```
 apps/chrome-extension/
 ├── README.md                     # This file
-├── manifest.json                 # Active Chrome extension manifest (MV3)
+├── manifest.json                 # Legacy / alternate manifest (see src/manifest.json for shipped MV3)
 ├── package.json                  # Extension dependencies
 ├── tsconfig.json                 # TypeScript configuration
 ├── build.js                      # esbuild-based build script

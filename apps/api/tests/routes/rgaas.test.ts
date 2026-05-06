@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -12,6 +12,7 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 import { suslink } from '@tiltcheck/suslink';
 import * as tiltcheckCore from '@tiltcheck/tiltcheck-core';
 import { eventRouter } from '@tiltcheck/event-router';
+import { resetEmailIngestParseHealthForTests } from '../../src/lib/email-ingest-parse-health.js';
 
 vi.mock('@tiltcheck/event-types', () => ({
     createEvent: vi.fn(),
@@ -368,15 +369,19 @@ describe('RGaaS Routes', () => {
                 .mockResolvedValueOnce({ riskLevel: 'low', reason: 'sender clean' } as any)
                 .mockResolvedValueOnce({ riskLevel: 'low', reason: 'claim link clean' } as any);
 
+            const futureDate = new Date();
+            futureDate.setUTCDate(futureDate.getUTCDate() + 30);
+            const dateHeader = futureDate.toUTCString();
+
             const response = await request(app)
                 .post('/rgaas/email-ingest')
                 .send({
                     raw_email: [
                         'From: promos@mcluck.com',
-                        'Date: Thu, 16 Apr 2026 12:00:00 +0000',
+                        `Date: ${dateHeader}`,
                         'Subject: Match bonus drop',
                         '',
-                        'Get a 100% match bonus up to $500 expires in 2 days.',
+                        'Get a 100% match bonus up to $500 expires in 45 days.',
                         'Use code DROP500 at https://mcluck.com/promos/claim',
                         '<img src="https://cdn.discordapp.com/ephemeral-attachments/1234/5678/bad.png" />',
                         '<img src="https://mcluck.com/assets/promo-banner.png" />',
@@ -461,6 +466,91 @@ describe('RGaaS Routes', () => {
                 isExpired: true,
                 code: 'OLD500',
             });
+        });
+    });
+
+    describe('POST /rgaas/email-ingest abuse controls', () => {
+        afterEach(() => {
+            delete process.env.EMAIL_INGEST_SECRET;
+            delete process.env.EMAIL_INGEST_SENDER_DENYLIST;
+            delete process.env.EMAIL_INGEST_SENDER_ALLOWLIST;
+            delete process.env.EMAIL_INGEST_MAX_BYTES;
+            delete process.env.EMAIL_INGEST_PARSE_FAILURE_ALERT_THRESHOLD;
+            delete process.env.EMAIL_INGEST_PARSE_FAILURE_WINDOW_MS;
+            resetEmailIngestParseHealthForTests();
+        });
+
+        it('returns 401 when EMAIL_INGEST_SECRET is set and no credential is sent', async () => {
+            process.env.EMAIL_INGEST_SECRET = 'supersecret';
+            const response = await request(app)
+                .post('/rgaas/email-ingest')
+                .send({
+                    raw_email: ['From: promos@mcluck.com', '', 'match bonus body text xxxxxxxxxxxxxxx'].join('\n'),
+                });
+            expect(response.status).toBe(401);
+            expect(response.body.code).toBe('EMAIL_INGEST_AUTH_FAILED');
+        });
+
+        it('accepts valid X-Email-Ingest-Key when secret is configured', async () => {
+            process.env.EMAIL_INGEST_SECRET = 'supersecret';
+            vi.mocked(suslink.scanUrl)
+                .mockResolvedValueOnce({ riskLevel: 'low', reason: 'sender clean' } as any)
+                .mockResolvedValueOnce({ riskLevel: 'low', reason: 'claim link clean' } as any);
+
+            const futureDate = new Date();
+            futureDate.setUTCDate(futureDate.getUTCDate() + 30);
+            const dateHeader = futureDate.toUTCString();
+
+            const response = await request(app)
+                .post('/rgaas/email-ingest')
+                .set('X-Email-Ingest-Key', 'supersecret')
+                .send({
+                    raw_email: [
+                        'From: promos@mcluck.com',
+                        `Date: ${dateHeader}`,
+                        'Subject: Match bonus drop',
+                        '',
+                        'Get a 100% match bonus up to $500 expires in 45 days.',
+                        'Use code KEY500 at https://mcluck.com/promos/claim',
+                    ].join('\n'),
+                });
+
+            expect(response.status).toBe(200);
+        });
+
+        it('returns 413 when raw_email exceeds EMAIL_INGEST_MAX_BYTES', async () => {
+            process.env.EMAIL_INGEST_MAX_BYTES = '60';
+            const huge = `From: promos@mcluck.com\n\n${'x'.repeat(80)}`;
+            const response = await request(app).post('/rgaas/email-ingest').send({ raw_email: huge });
+            expect(response.status).toBe(413);
+            expect(response.body.code).toBe('PAYLOAD_TOO_LARGE');
+        });
+
+        it('returns 403 when sender domain is on EMAIL_INGEST_SENDER_DENYLIST', async () => {
+            process.env.EMAIL_INGEST_SENDER_DENYLIST = 'evil.com';
+            const response = await request(app)
+                .post('/rgaas/email-ingest')
+                .send({
+                    raw_email: ['From: spam@evil.com', '', 'bonus text xxxxxxxxxxxxxxxxx'].join('\n'),
+                });
+            expect(response.status).toBe(403);
+        });
+
+        it('returns 403 when EMAIL_INGEST_SENDER_ALLOWLIST excludes the sender', async () => {
+            process.env.EMAIL_INGEST_SENDER_ALLOWLIST = 'only-good.com';
+            const response = await request(app)
+                .post('/rgaas/email-ingest')
+                .send({
+                    raw_email: [
+                        'From: promos@mcluck.com',
+                        'Subject: Offer',
+                        '',
+                        '100% match bonus up to $500',
+                        'https://mcluck.com/promo',
+                    ].join('\n'),
+                });
+            expect(response.status).toBe(403);
+            expect(response.body.code).toBe('SENDER_NOT_ALLOWED');
         });
     });
 });

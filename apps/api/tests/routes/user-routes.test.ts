@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -23,6 +23,10 @@ const mockedExclusionCache = vi.hoisted(() => ({
   getForbiddenGamesProfile: vi.fn(),
   invalidateExclusionCache: vi.fn(),
 }));
+const mockJttGetBalance = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ total_fees_lamports: 0 }),
+);
+const mockDiscordGetEntitlements = vi.hoisted(() => vi.fn().mockResolvedValue([]));
 const mockAuthUser = vi.hoisted(() => ({
   id: 'user-1',
   discordId: 'discord-self',
@@ -31,6 +35,26 @@ const mockAuthUser = vi.hoisted(() => ({
 
 vi.mock('@tiltcheck/db', () => mockedDb);
 vi.mock('../../src/services/exclusion-cache.js', () => mockedExclusionCache);
+vi.mock('@tiltcheck/justthetip', () => ({
+  justthetip: {
+    credits: {
+      getBalance: (...args: unknown[]) => mockJttGetBalance(...args),
+    },
+  },
+}));
+vi.mock('@tiltcheck/discord-monetization', async () => {
+  const actual = await vi.importActual<typeof import('@tiltcheck/discord-monetization')>(
+    '@tiltcheck/discord-monetization',
+  );
+  return {
+    ...actual,
+    DiscordShopManager: class {
+      getEntitlements(...args: unknown[]) {
+        return mockDiscordGetEntitlements(...args);
+      }
+    },
+  };
+});
 vi.mock('../../src/middleware/auth.js', () => ({
   authMiddleware: (req: any, _res: any, next: any) => {
     if (!req.user) {
@@ -55,6 +79,8 @@ describe('User route ordering and shape', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    mockJttGetBalance.mockResolvedValue({ total_fees_lamports: 0 });
+    mockDiscordGetEntitlements.mockResolvedValue([]);
   });
 
   it('resolves /onboarding before dynamic /:discordId route', async () => {
@@ -118,6 +144,54 @@ describe('User route ordering and shape', () => {
       complianceBypass: false,
     });
     expect(mockedDb.findOnboardingByDiscordId).toHaveBeenCalledWith('d1');
+  });
+
+  it('GET /user/:id/elite treats founders as fee-waived without Discord entitlements', async () => {
+    vi.stubEnv('FOUNDER_USERNAMES', 'whale');
+    mockJttGetBalance.mockResolvedValueOnce({ total_fees_lamports: 2_000_000_000 });
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      discord_username: 'Whale',
+    });
+
+    const response = await request(app).get('/user/discord-123/elite');
+
+    expect(response.status).toBe(200);
+    expect(response.body.isElite).toBe(true);
+    expect(response.body.feeSavedSol).toBeGreaterThan(0);
+    expect(mockDiscordGetEntitlements).not.toHaveBeenCalled();
+  });
+
+  it('GET /user/:id/elite uses Discord entitlements when fee waiver SKUs are configured', async () => {
+    vi.stubEnv('DISCORD_SKU_JTT_FEE_WAIVER_IDS', 'fee-sku-9');
+    vi.stubEnv('DISCORD_BOT_TOKEN', 'bot-test');
+    vi.stubEnv('DISCORD_CLIENT_ID', 'app-test');
+    mockJttGetBalance.mockResolvedValueOnce({ total_fees_lamports: 1_000_000_000 });
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      discord_username: 'normie',
+    });
+    mockDiscordGetEntitlements.mockResolvedValueOnce([
+      { sku_id: 'fee-sku-9', consumed: false, deleted: false },
+    ]);
+
+    const response = await request(app).get('/user/discord-456/elite');
+
+    expect(response.status).toBe(200);
+    expect(response.body.isElite).toBe(true);
+    expect(mockDiscordGetEntitlements).toHaveBeenCalled();
+  });
+
+  it('GET /user/:id/elite returns free tier when no founder and no entitlement', async () => {
+    vi.stubEnv('FOUNDER_USERNAMES', 'someone_else');
+    mockJttGetBalance.mockResolvedValueOnce({ total_fees_lamports: 500_000_000 });
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      discord_username: 'normie',
+    });
+
+    const response = await request(app).get('/user/discord-789/elite');
+
+    expect(response.status).toBe(200);
+    expect(response.body.isElite).toBe(false);
+    expect(response.body.feeSavedSol).toBe(0);
   });
 
   it('gates /upgrade until live payment validation exists', async () => {
