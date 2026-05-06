@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -1238,6 +1238,128 @@ export interface ForbiddenGamesProfile {
   /** ISO timestamp of last change — used for Redis cache invalidation */
   updatedAt: string;
 }
+
+// ============================================
+// Ethical Ad Filter Taxonomy Types
+// ============================================
+
+export const ETHICAL_AD_FILTER_TIERS = [
+  'block',
+  'blur',
+  'allow_log',
+] as const;
+
+/**
+ * Enforcement tier for detected ad or sponsorship content.
+ *
+ * block     — remove or cover high-confidence conversion pressure.
+ * blur      — obscure risky content until the user intentionally reveals it.
+ * allow_log — leave visible while recording the match for tuning and audit.
+ */
+export type EthicalAdFilterTier = typeof ETHICAL_AD_FILTER_TIERS[number];
+
+export const ETHICAL_AD_FILTER_TIER_DEFINITIONS: Record<
+  EthicalAdFilterTier,
+  {
+    label: string;
+    definition: string;
+  }
+> = {
+  block: {
+    label: 'Block',
+    definition:
+      'Hide or replace high-confidence gambling conversion ads, credit hooks, or urgency tactics that push a user toward deposit, wager, or chase behavior.',
+  },
+  blur: {
+    label: 'Blur',
+    definition:
+      'Obscure ambiguous or informational gambling content until the user makes an intentional reveal choice, then log the reveal for policy tuning.',
+  },
+  allow_log: {
+    label: 'Allow + Log',
+    definition:
+      'Leave low-risk, educational, compliance, or low-confidence matches visible while logging category, placement, and confidence for audit.',
+  },
+};
+
+export const ETHICAL_AD_FILTER_CATEGORIES = [
+  'casino_bonus_promos',
+  'sportsbook_odds_boosts',
+  'vip_retention_chase_hooks',
+  'credit_cash_advance_hooks',
+  'affiliate_review_rankings',
+  'influencer_casino_sponcon',
+  'operator_brand_mentions',
+] as const;
+
+export type EthicalAdFilterCategory = typeof ETHICAL_AD_FILTER_CATEGORIES[number];
+
+export interface EthicalAdFilterCategoryDefinition {
+  slug: EthicalAdFilterCategory;
+  label: string;
+  defaultTier: EthicalAdFilterTier;
+  definition: string;
+  examples: string[];
+}
+
+export const ETHICAL_AD_FILTER_CATEGORY_DEFINITIONS: readonly EthicalAdFilterCategoryDefinition[] = [
+  {
+    slug: 'casino_bonus_promos',
+    label: 'Casino Bonus Promos',
+    defaultTier: 'block',
+    definition:
+      'Deposit matches, free spins, no-wagering claims, reload bonuses, risk-free bets, or bonus countdowns that directly push gambling conversion.',
+    examples: ['100% deposit match', 'free spins when you sign up', 'reload bonus ends soon'],
+  },
+  {
+    slug: 'sportsbook_odds_boosts',
+    label: 'Sportsbook Odds Boosts',
+    defaultTier: 'block',
+    definition:
+      'Betting odds boosts, boosted parlays, same-game parlay promotions, or sportsbook CTAs designed to accelerate wager placement.',
+    examples: ['boosted parlay', 'bet now at enhanced odds', 'same-game parlay special'],
+  },
+  {
+    slug: 'vip_retention_chase_hooks',
+    label: 'VIP Retention + Chase Hooks',
+    defaultTier: 'block',
+    definition:
+      'VIP ladder, lossback, cashback, rebate, rakeback, or comeback messaging that frames continued gambling as recovery or status protection.',
+    examples: ['claim your lossback', 'VIP reload waiting', 'cashback to win it back'],
+  },
+  {
+    slug: 'credit_cash_advance_hooks',
+    label: 'Credit + Cash Advance Hooks',
+    defaultTier: 'block',
+    definition:
+      'Credit card, cash advance, payday, BNPL, or instant funding ads presented near gambling content or framed as bankroll recovery.',
+    examples: ['instant cash advance', 'borrow for tonight', 'fund your wallet now'],
+  },
+  {
+    slug: 'affiliate_review_rankings',
+    label: 'Affiliate Review Rankings',
+    defaultTier: 'blur',
+    definition:
+      'Casino rankings, bonus comparison tables, referral reviews, or best-site lists that steer users toward gambling operators via affiliate intent.',
+    examples: ['top casinos this month', 'best crypto casinos', 'exclusive referral code'],
+  },
+  {
+    slug: 'influencer_casino_sponcon',
+    label: 'Influencer Casino Sponcon',
+    defaultTier: 'blur',
+    definition:
+      'Creator-led casino sponsorships, wager challenge clips, streamer bonus codes, or social proof that normalizes high-frequency gambling.',
+    examples: ['use my casino code', 'sponsored slot challenge', 'watch this heater'],
+  },
+  {
+    slug: 'operator_brand_mentions',
+    label: 'Operator Brand Mentions',
+    defaultTier: 'allow_log',
+    definition:
+      'General gambling operator names, logos, or sponsorship disclosures without a direct deposit, bonus, odds, or wager CTA.',
+    examples: ['presented by example casino', 'casino logo on stream overlay', 'operator named in neutral article'],
+  },
+];
 
 // ============================================
 // Auto-Vault Rule Types
