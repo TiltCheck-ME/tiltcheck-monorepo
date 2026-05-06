@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
@@ -6,6 +6,8 @@
  */
 
 import { Router } from 'express';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
+import { SentryMonitor } from '@tiltcheck/monitoring';
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
@@ -31,10 +33,39 @@ import {
   markEmailBonusEntriesPublished,
   persistEmailBonusIntel,
 } from '../lib/email-bonus-feed.js';
-import type { EmailIntelData } from '../lib/email-parser.js';
+import { parseEmailIntel, type EmailIntelData } from '../lib/email-parser.js';
+import {
+  assertEmailIngestSecret,
+  evaluateEmailIngestSenderPolicy,
+  extractQuickSenderDomain,
+  getEmailIngestAllowDomains,
+  getEmailIngestDenyDomains,
+  getEmailIngestMaxBytes,
+  isSenderDomainDenied,
+  logEmailIngestEvent,
+  mergeSenderDomainsForPolicy,
+} from '../lib/email-ingest-controls.js';
+import { recordEmailIngestParseFailure } from '../lib/email-ingest-parse-health.js';
 import { resolveExclusionProfileForRequest, suppressBonusEntries } from '../services/bonus-suppression.js';
 
 const router: Router = Router();
+
+const emailIngestRateWindowMs =
+  Number.parseInt(process.env.EMAIL_INGEST_RATE_LIMIT_WINDOW_MS ?? '900000', 10) || 15 * 60 * 1000;
+const emailIngestRateMax =
+  Number.parseInt(process.env.EMAIL_INGEST_RATE_LIMIT_MAX ?? '40', 10) || 40;
+
+const emailIngestLimiter = rateLimit({
+  windowMs: emailIngestRateWindowMs,
+  max: emailIngestRateMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+    return ipKeyGenerator(ip);
+  },
+  message: { error: 'Too many email intake requests', code: 'EMAIL_INGEST_RATE_LIMIT' },
+});
 
 // ─── License registry ─────────────────────────────────────────────────────────
 const licenseRegistry: {
@@ -859,161 +890,218 @@ router.get('/license-check', (req, res) => {
  *   POST /rgaas/email-ingest
  *   { "raw_email": "From: promo@chumbacasino.com\nSubject: ...\n\n..." }
  */
-router.post('/email-ingest', async (req, res) => {
+router.post('/email-ingest', emailIngestLimiter, async (req, res) => {
+  const auth = assertEmailIngestSecret(req);
+  if (!auth.ok) {
+    logEmailIngestEvent('auth_failed', { code: 'EMAIL_INGEST_AUTH_FAILED' });
+    res.status(401).json({ error: 'Email intake authentication required', code: 'EMAIL_INGEST_AUTH_FAILED' });
+    return;
+  }
+
   const rawEmail = (req.body?.raw_email as string | undefined)?.trim();
   if (!rawEmail || rawEmail.length < 20) {
+    logEmailIngestEvent('validation_failed', { code: 'INVALID_INPUT', reason: 'raw_email_required_or_short' });
     res.status(400).json({ error: 'raw_email is required (min 20 chars)', code: 'INVALID_INPUT' });
     return;
   }
 
-  const { parseEmailIntel } = await import('../lib/email-parser.js');
-  const intel = parseEmailIntel(rawEmail);
-
-  // Run domain check on sender domain
-  let domainScan = null;
-  if (intel.senderDomain) {
-    try {
-      const urlToScan = `https://${intel.senderDomain}`;
-      domainScan = await suslink.scanUrl(urlToScan);
-    } catch {
-      domainScan = null;
-    }
+  const maxBytes = getEmailIngestMaxBytes();
+  if (Buffer.byteLength(rawEmail, 'utf8') > maxBytes) {
+    logEmailIngestEvent('validation_failed', { code: 'PAYLOAD_TOO_LARGE', maxBytes });
+    res.status(413).json({ error: 'raw_email exceeds maximum size', code: 'PAYLOAD_TOO_LARGE' });
+    return;
   }
 
-  // License check on sender domain
-  let licenseInfo = null;
-  if (intel.senderDomain) {
-    const domain = intel.senderDomain.toLowerCase();
-    const match = licenseRegistry.operators.find((op) =>
-      op.domains.some((d) => d === domain || domain.endsWith(`.${d}`) || d.endsWith(`.${domain}`))
-    );
-    if (match) {
-      const regulator = licenseRegistry.regulators[match.regulator as keyof typeof licenseRegistry.regulators] ?? null;
-      licenseInfo = {
-        found: true,
-        brand: match.brand,
-        regulator: match.regulator,
-        regulatorName: regulator?.name ?? match.regulator,
-        regulatorTier: regulator?.tier ?? null,
-        licenseId: match.licenseId,
-        type: match.type,
+  const deny = getEmailIngestDenyDomains();
+  const allow = getEmailIngestAllowDomains();
+  const quickDomain = extractQuickSenderDomain(rawEmail);
+  if (quickDomain && isSenderDomainDenied(quickDomain, deny)) {
+    logEmailIngestEvent('policy_reject', { code: 'SENDER_NOT_ALLOWED', stage: 'quick', reason: 'denylist' });
+    res.status(403).json({ error: 'Sender domain is not permitted', code: 'SENDER_NOT_ALLOWED' });
+    return;
+  }
+
+  let intel: EmailIntelData;
+  try {
+    intel = parseEmailIntel(rawEmail);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logEmailIngestEvent('parse_failed', { code: 'EMAIL_PARSE_FAILED', message });
+    SentryMonitor.captureException(err instanceof Error ? err : new Error(message), {
+      route: 'email-ingest',
+    });
+    await recordEmailIngestParseFailure({ stage: 'parseEmailIntel', message });
+    res.status(422).json({ error: 'Email parse failed', code: 'EMAIL_PARSE_FAILED' });
+    return;
+  }
+
+  const policyDomains = mergeSenderDomainsForPolicy(intel.senderDomain, quickDomain);
+  const policy = evaluateEmailIngestSenderPolicy(policyDomains, deny, allow);
+  if (policy === 'denied') {
+    logEmailIngestEvent('policy_reject', { code: 'SENDER_NOT_ALLOWED', reason: 'denylist' });
+    res.status(403).json({ error: 'Sender domain is not permitted', code: 'SENDER_NOT_ALLOWED' });
+    return;
+  }
+  if (policy === 'allowlist_block') {
+    logEmailIngestEvent('policy_reject', { code: 'SENDER_NOT_ALLOWED', reason: 'allowlist' });
+    res.status(403).json({ error: 'Sender domain is not permitted', code: 'SENDER_NOT_ALLOWED' });
+    return;
+  }
+
+  try {
+    // Run domain check on sender domain
+    let domainScan = null;
+    if (intel.senderDomain) {
+      try {
+        const urlToScan = `https://${intel.senderDomain}`;
+        domainScan = await suslink.scanUrl(urlToScan);
+      } catch {
+        domainScan = null;
+      }
+    }
+
+    // License check on sender domain
+    let licenseInfo = null;
+    if (intel.senderDomain) {
+      const domain = intel.senderDomain.toLowerCase();
+      const match = licenseRegistry.operators.find((op) =>
+        op.domains.some((d) => d === domain || domain.endsWith(`.${d}`) || d.endsWith(`.${domain}`))
+      );
+      if (match) {
+        const regulator = licenseRegistry.regulators[match.regulator as keyof typeof licenseRegistry.regulators] ?? null;
+        licenseInfo = {
+          found: true,
+          brand: match.brand,
+          regulator: match.regulator,
+          regulatorName: regulator?.name ?? match.regulator,
+          regulatorTier: regulator?.tier ?? null,
+          licenseId: match.licenseId,
+          type: match.type,
+        };
+      } else {
+        licenseInfo = { found: false };
+      }
+    }
+
+    // Scan up to 5 embedded URLs (avoid hammering external services)
+    const linkScans: Array<{ url: string; riskLevel: string; reason: string }> = [];
+    for (const url of intel.embeddedUrls.slice(0, 5)) {
+      try {
+        const scan = await suslink.scanUrl(url);
+        linkScans.push({ url, riskLevel: scan.riskLevel, reason: scan.reason || '' });
+      } catch {
+        linkScans.push({ url, riskLevel: 'unknown', reason: 'scan failed' });
+      }
+    }
+
+    // Append to trust signals log
+    if (intel.bonusSignals.length > 0 || intel.senderDomain) {
+      const trustSignalEntry = {
+        ingestedAt: new Date().toISOString(),
+        senderDomain: intel.senderDomain,
+        casinoBrand: intel.casinoBrand,
+        subject: intel.subject,
+        bonusSignals: intel.bonusSignals,
+        urgencyFlags: intel.urgencyFlags,
+        hasUnsubscribeLink: intel.hasUnsubscribeLink,
+        source: 'email-ingest',
       };
-    } else {
-      licenseInfo = { found: false };
+      try {
+        const trustSignalsPath = getTrustSignalsLogPath();
+        const dataDir = path.dirname(trustSignalsPath);
+        if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
+        appendFileSync(
+          trustSignalsPath,
+          JSON.stringify(trustSignalEntry) + '\n',
+          'utf8'
+        );
+      } catch {
+        logEmailIngestEvent('trust_signal_write_failed', { code: 'TRUST_SIGNAL_WRITE_FAILED' });
+      }
     }
-  }
 
-  // Scan up to 5 embedded URLs (avoid hammering external services)
-  const linkScans: Array<{ url: string; riskLevel: string; reason: string }> = [];
-  for (const url of intel.embeddedUrls.slice(0, 5)) {
-    try {
-      const scan = await suslink.scanUrl(url);
-      linkScans.push({ url, riskLevel: scan.riskLevel, reason: scan.reason || '' });
-    } catch {
-      linkScans.push({ url, riskLevel: 'unknown', reason: 'scan failed' });
+    const persistedBonuses = persistEmailBonusIntel(rawEmail, intel, new Date());
+    const publishedBonusEvents: string[] = [];
+    for (const bonus of persistedBonuses.toPublish) {
+      try {
+        await eventRouter.publish(
+          'bonus.discovered',
+          'rgaas-api',
+          {
+            casino_name: bonus.brand,
+            bonus_type: bonus.bonusType,
+            value: bonus.bonusValue,
+            terms: bonus.terms,
+            expiry_message: bonus.expiryMessage,
+            is_expired: bonus.isExpired,
+            bonus_url: bonus.url,
+            image_url: bonus.imageUrl,
+            code: bonus.code,
+            source: bonus.source,
+          },
+          undefined,
+          {
+            discoveredVia: 'email-ingest',
+            senderDomain: bonus.senderDomain ?? undefined,
+          }
+        );
+        publishedBonusEvents.push(bonus.id);
+      } catch (error) {
+        logEmailIngestEvent('bonus_publish_failed', { code: 'BONUS_PUBLISH_FAILED' });
+      }
     }
-  }
 
-  // Append to trust signals log
-  if (intel.bonusSignals.length > 0 || intel.senderDomain) {
-    const trustSignalEntry = {
-      ingestedAt: new Date().toISOString(),
-      senderDomain: intel.senderDomain,
-      casinoBrand: intel.casinoBrand,
-      subject: intel.subject,
-      bonusSignals: intel.bonusSignals,
-      urgencyFlags: intel.urgencyFlags,
-      hasUnsubscribeLink: intel.hasUnsubscribeLink,
-      source: 'email-ingest',
-    };
-    try {
-      const trustSignalsPath = getTrustSignalsLogPath();
-      const dataDir = path.dirname(trustSignalsPath);
-      if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
-      appendFileSync(
-        trustSignalsPath,
-        JSON.stringify(trustSignalEntry) + '\n',
-        'utf8'
-      );
-    } catch {
-      // Non-fatal — log but continue
-      console.warn('[email-ingest] Could not write trust signal entry');
+    if (publishedBonusEvents.length > 0) {
+      markEmailBonusEntriesPublished(publishedBonusEvents);
     }
-  }
 
-  const persistedBonuses = persistEmailBonusIntel(rawEmail, intel, new Date());
-  const publishedBonusEvents: string[] = [];
-  for (const bonus of persistedBonuses.toPublish) {
-    try {
-      await eventRouter.publish(
-        'bonus.discovered',
-        'rgaas-api',
-        {
-          casino_name: bonus.brand,
-          bonus_type: bonus.bonusType,
-          value: bonus.bonusValue,
-          terms: bonus.terms,
-          expiry_message: bonus.expiryMessage,
-          is_expired: bonus.isExpired,
-          bonus_url: bonus.url,
-          image_url: bonus.imageUrl,
-          code: bonus.code,
-          source: bonus.source,
-        },
-        undefined,
-        {
-          discoveredVia: 'email-ingest',
-          senderDomain: bonus.senderDomain ?? undefined,
-        }
-      );
-      publishedBonusEvents.push(bonus.id);
-    } catch (error) {
-      console.warn('[email-ingest] Could not publish bonus.discovered event', error);
-    }
-  }
-
-  if (publishedBonusEvents.length > 0) {
-    markEmailBonusEntriesPublished(publishedBonusEvents);
-  }
-
-  const emailGradeEvidence = buildEmailGradeEvidence(intel, linkScans, new Date());
-  if (emailGradeEvidence && intel.casinoBrand) {
-    try {
-      await eventRouter.publish('trust.casino.rollup', 'rgaas-api', {
-        source: 'email-intel',
-        casinos: {
-          [intel.casinoBrand]: {
-            totalDelta: (emailGradeEvidence.bonusDelta ?? 0) + (emailGradeEvidence.complianceDelta ?? 0),
-            events: emailGradeEvidence.reasons.length,
-            externalData: {
-              bonusDelta: emailGradeEvidence.bonusDelta,
-              complianceDelta: emailGradeEvidence.complianceDelta,
+    const emailGradeEvidence = buildEmailGradeEvidence(intel, linkScans, new Date());
+    if (emailGradeEvidence && intel.casinoBrand) {
+      try {
+        await eventRouter.publish('trust.casino.rollup', 'rgaas-api', {
+          source: 'email-intel',
+          casinos: {
+            [intel.casinoBrand]: {
+              totalDelta: (emailGradeEvidence.bonusDelta ?? 0) + (emailGradeEvidence.complianceDelta ?? 0),
+              events: emailGradeEvidence.reasons.length,
+              externalData: {
+                bonusDelta: emailGradeEvidence.bonusDelta,
+                complianceDelta: emailGradeEvidence.complianceDelta,
+              },
             },
           },
-        },
-      });
-    } catch (error) {
-      console.warn('[email-ingest] Could not publish trust.casino.rollup evidence', error);
+        });
+      } catch {
+        logEmailIngestEvent('rollup_publish_failed', { code: 'ROLLUP_PUBLISH_FAILED' });
+      }
     }
-  }
 
-  res.json({
-    success: true,
-    intel,
-    bonusFeed: {
-      file: getEmailBonusFeedPath(),
-      detected: persistedBonuses.entries.length,
-      added: persistedBonuses.added.length,
-      updated: persistedBonuses.updated.length,
-      publishedEvents: publishedBonusEvents.length,
-    },
-    domainScan: domainScan
-      ? { riskLevel: domainScan.riskLevel, reason: domainScan.reason }
-      : null,
-    gradeEvidence: emailGradeEvidence,
-    licenseInfo,
-    linkScans,
-  });
+    res.json({
+      success: true,
+      intel,
+      bonusFeed: {
+        file: getEmailBonusFeedPath(),
+        detected: persistedBonuses.entries.length,
+        added: persistedBonuses.added.length,
+        updated: persistedBonuses.updated.length,
+        publishedEvents: publishedBonusEvents.length,
+      },
+      domainScan: domainScan
+        ? { riskLevel: domainScan.riskLevel, reason: domainScan.reason }
+        : null,
+      gradeEvidence: emailGradeEvidence,
+      licenseInfo,
+      linkScans,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logEmailIngestEvent('processing_failed', { code: 'EMAIL_INGEST_PROCESSING_FAILED', message });
+    SentryMonitor.captureException(err instanceof Error ? err : new Error(message), {
+      route: 'email-ingest',
+      stage: 'post_parse',
+    });
+    res.status(500).json({ error: 'Email intake processing failed', code: 'EMAIL_INGEST_PROCESSING_FAILED' });
+  }
 });
 
 /**

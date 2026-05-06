@@ -99,6 +99,19 @@ export const ALERT_RULES = {
     cooldownMs: 2 * 60 * 1000,
     notificationChannel: 'webhook',
   } satisfies AlertRule,
+
+  /**
+   * Fires when the API records multiple email-ingest parse failures inside a
+   * sliding window (threshold is enforced by the caller, not this preset).
+   * Routed to Discord. Cooldown: 15 minutes.
+   */
+  EMAIL_INGEST_SUSTAINED_PARSE_FAILURES: {
+    id: 'EMAIL_INGEST_SUSTAINED_PARSE_FAILURES',
+    name: 'Email intake sustained parse failures',
+    threshold: 5,
+    cooldownMs: 15 * 60 * 1000,
+    notificationChannel: 'discord',
+  } satisfies AlertRule,
 } as const satisfies Record<string, AlertRule>;
 
 // ============================================================================
