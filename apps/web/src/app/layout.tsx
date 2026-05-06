@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -21,8 +21,8 @@ import { RootProvider } from "@/lib/providers";
 
 
 export const metadata: Metadata = {
-  title: "TiltCheck | The Degen Audit Layer",
-  description: "The house has an edge. Now you do too. TiltCheck audits casinos, tracks your sessions, and tells you when to cash out.",
+  title: "TiltCheck | Tilt guardrails for real sessions",
+  description: "Spot tilt, sus session dynamics, and sketch nudges before you do something stupid. Math verifiers exist; TiltCheck handles the mental game.",
   metadataBase: new URL("https://tiltcheck.me"),
   icons: {
     icon: "/icon.png",
@@ -30,16 +30,16 @@ export const metadata: Metadata = {
     shortcut: "/icon.png",
   },
   openGraph: {
-    title: "TiltCheck | The Degen Audit Layer",
-    description: "The house has an edge. Now you do too.",
+    title: "TiltCheck | Tilt guardrails for real sessions",
+    description: "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
     url: "https://tiltcheck.me",
     siteName: "TiltCheck",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TiltCheck | The Degen Audit Layer",
-    description: "The house has an edge. Now you do too.",
+    title: "TiltCheck | Tilt guardrails for real sessions",
+    description: "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
   },
 };
 

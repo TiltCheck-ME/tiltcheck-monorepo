@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 import Link from "next/link";
 
 const coreJobs = [
@@ -10,9 +10,9 @@ const coreJobs = [
   },
   {
     step: "02",
-    title: "Read the Receipts",
+    title: "Read the Room",
     description:
-      "We translate hidden RTP tiers into plain English. If the math is costing you more than advertised, we show the gap.",
+      "We flag sus pacing, pressure loops, and manipulative session cues. Math verifiers can rerun the numbers later. We catch the headspace drift while you are still inside it.",
   },
   {
     step: "03",
@@ -31,13 +31,15 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            HOUSE ALWAYS WINS? FUCK THAT.
+            THE SESSION IS RIGGED AGAINST YOUR BRAIN, NOT JUST THE MATH.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
-            TiltCheck is a read-only browser extension that watches live casino sessions,
-            detects Auto-Pilot mode, and forces the exit before The Loop feeds your win
-            back to the machine. The house has the math. Now you do too.
+            TiltCheck is a read-only browser extension that watches how you play, not
+            just what the reels say. It flags tilt, manipulative pacing, and Auto-Pilot
+            mode before The Loop feeds your win back to the machine. While fairness
+            verifiers already exist, we close the psychological gap before the session
+            cooks you.
           </p>
 
           <div className="hero-actions">
@@ -92,7 +94,7 @@ export default function Home() {
             <p className="public-page-panel__eyebrow">Ready to see it work?</p>
             <h2 className="public-page-cta-band__title">
               Install the extension and let TiltCheck watch your next session.
-              Check casino trust scores before you deposit if you need the receipts first.
+              Or check casino trust scores before you deposit if you need the receipts first.
             </h2>
             <div className="public-page-cta-band__actions">
               <Link

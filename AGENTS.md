@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Agent Directory
 
@@ -48,17 +48,17 @@ This repo does not ship an active tracked GCP deploy workflow. Container service
 | Surface | Delivery | Source of Truth | Verdict |
 | :--- | :--- | :--- | :--- |
 | **api** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Central Gateway. |
-| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `tiltcheck.me` and `www.tiltcheck.me`. |
+| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
 | **discord-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: primary TiltCheck bot runtime. |
 | **justthetip-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate tipping bot service. |
 | **dad-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate dad bot service. |
 | **trust-rollup** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Trust Engine aggregator. |
-| **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `admin.tiltcheck.me`. |
-| **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `arena.tiltcheck.me`. |
-| **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `dashboard.tiltcheck.me` and `hub.tiltcheck.me`. |
-| **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: `activity.tiltcheck.me`. |
-| **cloudflared** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Live: tunnel daemon backing public ingress. |
-| **hub** | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | Worker deploy is active, but `hub.tiltcheck.me` still routes to `user-dashboard` until tunnel ingress changes on purpose. |
+| **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **cloudflared** | Optional GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Optional tunnel daemon only if Cloudflare Tunnel is the chosen ingress path. |
+| **hub** | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | Worker deploy for `apps/hub`; public `hub.tiltcheck.me` may map to `user-dashboard` or this Worker depending on live ingress. Confirm routing before assuming either path. |
 | **chrome-extension** | Browser asset | Manual packaging from `apps/chrome-extension` | Functional browser asset pointing at production API. |
 | **degens-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
 | **tiltcheck-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
@@ -73,7 +73,7 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-05-03
+Last Updated: 2026-05-06
 
 ## 6. GitHub Copilot Custom Agents
 Located in .github/agents/

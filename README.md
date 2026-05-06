@@ -256,12 +256,12 @@ See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup, **[ONE-LAUNCH-DEPLO
 
 ### Production Deployment
 
-Production deploys are wired around GitHub Actions, GHCR, Railway, and a manually reconciled Cloudflare Tunnel. `docs/DEPLOY.md` is the canonical deploy inventory.
+Production deploys are wired around GitHub Actions, GHCR, Railway, and external domain routing. Direct Railway custom domains are valid. `.github/workflows/configure-tunnel.yml` remains optional if you deliberately run Cloudflare Tunnel in front of Railway. `docs/DEPLOY.md` is the canonical deploy inventory.
 
 For current deployment reality, use the following sources of truth:
 - **[Canonical Deploy Inventory](./docs/DEPLOY.md)** - workflows, images, Railway services, required env, and smoke targets.
 - **[Railway Deploy Workflow](./.github/workflows/deploy-railway.yml)** - builds GHCR images and triggers Railway redeploys for the wired services.
-- **[Tunnel Route Workflow](./.github/workflows/configure-tunnel.yml)** - manually reconciles public hostnames and DNS against Railway internal services.
+- **[Tunnel Route Workflow](./.github/workflows/configure-tunnel.yml)** - optional helper for teams that intentionally run Cloudflare Tunnel in front of Railway.
 
 ### Components + A11y Audits
 

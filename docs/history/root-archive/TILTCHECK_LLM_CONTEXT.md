@@ -55,7 +55,7 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 
 ## Platform Services
 - **Railway + GHCR:** Host the wired container services and publish their deployable images.
-- **Cloudflare Tunnel:** Exposes the public hostnames that front Railway internal services.
+- **Cloudflare / DNS:** Public hostnames must resolve to the live service origin. A Cloudflare Tunnel is optional infrastructure, not a guaranteed production dependency.
 - **Google Cloud Storage:** Used for storing user-uploaded assets and application data where those integrations still exist.
 - **Google Secret Manager:** Manages secrets for GCP-scoped integrations where still in use.
 - **Geo-Information:** The platform aims to inform users about regional online gambling laws and regulations to help them make informed decisions, rather than strictly blocking access based on location.
