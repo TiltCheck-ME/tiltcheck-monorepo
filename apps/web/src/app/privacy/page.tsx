@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import PublicPageHero from "@/components/PublicPageHero";
 
 const sections = [
@@ -57,7 +57,23 @@ const sections = [
       "The extension reads active tab URLs and session-visible data only on domains you explicitly activate it for. It does not log keystrokes, capture screenshots, or read unrelated tabs.",
   },
   {
-    title: "07. Your rights",
+    title: "07. Ethical ad filter",
+    body: (
+      <div className="public-page-card__body">
+        <p>
+          Ethical ad filtering is off until you enable it. When enabled, TiltCheck scans visible promo surfaces on
+          supported gambling pages in your active browser tab and applies your local filter rules.
+        </p>
+        <p>
+          Local filtering does not require telemetry. Account sync, promo reporting, and aggregate filter counts each
+          require separate consent. We do not read unrelated tabs, log keystrokes, capture screenshots, sell browsing
+          data, or label your mental health.
+        </p>
+      </div>
+    ),
+  },
+  {
+    title: "08. Your rights",
     body: (
       <div className="public-page-card__body">
         <p>You can request a copy of your data, request deletion, correct identity details, and opt out of anonymized aggregate displays.</p>
@@ -66,12 +82,28 @@ const sections = [
     ),
   },
   {
-    title: "08. Cookies",
+    title: "09. Cookies",
     body:
       "TiltCheck uses session cookies for authentication only. No tracking cookies. No cross-site cookies. No fake consent theater for trackers we are not running.",
   },
   {
-    title: "09. Contact",
+    title: "10. Consent copy",
+    body: (
+      <div className="public-page-card__body">
+        <p>
+          Local filtering: TiltCheck scans visible promo surfaces on supported gambling pages you visit and applies your
+          filter rules in this browser. Local activity stays on-device unless you choose account sync, reporting, or
+          aggregate metrics.
+        </p>
+        <p>
+          Optional metrics: TiltCheck counts which filter rule categories fired so the feature can improve. No raw page
+          text, full URLs, user notes, or cross-site tracking IDs.
+        </p>
+      </div>
+    ),
+  },
+  {
+    title: "11. Contact",
     body: (
       <div className="public-page-card__body">
         <p>Privacy inquiries: privacy@tiltcheck.me</p>
@@ -96,7 +128,7 @@ export default function PrivacyPage() {
         stats={[
           {
             label: "Version",
-            value: "1.1",
+            value: "1.2",
             description: "Current public privacy policy version.",
           },
           {

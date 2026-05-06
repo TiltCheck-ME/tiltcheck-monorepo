@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltGuard Chrome Extension — Features Reference
 
@@ -127,6 +127,20 @@ For the full technical reference, including API endpoints and Discord slash comm
 
 - Exports session data in JSON format.
 - Download is local-only — no data is sent to external servers without explicit consent.
+
+---
+
+## Ethical Ad Filter Privacy
+
+The Ethical ad filter MVP uses separate consent gates for local filtering, account sync, report submission, and aggregate metrics.
+
+- Local filtering is off until the user enables it.
+- Active-page scanning is limited to supported gambling pages and visible promo surfaces.
+- Local filtering works without telemetry.
+- Account sync and aggregate metrics are optional.
+- The UX must not infer or label mental-health status.
+
+See [ethical-ad-filter-privacy.md](ethical-ad-filter-privacy.md) for the data flow, retention posture, and approved consent strings.
 
 ---
 

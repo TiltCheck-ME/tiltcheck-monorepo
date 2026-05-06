@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import PublicPageHero from "@/components/PublicPageHero";
 
 const legalCards = [
@@ -11,10 +11,10 @@ const legalCards = [
   },
   {
     href: "/privacy",
-    eyebrow: "v1.1",
+    eyebrow: "v1.2",
     title: "Privacy Policy",
     description:
-      "What data TiltCheck collects, what it never collects, how retention works, and how deletion requests are handled.",
+      "What data TiltCheck collects, what it never collects, how retention works, ad filter consent, and deletion requests.",
   },
   {
     href: "/legal/limit",

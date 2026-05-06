@@ -147,6 +147,7 @@ apps/chrome-extension/
 │   ├── development.md
 │   ├── publishing.md
 │   ├── discord-oauth.md            # Extension Discord OAuth + redirect URIs
+│   ├── ethical-ad-filter-privacy.md # Ethical ad filter privacy data flow and consent copy
 │   └── surgical-self-exclusion.md  # Surgical Self-Exclusion technical reference
 └── tests/unit/
     ├── background.test.ts
@@ -232,6 +233,7 @@ Generic fallback selectors activate on other casino sites.
 ## Related Documentation
 
 - [Surgical Self-Exclusion Reference](docs/surgical-self-exclusion.md)
+- [Ethical Ad Filter Privacy Data Flow](docs/ethical-ad-filter-privacy.md)
 - [Features Reference](docs/features.md)
 - [Development Guide](docs/development.md)
 - [Installation Guide](docs/installation.md)
