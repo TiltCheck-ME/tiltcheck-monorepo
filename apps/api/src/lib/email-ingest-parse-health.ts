@@ -36,7 +36,6 @@ export async function recordEmailIngestParseFailure(context: Record<string, unkn
   const now = Date.now();
   prune(now);
   failureTimestamps.push(now);
-  prune(now);
 
   const threshold = getThreshold();
   if (failureTimestamps.length < threshold) return;
