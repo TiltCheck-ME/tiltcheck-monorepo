@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -92,7 +92,7 @@ describe('RGaaS email bonus feed routes', () => {
             `Date: ${new Date().toUTCString()}`,
             'Subject: Match bonus drop',
             '',
-            'Get a 100% match bonus up to $500 expires in 2 days.',
+            'Get a 100% match bonus up to $500 expires in 45 days.',
             'Use code DROP500 at https://mcluck.com/promos/claim',
             '<img src="https://cdn.discordapp.com/ephemeral-attachments/1234/5678/bad.png" />',
             '<img src="https://mcluck.com/assets/promo-banner.png" />',
