@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 
 'use strict';
 
@@ -824,6 +824,7 @@ function setupSafetyPanel() {
     document.getElementById('save-exclusion-btn')?.addEventListener('click', saveExclusion);
     document.getElementById('save-wallet-lock-btn')?.addEventListener('click', saveWalletLock);
     document.getElementById('request-wallet-unlock-btn')?.addEventListener('click', requestWalletUnlock);
+    document.getElementById('pay-wallet-unlock-btn')?.addEventListener('click', paidEarlyWalletUnlock);
     document.getElementById('vault-rule-type')?.addEventListener('change', (event) => {
         renderVaultRuleFieldGroups(event.target.value);
     });
@@ -1109,6 +1110,59 @@ async function requestWalletUnlock() {
     } catch (err) {
         console.error('[Wallet Unlock Request]', err);
         setFormMessage('walletLockStatusMsg', 'Failed to request early unlock.', true);
+    }
+}
+
+async function paidEarlyWalletUnlock() {
+    if (!walletLockState.locked) return;
+
+    const confirmed = window.confirm(
+        'Pay roughly 10% of your LockVault ledger balance to drop the Wallet Lock early? ' +
+            'That fee splits across the trivia jackpot ledger, the recovery microgrant pool, and a 2% dev skim (logged - no auto chain sweep).'
+    );
+    if (!confirmed) return;
+
+    setFormMessage('walletLockStatusMsg', 'Quoting paid unlock...');
+    try {
+        const quoteRes = await apiRequest(`/api/user/${currentUser.discordId}/wallet-unlock-request`, {
+            method: 'POST',
+            body: JSON.stringify({ mode: 'paid_early_unlock' }),
+        });
+        const quoteData = await quoteRes.json().catch(() => ({}));
+        if (!quoteRes.ok) {
+            setFormMessage('walletLockStatusMsg', quoteData.error || 'Paid unlock quote failed.', true);
+            return;
+        }
+
+        const fee = quoteData.earlyUnlockRequest?.feeAmountSOL;
+        setFormMessage(
+            'walletLockStatusMsg',
+            typeof fee === 'number'
+                ? `Fee ~${fee.toFixed(4)} SOL from vault ledger. Settling...`
+                : 'Settling paid unlock...'
+        );
+
+        const payRes = await apiRequest(`/api/user/${currentUser.discordId}/wallet-unlock-pay`, {
+            method: 'POST',
+            body: JSON.stringify({}),
+        });
+        const payData = await payRes.json().catch(() => ({}));
+        if (!payRes.ok) {
+            setFormMessage('walletLockStatusMsg', payData.error || 'Paid unlock settlement failed.', true);
+            return;
+        }
+
+        setFormMessage('walletLockStatusMsg', 'Wallet Lock cleared. Vault ledger charged.');
+        if (payData.feeRouted === false) {
+            showNotification('Wallet lock cleared but trivia/microgrant ledgers did not sync; check logs.', 'warning');
+        } else {
+            showNotification('Paid early unlock completed.', 'success');
+        }
+        loadWalletLock();
+        loadVaults();
+    } catch (err) {
+        console.error('[Paid Wallet Unlock]', err);
+        setFormMessage('walletLockStatusMsg', 'Paid unlock failed.', true);
     }
 }
 

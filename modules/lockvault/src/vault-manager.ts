@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
 import { db } from '@tiltcheck/database';
@@ -153,6 +153,12 @@ export interface WalletActionLock {
     requestedBy: string;
     feePercentage?: number;
     feeAmountSOL?: number;
+    /** Populated when paid early unlock settles: trivia pot, microgrant ledger, dev skim (logged upstream). */
+    feeAllocationSOL?: {
+      triviaSOL: number;
+      micrograntSOL: number;
+      devSOL: number;
+    };
     approvedBy?: string;
     approvedAt?: number;
     completedAt?: number;
@@ -1420,21 +1426,144 @@ class VaultManager {
     return lock;
   }
 
+  /**
+   * Fee = feePct% of current vault ledger balance (lockedAmountSOL).
+   * Split: devPct% of balance to dev skim (logged by API), remainder split trivia/microgrant by triviaShare (default 0.5 each).
+   * Env: WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE (default 2), WALLET_EARLY_UNLOCK_TRIVIA_SHARE_OF_REMAINDER (default 0.5).
+   */
+  private computeEarlyUnlockFeeSplit(
+    baseSOL: number,
+    feePct: number,
+  ): { feeTotal: number; devSOL: number; triviaSOL: number; micrograntSOL: number } {
+    const devPctRaw = Number(process.env.WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE);
+    const devPct = Number.isFinite(devPctRaw) && devPctRaw >= 0 ? devPctRaw : 2;
+
+    const triviaShareRaw = Number(process.env.WALLET_EARLY_UNLOCK_TRIVIA_SHARE_OF_REMAINDER);
+    const triviaShare = Number.isFinite(triviaShareRaw) && triviaShareRaw >= 0 && triviaShareRaw <= 1
+      ? triviaShareRaw
+      : 0.5;
+
+    const feeTotal = normalizeSolAmount(baseSOL * (feePct / 100));
+    let devSOL = normalizeSolAmount(baseSOL * (devPct / 100));
+    if (devSOL > feeTotal) {
+      devSOL = feeTotal;
+    }
+    let remainder = normalizeSolAmount(feeTotal - devSOL);
+    if (remainder < 0) {
+      remainder = 0;
+    }
+
+    let triviaSOL = normalizeSolAmount(remainder * triviaShare);
+    let micrograntSOL = normalizeSolAmount(remainder - triviaSOL);
+
+    const sumParts = normalizeSolAmount(devSOL + triviaSOL + micrograntSOL);
+    if (sumParts !== feeTotal) {
+      micrograntSOL = normalizeSolAmount(feeTotal - devSOL - triviaSOL);
+      if (micrograntSOL < 0) {
+        micrograntSOL = 0;
+        triviaSOL = normalizeSolAmount(feeTotal - devSOL);
+      }
+    }
+
+    return { feeTotal, devSOL, triviaSOL, micrograntSOL };
+  }
+
   requestPaidWalletUnlock(userId: string, requestedBy: string, feePercentage = 10): WalletActionLock {
-    void userId;
-    void requestedBy;
-    void feePercentage;
-    throw createFeatureNotImplementedError(
-      'Paid early wallet unlock is temporarily disabled until fee routing is implemented.'
-    );
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) throw new Error('No active wallet lock found.');
+    const remainingMs = lock.lockUntil - now();
+    if (remainingMs <= 0) {
+      this.clearWalletActionLockInternal(userId);
+      throw new Error('Wallet lock has already expired.');
+    }
+
+    this.status(userId);
+
+    const vault = this.getLatestLockedVaultForUser(userId);
+    const baseSOL = normalizeSolAmount(vault.lockedAmountSOL);
+    if (!isPositiveSolAmount(baseSOL)) {
+      throw new Error('Vault balance is too small for a paid early unlock fee.');
+    }
+
+    const feePct =
+      Number.isFinite(feePercentage) && feePercentage > 0 && feePercentage <= 100 ? feePercentage : 10;
+
+    const feeTotal = normalizeSolAmount(baseSOL * (feePct / 100));
+    if (!isPositiveSolAmount(feeTotal)) {
+      throw new Error('Computed early unlock fee rounds to zero; vault balance is too small.');
+    }
+
+    lock.earlyUnlockRequest = {
+      mode: 'paid_early_unlock',
+      status: 'pending',
+      requestedAt: now(),
+      requestedBy,
+      feePercentage: feePct,
+      feeAmountSOL: feeTotal,
+    };
+    this.schedulePersist();
+    return lock;
   }
 
   settlePaidWalletUnlock(userId: string, paidBy: string): WalletActionLock {
-    void userId;
-    void paidBy;
-    throw createFeatureNotImplementedError(
-      'Paid early wallet unlock is temporarily disabled until fee routing is implemented.'
-    );
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) throw new Error('No active wallet lock found.');
+
+    const req = lock.earlyUnlockRequest;
+    if (!req || req.mode !== 'paid_early_unlock') {
+      throw new Error('No paid early unlock request is pending for this wallet lock.');
+    }
+    if (req.status !== 'pending') {
+      throw new Error('Paid early unlock request is not pending.');
+    }
+
+    const remainingMs = lock.lockUntil - now();
+    if (remainingMs <= 0) {
+      this.clearWalletActionLockInternal(userId);
+      throw new Error('Wallet lock has already expired.');
+    }
+
+    this.status(userId);
+
+    const vault = this.getLatestLockedVaultForUser(userId);
+    const baseSOL = normalizeSolAmount(vault.lockedAmountSOL);
+    const feePct = req.feePercentage ?? 10;
+
+    const { feeTotal, devSOL, triviaSOL, micrograntSOL } = this.computeEarlyUnlockFeeSplit(baseSOL, feePct);
+
+    if (!isPositiveSolAmount(feeTotal)) {
+      throw new Error('Early unlock fee rounds to zero.');
+    }
+    if (feeTotal > baseSOL) {
+      throw new Error('Early unlock fee exceeds vault balance.');
+    }
+
+    vault.lockedAmountSOL = normalizeSolAmount(baseSOL - feeTotal);
+    vault.releasedAmountSOL = normalizeSolAmount(Math.min(vault.releasedAmountSOL, vault.lockedAmountSOL));
+
+    vault.history.push({
+      ts: now(),
+      action: 'wallet-lock-paid-early-unlock',
+      note: JSON.stringify({
+        feeTotalSOL: feeTotal,
+        triviaSOL,
+        micrograntSOL,
+        devSOL,
+        paidBy,
+        feePercentage: feePct,
+      }),
+    });
+
+    req.status = 'completed';
+    req.completedAt = now();
+    req.approvedBy = paidBy;
+    req.approvedAt = now();
+    req.feeAmountSOL = feeTotal;
+    req.feeAllocationSOL = { triviaSOL, micrograntSOL, devSOL };
+
+    this.clearWalletActionLockInternal(userId);
+    this.schedulePersist();
+    return lock;
   }
 
   setAutoVault(userId: string, settings: AutoVaultSettings): void {

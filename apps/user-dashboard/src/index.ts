@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -1961,6 +1961,22 @@ app.post('/api/user/:discordId/wallet-unlock-request', authenticateToken, async 
   } catch (error) {
     console.error('[Wallet Unlock Request POST]', error);
     res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to request early unlock') });
+  }
+});
+
+app.post('/api/user/:discordId/wallet-unlock-pay', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/wallet-unlock-pay`, {
+      method: 'POST',
+      body: JSON.stringify(req.body ?? {}),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Wallet Unlock Pay POST]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to settle paid early unlock') });
   }
 });
 
