@@ -1,93 +1,27 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /**
- * Trivia Jackpot Pool — persistent tracking of the Live Trivia prize pool.
- * Tracks contributions from /rain, /triviadrop, and direct Solana Pay deposits.
- * Serves the current pool balance to the degens-activity jackpot view.
+ * Trivia Jackpot Pool — HTTP surface for the Live Trivia prize pool.
+ * Persistence lives in services/community-pools.ts (shared with wallet-lock fee routing).
  */
 
 import { Router } from 'express';
-import { db } from '@tiltcheck/database';
+import {
+  getTriviaJackpotSnapshot,
+  contributeTriviaJackpot,
+  recordTriviaJackpotPayout,
+  resetTriviaJackpotPool,
+  getMicrograntPoolSnapshot,
+} from '../services/community-pools.js';
 
 const router = Router();
 
-// ── In-memory pool with DB persistence ─────────────────────────────────────────
-
-interface JackpotPool {
-  balance: number;       // SOL
-  contributions: number; // total count
-  lastWinner: string | null;
-  lastPayout: number;
-  updatedAt: number;
-}
-
-let pool: JackpotPool = {
-  balance: 0,
-  contributions: 0,
-  lastWinner: null,
-  lastPayout: 0,
-  updatedAt: Date.now(),
-};
-
-const TABLE = 'trivia_jackpot';
-
-async function loadPool(): Promise<void> {
-  try {
-    const client = db.getClient();
-    if (!client) {
-      return;
-    }
-
-    const { data } = await client.from(TABLE).select('*').order('updated_at', { ascending: false }).limit(1).single();
-    if (data) {
-      pool = {
-        balance: data.balance ?? 0,
-        contributions: data.contributions ?? 0,
-        lastWinner: data.last_winner ?? null,
-        lastPayout: data.last_payout ?? 0,
-        updatedAt: new Date(data.updated_at).getTime(),
-      };
-    }
-  } catch {
-    // Table may not exist yet — use in-memory defaults
-  }
-}
-
-async function savePool(): Promise<void> {
-  try {
-    const client = db.getClient();
-    if (!client) {
-      return;
-    }
-
-    await client.from(TABLE).upsert({
-      id: 'main',
-      balance: pool.balance,
-      contributions: pool.contributions,
-      last_winner: pool.lastWinner,
-      last_payout: pool.lastPayout,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'id' });
-  } catch (err) {
-    console.error('[trivia] Failed to persist jackpot pool:', err);
-  }
-}
-
-// Load on startup
-loadPool().catch(() => {});
-
-// ── GET /trivia/jackpot — current pool state ───────────────────────────────────
-
 router.get('/jackpot', (_req, res) => {
-  res.json({
-    pool: pool.balance,
-    contributions: pool.contributions,
-    lastWinner: pool.lastWinner,
-    lastPayout: pool.lastPayout,
-    updatedAt: pool.updatedAt,
-  });
+  res.json(getTriviaJackpotSnapshot());
 });
 
-// ── POST /trivia/jackpot/contribute — add to the pool ──────────────────────────
+router.get('/microgrant-pool', (_req, res) => {
+  res.json(getMicrograntPoolSnapshot());
+});
 
 router.post('/jackpot/contribute', async (req, res) => {
   const { amountSol, source, signature } = req.body;
@@ -97,18 +31,11 @@ router.post('/jackpot/contribute', async (req, res) => {
     return;
   }
 
-  pool.balance += amountSol;
-  pool.contributions += 1;
-  pool.updatedAt = Date.now();
+  await contributeTriviaJackpot(amountSol, source, signature);
 
-  await savePool();
-
-  console.log(`[trivia] Jackpot contribution: +${amountSol} SOL from ${source || 'unknown'} (sig: ${signature || 'none'})`);
-
-  res.json({ pool: pool.balance, contributions: pool.contributions });
+  const snap = getTriviaJackpotSnapshot();
+  res.json({ pool: snap.pool, contributions: snap.contributions });
 });
-
-// ── POST /trivia/jackpot/payout — record a winner payout ───────────────────────
 
 router.post('/jackpot/payout', async (req, res) => {
   const { winner, amountSol } = req.body;
@@ -118,27 +45,14 @@ router.post('/jackpot/payout', async (req, res) => {
     return;
   }
 
-  pool.lastWinner = winner;
-  pool.lastPayout = amountSol;
-  pool.balance = Math.max(0, pool.balance - amountSol);
-  pool.updatedAt = Date.now();
+  await recordTriviaJackpotPayout(winner, amountSol);
 
-  await savePool();
-
-  console.log(`[trivia] Jackpot payout: ${amountSol} SOL to ${winner}`);
-
-  res.json({ pool: pool.balance, lastWinner: pool.lastWinner, lastPayout: pool.lastPayout });
+  const snap = getTriviaJackpotSnapshot();
+  res.json({ pool: snap.pool, lastWinner: snap.lastWinner, lastPayout: snap.lastPayout });
 });
 
-// ── POST /trivia/jackpot/reset — admin reset ───────────────────────────────────
-
 router.post('/jackpot/reset', async (_req, res) => {
-  pool.balance = 0;
-  pool.contributions = 0;
-  pool.updatedAt = Date.now();
-
-  await savePool();
-
+  await resetTriviaJackpotPool();
   res.json({ pool: 0, message: 'Jackpot pool reset' });
 });
 

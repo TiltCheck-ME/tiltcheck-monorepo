@@ -49,9 +49,53 @@ Public hostnames do not automatically come from the deploy workflow itself. This
 - `api.tiltcheck.me` -> `api.railway.internal:3000`
 - `tiltcheck.me` and `www.tiltcheck.me` -> `web.railway.internal:3000`
 - `dashboard.tiltcheck.me` and `hub.tiltcheck.me` -> `user-dashboard.railway.internal:6001`
-- `activity.tiltcheck.me` -> `activity.railway.internal:3000`
+- activity.tiltcheck.me -> activity.railway.internal:8080 (matches the container listen port in the Dockerfile)
 - `arena.tiltcheck.me` -> `game-arena.railway.internal:3000`
 - `admin.tiltcheck.me` -> `control-room.railway.internal:3000`
+
+## Discord Activity (`apps/activity`) — production checklist
+
+This app is the primary hosted Discord Embedded Activity for TiltCheck. Static assets are served from nginx in Docker; delivery matches the `activity` row in **Deploy Inventory** above.
+
+### Hosting target (locked)
+
+| Item | Value |
+| :--- | :--- |
+| Public URL | `https://activity.tiltcheck.me` |
+| Image | `ghcr.io/tiltcheck-me/tiltcheck-activity` |
+| CI/CD | `.github/workflows/deploy-railway.yml` (rebuild on `apps/activity/**`, shared deps, or `workflow_dispatch`) |
+| Railway wiring | Service consumes the SHA-tagged GHCR image; redeploy job uses the same pattern as other monorepo containers |
+
+### HTTPS verification
+
+- Expect TLS via the public edge (Cloudflare and/or Railway custom domain). From browser DevTools, confirm the document URL is `https://activity.tiltcheck.me/` and the certificate chain is valid.
+- Automated `curl -sSI https://activity.tiltcheck.me/` may return **403** with Cloudflare challenge headers (`cf-mitigated`, `server: cloudflare`). That is not proof the origin is broken; bots and headless clients often fail JS challenges. Prefer a browser check, Railway deploy status, or hitting the container health path from Railway’s internal probe (healthcheck uses `/` per `apps/activity/railway.json`).
+- Optional strict TLS inspect (may still hit CF): `echo | openssl s_client -servername activity.tiltcheck.me -connect activity.tiltcheck.me:443 2>/dev/null | openssl x509 -noout -subject -dates`
+
+### Discord Developer Portal (allowlist / origins)
+
+Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (Railway env for the `activity` service).
+
+1. **Embedded App / Activity URL:** `https://activity.tiltcheck.me/` (keep consistent with what you ship; SPA entry is `index.html`).
+2. **OAuth2 redirects:** include `https://<APPLICATION_ID>.discordsays.com`. The Embedded App SDK `authorize()` flow exchanges codes against this host; `POST /auth/discord/activity/token` on the API defaults to that redirect URI (`apps/api/src/routes/auth.ts`).
+3. **Any allowed origins or linked URL fields** for the Activity should list https://activity.tiltcheck.me and https://<APPLICATION_ID>.discordsays.com (and dev tunnels such as https://dev-activity.tiltcheck.me only if you still use them).
+
+### API allowlist (server-side)
+
+- `isAllowedActivityRedirectUri` allows HTTPS hosts under `*.tiltcheck.me` and `*.discordsays.com`, so production and Discord proxy URIs stay aligned without code edits when the hostname is under `tiltcheck.me`.
+
+### Internal networking (Railway)
+
+- apps/activity/Dockerfile nginx proxies /api/ to the private API service and /socket.io/ to game-arena (both hardcoded to port :3000 in the Dockerfile). Those internal hostnames must resolve inside the same Railway project/environment or bonus feed, auth exchange, and arena realtime features degrade.
+- If optional Cloudflare Tunnel ingress is enabled (`.github/workflows/configure-tunnel.yml`), keep the tunnel upstream port for `activity.railway.internal` aligned with the Railway private port for the `activity` service (image listens on `8080`; Railway may map a different internal port in project settings).
+
+### How to verify health end-to-end
+
+1. **Pipeline:** After merge to `main`, confirm the workflow built `tiltcheck-activity` and the Railway deploy step succeeded for the `activity` matrix row.
+2. **Edge:** Open `https://activity.tiltcheck.me/` in a browser; you should get the SPA (not a persistent 5xx). Fetch `https://activity.tiltcheck.me/version.json` after a deploy if you need a coarse build stamp (generated at Vite build).
+3. **Discord:** Join a voice channel, launch the Embedded Activity, and confirm the shell reaches CONNECTED (not permanently DEMO MODE). DEMO MODE usually means SDK or token exchange failed—check API logs for `/auth/discord/activity/token` and Discord OAuth config.
+
+- **Activity-only rollback:** In Railway, roll back the `activity` service to a previous image or redeploy a known-good tag from GHCR.
 
 ## Rollback Notes
 

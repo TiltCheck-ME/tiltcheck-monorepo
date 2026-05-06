@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import PublicPageHero from "@/components/PublicPageHero";
 
 const sections = [
@@ -25,7 +25,7 @@ const sections = [
   {
     title: "05. Tips and payments",
     body:
-      "SOL tips sent through JustTheTip are final once confirmed on-chain. Premium subscriptions billed through Discord or SOL are final sale. Billing disputes should be raised within 48 hours.",
+      "SOL tips sent through JustTheTip are final once confirmed on-chain. Discord game add-on purchases are final once Discord confirms entitlement. Retired platform pass billing is not offered on current surfaces. Billing disputes should be raised within 48 hours.",
   },
   {
     title: "06. Prohibited uses",

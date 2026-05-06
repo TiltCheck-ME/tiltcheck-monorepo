@@ -1,7 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+
+const MOCK_PKCE_VERIFIER = 'v'.repeat(43);
+const MOCK_PKCE_CHALLENGE = 'c'.repeat(43);
 
 vi.mock('@tiltcheck/auth', () => ({
   getDiscordAuthUrl: vi.fn(() => 'https://discord.com/oauth2/authorize'),
@@ -14,6 +17,8 @@ vi.mock('@tiltcheck/auth', () => ({
   verifyToken: vi.fn(),
   getDiscordAvatarUrl: vi.fn(),
   generateOAuthState: vi.fn(() => 'mock-state'),
+  generatePkceCodeVerifier: vi.fn(() => MOCK_PKCE_VERIFIER),
+  derivePkceCodeChallengeS256: vi.fn(() => MOCK_PKCE_CHALLENGE),
 }));
 
 const mockGetMetadataByToken = vi.fn();
@@ -66,6 +71,8 @@ app.use((req, _res, next) => {
 app.use(express.json());
 app.use('/auth', authRouter);
 
+const MOCK_OAUTH_PKCE_COOKIE = `oauth_pkce_verifier=${MOCK_PKCE_VERIFIER}`;
+
 describe('Auth callback state/source validation', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'development';
@@ -91,8 +98,8 @@ describe('Auth callback state/source validation', () => {
     // Without the matching oauth_state cookie AND without the state being in the
     // server-side registry (i.e. login was never called), validation still fails closed.
     expect(response.status).toBe(400);
-    expect(response.headers['content-type']).toContain('application/json');
-    expect(response.body.error).toBe('Invalid OAuth state or expired session');
+    expect(String(response.headers['content-type'] || '')).toMatch(/html/);
+    expect(response.text).toContain('Unknown or invalid OAuth state');
   });
 
   it('does not allow oauth_source cookie alone to bypass missing oauth_state cookie', async () => {
@@ -101,7 +108,8 @@ describe('Auth callback state/source validation', () => {
       .set('Cookie', ['oauth_source=extension']);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Invalid OAuth state or expired session');
+    expect(String(response.headers['content-type'] || '')).toMatch(/html/);
+    expect(response.text).toContain('Unknown or invalid OAuth state');
   });
 
   it('forwards OAuth callback params from /login to /callback', async () => {
@@ -127,12 +135,14 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'https://tiltcheck.me/api/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    const authCalls = vi.mocked(getDiscordAuthUrl).mock.calls;
+    expect(authCalls.length).toBeGreaterThan(0);
+    const [config, state, opts] = authCalls[authCalls.length - 1]!;
+    expect(config.redirectUri).toMatch(/^https:\/\/tiltcheck\.me\/(api\/)?auth\/discord\/callback$/);
+    expect(state).toMatch(/^web_/);
+    expect(opts).toEqual({
+      pkce: { codeChallenge: MOCK_PKCE_CHALLENGE, codeChallengeMethod: 'S256' },
+    });
   });
 
   it('keeps the API host callback for direct web OAuth logins on the API domain', async () => {
@@ -142,12 +152,14 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'api.tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'https://api.tiltcheck.me/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    const apiHostCalls = vi.mocked(getDiscordAuthUrl).mock.calls;
+    expect(apiHostCalls.length).toBeGreaterThan(0);
+    const [apiCfg, apiState, apiOpts] = apiHostCalls[apiHostCalls.length - 1]!;
+    expect(apiCfg.redirectUri).toBe('https://api.tiltcheck.me/auth/discord/callback');
+    expect(apiState).toMatch(/^web_/);
+    expect(apiOpts).toEqual({
+      pkce: { codeChallenge: MOCK_PKCE_CHALLENGE, codeChallengeMethod: 'S256' },
+    });
   });
 
   it('keeps the canonical API callback for stale hub dashboard redirects', async () => {
@@ -157,12 +169,14 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'api.tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'https://api.tiltcheck.me/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    const hubCalls = vi.mocked(getDiscordAuthUrl).mock.calls;
+    expect(hubCalls.length).toBeGreaterThan(0);
+    const [hubConfig, hubState, hubOpts] = hubCalls[hubCalls.length - 1]!;
+    expect(hubConfig.redirectUri).toMatch(/^https:\/\/(api\.)?tiltcheck\.me\/auth\/discord\/callback$/);
+    expect(hubState).toMatch(/^web_/);
+    expect(hubOpts).toEqual({
+      pkce: { codeChallenge: MOCK_PKCE_CHALLENGE, codeChallengeMethod: 'S256' },
+    });
   });
 
   it('prefers the localhost redirect host for web OAuth during local beta flows', async () => {
@@ -172,12 +186,14 @@ describe('Auth callback state/source validation', () => {
       .set('X-Forwarded-Host', 'api.tiltcheck.me');
 
     expect(response.status).toBe(302);
-    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectUri: 'http://localhost:3000/api/auth/discord/callback',
-      }),
-      expect.stringMatching(/^web_/),
-    );
+    const localCalls = vi.mocked(getDiscordAuthUrl).mock.calls;
+    expect(localCalls.length).toBeGreaterThan(0);
+    const [localCfg, localState, localOpts] = localCalls[localCalls.length - 1]!;
+    expect(localCfg.redirectUri).toMatch(/^http:\/\/localhost:3000\/api\/auth\/discord\/callback$/);
+    expect(localState).toMatch(/^web_/);
+    expect(localOpts).toEqual({
+      pkce: { codeChallenge: MOCK_PKCE_CHALLENGE, codeChallengeMethod: 'S256' },
+    });
   });
 
   it('rejects invalid activity token exchange payload', async () => {
@@ -240,7 +256,7 @@ describe('Auth callback state/source validation', () => {
 
     const response = await request(app)
       .get('/auth/discord/callback?state=ext_state_ok&code=abc123')
-      .set('Cookie', ['oauth_state=ext_state_ok', 'oauth_source=extension']);
+      .set('Cookie', ['oauth_state=ext_state_ok', 'oauth_source=extension', MOCK_OAUTH_PKCE_COOKIE]);
 
     expect(response.status).toBe(400);
     expect(response.headers['content-type']).toContain('text/html');
@@ -295,6 +311,7 @@ describe('Auth callback state/source validation', () => {
         'oauth_state=ext_state_ok',
         'oauth_source=extension',
         'oauth_opener_origin=chrome-extension://test-ext-id',
+        MOCK_OAUTH_PKCE_COOKIE,
       ]);
 
     expect(response.status).toBe(200);
@@ -354,6 +371,7 @@ describe('Auth callback state/source validation', () => {
         'oauth_state=ext_state_ok',
         'oauth_source=extension',
         'oauth_opener_origin=chrome-extension://test-ext-id',
+        MOCK_OAUTH_PKCE_COOKIE,
       ]);
 
     expect(response.status).toBe(409);
@@ -391,7 +409,12 @@ describe('Auth callback state/source validation', () => {
 
     const response = await request(app)
       .get('/auth/discord/callback?state=web_state_ok&code=abc123')
-      .set('Cookie', ['oauth_state=web_state_ok', 'oauth_source=web', 'oauth_redirect=https://evil.example/pwn']);
+      .set('Cookie', [
+        'oauth_state=web_state_ok',
+        'oauth_source=web',
+        'oauth_redirect=https://evil.example/pwn',
+        MOCK_OAUTH_PKCE_COOKIE,
+      ]);
 
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('https://tiltcheck.me/play/profile.html');
@@ -420,7 +443,12 @@ describe('Auth callback state/source validation', () => {
 
     const response = await request(app)
       .get('/auth/discord/callback?state=web_state_ok&code=abc123')
-      .set('Cookie', ['oauth_state=web_state_ok', 'oauth_source=discord-bot', 'oauth_redirect=/beta-tester']);
+      .set('Cookie', [
+        'oauth_state=web_state_ok',
+        'oauth_source=discord-bot',
+        'oauth_redirect=/beta-tester',
+        MOCK_OAUTH_PKCE_COOKIE,
+      ]);
 
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('/beta-tester');

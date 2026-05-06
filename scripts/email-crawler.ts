@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /**
  * Casino Email Crawler
  *
@@ -208,6 +208,9 @@ async function ingestEmail(rawEmail: string): Promise<{ success: boolean; brand?
     headers: {
       'Content-Type': 'application/json',
       'X-Requested-With': 'TiltCheck-Email-Crawler',
+      ...(process.env.EMAIL_INGEST_SECRET?.trim()
+        ? { 'X-Email-Ingest-Key': process.env.EMAIL_INGEST_SECRET.trim() }
+        : {}),
     },
     body: JSON.stringify({ raw_email: rawEmail }),
   });

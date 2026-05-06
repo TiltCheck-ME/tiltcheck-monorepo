@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -48,6 +48,10 @@ import { FairnessService } from './FairnessService.js';
 import { postRoundTelemetry, postWinSecureTelemetry } from './telemetry-client.js';
 import { GameBlocker } from './game-blocker.js';
 import type { CasinoVerification } from './license-verifier.js';
+import {
+  attachMarketingSiteStorageListener,
+  syncMarketingSiteTokenFromExtensionStorage,
+} from './web-app-session-sync.js';
 
 interface StoredUserData {
   id?: string;
@@ -500,6 +504,9 @@ class Highlighter {
  */
 function initialize() {
   if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] Initializing on:', window.location.hostname);
+
+  syncMarketingSiteTokenFromExtensionStorage();
+  attachMarketingSiteStorageListener();
 
   // Create sidebar UI
   sidebar = initSidebar();

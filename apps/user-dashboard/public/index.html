@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -590,10 +590,17 @@
                     placeholder="Optional note for why this lock exists"
                   />
                 </div>
+                <p class="section-desc section-desc-inline" style="font-size: 0.75rem; opacity: 0.85">
+                  Paid early unlock charges about <strong>10%</strong> of your LockVault ledger balance from your newest active lock.
+                  Split: next trivia pot plus recovery microgrant pool, plus <strong>2%</strong> dev skim (ledger log until treasury sweep exists).
+                </p>
                 <div class="inline-action-row">
                   <button id="save-wallet-lock-btn" class="btn btn-primary">Set Wallet Lock</button>
                   <button id="request-wallet-unlock-btn" class="btn btn-ghost">
                     Request Early Unlock
+                  </button>
+                  <button id="pay-wallet-unlock-btn" class="btn btn-secondary">
+                    Pay Early Unlock Fee
                   </button>
                 </div>
                 <div id="walletLockStatusMsg" class="form-msg"></div>

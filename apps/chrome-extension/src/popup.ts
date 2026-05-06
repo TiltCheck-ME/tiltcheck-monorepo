@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-15
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 // ---------------------------------------------------------------------------
@@ -91,6 +91,9 @@ async function loadAuth(): Promise<void> {
         userData = data.userData;
       } else if (data.tiltguard_user_id) {
         userId = data.tiltguard_user_id;
+      } else {
+        userId = null;
+        userData = null;
       }
       resolve();
     });
@@ -116,8 +119,12 @@ async function checkOnboardingStatus(): Promise<void> {
   if (!linkedDiscordId) return;
 
   try {
+    const token = await getToken();
     const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/me/onboarding-status`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       credentials: 'include',
     });
     if (!res.ok) return;
@@ -176,6 +183,63 @@ function getLinkedDiscordRouteId(): string | null {
   return userData?.discordId ?? null;
 }
 
+function attachAuthStorageSync(): void {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'local') return;
+    if (!changes.authToken && !changes.userData) return;
+
+    const hadDiscord = Boolean(userData?.discordId);
+    void loadAuth().then(() => {
+      renderAuthState();
+      loadFeed();
+      if (userData?.discordId) {
+        loadStatus();
+      }
+      if (!hadDiscord && userData?.discordId) {
+        toast('Discord sign-in complete.');
+      }
+    });
+  });
+}
+
+async function performLogout(): Promise<void> {
+  const token = await getToken();
+  let serverLogoutFailed = false;
+  try {
+    const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!response.ok) {
+      serverLogoutFailed = true;
+    }
+  } catch {
+    serverLogoutFailed = true;
+  }
+
+  await new Promise<void>((resolve) => {
+    chrome.storage.local.set(
+      {
+        authToken: null,
+        userData: null,
+        tiltguard_user_id: null,
+      },
+      () => resolve(),
+    );
+  });
+
+  userId = null;
+  userData = null;
+  renderAuthState();
+  loadFeed();
+  toast(
+    serverLogoutFailed
+      ? 'Logged out locally. Shared session may still be active.'
+      : 'Logged out.',
+  );
+}
+
 function openDashboardTab(tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'profile') {
   const dashboardUrl = new URL(EXT_CONFIG.DASHBOARD_URL);
   if (tab !== 'profile') {
@@ -193,8 +257,12 @@ async function loadStatus() {
   if (!linkedDiscordId) return;
 
   try {
+    const token = await getToken();
     const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/status`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     });
     if (!res.ok) return;
     const data = await res.json();
@@ -378,6 +446,7 @@ function loadFeed() {
 async function init() {
   await loadAuth();
   renderAuthState();
+  attachAuthStorageSync();
 
   if (userId && userData?.discordId) {
     loadStatus();
@@ -406,7 +475,9 @@ async function init() {
             chrome.tabs.sendMessage(tabs[0].id, { type: 'open_sidebar' }).catch(() => {});
           }
         });
-        toast('Open the sidebar on your casino tab to Connect Discord.', true);
+        toast('Open the sidebar on your casino tab to finish Discord sign-in.', true);
+      } else {
+        toast('Discord sign-in tab opened. Complete login there, then this popup updates automatically.');
       }
     });
   });
@@ -483,6 +554,10 @@ async function init() {
   // Dashboard
   $('btn-open-dashboard').addEventListener('click', () => {
     openDashboardTab('profile');
+  });
+
+  $('btn-logout').addEventListener('click', () => {
+    void performLogout();
   });
 
   // Activity refresh

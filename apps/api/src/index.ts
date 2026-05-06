@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-15
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -51,6 +51,7 @@ import { servicesRouter } from './routes/services.js';
 import { tipRouter } from './routes/tip.js';
 import { healthRouter } from './routes/health.js';
 import { rgaasRouter } from './routes/rgaas.js';
+import { aiGatewayRouter } from './routes/ai-gateway.js';
 import { affiliateRouter } from './routes/affiliate.js';
 import { safetyRouter } from './routes/safety.js';
 import { newsletterRouter } from './routes/newsletter.js';
@@ -215,7 +216,7 @@ app.use('/stripe', stripeRouter);
 app.use('/user', userRouter);
 
 // Consolidated Utility Routes
-app.use('/ai', (_req, res) => { res.status(410).json({ success: false, error: 'AI Gateway consolidated into discord-bot service.' }); });
+app.use('/ai', aiGatewayRouter);
 app.use('/pricing', pricingRouter);
 app.use('/casino', casinoRouter);
 app.use('/bonus', bonusRouter);
