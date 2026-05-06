@@ -611,7 +611,7 @@ router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
                 applicationId,
                 botToken,
             });
-            const entitlements = await shop.getEntitlements(id, feeWaiverSkuIds);
+            const entitlements = await shop.getEntitlements(id, feeWaiverSkuIds).catch(() => []);
             hasDiscordFeeWaiver = entitlements.some(
                 (e) =>
                     feeWaiverSkuIds.includes(e.sku_id) &&
