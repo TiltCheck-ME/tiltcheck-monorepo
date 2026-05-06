@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RuntimeListener = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;
@@ -125,5 +125,26 @@ describe('background service worker', () => {
       }),
     );
     expect(vaultResponse).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('allows localhost API discord login URL for open_auth_bridge', async () => {
+    const { chromeMock, runtimeListeners } = setupChromeMock();
+    await import('../../src/background.js');
+
+    const listener = runtimeListeners[0];
+    const bridgeResponse = vi.fn();
+    const keep = listener(
+      { type: 'open_auth_bridge', url: 'http://localhost:8080/auth/discord/login?source=extension' },
+      {},
+      bridgeResponse,
+    );
+    expect(keep).toBe(true);
+    expect(chromeMock.tabs.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: expect.stringContaining('auth-bridge.html?authUrl='),
+      }),
+      expect.any(Function),
+    );
+    expect(bridgeResponse).toHaveBeenCalledWith({ success: true });
   });
 });

@@ -7,7 +7,12 @@ const MOCK_PKCE_VERIFIER = 'v'.repeat(43);
 const MOCK_PKCE_CHALLENGE = 'c'.repeat(43);
 
 vi.mock('@tiltcheck/auth', () => ({
-  getDiscordAuthUrl: vi.fn(() => 'https://discord.com/oauth2/authorize'),
+  getDiscordAuthUrl: vi.fn((cfg: { redirectUri: string }, state: string, opts?: unknown) => {
+    const { redirectUri } = { ...cfg };
+    const ru = encodeURIComponent(redirectUri);
+    const st = encodeURIComponent(state);
+    return `https://discord.com/oauth2/authorize?redirect_uri=${ru}&state=${st}`;
+  }),
   verifyDiscordOAuth: vi.fn(),
   exchangeDiscordCode: vi.fn(),
   createToken: vi.fn(async () => 'mock-jwt-token'),
@@ -80,6 +85,9 @@ describe('Auth callback state/source validation', () => {
     process.env.DISCORD_CLIENT_SECRET = 'test-client-secret';
     delete process.env.MAGIC_SECRET_KEY;
     delete process.env.MAGIC_PUBLISHABLE_KEY;
+    delete process.env.TILT_DISCORD_REDIRECT_URI;
+    delete process.env.DISCORD_REDIRECT_URI;
+    delete process.env.DISCORD_CALLBACK_URL;
     vi.clearAllMocks();
   });
 
@@ -89,7 +97,9 @@ describe('Auth callback state/source validation', () => {
       .set('Cookie', ['oauth_source=extension']);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Invalid OAuth source');
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('TiltCheck Connect Issue');
+    expect(response.text).toContain('OAuth session did not line up');
   });
 
   it('allows local extension fallback only when state prefix indicates extension', async () => {
@@ -110,6 +120,21 @@ describe('Auth callback state/source validation', () => {
     expect(response.status).toBe(400);
     expect(String(response.headers['content-type'] || '')).toMatch(/html/);
     expect(response.text).toContain('Unknown or invalid OAuth state');
+  });
+
+  it('returns HTML when Discord returns access_denied for an extension-shaped callback', async () => {
+    const response = await request(app).get('/auth/discord/callback?error=access_denied&state=ext_xyz');
+
+    expect(response.status).toBe(400);
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('denied');
+  });
+
+  it('returns JSON when Discord returns access_denied for a web-shaped callback', async () => {
+    const response = await request(app).get('/auth/discord/callback?error=access_denied&state=web_xyz');
+
+    expect(response.status).toBe(400);
+    expect(response.headers['content-type']).toContain('application/json');
   });
 
   it('forwards OAuth callback params from /login to /callback', async () => {

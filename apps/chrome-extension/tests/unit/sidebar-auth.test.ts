@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 /**
  * @vitest-environment jsdom
  */
@@ -41,6 +41,13 @@ describe('Sidebar AuthManager', () => {
         id: 'test-extension-id',
         sendMessage: vi.fn(),
         lastError: null,
+      },
+      storage: {
+        local: {
+          remove: vi.fn((_keys: string[], cb?: () => void) => {
+            cb?.();
+          }),
+        },
       },
     };
   });
@@ -122,6 +129,27 @@ describe('Sidebar AuthManager', () => {
     expect(ui.showMainContent).toHaveBeenCalled();
     expect(ui.addFeedMessage).toHaveBeenCalledWith('Opened Discord login helper tab.');
     expect(ui.addFeedMessage).toHaveBeenCalledWith('Connected: stored-user');
+  });
+
+  it('stops connecting when auth-bridge records a Discord OAuth error in storage', async () => {
+    vi.useFakeTimers();
+
+    const sendMessage = vi.fn((_message: unknown, callback: (response: { success: boolean }) => void) => {
+      callback({ success: true });
+    });
+    (globalThis as any).chrome.runtime.sendMessage = sendMessage;
+
+    const { AuthManager } = await import('../../src/sidebar/auth.ts');
+    const ui = new SidebarUiStub();
+    ui.storageReads = [{}, { discord_oauth_error: 'Discord sign-in was cancelled or denied.' }];
+
+    const manager = new AuthManager(ui);
+    manager.startDiscordLoginFlow();
+
+    await vi.advanceTimersByTimeAsync(1500);
+
+    expect(manager.isConnecting).toBe(false);
+    expect(ui.addFeedMessage).toHaveBeenCalledWith('Discord sign-in was cancelled or denied.');
   });
 
   it('verifies stored auth against /auth/me before restoring the session', async () => {

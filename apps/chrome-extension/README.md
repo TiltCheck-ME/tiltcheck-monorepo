@@ -60,6 +60,8 @@ The sidebar **Server Tilt Check** block calls the central API AI gateway:
 - **API env (server):** `JWT_SECRET` plus whichever LLM keys your `AI_PROVIDER_PROFILE` allows (`GEMINI_API_KEY`, `GROQ_API_KEY`, `HF_TOKEN`, etc.). Inspect readiness via `GET /health/ai` on the API host.
 - **Failure UX:** Network errors (`NETWORK`), client abort at 55s (`TIMEOUT`), HTTP 401 from bad/expired JWT, and non-2xx bodies are surfaced as JSON in the panel plus a line in **Live Signals**.
 
+Full redirect URI list, popup wiring, and failure cases: [docs/discord-oauth.md](./docs/discord-oauth.md).
+
 ---
 
 ## Version
@@ -144,6 +146,7 @@ apps/chrome-extension/
 │   ├── features.md
 │   ├── development.md
 │   ├── publishing.md
+│   ├── discord-oauth.md            # Extension Discord OAuth + redirect URIs
 │   └── surgical-self-exclusion.md  # Surgical Self-Exclusion technical reference
 └── tests/unit/
     ├── background.test.ts
