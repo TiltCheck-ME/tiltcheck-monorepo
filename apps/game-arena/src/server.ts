@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -177,7 +177,7 @@ statsService.initialize().catch(err => {
 
 // Shared Auth Config
 // Ensure we always have a JWT secret available in test environments to avoid import-time failures during parallel tests.
-const jwtSecret = process.env.JWT_SECRET || process.env.JWT_SECRET === undefined ? 'test-jwt-secret' : process.env.JWT_SECRET;
+const jwtSecret = process.env.JWT_SECRET || 'test-jwt-secret';
 if (!jwtSecret) {
   throw new Error('FATAL: JWT_SECRET environment variable is required');
 }
@@ -1120,13 +1120,14 @@ io.on('connection', (socket) => {
   // Trivia Game Handlers
   // ============================================================================
 
-  socket.on('submit-trivia-answer', async (data: { questionId: string; answer: string }) => {
+  socket.on('submit-trivia-answer', async (data: { questionId: string; answer: string; timestamp?: number }) => {
     if (!user) return;
     if (!data || typeof data.questionId !== 'string' || typeof data.answer !== 'string') {
       socket.emit('game-error', 'Invalid answer payload');
       return;
     }
-    const result = await triviaManager.submitAnswer(user.id, data.questionId, data.answer);
+    const clientTs = typeof data.timestamp === 'number' ? data.timestamp : undefined;
+    const result = await triviaManager.submitAnswer(user.id, data.questionId, data.answer, clientTs);
     if (!result.success) {
       socket.emit('game-error', result.message || 'Answer submission failed');
     }

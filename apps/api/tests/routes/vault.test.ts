@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -35,6 +35,14 @@ const lockvaultMock = vi.hoisted(() => ({
   executeWithdrawal: vi.fn(),
 }));
 
+const poolsMock = vi.hoisted(() => ({
+  creditEarlyUnlockFeeSplits: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../src/services/community-pools.js', () => ({
+  creditEarlyUnlockFeeSplits: poolsMock.creditEarlyUnlockFeeSplits,
+}));
+
 vi.mock('@tiltcheck/lockvault', () => lockvaultMock);
 
 import { vaultRouter } from '../../src/routes/vault.js';
@@ -53,6 +61,7 @@ app.use('/vault', vaultRouter);
 describe('Vault Routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    poolsMock.creditEarlyUnlockFeeSplits.mockClear();
     mockUserId = 'user-1';
     mockRoles = ['user'];
     lockvaultMock.getVaultBalance.mockReturnValue(0);
@@ -97,6 +106,32 @@ describe('Vault Routes', () => {
       approvalThreshold: 2,
     });
     lockvaultMock.addSecondOwner.mockResolvedValue({ id: 'v1', secondOwnerId: 'user-2' });
+    lockvaultMock.requestPaidWalletUnlockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      earlyUnlockRequest: {
+        mode: 'paid_early_unlock',
+        status: 'pending',
+        feePercentage: 10,
+        feeAmountSOL: 0.15,
+      },
+    });
+    lockvaultMock.settlePaidWalletUnlockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      earlyUnlockRequest: {
+        mode: 'paid_early_unlock',
+        status: 'completed',
+        feeAmountSOL: 0.15,
+        feeAllocationSOL: {
+          triviaSOL: 0.06,
+          micrograntSOL: 0.06,
+          devSOL: 0.03,
+        },
+      },
+    });
     lockvaultMock.getWithdrawalApprovalsForUser.mockReturnValue([]);
     lockvaultMock.initiateWithdrawal.mockResolvedValue({
       id: 'v1',
@@ -347,19 +382,19 @@ describe('Vault Routes', () => {
     const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
     expect(clearRes.status).toBe(423);
     expect(clearRes.body.code).toBe('WALLET_LOCK_STILL_ACTIVE');
-    expect(clearRes.body.unlockOptions).toEqual(['admin_approval']);
+    expect(clearRes.body.unlockOptions).toEqual(['admin_approval', 'paid_early_unlock']);
     expect(lockvaultMock.clearWalletActionLockForUser).not.toHaveBeenCalled();
   });
 
-  it('creates admin early unlock requests and rejects paid unlock requests', async () => {
+  it('creates admin early unlock requests and accepts paid unlock quotes', async () => {
     const adminReq = await request(app).post('/vault/user-1/wallet-unlock-request').send({ mode: 'admin_approval' });
     expect(adminReq.status).toBe(200);
     expect(lockvaultMock.requestAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
 
     const paidReq = await request(app).post('/vault/user-1/wallet-unlock-request').send({ mode: 'paid_early_unlock' });
-    expect(paidReq.status).toBe(501);
-    expect(paidReq.body.code).toBe('FEATURE_NOT_IMPLEMENTED');
-    expect(lockvaultMock.requestPaidWalletUnlockForUser).not.toHaveBeenCalled();
+    expect(paidReq.status).toBe(200);
+    expect(lockvaultMock.requestPaidWalletUnlockForUser).toHaveBeenCalled();
+    expect(lockvaultMock.requestPaidWalletUnlockForUser.mock.calls[0][2]).toBe(10);
   });
 
   it('requires admin role to approve early unlock', async () => {
@@ -372,7 +407,25 @@ describe('Vault Routes', () => {
     expect(lockvaultMock.approveAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
   });
 
-  it('rejects paid early unlock settlement while the fee sink is disabled', async () => {
+  it('settles paid early unlock and credits community pools', async () => {
+    const res = await request(app).post('/vault/user-1/wallet-unlock-pay').send({});
+    expect(res.status).toBe(200);
+    expect(res.body.feeRouted).toBe(true);
+    expect(lockvaultMock.settlePaidWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
+    expect(res.body.feeAllocationSOL).toEqual({
+      triviaSOL: 0.06,
+      micrograntSOL: 0.06,
+      devSOL: 0.03,
+    });
+    expect(poolsMock.creditEarlyUnlockFeeSplits).toHaveBeenCalledWith({
+      userId: 'user-1',
+      triviaSOL: 0.06,
+      micrograntSOL: 0.06,
+      devSOL: 0.03,
+    });
+  });
+
+  it('returns 501 when settle paid unlock throws feature-not-implemented', async () => {
     const err = createVaultError('disabled', 'FEATURE_NOT_IMPLEMENTED', 501);
     lockvaultMock.settlePaidWalletUnlockForUser.mockImplementationOnce(() => {
       throw err;

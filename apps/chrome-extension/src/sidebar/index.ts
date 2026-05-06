@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -437,7 +437,7 @@ export class SidebarController implements SidebarUI {
       if (connectBtn) {
         connectBtn.hidden = false;
         connectBtn.disabled = false;
-        connectBtn.textContent = 'Connect Discord';
+        connectBtn.textContent = 'Log in with Discord';
       }
     } else {
       if (accountText) accountText.textContent = `Connected as ${this.auth.userData?.username}`;
@@ -445,7 +445,7 @@ export class SidebarController implements SidebarUI {
       if (connectBtn) {
         connectBtn.hidden = true;
         connectBtn.disabled = false;
-        connectBtn.textContent = 'Connect Discord';
+        connectBtn.textContent = 'Log in with Discord';
       }
     }
   }

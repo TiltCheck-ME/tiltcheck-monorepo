@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 /**
  * Event Handler
  *
@@ -34,6 +34,10 @@ import { trackMessageEvent, trackCommandEvent } from '../services/elastic-teleme
 import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js';
 import { handleCommandError } from './error.js';
 import { dispatchButtonInteraction } from './button-handlers.js';
+import {
+  isConfiguredGameAddonSku,
+  isLegacyPlatformMonetizationSku,
+} from '@tiltcheck/discord-monetization';
 import { detectIntent, formatNlpResponse, getFallbackReply } from '../services/nlp-intent.js';
 import { handleSafetyIntervention } from '../services/intervention-service.js';
 import { hasMessageContentConsent } from '../services/data-consent.js';
@@ -234,14 +238,20 @@ export class EventHandler {
       const userId = entitlement.userId;
       console.log(`[Payments] Entitlement created: SKU ${skuId} for user ${userId}`);
 
-      const skuMap: Record<string, string> = {
-        [process.env.DISCORD_SKU_PRO_ID || '']:        'Degen Pass',
-        [process.env.DISCORD_SKU_ELITE_ID || '']:      'Platinum Pass',
-        [process.env.DISCORD_SKU_LIFETIME_ID || '']:   'Lifetime Pass',
-        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: 'OG Lifetime Pass (Beta)',
-        [process.env.DISCORD_SKU_SUPPORT_ID || '']:    'Support the Project',
+      const legacyNameMap: Record<string, string> = {
+        [process.env.DISCORD_SKU_PRO_ID || '']: 'Degen Pass (retired)',
+        [process.env.DISCORD_SKU_ELITE_ID || '']: 'Platinum Pass (retired)',
+        [process.env.DISCORD_SKU_LIFETIME_ID || '']: 'Lifetime Pass (retired)',
+        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: 'OG Lifetime Pass (retired)',
+        [process.env.DISCORD_SKU_SUPPORT_ID || '']: 'Support SKU (retired)',
       };
-      const tierName = skuMap[skuId] || `Unknown SKU: ${skuId}`;
+      const tierLabel = legacyNameMap[skuId] || (isConfiguredGameAddonSku(skuId) ? 'Game add-on' : `SKU ${skuId}`);
+
+      const embedTitle = isLegacyPlatformMonetizationSku(skuId)
+        ? 'RETIRED PLATFORM SKU (log only; no auto-role)'
+        : isConfiguredGameAddonSku(skuId)
+          ? 'GAME ADD-ON PURCHASE'
+          : 'DISCORD SKU PURCHASE (unmapped)';
 
       // Notify MOD_LOG channel
       try {
@@ -252,11 +262,17 @@ export class EventHandler {
             embeds: [
               new EmbedBuilder()
                 .setColor(0x22d3a6)
-                .setTitle('DISCORD PREMIUM PURCHASE')
-                .setDescription('Auto-grant role or verify manually.')
+                .setTitle(embedTitle)
+                .setDescription(
+                  isLegacyPlatformMonetizationSku(skuId)
+                    ? 'Legacy platform monetization SKU fired. Roles are not auto-granted (TIL-36). Handle manually if Discord still renewed an old listing.'
+                    : isConfiguredGameAddonSku(skuId)
+                      ? 'Game add-on fulfillment — optional Discord role below if DISCORD_SKU_GAME_ADDON_ROLE_ID is set.'
+                      : 'SKU is not in DISCORD_SKU_GAME_ADDON_IDS or legacy map. Verify in Developer Portal.'
+                )
                 .addFields(
                   { name: 'User ID', value: userId || 'unknown', inline: true },
-                  { name: 'Tier', value: tierName, inline: true },
+                  { name: 'Label', value: tierLabel, inline: true },
                   { name: 'SKU ID', value: skuId, inline: false },
                 )
                 .setFooter({ text: 'Made for Degens. By Degens.' })
@@ -268,31 +284,15 @@ export class EventHandler {
         console.error('[Payments] Failed to notify MOD_LOG:', err);
       }
 
-      // Primary role per SKU
-      const roleMap: Record<string, string> = {
-        [process.env.DISCORD_SKU_PRO_ID || '']:        process.env.DISCORD_ROLE_PRO_ID || '',
-        [process.env.DISCORD_SKU_ELITE_ID || '']:      process.env.DISCORD_ROLE_ELITE_ID || '',
-        [process.env.DISCORD_SKU_LIFETIME_ID || '']:   process.env.DISCORD_ROLE_LIFETIME_ID || '',
-        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: process.env.DISCORD_ROLE_OG_LIFETIME_ID || '',
-      };
-
-      // OG Lifetime also grants beta tester role
-      const extraRoleMap: Record<string, string> = {
-        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: process.env.DISCORD_ROLE_BETA_ID || '',
-      };
-
-      const roleId = roleMap[skuId];
-      if (roleId && userId) {
+      const gameAddonRoleId = (process.env.DISCORD_SKU_GAME_ADDON_ROLE_ID || '').trim();
+      if (userId && isConfiguredGameAddonSku(skuId) && gameAddonRoleId) {
         try {
-          const guild = await this.client.guilds.fetch('1488253239643078787');
+          const guild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID || '');
           const member = await guild.members.fetch(userId);
-          const rolesToAdd = [roleId];
-          const extraRole = extraRoleMap[skuId];
-          if (extraRole) rolesToAdd.push(extraRole);
-          await member.roles.add(rolesToAdd);
-          console.log(`[Payments] Auto-granted roles [${rolesToAdd.join(', ')}] to user ${userId}`);
+          await member.roles.add([gameAddonRoleId]);
+          console.log(`[Payments] Auto-granted game add-on role ${gameAddonRoleId} to user ${userId}`);
         } catch (err) {
-          console.error(`[Payments] Failed to auto-grant role for ${userId}:`, err);
+          console.error(`[Payments] Failed to auto-grant game add-on role for ${userId}:`, err);
         }
       }
     });

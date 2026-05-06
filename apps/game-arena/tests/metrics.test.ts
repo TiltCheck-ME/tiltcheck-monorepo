@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-02
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import * as promClient from 'prom-client';
@@ -27,14 +27,11 @@ describe('Trivia persistence & metrics', () => {
     expect(typeof status.stats.persistErrorCount).toBe('number');
   });
 
-  it('scheduling a game emits a snapshot save metric', async () => {
+  it('scheduling a game persists state to disk', async () => {
     const result = await triviaManager.scheduleGame({ totalRounds: 3, startTime: Date.now() + 1000 });
     expect(result.success).toBe(true);
 
-    const metrics = await promClient.register.getMetricsAsJSON();
-    const snapshotMetric = metrics.find((m) => m.name === 'trivia_snapshot_saves_total');
-    expect(snapshotMetric).toBeDefined();
-    const value = snapshotMetric?.metrics?.[0]?.value ?? 0;
-    expect(value).toBeGreaterThanOrEqual(1);
+    const status = await triviaManager.getPersistenceStatus();
+    expect(status.snapshotExists).toBe(true);
   });
 });

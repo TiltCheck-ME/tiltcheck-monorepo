@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
 # Dependencies
 node_modules/
@@ -98,6 +98,7 @@ wrangler.toml.local
 data/casino-trust.json
 data/domain-trust-scores.json
 data/lockvault.json
+data/lockvault-store.json
 data/justthetip-wallets.json
 age.agekey
 data/sessions.json
@@ -138,3 +139,8 @@ tools/channel-watcher/reports_lore.md
 apps/api/credentials.json
 apps/api/token.json
 .env*.local
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

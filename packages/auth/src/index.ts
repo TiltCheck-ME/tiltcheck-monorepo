@@ -84,6 +84,8 @@ export {
   revokeToken as revokeDiscordToken,
   getAvatarUrl as getDiscordAvatarUrl,
   generateState as generateOAuthState,
+  generatePkceCodeVerifier,
+  derivePkceCodeChallengeS256,
 } from './discord.js';
 
 // Solana signature functions
@@ -152,5 +154,7 @@ export type {
   AuthResult,
   RateLimitConfig,
 } from './types.js';
+
+export type { DiscordAuthorizationUrlOptions, DiscordPkceChallengeMethod } from './discord.js';
 
 export type { ServiceName } from './service.js';

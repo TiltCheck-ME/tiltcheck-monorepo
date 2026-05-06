@@ -1,3 +1,5 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+
 name: Create/Delete Branch for Pull Request
 
 on:
@@ -34,17 +36,26 @@ jobs:
       || github.event.action == 'opened'
       || github.event.action == 'reopened')
     runs-on: ubuntu-latest
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
     steps:
+      - name: Skip Neon Branch Without API Key
+        if: env.NEON_API_KEY == ''
+        run: echo "::notice::Skipping Neon branch creation because NEON_API_KEY is unavailable in this PR context."
+
       - name: Get branch expiration date as an env variable (2 weeks from now)
+        if: env.NEON_API_KEY != ''
         id: get_expiration_date
         run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
       - name: Create Neon Branch
+        if: env.NEON_API_KEY != ''
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
+          api_key: ${{ env.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
 
 # The step above creates a new Neon branch.
@@ -88,10 +99,17 @@ jobs:
     needs: setup
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
     steps:
+      - name: Skip Neon Branch Cleanup Without API Key
+        if: env.NEON_API_KEY == ''
+        run: echo "::notice::Skipping Neon branch cleanup because NEON_API_KEY is unavailable in this PR context."
+
       - name: Delete Neon Branch
+        if: env.NEON_API_KEY != ''
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
+          api_key: ${{ env.NEON_API_KEY }}

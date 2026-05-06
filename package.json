@@ -1,5 +1,5 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06",
   "name": "tiltcheck-monorepo",
   "version": "0.1.0",
   "private": true,
@@ -58,7 +58,8 @@
     "crawl:emails:all": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts --all",
     "crawl:emails:schedule": "powershell -ExecutionPolicy Bypass -File scripts/register-email-crawler-task.ps1",
     "crawl:casinos": "tsx scripts/scrape-casinos.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:degens-trivia": "PLAYWRIGHT_DEGENS_LOCAL=1 playwright test tests/e2e/degens-activity-trivia.spec.ts"
   },
   "devDependencies": {
     "@google-cloud/secret-manager": "^6.1.1",
@@ -105,7 +106,7 @@
       "minimatch": ">=9.0.5",
       "hono": ">=4.12.15",
       "@hono/node-server": ">=1.19.13",
-      "axios": ">=1.15.0",
+      "axios": ">=1.15.2",
       "undici": ">=6.21.4",
       "lodash": ">=4.18.0",
       "lodash-es": ">=4.18.0",

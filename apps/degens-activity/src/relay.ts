@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // Socket.io relay to game-arena + rain/tip events
 
 import { io, Socket } from 'socket.io-client';
@@ -88,8 +88,12 @@ export function buyBack(gameId: string): void {
   socket?.emit('buy-back', { gameId });
 }
 
-export function claimRain(rainId: string): void {
-  socket?.emit('claim-rain', { rainId, timestamp: Date.now() });
+export function resetTriviaGame(): void {
+  socket?.emit('reset-trivia-game');
+}
+
+export function scheduleTriviaGame(data: { category?: string; theme?: string; totalRounds?: number }): void {
+  socket?.emit('schedule-trivia-game', data);
 }
 
 export function isConnected(): boolean {
