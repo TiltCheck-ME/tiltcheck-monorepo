@@ -158,6 +158,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.100.1
         version: 2.100.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      '@tiltcheck/ai-client':
+        specifier: workspace:*
+        version: link:../../packages/ai-client
       '@tiltcheck/auth':
         specifier: workspace:*
         version: link:../../packages/auth
