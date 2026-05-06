@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -25,10 +25,24 @@ TiltGuard is a Manifest V3 Chrome extension that runs as a content script on cas
 
 Two runtime modes:
 
-- **Authenticated mode** (Discord OAuth): full API-backed flows with persisted account and session data.
-- **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so users can explore the product before connecting Discord.
+- **Discord-linked account** (primary): user clicks **Log in with Discord** in the sidebar (toolbar icon on supported casino pages). OAuth runs in a small API-driven flow; the API callback page `postMessage`s a JWT plus user payload to `auth-bridge.html` (packaged inside the extension). The bridge writes **`chrome.storage.local`** (`authToken`, `userData`, and `tiltguard_user_id`). That storage is origin-scoped to the extension, persists across browser restarts, and is what the sidebar polls after login. The API also sets an **httpOnly session cookie** on `api.tiltcheck.me` during the OAuth round-trip in the browser; the extension does not read that cookie. API calls from the extension send **`Authorization: Bearer <authToken>`** where required. The built `popup.html` flow matches the same storage contract for builds that set `action.default_popup` in the manifest.
+- **Demo / guest mode** (sidebar): no token; mock-friendly paths until the user logs in.
+- **Magic Link** (popup only): optional email sign-in stores the same `chrome.storage.local` keys; Discord-only tools stay gated until `userData.discordId` exists.
 
-OAuth state integrity is validated server-side using signed state prefixes (extension origin vs web origin) during callback handling.
+### Discord Developer Portal redirect URIs
+
+Register the callback URL that matches your API environment (same value the API uses for `redirect_uri` when `source=extension`):
+
+| Environment | Redirect URI to register in Discord |
+| :--- | :--- |
+| Production (extension OAuth) | `https://api.tiltcheck.me/auth/discord/callback` |
+| Local API (`NODE_ENV` not production, host `localhost` / `127.0.0.1`) | Whatever your API `DISCORD_REDIRECT_URI` / `TILT_DISCORD_REDIRECT_URI` resolves to (often `http://localhost:8080/auth/discord/callback`). |
+
+The extension never uses `https://<extension-id>.chromiumapp.org/` for this flow; the auth bridge keeps `opener_origin` as `chrome-extension://<id>` so the callback can target the bridge tab safely.
+
+### Log out
+
+Sidebar header control and popup **Log out** call `POST /auth/logout` with the bearer token when present, then clear the same `chrome.storage.local` keys so UI returns to signed-out state everywhere.
 
 ---
 
@@ -40,7 +54,7 @@ OAuth state integrity is validated server-side using signed state prefixes (exte
 
 ## Known Gaps
 
-- `manifest.json` declares `"default_popup": "popup.html"` under the `action` key, but `popup.html` does not exist in the source tree or the `dist/` output. The extension currently operates in sidebar-only mode; the popup entry point is not implemented. Until this file is created, clicking the toolbar icon will show an error in Chrome. This is a tracked gap, not a regression.
+- Toolbar icon behavior follows `src/manifest.json`. Rebuild (`pnpm build` in this package) so `dist/` matches source before loading unpacked in Chrome.
 
 ---
 
@@ -49,7 +63,7 @@ OAuth state integrity is validated server-side using signed state prefixes (exte
 ```
 apps/chrome-extension/
 ├── README.md                     # This file
-├── manifest.json                 # Active Chrome extension manifest (MV3)
+├── manifest.json                 # Legacy / alternate manifest (see src/manifest.json for shipped MV3)
 ├── package.json                  # Extension dependencies
 ├── tsconfig.json                 # TypeScript configuration
 ├── build.js                      # esbuild-based build script
