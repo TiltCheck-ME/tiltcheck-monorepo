@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
 
 name: Create/Delete Branch for Pull Request
 
@@ -106,10 +106,33 @@ jobs:
         if: env.NEON_API_KEY == ''
         run: echo "::notice::Skipping Neon branch cleanup because NEON_API_KEY is unavailable in this PR context."
 
+      - name: Install Neon CLI
+        if: env.NEON_API_KEY != ''
+        run: npm i -g neonctl@v2
+
       - name: Delete Neon Branch
         if: env.NEON_API_KEY != ''
-        uses: neondatabase/delete-branch-action@v3
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
-          api_key: ${{ env.NEON_API_KEY }}
+        env:
+          NEON_API_HOST: https://console.neon.tech/api/v2
+          NEON_BRANCH_NAME: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          set +e
+          output=$(neonctl branches delete "$NEON_BRANCH_NAME" --project-id "$NEON_PROJECT_ID" 2>&1)
+          status=$?
+          set -e
+
+          printf '%s\n' "$output"
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          case "$output" in
+            *"not found"*)
+              echo "::notice::Neon branch $NEON_BRANCH_NAME was already absent; cleanup is complete."
+              exit 0
+              ;;
+          esac
+
+          exit "$status"
