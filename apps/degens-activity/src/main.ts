@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // Degens Activity — main entry
 
 import { initSDK, invite, type DiscordUser } from './sdk.js';
@@ -11,9 +11,12 @@ import * as jackpotView from './views/jackpot.js';
 const VIEWS = ['lobby', 'dad', 'trivia', 'jackpot'] as const;
 type View = (typeof VIEWS)[number];
 
-const statusEl = document.getElementById('status')!;
+const statusEl = document.getElementById('status');
 
 function setStatus(msg: string, live = false): void {
+  if (!statusEl) {
+    return;
+  }
   statusEl.textContent = msg;
   statusEl.classList.toggle('live', live);
 }
@@ -32,6 +35,12 @@ function switchView(view: string): void {
 async function boot(): Promise<void> {
   setStatus('CONNECTING');
 
+  const lobbySkeleton = document.getElementById('view-lobby');
+  if (lobbySkeleton) {
+    lobbySkeleton.innerHTML =
+      '<div class="card card--accent" data-boot-skeleton><p class="card__body">Discord wiring — if this hangs, wait a few seconds; we fall back to demo mode automatically.</p></div>';
+  }
+
   let user: DiscordUser;
   try {
     user = await initSDK();
@@ -49,10 +58,14 @@ async function boot(): Promise<void> {
   relay.joinLobby();
 
   // Mount views
-  const lobbyEl = document.getElementById('view-lobby')!;
-  const dadEl = document.getElementById('view-dad')!;
-  const triviaEl = document.getElementById('view-trivia')!;
-  const jackpotEl = document.getElementById('view-jackpot')!;
+  const lobbyEl = document.getElementById('view-lobby');
+  const dadEl = document.getElementById('view-dad');
+  const triviaEl = document.getElementById('view-trivia');
+  const jackpotEl = document.getElementById('view-jackpot');
+
+  if (!lobbyEl || !dadEl || !triviaEl || !jackpotEl) {
+    throw new Error('Degens Activity shell DOM is missing expected #view-* roots');
+  }
 
   lobbyView.mount(lobbyEl, switchView, user.username);
   dadView.mount(dadEl, user.id);

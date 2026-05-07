@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // TiltCheck Activity — main entry
 
 import { initSDK, invite, type DiscordUser } from './sdk.js';
@@ -10,9 +10,12 @@ import * as trustView from './views/trust.js';
 const VIEWS = ['session', 'tilt', 'trust'] as const;
 type View = (typeof VIEWS)[number];
 
-const statusEl = document.getElementById('status')!;
+const statusEl = document.getElementById('status');
 
 function setStatus(msg: string, live = false): void {
+  if (!statusEl) {
+    return;
+  }
   statusEl.textContent = msg;
   statusEl.classList.toggle('live', live);
 }
@@ -31,6 +34,12 @@ function switchView(view: string): void {
 async function boot(): Promise<void> {
   setStatus('CONNECTING');
 
+  const sessionShell = document.getElementById('view-session');
+  if (sessionShell) {
+    sessionShell.innerHTML =
+      '<div class="card card--accent" data-boot-skeleton><p class="card__body">Discord wiring — we time out and fall back automatically if the iframe stalls.</p></div>';
+  }
+
   let user: DiscordUser;
   try {
     user = await initSDK();
@@ -47,9 +56,16 @@ async function boot(): Promise<void> {
   });
 
   // Mount views
-  sessionView.mount(document.getElementById('view-session')!, user.id, user.channelId ?? 'demo-channel');
-  tiltView.mount(document.getElementById('view-tilt')!, relay);
-  trustView.mount(document.getElementById('view-trust')!);
+  const sessionEl = document.getElementById('view-session');
+  const tiltEl = document.getElementById('view-tilt');
+  const trustEl = document.getElementById('view-trust');
+  if (!sessionEl || !tiltEl || !trustEl) {
+    throw new Error('TiltCheck Activity shell DOM is missing expected #view-* roots');
+  }
+
+  sessionView.mount(sessionEl, user.id, user.channelId ?? 'demo-channel');
+  tiltView.mount(tiltEl, relay);
+  trustView.mount(trustEl);
 
   // Tab navigation
   document.querySelectorAll<HTMLElement>('.tab').forEach((tab) => {

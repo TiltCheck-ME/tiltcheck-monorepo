@@ -1,5 +1,5 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
-// Socket.io relay to TiltCheck hub
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// Socket.io relay to TiltCheck hub (same Socket.IO surface as apps/activity Railway host)
 
 import { io, Socket } from 'socket.io-client';
 import { getAccessToken } from './sdk.js';
@@ -12,7 +12,16 @@ export interface SessionRound {
 
 type Handler = (data: unknown) => void;
 
-const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://api.tiltcheck.me';
+function resolveHubUrl(): string {
+  const env = typeof import.meta.env.VITE_HUB_URL === 'string' ? import.meta.env.VITE_HUB_URL.trim() : '';
+  if (env) {
+    return env;
+  }
+  if (import.meta.env.DEV && typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://activity.tiltcheck.me';
+}
 
 let socket: Socket | null = null;
 const handlers = new Map<string, Handler[]>();
@@ -29,12 +38,14 @@ export function on(event: string, handler: Handler): void {
 export function connect(userId: string, channelId: string): void {
   if (socket) return;
 
-  socket = io(HUB_URL, {
+  const hubUrl = resolveHubUrl();
+
+  socket = io(hubUrl, {
     auth: { accessToken: getAccessToken(), userId },
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 15000,
-    transports: ['websocket'],
+    transports: ['polling', 'websocket'],
     withCredentials: true,
   });
 
