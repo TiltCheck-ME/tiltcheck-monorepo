@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
 /**
  * Casino Email Crawler
  *
@@ -200,33 +200,38 @@ function saveSeen(seen: Set<string>): void {
 
 // ─── API call ────────────────────────────────────────────────────────────────
 
-async function ingestEmail(rawEmail: string): Promise<{ success: boolean; brand?: string; bonusCount?: number; riskLevel?: string }> {
+async function ingestEmail(rawEmail: string): Promise<{ success: boolean; brand?: string; bonusCount?: number; riskLevel?: string; error?: string }> {
   if (FLAGS.dryRun) return { success: true };
 
-  const res = await fetch(`${API_URL}/rgaas/email-ingest`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'TiltCheck-Email-Crawler',
-      ...(process.env.EMAIL_INGEST_SECRET?.trim()
-        ? { 'X-Email-Ingest-Key': process.env.EMAIL_INGEST_SECRET.trim() }
-        : {}),
-    },
-    body: JSON.stringify({ raw_email: rawEmail }),
-  });
+  try {
+    const res = await fetch(`${API_URL}/rgaas/email-ingest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'TiltCheck-Email-Crawler',
+        ...(process.env.EMAIL_INGEST_SECRET?.trim()
+          ? { 'X-Email-Ingest-Key': process.env.EMAIL_INGEST_SECRET.trim() }
+          : {}),
+      },
+      body: JSON.stringify({ raw_email: rawEmail }),
+    });
 
-  if (!res.ok) {
-    console.warn(`  API ${res.status}: ${await res.text().catch(() => '')}`);
-    return { success: false };
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      const snippet = body.trim().slice(0, 240);
+      return { success: false, error: `api ${res.status}${snippet ? `: ${snippet}` : ''}` };
+    }
+
+    const data = await res.json() as { intel?: { casinoBrand?: string; bonusSignals?: unknown[] }; domainScan?: { riskLevel?: string } };
+    return {
+      success: true,
+      brand: data.intel?.casinoBrand ?? undefined,
+      bonusCount: data.intel?.bonusSignals?.length ?? 0,
+      riskLevel: data.domainScan?.riskLevel ?? 'unknown',
+    };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
-
-  const data = await res.json() as { intel?: { casinoBrand?: string; bonusSignals?: unknown[] }; domainScan?: { riskLevel?: string } };
-  return {
-    success: true,
-    brand: data.intel?.casinoBrand ?? undefined,
-    bonusCount: data.intel?.bonusSignals?.length ?? 0,
-    riskLevel: data.domainScan?.riskLevel ?? 'unknown',
-  };
 }
 
 // ─── IMAP helpers ────────────────────────────────────────────────────────────
@@ -299,6 +304,20 @@ async function run(): Promise<void> {
   const seen = loadSeen();
   const imap = buildImapClient();
 
+  if (!FLAGS.dryRun) {
+    const url = String(API_URL || '').trim();
+    if (!url || url.includes('[REDACTED]') || !/^https?:\/\//i.test(url)) {
+      console.error([
+        '',
+        'CRAWLER_API_URL is required and must be a valid http(s) URL.',
+        'Example: CRAWLER_API_URL=https://api.tiltcheck.me',
+        '',
+        'If you see this error, your .env is missing CRAWLER_API_URL (or NEXT_PUBLIC_API_URL is set to a placeholder).',
+      ].join('\n'));
+      process.exit(1);
+    }
+  }
+
   console.log(`\nTiltCheck Casino Email Crawler`);
   console.log(`Mode: ${FLAGS.dryRun ? 'DRY RUN' : 'LIVE'} | Limit: ${FLAGS.limit} | Reset: ${FLAGS.all} | Delete processed: ${FLAGS.deleteProcessed}`);
   console.log(`API: ${API_URL}`);
@@ -366,7 +385,7 @@ async function run(): Promise<void> {
               }
               console.log(`OK | ${result.brand ?? 'unknown brand'} | ${result.bonusCount ?? 0} bonuses | domain: ${result.riskLevel}`);
             } else {
-              console.log('FAILED');
+              console.log(`FAILED${result.error ? ` | ${result.error}` : ''}`);
               errors++;
             }
 

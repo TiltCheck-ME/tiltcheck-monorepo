@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 -->
 # TiltCheck Channel Watcher
 
 Passively watches a Discord channel from your logged-in browser session, then runs scheduled GPT-4o analysis to surface pain points, friction, and community insights — no keyword lists needed.
@@ -7,7 +7,7 @@ Passively watches a Discord channel from your logged-in browser session, then ru
 
 1. Opens Discord web in a real browser using your saved login
 2. Watches the channel silently — every message is logged to `messages.jsonl`
-3. Every 2 hours (configurable), sends the buffered messages to GPT-4o-mini
+3. Every 6 hours (configurable), sends the buffered messages to GPT-4o-mini
 4. GPT produces a structured **analyst report** identifying:
    - 🔴 Pain points & frustrations
    - ⚡ Friction moments
@@ -78,7 +78,7 @@ Optional flags:
 ./run-cloud-watcher.ps1 -VmName "my-vm" -Zone "us-central1-a" -ProjectId "my-project"
 ```
 
-## Schedule it on Windows (every 2 hours)
+## Schedule it on Windows (every 6 hours)
 
 Create a recurring Task Scheduler job that runs the cloud watcher automatically:
 
@@ -89,7 +89,7 @@ npm run cloud:schedule
 Default schedule created by the script:
 
 - Days: Monday through Sunday
-- Times: every 2 hours (`00:00, 02:00, 04:00, ..., 22:00`)
+- Times: every 6 hours (`00:00, 06:00, 12:00, 18:00`)
 - Run length per execution: 2 minutes
 
 Custom schedule example:
@@ -98,7 +98,7 @@ Custom schedule example:
 ./register-cloud-watcher-task.ps1 `
   -TaskName "TiltCheck-Cloud-Watcher" `
   -Days Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday `
-  -Times 00:00,02:00,04:00,06:00,08:00,10:00,12:00,14:00,16:00,18:00,20:00,22:00 `
+  -Times 00:00,06:00,12:00,18:00 `
   -DurationMinutes 2
 ```
 

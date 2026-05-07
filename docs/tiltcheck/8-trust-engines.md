@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
 
 # 8. Trust Engines Overview
 The TiltCheck ecosystem relies on two global trust engines that power safety, fairness, community transparency, and predictive insights:
@@ -63,6 +63,9 @@ Collected from CollectClock:
 - region inconsistencies  
 - false advertising  
 - “1SC → 0.10SC for no reason” cycles  
+
+Observed promo-drop timing note (Stake.us Instagram codes):
+- [8A Instagram Stake.us Code Timing (Observed)](8a-instagram-stake-us-code-timing.md)
 
 ### **4. FreeSpinScan Signals**
 - invalid links  
