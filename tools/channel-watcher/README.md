@@ -153,9 +153,21 @@ Config values:
 
 The sync stores de-dup state in `.bonus-sync-state.json`, so reruns only post new links.
 In live watch mode it posts **one branded TiltCheck embed per fresh bonus** instead of dumping a text summary block.
-Preferred setup is a sanitized `DISCORD_SESSION_JSON` or `.session.json`. If Discord still throws you back to login, you can also set `DISCORD_TOKEN` for runtime-only hydration. That token is injected at page load and is not written back to disk.
+Preferred setup is a sanitized `DISCORD_SESSION_JSON` or `.session.json`. Runtime-only `DISCORD_TOKEN` hydration exists as a last-resort hack; it is not persisted and may break when Discord changes.
 
 `DISCORD_SESSION_JSON` must be a sanitized Playwright `storageState` JSON object (or the base64 encoding of that object). Raw Discord IDs, raw tokens, or other scalar values are invalid and will be rejected at startup.
+
+### Headless / Railway note (important)
+
+On **Railway/CI/headless**, interactive “log in to Discord in a browser window” is not viable. If the watcher cannot detect a valid session, it will **exit immediately** with a config error instead of waiting 3 minutes and timing out.
+
+For headless runs, you must provide one of:
+
+- `DISCORD_SESSION_JSON` (sanitized Playwright storageState JSON, raw or base64)
+- a mounted session file at `DATA_DIR/.session.json`
+- optional: `DISCORD_TOKEN` for runtime-only hydration (best-effort; not saved; unstable)
+
+If you want to hard-require a session even when `DISCORD_TOKEN` is set, use `DISCORD_REQUIRE_SESSION=true`.
 
 ### Live headless mode without local popups
 

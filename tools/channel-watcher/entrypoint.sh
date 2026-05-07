@@ -1,5 +1,5 @@
 #!/bin/sh
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
 # Entrypoint for Railway channel-watcher service.
 # Accepts a cookie-only DISCORD_SESSION_JSON payload, an existing session file,
 # or a runtime-only DISCORD_TOKEN fallback.

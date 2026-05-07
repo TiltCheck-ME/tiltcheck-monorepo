@@ -40,7 +40,7 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | `hub` | `apps/hub` | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | n/a | n/a | Wrangler bindings such as `DB`, `SESSIONS`, `API_BASE_URL`, and `INTERNAL_API_SECRET` | `GET /health` on the deployed Worker URL; public `hub.tiltcheck.me` may map here or to `user-dashboard` depending on live ingress |
 | `chrome-extension` | `apps/chrome-extension` | Browser asset; manual ZIP or Chrome Web Store publish | none | n/a | n/a | Build/runtime config in `apps/chrome-extension/src/config.ts` | Manual smoke: `pnpm -C apps/chrome-extension build`, load built extension, and verify API calls against `https://api.tiltcheck.me` |
 | `degens-activity` | `apps/degens-activity` | **Recommended:** GHCR → Railway second service (static nginx SPA, mirror `apps/activity` Dockerfile pattern). **Alternative:** manual static CDN. Workflow/image names are placeholders until wired in `.github/workflows/deploy-railway.yml`. | `.github/workflows/deploy-railway.yml` (extend when Dockerfile exists) | `ghcr.io/tiltcheck-me/tiltcheck-degens-activity` *(suggested)* | `degens-activity` *(suggested)* | **`VITE_DISCORD_CLIENT_ID`**, **`VITE_TOKEN_ENDPOINT`**, **`VITE_ARENA_URL=https://game-arena.tiltcheck.me`** (realtime ingress; do not omit in prod builds) | **`https://degens.activity.tiltcheck.me/`** *(example hostname — set Railway Custom Domain + Discord Embedded URL to the same canonical URL)* |
-| `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish OR optional future Railway row | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify in Discord |
+| `tiltcheck-activity` | `apps/tiltcheck-activity` | **DEPRECATED:** legacy TiltCheck Activity shell. Do not deploy; migrate any remaining UI into `apps/activity`. | none | n/a | n/a | n/a | n/a |
 
 ### Workspace packages with `dist/` (Docker images)
 
@@ -158,13 +158,9 @@ If you copy the `apps/activity` Dockerfile pattern, proxy **`/socket.io/`** to `
 
 ## Manual Publish Notes
 
-### `tiltcheck-activity` (manual)
+### `tiltcheck-activity` (deprecated)
 
-- **Chosen target:** static asset publish **or** a future Railway row (same pattern as Degens once needed).
-- **Build:** `pnpm --filter @tiltcheck/tiltcheck-activity build`
-- **Publish:** Deploy `dist/` to the host configured in Discord for that slim session app.
-- **Runtime defaults:** `VITE_HUB_URL` prod fallback `https://activity.tiltcheck.me`; dev uses `window.location.origin` for the proxy.
-- Replace the placeholder UUID in `apps/tiltcheck-activity/cloudflare-tunnel.yml` before dev tunnel use.
+`apps/tiltcheck-activity` is kept only as a reference while consolidating onto `apps/activity`. It should not be deployed. See `apps/tiltcheck-activity/README.md`.
 
 ### `degens-activity` pointers
 

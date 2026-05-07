@@ -10,7 +10,7 @@
  *   npm run full             — ignore checkpoint, scrape entire history
  */
 
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
 import { chromium } from 'playwright';
 import { writeFileSync, readFileSync, appendFileSync, existsSync } from 'fs';
 import path from 'path';
@@ -544,6 +544,8 @@ async function run() {
     console.log(chalk.white('   npm run analyze:lore  — Run business + comedy lore reports\n'));
 
     const storageState = existsSync(SESSION_FILE) ? SESSION_FILE : undefined;
+    const runtimeDiscordToken = (process.env.DISCORD_TOKEN || process.env.TILT_DISCORD_TOKEN || '').trim();
+    const requireNonInteractiveLogin = process.env.DISCORD_REQUIRE_SESSION === 'true';
 
     // On Railway (headless Linux), use system Chromium installed via apt-get.
     // executablePath takes precedence over env vars which Playwright may ignore.
@@ -569,9 +571,30 @@ async function run() {
 
     // Navigate — check login
     await page.goto('https://discord.com/login', { waitUntil: 'domcontentloaded' });
-    const loggedIn = await page.locator('[data-list-id="guildsnav"]').isVisible({ timeout: 5000 }).catch(() => false);
+    let loggedIn = await page.locator('[data-list-id="guildsnav"]').isVisible({ timeout: 5000 }).catch(() => false);
+
+    if (!loggedIn && runtimeDiscordToken) {
+        console.log(chalk.yellow('[auth] No session detected. Attempting runtime-only DISCORD_TOKEN hydration (not persisted)...'));
+        await context.addInitScript((token) => {
+            try {
+                // Discord expects localStorage token to be a JSON-encoded string.
+                window.localStorage.setItem('token', JSON.stringify(token));
+            } catch {
+                // best-effort only
+            }
+        }, runtimeDiscordToken);
+        await page.goto('https://discord.com/channels/@me', { waitUntil: 'domcontentloaded' });
+        loggedIn = await page.locator('[data-list-id="guildsnav"]').isVisible({ timeout: 8000 }).catch(() => false);
+    }
 
     if (!loggedIn) {
+        if (isHeadless || requireNonInteractiveLogin) {
+            console.error(chalk.red('❌ Discord session missing in headless mode.'));
+            console.error(chalk.gray('Provide a sanitized Playwright storageState (.session.json or DISCORD_SESSION_JSON) for non-interactive runs.'));
+            console.error(chalk.gray('If you insist on runtime-only hydration, set DISCORD_TOKEN and expect it to break any time Discord changes.'));
+            process.exit(1);
+        }
+
         console.log(chalk.yellow('⚠️  Log into Discord in the browser. Waiting 3 minutes...'));
         await page.waitForSelector('[data-list-id="guildsnav"]', { timeout: 180_000 }).catch(() => {
             console.error(chalk.red('❌ Login timeout. Restart and log in quicker.'));
@@ -580,7 +603,7 @@ async function run() {
         await context.storageState({ path: SESSION_FILE });
         console.log(chalk.green('✅ Session saved.\n'));
     } else {
-        console.log(chalk.green('✅ Already logged in.\n'));
+        console.log(chalk.green('✅ Logged in.\n'));
     }
 
     await page.goto(CHANNEL_URL, { waitUntil: 'domcontentloaded' });

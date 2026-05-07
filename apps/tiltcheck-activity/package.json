@@ -2,7 +2,7 @@
   "name": "@tiltcheck/tiltcheck-activity",
   "private": true,
   "version": "1.0.0",
-  "description": "TiltCheck Discord Activity — Session Audit, Tilt Detection, Trust Lookup",
+  "description": "DEPRECATED: TiltCheck Discord Activity shell (use apps/activity)",
   "type": "module",
   "scripts": {
     "dev": "vite",
