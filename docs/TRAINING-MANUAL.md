@@ -932,7 +932,7 @@ ANY ENTRY POINT (Discord / Web / Extension)
 |---|---|---|
 | `VITE_DISCORD_CLIENT_ID` | Both activities | No (fallback exists) |
 | `VITE_TOKEN_ENDPOINT` | Both activities | No (fallback: api.tiltcheck.me) |
-| `VITE_ARENA_URL` | Degens activity | No (fallback: localhost:3010) |
+| `VITE_ARENA_URL` | Degens activity | No (prod fallback: `https://game-arena.tiltcheck.me`; dev: Vite origin / proxy) |
 | `VITE_HUB_URL` | TiltCheck activity | No (fallback: api.tiltcheck.me) |
 
 ### Infrastructure

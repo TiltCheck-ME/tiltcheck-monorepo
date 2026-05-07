@@ -65,7 +65,7 @@ Collected from CollectClock:
 - “1SC → 0.10SC for no reason” cycles  
 
 Observed promo-drop timing note (Stake.us Instagram codes):
-- `docs/tiltcheck/8a-instagram-stake-us-code-timing.md`
+- [8A Instagram Stake.us Code Timing (Observed)](8a-instagram-stake-us-code-timing.md)
 
 ### **4. FreeSpinScan Signals**
 - invalid links  

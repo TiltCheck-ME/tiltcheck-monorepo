@@ -78,7 +78,7 @@ export class HubRelay {
       reconnectionDelay: 1000,
       reconnectionDelayMax: this.maxReconnectDelay,
       reconnectionAttempts: Infinity,
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
       withCredentials: true,
     });
 
