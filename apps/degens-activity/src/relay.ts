@@ -6,7 +6,7 @@ import { getAccessToken } from './sdk.js';
 
 type Handler = (data: unknown) => void;
 
-/** Production ships without localhost — game-arena public ingress is arena.tiltcheck.me. Dev uses the Vite dev origin so `/socket.io` hits the proxy. */
+/** Production ships without localhost — Socket.IO public ingress is game-arena.tiltcheck.me. Dev uses the Vite dev origin so `/socket.io` hits the proxy. */
 function resolveArenaUrl(): string {
   const env = typeof import.meta.env.VITE_ARENA_URL === 'string' ? import.meta.env.VITE_ARENA_URL.trim() : '';
   if (env) {
@@ -15,7 +15,7 @@ function resolveArenaUrl(): string {
   if (import.meta.env.DEV && typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin;
   }
-  return 'https://arena.tiltcheck.me';
+  return 'https://game-arena.tiltcheck.me';
 }
 
 let socket: Socket | null = null;

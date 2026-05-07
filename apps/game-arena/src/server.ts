@@ -62,6 +62,7 @@ app.use((req, res, next) => {
     'https://api.tiltcheck.me',
     'https://activity.tiltcheck.me',
     'https://dev-activity.tiltcheck.me',
+    'https://game-arena.tiltcheck.me',
     'https://game.tiltcheck.me',
     'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
   ];
@@ -95,6 +96,7 @@ const socketIoCorsOrigins = [
   'https://api.tiltcheck.me',
   'https://activity.tiltcheck.me',
   'https://dev-activity.tiltcheck.me',
+  'https://game-arena.tiltcheck.me',
   'https://game.tiltcheck.me',
   'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
 ];

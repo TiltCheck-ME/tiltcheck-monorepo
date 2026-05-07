@@ -118,7 +118,7 @@ Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (
   - `pnpm --filter @tiltcheck/degens-activity dev:tunnel` -> `dev-degens.tiltcheck.me`
   - `pnpm --filter @tiltcheck/tiltcheck-activity dev:tunnel` -> `dev-tiltcheck-activity.tiltcheck.me`
 - Runtime defaults (override with `VITE_*` when your Activity host is not the TiltCheck public ingress):
-  - Degens `VITE_ARENA_URL`: production build falls back to `https://arena.tiltcheck.me`; dev uses `window.location.origin` so the Vite `/socket.io` proxy is used.
+  - Degens `VITE_ARENA_URL`: production build falls back to `https://game-arena.tiltcheck.me`; dev uses `window.location.origin` so the Vite `/socket.io` proxy is used.
   - TiltCheck session `VITE_HUB_URL`: production build falls back to `https://activity.tiltcheck.me` (REST still uses `VITE_API_URL` separately); dev uses `window.location.origin` for the proxy.
 - Replace the placeholder tunnel UUID and generic credentials path placeholder in each app's `cloudflare-tunnel.yml` before use.
 
