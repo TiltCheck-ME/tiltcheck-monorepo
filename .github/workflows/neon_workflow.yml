@@ -18,11 +18,27 @@ jobs:
     name: Setup
     outputs:
       branch: ${{ steps.branch_name.outputs.current_branch }}
+      neon_branch: ${{ steps.neon_branch_name.outputs.value }}
     runs-on: ubuntu-latest
     steps:
       - name: Get branch name
         id: branch_name
         uses: tj-actions/branch-names@v8
+
+      - name: Build Neon-safe branch name
+        id: neon_branch_name
+        env:
+          RAW_BRANCH: ${{ steps.branch_name.outputs.current_branch }}
+        run: |
+          sanitized_branch=$(printf '%s' "$RAW_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+//; s/-+$//; s/-{2,}/-/g')
+          if [ -z "$sanitized_branch" ]; then
+            sanitized_branch="branch"
+          fi
+
+          neon_branch="preview-pr-${{ github.event.number }}-${sanitized_branch}"
+          neon_branch="${neon_branch:0:63}"
+          neon_branch=$(printf '%s' "$neon_branch" | sed -E 's/-+$//')
+          echo "value=$neon_branch" >> "$GITHUB_OUTPUT"
 
   create_neon_branch:
     name: Create Neon Branch
@@ -54,7 +70,7 @@ jobs:
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch_name: ${{ needs.setup.outputs.neon_branch }}
           api_key: ${{ env.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
 
@@ -91,7 +107,7 @@ jobs:
   #        uses: neondatabase/schema-diff-action@v1
   #        with:
   #          project_id: ${{ vars.NEON_PROJECT_ID }}
-  #          compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+  #          compare_branch: ${{ needs.setup.outputs.neon_branch }}
   #          api_key: ${{ secrets.NEON_API_KEY }}
 
   delete_neon_branch:
@@ -114,7 +130,7 @@ jobs:
         if: env.NEON_API_KEY != ''
         env:
           NEON_API_HOST: https://console.neon.tech/api/v2
-          NEON_BRANCH_NAME: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          NEON_BRANCH_NAME: ${{ needs.setup.outputs.neon_branch }}
           NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
         run: |
           set +e
