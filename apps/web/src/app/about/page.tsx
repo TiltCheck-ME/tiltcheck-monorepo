@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import ValueProposition from "@/components/ValueProposition";
@@ -31,7 +31,7 @@ const philosophyCards = [
     body: "Live session reads, fairness checks, tilt signals, and trust context. The math is the point.",
   },
   {
-    title: "We enforce accountability, not shame",
+    title: "We operationalize accountability, not shame",
     body: "When your line gets hit, The Brakes engage. No fake concern theater. No passive warning wallpaper.",
   },
   {

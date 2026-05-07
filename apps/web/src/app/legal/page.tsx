@@ -1,17 +1,17 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import PublicPageHero from "@/components/PublicPageHero";
 
 const legalCards = [
   {
     href: "/terms",
-    eyebrow: "v2.1",
+    eyebrow: "v2.2",
     title: "Terms of Service",
     description:
       "Age requirements, what TiltCheck is and is not, the non-custodial clause, payment policy, prohibited uses, and liability limits.",
   },
   {
     href: "/privacy",
-    eyebrow: "v1.1",
+    eyebrow: "v1.2",
     title: "Privacy Policy",
     description:
       "What data TiltCheck collects, what it never collects, how retention works, and how deletion requests are handled.",

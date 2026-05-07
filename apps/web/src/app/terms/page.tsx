@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import PublicPageHero from "@/components/PublicPageHero";
 
 const sections = [
@@ -56,7 +56,12 @@ const sections = [
       "We update these terms when the product meaningfully changes. The version number and date at the top of the page define the current version. Continued use after updates means acceptance.",
   },
   {
-    title: "10. Contact",
+    title: "10. Browser extension, APIs, and accountability exports",
+    body:
+      "Optional TiltCheck clients (browser extensions, DNS or VPN integrations, research builds, or similar) may contact TiltCheck APIs or produce accountability or evidence exports only after you accept the disclosures shown in that client. User-controlled filters — including ad or tracker reduction — reduce exposure but do not guarantee blocking every harmful ad, URL, or gambling trigger; effectiveness depends on your settings, site behavior, and third-party content. Trust scores, Discord or community reports, SusLink signals, and similar feeds are informational aggregates. They are not legal findings, regulator verdicts, or guarantees about any operator. API use remains subject to the prohibited-use rules above.",
+  },
+  {
+    title: "11. Contact",
     body: (
       <div className="public-page-card__body">
         <p>Legal questions: legal@tiltcheck.me</p>
@@ -82,7 +87,7 @@ export default function TermsPage() {
         stats={[
           {
             label: "Version",
-            value: "2.1",
+            value: "2.2",
             description: "Current public terms version.",
           },
           {

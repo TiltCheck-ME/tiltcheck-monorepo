@@ -1,4 +1,6 @@
 /**
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
+ *
  * Legal Disclaimers for the TiltCheck Ecosystem (v2026)
  * These must be presented clearly before using high-risk features like LockVault and JustTheTip.
  */
@@ -27,5 +29,10 @@ TiltCheck is an independent application. This service, including our activity fe
     FEE_DISCLOSURE: `
 TRANSACTION FEES:
 JustTheTip transactions carry a flat processing fee of $0.07 (or equivalent in digital assets) to ensure low-latency processing and non-custodial coordination. This fee is calculated and deducted before execution of the on-chain transfer. By proceeding, you agree to this fee schedule.
+    `.trim(),
+
+    OPTIONAL_CLOUD_FEATURES: `
+OPTIONAL NETWORK FEATURES:
+Some TiltCheck clients can send limited technical or session metadata to TiltCheck APIs when you explicitly enable those features (for example sync, filtering rule updates, or optional accountability exports). That traffic is subject to the public Terms of Service and Privacy Policy. TiltCheck does not sell this data for advertising. User-controlled filters reduce exposure to unwanted ads or trackers but cannot guarantee blocking every harmful or unwanted URL.
     `.trim()
 };

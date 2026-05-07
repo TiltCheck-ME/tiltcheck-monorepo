@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-25 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import React from "react";
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -57,7 +57,7 @@ const TOOLS: Tool[] = [
     label: "SHADOW-BAN TRACKER",
     title: "Casino Restriction Log",
     description:
-      "Community-reported withdrawal delays, account locks, silent ToS changes, and payout denials. Updated from Discord reports and the Trust Engine. Named, dated, severity-graded.",
+      "Player-reported signals on withdrawal friction, locks, ToS volatility, and denials — allegations aggregated from Discord and the Trust Engine, not regulator verdicts. Named, dated, severity-graded.",
     status: "live",
   },
   {

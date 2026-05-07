@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import PublicPageHero from "@/components/PublicPageHero";
 
 const sections = [
@@ -54,7 +54,7 @@ const sections = [
   {
     title: "06. Chrome extension",
     body:
-      "The extension reads active tab URLs and session-visible data only on domains you explicitly activate it for. It does not log keystrokes, capture screenshots, or read unrelated tabs.",
+      "The extension reads active tab URLs and session-visible data only on domains you explicitly activate it for. It does not log keystrokes, capture screenshots, or read unrelated tabs. Optional features that sync to TiltCheck APIs or export accountability bundles send only what those flows describe, and only after you turn them on.",
   },
   {
     title: "07. Your rights",
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
         stats={[
           {
             label: "Version",
-            value: "1.1",
+            value: "1.2",
             description: "Current public privacy policy version.",
           },
           {

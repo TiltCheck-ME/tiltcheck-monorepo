@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import React, { useState } from 'react';
 import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
 
@@ -39,7 +40,7 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onAccept, title = "LEGA
 
           <section className="mb-8">
             <h3 className="text-xs font-bold text-[#d946ef] mb-3 uppercase tracking-[0.2em] border-b border-[#283347] pb-1">
-              Adisory Disclaimer
+              Advisory Disclaimer
             </h3>
             <p className="text-sm text-gray-400 leading-relaxed font-medium">
               {LEGAL_DISCLAIMERS.INFORMATIONAL_PURPOSES}

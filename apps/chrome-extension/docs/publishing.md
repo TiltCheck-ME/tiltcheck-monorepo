@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 -->
 
 # TiltGuard Chrome Extension — Publishing Guide
 
@@ -72,7 +72,7 @@ LICENSE VERIFICATION
 - Multi-jurisdiction support
 - Red flag detection
 
-Privacy-focused. All betting data processed locally. No data sent without explicit consent.
+Privacy-focused. Core session mechanics aim to stay on-device. Optional features that contact TiltCheck APIs (sync, rule updates, accountability-related exports) send only what those flows describe and only after you opt in — see tiltcheck.me/privacy and tiltcheck.me/terms.
 
 Made for Degens. By Degens.
 ```
@@ -90,6 +90,10 @@ Host a privacy policy at `https://tiltcheck.me/privacy` covering:
 - Local vs. server-side storage
 - Third-party services (Discord OAuth, Solana RPC)
 - User rights and data deletion
+
+### Store listing honesty (API egress)
+
+Before shipping any build that phones home to TiltCheck APIs or third-party endpoints beyond OAuth/RPC: update the Chrome Web Store description, the single-purpose justification, and permission notes so they match actual hosts and payloads. Blanket “local only” claims conflict with optional cloud paths — disclose them or keep them disabled in store builds.
 
 ---
 
