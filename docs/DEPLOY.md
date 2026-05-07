@@ -33,14 +33,14 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | `dad-bot` | `apps/dad-bot` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-dad-bot` | `dad-bot` | `DISCORD_CLIENT_ID` plus one dad bot token var (`DAD_DISCORD_BOT_TOKEN`, `DISCORD_TOKEN`, or `DISCORD_BOT_TOKEN`) | Railway private `/health` on service port |
 | `trust-rollup` | `apps/trust-rollup` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-trust-rollup` | `trust-rollup` | `TRUST_ROLLUP_*` config and any upstream data-source keys required by enabled fetchers | Railway private `/health` on service port |
 | `control-room` | `apps/control-room` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-control-room` | `control-room` | `ADMIN_PASSWORD`, `SESSION_SECRET` | `https://admin.tiltcheck.me/health` when that hostname maps to this service |
-| `game-arena` | `apps/game-arena` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-game-arena` | `game-arena` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SESSION_SECRET` and/or `JWT_SECRET` | `https://arena.tiltcheck.me/health` when that hostname maps to this service |
+| `game-arena` | `apps/game-arena` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-game-arena` | `game-arena` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SESSION_SECRET` and/or `JWT_SECRET` | `https://game-arena.tiltcheck.me/health` or `https://arena.tiltcheck.me/health` depending on which public hostname maps to this service |
 | `user-dashboard` | `apps/user-dashboard` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-user-dashboard` | `user-dashboard` | `JWT_SECRET`, `MAGIC_SECRET_KEY` when Magic routes stay enabled | `https://dashboard.tiltcheck.me/health` when that hostname maps to this service |
 | `activity` | `apps/activity` | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-activity` | `activity` | `VITE_DISCORD_CLIENT_ID`, `VITE_API_URL`, `VITE_DASHBOARD_URL` | `https://activity.tiltcheck.me/` when that hostname maps to this service |
 | `cloudflared` | `apps/cloudflared` | Optional GHCR -> Railway tunnel daemon | `.github/workflows/deploy-railway.yml` | `ghcr.io/tiltcheck-me/tiltcheck-cloudflared` | `cloudflared` | `TUNNEL_TOKEN` | Only when tunnel ingress is active: verify Railway service health and optional `.github/workflows/configure-tunnel.yml` reconciliation |
 | `hub` | `apps/hub` | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | n/a | n/a | Wrangler bindings such as `DB`, `SESSIONS`, `API_BASE_URL`, and `INTERNAL_API_SECRET` | `GET /health` on the deployed Worker URL; public `hub.tiltcheck.me` may map here or to `user-dashboard` depending on live ingress |
 | `chrome-extension` | `apps/chrome-extension` | Browser asset; manual ZIP or Chrome Web Store publish | none | n/a | n/a | Build/runtime config in `apps/chrome-extension/src/config.ts` | Manual smoke: `pnpm -C apps/chrome-extension build`, load built extension, and verify API calls against `https://api.tiltcheck.me` |
-| `degens-activity` | `apps/degens-activity` | Static Discord activity asset; manual publish to CDN or Discord-managed asset host | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_ARENA_URL` | Manual smoke: `pnpm --filter @tiltcheck/degens-activity build` and verify the built SPA in a Discord Activity session; no production host is wired in-repo |
-| `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish to CDN or Discord-managed asset host | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify the built SPA in a Discord Activity session; no production host is wired in-repo |
+| `degens-activity` | `apps/degens-activity` | **Recommended:** GHCR → Railway second service (static nginx SPA, mirror `apps/activity` Dockerfile pattern). **Alternative:** manual static CDN. Workflow/image names are placeholders until wired in `.github/workflows/deploy-railway.yml`. | `.github/workflows/deploy-railway.yml` (extend when Dockerfile exists) | `ghcr.io/tiltcheck-me/tiltcheck-degens-activity` *(suggested)* | `degens-activity` *(suggested)* | **`VITE_DISCORD_CLIENT_ID`**, **`VITE_TOKEN_ENDPOINT`**, **`VITE_ARENA_URL=https://game-arena.tiltcheck.me`** (realtime ingress; do not omit in prod builds) | **`https://degens.activity.tiltcheck.me/`** *(example hostname — set Railway Custom Domain + Discord Embedded URL to the same canonical URL)* |
+| `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish OR optional future Railway row | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify in Discord |
 
 ## Public Routing
 
@@ -50,7 +50,8 @@ Public hostnames do not automatically come from the deploy workflow itself. This
 - `tiltcheck.me` and `www.tiltcheck.me` -> `web.railway.internal:3000`
 - `dashboard.tiltcheck.me` and `hub.tiltcheck.me` -> `user-dashboard.railway.internal:6001`
 - activity.tiltcheck.me -> activity.railway.internal:8080 (matches the container listen port in the Dockerfile)
-- `arena.tiltcheck.me` -> `game-arena.railway.internal:3000`
+- `arena.tiltcheck.me` -> `game-arena.railway.internal:3000` (historic / alternate DNS; Socket.IO and web may also use **`game-arena.tiltcheck.me`** per your edge mapping)
+- Degens second Activity (example): **`degens.activity.tiltcheck.me`** -> `degens-activity.railway.internal:<port>` once the Railway service and custom domain exist
 - `admin.tiltcheck.me` -> `control-room.railway.internal:3000`
 
 ## Discord Activity (`apps/activity`) — production checklist
@@ -91,11 +92,54 @@ Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (
 
 ### How to verify health end-to-end
 
-1. **Pipeline:** After merge to `main`, confirm the workflow built `tiltcheck-activity` and the Railway deploy step succeeded for the `activity` matrix row.
+1. **Pipeline:** After merge to `main`, confirm the workflow built the **`activity`** image (`ghcr.io/tiltcheck-me/tiltcheck-activity`) and Railway deployed the `activity` service.
 2. **Edge:** Open `https://activity.tiltcheck.me/` in a browser; you should get the SPA (not a persistent 5xx). Fetch `https://activity.tiltcheck.me/version.json` after a deploy if you need a coarse build stamp (generated at Vite build).
 3. **Discord:** Join a voice channel, launch the Embedded Activity, and confirm the shell reaches CONNECTED (not permanently DEMO MODE). DEMO MODE usually means SDK or token exchange failed—check API logs for `/auth/discord/activity/token` and Discord OAuth config.
 
 - **Activity-only rollback:** In Railway, roll back the `activity` service to a previous image or redeploy a known-good tag from GHCR.
+
+## Degens Activity (`apps/degens-activity`) — second Railway service
+
+This is the **separate** Discord Embedded App for the Degens lobby (DA&D, trivia, jackpot). It does **not** ship from the `activity` service on `activity.tiltcheck.me`. Run a **second** Railway service so you have two public URLs: **TiltCheck shell** vs **Degens games**.
+
+### Hosting target (pattern)
+
+| Item | Value |
+| :--- | :--- |
+| Public URL | Your choice (example: `https://degens.activity.tiltcheck.me/`). Must match the **Embedded App / Activity URL** in the **Degens** Discord application. |
+| Image | Suggested: `ghcr.io/tiltcheck-me/tiltcheck-degens-activity` once CI builds it |
+| Railway service | Suggested name: `degens-activity` |
+| CI/CD | Add a matrix row and Dockerfile mirroring `apps/activity` (Vite build + nginx static + optional `/api/` and `/socket.io/` upstreams). Until then, build locally and deploy the image manually. |
+
+### Build-time environment (Railway or CI)
+
+Set at **`pnpm build`** time (Vite embeds `VITE_*`):
+
+| Variable | Required | Notes |
+| :--- | :--- | :--- |
+| `VITE_DISCORD_CLIENT_ID` | Yes | Use the Discord **application** that owns the Degens Activity. |
+| `VITE_TOKEN_ENDPOINT` | Recommended | Defaults to `https://api.tiltcheck.me/auth/discord/activity/token` in code if unset; override if API is not public at that URL. |
+| `VITE_ARENA_URL` | **Yes in production** | Set to **`https://game-arena.tiltcheck.me`** (or your live game-arena Socket.IO origin). Do not rely on localhost in Discord users’ browsers. |
+
+### Realtime / CORS
+
+- The browser connects Socket.IO **to game-arena**, not necessarily to the Degens Activity hostname.
+- After the Degens SPA has a stable **HTTPS origin**, add it to **`apps/game-arena/src/server.ts`** `allowedOrigins` and `socketIoCorsOrigins` if connections are cross-origin from the SPA (same pattern as `activity.tiltcheck.me`).
+
+### Discord Developer Portal
+
+- Use **this** Embedded App URL + OAuth config for Degens only; **do not** reuse `activity.tiltcheck.me` for the Degens Discord app unless you intentionally serve both products from one host (you are not).
+- Include `https://<APPLICATION_ID>.discordsays.com` on OAuth2 redirects the same way as the main Activity.
+
+### Internal networking (optional nginx in Docker)
+
+If you copy the `apps/activity` Dockerfile pattern, proxy **`/socket.io/`** to `game-arena.railway.internal:3000` so the iframe can use **same-origin** Socket.IO (then `VITE_ARENA_URL` can be omitted or set to the Degens public origin). If you **do not** proxy, clients must use **`VITE_ARENA_URL`** pointing at **`https://game-arena.tiltcheck.me`**.
+
+### Smoke
+
+1. `pnpm --filter @tiltcheck/degens-activity build`
+2. Open the public URL in a normal browser; confirm JS loads and status is not stuck forever on CONNECTING after Discord handshake timeout (see app `initSDK` timeout behavior).
+3. Launch the Activity in Discord; confirm trivia/lobby mounts and realtime events reach the client.
 
 ## Rollback Notes
 
@@ -106,21 +150,19 @@ Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (
 
 ## Manual Publish Notes
 
-### `degens-activity` and `tiltcheck-activity`
+### `tiltcheck-activity` (manual)
 
-- Chosen target: static asset publish, not Railway.
-- Reason: both apps are Vite SPAs for Discord Activities, the repo has no Railway service IDs or production tunnel routes for them, and adding placeholder matrix rows would create broken deploy automation.
-- Build commands:
-  - `pnpm --filter @tiltcheck/degens-activity build`
-  - `pnpm --filter @tiltcheck/tiltcheck-activity build`
-- Publish the resulting `dist/` artifacts to the CDN or Discord-managed asset host that backs the Activity configuration outside this repo.
-- Local tunnel support is wired for Discord dev sessions:
-  - `pnpm --filter @tiltcheck/degens-activity dev:tunnel` -> `dev-degens.tiltcheck.me`
-  - `pnpm --filter @tiltcheck/tiltcheck-activity dev:tunnel` -> `dev-tiltcheck-activity.tiltcheck.me`
-- Runtime defaults (override with `VITE_*` when your Activity host is not the TiltCheck public ingress):
-  - Degens `VITE_ARENA_URL`: production build falls back to `https://game-arena.tiltcheck.me`; dev uses `window.location.origin` so the Vite `/socket.io` proxy is used.
-  - TiltCheck session `VITE_HUB_URL`: production build falls back to `https://activity.tiltcheck.me` (REST still uses `VITE_API_URL` separately); dev uses `window.location.origin` for the proxy.
-- Replace the placeholder tunnel UUID and generic credentials path placeholder in each app's `cloudflare-tunnel.yml` before use.
+- **Chosen target:** static asset publish **or** a future Railway row (same pattern as Degens once needed).
+- **Build:** `pnpm --filter @tiltcheck/tiltcheck-activity build`
+- **Publish:** Deploy `dist/` to the host configured in Discord for that slim session app.
+- **Runtime defaults:** `VITE_HUB_URL` prod fallback `https://activity.tiltcheck.me`; dev uses `window.location.origin` for the proxy.
+- Replace the placeholder UUID in `apps/tiltcheck-activity/cloudflare-tunnel.yml` before dev tunnel use.
+
+### `degens-activity` pointers
+
+- **Recommended production path:** second Railway service and public hostname — see **Degens Activity (`apps/degens-activity`) — second Railway service** above.
+- **Alternative:** publish `pnpm --filter @tiltcheck/degens-activity build` output to any HTTPS static host without Railway.
+- **Local tunnel:** `pnpm --filter @tiltcheck/degens-activity dev:tunnel` → `dev-degens.tiltcheck.me`
 
 ### `chrome-extension`
 
@@ -137,4 +179,4 @@ When this file changes, confirm all three checks before merging:
 
 1. `git ls-files ".github/workflows/*"` still shows no tracked `deploy-gcp` workflow file in the repo.
 2. If GitHub UI or `gh workflow list` still shows retired workflow metadata, confirm `gh workflow view <id> --yaml` fails before treating it as an active source of truth.
-3. Every deployable row above still matches the active workflow or an explicit manual-only path.
+3. Every deployable row above still matches the active workflow, an explicit manual path, or an explicitly **TBD** Railway extension (e.g. **degens-activity** CI wiring).
