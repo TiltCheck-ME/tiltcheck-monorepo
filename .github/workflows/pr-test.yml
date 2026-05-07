@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
 name: Validate Changed Packages (PR)
 
 on:
@@ -69,3 +69,4 @@ jobs:
         run: pnpm test:e2e
         env:
           BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://tiltcheck.me' }}
+          PLAYWRIGHT_DEGENS_LOCAL: '1'
