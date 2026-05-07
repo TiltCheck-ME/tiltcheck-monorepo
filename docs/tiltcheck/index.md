@@ -3,6 +3,8 @@ title: TiltCheck Documentation Hub
 layout: default
 ---
 
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 -->
+
 # TiltCheck Ecosystem Docs
 
 Built by a degen, for degens. Fast reference to every internal spec, prompt, and module.
@@ -21,6 +23,7 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 
 ## Trust & Architecture
 - [8 Trust Engines](8-trust-engines.md)
+- [8A Instagram Stake.us Code Timing (Observed)](8a-instagram-stake-us-code-timing.md)
 - [9 Architecture](9-architecture.md)
 - [10 Data Models](10-data-models.md)
 
