@@ -6,7 +6,17 @@ import { getAccessToken } from './sdk.js';
 
 type Handler = (data: unknown) => void;
 
-const ARENA_URL = import.meta.env.VITE_ARENA_URL || 'http://localhost:3010';
+/** Production ships without localhost — game-arena public ingress is arena.tiltcheck.me. Dev uses the Vite dev origin so `/socket.io` hits the proxy. */
+function resolveArenaUrl(): string {
+  const env = typeof import.meta.env.VITE_ARENA_URL === 'string' ? import.meta.env.VITE_ARENA_URL.trim() : '';
+  if (env) {
+    return env;
+  }
+  if (import.meta.env.DEV && typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://arena.tiltcheck.me';
+}
 
 let socket: Socket | null = null;
 const handlers = new Map<string, Handler[]>();
@@ -23,12 +33,15 @@ export function on(event: string, handler: Handler): void {
 export function connect(userId: string): void {
   if (socket) return;
 
-  socket = io(ARENA_URL, {
+  const arenaUrl = resolveArenaUrl();
+
+  socket = io(arenaUrl, {
     auth: { token: getAccessToken() || 'activity-bypass', userId },
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 15000,
-    transports: ['websocket'],
+    // Prefer polling-compatible path — some Discord/mobile webviews are picky about websocket-only.
+    transports: ['polling', 'websocket'],
   });
 
   socket.on('connect', () => emit('connected', true));

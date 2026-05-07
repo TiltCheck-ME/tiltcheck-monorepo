@@ -1,7 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 // Discord Embedded App SDK bridge — lean wrapper
 
 import { DiscordSDK, Events } from '@discord/embedded-app-sdk';
+
+const DISCORD_HANDSHAKE_DEADLINE_MS = 18_000;
 
 export interface DiscordUser {
   id: string;
@@ -31,15 +33,11 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
-export async function initSDK(): Promise<DiscordUser> {
-  if (window.self === window.top) {
-    return { id: 'demo-0000', username: 'DEMO DEGEN', channelId: null };
-  }
-
+async function handshakeDiscordActivity(): Promise<DiscordUser> {
   sdk = new DiscordSDK(CLIENT_ID);
   await Promise.race([
     sdk.ready(),
-    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SDK timeout')), 8000)),
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SDK ready timeout')), 8000)),
   ]);
 
   const { code } = await sdk.commands.authorize({
@@ -69,6 +67,22 @@ export async function initSDK(): Promise<DiscordUser> {
     username: auth.user.username,
     channelId: sdk.channelId,
   };
+}
+
+export async function initSDK(): Promise<DiscordUser> {
+  if (window.self === window.top) {
+    return { id: 'demo-0000', username: 'DEMO DEGEN', channelId: null };
+  }
+
+  return Promise.race([
+    handshakeDiscordActivity(),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Discord activity handshake timeout')),
+        DISCORD_HANDSHAKE_DEADLINE_MS,
+      ),
+    ),
+  ]);
 }
 
 export async function openExternal(url: string): Promise<void> {

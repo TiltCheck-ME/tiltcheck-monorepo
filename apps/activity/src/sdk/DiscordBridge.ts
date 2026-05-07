@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 
 import { DiscordSDK, Events } from '@discord/embedded-app-sdk';
 import { getApiEndpointCandidates } from '../config.js';
@@ -41,17 +41,28 @@ export class DiscordBridge {
   async initialize(): Promise<DiscordBridgeState> {
     const sdk = this.getOrCreateSdk();
 
-    // 8-second timeout — fall to demo mode if Discord SDK hangs
-    await Promise.race([
-      sdk.ready(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Discord SDK ready() timeout')), 8000)
-      )
-    ]);
+    /** Full authorize + subscribe can stall indefinitely in some Discord clients; caps total wait so the shell mounts. */
+    const HANDSHAKE_MS = 18_000;
 
-    await this.authenticate(sdk);
-    await this.subscribeToEvents(sdk);
-    return this.state;
+    const handshake = async (): Promise<DiscordBridgeState> => {
+      await Promise.race([
+        sdk.ready(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Discord SDK ready() timeout')), 8000),
+        ),
+      ]);
+
+      await this.authenticate(sdk);
+      await this.subscribeToEvents(sdk);
+      return this.state;
+    };
+
+    return Promise.race([
+      handshake(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Discord activity handshake timeout')), HANDSHAKE_MS),
+      ),
+    ]);
   }
 
   private getOrCreateSdk(): DiscordSDK {
