@@ -1,8 +1,8 @@
-<# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 #>
+<# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 #>
 param(
     [string]$TaskName = "TiltCheck-ChannelWatcher-Cloud",
     [string[]]$Days = @("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
-    [string[]]$Times = @("00:00", "02:00", "04:00", "06:00", "08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"),
+    [string[]]$Times = @("00:00", "06:00", "12:00", "18:00"),
     [int]$DurationMinutes = 2,
     [switch]$DisableAfterCreate
 )
