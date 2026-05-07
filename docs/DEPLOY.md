@@ -42,6 +42,14 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | `degens-activity` | `apps/degens-activity` | **Recommended:** GHCR → Railway second service (static nginx SPA, mirror `apps/activity` Dockerfile pattern). **Alternative:** manual static CDN. Workflow/image names are placeholders until wired in `.github/workflows/deploy-railway.yml`. | `.github/workflows/deploy-railway.yml` (extend when Dockerfile exists) | `ghcr.io/tiltcheck-me/tiltcheck-degens-activity` *(suggested)* | `degens-activity` *(suggested)* | **`VITE_DISCORD_CLIENT_ID`**, **`VITE_TOKEN_ENDPOINT`**, **`VITE_ARENA_URL=https://game-arena.tiltcheck.me`** (realtime ingress; do not omit in prod builds) | **`https://degens.activity.tiltcheck.me/`** *(example hostname — set Railway Custom Domain + Discord Embedded URL to the same canonical URL)* |
 | `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish OR optional future Railway row | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify in Discord |
 
+### Workspace packages with `dist/` (Docker images)
+
+Packages such as **`@tiltcheck/event-router`** point `exports` at **`dist/*.js`** and **`dist/` is gitignored**. A filtered `pnpm install` alone does not emit those artifacts. **`apps/control-room/Dockerfile`** must run **`pnpm --filter @tiltcheck/event-router build`** inside the image (alongside other workspace builds) wherever the service imports `@tiltcheck/event-router` at runtime. Skipping this step surfaces as **`Error [ERR_MODULE_NOT_FOUND]`** for `.../@tiltcheck/event-router/dist/index.js` on Railway startup (for example when loading `apps/control-room/src/trivia-director.js`).
+
+### Wrangler (Cloudflare Workers) in this monorepo
+
+**Wrangler** is the **`apps/hub`** deployment path only: `.github/workflows/deploy-hub.yml` runs **`pnpm --filter @tiltcheck/hub run deploy`**, which invokes Wrangler against `apps/hub/wrangler.toml`. That publishes the TiltCheck Worker (D1/KV/bindings vary by `wrangler.toml`). **`hub.tiltcheck.me`** may hit this Worker **or** the **`user-dashboard`** service depending on how DNS/proxy/tunnel are configured in production (see **`hub`** row in the Deploy Inventory above). Workers under `workers/link-scanner/` and `packages/agent/`, **`packages/compliance-edge/`**, also carry `wrangler.toml` files for separate deploys—they are **not** the Railway stack; Railway uses GHCR containers from `.github/workflows/deploy-railway.yml`.
+
 ## Public Routing
 
 Public hostnames do not automatically come from the deploy workflow itself. This repo includes an optional Cloudflare Tunnel reconciler at `.github/workflows/configure-tunnel.yml`, but teams may also map Railway custom domains directly. The tunnel workflow mappings currently described in-repo are:
