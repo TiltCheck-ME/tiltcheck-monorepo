@@ -9,7 +9,6 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   scheme: 'tiltcheck',
   userInterfaceStyle: 'dark',
-  newArchEnabled: true,
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
