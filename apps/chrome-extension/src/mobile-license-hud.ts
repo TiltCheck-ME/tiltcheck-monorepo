@@ -4,6 +4,7 @@ import type { CasinoVerification, LicensePresentation } from './license-verifier
 
 export const MOBILE_LICENSE_HUD_ID = 'tiltcheck-mobile-license-hud';
 const MOBILE_LICENSE_HUD_STYLE_ID = 'tiltcheck-mobile-license-hud-style';
+const BRAND_FOOTER = 'Made for Degens. By Degens.';
 
 const TONE_STYLES: Record<LicensePresentation['tone'], { background: string; border: string; color: string }> = {
   verified: {
@@ -100,7 +101,7 @@ export function updateMobileLicenseHud(
   const hud = ensureMobileLicenseHud(doc);
   const toneStyle = TONE_STYLES[presentation.tone];
 
-  hud.textContent = presentation.summary;
+  hud.textContent = `${presentation.summary} | ${BRAND_FOOTER}`;
   hud.className = `tiltcheck-mobile-license-hud ${presentation.tone}`;
   hud.dataset.status = presentation.tone;
   hud.style.background = toneStyle.background;

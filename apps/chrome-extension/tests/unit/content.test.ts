@@ -211,7 +211,7 @@ describe('content script readiness contracts', () => {
     }));
     const mobileHud = document.getElementById('tiltcheck-mobile-license-hud');
     expect(mobileHud?.dataset.status).toBe('risk');
-    expect(mobileHud?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.');
+    expect(mobileHud?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site. | Made for Degens. By Degens.');
     expect(sidebarStub.updateStatus).toHaveBeenCalledWith(
       'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.',
       'warning',

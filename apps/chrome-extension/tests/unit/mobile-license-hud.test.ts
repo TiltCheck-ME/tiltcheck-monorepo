@@ -35,7 +35,7 @@ describe('mobile license HUD', () => {
 
     expect(hud?.id).toBe(MOBILE_LICENSE_HUD_ID);
     expect(hud?.dataset.status).toBe('pending');
-    expect(hud?.textContent).toBe('License: scanning current site...');
+    expect(hud?.textContent).toBe('License: scanning current site... | Made for Degens. By Degens.');
     expect(hud?.getAttribute('role')).toBe('status');
     expect(document.head.textContent).toContain('@media (max-width: 768px), (pointer: coarse)');
   });
@@ -46,7 +46,29 @@ describe('mobile license HUD', () => {
     expect(hud?.dataset.status).toBe('verified');
     expect(hud?.textContent).toContain('License verified: Malta Gaming Authority');
     expect(hud?.textContent).toContain('MGA/B2C/1234');
+    expect(hud?.textContent).toContain('Made for Degens. By Degens.');
     expect(hud?.style.color).toBe('rgb(209, 250, 229)');
+  });
+
+  it('surfaces warning state when a license is found but not fully verified', () => {
+    const hud = updateMobileLicenseHud(buildVerification({
+      isLegitimate: false,
+      licenseInfo: {
+        found: true,
+        issuingAuthority: 'Unknown authority',
+        jurisdiction: 'Unknown',
+        verified: false,
+        warnings: [],
+      },
+      verdict: 'unknown',
+      shouldAnalyze: true,
+      warningMessage: 'License found but could not be verified automatically. Proceeding with caution.',
+    }));
+
+    expect(hud?.dataset.status).toBe('warning');
+    expect(hud?.textContent).toContain('License found but could not be verified automatically.');
+    expect(hud?.textContent).toContain('Made for Degens. By Degens.');
+    expect(hud?.style.color).toBe('rgb(254, 243, 199)');
   });
 
   it('surfaces risk state when verification gates analysis', () => {
@@ -63,7 +85,7 @@ describe('mobile license HUD', () => {
     }));
 
     expect(hud?.dataset.status).toBe('risk');
-    expect(hud?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.');
+    expect(hud?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site. | Made for Degens. By Degens.');
     expect(hud?.style.color).toBe('rgb(254, 226, 226)');
   });
 });
