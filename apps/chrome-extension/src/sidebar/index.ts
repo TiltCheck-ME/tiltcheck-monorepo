@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -8,7 +8,7 @@ import { ReportManager } from './reports.js';
 import { BuddyManager } from './buddy.js';
 import { OnboardingManager } from './onboarding.js';
 import { BonusManager } from './bonuses.js';
-import { MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
+import { INJECTION_DISABLED_KEY, MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
 import { SidebarUI } from './types.js';
 import { buildLicensePresentation } from '../license-verifier.js';
 import { EXT_CONFIG } from '../config.js';
@@ -90,6 +90,9 @@ export class SidebarController implements SidebarUI {
     document.getElementById('tg-open-dashboard')?.addEventListener('click', () => this.openDashboard());
     document.getElementById('tg-open-buddies')?.addEventListener('click', () => this.openDashboard('buddies'));
     document.getElementById('tg-open-vault')?.addEventListener('click', () => this.openDashboard('vault'));
+    document.getElementById('tg-disable-injection')?.addEventListener('click', () => {
+      void this.disableRuntimeInjection();
+    });
     document.getElementById('tg-open-report')?.addEventListener('click', () => {
       this.setPanelVisibility('tg-report-panel', true);
     });
@@ -457,6 +460,13 @@ export class SidebarController implements SidebarUI {
     }
     chrome.tabs.create({ url: dashboardUrl.toString(), active: true });
     this.addFeedMessage(tab === 'profile' ? 'Opening dashboard.' : `Opening dashboard ${tab} controls.`);
+  }
+
+  private async disableRuntimeInjection(): Promise<void> {
+    await this.setStorage({ [INJECTION_DISABLED_KEY]: true });
+    this.updateStatus('TiltCheck runtime disabled. Toolbar wake-up is still available.', 'warning');
+    this.addFeedMessage('Runtime disabled. No cap, the HUD is off until you wake it back up.');
+    window.dispatchEvent(new CustomEvent('tg-disable-injection'));
   }
 
   public showMainContent() {

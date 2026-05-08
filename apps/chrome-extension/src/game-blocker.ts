@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
  * Game Blocker — Surgical Self-Exclusion enforcement for the Chrome Extension.
  *
@@ -69,6 +69,10 @@ export class GameBlocker {
     this.startObserver();
     this.startPoller();
     this.attachReturnListeners();
+  }
+
+  resume(_source = 'navigation'): void {
+    void this.refreshAndScan(true);
   }
 
   destroy(): void {

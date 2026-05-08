@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 
 export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
@@ -146,6 +146,10 @@ export const SIDEBAR_TEMPLATE = `
           <div class="tg-action-grid">
             <button class="tg-action-btn" id="tg-open-predictor">DAILY BONUSES</button>
             <button class="tg-action-btn" id="tg-open-dashboard">THE DASHBOARD</button>
+          </div>
+          <div class="tg-runtime-control">
+            <button class="tg-btn tg-btn-danger" id="tg-disable-injection" type="button">Disable Runtime</button>
+            <div class="tg-runtime-note">Hard off-switch for injection. The toolbar can wake it back up if you want the HUD again.</div>
           </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
  * @vitest-environment jsdom
  */
@@ -6,8 +6,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type OnMessageHandler = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;
 
-function createChromeMock() {
+const flush = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
+function createChromeMock(initialStorage: Record<string, unknown> = {}) {
   const listeners: OnMessageHandler[] = [];
+  const storageState: Record<string, unknown> = { ...initialStorage };
   const chromeMock = {
     runtime: {
       onMessage: {
@@ -19,17 +26,21 @@ function createChromeMock() {
       local: {
         get: vi.fn((keys: string[] | string, callback?: (value: any) => void) => {
           const result = Array.isArray(keys)
-            ? Object.fromEntries(keys.map((k) => [k, null]))
-            : { [keys]: null };
+            ? Object.fromEntries(keys.map((k) => [k, storageState[k] ?? null]))
+            : { [keys]: storageState[keys] ?? null };
           if (callback) callback(result);
           return Promise.resolve(result);
         }),
-        set: vi.fn((_data: any, callback?: () => void) => callback?.()),
+        set: vi.fn((data: any, callback?: () => void) => {
+          Object.assign(storageState, data);
+          callback?.();
+          return Promise.resolve();
+        }),
       },
     },
   };
   (globalThis as any).chrome = chromeMock;
-  return { listeners };
+  return { chromeMock, listeners, storageState };
 }
 
 function mockHeavyDependencies(options?: {
@@ -119,6 +130,7 @@ describe('content script readiness contracts', () => {
     };
 
     await import('../../src/content.ts');
+    await flush();
     expect(listeners).toHaveLength(1);
 
     const onMessage = listeners[0];
@@ -129,6 +141,9 @@ describe('content script readiness contracts', () => {
 
     const toggle = vi.fn();
     onMessage({ type: 'toggle_sidebar' }, null, toggle);
+    await vi.waitFor(() => {
+      expect(toggle).toHaveBeenCalled();
+    });
     expect(toggle).toHaveBeenCalledWith(expect.objectContaining({ success: true, visible: !initialVisible }));
   });
 
@@ -144,6 +159,7 @@ describe('content script readiness contracts', () => {
       notifyBuddy: vi.fn(),
     };
     await import('../../src/content.ts');
+    await flush();
 
     const response = vi.fn();
     listeners[0]({ type: 'unknown_message' }, null, response);
@@ -183,6 +199,7 @@ describe('content script readiness contracts', () => {
     });
 
     await import('../../src/content.ts');
+    await flush();
 
     expect(extractorInitialize).not.toHaveBeenCalled();
     expect(sidebarStub.updateLicense).toHaveBeenCalledWith(expect.objectContaining({
@@ -215,8 +232,54 @@ describe('content script readiness contracts', () => {
     };
 
     await import('../../src/content.ts');
+    await flush();
 
     expect(listeners).toHaveLength(1);
     expect(tiltDetectorSpy).toHaveBeenCalledWith(0, 'moderate', 0);
+  });
+
+  it('honors the persisted injection off-switch until the toolbar wakes it back up', async () => {
+    const { listeners, storageState } = createChromeMock({ tiltcheck_injection_disabled: true });
+    const sidebarStub = {
+      syncAccountUi: vi.fn(),
+      showMainContent: vi.fn(),
+      addFeedMessage: vi.fn(),
+      getStorage: vi.fn().mockResolvedValue({}),
+      setStorage: vi.fn().mockResolvedValue(undefined),
+      updateStatus: vi.fn(),
+      updateRealityCheck: vi.fn(),
+      updateLicense: vi.fn(),
+      updateTilt: vi.fn(),
+      updateStats: vi.fn(),
+      notifyBuddy: vi.fn(),
+      openPremium: vi.fn().mockResolvedValue(undefined),
+    };
+    const initSidebar = vi.fn(() => sidebarStub);
+    vi.doMock('../../src/sidebar/index.js', () => ({ initSidebar }));
+    mockHeavyDependencies();
+
+    await import('../../src/content.ts');
+    await flush();
+
+    expect(initSidebar).not.toHaveBeenCalled();
+    const getState = vi.fn();
+    listeners[0]({ type: 'get_sidebar_state' }, null, getState);
+    expect(getState).toHaveBeenCalledWith(expect.objectContaining({
+      exists: false,
+      injectionDisabled: true,
+    }));
+
+    const toggle = vi.fn();
+    listeners[0]({ type: 'toggle_sidebar' }, null, toggle);
+
+    await vi.waitFor(() => {
+      expect(toggle).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        visible: false,
+        injectionDisabled: false,
+      }));
+    });
+    expect(storageState.tiltcheck_injection_disabled).toBe(false);
+    expect(initSidebar).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 import * as esbuild from 'esbuild';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -31,7 +31,7 @@ async function build() {
   const manifest = JSON.parse(manifestContent);
   const version = manifest.version;
 
-  console.log(`🔨 Building TiltCheck Browser Extension v${version}...`);
+  console.log(`Building TiltCheck Browser Extension v${version}...`);
 
   // Clean dist directory (but preserve icons if they exist)
   const distPath = path.join(__dirname, 'dist');
@@ -96,6 +96,18 @@ async function build() {
     },
   });
 
+  // Build MAIN-world page bridge referenced by the manifest.
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/page-bridge.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: false,
+    minify: true,
+  });
+
   // Copy static files
   const staticFiles = [
     { src: 'src/manifest.json', dest: 'dist/manifest.json' },
@@ -110,7 +122,7 @@ async function build() {
     const srcPath = path.join(__dirname, file.src);
     const destPath = path.join(__dirname, file.dest);
     await fs.copyFile(srcPath, destPath);
-    console.log(`📋 Copied ${file.src} -> ${file.dest}`);
+    console.log(`Copied ${file.src} -> ${file.dest}`);
   }
 
   // Copy icons directory if it exists in src/icons
@@ -119,27 +131,27 @@ async function build() {
   try {
     await fs.access(srcIconsDir);
     await copyDir(srcIconsDir, destIconsDir);
-    console.log('📦 Copied icons from src/icons to dist/icons');
+    console.log('Copied icons from src/icons to dist/icons');
   } catch {
     // Create icons directory and add placeholder info
     await fs.mkdir(destIconsDir, { recursive: true });
-    console.log('⚠️  Icons directory created - please add icon16.png, icon48.png, icon128.png to src/icons');
+    console.log('Icons directory created - please add icon16.png, icon48.png, icon128.png to src/icons');
   }
 
-  console.log('✅ Build complete! Extension ready in ./dist');
+  console.log('Build complete. Extension ready in ./dist');
   console.log('');
-  console.log('📦 To install in Chrome:');
+  console.log('To install in Chrome:');
   console.log('   1. Open chrome://extensions/');
   console.log('   2. Enable "Developer mode" (top right)');
   console.log('   3. Click "Load unpacked"');
   console.log('   4. Select the ./dist folder');
   console.log('');
-  console.log('📦 To create zip:');
+  console.log('To create zip:');
   console.log('   npm run zip');
   console.log('');
 }
 
 build().catch((err) => {
-  console.error('❌ Build failed:', err);
+  console.error('Build failed:', err);
   process.exit(1);
 });

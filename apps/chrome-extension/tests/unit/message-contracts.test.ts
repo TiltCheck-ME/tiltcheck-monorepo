@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
  * @vitest-environment jsdom
  */
@@ -203,6 +203,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
 
     const toggleResponse = vi.fn();
     onMessage({ type: 'toggle_sidebar' }, null, toggleResponse);
+    await flush();
     expect(toggleResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
@@ -212,6 +213,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
 
     const openResponse = vi.fn();
     onMessage({ type: 'open_sidebar' }, null, openResponse);
+    await flush();
     expect(openResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
