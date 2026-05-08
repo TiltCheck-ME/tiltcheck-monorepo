@@ -1,20 +1,19 @@
-/* © 2026 TiltCheck Ecosystem. All Rights Reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 
 /**
  * Reality Check HUD Controller (v2)
  */
 
 import { HUD_STYLES } from './styles.js';
-import { RoundData } from '../core/Sensor.js';
+import type { RoundData } from '../core/Sensor.js';
+import type { SessionStatsSnapshot } from '../core/SessionTracker.js';
 
 export class RealityHUD {
   private container: HTMLElement | null = null;
   private isVisible: boolean = false;
   private stats = {
-    totalWagered: 0,
-    totalWin: 0,
-    roundsCount: 0,
-    lastRound: null as RoundData | null
+    lastRound: null as RoundData | null,
+    session: null as SessionStatsSnapshot | null,
   };
 
   constructor() {
@@ -64,8 +63,20 @@ export class RealityHUD {
               <div id="hud-total-wagered" style="font-weight: 700; font-family: 'JetBrains Mono';">$0.00</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+              <div class="hud-section-label" style="margin-bottom: 4px;">WON</div>
+              <div id="hud-total-won" style="font-weight: 700; font-family: 'JetBrains Mono';">$0.00</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
               <div class="hud-section-label" style="margin-bottom: 4px;">ROUNDS</div>
               <div id="hud-rounds-count" style="font-weight: 700; font-family: 'JetBrains Mono';">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+              <div class="hud-section-label" style="margin-bottom: 4px;">P/L</div>
+              <div id="hud-profit-loss" style="font-weight: 700; font-family: 'JetBrains Mono';">$0.00</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: span 2;">
+              <div class="hud-section-label" style="margin-bottom: 4px;">TILT SCORE</div>
+              <div id="hud-tilt-score" style="font-weight: 900; font-family: 'JetBrains Mono';">0/100</div>
             </div>
           </div>
         </div>
@@ -76,6 +87,8 @@ export class RealityHUD {
            <button class="hud-btn hud-btn-primary" id="hud-btn-activity">VIEW DISCORD ACTIVITY</button>
            <button class="hud-btn hud-btn-secondary" id="hud-btn-hide">HIDE SENSOR HUD</button>
         </div>
+
+        <div class="hud-footer">Made for Degens. By Degens.</div>
       </div>
     `;
 
@@ -89,7 +102,7 @@ export class RealityHUD {
       window.open('https://discord.com/channels/@me', '_blank');
     });
     document.getElementById('hud-btn-brake')?.addEventListener('click', () => {
-        alert('EMERGENCY BRAKE: Secure your funds manually. We do not hold custody.');
+      alert('EMERGENCY BRAKE: Secure your funds manually. We do not hold custody.');
     });
   }
 
@@ -104,11 +117,9 @@ export class RealityHUD {
     }
   }
 
-  updateRound(round: RoundData): void {
-    this.stats.roundsCount++;
-    this.stats.totalWagered += round.bet;
-    this.stats.totalWin += round.win;
+  updateRound(round: RoundData, session: SessionStatsSnapshot): void {
     this.stats.lastRound = round;
+    this.stats.session = session;
 
     this.renderUpdate();
   }
@@ -131,12 +142,32 @@ export class RealityHUD {
     }
 
     // 2. Update Stats
-    const rtp = this.stats.totalWagered > 0 
-      ? (this.stats.totalWin / this.stats.totalWagered) * 100 
-      : 0;
-    
-    document.getElementById('hud-truth-rtp')!.textContent = `${rtp.toFixed(1)}%`;
-    document.getElementById('hud-total-wagered')!.textContent = `$${this.stats.totalWagered.toFixed(2)}`;
-    document.getElementById('hud-rounds-count')!.textContent = this.stats.roundsCount.toString();
+    const session = this.stats.session;
+    if (!session) {
+      return;
+    }
+
+    this.setText('hud-truth-rtp', this.formatPercent(session.rtp));
+    this.setText('hud-total-wagered', this.formatMoney(session.wagered));
+    this.setText('hud-total-won', this.formatMoney(session.won));
+    this.setText('hud-rounds-count', session.rounds.toString());
+    this.setText('hud-profit-loss', this.formatMoney(session.profitLoss));
+    this.setText('hud-tilt-score', `${session.tiltScore}/100`);
+  }
+
+  private setText(id: string, value: string): void {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = value;
+    }
+  }
+
+  private formatMoney(value: number): string {
+    const sign = value < 0 ? '-' : '';
+    return `${sign}$${Math.abs(value).toFixed(2)}`;
+  }
+
+  private formatPercent(value: number | null): string {
+    return value === null ? '--%' : `${value.toFixed(1)}%`;
   }
 }
