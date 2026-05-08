@@ -1477,6 +1477,10 @@ async function getLinkedDiscordId(): Promise<string | null> {
  */
 function setupFairnessListeners() {
   const observer = new MutationObserver((_mutations) => {
+    if (typeof document === 'undefined' || !document.body) {
+      return;
+    }
+
     // Generic selector for bet buttons - refine per casino
     const playBtns = document.querySelectorAll('[data-testid="bet-button"], .bet-button, button[class*="bet"]');
 
