@@ -213,7 +213,9 @@ describe('Sidebar/content/page-bridge message contracts', () => {
 
     const openResponse = vi.fn();
     onMessage({ type: 'open_sidebar' }, null, openResponse);
-    await flush();
+    await vi.waitFor(() => {
+      expect(openResponse).toHaveBeenCalled();
+    });
     expect(openResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
