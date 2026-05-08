@@ -5,8 +5,10 @@ import {
   RuntimeEventBus,
   RuntimeLogger,
   RuntimeStorageDriver,
+  createChromeStorageDriver,
   createFeatureFlagRegistry,
   createInjectedRuntimeCore,
+  createLocalStorageDriver,
   createMemoryStorageDriver,
   createSafeRuntimeStorage,
 } from '../../src/runtime/index.js';
@@ -101,6 +103,71 @@ describe('runtime core primitives', () => {
       '[runtime-test] Storage set failed on blocked-storage; falling back',
       expect.any(Error),
     );
+  });
+
+  it('clears only namespaced chrome storage keys', async () => {
+    const values: Record<string, unknown> = {
+      'runtime-test:feature': true,
+      'runtime-test:module-state': { enabled: true },
+      'other-runtime:feature': false,
+    };
+    const clear = vi.fn((callback?: () => void) => callback?.());
+    const remove = vi.fn((keys: string[] | string, callback?: () => void) => {
+      for (const key of Array.isArray(keys) ? keys : [keys]) {
+        delete values[key];
+      }
+      callback?.();
+    });
+
+    (globalThis as typeof globalThis & { chrome?: unknown }).chrome = {
+      runtime: { lastError: null },
+      storage: {
+        local: {
+          get: vi.fn((keys: string[] | string | null, callback?: (value: Record<string, unknown>) => void) => {
+            if (keys === null) {
+              callback?.({ ...values });
+              return;
+            }
+
+            const requested = Array.isArray(keys) ? keys : [keys];
+            callback?.(Object.fromEntries(requested.map((key) => [key, values[key]])));
+          }),
+          set: vi.fn((items: Record<string, unknown>, callback?: () => void) => {
+            Object.assign(values, items);
+            callback?.();
+          }),
+          remove,
+          clear,
+        },
+      },
+    };
+
+    const driver = createChromeStorageDriver({ namespace: 'runtime-test' });
+
+    await driver?.clear();
+
+    expect(values).toEqual({ 'other-runtime:feature': false });
+    expect(remove).toHaveBeenCalledWith(['runtime-test:feature', 'runtime-test:module-state'], expect.any(Function));
+    expect(clear).not.toHaveBeenCalled();
+  });
+
+  it('does not crash when localStorage access is blocked during driver setup', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      get: () => {
+        throw new Error('localStorage blocked');
+      },
+    });
+
+    expect(createLocalStorageDriver()).toBeNull();
+
+    if (descriptor) {
+      Object.defineProperty(globalThis, 'localStorage', descriptor);
+    } else {
+      delete (globalThis as typeof globalThis & { localStorage?: unknown }).localStorage;
+    }
   });
 
   it('creates a shared runtime core and publishes feature flag changes', async () => {

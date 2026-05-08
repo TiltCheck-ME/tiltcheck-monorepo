@@ -35,7 +35,7 @@ const DEFAULT_NAMESPACE = 'tiltcheck.runtime';
 type ChromeStorageCallback<TValue> = (value?: TValue) => void;
 
 interface ChromeStorageAreaLike {
-  get: (keys: string[] | string, callback?: ChromeStorageCallback<Record<string, unknown>>) => Promise<Record<string, unknown>> | void;
+  get: (keys: string[] | string | null, callback?: ChromeStorageCallback<Record<string, unknown>>) => Promise<Record<string, unknown>> | void;
   set: (items: Record<string, unknown>, callback?: ChromeStorageCallback<void>) => Promise<void> | void;
   remove: (keys: string[] | string, callback?: ChromeStorageCallback<void>) => Promise<void> | void;
   clear: (callback?: ChromeStorageCallback<void>) => Promise<void> | void;
@@ -57,6 +57,14 @@ function namespacedKey(namespace: string, key: string): string {
 function readChromeStorageArea(area: 'local' | 'sync' | 'session'): ChromeStorageAreaLike | null {
   const chromeLike = (globalThis as typeof globalThis & { chrome?: ChromeLike }).chrome;
   return chromeLike?.storage?.[area] ?? null;
+}
+
+function readLocalStorage(): Storage | null {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function getChromeLastError(): Error | null {
@@ -120,14 +128,20 @@ export function createChromeStorageDriver(options: ChromeStorageDriverOptions = 
       await invokeChromeStorage<void>((done) => area.remove(namespacedKey(namespace, key), done));
     },
     async clear(): Promise<void> {
-      await invokeChromeStorage<void>((done) => area.clear(done));
+      const prefix = `${namespace}:`;
+      const allValues = await invokeChromeStorage<Record<string, unknown>>((done) => area.get(null, done));
+      const keysToRemove = Object.keys(allValues ?? {}).filter((key) => key.startsWith(prefix));
+
+      if (keysToRemove.length > 0) {
+        await invokeChromeStorage<void>((done) => area.remove(keysToRemove, done));
+      }
     },
   };
 }
 
 export function createLocalStorageDriver(options: LocalStorageDriverOptions = {}): RuntimeStorageDriver | null {
   const namespace = options.namespace ?? DEFAULT_NAMESPACE;
-  const storage = options.storage ?? globalThis.localStorage;
+  const storage = options.storage ?? readLocalStorage();
 
   if (!storage) {
     return null;
