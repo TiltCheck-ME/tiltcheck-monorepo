@@ -6,6 +6,7 @@
     "noEmit": true
   },
   "include": [
-    "App.tsx"
+    "App.tsx",
+    "app.config.ts"
   ]
 }
