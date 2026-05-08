@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2026 TiltCheck Ecosystem. All Rights Reserved. */
 
 /**
  * Reality Check HUD Styles (v2 Surgical Edition)
@@ -145,13 +145,4 @@ export const HUD_STYLES = `
   .hud-btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); }
 
   .hud-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
-
-  .hud-footer {
-    color: rgba(255, 255, 255, 0.42);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-align: center;
-  }
 `;

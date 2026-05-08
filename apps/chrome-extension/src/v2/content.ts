@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-27 */
 
 /**
  * Reality Check v2 - Orchestrator
@@ -10,13 +10,11 @@
 import { StakeSensor } from './sensors/StakeSensor.js';
 import { RealityHUD } from './hud/Sidebar.js';
 import { HubRelay } from './telemetry/HubRelay.js';
-import { SessionTracker } from './core/SessionTracker.js';
 
 class RealityCheckOrchestrator {
   private sensor: StakeSensor;
   private hud: RealityHUD;
   private relay: HubRelay;
-  private sessionTracker: SessionTracker;
   private isStake: boolean;
 
   constructor() {
@@ -27,7 +25,6 @@ class RealityCheckOrchestrator {
     this.sensor = new StakeSensor(host.includes('stake.us'));
     this.hud = new RealityHUD();
     this.relay = new HubRelay();
-    this.sessionTracker = new SessionTracker();
 
     this.init();
   }
@@ -42,9 +39,8 @@ class RealityCheckOrchestrator {
     if (this.isStake) {
       await this.sensor.initialize();
       this.sensor.start((round) => {
-        // Update read-only session stats from the existing round stream.
-        const snapshot = this.sessionTracker.recordRound(round);
-        this.hud.updateRound(round, snapshot);
+        // Update HUD (Local)
+        this.hud.updateRound(round);
         
         // Push to Hub (Global / Discord Activity)
         this.relay.pushRound(round);
