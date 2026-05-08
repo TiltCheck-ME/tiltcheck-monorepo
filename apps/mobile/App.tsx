@@ -45,7 +45,7 @@ function formatHost(url: string): string {
 export default function App() {
   const webViewRef = useRef<WebView>(null);
   const [targetUrl, setTargetUrl] = useState<StakeTarget['url']>(STAKE_TARGETS[0].url);
-  const [activeUrl, setActiveUrl] = useState(targetUrl);
+  const [activeUrl, setActiveUrl] = useState<string>(targetUrl);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedUrl, setBlockedUrl] = useState<string | null>(null);
 
@@ -160,11 +160,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#050509',
   },
   loadingState: {
-    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     backgroundColor: '#050509',
+    bottom: 0,
     gap: 10,
     justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   loadingText: {
     color: '#f7f7fb',
