@@ -17,7 +17,6 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'me.tiltcheck.mobile',
-    edgeToEdgeEnabled: true,
     adaptiveIcon: {
       backgroundColor: '#050509',
     },
