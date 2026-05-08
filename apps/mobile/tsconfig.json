@@ -3,7 +3,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": [
+      "react"
+    ]
   },
   "include": [
     "App.tsx",
