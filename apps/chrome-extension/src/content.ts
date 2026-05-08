@@ -142,7 +142,6 @@ let initializationComplete = false;
 let runtimeBootPromise: Promise<void> | null = null;
 let runtimeListenersAttached = false;
 let spaResumeWatchInstalled = false;
-let runtimeDisableListenerAttached = false;
 let injectionDisabled = false;
 let lastAnalysisBlockMessage: string | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
@@ -314,7 +313,7 @@ async function restoreSidebarVisibility(defaultVisible: boolean) {
 function toggleSidebarVisibility(): boolean {
   const sidebarEl = document.getElementById('tiltcheck-sidebar');
   if (!sidebarEl) {
-    sidebar = initSidebar();
+    sidebar = initSidebar(disableInjectionFromHud);
     if (sidebar) persistSidebarVisibility(true);
     return !!sidebar;
   }
@@ -404,7 +403,7 @@ async function resumeRuntimeAfterNavigation(source: string): Promise<void> {
   }
 
   if (!document.getElementById('tiltcheck-sidebar')) {
-    sidebar = initSidebar();
+    sidebar = initSidebar(disableInjectionFromHud);
     const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
     void restoreSidebarVisibility(defaultVisible);
   }
@@ -414,17 +413,6 @@ async function resumeRuntimeAfterNavigation(source: string): Promise<void> {
   const verification = refreshLicenseVerification();
   applyAnalysisGate(verification);
   gameBlocker?.resume(source);
-}
-
-function installRuntimeDisableListener(): void {
-  if (runtimeDisableListenerAttached) {
-    return;
-  }
-
-  runtimeDisableListenerAttached = true;
-  window.addEventListener('tg-disable-injection', () => {
-    void disableInjectionFromHud();
-  });
 }
 
 function installSpaResumeWatch(): void {
@@ -487,7 +475,6 @@ async function startRuntimeAtDocumentEnd(options: { forceEnable?: boolean } = {}
 
   runtimeBootPromise = (async () => {
     await waitForDocumentEnd();
-    installRuntimeDisableListener();
     installSpaResumeWatch();
 
     if (options.forceEnable) {
@@ -514,7 +501,7 @@ async function openRuntimeFromToolbar(): Promise<{ success: true; visible: boole
     await startRuntimeAtDocumentEnd({ forceEnable: true });
     const sidebarEl = document.getElementById('tiltcheck-sidebar');
     if (!sidebarEl) {
-      sidebar = initSidebar();
+      sidebar = initSidebar(disableInjectionFromHud);
     }
     const visible = setSidebarVisibility(true);
     persistSidebarVisibility(true);
@@ -712,7 +699,7 @@ function initialize() {
   attachMarketingSiteStorageListener();
 
   // Create sidebar UI
-  sidebar = initSidebar();
+  sidebar = initSidebar(disableInjectionFromHud);
   // Default hidden on TiltCheck-owned pages, visible on supported casino pages.
   const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
   void restoreSidebarVisibility(defaultVisible);
@@ -1833,7 +1820,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         .then(() => {
           const sidebarEl = document.getElementById('tiltcheck-sidebar');
           if (!sidebarEl) {
-            sidebar = initSidebar();
+            sidebar = initSidebar(disableInjectionFromHud);
           }
           const visible = setSidebarVisibility(true);
           persistSidebarVisibility(true);

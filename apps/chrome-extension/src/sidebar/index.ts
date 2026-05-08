@@ -17,6 +17,8 @@ import type { CasinoVerification } from '../license-verifier.js';
 const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
 const SIDEBAR_RESERVED_CLASS = 'tiltcheck-sidebar-reserved';
 
+type RuntimeDisableHandler = () => void | Promise<void>;
+
 export class SidebarController implements SidebarUI {
   public auth: AuthManager;
   public session: SessionManager;
@@ -28,7 +30,7 @@ export class SidebarController implements SidebarUI {
   private layoutObserver: MutationObserver | null = null;
   private showAdvancedTools = false;
 
-  constructor() {
+  constructor(private readonly onDisableRuntime?: RuntimeDisableHandler) {
     this.auth = new AuthManager(this);
     this.session = new SessionManager(this);
     this.vault = new VaultManager(this);
@@ -466,7 +468,7 @@ export class SidebarController implements SidebarUI {
     await this.setStorage({ [INJECTION_DISABLED_KEY]: true });
     this.updateStatus('TiltCheck runtime disabled. Toolbar wake-up is still available.', 'warning');
     this.addFeedMessage('Runtime disabled. No cap, the HUD is off until you wake it back up.');
-    window.dispatchEvent(new CustomEvent('tg-disable-injection'));
+    await this.onDisableRuntime?.();
   }
 
   public showMainContent() {
@@ -597,8 +599,8 @@ export class SidebarController implements SidebarUI {
 }
 
 // Entry point for content script to call
-export function initSidebar() {
-  const controller = new SidebarController();
+export function initSidebar(onDisableRuntime?: RuntimeDisableHandler) {
+  const controller = new SidebarController(onDisableRuntime);
   controller.init();
   return controller;
 }
