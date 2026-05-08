@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
  * @vitest-environment jsdom
  */
@@ -97,6 +97,7 @@ describe('content script readiness contracts', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
+    document.head.innerHTML = '';
     document.body.innerHTML = '';
   });
 
@@ -189,6 +190,9 @@ describe('content script readiness contracts', () => {
       verdict: 'unlicensed',
       shouldAnalyze: false,
     }));
+    const mobileHud = document.getElementById('tiltcheck-mobile-license-hud');
+    expect(mobileHud?.dataset.status).toBe('risk');
+    expect(mobileHud?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.');
     expect(sidebarStub.updateStatus).toHaveBeenCalledWith(
       'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.',
       'warning',
