@@ -36,9 +36,19 @@ function mockHeavyDependencies(options?: {
   extractBalance?: number | null;
   tiltDetectorSpy?: ReturnType<typeof vi.fn>;
   verification?: Record<string, unknown>;
+  sidebarStub?: Record<string, ReturnType<typeof vi.fn>>;
 }) {
   const extractorInitialize = vi.fn().mockResolvedValue(undefined);
   const tiltDetectorSpy = options?.tiltDetectorSpy ?? vi.fn();
+  const sidebarStub = options?.sidebarStub ?? {
+    updateLicense: vi.fn(),
+    updateStatus: vi.fn(),
+    updateRealityCheck: vi.fn(),
+    addFeedMessage: vi.fn(),
+    updateTilt: vi.fn(),
+    updateStats: vi.fn(),
+    notifyBuddy: vi.fn(),
+  };
   const verification = {
     isLegitimate: true,
     licenseInfo: {
@@ -86,6 +96,17 @@ function mockHeavyDependencies(options?: {
       tone: verification?.shouldAnalyze === false ? 'risk' : 'verified',
     })),
     getAnalysisBlockMessage: vi.fn().mockImplementation((verification) => verification?.shouldAnalyze === false ? verification.warningMessage : null),
+  }));
+  vi.doMock('../../src/sidebar/index.js', () => ({
+    initSidebar: vi.fn(() => {
+      let sidebar = document.getElementById('tiltcheck-sidebar');
+      if (!sidebar) {
+        sidebar = document.createElement('div');
+        sidebar.id = 'tiltcheck-sidebar';
+        document.body.appendChild(sidebar);
+      }
+      return sidebarStub;
+    }),
   }));
   vi.doMock('../../src/analyzer.js', () => ({ Analyzer: class {} }));
   vi.doMock('../../src/FairnessService.js', () => ({ FairnessService: class {} }));
@@ -166,10 +187,8 @@ describe('content script readiness contracts', () => {
       notifyBuddy: vi.fn(),
       openPremium: vi.fn().mockResolvedValue(undefined),
     };
-    vi.doMock('../../src/sidebar/index.js', () => ({
-      initSidebar: vi.fn(() => sidebarStub),
-    }));
     const { extractorInitialize } = mockHeavyDependencies({
+      sidebarStub,
       verification: {
         isLegitimate: false,
         licenseInfo: {
