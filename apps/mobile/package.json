@@ -1,0 +1,26 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08",
+  "name": "@tiltcheck/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "start": "expo start",
+    "build": "expo export --platform all",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "^55.0.23",
+    "expo-status-bar": "^55.0.6",
+    "react": "^19.2.6",
+    "react-native": "^0.85.3",
+    "react-native-webview": "^13.16.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "typescript": "^6.0.3"
+  }
+}
