@@ -10,13 +10,9 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   userInterfaceStyle: 'dark',
   platforms: ['ios', 'android'],
-  ios: {
-    supportsTablet: true,
-  },
-  android: {
-    adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#050509',
+  platform: {
+    ios: {
+      supportsTablet: true,
     },
   },
 };

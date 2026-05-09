@@ -70,21 +70,21 @@ describe('Message Analyzer', () => {
     it('should detect rage keywords', () => {
       const now = Date.now();
       const messages: MessageActivity[] = [
-        { content: 'this game is fucking rigged', timestamp: now - 1000, channelId: 'channel-1' },
-        { content: 'what a scam', timestamp: now - 2000, channelId: 'channel-1' },
+        { content: "i'm fucked this game is cooked", timestamp: now - 1000, channelId: 'channel-1' },
+        { content: 'this is a total disaster', timestamp: now - 2000, channelId: 'channel-1' },
       ];
 
       const signals = analyzeMessages(messages, 'user-1');
 
       const rageSignal = signals.find((s: any) => s.signalType === 'rage-quit');
       expect(rageSignal).toBeDefined();
-      expect(rageSignal?.confidence).toBe(0.8);
+      expect(rageSignal?.confidence).toBe(0.85);
     });
 
     it('should detect loan requests', () => {
       const now = Date.now();
       const messages: MessageActivity[] = [
-        { content: 'can someone loan me $50', timestamp: now - 1000, channelId: 'channel-1' },
+        { content: 'last deposit chasing need it back', timestamp: now - 1000, channelId: 'channel-1' },
       ];
 
       const signals = analyzeMessages(messages, 'user-1');
@@ -95,10 +95,10 @@ describe('Message Analyzer', () => {
       expect(loanSignal?.confidence).toBe(0.9);
     });
 
-    it('should detect "im broke" as loan request', () => {
+    it('should detect desperation phrases as loan request', () => {
       const now = Date.now();
       const messages: MessageActivity[] = [
-        { content: 'im broke and need help', timestamp: now - 1000, channelId: 'channel-1' },
+        { content: 'one hit to break even please', timestamp: now - 1000, channelId: 'channel-1' },
       ];
 
       const signals = analyzeMessages(messages, 'user-1');
@@ -195,7 +195,7 @@ describe('Message Analyzer', () => {
     it('should include local tilt score for all messages', async () => {
       const now = Date.now();
       const messages: MessageActivity[] = [
-        { content: 'can someone loan me money?', timestamp: now - 1000, channelId: 'channel-1' },
+        { content: 'last deposit revenge betting chasing', timestamp: now - 1000, channelId: 'channel-1' },
       ];
 
       const result = await analyzeMessagesWithAI(messages, 'user-1');

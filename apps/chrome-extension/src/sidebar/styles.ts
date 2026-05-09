@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 import { SIDEBAR_WIDTH, MINIMIZED_WIDTH } from './constants.js';
 
 export const getSidebarStyles = () => `
@@ -315,6 +315,17 @@ export const getSidebarStyles = () => `
       text-align: left;
     }
     .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: var(--tg-primary); transform: translateY(-1px); }
+    .tg-runtime-control {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--tg-border);
+    }
+    .tg-runtime-note {
+      margin-top: 6px;
+      color: var(--tg-muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
     
     .tg-vault-amount {
       font-size: 24px;
@@ -425,6 +436,15 @@ export const getSidebarStyles = () => `
     .tg-license-strip.warning { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
     .tg-license-strip.risk { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
     .tg-license-strip.pending { background: rgba(0, 168, 255, 0.1); color: #7dd3fc; }
+    .tg-license-detail {
+      padding: 7px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.22);
+      color: rgba(226,232,240,0.74);
+      font-size: 10px;
+      line-height: 1.4;
+      text-align: center;
+    }
     .tg-status-bar { padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: center; animation: slideDown 0.3s ease; }
     .tg-status-bar.thinking { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-bottom: 1px solid rgba(59, 130, 246, 0.3); }
     .tg-status-bar.success { background: rgba(34, 211, 166, 0.2); color: #34d399; border-bottom: 1px solid rgba(34, 211, 166, 0.3); }

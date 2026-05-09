@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 
 import {
   SlashCommandBuilder,
@@ -45,14 +45,18 @@ const connection = new Connection(
 );
 
 const ANSWER_EMOJIS = {
-  A: '\u{1F1E6}', // 🇦
-  B: '\u{1F1E7}', // 🇧
-  C: '\u{1F1E8}', // 🇨
-  D: '\u{1F1E9}', // 🇩
+  A: '\u{1F1E6}', // Regional indicator A
+  B: '\u{1F1E7}', // Regional indicator B
+  C: '\u{1F1E8}', // Regional indicator C
+  D: '\u{1F1E9}', // Regional indicator D
 } as const;
 
 type AnswerKey = keyof typeof ANSWER_EMOJIS;
 type TriviaQuestion = SharedTriviaQuestion;
+
+function triviaDropPayoutsEnabled(): boolean {
+  return process.env.TRIVIADROP_PAYOUTS_ENABLED === 'true';
+}
 
 // -----------------------------------------------------------------------------
 // Escrow Persistence
@@ -159,7 +163,7 @@ async function announceTriviaCollectorBlock(channel: TextChannel, userIds: strin
 export const triviadrop: Command = {
   data: new SlashCommandBuilder()
     .setName('triviadrop')
-    .setDescription('Host a trivia game. Correct reactors split the SOL prize pool.')
+    .setDescription('Host a rules-gated trivia game after payout review clears.')
     .addStringOption(opt =>
       opt
         .setName('topic')
@@ -176,7 +180,7 @@ export const triviadrop: Command = {
     .addNumberOption(opt =>
       opt
         .setName('prize_total')
-        .setDescription('Total SOL prize pool (max 5 SOL)')
+        .setDescription('Proposed SOL pool after rules review (max 5 SOL)')
         .setRequired(true)
         .setMinValue(0.01)
         .setMaxValue(MAX_PRIZE_SOL)
@@ -196,6 +200,19 @@ export const triviadrop: Command = {
     const channel = interaction.channel as TextChannel;
 
     await interaction.deferReply({ ephemeral: true });
+
+    if (!triviaDropPayoutsEnabled()) {
+      const gatedEmbed = new EmbedBuilder()
+        .setColor(0xFFA500)
+        .setTitle('[TRIVIA DROP - RULES REVIEW]')
+        .setDescription(
+          'Prize-bearing TriviaDrop is paused until public contest rules, payout handling, and command copy clear counsel review.\n\n' +
+          'Use Activity for room-loop testing and `/jackpot status` for the voluntary treasury page. No guaranteed prize pool, no payout promise.'
+        );
+
+      await interaction.editReply({ embeds: [gatedEmbed] });
+      return;
+    }
 
     // -------------------------------------------------------------------------
     // 1. Create and fund escrow

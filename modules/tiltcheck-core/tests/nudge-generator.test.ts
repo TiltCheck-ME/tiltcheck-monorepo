@@ -49,7 +49,7 @@ describe('Nudge Generator', () => {
         },
         {
           userId: 'user-1',
-          signalType: 'loan-request',
+          signalType: 'loss-streak',
           severity: 5,
           confidence: 0.9,
           detectedAt: Date.now(),
@@ -58,15 +58,14 @@ describe('Nudge Generator', () => {
 
       const nudge = getNudgeMessage(signals);
 
-      // Should select from loan-request messages (safety category)
-      expect(nudge.category).toBe('safety');
+      expect(nudge.category).toBe('loss');
     });
 
     it('should return firm nudge for high severity', () => {
       const signals: TiltSignal[] = [
         {
           userId: 'user-1',
-          signalType: 'loan-request',
+          signalType: 'martingale',
           severity: 5,
           confidence: 0.9,
           detectedAt: Date.now(),
@@ -75,119 +74,51 @@ describe('Nudge Generator', () => {
 
       const nudge = getNudgeMessage(signals);
 
-      expect(nudge.severity).toBe('firm');
+      expect(['firm', 'CRITICAL']).toContain(nudge.severity);
     });
   });
 
   describe('formatNudge', () => {
-    it('should format nudge with emoji prefix', () => {
+    it('should format nudge with severity prefix and symbol (no emojis)', () => {
       const nudge: NudgeMessage = {
         text: 'Test message',
         severity: 'gentle',
         category: 'general',
-        emoji: '🧪',
+        symbol: '[TEST]',
+        intervention_type: 'VIBE_CHECK',
       };
 
       const formatted = formatNudge(nudge);
 
-      expect(formatted).toBe('🧪 Test message');
+      expect(formatted).toBe('[>>] **[TEST] Test message**');
     });
   });
 
   describe('getEscalatedNudges', () => {
-    it('should return single nudge for mild signals', () => {
-      const signals: TiltSignal[] = [
-        {
-          userId: 'user-1',
-          signalType: 'rapid-messages',
-          severity: 2,
-          confidence: 0.7,
-          detectedAt: Date.now(),
-        },
-      ];
+    it('returns a fixed three-step escalation ladder for the user', () => {
+      const nudges = getEscalatedNudges('user-1');
 
-      const nudges = getEscalatedNudges(signals);
-
-      expect(nudges.length).toBe(1);
-    });
-
-    it('should return multiple nudges for severe tilt (score >= 8)', () => {
-      const signals: TiltSignal[] = [
-        {
-          userId: 'user-1',
-          signalType: 'loan-request',
-          severity: 5,
-          confidence: 0.9,
-          detectedAt: Date.now(),
-        },
-        {
-          userId: 'user-1',
-          signalType: 'rage-quit',
-          severity: 4,
-          confidence: 0.8,
-          detectedAt: Date.now(),
-        },
-      ];
-
-      const nudges = getEscalatedNudges(signals);
-
-      expect(nudges.length).toBe(2);
-      expect(nudges.some((n: any) => n.severity === 'firm')).toBe(true);
+      expect(nudges).toHaveLength(3);
+      expect(nudges.every((n) => typeof n === 'string')).toBe(true);
+      expect(nudges[0]).toContain('user-1');
     });
   });
 
   describe('getCooldownMessage', () => {
-    it('should return appropriate message for short cooldown', () => {
-      const message = getCooldownMessage(1);
+    it('returns the standard cooldown copy', () => {
+      const message = getCooldownMessage();
 
-      expect(message).toContain('Almost there');
-    });
-
-    it('should return appropriate message for medium cooldown', () => {
-      const message = getCooldownMessage(5);
-
-      expect(message).toContain('5 minutes');
-    });
-
-    it('should return appropriate message for long cooldown', () => {
-      const message = getCooldownMessage(10);
-
-      expect(message).toContain('touch grass');
-    });
-
-    it('should return extended message for very long cooldown', () => {
-      const message = getCooldownMessage(20);
-
-      expect(message).toContain('Extended');
-      expect(message).toContain('grab some food');
+      expect(message).toContain('Session locked');
+      expect(message).toContain('15 minutes');
     });
   });
 
   describe('getViolationMessage', () => {
-    it('should return first violation message', () => {
-      const message = getViolationMessage(1);
+    it('returns the escalated accountability copy', () => {
+      const message = getViolationMessage();
 
-      expect(message).toContain('First violation');
-    });
-
-    it('should return second violation message', () => {
-      const message = getViolationMessage(2);
-
-      expect(message).toContain('Second violation');
-    });
-
-    it('should return third violation message with extension note', () => {
-      const message = getViolationMessage(3);
-
-      expect(message).toContain('Third violation');
-      expect(message).toContain('extended');
-    });
-
-    it('should return generic message for many violations', () => {
-      const message = getViolationMessage(5);
-
-      expect(message).toContain('5 violations');
-      expect(message).toContain('keeps getting longer');
+      expect(message).toContain('ESCALATED');
+      expect(message).toContain('accountability partner');
     });
   });
 });

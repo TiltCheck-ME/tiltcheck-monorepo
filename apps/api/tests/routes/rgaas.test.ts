@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -202,6 +202,20 @@ describe('RGaaS Routes', () => {
             expect(response.body.success).toBe(true);
             expect(response.body.userId).toBe('u123');
             expect(response.body.level).toBe(50);
+        });
+    });
+
+    describe('GET /rgaas/license-check', () => {
+        it('returns license source and last-verified metadata for registry matches', async () => {
+            const response = await request(app).get('/rgaas/license-check?domain=stake.com');
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.found).toBe(true);
+            expect(response.body.source).toBe('TiltCheck license registry');
+            expect(response.body.lastVerifiedAt).toBe('2026-04-09');
+            expect(response.body.legalDisclaimer).toContain('not legal advice');
+            expect(response.body.verifyUrl).toBeTruthy();
         });
     });
 

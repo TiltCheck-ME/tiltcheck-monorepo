@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -1797,6 +1797,67 @@ export interface SeedAuditSessionExportResult extends SeedAuditBaseResult {
   export?: SeedAuditSessionExportMetadata;
   auditedRecords: number;
   recordResults: SeedAuditRecordResult[];
+}
+
+export type FairnessToolkitDataSourceType =
+  | 'operator-api'
+  | 'player-export'
+  | 'extension-capture'
+  | 'public-certification'
+  | 'manual-entry';
+
+export type FairnessToolkitSourceState = 'live' | 'degraded' | 'unknown';
+
+export type FairnessToolkitWindowUnit = 'bet' | 'spin' | 'round' | 'session';
+
+export type FairnessToolkitDriftDirection = 'above-baseline' | 'below-baseline' | 'flat';
+
+export interface FairnessToolkitDataSourceDefinition {
+  id: string;
+  label: string;
+  type: FairnessToolkitDataSourceType;
+  state: FairnessToolkitSourceState;
+  schemaVersion?: string;
+  expectedSchemaVersion?: string;
+  lastCheckedAt?: number;
+  reason?: string;
+}
+
+export interface FairnessToolkitWindowDefinition {
+  id: string;
+  label: string;
+  unit: FairnessToolkitWindowUnit;
+  sampleSize: number;
+  minimumSampleSize: number;
+  startedAt?: number;
+  endedAt?: number;
+  sourceId?: string;
+}
+
+export interface FairnessToolkitDriftDefinition {
+  source: FairnessToolkitDataSourceDefinition;
+  window: FairnessToolkitWindowDefinition;
+  baselineMetric: number;
+  observedMetric: number;
+  absoluteDelta: number;
+  relativeDelta: number | null;
+  threshold: number;
+  direction: FairnessToolkitDriftDirection;
+  state: FairnessToolkitSourceState;
+  confidence: SeedAuditConfidenceTier;
+  summary: string;
+}
+
+export interface FairnessToolkitSeedRotationDefinition {
+  source: FairnessToolkitDataSourceDefinition;
+  window: FairnessToolkitWindowDefinition;
+  observedRotationCount: number;
+  expectedRotationInterval?: number;
+  observedAverageInterval?: number;
+  tolerance?: number;
+  state: FairnessToolkitSourceState;
+  confidence: SeedAuditConfidenceTier;
+  summary: string;
 }
 
 /**
