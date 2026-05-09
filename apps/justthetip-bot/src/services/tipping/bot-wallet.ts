@@ -13,6 +13,7 @@ import {
     Transaction,
     sendAndConfirmTransaction,
     LAMPORTS_PER_SOL,
+    type ConfirmedSignatureInfo,
 } from '@solana/web3.js';
 import bs58 from 'bs58';
 
@@ -92,7 +93,7 @@ export class BotWalletService {
         return signature;
     }
 
-    async getRecentTransactions(limit = 20) {
+    async getRecentTransactions(limit = 20): Promise<ConfirmedSignatureInfo[]> {
         return this.connection.getSignaturesForAddress(this.keypair.publicKey, { limit });
     }
 
