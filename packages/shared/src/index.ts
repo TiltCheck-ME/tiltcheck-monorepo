@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-25
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 // v0.1.0 — 2026-02-25
 
 /**
@@ -48,6 +48,14 @@ export {
   seedHealthAuditor,
   auditSeedHealth,
 } from './seed-audit.js';
+export {
+  defineFairnessDataSource,
+  defineFairnessWindow,
+  evaluateFairnessDrift,
+  defineSeedRotationMonitor,
+  type FairnessDriftEvaluationInput,
+  type SeedRotationMonitorInput,
+} from './fairness-toolkit.js';
 export {
   compareTarotFlipMechanics,
   parseTarotFlipMechanicsSnapshot,

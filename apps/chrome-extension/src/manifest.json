@@ -52,7 +52,7 @@
       "js": [
         "content.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_end"
     },
     {
       "matches": [
@@ -71,7 +71,7 @@
         "page-bridge.js"
       ],
       "world": "MAIN",
-      "run_at": "document_idle"
+      "run_at": "document_end"
     }
   ],
   "icons": {
