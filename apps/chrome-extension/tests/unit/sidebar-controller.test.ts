@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * @vitest-environment jsdom
  */
@@ -130,6 +130,8 @@ describe('SidebarController', () => {
         licenseNumber: 'MGA/B2C/1234',
         location: 'footer',
         verified: true,
+        source: 'Current page footer scan',
+        lastVerifiedAt: '2026-05-09T00:00:00.000Z',
         warnings: [],
       },
       verdict: 'legitimate',
@@ -137,9 +139,12 @@ describe('SidebarController', () => {
     });
 
     const strip = document.getElementById('tg-license-strip');
+    const detail = document.getElementById('tg-license-detail');
     expect(strip?.className).toBe('tg-license-strip verified');
     expect(strip?.textContent).toContain('License verified: Malta Gaming Authority');
     expect(strip?.textContent).toContain('MGA/B2C/1234');
+    expect(detail?.textContent).toContain('Source: Current page footer scan');
+    expect(detail?.textContent).toContain('Not legal advice');
   });
 
   it('shows a risk strip and styled status when analysis is gated', async () => {
@@ -151,6 +156,8 @@ describe('SidebarController', () => {
       licenseInfo: {
         found: false,
         verified: false,
+        source: 'Current page DOM scan',
+        lastVerifiedAt: '2026-05-09T00:00:00.000Z',
         warnings: [],
       },
       verdict: 'unlicensed',

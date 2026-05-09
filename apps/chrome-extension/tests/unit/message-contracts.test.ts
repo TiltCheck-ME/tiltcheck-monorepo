@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * @vitest-environment jsdom
  */
@@ -113,6 +113,8 @@ function mockContentDependencies() {
           issuingAuthority: 'Malta Gaming Authority',
           jurisdiction: 'Malta',
           verified: true,
+          source: 'Current page footer scan',
+          lastVerifiedAt: '2026-05-09T00:00:00.000Z',
           warnings: [],
         },
         verdict: 'legitimate',
@@ -124,6 +126,7 @@ function mockContentDependencies() {
       buildLicensePresentation: vi.fn().mockImplementation((verification) => ({
         summary: verification?.warningMessage ?? 'License verified: Malta Gaming Authority',
         tone: verification?.shouldAnalyze === false ? 'risk' : 'verified',
+        details: ['Source: test registry', 'Last verified: test run', 'Not legal advice.'],
       })),
       getAnalysisBlockMessage: vi.fn().mockImplementation((verification) => verification?.shouldAnalyze === false ? verification.warningMessage : null),
     };
