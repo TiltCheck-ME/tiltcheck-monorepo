@@ -4,15 +4,13 @@ config();
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '../..');
-
-// Load .env vars to pass explicitly to the server subprocess
-const dotenvVars = parse(readFileSync(resolve(rootDir, '.env')));
+const agentEnvPath = resolve(rootDir, '.env');
 
 async function waitForServer(url: string, maxRetries = 180): Promise<boolean> {
   for (let i = 0; i < maxRetries; i++) {
@@ -33,11 +31,12 @@ async function waitForServer(url: string, maxRetries = 180): Promise<boolean> {
   return false;
 }
 
-describe('Server E2E', () => {
+describe.skipIf(!existsSync(agentEnvPath))('Server E2E', () => {
   let serverProcess: ChildProcess;
   const baseUrl = 'http://localhost:8000';
 
   beforeAll(async () => {
+    const dotenvVars = parse(readFileSync(agentEnvPath));
     // Pass agent.ts directly to avoid bundling test dependencies
     serverProcess = spawn('npx', ['@google/adk-devtools', 'api_server', 'app/agent.ts', '--port', '8000'], {
       cwd: rootDir,

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 import { EXT_CONFIG } from '../config.js';
 
 export const API_BASE = EXT_CONFIG.API_BASE_URL;
@@ -14,6 +14,7 @@ export const API_ORIGIN = (() => {
 export const DISCORD_AUTH_MESSAGE_TYPE = 'discord-auth';
 export const SIDEBAR_WIDTH = 340;
 export const MINIMIZED_WIDTH = 40;
+export const INJECTION_DISABLED_KEY = 'tiltcheck_injection_disabled';
 export const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
 export const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
 export const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * @vitest-environment jsdom
  */
@@ -130,6 +130,8 @@ describe('SidebarController', () => {
         licenseNumber: 'MGA/B2C/1234',
         location: 'footer',
         verified: true,
+        source: 'Current page footer scan',
+        lastVerifiedAt: '2026-05-09T00:00:00.000Z',
         warnings: [],
       },
       verdict: 'legitimate',
@@ -137,9 +139,12 @@ describe('SidebarController', () => {
     });
 
     const strip = document.getElementById('tg-license-strip');
+    const detail = document.getElementById('tg-license-detail');
     expect(strip?.className).toBe('tg-license-strip verified');
     expect(strip?.textContent).toContain('License verified: Malta Gaming Authority');
     expect(strip?.textContent).toContain('MGA/B2C/1234');
+    expect(detail?.textContent).toContain('Source: Current page footer scan');
+    expect(detail?.textContent).toContain('Not legal advice');
   });
 
   it('shows a risk strip and styled status when analysis is gated', async () => {
@@ -151,6 +156,8 @@ describe('SidebarController', () => {
       licenseInfo: {
         found: false,
         verified: false,
+        source: 'Current page DOM scan',
+        lastVerifiedAt: '2026-05-09T00:00:00.000Z',
         warnings: [],
       },
       verdict: 'unlicensed',
@@ -183,5 +190,44 @@ describe('SidebarController', () => {
     expect(document.getElementById('tg-account-text')?.textContent).toBe('Connected as wallet-user');
     expect(document.getElementById('tg-username')?.textContent).toBe('wallet-user');
     expect((document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null)?.hidden).toBe(true);
+  });
+
+  it('opens dashboard-owned RG lanes from quick actions', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    initSidebar();
+
+    document.getElementById('tg-open-safety')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    document.getElementById('tg-open-vault-rules')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    document.getElementById('tg-open-buddy-controls')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    const createTab = (globalThis as any).chrome.tabs.create as ReturnType<typeof vi.fn>;
+    expect(createTab).toHaveBeenNthCalledWith(1, {
+      url: 'https://dashboard.tiltcheck.me/dashboard?tab=safety',
+      active: true,
+    });
+    expect(createTab).toHaveBeenNthCalledWith(2, {
+      url: 'https://dashboard.tiltcheck.me/dashboard?tab=vault',
+      active: true,
+    });
+    expect(createTab).toHaveBeenNthCalledWith(3, {
+      url: 'https://dashboard.tiltcheck.me/dashboard?tab=buddies',
+      active: true,
+    });
+  });
+
+  it('persists and invokes the runtime off-switch from the HUD', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    const disableRuntime = vi.fn().mockResolvedValue(undefined);
+    initSidebar(disableRuntime);
+
+    document.getElementById('tg-disable-injection')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    await vi.waitFor(() => {
+      expect(disableRuntime).toHaveBeenCalled();
+    });
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      { tiltcheck_injection_disabled: true },
+      expect.any(Function),
+    );
   });
 });

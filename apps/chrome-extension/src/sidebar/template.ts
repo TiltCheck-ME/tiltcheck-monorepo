@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 
 export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
@@ -16,6 +16,7 @@ export const SIDEBAR_TEMPLATE = `
       </div>
     </div>
     <div id="tg-license-strip" class="tg-license-strip pending">License: scanning current site...</div>
+    <div id="tg-license-detail" class="tg-license-detail">Source: current page scan. Last verified: pending. Not legal advice.</div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
     
     <div class="tg-content" id="tg-content">
@@ -146,6 +147,13 @@ export const SIDEBAR_TEMPLATE = `
           <div class="tg-action-grid">
             <button class="tg-action-btn" id="tg-open-predictor">DAILY BONUSES</button>
             <button class="tg-action-btn" id="tg-open-dashboard">THE DASHBOARD</button>
+            <button class="tg-action-btn" id="tg-open-safety">SAFETY SETTINGS</button>
+            <button class="tg-action-btn" id="tg-open-vault-rules">VAULT RULES</button>
+            <button class="tg-action-btn" id="tg-open-buddy-controls">BUDDY CONTROLS</button>
+          </div>
+          <div class="tg-runtime-control">
+            <button class="tg-btn tg-btn-danger" id="tg-disable-injection" type="button">Disable Runtime</button>
+            <div class="tg-runtime-note">Hard off-switch for injection. The toolbar can wake it back up if you want the HUD again.</div>
           </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
