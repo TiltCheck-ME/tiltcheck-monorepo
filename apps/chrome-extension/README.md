@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -32,6 +32,56 @@ Two runtime modes:
 ### Marketing site (`tiltcheck.me`)
 
 When you visit **`https://tiltcheck.me`** (or `www.`) with the extension enabled, the content script copies the extension **`authToken`** into the page **`localStorage`** entry **`tc_token`** — the same key `apps/web` uses in `fetchAuthSession`. That keeps the public marketing Next.js app aligned with extension Discord login even if browser storage partitioning makes the API session cookie flaky for `fetch` from the page. Subdomains such as `dashboard.tiltcheck.me` are left alone (different app and token key). Extension **Log out** clears `authToken`; an active marketing tab gets `tc_token` removed via `chrome.storage.onChanged`, or the next full page load re-syncs from storage.
+
+### Native <-> Web bridge contract
+
+`src/page-bridge.ts` installs the versioned native/web bridge in the MAIN world. Native means the extension/content-script side posting into the page. Web means the injected page runtime posting state, logs, and errors back out.
+
+Transport uses `window.postMessage` with a fixed source plus `version: 1`. Config payloads must stay non-secret because they cross a page message boundary.
+
+Native -> Web source: `TILTCHECK_NATIVE`
+
+| Type | Purpose | Required fields |
+| :--- | :--- | :--- |
+| `init` | Initialize bridge feature flags and runtime config. | `version`, `type` |
+| `module.start` | Start a registered module. | `version`, `type`, `module` |
+| `module.stop` | Stop a registered module. | `version`, `type`, `module` |
+| `status.request` | Request current bridge status. | `version`, `type` |
+
+Web -> Native source: `TILTCHECK_WEB`
+
+| Type | Purpose | Required fields |
+| :--- | :--- | :--- |
+| `log` | Stream runtime log events. | `version`, `type`, `level`, `message` |
+| `module.state` | Report module state changes. | `version`, `type`, `module`, `state` |
+| `error` | Report validation, module, or runtime errors. | `version`, `type`, `code`, `message` |
+| `status.response` | Return the current initialized/config/module snapshot. | `version`, `type`, `status` |
+
+Example native init:
+
+```json
+{
+  "source": "TILTCHECK_NATIVE",
+  "version": 1,
+  "type": "init",
+  "requestId": "init-1",
+  "features": { "wallet": true },
+  "config": { "logLevel": "debug" }
+}
+```
+
+Example module state response:
+
+```json
+{
+  "source": "TILTCHECK_WEB",
+  "version": 1,
+  "type": "module.state",
+  "requestId": "start-1",
+  "module": "wallet",
+  "state": "running"
+}
+```
 
 ### Discord Developer Portal redirect URIs
 
