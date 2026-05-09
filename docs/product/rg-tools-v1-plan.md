@@ -6,6 +6,64 @@
 
 This plan scopes the first responsible gaming tools that sit around LockVault, buddy accountability, and session guardrails. It is product and program requirements only. No on-chain implementation should start until Section C is reviewed by engineering, security, and counsel.
 
+## Cross-surface discovery and handoffs
+
+This section complements the vault program sections below. It defines where users find each RG tool without duplicating every control on every surface.
+
+### Product line
+
+RG v1 is the first pass at player-side controls that reduce regret without pretending software can guarantee restraint. The stack should be blunt about limits:
+
+- Non-custodial controls only.
+- No medical, diagnostic, or regulator-endorsement claims.
+- Every hard setting has a clear owner.
+- Every live-session nudge has a dashboard escape hatch for durable setup.
+
+### Surface ownership
+
+| Surface | Job | Not Its Job |
+| :--- | :--- | :--- |
+| Chrome extension | In-casino detection, quick session actions, license strip, cash-out nudges, and dashboard handoffs. | Long-form configuration, partner graph management, legal explanations. |
+| Dashboard | Durable user settings, vault rules, buddy relationships, safety controls, and profile history. | Constant in-session UI while the casino tab is active. |
+| Discord | Commands, support delivery, buddy alerts, and community reminders. | Sensitive configuration that needs review, consent, or long-form copy. |
+| Web tools | Public explainers, SEO discovery, unauthenticated education, and login handoff. | Acting as the canonical settings store. |
+
+### Cross-surface discovery map
+
+| Tool / Flow | Primary Entry Point | Secondary Entry Point | Support Surface | Dashboard Destination | Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Session brake and cash-out intent | Extension sidebar `EMERGENCY BRAKE` and redeem threshold controls | Dashboard safety lane | Discord support prompt during intervention | `/dashboard?tab=safety` | Extension is where urgency happens. Dashboard owns cooldown and durable safety settings. |
+| Solana timelock vault | Dashboard vault lane | Extension `Open Vault Controls` / `Vault Rules` | Discord help and status commands | `/tools/auto-vault` | Pre-lock review must stay in dashboard until program policy and signer model are final. |
+| Buddy / 2-of-3 accountability | Dashboard buddy lane | Extension `Buddy Controls` quick action | Discord buddy alerts and support-only pings | `/tools/buddy-system` | Partner graph, consent, and thresholds stay dashboard-owned. Discord only delivers messages. |
+| Fairness toolkit | Web tools index and verification pages | Extension fairness / license affordances | Discord help link to verifier | `/tools/verify` plus `/tools/session-stats` | Copy must define source, window, and degraded state. No guarantee language. |
+| Tilt detection and interventions | Extension sidebar while playing | Dashboard safety lane | Discord optional buddy delivery | `/dashboard?tab=safety` | Sensitivity, snooze, and privacy settings belong in dashboard. Extension shows live state. |
+| License / trust surfacing | Extension license strip | Casino trust and web tools pages | Discord `/status` and help links | `/dashboard?tab=safety` when user wants controls | Source and stale-date metadata must be visible where verdicts are shown. |
+| Trivia jackpot treasury | Discord, only if voluntary donation rules ship | Web transparency page | Dashboard history if account-linked | Deferred | Penalty-funded jackpots stay out of v1. Counsel review before copy ships. |
+
+### Deep-link contract
+
+Extension buttons should open the canonical dashboard host with simple, durable targets:
+
+- Profile overview: `https://dashboard.tiltcheck.me/dashboard`
+- Safety controls: `https://dashboard.tiltcheck.me/dashboard?tab=safety`
+- Vault rules: `https://dashboard.tiltcheck.me/dashboard?tab=vault`
+- Buddy controls: `https://dashboard.tiltcheck.me/dashboard?tab=buddies`
+
+Web handoff routes can keep using `getDashboardHandoffUrl(...)` for environment-aware routing, but the user-facing IA should still name the dashboard lane that owns the setting.
+
+### QA checklist: where do I click
+
+Use this checklist before closing RG v1 surface-routing work:
+
+- Extension signed out: user can still find login, demo mode, and the dashboard entry point.
+- Extension signed in: `THE DASHBOARD`, `VAULT RULES`, `SAFETY SETTINGS`, and `BUDDY CONTROLS` each open a dashboard URL instead of an API endpoint or dead route.
+- Session brake: user sees the immediate action in the extension and a clear route to durable safety settings.
+- Vault: extension quick action opens dashboard-owned vault rules; web AutoVault explainer also routes there.
+- Buddy system: dashboard is the only place to manage partners and thresholds; Discord is described as delivery.
+- Fairness and trust: web explains definitions; extension shows only concise verdicts and links out for deeper control.
+- Discord: help copy points users to dashboard or web explainers when the task needs review or configuration.
+- Legal tone: no guarantee, treatment, diagnosis, endorsement, or custodial-control language.
+
 ## Section A: Solo Vault v1
 
 Solo Vault v1 is the baseline user-owned lock flow.
@@ -170,3 +228,15 @@ All endpoints must validate authenticated user identity, signer ownership proofs
 - [ ] Engineering chooses program primitive and writes a technical spec.
 - [ ] Devnet test proves normal release, buddy timeout, break-glass release, and signer rotation.
 - [ ] Rollback plan is documented before mainnet activation.
+
+## Appendix: Tracked work (TIL)
+
+Short pointers for parallel engineering tracks; detail lives in issues.
+
+- **Session brake / cash-out intent (TIL-122):** Extension owns the live brake; dashboard owns sensitivity, snooze, cooldown, history.
+- **Solana timelock vault (TIL-124):** Dashboard owns pre-lock review until program policy ships.
+- **Tilt detection + interventions (TIL-125):** Extension live UI; dashboard durable controls; avoid medical framing.
+- **License / trust surfacing (TIL-126):** Extension strip; web evidence pages; source + stale-date visible.
+- **Buddy 2-of-3 design (TIL-127):** Aligned with Section C above.
+- **Fairness toolkit (TIL-123):** Web owns education; extension compact affordances; define RTP/drift data source.
+- **Trivia jackpot treasury (TIL-129):** Deferred for v1 unless voluntary donations and counsel-reviewed contest rules exist.
