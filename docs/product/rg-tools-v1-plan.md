@@ -39,26 +39,26 @@ Add an accountability partner to vault exits without creating a pure 2-of-2 free
 
 ### Signers
 
-| Signer | Owner | Purpose | Required Controls |
-| --- | --- | --- | --- |
-| Primary user wallet | User | Funds, configures, and initiates exits | Must be the wallet that created the vault intent |
-| Buddy signer | Accountability partner | Confirms normal exit after cooldown | Must accept joint-control terms before activation |
-| Recovery signer | User-owned break-glass key | Prevents buddy lock-in or partner griefing | Must be registered at setup and protected with strong warnings |
+| Signer              | Owner                      | Purpose                                    | Required Controls                                              |
+| ------------------- | -------------------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| Primary user wallet | User                       | Funds, configures, and initiates exits     | Must be the wallet that created the vault intent               |
+| Buddy signer        | Accountability partner     | Confirms normal exit after cooldown        | Must accept joint-control terms before activation              |
+| Recovery signer     | User-owned break-glass key | Prevents buddy lock-in or partner griefing | Must be registered at setup and protected with strong warnings |
 
 The 2-of-3 set is `primary user wallet`, `buddy signer`, and `recovery signer`.
 
 ### Signer Rules
 
-| Action | Required Signers | Program Rule |
-| --- | --- | --- |
-| Create vault | Primary user wallet | Creates the vault config and signer set before funds move |
-| Fund vault | Primary user wallet | Deposit transaction only; no buddy approval required |
-| Extend lock | Primary user wallet | Allowed only when it increases `unlockAt`; never shortens a lock |
-| Normal release | Primary user wallet plus buddy signer | Allowed after `unlockAt` and after final risk disclosure |
-| Break-glass release | Primary user wallet plus recovery signer | Allowed after `unlockAt` plus an extra break-glass delay |
-| Buddy replacement | Primary user wallet plus current buddy signer, or primary user wallet plus recovery signer after delay | Must notify old buddy, new buddy, and user |
-| Recovery signer rotation | Primary user wallet plus recovery signer | Must enforce a pending period before new recovery key can release funds |
-| Early unlock | Not supported in v1 | Big yikes path. Do not ship without separate legal and security approval |
+| Action                   | Required Signers                                                                                       | Program Rule                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| Create vault             | Primary user wallet                                                                                    | Creates the vault config and signer set before funds move                |
+| Fund vault               | Primary user wallet                                                                                    | Deposit transaction only; no buddy approval required                     |
+| Extend lock              | Primary user wallet                                                                                    | Allowed only when it increases `unlockAt`; never shortens a lock         |
+| Normal release           | Primary user wallet plus buddy signer                                                                  | Allowed after `unlockAt` and after final risk disclosure                 |
+| Break-glass release      | Primary user wallet plus recovery signer                                                               | Allowed after `unlockAt` plus an extra break-glass delay                 |
+| Buddy replacement        | Primary user wallet plus current buddy signer, or primary user wallet plus recovery signer after delay | Must notify old buddy, new buddy, and user                               |
+| Recovery signer rotation | Primary user wallet plus recovery signer                                                               | Must enforce a pending period before new recovery key can release funds  |
+| Early unlock             | Not supported in v1                                                                                    | Big yikes path. Do not ship without separate legal and security approval |
 
 Break-glass is not an instant bypass. It is the escape hatch for partner failure, not a "I'm due" button for nuking the cooldown because variance got spicy.
 
@@ -109,17 +109,17 @@ Break-glass is not an instant bypass. It is the escape hatch for partner failure
 
 ### Threat Model
 
-| Threat | Risk | Required Mitigation |
-| --- | --- | --- |
-| Malicious buddy refuses to sign | User funds can be delayed | Recovery path after `unlockAt` plus delay |
-| Buddy is compromised | Attacker can approve a normal release with user | Require primary user signature and notify user on every buddy action |
-| User is coerced by buddy | Buddy pressure can defeat RG intent | Plain warnings, revocation path, replacement flow, and support escalation copy |
-| User self-coerces during tilt | Recovery key becomes an impulse bypass | Extra break-glass delay, friction copy, and event logging |
-| Recovery key is lost | Break-glass route is unavailable | Setup warnings, rotation support, no activation without confirmation |
-| Primary wallet is compromised | Attacker may combine with buddy or recovery compromise | User notifications, session checks, and optional high-risk hold before release |
-| Signer set is misconfigured | Funds can be stranded | Dry-run config validation before deposit and immutable signer snapshot per vault |
-| Operator overreach | Custody or hidden control concerns | Operator must not be a signer and must not have emergency unlock authority |
-| Legal joint-control ambiguity | Terms may be unclear | Counsel-approved buddy terms before launch |
+| Threat                          | Risk                                                   | Required Mitigation                                                              |
+| ------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Malicious buddy refuses to sign | User funds can be delayed                              | Recovery path after `unlockAt` plus delay                                        |
+| Buddy is compromised            | Attacker can approve a normal release with user        | Require primary user signature and notify user on every buddy action             |
+| User is coerced by buddy        | Buddy pressure can defeat RG intent                    | Plain warnings, revocation path, replacement flow, and support escalation copy   |
+| User self-coerces during tilt   | Recovery key becomes an impulse bypass                 | Extra break-glass delay, friction copy, and event logging                        |
+| Recovery key is lost            | Break-glass route is unavailable                       | Setup warnings, rotation support, no activation without confirmation             |
+| Primary wallet is compromised   | Attacker may combine with buddy or recovery compromise | User notifications, session checks, and optional high-risk hold before release   |
+| Signer set is misconfigured     | Funds can be stranded                                  | Dry-run config validation before deposit and immutable signer snapshot per vault |
+| Operator overreach              | Custody or hidden control concerns                     | Operator must not be a signer and must not have emergency unlock authority       |
+| Legal joint-control ambiguity   | Terms may be unclear                                   | Counsel-approved buddy terms before launch                                       |
 
 ### Program Requirements
 
