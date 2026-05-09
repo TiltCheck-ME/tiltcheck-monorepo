@@ -356,6 +356,54 @@ Out of scope:
 - No regulator approval language.
 - No automated enforcement decision beyond the existing extension analysis gate.
 
+## Section G: Early-Unlock Economics, Recovery Grants, And Trivia Treasury
+
+RG Tools v1 also covers player-protection surfaces that reduce tilt loops without creating custody, payout, or contest-law risk. Core program surfaces include `LockVault` (timed locks, wallet action locks, guardian recovery, paid early-unlock friction), `Touch Grass`, `Degen Trivia`, and `Recovery Microgrants`.
+
+### Non-custodial boundary (program)
+
+TiltCheck does not hold user keys, execute wallet transfers from user accounts, or mint internal balances that pretend money moved. Wallet movements must be user-signed or explicitly handled by a reviewed treasury workflow.
+
+### Early-unlock fees (harm reduction, not jackpot fuel)
+
+Paid early-unlock fees are a harm-reduction friction mechanism, not jackpot fuel. For RG v1, the user-facing route is:
+
+- debit the configured early-unlock fee from the LockVault ledger;
+- log the configured dev skim for reconciliation;
+- route the remaining recovery allocation to the recovery microgrant ledger;
+- do not credit trivia jackpots from penalty, fee, or punishment mechanics.
+
+### Recovery microgrant ledger
+
+The recovery microgrant pool can receive early-unlock recovery allocations and other reviewed funding sources. Any payout path remains manual, reviewed, and non-custodial until a production treasury workflow is approved.
+
+### Degen trivia
+
+Degen Trivia remains a skill-based community activity and a safer attention redirect. Activity testing can continue, but payout language must stay conservative until public rules are approved.
+
+### Trivia jackpot treasury (deferred funding)
+
+Penalty-funded jackpots are deferred. No LockVault penalty, early-unlock fee, trust penalty, or similar friction mechanic may seed the trivia jackpot.
+
+The only allowed funding path before legal review is voluntary donation to a published treasury address:
+
+- publish the treasury address on a transparent web page;
+- state that donations do not buy entry, odds, or a promised payout;
+- state that no guaranteed prize pool exists;
+- keep Discord command/help copy gated behind counsel review before enabling payout claims;
+- reconcile any treasury movements publicly before promoting a trivia drop.
+
+Open legal review:
+
+- contest and sweepstakes treatment by jurisdiction;
+- crypto payout restrictions and tax reporting;
+- donation wording and no-consideration entry mechanics;
+- winner selection, eligibility, and dispute rules.
+
+### Launch gate (prize-bearing trivia)
+
+Do not promote prize-bearing trivia until the public rules, treasury reconciliation process, Discord command copy, and payout workflow are reviewed. This is the line between a community game and a compliance-shaped failure mode.
+
 ## Appendix: Tracked work (TIL)
 
 Short pointers for parallel engineering tracks; detail lives in issues.
@@ -366,4 +414,4 @@ Short pointers for parallel engineering tracks; detail lives in issues.
 - **License / trust surfacing (TIL-126):** Extension strip; web evidence pages; source + stale-date visible; see Section F.
 - **Buddy 2-of-3 design (TIL-127):** Aligned with Section C above.
 - **Fairness toolkit (TIL-123):** Web owns education; extension compact affordances; define RTP/drift data source; see Section D.
-- **Trivia jackpot treasury (TIL-129):** Deferred for v1 unless voluntary donations and counsel-reviewed contest rules exist.
+- **Trivia jackpot treasury (TIL-129):** Deferred penalty-funded jackpots; voluntary-donation path and counsel review only; see Section G.

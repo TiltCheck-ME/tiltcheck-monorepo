@@ -1,11 +1,11 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
 export function buildHelpEmbed(): EmbedBuilder {
   const embed = new EmbedBuilder()
     .setColor(0xff4500)
-    .setTitle('DEGENS AGAINST DECENCY — COMMAND MAP')
+    .setTitle('DEGENS AGAINST DECENCY - COMMAND MAP')
     .setDescription('DAD runs card games, trivia drops, jackpots, and Discord activities. It does not custody funds or handle wallet linking.')
     .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
@@ -13,28 +13,28 @@ export function buildHelpEmbed(): EmbedBuilder {
     {
       name: 'Card Game',
       value:
-        '`/lobby create rounds:<1-20> players:<2-10>` — Open a game in this channel\n' +
-        '`/lobby join` — Join the open game\n' +
-        '`/lobby start` — Start the game if you host it\n' +
-        '`/lobby hand` — View your cards privately\n' +
-        '`/lobby submit card:<number>` — Play a white card\n' +
-        '`/lobby pick submission:<number>` — Judge picks the round winner\n' +
-        '`/lobby scores` — Current scoreboard\n' +
-        '`/lobby end` — Kill the game if you host it',
+        '`/lobby create rounds:<1-20> players:<2-10>` - Open a game in this channel\n' +
+        '`/lobby join` - Join the open game\n' +
+        '`/lobby start` - Start the game if you host it\n' +
+        '`/lobby hand` - View your cards privately\n' +
+        '`/lobby submit card:<number>` - Play a white card\n' +
+        '`/lobby pick submission:<number>` - Judge picks the round winner\n' +
+        '`/lobby scores` - Current scoreboard\n' +
+        '`/lobby end` - Kill the game if you host it',
       inline: false,
     },
     {
       name: 'Trivia and Prizes',
       value:
-        '`/triviadrop topic:<topic> prize_total:<sol> rounds:<1-5> timer:<15-60>` — Run a funded trivia drop\n' +
-        '`/jackpot status` — Check the trivia pot\n' +
-        '`/jackpot fuel amount:<sol>` — Add SOL to the pot',
+        '`/triviadrop topic:<topic> prize_total:<sol> rounds:<1-5> timer:<15-60>` - Run only after public rules clear review\n' +
+        '`/jackpot status` - Check the voluntary trivia treasury status\n' +
+        '`/jackpot fuel amount:<sol>` - Open the voluntary treasury donation rail; no guaranteed prize pool',
       inline: false,
     },
     {
       name: 'Activities',
       value:
-        '`/play game:<trivia|blackjack>` — Launch a live Discord activity',
+        '`/play game:<trivia|blackjack>` - Launch a live Discord activity',
       inline: false,
     },
     {
@@ -46,7 +46,7 @@ export function buildHelpEmbed(): EmbedBuilder {
     }
   );
 
-  embed.setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+  embed.setFooter({ text: 'Degens Against Decency - Made for Degens. By Degens.' });
   return embed;
 }
 

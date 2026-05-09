@@ -1,7 +1,7 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /**
- * Trivia Jackpot Pool — HTTP surface for the Live Trivia prize pool.
- * Persistence lives in services/community-pools.ts (shared with wallet-lock fee routing).
+ * Trivia Jackpot Pool - HTTP surface for the voluntary Live Trivia treasury.
+ * Persistence lives in services/community-pools.ts; penalty-funded credits are deferred.
  */
 
 import { Router } from 'express';
@@ -14,6 +14,15 @@ import {
 } from '../services/community-pools.js';
 
 const router = Router();
+
+function isDeferredFundingSource(source: unknown): boolean {
+  if (typeof source !== 'string') return false;
+  return /early[-_ ]?unlock|wallet[-_ ]?lock|lockvault|penalty|fee/i.test(source);
+}
+
+function triviaJackpotPayoutsEnabled(): boolean {
+  return process.env.TRIVIA_JACKPOT_PAYOUTS_ENABLED === 'true' || process.env.TRIVIADROP_PAYOUTS_ENABLED === 'true';
+}
 
 router.get('/jackpot', (_req, res) => {
   res.json(getTriviaJackpotSnapshot());
@@ -30,6 +39,13 @@ router.post('/jackpot/contribute', async (req, res) => {
     res.status(400).json({ error: 'amountSol must be a positive number' });
     return;
   }
+  if (isDeferredFundingSource(source)) {
+    res.status(400).json({
+      error: 'Penalty-funded trivia jackpots are deferred. Route fee allocations to recovery microgrants instead.',
+      code: 'TRIVIA_JACKPOT_DEFERRED',
+    });
+    return;
+  }
 
   await contributeTriviaJackpot(amountSol, source, signature);
 
@@ -38,6 +54,14 @@ router.post('/jackpot/contribute', async (req, res) => {
 });
 
 router.post('/jackpot/payout', async (req, res) => {
+  if (!triviaJackpotPayoutsEnabled()) {
+    res.status(409).json({
+      error: 'Trivia jackpot payouts are disabled until public contest rules and payout handling clear review.',
+      code: 'TRIVIA_JACKPOT_PAYOUTS_DISABLED',
+    });
+    return;
+  }
+
   const { winner, amountSol } = req.body;
 
   if (!winner || typeof amountSol !== 'number') {

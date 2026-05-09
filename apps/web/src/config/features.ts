@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 export type Tool = {
   href: string;
   icon: string;
@@ -60,7 +60,7 @@ export const features: Tool[] = [
     icon: "/assets/canva/crossed-swords.jpg",
     category: "DEGENS AGAINST DECENCY",
     title: "Degen Trivia",
-    description: "Fund the trivia pot on web, test the live room in Activity, and use Discord when you need the public /triviadrop rail.",
+    description: "View the voluntary trivia treasury on web, test the live room in Activity, and keep Discord drops gated until reviewed rules ship.",
     status: "live",
     gridClasses: "",
   },

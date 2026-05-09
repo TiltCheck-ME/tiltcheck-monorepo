@@ -1,5 +1,5 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
-// Live Trivia HQ — elimination-style trivia with powerups and prize pool
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
+// Live Trivia HQ - elimination-style trivia with powerups; prize-bearing drops are gated.
 // Mirrors trivia-manager lifecycle: waiting → round → reveal → next/completed
 
 import * as relay from '../relay.js';

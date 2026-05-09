@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 
 import type { SessionState, TriviaState } from '../state/SessionState.js';
 import type { HubRelay } from '../sdk/HubRelay.js';
@@ -285,7 +285,7 @@ export class GameView {
             <span class="stage-pill stage-lobby">Lobby</span>
           </div>
           <p class="shell-copy">${this.triviaScheduling ? 'Arming the next pack. Hold the room.' : 'No live party loop is armed. Spin one up and keep it moving.'}</p>
-          <p class="shell-subcopy">Testing lives here. Funding the public trivia pot lives on the web and in Discord. Start a pack here when you want to validate the room loop without waiting on a Discord drop.</p>
+          <p class="shell-subcopy">Testing lives here. The voluntary trivia treasury lives on the web, and prize-bearing Discord drops wait for reviewed public rules.</p>
           <div class="room-list">
             ${Object.entries(TRIVIA_PACKS).map(([id, pack]) => `
               <div class="room-user-card">
@@ -300,13 +300,13 @@ export class GameView {
             <p class="section-label">Funding + test path</p>
             <div class="room-list">
               <div class="room-user-card">
-                <span class="room-user-name">Fund the pot</span>
-                <span class="waiting-sub">Use the live jackpot page if you want to seed the public trivia prize pool before testing.</span>
-                <a class="btn-secondary" href="${TRIVIA_FUNDING_URL}" target="_blank" rel="noopener noreferrer" style="margin-top: 0.75rem; text-decoration: none; text-align: center;">Open Jackpot Funding</a>
+                <span class="room-user-name">View the treasury</span>
+                <span class="waiting-sub">Use the web treasury page for the public voluntary wallet address. No guaranteed prize pool, no payout promise.</span>
+                <a class="btn-secondary" href="${TRIVIA_FUNDING_URL}" target="_blank" rel="noopener noreferrer" style="margin-top: 0.75rem; text-decoration: none; text-align: center;">Open Treasury</a>
               </div>
               <div class="room-user-card">
                 <span class="room-user-name">Run a live test</span>
-                <span class="waiting-sub">Use these pack buttons in the Activity, or jump to Discord if you need the full community drop flow.</span>
+                <span class="waiting-sub">Use these pack buttons in the Activity. Discord prize drops stay gated until reviewed rules ship.</span>
                 <div class="btn-row" style="margin-top: 0.75rem;">
                   <a class="btn-secondary" href="${TRIVIA_ACTIVITY_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; text-align: center;">Open Activity Host</a>
                   <a class="btn-secondary" href="${TRIVIA_DISCORD_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; text-align: center;">Open Discord</a>

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -543,7 +543,7 @@ router.post('/:userId/wallet-unlock-approve', authMiddleware, async (req, res) =
 
 /**
  * POST /vault/:userId/wallet-unlock-pay
- * Credits trivia jackpot ledger + microgrant pool + structured dev skim log (non-custodial).
+ * Credits the microgrant pool plus structured dev skim log (non-custodial).
  */
 router.post('/:userId/wallet-unlock-pay', authMiddleware, async (req, res) => {
   const userId = param(req, 'userId');
