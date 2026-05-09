@@ -52,6 +52,10 @@ export {
   findOnboardingByDiscordId,
   upsertOnboarding,
 
+  // Canonical user settings document (v1)
+  getUserSettingsRow,
+  upsertUserSettingsRow,
+
   // Admin queries
   findAdminById,
   findAdminByEmail,

@@ -2,7 +2,7 @@
 
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
 import { initTiltCheckInjectedRuntime } from '@tiltcheck/injected-runtime';
@@ -49,8 +49,57 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [blockedUrl, setBlockedUrl] = useState<string | null>(null);
   const [injectionEnabled, setInjectionEnabled] = useState(true);
+  const [tiltApiToken, setTiltApiToken] = useState<string>('');
+  const [settingsEtag, setSettingsEtag] = useState<string | null>(null);
+  const [settingsSyncStatus, setSettingsSyncStatus] = useState<string>('Not synced');
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null);
   const [lastLog, setLastLog] = useState<string>('Idle');
+
+  const apiBase = 'https://api.tiltcheck.me';
+
+  const syncSettings = useCallback(async (nextInjectionEnabled?: boolean) => {
+    const token = tiltApiToken.trim();
+    if (!token) {
+      setSettingsSyncStatus('Add a TiltCheck token to sync settings.');
+      return;
+    }
+
+    try {
+      const desired = typeof nextInjectionEnabled === 'boolean' ? nextInjectionEnabled : injectionEnabled;
+      const response = await fetch(`${apiBase}/me/settings`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...(settingsEtag ? { 'If-Match': settingsEtag } : {}),
+        },
+        body: JSON.stringify({
+          surfaces: {
+            mobile: {
+              injectionEnabled: desired,
+            },
+          },
+        }),
+      });
+
+      if (response.status === 412) {
+        setSettingsSyncStatus('Settings conflict. Pull latest settings and retry.');
+        setSettingsEtag(response.headers.get('etag'));
+        return;
+      }
+
+      if (!response.ok) {
+        setSettingsSyncStatus(`Sync failed (${response.status}).`);
+        return;
+      }
+
+      const nextEtag = response.headers.get('etag');
+      if (nextEtag) setSettingsEtag(nextEtag);
+      setSettingsSyncStatus('Synced');
+    } catch (error) {
+      setSettingsSyncStatus(`Sync error: ${String(error)}`);
+    }
+  }, [apiBase, injectionEnabled, settingsEtag, tiltApiToken]);
 
   const injectedJs = useMemo(() => {
     if (!injectionEnabled) {
@@ -174,13 +223,39 @@ export default function App() {
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ selected: injectionEnabled }}
-              onPress={() => setInjectionEnabled((v) => !v)}
+              onPress={() => {
+                setInjectionEnabled((v) => {
+                  const next = !v;
+                  void syncSettings(next);
+                  return next;
+                });
+              }}
               style={[styles.toggleButton, injectionEnabled && styles.toggleButtonActive]}
             >
               <Text style={[styles.toggleButtonText, injectionEnabled && styles.toggleButtonTextActive]}>
                 {injectionEnabled ? 'Injection: ON' : 'Injection: OFF'}
               </Text>
             </Pressable>
+          </View>
+
+          <View style={styles.settingsRow}>
+            <Text style={styles.settingsLabel}>TiltCheck token (Bearer)</Text>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="paste token to sync /me/settings"
+              placeholderTextColor="rgba(247, 247, 251, 0.4)"
+              secureTextEntry
+              value={tiltApiToken}
+              onChangeText={setTiltApiToken}
+              style={styles.settingsInput}
+            />
+            <View style={styles.settingsActions}>
+              <Pressable accessibilityRole="button" onPress={() => void syncSettings()} style={styles.settingsButton}>
+                <Text style={styles.settingsButtonText}>Sync now</Text>
+              </Pressable>
+              <Text style={styles.settingsStatus}>{settingsSyncStatus}</Text>
+            </View>
           </View>
 
           <View style={styles.targetRow}>
@@ -310,6 +385,48 @@ const styles = StyleSheet.create({
   },
   toggleRow: {
     marginTop: 12,
+  },
+  settingsRow: {
+    marginTop: 12,
+  },
+  settingsLabel: {
+    color: 'rgba(247, 247, 251, 0.72)',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  settingsInput: {
+    borderColor: 'rgba(247, 247, 251, 0.18)',
+    borderRadius: 14,
+    borderWidth: 1,
+    color: '#f7f7fb',
+    fontSize: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  settingsActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  settingsButton: {
+    backgroundColor: 'rgba(216, 255, 62, 0.14)',
+    borderColor: 'rgba(216, 255, 62, 0.32)',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  settingsButtonText: {
+    color: '#d8ff3e',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  settingsStatus: {
+    color: 'rgba(247, 247, 251, 0.62)',
+    flex: 1,
+    fontSize: 12,
   },
   toggleButton: {
     alignItems: 'center',
