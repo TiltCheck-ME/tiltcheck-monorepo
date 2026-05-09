@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09",
   "compilerOptions": {
     "baseUrl": ".",
     "lib": [
@@ -18,6 +19,11 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
     "plugins": [
       {
         "name": "next"
