@@ -14,13 +14,7 @@ const config: ExpoConfig = {
     ios: {
       supportsTablet: true,
     },
-    android: {
-      adaptiveIcon: {
-        foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#050509',
-      },
-    },
-  } as any,
+  },
 };
 
 export default config;
