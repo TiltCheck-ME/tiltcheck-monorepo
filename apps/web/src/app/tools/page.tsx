@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-25 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 import React from "react";
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -105,7 +105,7 @@ const TOOLS: Tool[] = [
     label: "DEGENS ARENA",
     title: "Trivia Drop Arena",
     description:
-      "Fund the live trivia pot on web, test the room in Activity, and use Discord /triviadrop for the public drop rail.",
+      "View the voluntary trivia treasury on web, test the room in Activity, and keep Discord drops gated until the rules are reviewed.",
     status: "live",
   },
 ];

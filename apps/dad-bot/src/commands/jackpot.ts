@@ -1,7 +1,7 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /**
- * Trivia Prizepool Command
- * Shows and funds the community trivia jackpot.
+ * Trivia Treasury Command
+ * Shows the voluntary community treasury while prize rules are under review.
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -9,11 +9,11 @@ import type { Command } from '../types.js';
 export const jackpot: Command = {
   data: new SlashCommandBuilder()
     .setName('jackpot')
-    .setDescription('The community trivia prizepool — check the pot or add to it.')
-    .addSubcommand(sub => sub.setName('status').setDescription('Current prizepool balance and last winner.'))
+    .setDescription('The voluntary trivia treasury - check status or open the donation rail.')
+    .addSubcommand(sub => sub.setName('status').setDescription('Current treasury status and review gate.'))
     .addSubcommand(sub =>
       sub.setName('fuel')
-        .setDescription('Add SOL to the trivia prizepool.')
+        .setDescription('Open a voluntary SOL treasury donation link.')
         .addIntegerOption(opt => opt.setName('amount').setDescription('How much SOL to add?').setRequired(true))
     ),
 
@@ -24,30 +24,30 @@ export const jackpot: Command = {
     if (sub === 'status') {
       const embed = new EmbedBuilder()
         .setColor(0xFFA500)
-        .setTitle('TRIVIA PRIZEPOOL')
+        .setTitle('TRIVIA TREASURY')
         .setDescription(
-          `The community pot is live.\n\n` +
-          `Play Degens Against Decency trivia to compete for the pool — winner takes all.\n\n` +
-          `*Pool balance is updated after each trivia round.*`
+          `The community treasury is voluntary-only.\n\n` +
+          `No entry fee. No guaranteed prize pool. No payout promise until the public rules clear legal review.\n\n` +
+          `*Treasury address is public on the web page.*`
         )
         .addFields(
-          { name: 'How to Enter', value: 'Win a Degens Against Decency trivia round. No entry fee.', inline: false },
-          { name: 'How to Add', value: 'Use `/jackpot fuel` to contribute SOL.', inline: false }
+          { name: 'Rules Status', value: 'Contest and payout rules are deferred pending counsel review.', inline: false },
+          { name: 'Voluntary Donations', value: 'Use `/jackpot fuel` only if you want the public Solana Pay link. It does not buy entry or odds.', inline: false }
         )
-        .setFooter({ text: "The house gives back. Occasionally." });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
 
     } else if (sub === 'fuel') {
       const embed = new EmbedBuilder()
         .setColor(0xFFA500)
-        .setTitle('ADDING TO THE PRIZEPOOL')
+        .setTitle('VOLUNTARY TREASURY DONATION')
         .setDescription(
-          `You're adding **${amount} SOL** to the trivia prizepool.\n\n` +
-          `Use the link below to complete the transaction. Your wallet, your signature — we don't touch it.`
+          `You're opening a **${amount} SOL** voluntary treasury link.\n\n` +
+          `This does not buy entry, odds, or a promised payout. Your wallet, your signature - we don't touch it.`
         )
-        .addFields({ name: 'Contribute via Solana Pay', value: `https://tiltcheck.me/pay/jackpot?amount=${amount}`, inline: false })
-        .setFooter({ text: "Bold of you to fund the thing you might win." });
+        .addFields({ name: 'Open Solana Pay', value: `https://tiltcheck.me/pay/jackpot?amount=${amount}`, inline: false })
+        .setFooter({ text: 'Rules stay gated until counsel clears them.' });
 
       await interaction.reply({ embeds: [embed] });
     }

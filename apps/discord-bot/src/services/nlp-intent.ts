@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /**
  * NLP Intent Classifier
  * Maps free-form user messages to slash command intents.
@@ -61,11 +61,11 @@ const INTENT_PATTERNS: Array<{
     extract: (m) => ({ game: m[1] }),
     reply: 'The house always has the edge. See exactly how bad with `/odds game:{game}` — slots, blackjack, roulette, baccarat, poker, craps, keno.',
   },
-  // /jackpot — prize pool
+  // /jackpot - voluntary treasury status
   {
     pattern: /(?:jackpot|prize|pool|prize ?pool|what(?:'s| is) (?:in )?the (?:pot|pool))/i,
     command: 'jackpot',
-    reply: 'Community pool is live. `/jackpot status` — and yes, degens actually win it.',
+    reply: 'The trivia treasury is voluntary-only while rules are under review. Run `/jackpot status` for the blunt version.',
   },
   // /linkwallet — wallet linking
   {

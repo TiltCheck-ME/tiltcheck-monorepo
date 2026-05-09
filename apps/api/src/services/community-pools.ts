@@ -1,7 +1,7 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /**
- * Ledger-backed community pools (trivia jackpot, recovery microgrant fund).
- * LockVault early-unlock fees credit trivia + microgrant balances here; dev skim is logged for treasury reconciliation (non-custodial — no auto-transfer yet).
+ * Ledger-backed community pools (voluntary trivia jackpot, recovery microgrant fund).
+ * LockVault early-unlock fees credit recovery microgrants only; trivia jackpots stay voluntary until contest rules are cleared.
  */
 
 import { db } from '@tiltcheck/database';
@@ -170,7 +170,7 @@ export async function contributeMicrograntPool(amountSol: number, source: string
 }
 
 /**
- * Applies LockVault early-unlock fee splits to trivia + microgrant ledgers.
+ * Applies LockVault early-unlock fee splits to microgrant ledgers.
  * Dev allocation is structured-log only until an automated sweep exists (risk: no secret wallet handling in API).
  */
 export async function creditEarlyUnlockFeeSplits(params: {
@@ -181,11 +181,23 @@ export async function creditEarlyUnlockFeeSplits(params: {
 }): Promise<void> {
   const { userId, triviaSOL, micrograntSOL, devSOL } = params;
   const meta = { userId, route: 'wallet_early_unlock' };
+  const deferredTriviaSOL = typeof triviaSOL === 'number' && triviaSOL > 0 ? triviaSOL : 0;
+  const recoveryMicrograntSOL = micrograntSOL + deferredTriviaSOL;
 
-  await Promise.all([
-    triviaSOL > 0 ? contributeTriviaJackpot(triviaSOL, `wallet_early_unlock:${userId}`) : Promise.resolve(),
-    micrograntSOL > 0 ? contributeMicrograntPool(micrograntSOL, 'wallet_early_unlock', meta) : Promise.resolve(),
-  ]);
+  if (deferredTriviaSOL > 0) {
+    console.log(
+      JSON.stringify({
+        event: 'early_unlock_trivia_jackpot_deferred',
+        sol: deferredTriviaSOL,
+        userId,
+        reroutedTo: 'microgrant_pool',
+      }),
+    );
+  }
+
+  if (recoveryMicrograntSOL > 0) {
+    await contributeMicrograntPool(recoveryMicrograntSOL, 'wallet_early_unlock', meta);
+  }
 
   if (devSOL > 0) {
     const dest = process.env.EARLY_UNLOCK_DEV_SOL_ADDRESS?.trim() || '';
