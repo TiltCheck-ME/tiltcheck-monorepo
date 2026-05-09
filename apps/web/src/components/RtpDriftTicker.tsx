@@ -1,7 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 "use client";
 
 import React from "react";
+import { defineFairnessDataSource } from "@tiltcheck/shared";
+import type { FairnessToolkitSourceState } from "@tiltcheck/types";
 
 interface DriftEvent {
   casino: string;
@@ -10,13 +12,27 @@ interface DriftEvent {
   detectedMinsAgo: number;
 }
 
-const FALLBACK_EVENTS: DriftEvent[] = [
-  { casino: "Stake", game: "Gates of Olympus", drift: -3.8, detectedMinsAgo: 4 },
-  { casino: "Roobet", game: "Sweet Bonanza", drift: -5.2, detectedMinsAgo: 17 },
-  { casino: "Rollbit", game: "Book of Dead", drift: -2.1, detectedMinsAgo: 31 },
-  { casino: "Shuffle", game: "Wolf Gold", drift: -4.7, detectedMinsAgo: 58 },
-  { casino: "BC.Game", game: "Reactoonz", drift: -6.3, detectedMinsAgo: 112 },
+const DRIFT_FEED_SCHEMA_VERSION = "rtp-drift.v1";
+
+const DEMO_EVENTS: DriftEvent[] = [
+  { casino: "Example Casino A", game: "Example Slot Alpha", drift: -3.8, detectedMinsAgo: 4 },
+  { casino: "Example Casino B", game: "Example Slot Bravo", drift: -5.2, detectedMinsAgo: 17 },
+  { casino: "Example Casino C", game: "Example Slot Charlie", drift: -2.1, detectedMinsAgo: 31 },
+  { casino: "Example Casino D", game: "Example Slot Delta", drift: -4.7, detectedMinsAgo: 58 },
+  { casino: "Example Casino E", game: "Example Slot Echo", drift: -6.3, detectedMinsAgo: 112 },
 ];
+
+const FEED_STATE_LABELS: Record<FairnessToolkitSourceState, string> = {
+  live: "API synced",
+  degraded: "Feed degraded",
+  unknown: "Schema unknown",
+};
+
+const FEED_STATE_COPY: Record<FairnessToolkitSourceState, string> = {
+  live: "Events loaded from the stats feed with the expected shape. Still a signal, not a verdict.",
+  degraded: "The stats feed is unavailable or thin. Demo events show the monitor shape without claiming live drift.",
+  unknown: "The stats feed changed shape. Classification is paused until the parser gets reviewed.",
+};
 
 function formatTimeAgo(minsAgo: number): string {
   if (minsAgo < 60) return `${minsAgo}m ago`;
@@ -28,9 +44,24 @@ function formatDrift(drift: number): string {
   return `${drift > 0 ? "+" : ""}${drift.toFixed(1)}%`;
 }
 
+function isDriftEvent(value: unknown): value is DriftEvent {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const event = value as Partial<DriftEvent>;
+
+  return typeof event.casino === "string"
+    && typeof event.game === "string"
+    && typeof event.drift === "number"
+    && Number.isFinite(event.drift)
+    && typeof event.detectedMinsAgo === "number"
+    && Number.isFinite(event.detectedMinsAgo);
+}
+
 export default function RtpDriftTicker() {
-  const [events, setEvents] = React.useState<DriftEvent[]>(FALLBACK_EVENTS);
-  const [feedMode, setFeedMode] = React.useState<"live" | "fallback">("fallback");
+  const [events, setEvents] = React.useState<DriftEvent[]>(DEMO_EVENTS);
+  const [feedState, setFeedState] = React.useState<FairnessToolkitSourceState>("unknown");
 
   React.useEffect(() => {
     let isActive = true;
@@ -39,22 +70,51 @@ export default function RtpDriftTicker() {
       try {
         const api = process.env.NEXT_PUBLIC_API_URL || "/api";
         const response = await fetch(`${api}/stats/rtp-drift`);
-        const data = (await response.json()) as { events?: DriftEvent[] };
+        const data = (await response.json()) as {
+          events?: unknown;
+          schemaVersion?: string;
+        };
 
         if (!isActive) return;
 
-        if (Array.isArray(data.events) && data.events.length > 0) {
-          setEvents(data.events);
-          setFeedMode("live");
+        if (!response.ok) {
+          setEvents(DEMO_EVENTS);
+          setFeedState("degraded");
           return;
         }
-      } catch {
-        // Keep fallback telemetry when the endpoint is unavailable.
-      }
 
-      if (isActive) {
-        setEvents(FALLBACK_EVENTS);
-        setFeedMode("fallback");
+        if (data.schemaVersion && data.schemaVersion !== DRIFT_FEED_SCHEMA_VERSION) {
+          setEvents(DEMO_EVENTS);
+          setFeedState("unknown");
+          return;
+        }
+
+        const parsedEvents = Array.isArray(data.events) ? data.events.filter(isDriftEvent) : [];
+        const source = defineFairnessDataSource({
+          id: "rtp-drift-feed",
+          label: "RTP drift stats feed",
+          type: "operator-api",
+          isAvailable: true,
+          hasUsableSamples: parsedEvents.length > 0,
+          schemaVersion: data.schemaVersion,
+          expectedSchemaVersion: data.schemaVersion ? DRIFT_FEED_SCHEMA_VERSION : undefined,
+          lastCheckedAt: Date.now(),
+          maxSourceAgeMs: 5 * 60 * 1000,
+        });
+
+        if (source.state === "live") {
+          setEvents(parsedEvents);
+          setFeedState("live");
+          return;
+        }
+
+        setEvents(DEMO_EVENTS);
+        setFeedState(source.state);
+      } catch {
+        if (isActive) {
+          setEvents(DEMO_EVENTS);
+          setFeedState("degraded");
+        }
       }
     };
 
@@ -75,45 +135,44 @@ export default function RtpDriftTicker() {
   if (!leadEvent) return null;
 
   return (
-    <section className="landing-section drift-section" aria-label="Live RTP drift catches">
+    <section className="landing-section drift-section" aria-label="RTP drift monitor examples">
       <div className="landing-shell drift-shell">
         <div className="drift-header">
           <div>
-            <span className="brand-eyebrow">Live drift watch</span>
-            <h2 className="drift-title">Real drift signals. Not a dead marquee pretending to be intelligence.</h2>
+            <span className="brand-eyebrow">Drift monitor</span>
+            <h2 className="drift-title">Drift signals need sample math. No guarantee cosplay.</h2>
           </div>
           <div className="drift-status-card">
-            <span className={`drift-status-card__badge drift-status-card__badge--${feedMode}`}>
-              {feedMode === "live" ? "API synced" : "Fallback telemetry"}
+            <span className={`drift-status-card__badge drift-status-card__badge--${feedState}`}>
+              {FEED_STATE_LABELS[feedState]}
             </span>
             <p className="drift-status-card__copy">
-              Same behavior, better surface. Live events load from the stats feed. Fallback events keep the module useful
-              when the endpoint is cold.
+              {FEED_STATE_COPY[feedState]}
             </p>
           </div>
         </div>
 
         <div className="drift-summary-grid">
           <article className="drift-lead-card">
-            <p className="drift-lead-card__eyebrow">Largest active catch</p>
+            <p className="drift-lead-card__eyebrow">{feedState === "live" ? "Largest active signal" : "Example signal"}</p>
             <h3 className="drift-lead-card__title">
               {leadEvent.casino} · {leadEvent.game}
             </h3>
-            <p className="drift-lead-card__metric">{formatDrift(leadEvent.drift)} from certified band</p>
+            <p className="drift-lead-card__metric">{formatDrift(leadEvent.drift)} from baseline band</p>
             <p className="drift-lead-card__description">
-              Flagged {formatTimeAgo(leadEvent.detectedMinsAgo)}. This is the kind of tier shift that quietly eats profit
-              while the lobby still smiles at you.
+              {feedState === "live" ? "Flagged" : "Demo window"} {formatTimeAgo(leadEvent.detectedMinsAgo)}.
+              Treat this as a windowed signal, not proof of intent.
             </p>
           </article>
 
           <div className="drift-kpi-grid" aria-label="RTP drift summary metrics">
             <article className="drift-kpi-card">
               <p className="drift-kpi-card__value">{recentHits}</p>
-              <p className="drift-kpi-card__label">signals in the last hour</p>
+              <p className="drift-kpi-card__label">{feedState === "live" ? "signals in current window" : "demo signals in window"}</p>
             </article>
             <article className="drift-kpi-card">
               <p className="drift-kpi-card__value">{averageDrift.toFixed(1)}%</p>
-              <p className="drift-kpi-card__label">average detected drift</p>
+              <p className="drift-kpi-card__label">{feedState === "live" ? "average observed drift" : "average demo drift"}</p>
             </article>
             <article className="drift-kpi-card">
               <p className="drift-kpi-card__value">{uniqueCasinos}</p>
