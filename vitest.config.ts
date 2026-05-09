@@ -1,6 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+
+const workspaceRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   test: {
@@ -17,6 +21,6 @@ export default defineConfig({
       'apps/web/.next/**',
       'tests/e2e/**',
     ],
-    setupFiles: ['./apps/api/tests/setup.ts'],
+    setupFiles: [path.join(workspaceRoot, 'apps/api/tests/setup.ts')],
   },
 });

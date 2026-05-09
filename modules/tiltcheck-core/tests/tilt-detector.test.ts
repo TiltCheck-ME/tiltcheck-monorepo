@@ -138,8 +138,7 @@ describe('Tilt Detector', () => {
 
       const history = eventRouter.getHistory();
       const tiltEvent = history.find((e): e is TiltEvent => 
-        e.type === 'tilt.detected' && 
-        e.data.signals?.some((s) => s.type === 'bet-sizing')
+        e.type === 'tilt.detected' && e.data.reason === 'bet-sizing'
       );
 
       expect(tiltEvent).toBeDefined();
@@ -156,8 +155,7 @@ describe('Tilt Detector', () => {
 
       const history = eventRouter.getHistory();
       const betSizingTilt = history.find((e): e is TiltEvent => 
-        e.type === 'tilt.detected' && 
-        e.data.signals?.some((s) => s.type === 'bet-sizing')
+        e.type === 'tilt.detected' && e.data.reason === 'bet-sizing'
       );
 
       expect(betSizingTilt).toBeUndefined();
