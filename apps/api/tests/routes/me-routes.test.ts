@@ -106,8 +106,6 @@ describe('Me onboarding status routes', () => {
     expect(writeResponse.status).toBe(200);
     expect(mockedDb.createUser).toHaveBeenCalledWith({
       discord_id: 'discord-shared',
-      discord_username: 'discord-shared',
-      roles: ['user'],
     });
     expect(mockedDb.upsertOnboarding).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -23,6 +23,20 @@ interface OnboardingPreferencesResponse {
   };
 }
 
+interface SettingsEnvelope {
+  userId?: string;
+  etag?: string;
+  settings?: {
+    limits?: {
+      cooldownEnabled?: boolean;
+      redeemThresholdUsd?: number | null;
+    };
+    surfaces?: {
+      extension?: Record<string, unknown>;
+    };
+  };
+}
+
 interface ExtensionUserData {
   id: string;
   username: string;
@@ -313,7 +327,7 @@ export class AuthManager {
 
   private async syncSafetyPreferences(token: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE}/me/onboarding-status`, {
+      const response = await fetch(`${API_BASE}/me/settings`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -325,30 +339,66 @@ export class AuthManager {
         return;
       }
 
-      const data = await response.json() as OnboardingPreferencesResponse;
+      const data = await response.json() as SettingsEnvelope;
       const nextStorage: Record<string, boolean | number | string> = {};
 
-      if (data.riskLevel) {
-        nextStorage.riskLevel = data.riskLevel;
+      const etagHeader = response.headers.get('etag');
+      if (etagHeader) {
+        nextStorage.settingsEtag = etagHeader;
+      } else if (typeof data.etag === 'string' && data.etag) {
+        nextStorage.settingsEtag = data.etag;
       }
 
-      if (typeof data.preferences?.cooldownEnabled === 'boolean') {
-        nextStorage.cooldownEnabled = data.preferences.cooldownEnabled;
+      if (typeof data.settings?.limits?.cooldownEnabled === 'boolean') {
+        nextStorage.cooldownEnabled = data.settings.limits.cooldownEnabled;
       }
 
-      if (typeof data.preferences?.voiceInterventionEnabled === 'boolean') {
-        nextStorage.voiceInterventionEnabled = data.preferences.voiceInterventionEnabled;
-      }
-
-      if (typeof data.preferences?.redeemThreshold === 'number' && Number.isFinite(data.preferences.redeemThreshold)) {
-        nextStorage.redeemThreshold = data.preferences.redeemThreshold;
+      if (typeof data.settings?.limits?.redeemThresholdUsd === 'number' && Number.isFinite(data.settings.limits.redeemThresholdUsd)) {
+        nextStorage.redeemThreshold = data.settings.limits.redeemThresholdUsd;
       }
 
       if (Object.keys(nextStorage).length > 0) {
         await this.ui.setStorage(nextStorage);
       }
     } catch (error) {
-      console.warn('[TiltCheck] Failed to sync onboarding preferences:', error);
+      console.warn('[TiltCheck] Failed to sync settings:', error);
+    }
+  }
+
+  public async patchSettings(token: string, patch: Record<string, unknown>): Promise<boolean> {
+    try {
+      const stored = await this.ui.getStorage(['settingsEtag']);
+      const ifMatch = typeof stored?.settingsEtag === 'string' ? stored.settingsEtag : undefined;
+
+      const response = await fetch(`${API_BASE}/me/settings`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...(ifMatch ? { 'If-Match': ifMatch } : {}),
+        },
+        body: JSON.stringify(patch),
+        credentials: 'include',
+      });
+
+      if (response.status === 412) {
+        await this.syncSafetyPreferences(token);
+        return false;
+      }
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const nextEtag = response.headers.get('etag');
+      if (nextEtag) {
+        await this.ui.setStorage({ settingsEtag: nextEtag });
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('[TiltCheck] Failed to patch settings:', error);
+      return false;
     }
   }
 }
