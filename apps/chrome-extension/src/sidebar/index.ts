@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -88,6 +88,9 @@ export class SidebarController implements SidebarUI {
     document.getElementById('tg-guest-login')?.addEventListener('click', () => this.auth.continueAsGuest());
     document.getElementById('tg-logout')?.addEventListener('click', () => this.auth.logout());
     document.getElementById('tg-open-dashboard')?.addEventListener('click', () => this.openDashboard());
+    document.getElementById('tg-open-safety')?.addEventListener('click', () => this.openDashboard('safety'));
+    document.getElementById('tg-open-vault-rules')?.addEventListener('click', () => this.openDashboard('vault'));
+    document.getElementById('tg-open-buddy-controls')?.addEventListener('click', () => this.openDashboard('buddies'));
     document.getElementById('tg-open-buddies')?.addEventListener('click', () => this.openDashboard('buddies'));
     document.getElementById('tg-open-vault')?.addEventListener('click', () => this.openDashboard('vault'));
     document.getElementById('tg-open-report')?.addEventListener('click', () => {
