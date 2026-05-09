@@ -31,7 +31,7 @@ const FEED_STATE_LABELS: Record<FairnessToolkitSourceState, string> = {
 const FEED_STATE_COPY: Record<FairnessToolkitSourceState, string> = {
   live: "Events loaded from the stats feed with the expected shape. Still a signal, not a verdict.",
   degraded: "The stats feed is unavailable or thin. Demo events show the monitor shape without claiming live drift.",
-  unknown: "The stats feed changed shape. Classification is paused until the parser gets reviewed.",
+  unknown: "The stats feed is not confirmed against the expected schema. Classification stays paused.",
 };
 
 function formatTimeAgo(minsAgo: number): string {
@@ -83,7 +83,7 @@ export default function RtpDriftTicker() {
           return;
         }
 
-        if (data.schemaVersion && data.schemaVersion !== DRIFT_FEED_SCHEMA_VERSION) {
+        if (data.schemaVersion !== DRIFT_FEED_SCHEMA_VERSION) {
           setEvents(DEMO_EVENTS);
           setFeedState("unknown");
           return;
@@ -97,7 +97,7 @@ export default function RtpDriftTicker() {
           isAvailable: true,
           hasUsableSamples: parsedEvents.length > 0,
           schemaVersion: data.schemaVersion,
-          expectedSchemaVersion: data.schemaVersion ? DRIFT_FEED_SCHEMA_VERSION : undefined,
+          expectedSchemaVersion: DRIFT_FEED_SCHEMA_VERSION,
           lastCheckedAt: Date.now(),
           maxSourceAgeMs: 5 * 60 * 1000,
         });

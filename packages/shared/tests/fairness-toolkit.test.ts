@@ -41,6 +41,62 @@ describe('fairness toolkit definitions', () => {
     expect(drift.summary).toContain('paused');
   });
 
+  it('keeps unchecked sources unknown before drift classification', () => {
+    const source = defineFairnessDataSource({
+      id: 'unchecked-api',
+      label: 'Unchecked API',
+      type: 'operator-api',
+    });
+    const window = defineFairnessWindow({
+      id: 'hourly',
+      label: 'Hourly RTP window',
+      unit: 'spin',
+      sampleSize: 2000,
+      minimumSampleSize: 500,
+    });
+
+    const drift = evaluateFairnessDrift({
+      source,
+      window,
+      baselineMetric: 96,
+      observedMetric: 90,
+      threshold: 2,
+    });
+
+    expect(source.state).toBe('unknown');
+    expect(drift.state).toBe('unknown');
+    expect(drift.confidence).toBe('unknown');
+  });
+
+  it('degrades drift when the source is unavailable', () => {
+    const source = defineFairnessDataSource({
+      id: 'down-api',
+      label: 'Down API',
+      type: 'operator-api',
+      isAvailable: false,
+    });
+    const window = defineFairnessWindow({
+      id: 'hourly',
+      label: 'Hourly RTP window',
+      unit: 'spin',
+      sampleSize: 2000,
+      minimumSampleSize: 500,
+    });
+
+    const drift = evaluateFairnessDrift({
+      source,
+      window,
+      baselineMetric: 96,
+      observedMetric: 90,
+      threshold: 2,
+    });
+
+    expect(source.state).toBe('degraded');
+    expect(drift.state).toBe('degraded');
+    expect(drift.confidence).toBe('low');
+    expect(drift.summary).toContain('informational only');
+  });
+
   it('defines drift from explicit source, window, baseline, observed, and threshold inputs', () => {
     const source = defineFairnessDataSource({
       id: 'extension-session',

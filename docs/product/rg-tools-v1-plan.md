@@ -54,6 +54,8 @@ absoluteDelta = observedMetric - baselineMetric
 relativeDelta = absoluteDelta / abs(baselineMetric)
 ```
 
+If `baselineMetric` is zero, `relativeDelta` is `null`. Divide-by-zero math is not a vibe; call the absolute delta instead.
+
 Direction:
 
 | Direction | Definition |
