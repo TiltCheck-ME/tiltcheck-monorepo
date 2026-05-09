@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * Bot Wallet Service
  *
@@ -15,6 +15,7 @@ import {
     sendAndConfirmTransaction,
     LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
+import type { ConfirmedSignatureInfo } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 // Safety limits
@@ -93,7 +94,7 @@ export class BotWalletService {
         return signature;
     }
 
-    async getRecentTransactions(limit = 20) {
+    async getRecentTransactions(limit = 20): Promise<ConfirmedSignatureInfo[]> {
         return this.connection.getSignaturesForAddress(this.keypair.publicKey, { limit });
     }
 
