@@ -16,6 +16,7 @@ export const SIDEBAR_TEMPLATE = `
       </div>
     </div>
     <div id="tg-license-strip" class="tg-license-strip pending">License: scanning current site...</div>
+    <div id="tg-license-detail" class="tg-license-detail">Source: current page scan. Last verified: pending. Not legal advice.</div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
     
     <div class="tg-content" id="tg-content">

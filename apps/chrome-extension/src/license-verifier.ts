@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * Casino License Verification
  * 
@@ -13,6 +13,8 @@ export interface LicenseInfo {
   jurisdiction?: string;
   location?: 'footer' | 'about' | 'terms' | 'license-page';
   verified: boolean;
+  source: string;
+  lastVerifiedAt: string;
   warnings: string[];
 }
 
@@ -27,7 +29,11 @@ export interface CasinoVerification {
 export interface LicensePresentation {
   tone: 'verified' | 'warning' | 'risk' | 'pending';
   summary: string;
+  details: string[];
 }
+
+const EXTENSION_LICENSE_SOURCE = 'Current page DOM scan';
+const LICENSE_STALE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Known legitimate gambling authorities
@@ -76,6 +82,8 @@ export class CasinoLicenseVerifier {
     let issuingAuthority: string | undefined;
     let jurisdiction: string | undefined;
     let location: 'footer' | 'about' | 'terms' | 'license-page' | undefined;
+    let source = EXTENSION_LICENSE_SOURCE;
+    const lastVerifiedAt = new Date().toISOString();
     
     // 1. Check footer (most common location)
     const footer = doc.querySelector('footer') || 
@@ -92,6 +100,7 @@ export class CasinoLicenseVerifier {
         issuingAuthority = licenseMatch.authority;
         jurisdiction = licenseMatch.jurisdiction;
         location = 'footer';
+        source = 'Current page footer scan';
       }
     }
     
@@ -112,6 +121,7 @@ export class CasinoLicenseVerifier {
             issuingAuthority = licenseMatch.authority;
             jurisdiction = licenseMatch.jurisdiction;
             location = 'license-page';
+            source = 'Current page license-link scan';
             break;
           }
         }
@@ -126,6 +136,7 @@ export class CasinoLicenseVerifier {
       
       if (aboutLinks.length > 0) {
         warnings.push('License info may be on About/Terms page - not verified automatically');
+        source = 'Current page legal-link scan';
       }
     }
     
@@ -144,6 +155,8 @@ export class CasinoLicenseVerifier {
       jurisdiction,
       location,
       verified: found && issuingAuthority !== undefined,
+      source,
+      lastVerifiedAt,
       warnings
     };
   }
@@ -243,18 +256,70 @@ function formatLicenseDetails(licenseInfo: LicenseInfo): string {
   return `${authority}${jurisdiction}${licenseNumber}${location}`;
 }
 
+function formatVerificationDate(value?: string): string {
+  if (!value) {
+    return 'pending';
+  }
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return 'unknown';
+  }
+
+  return new Date(parsed).toLocaleDateString();
+}
+
+function isStaleVerification(value?: string): boolean {
+  if (!value) {
+    return false;
+  }
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+
+  return Date.now() - parsed > LICENSE_STALE_WINDOW_MS;
+}
+
+function buildLicenseDetails(licenseInfo: LicenseInfo): string[] {
+  const details = [
+    `Source: ${licenseInfo.source || EXTENSION_LICENSE_SOURCE}`,
+    `Last verified: ${formatVerificationDate(licenseInfo.lastVerifiedAt)}`,
+    'Not legal advice. No regulator endorsement implied.',
+  ];
+
+  if (isStaleVerification(licenseInfo.lastVerifiedAt)) {
+    details.splice(2, 0, 'Stale warning: license scan is older than 7 days.');
+  }
+
+  if (licenseInfo.warnings.length > 0) {
+    details.push(`Warnings: ${licenseInfo.warnings.join(', ')}`);
+  }
+
+  return details;
+}
+
 export function buildLicensePresentation(verification: CasinoVerification | null | undefined): LicensePresentation {
   if (!verification) {
     return {
       tone: 'pending',
       summary: 'License: scanning current site...',
+      details: [
+        `Source: ${EXTENSION_LICENSE_SOURCE}`,
+        'Last verified: pending',
+        'Not legal advice. No regulator endorsement implied.',
+      ],
     };
   }
+
+  const details = buildLicenseDetails(verification.licenseInfo);
 
   if (verification.verdict === 'legitimate') {
     return {
       tone: 'verified',
       summary: `License verified: ${formatLicenseDetails(verification.licenseInfo)}`,
+      details,
     };
   }
 
@@ -262,12 +327,14 @@ export function buildLicensePresentation(verification: CasinoVerification | null
     return {
       tone: 'warning',
       summary: verification.warningMessage || `License found but not fully verified: ${formatLicenseDetails(verification.licenseInfo)}`,
+      details,
     };
   }
 
   return {
     tone: 'risk',
     summary: verification.warningMessage || 'License verification failed. Normal TiltCheck analysis is disabled on this site.',
+    details,
   };
 }
 

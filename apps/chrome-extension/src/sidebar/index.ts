@@ -524,11 +524,15 @@ export class SidebarController implements SidebarUI {
 
   public updateLicense(data: CasinoVerification | null) {
     const strip = document.getElementById('tg-license-strip');
+    const detail = document.getElementById('tg-license-detail');
     if (!strip) return;
 
     const presentation = buildLicensePresentation(data);
     strip.textContent = presentation.summary;
     strip.className = `tg-license-strip ${presentation.tone}`;
+    if (detail) {
+      detail.textContent = presentation.details.join(' | ');
+    }
   }
 
   public updateTilt(score: number, indicators: string[]) {
