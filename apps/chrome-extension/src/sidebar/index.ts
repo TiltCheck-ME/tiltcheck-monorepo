@@ -408,6 +408,21 @@ export class SidebarController implements SidebarUI {
       redeemThreshold: threshold,
     });
 
+    if (this.auth.authToken) {
+      const ok = await this.auth.patchSettings(this.auth.authToken, {
+        limits: { redeemThresholdUsd: threshold === 0 ? null : threshold },
+        surfaces: {
+          extension: {
+            siteRedeemThresholds: thresholds,
+          },
+        },
+      });
+
+      if (!ok) {
+        this.addFeedMessage('Saved locally. Cloud settings sync will retry next login.');
+      }
+    }
+
     this.setRedeemThresholdInputValue(threshold);
     window.dispatchEvent(new CustomEvent('tg-redeem-threshold-updated', {
       detail: { hostname: siteHost, threshold },

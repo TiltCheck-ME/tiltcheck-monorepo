@@ -2344,3 +2344,49 @@ export interface DropPredictionWindow {
   estimatedAt: number;
   confidence: number;
 }
+
+// ============================================
+// Canonical User Settings (v1)
+// ============================================
+
+export type UserSettingsVersion = 1;
+
+export interface UserSettingsLimits {
+  cooldownEnabled: boolean;
+  dailyLimitUsd: number | null;
+  redeemThresholdUsd: number | null;
+}
+
+export interface UserSettingsNotifications {
+  tips: boolean;
+  trivia: boolean;
+  promos: boolean;
+}
+
+export interface UserSettingsDataSharing {
+  sessionTelemetry: boolean;
+  messageContents: boolean;
+  financialData: boolean;
+}
+
+export interface UserSettingsSurfacePrefs {
+  mobile?: Record<string, unknown>;
+  extension?: Record<string, unknown>;
+  activity?: Record<string, unknown>;
+}
+
+export interface UserSettingsDocument {
+  settingsVersion: UserSettingsVersion;
+  updatedAt: string; // ISO8601
+  limits: UserSettingsLimits;
+  notifications: UserSettingsNotifications;
+  dataSharing: UserSettingsDataSharing;
+  featureFlags: Record<string, boolean>;
+  surfaces: UserSettingsSurfacePrefs;
+}
+
+export interface UserSettingsEnvelope {
+  userId: string;
+  etag: string;
+  settings: UserSettingsDocument;
+}

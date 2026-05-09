@@ -30,6 +30,17 @@ export interface User {
   tier: 'free' | 'elite' | string;
 }
 
+// ============================================================================
+// Canonical user settings document (v1)
+// ============================================================================
+
+export interface UserSettingsRow {
+  user_id: string;
+  settings_version: number;
+  settings: Record<string, unknown>;
+  updated_at: Date;
+}
+
 /**
  * User creation payload
  */
