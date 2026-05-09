@@ -1,11 +1,9 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import CasinoProofPage from '@/components/CasinoProofPage';
 import { CASINOS, getCasinoBySlug } from '@/lib/casino-trust';
 import { getCasinoSeedAuditSurface } from '@/lib/seed-audit-surface';
-
-export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
