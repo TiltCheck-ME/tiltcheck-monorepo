@@ -44,6 +44,7 @@ import { CasinoLicenseVerifier, getAnalysisBlockMessage } from './license-verifi
 import { updateMobileLicenseHud } from './mobile-license-hud.js';
 import { initSidebar } from './sidebar/index.js';
 import { SidebarUI } from './sidebar/types.js';
+import { INJECTION_DISABLED_KEY } from './sidebar/constants.js';
 import { Analyzer } from './analyzer.js';
 import { FairnessService } from './FairnessService.js';
 import { postRoundTelemetry, postWinSecureTelemetry } from './telemetry-client.js';
@@ -139,6 +140,10 @@ let sidebar: SidebarUI | null = null;
 let gameBlocker: GameBlocker | null = null;
 let analysisRuntimeReady = false;
 let initializationComplete = false;
+let runtimeBootPromise: Promise<void> | null = null;
+let runtimeListenersAttached = false;
+let spaResumeWatchInstalled = false;
+let injectionDisabled = false;
 let lastAnalysisBlockMessage: string | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
@@ -310,7 +315,7 @@ async function restoreSidebarVisibility(defaultVisible: boolean) {
 function toggleSidebarVisibility(): boolean {
   const sidebarEl = document.getElementById('tiltcheck-sidebar');
   if (!sidebarEl) {
-    sidebar = initSidebar();
+    sidebar = initSidebar(disableInjectionFromHud);
     if (sidebar) persistSidebarVisibility(true);
     return !!sidebar;
   }
@@ -325,7 +330,188 @@ function getSidebarState() {
   return {
     exists: !!sidebar,
     visible: !!sidebar && sidebar.style.display !== 'none',
+    injectionDisabled,
   };
+}
+
+async function getStoredInjectionDisabled(): Promise<boolean> {
+  try {
+    const stored = await chrome.storage.local.get([INJECTION_DISABLED_KEY]);
+    return stored[INJECTION_DISABLED_KEY] === true;
+  } catch {
+    return false;
+  }
+}
+
+async function setInjectionDisabled(disabled: boolean): Promise<void> {
+  injectionDisabled = disabled;
+  try {
+    await chrome.storage.local.set({ [INJECTION_DISABLED_KEY]: disabled });
+  } catch {
+    // In-memory state still protects this page when extension storage is unavailable.
+  }
+}
+
+function waitForDocumentEnd(): Promise<void> {
+  if (document.readyState !== 'loading' && document.body) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const resolveWhenReady = () => {
+      if (document.body) {
+        document.removeEventListener('DOMContentLoaded', resolveWhenReady);
+        resolve();
+      }
+    };
+    document.addEventListener('DOMContentLoaded', resolveWhenReady, { once: true });
+    setTimeout(resolveWhenReady, 0);
+  });
+}
+
+function teardownInjectedRuntime(): void {
+  if (isMonitoring) {
+    _stopMonitoring();
+  }
+
+  gameBlocker?.destroy();
+  gameBlocker = null;
+  extractor = null;
+  tiltDetector = null;
+  casinoVerification = null;
+  sessionId = null;
+  initializationComplete = false;
+  lastAnalysisBlockMessage = null;
+
+  document.getElementById('tiltcheck-sidebar')?.remove();
+  document.getElementById('tiltcheck-game-block-overlay')?.remove();
+  document.getElementById('tiltcheck-redeem-nudge')?.remove();
+  sidebar = null;
+}
+
+async function disableInjectionFromHud(): Promise<void> {
+  await setInjectionDisabled(true);
+  teardownInjectedRuntime();
+}
+
+async function resumeRuntimeAfterNavigation(source: string): Promise<void> {
+  if (isExcludedDomain || injectionDisabled) {
+    return;
+  }
+
+  if (!initializationComplete) {
+    await startRuntimeAtDocumentEnd();
+    return;
+  }
+
+  if (!document.getElementById('tiltcheck-sidebar')) {
+    sidebar = initSidebar(disableInjectionFromHud);
+    const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
+    void restoreSidebarVisibility(defaultVisible);
+  }
+
+  syncMarketingSiteTokenFromExtensionStorage();
+  attachMarketingSiteStorageListener();
+  const verification = refreshLicenseVerification();
+  applyAnalysisGate(verification);
+  gameBlocker?.resume(source);
+}
+
+function installSpaResumeWatch(): void {
+  if (spaResumeWatchInstalled) {
+    return;
+  }
+
+  spaResumeWatchInstalled = true;
+  let lastUrl = window.location.href;
+  let pending = false;
+
+  const queueResume = (source: string) => {
+    if (pending) {
+      return;
+    }
+
+    pending = true;
+    queueMicrotask(() => {
+      pending = false;
+      const currentUrl = window.location.href;
+      if (currentUrl === lastUrl && source !== 'pageshow') {
+        return;
+      }
+      lastUrl = currentUrl;
+      void resumeRuntimeAfterNavigation(source);
+    });
+  };
+
+  const patchHistoryMethod = (method: 'pushState' | 'replaceState') => {
+    const original = window.history[method] as (...args: unknown[]) => unknown;
+    if ((original as { __tiltcheckPatched?: boolean }).__tiltcheckPatched) {
+      return;
+    }
+
+    const patched = function patchedHistoryMethod(this: History, ...args: unknown[]) {
+      const result = original.apply(this, args);
+      queueResume(method);
+      return result;
+    };
+    Object.defineProperty(patched, '__tiltcheckPatched', { value: true });
+    window.history[method] = patched as typeof window.history[typeof method];
+  };
+
+  patchHistoryMethod('pushState');
+  patchHistoryMethod('replaceState');
+  window.addEventListener('popstate', () => queueResume('popstate'));
+  window.addEventListener('hashchange', () => queueResume('hashchange'));
+  window.addEventListener('pageshow', () => queueResume('pageshow'));
+}
+
+async function startRuntimeAtDocumentEnd(options: { forceEnable?: boolean } = {}): Promise<void> {
+  if (isExcludedDomain) {
+    return;
+  }
+
+  if (runtimeBootPromise) {
+    await runtimeBootPromise;
+    return;
+  }
+
+  runtimeBootPromise = (async () => {
+    await waitForDocumentEnd();
+    installSpaResumeWatch();
+
+    if (options.forceEnable) {
+      await setInjectionDisabled(false);
+    } else {
+      injectionDisabled = await getStoredInjectionDisabled();
+    }
+
+    if (injectionDisabled) {
+      teardownInjectedRuntime();
+      return;
+    }
+
+    initialize();
+  })().finally(() => {
+    runtimeBootPromise = null;
+  });
+
+  await runtimeBootPromise;
+}
+
+async function openRuntimeFromToolbar(): Promise<{ success: true; visible: boolean; injectionDisabled: boolean }> {
+  if (injectionDisabled || await getStoredInjectionDisabled()) {
+    await startRuntimeAtDocumentEnd({ forceEnable: true });
+    const sidebarEl = document.getElementById('tiltcheck-sidebar');
+    if (!sidebarEl) {
+      sidebar = initSidebar(disableInjectionFromHud);
+    }
+    const visible = setSidebarVisibility(true);
+    persistSidebarVisibility(true);
+    return { success: true, visible, injectionDisabled: false };
+  }
+
+  const visible = toggleSidebarVisibility();
+  return { success: true, visible, injectionDisabled: false };
 }
 
 /**
@@ -505,13 +691,17 @@ class Highlighter {
  * Initialize on page load
  */
 function initialize() {
+  if (initializationComplete) {
+    return;
+  }
+
   if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] Initializing on:', window.location.hostname);
 
   syncMarketingSiteTokenFromExtensionStorage();
   attachMarketingSiteStorageListener();
 
   // Create sidebar UI
-  sidebar = initSidebar();
+  sidebar = initSidebar(disableInjectionFromHud);
   // Default hidden on TiltCheck-owned pages, visible on supported casino pages.
   const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
   void restoreSidebarVisibility(defaultVisible);
@@ -525,55 +715,59 @@ function initialize() {
   setTimeout(() => refreshLicenseVerification(), 3000);
   setTimeout(() => refreshLicenseVerification(), 8000);
 
-  // Setup Visual Picker Listener
-  const picker = new VisualPicker();
-  window.addEventListener('tg-start-picker', ((e: CustomEvent) => {
-    picker.start((selector) => {
-      // Send result back to sidebar via event
-      window.dispatchEvent(new CustomEvent('tg-picker-result', { detail: { field: e.detail.field, selector } }));
-    });
-  }) as EventListener);
+  if (!runtimeListenersAttached) {
+    runtimeListenersAttached = true;
 
-  // Setup Highlighter Listener
-  const highlighter = new Highlighter();
-  window.addEventListener('tg-test-selector', ((e: CustomEvent) => {
-    highlighter.highlight(e.detail.selector);
-  }) as EventListener);
+    // Setup Visual Picker Listener
+    const picker = new VisualPicker();
+    window.addEventListener('tg-start-picker', ((e: CustomEvent) => {
+      picker.start((selector) => {
+        // Send result back to sidebar via event
+        window.dispatchEvent(new CustomEvent('tg-picker-result', { detail: { field: e.detail.field, selector } }));
+      });
+    }) as EventListener);
 
-  window.addEventListener('tg-redeem-threshold-updated', ((e: CustomEvent<{ hostname?: string; threshold?: number }>) => {
-    if (!tiltDetector) return;
+    // Setup Highlighter Listener
+    const highlighter = new Highlighter();
+    window.addEventListener('tg-test-selector', ((e: CustomEvent) => {
+      highlighter.highlight(e.detail.selector);
+    }) as EventListener);
 
-    const updatedHost = normalizeSiteHost(e.detail?.hostname || '');
-    if (updatedHost && updatedHost !== normalizeSiteHost(window.location.hostname)) {
-      return;
-    }
+    window.addEventListener('tg-redeem-threshold-updated', ((e: CustomEvent<{ hostname?: string; threshold?: number }>) => {
+      if (!tiltDetector) return;
 
-    const threshold = Number(e.detail?.threshold) || 0;
-    tiltDetector.setRedeemThreshold(threshold > 0 ? threshold : null);
-    lastRedeemNudgeBalance = 0;
-    lastRedeemNudgeThreshold = 0;
-  }) as EventListener);
+      const updatedHost = normalizeSiteHost(e.detail?.hostname || '');
+      if (updatedHost && updatedHost !== normalizeSiteHost(window.location.hostname)) {
+        return;
+      }
 
-  // Setup Fairness Calculator Listener
-  window.addEventListener('tg-calc-fairness', (async (e: CustomEvent) => {
-    if (!fairness) return;
-    const { serverSeed, clientSeed, nonce } = e.detail;
-    try {
-      const hash = await fairness.verifyCasinoResult(serverSeed, clientSeed, parseInt(nonce));
-      const float = fairness.hashToFloat(hash);
+      const threshold = Number(e.detail?.threshold) || 0;
+      tiltDetector.setRedeemThreshold(threshold > 0 ? threshold : null);
+      lastRedeemNudgeBalance = 0;
+      lastRedeemNudgeThreshold = 0;
+    }) as EventListener);
 
-      window.dispatchEvent(new CustomEvent('tg-fairness-result', {
-        detail: {
-          hash,
-          float,
-          dice: fairness.getDiceResult(float),
-          limbo: fairness.getLimboResult(float)
-        }
-      }));
-    } catch (err) {
-      console.error('Fairness calc error', err);
-    }
-  }) as EventListener);
+    // Setup Fairness Calculator Listener
+    window.addEventListener('tg-calc-fairness', (async (e: CustomEvent) => {
+      if (!fairness) return;
+      const { serverSeed, clientSeed, nonce } = e.detail;
+      try {
+        const hash = await fairness.verifyCasinoResult(serverSeed, clientSeed, parseInt(nonce));
+        const float = fairness.hashToFloat(hash);
+
+        window.dispatchEvent(new CustomEvent('tg-fairness-result', {
+          detail: {
+            hash,
+            float,
+            dice: fairness.getDiceResult(float),
+            limbo: fairness.getLimboResult(float)
+          }
+        }));
+      } catch (err) {
+        console.error('Fairness calc error', err);
+      }
+    }) as EventListener);
+  }
 
   initializationComplete = true;
   applyAnalysisGate(initialLicenseStatus);
@@ -855,8 +1049,8 @@ function checkBagFumble(balance: number | null, initialBalance: number | null) {
       // Strike 1
       showInteractiveNotification(
         isZero ? 
-        "🛑 0 BALANCE DETECTED. Hey, stop it. You're gonna be mad if you deposit again. Close the tab and go touch grass." :
-        "📉 BAG FUMBLE DETECTED. You were up and now you're giving it all back. Stop spinning before you ruin your week. Go touch grass.",
+        "0 BALANCE DETECTED. Hey, stop it. You're gonna be mad if you deposit again. Close the tab and go touch grass." :
+        "BAG FUMBLE DETECTED. You were up and now you're giving it all back. Stop spinning before you ruin your week. Go touch grass.",
         [
           { text: "Close Tab", action: () => { window.close(); } },
           { text: "I Won't Deposit (Lie)", action: () => { } }
@@ -865,7 +1059,7 @@ function checkBagFumble(balance: number | null, initialBalance: number | null) {
     } else {
       // Strike 2+ (Continued zeroing out / fumbling)
       showInteractiveNotification(
-        "🚨 REPEATED FUMBLES. You obviously aren't going to stop yourself, so I just pinged the Discord. Get in the 'degen-accountability' VC for a lifeline before you do something stupid.",
+        "REPEATED FUMBLES. You obviously aren't going to stop yourself, so I just pinged the Discord. Get in the 'degen-accountability' VC for a lifeline before you do something stupid.",
         [
           { text: "Get Yelled At (Join VC)", action: () => { window.open('https://discord.gg/gdBsEJfCar', '_blank'); } },
           { text: "Ignore Me", action: () => { } }
@@ -993,7 +1187,7 @@ function endCooldown() {
   cooldownEndTime = null;
   blockBettingUI(false);
   removeCooldownOverlay();
-  showNotification('✅ Cooldown complete. Play responsibly.', 'success');
+  showNotification('Cooldown complete. Play responsibly.', 'success');
 }
 
 /**
@@ -1048,7 +1242,7 @@ function showCooldownOverlay(duration: number) {
 
   overlay.innerHTML = `
     <div style="text-align: center;">
-      <h1 style="font-size: 48px; margin-bottom: 20px;">🛑</h1>
+      <h1 style="font-size: 48px; margin-bottom: 20px;">STOP</h1>
       <h2 style="font-size: 32px; margin-bottom: 10px;">Cooldown Period</h2>
       <p style="font-size: 18px; color: #ffaa00; margin-bottom: 30px;">
         Tilt detected. Take a break.
@@ -1087,7 +1281,7 @@ function removeCooldownOverlay() {
  * Show vault prompt
  */
 function showVaultPrompt(vaultData: VaultPromptData) {
-  const message = `💰 Your balance is ${vaultData.suggestedAmount.toFixed(2)}. Consider vaulting to protect your winnings.`;
+  const message = `Your balance is ${vaultData.suggestedAmount.toFixed(2)}. Consider vaulting to protect your winnings.`;
   showInteractiveNotification(message, [
     { text: 'Vault Now', action: () => openVaultInterface(vaultData.suggestedAmount) },
     { text: 'Later', action: () => { } }
@@ -1117,7 +1311,7 @@ function triggerStopLoss(data: StopLossData) {
  */
 function showPhoneFriendPrompt() {
   showInteractiveNotification(
-    '📞 Multiple tilt signs detected. Consider calling someone before continuing.',
+    'Multiple tilt signs detected. Consider calling someone before continuing.',
     [
       { text: 'Take Break', action: () => startCooldown(5 * 60 * 1000) },
       { text: 'Continue', action: () => { } }
@@ -1130,7 +1324,7 @@ function showPhoneFriendPrompt() {
  */
 function showBreakPrompt() {
   showInteractiveNotification(
-    '⏰ You\'ve been playing for a while. How about a quick break?',
+    'You have been playing for a while. How about a quick break?',
     [
       { text: '5 Min Break', action: () => startCooldown(5 * 60 * 1000) },
       { text: 'Keep Playing', action: () => { } }
@@ -1164,7 +1358,7 @@ function triggerEmergencyStop(reason: string) {
   `;
 
   warning.innerHTML = `
-    <h2 style="font-size: 24px; margin-bottom: 15px; letter-spacing: -0.05em; font-weight: 900;">🚨 EMERGENCY STOP</h2>
+    <h2 style="font-size: 24px; margin-bottom: 15px; letter-spacing: -0.05em; font-weight: 900;">EMERGENCY STOP</h2>
     <p style="font-size: 16px; margin-bottom: 10px; font-weight: bold;">${reason}</p>
     
     <div style="
@@ -1573,9 +1767,9 @@ async function verifySpinFairness(spinData: FairnessSpinData, gameId: string) {
       const isHashValid = spinData.hash === expectedHash;
       if (isHashValid) {
         window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: 'Fairness Verified (Hash Match)', type: 'success' } }));
-        showNotification("✅ Fair Game Verified (Hash Match)", "success");
+        showNotification("Fair Game Verified (Hash Match)", "success");
       } else {
-        showNotification("⚠️ Fairness Hash Mismatch!", "error");
+        showNotification("Fairness Hash Mismatch!", "error");
         console.warn(`[TiltCheck] Hash Mismatch! Expected: ${expectedHash}, Got: ${spinData.hash}`);
       }
     } else if (spinData.gameResult !== null && spinData.gameResult !== undefined) {
@@ -1587,12 +1781,12 @@ async function verifySpinFairness(spinData: FairnessSpinData, gameId: string) {
         // Use a reasonable tolerance (e.g. 0.05 for dice/crash rounding)
         if (Math.abs(resultVal - expectedResult) < 0.05) {
           window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: `Fairness Verified (Result: ${resultVal})`, type: 'success' } }));
-          showNotification(`✅ Fair Game Verified (Result: ${resultVal})`, "success");
+          showNotification(`Fair Game Verified (Result: ${resultVal})`, "success");
           if (process.env.NODE_ENV !== 'production') {
             console.log(`[TiltCheck] Scraped result ${resultVal} matches expected ${expectedResult}`);
           }
         } else {
-          console.warn(`[TiltCheck] ⚠️ Result Mismatch! Expected: ${expectedResult}, Scraped: ${resultVal}`);
+          console.warn(`[TiltCheck] Result Mismatch! Expected: ${expectedResult}, Scraped: ${resultVal}`);
         }
       }
     } else {
@@ -1621,19 +1815,28 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   switch (message.type) {
     case 'toggle_sidebar': {
-      const visible = toggleSidebarVisibility();
-      sendResponse({ success: true, visible });
+      void openRuntimeFromToolbar()
+        .then(sendResponse)
+        .catch((err) => {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : 'Runtime toggle failed' });
+        });
       break;
     }
 
     case 'open_sidebar': {
-      const sidebarEl = document.getElementById('tiltcheck-sidebar');
-      if (!sidebarEl) {
-        sidebar = initSidebar();
-      }
-      const visible = setSidebarVisibility(true);
-      persistSidebarVisibility(true);
-      sendResponse({ success: true, visible });
+      void startRuntimeAtDocumentEnd({ forceEnable: true })
+        .then(() => {
+          const sidebarEl = document.getElementById('tiltcheck-sidebar');
+          if (!sidebarEl) {
+            sidebar = initSidebar(disableInjectionFromHud);
+          }
+          const visible = setSidebarVisibility(true);
+          persistSidebarVisibility(true);
+          sendResponse({ success: true, visible, injectionDisabled: false });
+        })
+        .catch((err) => {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : 'Runtime open failed' });
+        });
       break;
     }
 
@@ -1677,7 +1880,7 @@ function showRedeemNudge(data: RedeemNudgeData) {
 
   overlay.innerHTML = `
     <div style="max-width: 500px; padding: 40px; border: 2px solid #00ff88; border-radius: 20px; background: rgba(0, 255, 136, 0.05); box-shadow: 0 0 50px rgba(0, 255, 136, 0.2);">
-      <h1 style="font-size: 64px; margin-bottom: 10px;">🏆</h1>
+      <h1 style="font-size: 64px; margin-bottom: 10px;">WIN</h1>
       <h2 style="font-size: 28px; color: #00ff88; text-transform: uppercase; letter-spacing: 2px;">WIN SECURED</h2>
       <p style="font-size: 20px; margin: 20px 0; line-height: 1.5;">${data.message}</p>
       <div style="font-size: 48px; font-weight: 800; margin-bottom: 30px;">$${Number(data.amount).toFixed(2)}</div>
@@ -1734,9 +1937,8 @@ async function relayWinSecure(amount: number) {
   }
 }
 
-// Initialize on load
-if (!isExcludedDomain) {
-  initialize();
-}
+// Initialize at document-end. The manifest also requests document_end, and this guard
+// keeps tests or future programmatic injection from touching the DOM too early.
+void startRuntimeAtDocumentEnd();
 
 if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Content script loaded');

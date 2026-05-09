@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
  * @vitest-environment jsdom
  */
@@ -183,5 +183,21 @@ describe('SidebarController', () => {
     expect(document.getElementById('tg-account-text')?.textContent).toBe('Connected as wallet-user');
     expect(document.getElementById('tg-username')?.textContent).toBe('wallet-user');
     expect((document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null)?.hidden).toBe(true);
+  });
+
+  it('persists and invokes the runtime off-switch from the HUD', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    const disableRuntime = vi.fn().mockResolvedValue(undefined);
+    initSidebar(disableRuntime);
+
+    document.getElementById('tg-disable-injection')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    await vi.waitFor(() => {
+      expect(disableRuntime).toHaveBeenCalled();
+    });
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      { tiltcheck_injection_disabled: true },
+      expect.any(Function),
+    );
   });
 });

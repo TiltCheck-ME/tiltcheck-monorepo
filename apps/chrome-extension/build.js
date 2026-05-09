@@ -96,7 +96,7 @@ async function build() {
     },
   });
 
-  // Build page bridge for MAIN-world native/web communication.
+  // Build MAIN-world page bridge (manifest + native/web communication).
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],
     bundle: true,

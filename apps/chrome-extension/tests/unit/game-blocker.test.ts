@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
  * @vitest-environment jsdom
  */
@@ -136,6 +136,26 @@ describe('GameBlocker', () => {
       window.dispatchEvent(new Event('focus'));
 
       expect(fetchMock).toHaveBeenCalledTimes(2);
+      await vi.waitFor(() => {
+        expect(document.getElementById('tiltcheck-game-block-overlay')).toBeTruthy();
+      });
+    } finally {
+      blocker.destroy();
+    }
+  });
+
+  it('rescans blocked routes after SPA navigation resumes', async () => {
+    const { GameBlocker } = await import('../../src/game-blocker.ts');
+    window.history.pushState({}, '', '/casino/lobby');
+
+    const blocker = new GameBlocker('discord-1', 'token-1');
+    try {
+      await blocker.init();
+      expect(document.getElementById('tiltcheck-game-block-overlay')).toBeNull();
+
+      window.history.pushState({}, '', '/casino/blocked-game');
+      blocker.resume('pushState');
+
       await vi.waitFor(() => {
         expect(document.getElementById('tiltcheck-game-block-overlay')).toBeTruthy();
       });
