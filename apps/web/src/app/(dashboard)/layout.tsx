@@ -1,11 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
-import React from 'react';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 
 export default function DashboardLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: LayoutProps<'/'>) {
   return (
     <div className="min-h-screen bg-[#0a0c10] text-white">
       {/* Sidebar / Topbar could go here in the future */}
