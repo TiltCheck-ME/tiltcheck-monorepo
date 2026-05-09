@@ -133,7 +133,25 @@ function mockContentDependencies() {
     };
   });
 
-  vi.doMock('../../src/sidebar.js', () => ({}));
+  vi.doMock('../../src/sidebar/index.js', () => ({
+    initSidebar: vi.fn(() => {
+      let sidebar = document.getElementById('tiltcheck-sidebar');
+      if (!sidebar) {
+        sidebar = document.createElement('div');
+        sidebar.id = 'tiltcheck-sidebar';
+        document.body.appendChild(sidebar);
+      }
+      return {
+        updateLicense: vi.fn(),
+        updateStatus: vi.fn(),
+        updateRealityCheck: vi.fn(),
+        addFeedMessage: vi.fn(),
+        updateTilt: vi.fn(),
+        updateStats: vi.fn(),
+        notifyBuddy: vi.fn(),
+      };
+    }),
+  }));
 
   vi.doMock('../../src/analyzer.js', () => {
     class MockAnalyzer {}
@@ -164,6 +182,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
+    document.head.innerHTML = '';
     document.body.innerHTML = '';
   });
 
