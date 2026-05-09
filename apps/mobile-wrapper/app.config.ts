@@ -9,6 +9,7 @@ const config: ExpoConfig = {
   version: '0.1.0',
   orientation: 'portrait',
   userInterfaceStyle: 'dark',
+  platforms: ['ios', 'android'],
   platform: {
     ios: {
       supportsTablet: true,
