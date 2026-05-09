@@ -1,5 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
-import Link from 'next/link';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 
 const tiers = [
   {
@@ -79,18 +78,18 @@ export default function OperatorPricingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-3">
-              <Link
+              <a
                 href="/operators"
                 className="inline-flex items-center justify-center rounded-2xl bg-[#17c3b2] px-5 py-4 text-[11px] font-black uppercase tracking-[0.25em] text-black transition hover:bg-[#14a99a]"
               >
                 Get sandbox keys
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/operators/keys"
                 className="inline-flex items-center justify-center rounded-2xl border border-[#17c3b2]/30 px-5 py-4 text-[11px] font-black uppercase tracking-[0.25em] text-[#17c3b2] transition hover:bg-[#17c3b2]/10"
               >
                 Open operator portal
-              </Link>
+              </a>
             </div>
           </div>
         </section>
