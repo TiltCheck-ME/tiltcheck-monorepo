@@ -41,6 +41,7 @@ if (isExcludedDomain) {
 import { CasinoDataExtractor, AnalyzerClient, SpinEvent } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
 import { CasinoLicenseVerifier, getAnalysisBlockMessage } from './license-verifier.js';
+import { updateMobileLicenseHud } from './mobile-license-hud.js';
 import { initSidebar } from './sidebar/index.js';
 import { SidebarUI } from './sidebar/types.js';
 import { INJECTION_DISABLED_KEY } from './sidebar/constants.js';
@@ -222,6 +223,7 @@ function refreshLicenseVerification() {
   }
   casinoVerification = licenseVerifier.verifyCasino();
   sidebar?.updateLicense(casinoVerification);
+  updateMobileLicenseHud(casinoVerification);
   if (initializationComplete) {
     applyAnalysisGate(casinoVerification);
   }
@@ -704,6 +706,8 @@ function initialize() {
   const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
   void restoreSidebarVisibility(defaultVisible);
   if (process.env.NODE_ENV !== 'production') console.log('[TiltCheck] Sidebar created:', !!sidebar);
+
+  updateMobileLicenseHud(null);
 
   // Check casino license from footer/legal sections and refresh after delayed page content loads.
   const initialLicenseStatus = refreshLicenseVerification();
@@ -1667,6 +1671,10 @@ async function getLinkedDiscordId(): Promise<string | null> {
  */
 function setupFairnessListeners() {
   const observer = new MutationObserver((_mutations) => {
+    if (typeof document === 'undefined' || !document.body) {
+      return;
+    }
+
     // Generic selector for bet buttons - refine per casino
     const playBtns = document.querySelectorAll('[data-testid="bet-button"], .bet-button, button[class*="bet"]');
 

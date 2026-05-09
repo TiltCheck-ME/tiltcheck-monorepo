@@ -47,9 +47,19 @@ function mockHeavyDependencies(options?: {
   extractBalance?: number | null;
   tiltDetectorSpy?: ReturnType<typeof vi.fn>;
   verification?: Record<string, unknown>;
+  sidebarStub?: Record<string, ReturnType<typeof vi.fn>>;
 }) {
   const extractorInitialize = vi.fn().mockResolvedValue(undefined);
   const tiltDetectorSpy = options?.tiltDetectorSpy ?? vi.fn();
+  const sidebarStub = options?.sidebarStub ?? {
+    updateLicense: vi.fn(),
+    updateStatus: vi.fn(),
+    updateRealityCheck: vi.fn(),
+    addFeedMessage: vi.fn(),
+    updateTilt: vi.fn(),
+    updateStats: vi.fn(),
+    notifyBuddy: vi.fn(),
+  };
   const verification = {
     isLegitimate: true,
     licenseInfo: {
@@ -98,6 +108,17 @@ function mockHeavyDependencies(options?: {
     })),
     getAnalysisBlockMessage: vi.fn().mockImplementation((verification) => verification?.shouldAnalyze === false ? verification.warningMessage : null),
   }));
+  vi.doMock('../../src/sidebar/index.js', () => ({
+    initSidebar: vi.fn(() => {
+      let sidebar = document.getElementById('tiltcheck-sidebar');
+      if (!sidebar) {
+        sidebar = document.createElement('div');
+        sidebar.id = 'tiltcheck-sidebar';
+        document.body.appendChild(sidebar);
+      }
+      return sidebarStub;
+    }),
+  }));
   vi.doMock('../../src/analyzer.js', () => ({ Analyzer: class {} }));
   vi.doMock('../../src/FairnessService.js', () => ({ FairnessService: class {} }));
   vi.doMock('@tiltcheck/utils', () => ({ SolanaProvider: class { getLatestBlockHash = vi.fn().mockResolvedValue('hash'); } }));
@@ -108,6 +129,7 @@ describe('content script readiness contracts', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
+    document.head.innerHTML = '';
     document.body.innerHTML = '';
   });
 
@@ -181,10 +203,8 @@ describe('content script readiness contracts', () => {
       notifyBuddy: vi.fn(),
       openPremium: vi.fn().mockResolvedValue(undefined),
     };
-    vi.doMock('../../src/sidebar/index.js', () => ({
-      initSidebar: vi.fn(() => sidebarStub),
-    }));
     const { extractorInitialize } = mockHeavyDependencies({
+      sidebarStub,
       verification: {
         isLegitimate: false,
         licenseInfo: {
@@ -206,6 +226,9 @@ describe('content script readiness contracts', () => {
       verdict: 'unlicensed',
       shouldAnalyze: false,
     }));
+    const mobileHud = document.getElementById('tiltcheck-mobile-license-hud');
+    expect(mobileHud?.dataset.status).toBe('risk');
+    expect(mobileHud?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site. | Made for Degens. By Degens.');
     expect(sidebarStub.updateStatus).toHaveBeenCalledWith(
       'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.',
       'warning',

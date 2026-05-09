@@ -96,7 +96,7 @@ async function build() {
     },
   });
 
-  // Build MAIN-world page bridge referenced by the manifest.
+  // Build MAIN-world page bridge (manifest + native/web communication).
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],
     bundle: true,
@@ -104,8 +104,8 @@ async function build() {
     format: 'iife',
     platform: 'browser',
     target: 'chrome100',
-    sourcemap: false,
-    minify: true,
+    sourcemap: true,
+    minify: false,
   });
 
   // Copy static files

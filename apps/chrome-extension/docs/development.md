@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 -->
 
 # TiltGuard Chrome Extension — Development Guide
 
@@ -24,6 +24,7 @@ apps/chrome-extension/
 │   ├── manifest.json         # Source manifest (overrides root on build)
 │   ├── content.ts            # Content script entry point
 │   ├── game-blocker.ts       # Surgical Self-Exclusion enforcer
+│   ├── runtime/              # Injected runtime core primitives
 │   ├── sidebar/              # Modular sidebar subsystem
 │   ├── v2/                   # Next-generation sensor architecture
 │   ├── background.js         # Service worker
@@ -138,6 +139,15 @@ Entry point: `sidebar/index.ts` — call `initSidebar()` from `content.ts`.
 Per-casino sensor classes extending a common `Sensor` base. `SensorRegistry` maps hostnames to sensor instances. `HubRelay` posts round telemetry to the canonical API hub at `https://api.tiltcheck.me/v1/telemetry/round`, which is persisted into the API audit/activity lane.
 
 Status: active development. Not yet the default in `content.ts`.
+
+### runtime/ (injected runtime core)
+
+Shared primitives for modules that run inside the extension content-script runtime:
+
+- `createInjectedRuntimeCore()` returns the central logger, event bus, feature flag registry, and safe storage abstraction.
+- `RuntimeEventBus` gives modules an in-memory publish/subscribe channel. Handler failures are logged and contained so one cooked listener does not break the whole page runtime.
+- `FeatureFlagRegistry` tracks module gates with `enableModule()` and `disableModule()` helpers. It emits `feature-flags:changed` through the runtime event bus.
+- `SafeRuntimeStorage` tries `chrome.storage.local` first and falls back to in-memory storage if browser storage is missing, blocked, or throws. The fallback avoids page-visible storage by default; use `createLocalStorageDriver()` only for non-sensitive data that is safe to expose to the current page origin.
 
 ### background.js
 

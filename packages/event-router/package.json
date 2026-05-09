@@ -1,6 +1,7 @@
 {
   "name": "@tiltcheck/event-router",
   "version": "0.1.0",
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -14,9 +15,9 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc --build --force",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest --run tests"
   },
   "dependencies": {
