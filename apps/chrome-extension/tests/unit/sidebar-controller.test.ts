@@ -207,4 +207,20 @@ describe('SidebarController', () => {
       active: true,
     });
   });
+
+  it('persists and invokes the runtime off-switch from the HUD', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    const disableRuntime = vi.fn().mockResolvedValue(undefined);
+    initSidebar(disableRuntime);
+
+    document.getElementById('tg-disable-injection')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    await vi.waitFor(() => {
+      expect(disableRuntime).toHaveBeenCalled();
+    });
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      { tiltcheck_injection_disabled: true },
+      expect.any(Function),
+    );
+  });
 });

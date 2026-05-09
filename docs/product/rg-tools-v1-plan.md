@@ -2,11 +2,15 @@
 
 # RG Tools v1 Plan
 
-This plan keeps responsible gambling tools discoverable without turning every surface into a duplicate control panel. Extension handles in-session urgency, dashboard owns durable settings, Discord handles social delivery and short commands, and web explains the product before a degen clicks anything expensive.
+**Made for Degens. By Degens.**
 
-Made for Degens. By Degens.
+This plan scopes the first responsible gaming tools that sit around LockVault, buddy accountability, and session guardrails. It is product and program requirements only. No on-chain implementation should start until Section C is reviewed by engineering, security, and counsel.
 
-## 1. Product Line
+## Cross-surface discovery and handoffs
+
+This section complements the vault program sections below. It defines where users find each RG tool without duplicating every control on every surface.
+
+### Product line
 
 RG v1 is the first pass at player-side controls that reduce regret without pretending software can guarantee restraint. The stack should be blunt about limits:
 
@@ -15,7 +19,7 @@ RG v1 is the first pass at player-side controls that reduce regret without prete
 - Every hard setting has a clear owner.
 - Every live-session nudge has a dashboard escape hatch for durable setup.
 
-## 2. Surface Ownership
+### Surface ownership
 
 | Surface | Job | Not Its Job |
 | :--- | :--- | :--- |
@@ -24,7 +28,7 @@ RG v1 is the first pass at player-side controls that reduce regret without prete
 | Discord | Commands, support delivery, buddy alerts, and community reminders. | Sensitive configuration that needs review, consent, or long-form copy. |
 | Web tools | Public explainers, SEO discovery, unauthenticated education, and login handoff. | Acting as the canonical settings store. |
 
-## 3. Cross-Surface Discovery Map
+### Cross-surface discovery map
 
 | Tool / Flow | Primary Entry Point | Secondary Entry Point | Support Surface | Dashboard Destination | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -36,7 +40,7 @@ RG v1 is the first pass at player-side controls that reduce regret without prete
 | License / trust surfacing | Extension license strip | Casino trust and web tools pages | Discord `/status` and help links | `/dashboard?tab=safety` when user wants controls | Source and stale-date metadata must be visible where verdicts are shown. |
 | Trivia jackpot treasury | Discord, only if voluntary donation rules ship | Web transparency page | Dashboard history if account-linked | Deferred | Penalty-funded jackpots stay out of v1. Counsel review before copy ships. |
 
-## 4. Deep-Link Contract
+### Deep-link contract
 
 Extension buttons should open the canonical dashboard host with simple, durable targets:
 
@@ -47,7 +51,7 @@ Extension buttons should open the canonical dashboard host with simple, durable 
 
 Web handoff routes can keep using `getDashboardHandoffUrl(...)` for environment-aware routing, but the user-facing IA should still name the dashboard lane that owns the setting.
 
-## 5. QA Checklist: Where Do I Click?
+### QA checklist: where do I click
 
 Use this checklist before closing RG v1 surface-routing work:
 
@@ -60,30 +64,179 @@ Use this checklist before closing RG v1 surface-routing work:
 - Discord: help copy points users to dashboard or web explainers when the task needs review or configuration.
 - Legal tone: no guarantee, treatment, diagnosis, endorsement, or custodial-control language.
 
-## Section A. Session Brake / Cash-Out Intent
+## Section A: Solo Vault v1
 
-Tracked by TIL-122. Extension owns the live session brake. Dashboard owns sensitivity, snooze, cooldown, and history. Degraded mode must say when DOM/API signals are unavailable.
+Solo Vault v1 is the baseline user-owned lock flow.
 
-## Section B. Solana Timelock Vault
+- User chooses amount, duration, and reason.
+- User signs the funding transaction from their own wallet.
+- Program enforces `unlockAt`.
+- No hidden operator override.
+- Early unlock is not a v1 feature.
+- Every lock, extension, unlock request, and unlock completion emits an auditable event.
 
-Tracked by TIL-124. Dashboard owns pre-lock review, amount, duration, unlock destination, signer model, and recovery warnings. Extension can only hand off or show session nudges until the program policy is published.
+The solo path remains the default for users who do not want a buddy or joint-control terms.
 
-## Section C. Buddy / 2-of-3 Multisig Vault
+## Section B: Buddy Accountability v1
 
-Tracked by TIL-127. Dashboard owns partner selection, consent, signer rules, alert thresholds, and break-glass copy. Discord only delivers support pings and commands.
+Buddy Accountability v1 is the social guardrail around user behavior.
 
-## Section D. Fairness Toolkit
+- User invites a buddy from the dashboard.
+- Buddy accepts explicit visibility and notification terms.
+- Buddy can receive tilt alerts, cooldown breach alerts, and vault unlock notifications.
+- Buddy cannot move funds, seize funds, or impersonate the user.
+- Buddy controls are dashboard-owned; extension and Discord only mirror the active state and send nudges.
 
-Tracked by TIL-123. Web tools own education and manual verification. Extension can expose compact affordances, but every statistical claim needs source, window, and degraded-state definitions.
+This lane is notification-first. It does not become a signing lane until Section C is approved.
 
-## Section E. Tilt Detection + Interventions
+## Section C: Buddy 2-of-3 Multisig Vault
 
-Tracked by TIL-125. Extension owns live detection and intervention UI. Dashboard owns durable controls and privacy choices. Copy must avoid medical framing.
+### Goal
 
-## Section F. License / Trust Surfacing
+Add an accountability partner to vault exits without creating a pure 2-of-2 freeze risk. The vault should slow down tilt-driven withdrawals while preserving a user-owned break-glass route if the buddy is unavailable, malicious, or compromised.
 
-Tracked by TIL-126. Extension owns the quick strip. Web owns deeper evidence pages. Every verdict needs source, last verified date where available, and a no-legal-advice frame.
+### Signers
 
-## Section G. Trivia Jackpot Treasury
+| Signer              | Owner                      | Purpose                                    | Required Controls                                              |
+| ------------------- | -------------------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| Primary user wallet | User                       | Funds, configures, and initiates exits     | Must be the wallet that created the vault intent               |
+| Buddy signer        | Accountability partner     | Confirms normal exit after cooldown        | Must accept joint-control terms before activation              |
+| Recovery signer     | User-owned break-glass key | Prevents buddy lock-in or partner griefing | Must be registered at setup and protected with strong warnings |
 
-Tracked by TIL-129. Deferred for v1 unless voluntary donations and counsel-reviewed contest rules exist. No penalty-funded prize pool copy.
+The 2-of-3 set is `primary user wallet`, `buddy signer`, and `recovery signer`.
+
+### Signer Rules
+
+| Action                   | Required Signers                                                                                       | Program Rule                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| Create vault             | Primary user wallet                                                                                    | Creates the vault config and signer set before funds move                |
+| Fund vault               | Primary user wallet                                                                                    | Deposit transaction only; no buddy approval required                     |
+| Extend lock              | Primary user wallet                                                                                    | Allowed only when it increases `unlockAt`; never shortens a lock         |
+| Normal release           | Primary user wallet plus buddy signer                                                                  | Allowed after `unlockAt` and after final risk disclosure                 |
+| Break-glass release      | Primary user wallet plus recovery signer                                                               | Allowed after `unlockAt` plus an extra break-glass delay                 |
+| Buddy replacement        | Primary user wallet plus current buddy signer, or primary user wallet plus recovery signer after delay | Must notify old buddy, new buddy, and user                               |
+| Recovery signer rotation | Primary user wallet plus recovery signer                                                               | Must enforce a pending period before new recovery key can release funds  |
+| Early unlock             | Not supported in v1                                                                                    | Big yikes path. Do not ship without separate legal and security approval |
+
+Break-glass is not an instant bypass. It is the escape hatch for partner failure, not a "I'm due" button for nuking the cooldown because variance got spicy.
+
+### UX Flows
+
+#### Setup
+
+1. User selects `Buddy Vault` from LockVault.
+2. Product explains that this is a joint-control safety tool, not custody, investment advice, or a casino feature.
+3. User chooses amount, duration, buddy, and recovery signer.
+4. Buddy receives an invite with the exact signer responsibilities and risk language.
+5. Buddy accepts terms.
+6. User confirms recovery key storage warnings.
+7. Vault becomes active only after all signer metadata is registered and the user signs the funding transaction.
+
+#### Normal Release
+
+1. User requests release after `unlockAt`.
+2. UI shows amount, vault age, reason, buddy identity, and "cash out before you degen it back" copy.
+3. Buddy receives an approval request with the same release details.
+4. If buddy signs, user signs, and the program releases funds.
+5. Event stream records `buddy_vault.release_requested`, `buddy_vault.buddy_approved`, and `buddy_vault.released`.
+
+#### Buddy Refusal Or Timeout
+
+1. User requests release after `unlockAt`.
+2. Buddy rejects, ignores, or times out.
+3. UI offers break-glass release with an extra delay and plain-language warnings.
+4. User signs with primary wallet and recovery signer after the delay.
+5. Buddy receives notice that break-glass was used.
+6. Trust Engine receives the event, but no punitive score should ship until policy is reviewed.
+
+#### Buddy Replacement
+
+1. User starts buddy replacement.
+2. Current buddy co-signs replacement, or user uses recovery signer after a delay.
+3. New buddy accepts terms.
+4. No funds move during replacement.
+5. Pending unlock requests pause until the signer set is settled.
+
+#### Recovery Rotation
+
+1. User starts recovery rotation from dashboard.
+2. Product warns that losing both primary and recovery access can strand funds.
+3. Old recovery signer co-signs the rotation.
+4. Program enforces a pending period before the new recovery signer can be used for release.
+5. User and buddy receive notifications.
+
+### Threat Model
+
+| Threat                          | Risk                                                   | Required Mitigation                                                              |
+| ------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Malicious buddy refuses to sign | User funds can be delayed                              | Recovery path after `unlockAt` plus delay                                        |
+| Buddy is compromised            | Attacker can approve a normal release with user        | Require primary user signature and notify user on every buddy action             |
+| User is coerced by buddy        | Buddy pressure can defeat RG intent                    | Plain warnings, revocation path, replacement flow, and support escalation copy   |
+| User self-coerces during tilt   | Recovery key becomes an impulse bypass                 | Extra break-glass delay, friction copy, and event logging                        |
+| Recovery key is lost            | Break-glass route is unavailable                       | Setup warnings, rotation support, no activation without confirmation             |
+| Primary wallet is compromised   | Attacker may combine with buddy or recovery compromise | User notifications, session checks, and optional high-risk hold before release   |
+| Signer set is misconfigured     | Funds can be stranded                                  | Dry-run config validation before deposit and immutable signer snapshot per vault |
+| Operator overreach              | Custody or hidden control concerns                     | Operator must not be a signer and must not have emergency unlock authority       |
+| Legal joint-control ambiguity   | Terms may be unclear                                   | Counsel-approved buddy terms before launch                                       |
+
+### Program Requirements
+
+- Store immutable vault config with `vaultId`, `ownerWallet`, `buddySigner`, `recoverySigner`, `createdAt`, `unlockAt`, `breakGlassDelaySeconds`, and `status`.
+- Reject signer sets where any two roles resolve to the same public key.
+- Reject release before `unlockAt`.
+- Reject break-glass release until `unlockAt + breakGlassDelaySeconds`.
+- Allow lock extension only when the new `unlockAt` is later than the current value.
+- Emit structured events for setup, funding, extension, release request, buddy approval, buddy rejection, break-glass start, break-glass completion, signer rotation, and failed validation.
+- Never store private keys, seed phrases, recovery material, or buddy credentials.
+- Keep operator services out of the signer set.
+- Require deterministic client display of signer identities before funding.
+- Provide a simulation or devnet-only proof before mainnet readiness review.
+
+### API And Data Requirements
+
+- `POST /vaults/buddy/intents` creates a pending setup intent.
+- `POST /vaults/buddy/:vaultId/activate` records funded activation after wallet signature proof.
+- `POST /vaults/buddy/:vaultId/release-requests` starts a normal release request.
+- `POST /vaults/buddy/:vaultId/buddy-approvals` records buddy approval or rejection.
+- `POST /vaults/buddy/:vaultId/break-glass` starts the recovery path.
+- `POST /vaults/buddy/:vaultId/signers/replace-buddy` starts buddy replacement.
+- `POST /vaults/buddy/:vaultId/signers/rotate-recovery` starts recovery rotation.
+
+All endpoints must validate authenticated user identity, signer ownership proofs, request freshness, replay resistance, and idempotency keys.
+
+### Legal And Risk Gates
+
+- Counsel must approve joint-control terms before any user-facing activation.
+- Product must state that TiltCheck does not custody funds, control keys, or guarantee recovery.
+- Buddy acceptance must include duties, limits, abuse reporting, and no-financial-advice language.
+- Break-glass copy must avoid implying emergency financial rescue.
+- Mainnet launch requires a rollback plan that disables new buddy vault creation without affecting existing release rights.
+
+### Open Decisions
+
+- Exact chain and multisig primitive for v1.
+- Break-glass delay length.
+- Whether buddy rejection should require a reason.
+- Whether Trust Engine should score break-glass usage in v1 or only log it.
+- Whether recovery rotation requires buddy notice only or buddy acknowledgement.
+
+### Implementation Readiness Checklist
+
+- [ ] Counsel approves joint-control and non-custodial terms.
+- [ ] Security reviews signer set rules and failure modes.
+- [ ] Product approves setup, release, timeout, replacement, and recovery copy.
+- [ ] Engineering chooses program primitive and writes a technical spec.
+- [ ] Devnet test proves normal release, buddy timeout, break-glass release, and signer rotation.
+- [ ] Rollback plan is documented before mainnet activation.
+
+## Appendix: Tracked work (TIL)
+
+Short pointers for parallel engineering tracks; detail lives in issues.
+
+- **Session brake / cash-out intent (TIL-122):** Extension owns the live brake; dashboard owns sensitivity, snooze, cooldown, history.
+- **Solana timelock vault (TIL-124):** Dashboard owns pre-lock review until program policy ships.
+- **Tilt detection + interventions (TIL-125):** Extension live UI; dashboard durable controls; avoid medical framing.
+- **License / trust surfacing (TIL-126):** Extension strip; web evidence pages; source + stale-date visible.
+- **Buddy 2-of-3 design (TIL-127):** Aligned with Section C above.
+- **Fairness toolkit (TIL-123):** Web owns education; extension compact affordances; define RTP/drift data source.
+- **Trivia jackpot treasury (TIL-129):** Deferred for v1 unless voluntary donations and counsel-reviewed contest rules exist.

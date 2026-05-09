@@ -8,7 +8,7 @@ import { ReportManager } from './reports.js';
 import { BuddyManager } from './buddy.js';
 import { OnboardingManager } from './onboarding.js';
 import { BonusManager } from './bonuses.js';
-import { MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
+import { INJECTION_DISABLED_KEY, MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
 import { SidebarUI } from './types.js';
 import { buildLicensePresentation } from '../license-verifier.js';
 import { EXT_CONFIG } from '../config.js';
@@ -16,6 +16,8 @@ import type { CasinoVerification } from '../license-verifier.js';
 
 const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
 const SIDEBAR_RESERVED_CLASS = 'tiltcheck-sidebar-reserved';
+
+type RuntimeDisableHandler = () => void | Promise<void>;
 
 export class SidebarController implements SidebarUI {
   public auth: AuthManager;
@@ -28,7 +30,7 @@ export class SidebarController implements SidebarUI {
   private layoutObserver: MutationObserver | null = null;
   private showAdvancedTools = false;
 
-  constructor() {
+  constructor(private readonly onDisableRuntime?: RuntimeDisableHandler) {
     this.auth = new AuthManager(this);
     this.session = new SessionManager(this);
     this.vault = new VaultManager(this);
@@ -93,6 +95,9 @@ export class SidebarController implements SidebarUI {
     document.getElementById('tg-open-buddy-controls')?.addEventListener('click', () => this.openDashboard('buddies'));
     document.getElementById('tg-open-buddies')?.addEventListener('click', () => this.openDashboard('buddies'));
     document.getElementById('tg-open-vault')?.addEventListener('click', () => this.openDashboard('vault'));
+    document.getElementById('tg-disable-injection')?.addEventListener('click', () => {
+      void this.disableRuntimeInjection();
+    });
     document.getElementById('tg-open-report')?.addEventListener('click', () => {
       this.setPanelVisibility('tg-report-panel', true);
     });
@@ -462,6 +467,13 @@ export class SidebarController implements SidebarUI {
     this.addFeedMessage(tab === 'profile' ? 'Opening dashboard.' : `Opening dashboard ${tab} controls.`);
   }
 
+  private async disableRuntimeInjection(): Promise<void> {
+    await this.setStorage({ [INJECTION_DISABLED_KEY]: true });
+    this.updateStatus('TiltCheck runtime disabled. Toolbar wake-up is still available.', 'warning');
+    this.addFeedMessage('Runtime disabled. No cap, the HUD is off until you wake it back up.');
+    await this.onDisableRuntime?.();
+  }
+
   public showMainContent() {
     const authSection = document.getElementById('tg-auth-section');
     const mainContent = document.getElementById('tg-main-content');
@@ -590,8 +602,8 @@ export class SidebarController implements SidebarUI {
 }
 
 // Entry point for content script to call
-export function initSidebar() {
-  const controller = new SidebarController();
+export function initSidebar(onDisableRuntime?: RuntimeDisableHandler) {
+  const controller = new SidebarController(onDisableRuntime);
   controller.init();
   return controller;
 }

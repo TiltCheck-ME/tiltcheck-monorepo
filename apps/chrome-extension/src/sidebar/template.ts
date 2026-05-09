@@ -150,6 +150,10 @@ export const SIDEBAR_TEMPLATE = `
             <button class="tg-action-btn" id="tg-open-vault-rules">VAULT RULES</button>
             <button class="tg-action-btn" id="tg-open-buddy-controls">BUDDY CONTROLS</button>
           </div>
+          <div class="tg-runtime-control">
+            <button class="tg-btn tg-btn-danger" id="tg-disable-injection" type="button">Disable Runtime</button>
+            <div class="tg-runtime-note">Hard off-switch for injection. The toolbar can wake it back up if you want the HUD again.</div>
+          </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
           <h4>THE TILT SIGNAL</h4>
