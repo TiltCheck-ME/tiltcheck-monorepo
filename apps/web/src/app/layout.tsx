@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -45,8 +45,7 @@ export const metadata: Metadata = {
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import AriaSlangProvider from "@/components/AriaSlangProvider";
-import FunnelTracker from "@/components/FunnelTracker";
+import ClientOnlyEffects from "@/components/ClientOnlyEffects";
 import PublicPageFrame from "@/components/PublicPageFrame";
 
 export default function RootLayout({
@@ -60,8 +59,7 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} degen-background antialiased`}
       >
         <RootProvider>
-          <AriaSlangProvider />
-          <FunnelTracker />
+          <ClientOnlyEffects />
           <a href="#main-content" className="nav-skip-link">Skip to main content</a>
           <Header />
           <main id="main-content" className="nav-main-content">
