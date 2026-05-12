@@ -1,4 +1,4 @@
-# Stake Cruncher vs Stake Stats vs TiltCheck — competitive positioning
+# Stake Cruncher, Stake Stats, RipGuard vs TiltCheck — competitive positioning
 
 © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12
 
@@ -12,8 +12,9 @@ Automated Playwright crawl (initial DOM `a[href]` from homepage, limited follow-
 
 - **stakecruncher.com:** Broad same-origin route surface including `/vault`, `/tracker`, `/profit-loss`, `/bet-analyzer`, `/bonus-calculator`, `/slots-tracker` (+ `/stats`, `/verifier`), `/stake-bonuses`, `/raffle`, `/affiliate`, `/misc`, `/blog` (+ posts), `/support`, `/terms`. Home H1: “What do you want to do?” Sampled pages often shared one global document title/meta (typical SPA shell).
 - **stakestats.net:** Homepage emphasizes provably fair + bet history analysis. Few static links on home (SPA); discovered `/stake/tools/bonuses` and `/stake/tools/stake-engine` with meta referencing Stake Engine scale and verification.
+- **ripguard.xyz:** Smaller crawlable surface: `/`, `/create` (with query presets such as `daily1w`, `hourly1d`, `panicLock1d`, `panicThenDaily`), `/vaults`. Document title and meta describe time-locked USDC on Base, Sablier, non-cancelable locks, “cash this out, don’t let me play” framing.
 
-Re-run locally: `npx playwright install chromium` then `node scripts/explore-external-sites.mjs` from repo root.
+Re-run locally: `npx playwright install chromium` then `node scripts/explore-external-sites.mjs` from repo root (origins include all three sites).
 
 ---
 
@@ -37,9 +38,19 @@ Re-run locally: `npx playwright install chromium` then `node scripts/explore-ext
 | Stake Engine depth | `/stake/tools/stake-engine` | Low unless TiltCheck ships engine-specific product | Catalog depth arms race vs Stake’s own UI |
 | Bonuses tool | `/stake/tools/bonuses` | Low unless tied to TiltCheck signals | Commodity bonus pages |
 
-### TiltCheck-native jobs competitors do not own
+### ripguard.xyz (inferred from meta and routes)
 
-Session tilt and limits, non-custodial in-session tooling (extension + injection), Discord accountability, durable cross-device settings (dashboard), trust rollup and receipts when tied to behavior — orthogonal to a public calculator matrix.
+| JTBD cluster | Signals | TiltCheck overlap | Parity trap |
+|--------------|---------|---------------------|-------------|
+| Hard exit from spendable bankroll | Time-locked USDC, “don’t let me play”, panic presets | Emotional overlap with AutoVault (protect winnings) | TiltCheck building on-chain Sablier locks as core product |
+| Scheduled / streaming unlock | `/create` presets, Sablier v2 copy | Low: different chain and asset model | Competing as a Base USDC wallet product |
+| Portfolio of locks | `/vaults` | Low unless TiltCheck explicitly ships crypto custody UX | Owning “crypto vesting UI” without casino guardrail mission |
+
+**Important distinction:** RipGuard’s pitch is **on-chain, time-locked USDC** (Base + Sablier, user-initiated, non-cancelable per their meta). TiltCheck AutoVault is **non-custodial skimming inside the user’s existing casino session** (Stake vault / GraphQL or DOM nudges). Same emotional job (“lock profit before you rip it”); **different mechanism, jurisdiction, and trust story**. Do not blur them in marketing without legal and product review.
+
+### TiltCheck-native jobs competitors do not own cleanly
+
+Session tilt and limits, non-custodial in-session tooling (extension + injection), Discord accountability, durable cross-device settings (dashboard), trust rollup and receipts when tied to **casino-session** behavior — orthogonal to a public calculator matrix and orthogonal to **self-custody streaming vaults** unless TiltCheck explicitly bridges those worlds.
 
 ---
 
@@ -49,15 +60,19 @@ Session tilt and limits, non-custodial in-session tooling (extension + injection
 
 **Stats:** **Authority wedge** (PF + history + engine tooling) over raw breadth.
 
+**RipGuard:** **Narrow, punchy product story** (one hero promise, few routes, strong meta per page). Competes on **commitment devices** for crypto bankroll, not on Stake SEO breadth.
+
 **Mirror for TiltCheck (structure, not scope):**
 
 - A **small set** of stable public URLs for indexable pillars (trust explainer, flagship verifier entry, what TiltCheck does, optional one vault-adjacent landing).
 - **One primary CTA** per money page: install extension, enable injection, open dashboard — not ten competing actions.
+- If TiltCheck ever references “lock winnings” adjacent to RipGuard, be explicit: **casino-session / non-custodial vs on-chain lock** — different promises.
 
 **Avoid:**
 
 - Commodity **calculator arms race** as the main acquisition story.
 - **Route-count parity** with Cruncher before the **injected behavioral loop** is the obvious retention driver.
+- **Feature blur** with RipGuard without a deliberate product and compliance boundary.
 
 **IA implication:** Public web **routes into** extension, dashboard, and mobile injection. It does not replace them as the canonical “brain.”
 
@@ -71,15 +86,17 @@ Session tilt and limits, non-custodial in-session tooling (extension + injection
 
 **Risk:** A giant public web hub duplicates Cruncher and dilutes non-custodial positioning unless every page reinforces custody boundaries.
 
+**RipGuard-specific risk:** Chasing “hard lock” semantics on-chain pulls TiltCheck into **wallet, chain, and streaming-money** complexity — a different company unless scoped as an explicit partnership or integration, not a me-too vault page.
+
 ---
 
 ## 4. Differentiation thesis
 
-1. **Guardrails in the transaction path** — not only post-hoc dashboards; competitors optimize analysis and SEO breadth; TiltCheck optimizes **interruption quality** and repeat-session safety.
-2. **Non-custodial + trust** — PF/history (Stats) and calculators (Cruncher) are table stakes; TiltCheck owns **what you do not hold** and **provenance of signals**.
+1. **Guardrails in the transaction path** — not only post-hoc dashboards; Cruncher/Stats optimize analysis and SEO; RipGuard optimizes **irreversible commitment** on-chain; TiltCheck optimizes **interruption quality** inside the casino session without holding user funds.
+2. **Non-custodial + trust (casino context)** — PF/history (Stats) and calculators (Cruncher) are table stakes; RipGuard is non-custodial in the **self-custody + smart contract** sense; TiltCheck owns **no TiltCheck custody of casino balance** and clear **provenance of behavioral signals**.
 3. **Cross-surface sync (when shipped)** — one mental model: durable settings off-session, enforcement in-session.
 4. **Discord layer** — distribution and habit outside pure SEO; different from affiliate/blog flywheel unless explicitly chosen.
-5. **Gaps to close:** Public IA clarity for 2–3 indexable pillars; single packaged trust entry; explicit de-duplication of userscript vs extension logic under one spec.
+5. **Gaps to close:** Public IA clarity for 2–3 indexable pillars; single packaged trust entry; explicit de-duplication of userscript vs extension logic under one spec; **explicit positioning vs RipGuard** if users conflate “vault” products.
 
 ---
 
@@ -89,9 +106,9 @@ Session tilt and limits, non-custodial in-session tooling (extension + injection
 |-----------|----------------|
 | Primary product truth | Injected core + extension; web as narrow acquisition and trust narrative. |
 | Secondary | User-dashboard for durable settings and history; Discord for reinforcement; API only where it extends trust without forking logic. |
-| Do not duplicate | Full parallel AutoVault/tilt implementations; long-tail bonus/raffle surfaces unless they feed tilt or trust models. |
+| Do not duplicate | Full parallel AutoVault/tilt implementations; long-tail bonus/raffle surfaces unless they feed tilt or trust models; **on-chain lock product** unless it is a deliberate, scoped initiative. |
 | Journey | First touch: one clear promise (tilt + non-custodial + trust) → install / script / dashboard → in-session proof → repeat via Discord or dashboard tied to **their** events. |
-| Friction risks | Install drop-off vs no-install calculators; script maintenance; “where do I change this?” split; SPA-only marketing repeating weak SEO meta. |
+| Friction risks | Install drop-off vs no-install calculators; script maintenance; “where do I change this?” split; SPA-only marketing repeating weak SEO meta; **user confusion vs RipGuard** if copy is vague about “vault.” |
 | Metrics | (1) Install or injection enable → first guardrail within 24h. (2) Weekly active injected sessions vs web-only. (3) Dashboard setting edits vs conflict rate. (4) Trust page → verifier completion. (5) Discord nudge acknowledge vs mute. |
 
 ---
@@ -100,8 +117,9 @@ Session tilt and limits, non-custodial in-session tooling (extension + injection
 
 | Risk | Mitigation |
 |------|------------|
-| Parity trap | Gate roadmap: “Does this require us to be Stake Cruncher?” Default no for generic calculators. |
-| Compliance / copy | Keep non-custodial and no-custody boundaries explicit; avoid implied advisory or wagering facilitation where regulated. |
+| Parity trap (Cruncher) | Gate roadmap: “Does this require us to be Stake Cruncher?” Default no for generic calculators. |
+| Parity trap (RipGuard) | Gate: “Are we building Sablier-style locks?” If no, **say so** on vault-adjacent pages and in AutoVault copy. |
+| Compliance / copy | Keep non-custodial and boundaries explicit; on-chain products have different disclosure needs — do not imply TiltCheck operates RipGuard-style streams unless true. |
 | Web hub over injected core | Cap public tool routes; ship one flagship injected experience per planning cycle; measure injected activation before `/misc`-style expansion. |
 | SEO shell | Per-route SSR or static meta for money pages if marketing stays SPA-heavy. |
 | Trust without behavior | PF depth without tilt/limits/vault linkage makes TiltCheck a weaker Stats clone. |
@@ -110,4 +128,4 @@ Session tilt and limits, non-custodial in-session tooling (extension + injection
 
 ## Bottom line
 
-**Stake Cruncher** is breadth plus SEO utility matrix. **Stake Stats** is a narrower PF and analysis authority wedge. **TiltCheck** should use them as **IA and positioning references**, not a feature checklist. Win on **in-session behavioral infrastructure, non-custodial trust narrative, and multi-surface habit**, not on route-count parity.
+**Stake Cruncher** is breadth plus SEO utility matrix. **Stake Stats** is a narrower PF and analysis authority wedge. **RipGuard** is a tight **on-chain commitment-device** story for USDC on Base (Sablier), not a Stake-session tool — overlapping emotion (“don’t give winnings back”), different mechanism. **TiltCheck** should use Cruncher and Stats as **IA and SEO pattern references**, RipGuard as a **clarity check** on the word “vault” and on how hard you want irreversibility to feel, not as a checklist to copy. Win on **in-session behavioral infrastructure, non-custodial casino-session narrative, and multi-surface habit**, not on route-count parity or smart-contract vault parity unless that is an explicit product bet.
