@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const databaseMock = vi.hoisted(() => ({
@@ -310,6 +310,12 @@ describe('LockVault Module', () => {
     } finally {
       vi.unstubAllEnvs();
     }
+  });
+
+  it('rejects paid and admin early unlock when timer-only wallet lock is active', () => {
+    vaultManager.setWalletActionLock('u1', 60 * 60 * 1000, 'panic', false);
+    expect(() => vaultManager.requestPaidWalletUnlock('u1', 'u1', 10)).toThrow(/Early unlock is not available/);
+    expect(() => vaultManager.requestAdminWalletUnlock('u1', 'u1')).toThrow(/Early unlock is not available/);
   });
 
   it('rejects direct deposits while a wallet action lock is active', () => {

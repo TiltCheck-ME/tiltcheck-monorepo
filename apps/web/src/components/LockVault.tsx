@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 */
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -37,6 +37,7 @@ interface VaultState {
   walletLocked: boolean;
   walletLockUntil: string | null;
   walletUnlockRequest: EarlyUnlockRequest | null;
+  walletEarlyUnlockAllowed: boolean;
   threshold: number;
 }
 
@@ -60,6 +61,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     walletLocked: false,
     walletLockUntil: null,
     walletUnlockRequest: null,
+    walletEarlyUnlockAllowed: true,
     threshold: 250,
   });
   const [loading, setLoading] = useState(true);
@@ -70,6 +72,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
   const [ticker, setTicker] = useState('');
   const [walletLockHours, setWalletLockHours] = useState(24);
   const [walletLockTicker, setWalletLockTicker] = useState('');
+  const [walletHardLock, setWalletHardLock] = useState(false);
 
   const fetchVault = useCallback(async () => {
     if (!discordId) return;
@@ -100,6 +103,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
             ? new Date(data.walletLock.lockUntil).toISOString()
             : null,
           walletUnlockRequest: data.walletLock?.earlyUnlockRequest ?? null,
+          walletEarlyUnlockAllowed: data.walletLock?.earlyUnlockAllowed !== false,
         }));
       }
 
@@ -153,6 +157,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
           walletLocked: false,
           walletLockUntil: null,
           walletUnlockRequest: null,
+          walletEarlyUnlockAllowed: true,
         }));
       }
     };
@@ -246,12 +251,14 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         body: JSON.stringify({
           durationMinutes: walletLockHours * 60,
           reason: 'Manual wallet lock via TiltCheck Hub',
+          ...(walletHardLock ? { hardLock: true } : {}),
         }),
       });
       if (!res.ok) {
         const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
         throw new Error(d.error || `HTTP ${res.status}`);
       }
+      setWalletHardLock(false);
       await fetchVault();
     } catch (err) {
       setError(getErrorMessage(err, 'Wallet lock failed.'));
@@ -392,10 +399,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                 <h3 className="text-sm font-semibold text-white">Wallet Lock</h3>
                 <p className="text-xs text-gray-400 mt-1">
                   Freeze wallet vault actions for a cooldown window so you cannot top up or release on impulse.
+                  Optional timer-only mode matches a hard commitment vibe (no admin bypass) — still server policy, not on-chain.
                 </p>
                 {vault.walletLocked && vault.walletLockUntil && (
                   <p className="text-xs text-yellow-400 mt-2 font-mono">
                     Wallet lock active — {walletLockTicker}
+                    {!vault.walletEarlyUnlockAllowed ? ' — timer-only (no early unlock)' : ''}
                   </p>
                 )}
                 {vault.walletUnlockRequest && (
@@ -473,8 +482,8 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
 
           <div className="space-y-2 rounded-xl border border-[#283347] bg-black/20 p-4">
             <label className="text-sm font-medium text-gray-300">Wallet Lock Timer</label>
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 6, 24, 72].map(h => (
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {[1, 6, 24, 72, 168].map(h => (
                 <button
                   key={`wallet-${h}`}
                   onClick={() => setWalletLockHours(h)}
@@ -485,10 +494,23 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {h}h
+                  {h}h{h === 168 ? ' (7d)' : ''}
                 </button>
               ))}
             </div>
+            {!vault.walletLocked && (
+              <label className="flex items-start gap-2 mt-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={walletHardLock}
+                  onChange={e => setWalletHardLock(e.target.checked)}
+                  className="mt-1 rounded border-yellow-500/40 bg-black/40 text-yellow-400 focus:ring-yellow-500/30"
+                />
+                <span className="text-xs text-yellow-200/90 leading-snug">
+                  Timer-only lock: no admin early-unlock until the timer ends (server-enforced; not a smart-contract lock).
+                </span>
+              </label>
+            )}
             {vault.walletLocked ? (
               <div className="space-y-2">
                 <button
@@ -499,20 +521,26 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                   <Unlock className="w-5 h-5" />
                   {working ? 'CLEARING LOCK...' : walletLockTicker === 'Ready to release' ? 'CLEAR WALLET LOCK' : 'WALLET LOCK TIMER ACTIVE'}
                 </button>
-                <button
-                  onClick={() => handleWalletUnlockRequest('admin_approval')}
-                  disabled={working || vault.walletUnlockRequest?.mode === 'admin_approval'}
-                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {vault.walletUnlockRequest?.mode === 'admin_approval' ? 'ADMIN OVERRIDE REQUESTED' : 'REQUEST ADMIN OVERRIDE'}
-                </button>
-                <button
-                  type="button"
-                  disabled
-                  className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-300 rounded-xl font-bold transition-all opacity-60 cursor-not-allowed"
-                >
-                  PAID EARLY UNLOCK TEMPORARILY DISABLED
-                </button>
+                {vault.walletEarlyUnlockAllowed && (
+                  <button
+                    onClick={() => handleWalletUnlockRequest('admin_approval')}
+                    disabled={working || vault.walletUnlockRequest?.mode === 'admin_approval'}
+                    className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {vault.walletUnlockRequest?.mode === 'admin_approval'
+                      ? 'ADMIN OVERRIDE REQUESTED'
+                      : 'REQUEST ADMIN OVERRIDE'}
+                  </button>
+                )}
+                {vault.walletEarlyUnlockAllowed && (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-300 rounded-xl font-bold transition-all opacity-60 cursor-not-allowed"
+                  >
+                    PAID EARLY UNLOCK TEMPORARILY DISABLED
+                  </button>
+                )}
               </div>
             ) : (
               <button
