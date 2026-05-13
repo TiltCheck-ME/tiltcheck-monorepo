@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-13",
   "name": "@tiltcheck/api",
   "version": "1.1.0",
   "description": "Central API Gateway for TiltCheck ecosystem",
@@ -16,7 +17,6 @@
     "@supabase/supabase-js": "^2.100.1",
     "@tiltcheck/ai-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
-    "@tiltcheck/monitoring": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/discord-monetization": "workspace:*",
@@ -25,6 +25,7 @@
     "@tiltcheck/event-types": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/lockvault": "workspace:*",
+    "@tiltcheck/monitoring": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
@@ -34,6 +35,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "etag": "^1.8.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
     "helmet": "^8.1.0",
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
+    "@types/etag": "^1.8.4",
     "@types/express": "^5.0.6",
     "@types/express-rate-limit": "^6.0.2",
     "@types/express-serve-static-core": "^5.1.1",

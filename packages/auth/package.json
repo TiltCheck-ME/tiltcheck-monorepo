@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-13",
   "name": "@tiltcheck/auth",
   "version": "0.1.1",
   "description": "Shared authentication package for TiltCheck ecosystem - JWT, cookies, OAuth, and middleware",
