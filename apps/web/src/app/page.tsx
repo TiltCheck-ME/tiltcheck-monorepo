@@ -31,7 +31,7 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            THE HOUSE ALWAYS WINS? FUCK THAT.
+            The house always wins? Fuck that.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
