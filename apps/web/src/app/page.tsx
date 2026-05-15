@@ -31,7 +31,7 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            THE SESSION IS RIGGED AGAINST YOUR BRAIN, NOT JUST THE MATH.
+            THE HOUSE ALWAYS WINS? FUCK THAT.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
