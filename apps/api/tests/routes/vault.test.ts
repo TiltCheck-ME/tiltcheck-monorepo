@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -368,22 +368,61 @@ describe('Vault Routes', () => {
       lockUntil: Date.now() + 30 * 60_000,
       createdAt: Date.now(),
       reason: 'manual',
+      earlyUnlockAllowed: true,
     });
     const setRes = await request(app).post('/vault/user-1/wallet-lock').send({ durationMinutes: 30, reason: 'manual' });
     expect(setRes.status).toBe(200);
-    expect(lockvaultMock.setWalletActionLockForUser).toHaveBeenCalled();
+    expect(lockvaultMock.setWalletActionLockForUser).toHaveBeenCalledWith(
+      'user-1',
+      30 * 60_000,
+      'manual',
+      { earlyUnlockAllowed: true },
+    );
 
     lockvaultMock.getWalletActionLockStatus.mockReturnValue({
       locked: true,
       lockUntil: Date.now() + 30 * 60_000,
       remainingMs: 30 * 60_000,
       reason: 'manual',
+      earlyUnlockAllowed: true,
     });
     const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
     expect(clearRes.status).toBe(423);
     expect(clearRes.body.code).toBe('WALLET_LOCK_STILL_ACTIVE');
     expect(clearRes.body.unlockOptions).toEqual(['admin_approval', 'paid_early_unlock']);
     expect(lockvaultMock.clearWalletActionLockForUser).not.toHaveBeenCalled();
+  });
+
+  it('sets timer-only wallet lock when hardLock is true', async () => {
+    lockvaultMock.setWalletActionLockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 60 * 60_000,
+      createdAt: Date.now(),
+      reason: 'manual',
+      earlyUnlockAllowed: false,
+    });
+    const setRes = await request(app)
+      .post('/vault/user-1/wallet-lock')
+      .send({ durationMinutes: 60, reason: 'manual', hardLock: true });
+    expect(setRes.status).toBe(200);
+    expect(lockvaultMock.setWalletActionLockForUser).toHaveBeenCalledWith(
+      'user-1',
+      60 * 60_000,
+      'manual',
+      { earlyUnlockAllowed: false },
+    );
+
+    lockvaultMock.getWalletActionLockStatus.mockReturnValue({
+      locked: true,
+      lockUntil: Date.now() + 60 * 60_000,
+      remainingMs: 60 * 60_000,
+      reason: 'manual',
+      earlyUnlockAllowed: false,
+    });
+    const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
+    expect(clearRes.status).toBe(423);
+    expect(clearRes.body.unlockOptions).toEqual([]);
+    expect(clearRes.body.earlyUnlockAllowed).toBe(false);
   });
 
   it('creates admin early unlock requests and accepts paid unlock quotes', async () => {

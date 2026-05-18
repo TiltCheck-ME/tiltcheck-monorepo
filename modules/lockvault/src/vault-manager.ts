@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
 import { db } from '@tiltcheck/database';
@@ -146,6 +146,11 @@ export interface WalletActionLock {
   lockUntil: number;
   createdAt: number;
   reason?: string;
+  /**
+   * When false, admin and paid early unlock paths are disabled until lockUntil (timer-only).
+   * Not on-chain immutability — server policy only. Legacy persisted locks default to true.
+   */
+  earlyUnlockAllowed?: boolean;
   earlyUnlockRequest?: {
     mode: 'admin_approval' | 'paid_early_unlock';
     status: 'pending' | 'approved' | 'completed';
@@ -166,6 +171,21 @@ export interface WalletActionLock {
 }
 
 function now() { return Date.now(); }
+
+function isEarlyUnlockAllowed(lock: WalletActionLock): boolean {
+  return lock.earlyUnlockAllowed !== false;
+}
+
+function assertEarlyUnlockAllowed(lock: WalletActionLock): void {
+  if (!isEarlyUnlockAllowed(lock)) {
+    const err = new Error(
+      'Timer-only wallet lock is active. Early unlock is not available until the lock expires.',
+    ) as Error & { code: string; httpStatus: number };
+    err.code = 'WALLET_LOCK_TIMER_ONLY';
+    err.httpStatus = 403;
+    throw err;
+  }
+}
 function generateId() { return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 function normalizeSolAmount(value: number): number {
   return Math.round(value * 1_000_000_000) / 1_000_000_000;
@@ -456,7 +476,11 @@ class VaultManager {
         this.generalBalances.set(userId, bal as number);
       }
       for (const [userId, lock] of Object.entries(raw.walletActionLocks || {})) {
-        this.walletActionLocks.set(userId, lock as WalletActionLock);
+        const rec = lock as WalletActionLock;
+        if (typeof rec.earlyUnlockAllowed !== 'boolean') {
+          rec.earlyUnlockAllowed = true;
+        }
+        this.walletActionLocks.set(userId, rec);
       }
       console.log(`[LockVault] Loaded ${this.vaults.size} vaults and ${this.generalBalances.size} balances`);
     } catch (err) {
@@ -1346,7 +1370,12 @@ class VaultManager {
     this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear(); this.walletActionLocks.clear();
   }
 
-  setWalletActionLock(userId: string, durationMs: number, reason?: string): WalletActionLock {
+  setWalletActionLock(
+    userId: string,
+    durationMs: number,
+    reason?: string,
+    earlyUnlockAllowed = true,
+  ): WalletActionLock {
     if (!Number.isFinite(durationMs) || durationMs <= 0) {
       throw new Error('Duration must be a positive number.');
     }
@@ -1355,6 +1384,7 @@ class VaultManager {
       lockUntil: now() + Math.trunc(durationMs),
       createdAt: now(),
       reason,
+      earlyUnlockAllowed: earlyUnlockAllowed !== false,
     };
     this.walletActionLocks.set(userId, record);
     this.schedulePersist();
@@ -1374,6 +1404,7 @@ class VaultManager {
     lockUntil?: number;
     remainingMs?: number;
     reason?: string;
+    earlyUnlockAllowed?: boolean;
     earlyUnlockRequest?: WalletActionLock['earlyUnlockRequest'];
   } {
     const lock = this.walletActionLocks.get(userId);
@@ -1388,6 +1419,7 @@ class VaultManager {
       lockUntil: lock.lockUntil,
       remainingMs,
       reason: lock.reason,
+      earlyUnlockAllowed: isEarlyUnlockAllowed(lock),
       earlyUnlockRequest: lock.earlyUnlockRequest,
     };
   }
@@ -1395,6 +1427,7 @@ class VaultManager {
   requestAdminWalletUnlock(userId: string, requestedBy: string): WalletActionLock {
     const lock = this.walletActionLocks.get(userId);
     if (!lock) throw new Error('No active wallet lock found.');
+    assertEarlyUnlockAllowed(lock);
     const remainingMs = lock.lockUntil - now();
     if (remainingMs <= 0) {
       this.clearWalletActionLockInternal(userId);
@@ -1465,6 +1498,7 @@ class VaultManager {
   requestPaidWalletUnlock(userId: string, requestedBy: string, feePercentage = 10): WalletActionLock {
     const lock = this.walletActionLocks.get(userId);
     if (!lock) throw new Error('No active wallet lock found.');
+    assertEarlyUnlockAllowed(lock);
     const remainingMs = lock.lockUntil - now();
     if (remainingMs <= 0) {
       this.clearWalletActionLockInternal(userId);
@@ -1689,7 +1723,15 @@ export function getWithdrawalApprovalsForUser(userId: string) {
   return vaultManager.getWithdrawalApprovals(userId);
 }
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }
-export function setWalletActionLockForUser(userId: string, durationMs: number, reason?: string) { return vaultManager.setWalletActionLock(userId, durationMs, reason); }
+export function setWalletActionLockForUser(
+  userId: string,
+  durationMs: number,
+  reason?: string,
+  opts?: { earlyUnlockAllowed?: boolean },
+) {
+  const allowed = opts?.earlyUnlockAllowed !== false;
+  return vaultManager.setWalletActionLock(userId, durationMs, reason, allowed);
+}
 export function clearWalletActionLockForUser(userId: string) { return vaultManager.clearWalletActionLock(userId); }
 export function getWalletActionLockForUser(userId: string) { return vaultManager.getWalletActionLock(userId); }
 export function getWalletActionLockStatus(userId: string) { return vaultManager.getWalletActionLockStatus(userId); }
