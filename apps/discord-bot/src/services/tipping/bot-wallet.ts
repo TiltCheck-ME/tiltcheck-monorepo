@@ -1,9 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /**
  * Bot Wallet Service
  *
- * Manages the bot's operational relay wallet for executing non-custodial SOL transfers.
- * Users retain full ownership — this wallet only signs relay transactions.
+ * Manages the bot operational relay wallet for JTT credit payouts and coordinated sends.
+ * Direct user-signed tips are non-custodial; credit settlement uses this pooled relay wallet.
+ * See docs/legal/custody-matrix.md (jtt_credits_relay).
  */
 
 import {
@@ -14,8 +15,8 @@ import {
     Transaction,
     sendAndConfirmTransaction,
     LAMPORTS_PER_SOL,
+    type ConfirmedSignatureInfo,
 } from '@solana/web3.js';
-import type { ConfirmedSignatureInfo } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 // Safety limits

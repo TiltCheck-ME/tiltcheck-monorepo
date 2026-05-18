@@ -14,7 +14,7 @@ TiltGuard is a Manifest V3 Chrome extension that runs as a content script on cas
 
 - Tracks betting patterns and session statistics in real time
 - Detects tilt behavior (rage betting, loss chasing, bet escalation)
-- Enforces the user's Surgical Self-Exclusion list — blocking specific games or whole categories at the DOM level
+- Enforces the user's Session pause list (surgical block) — blocking specific games or categories on this tab only
 - Protects winnings with vault recommendations and stop-loss alerts
 - Verifies casino licensing against known authorities
 - Delivers real-time interventions when tilt is detected
@@ -256,7 +256,7 @@ Generic fallback selectors activate on other casino sites.
 - **Vault Integration**: Recommends vaulting at configurable profit thresholds; stop-loss alerts at 50% drawdown.
 - **License Verification**: Scans casino footers against known licensing authorities across multiple jurisdictions.
 - **Cooldown Enforcement**: Full-page overlay blocks betting during critical-tilt cooldown windows.
-- **Surgical Self-Exclusion**: Blocks specific games or entire categories at the DOM level. See `docs/surgical-self-exclusion.md`.
+- **Session pause (surgical block)**: Blocks specific games or categories on this tab. Not operator self-exclusion. See `docs/surgical-self-exclusion.md`.
 - **Provably-Fair Verification**: FairnessService cross-checks server seeds against on-chain commitments.
 - **Demo Mode**: Full sidebar walkthrough available before Discord login.
 

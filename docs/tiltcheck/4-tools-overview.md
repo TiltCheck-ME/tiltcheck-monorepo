@@ -1,6 +1,8 @@
-© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
 
 # 4. TiltCheck Tools Overview
+
+**Custody reference:** [../legal/custody-matrix.md](../legal/custody-matrix.md) — canonical per-flow custody truth for marketing and support.
 
 TiltCheck is composed of eight primary user-facing tools and two global trust engines.  
 Each tool solves a specific frustration in the degen ecosystem: tipping, swapping, scam links, bonus cycles, free spins, survey screening, community games, and tilt management.

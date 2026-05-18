@@ -189,7 +189,7 @@ export default function GeoLawsPage() {
             GEO LAWS
           </h1>
           <p className="text-gray-400 font-mono text-base max-w-2xl leading-relaxed">
-            Online gambling laws vary wildly by country. This is a reference guide — not legal advice. Know your jurisdiction, know your regulator, know your self-exclusion options before you deposit anywhere.
+            Online gambling laws vary wildly by country. This is a reference guide — not legal advice. Know your jurisdiction, know your regulator, and know regulator self-exclusion options (GAMSTOP, OASIS, etc.) before you deposit. TiltCheck Session pause only blocks games in your browser — it is not operator self-exclusion.
           </p>
           <p className="mt-4 text-xs font-mono text-gray-600">
             Last updated: 2026-04-11. Laws change. Verify with official sources.
