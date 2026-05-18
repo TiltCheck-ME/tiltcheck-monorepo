@@ -7,6 +7,7 @@
 import { Router, Response, Request, NextFunction } from 'express';
 import { authMiddleware, AuthRequest, internalServiceAuth } from '../middleware/auth.js';
 import {
+    createAuditLog,
     findOnboardingByDiscordId, 
     upsertOnboarding,
     findUserByDiscordId,
@@ -28,6 +29,7 @@ import {
 import { DiscordShopManager, getJitFeeWaiverSkuIds } from '@tiltcheck/discord-monetization';
 import { ApplicationError, ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
+import { assertComplianceBypassWrite } from '../lib/compliance-bypass.js';
 import {
     EXCLUSION_TARGET_LABELS,
     EXCLUSION_TARGET_TYPES,
@@ -347,6 +349,9 @@ router.post('/onboarding', authMiddleware, async (req: Request, res: Response, n
         }
 
         const existing = await findOnboardingByDiscordId(userPayload.discordId);
+        const requestedBypass = preferences?.complianceBypass;
+        assertComplianceBypassWrite(requestedBypass, userPayload.roles);
+        const previousBypass = existing?.compliance_bypass === true;
         const quizScores = req.body.quizScores;
         const completedSteps = Array.isArray(req.body.completedSteps)
             ? req.body.completedSteps.filter((value: unknown): value is string => typeof value === 'string')
@@ -357,6 +362,24 @@ router.post('/onboarding', authMiddleware, async (req: Request, res: Response, n
                 completedSteps,
             })
             : existing?.quiz_scores;
+
+        if (
+            requestedBypass !== undefined &&
+            requestedBypass !== previousBypass &&
+            userPayload.id
+        ) {
+            await createAuditLog({
+                admin_id: userPayload.id,
+                action: 'COMPLIANCE_BYPASS_CHANGE',
+                target_type: 'USER',
+                target_id: userPayload.id,
+                metadata: {
+                    discordId: userPayload.discordId,
+                    from: previousBypass,
+                    to: requestedBypass === true,
+                },
+            });
+        }
 
         const result = await upsertOnboarding({
             discord_id: userPayload.discordId,

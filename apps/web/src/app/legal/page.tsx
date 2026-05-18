@@ -3,6 +3,13 @@ import PublicPageHero from "@/components/PublicPageHero";
 
 const legalCards = [
   {
+    href: "https://github.com/TiltCheck-ME/tiltcheck-monorepo/blob/main/docs/legal/custody-matrix.md",
+    eyebrow: "Reference",
+    title: "Custody matrix",
+    description:
+      "Per-flow truth: who signs, who holds, and what happens if TiltCheck is down. Use this before claiming non-custodial for credits or relay tips.",
+  },
+  {
     href: "/terms",
     eyebrow: "v2.1",
     title: "Terms of Service",
