@@ -73,7 +73,7 @@ const TOOLS: Tool[] = [
     label: "JUST THE TIP",
     title: "SOL Peer Tipping",
     description:
-      "Send SOL tips to other degens via Discord username from the web UI. Non-custodial — keys never leave your wallet. Direct sends and room rain are both wired.",
+      "Send SOL tips via Discord or web. Direct wallet sends are non-custodial; credit balance uses pooled relay settlement. See the custody matrix before you assume keys-only.",
     status: "live",
   },
   {
@@ -81,7 +81,7 @@ const TOOLS: Tool[] = [
     label: "LOCKVAULT",
     title: "Auto Profit Lock",
     description:
-      "Lock profits behind a timer, manage releases, and update your redeem threshold from the web UI. Non-custodial. You set the line, the lock protects the bag.",
+      "Lock profits behind a timer, manage releases, and update your redeem threshold. Advisory policy lock — you set the line; not on-chain bank custody.",
     status: "live",
   },
   {
@@ -177,7 +177,7 @@ export default function ToolsIndexPage() {
             <p className="public-page-panel__eyebrow">How to use this index</p>
             <h2 className="public-page-panel__title">Start with the tool that matches the decision you need to make.</h2>
             <ul className="public-page-list">
-              <li>Playing Chicken or Crash? Start with Surgical Self-Exclusion — block the exact game that wrecks you, nothing else.</li>
+              <li>Playing Chicken or Crash? Use Session pause (surgical block) in the extension — blocks specific games on your tab, not operator account self-exclusion.</li>
               <li>Need proof on a bet? Start with verification or trust tooling.</li>
               <li>Need to protect the bag? Start with vault and accountability flows.</li>
             </ul>

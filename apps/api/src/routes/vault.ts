@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -19,6 +19,8 @@ import {
   approveAdminWalletUnlockForUser,
   requestPaidWalletUnlockForUser,
   settlePaidWalletUnlockForUser,
+  previewWalletEarlyUnlockFeeDisclosure,
+  getWalletPowerEventsForUser,
   setVaultGuardians,
   addSecondOwner,
   getWithdrawalApprovalsForUser,
@@ -26,6 +28,7 @@ import {
   approveWithdrawal,
   executeWithdrawal
 } from '@tiltcheck/lockvault';
+import { createAuditLog } from '@tiltcheck/db';
 import { creditEarlyUnlockFeeSplits } from '../services/community-pools.js';
 
 const router: Router = Router();
@@ -249,6 +252,32 @@ function param(req: { params: Record<string, string | string[]> }, name: string)
   return Array.isArray(v) ? v[0] : v;
 }
 
+function buildWalletLockDisclosure(userId: string) {
+  const feePct = earlyUnlockFeePercent();
+  const preview = previewWalletEarlyUnlockFeeDisclosure(userId, feePct);
+  return {
+    earlyUnlockFeePercent: preview.earlyUnlockFeePercent,
+    feeAllocation: preview.feeAllocation,
+    basisSOL: preview.basisSOL,
+    triviaJackpotFunded: false,
+  };
+}
+
+function enrichWalletLockStatus(userId: string) {
+  const status = getWalletActionLockStatus(userId);
+  const unlockOptions =
+    status.locked && status.earlyUnlockAllowed !== false
+      ? (['admin_approval', 'paid_early_unlock'] as const)
+      : ([] as const);
+  return {
+    ...status,
+    lockUntil: status.lockUntil ? new Date(status.lockUntil).toISOString() : null,
+    earlyUnlockAllowed: status.earlyUnlockAllowed !== false,
+    unlockOptions,
+    ...buildWalletLockDisclosure(userId),
+  };
+}
+
 function walletLockBlockedResponse(userId: string) {
   const status = getWalletActionLockStatus(userId);
   if (!status.locked || !status.lockUntil || !status.remainingMs) return null;
@@ -259,6 +288,8 @@ function walletLockBlockedResponse(userId: string) {
     remainingMs: status.remainingMs,
     reason: status.reason || null,
     earlyUnlockRequest: status.earlyUnlockRequest || null,
+    earlyUnlockAllowed: status.earlyUnlockAllowed !== false,
+    ...buildWalletLockDisclosure(userId),
   };
 }
 
@@ -324,15 +355,13 @@ router.get('/:userId', authMiddleware, async (req, res) => {
 
   const balance = getVaultBalance(userId);
   const locks = getVaultStatus(userId).map(serializeVaultRecord);
-  const walletLock = getWalletActionLockStatus(userId);
-
   res.json({
     success: true,
     vault: {
       balance,
       locks,
     },
-    walletLock,
+    walletLock: enrichWalletLockStatus(userId),
   });
 });
 
@@ -378,6 +407,29 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /vault/:userId/power-events
+ * User-visible wallet lock / early unlock activity
+ */
+router.get('/:userId/power-events', authMiddleware, async (req, res) => {
+  const userId = param(req, 'userId');
+  const auth = (req as AuthRequest).user;
+
+  if (!isAuthorized(auth, userId)) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const limitRaw = Number(req.query.limit);
+  const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(50, Math.trunc(limitRaw)) : 25;
+  const events = getWalletPowerEventsForUser(userId, limit).map((event) => ({
+    ...event,
+    at: new Date(event.at).toISOString(),
+  }));
+
+  res.json({ success: true, events });
+});
+
+/**
  * GET /vault/:userId/wallet-lock-status
  * Returns account-level wallet lock state
  */
@@ -390,11 +442,9 @@ router.get('/:userId/wallet-lock-status', authMiddleware, async (req, res) => {
     return;
   }
 
-  const status = getWalletActionLockStatus(userId);
   res.json({
     success: true,
-    ...status,
-    lockUntil: status.lockUntil ? new Date(status.lockUntil).toISOString() : null,
+    ...enrichWalletLockStatus(userId),
   });
 });
 
@@ -404,7 +454,7 @@ router.get('/:userId/wallet-lock-status', authMiddleware, async (req, res) => {
  */
 router.post('/:userId/wallet-lock', authMiddleware, async (req, res) => {
   const userId = param(req, 'userId');
-  const { durationMinutes, reason } = req.body || {};
+  const { durationMinutes, reason, hardLock } = req.body || {};
   const auth = (req as AuthRequest).user;
 
   if (!isAuthorized(auth, userId)) {
@@ -422,13 +472,21 @@ router.post('/:userId/wallet-lock', authMiddleware, async (req, res) => {
     return;
   }
 
-  const record = setWalletActionLockForUser(userId, Math.trunc(mins) * 60 * 1000, typeof reason === 'string' ? reason : undefined);
+  const timerOnly = hardLock === true;
+  const record = setWalletActionLockForUser(
+    userId,
+    Math.trunc(mins) * 60 * 1000,
+    typeof reason === 'string' ? reason : undefined,
+    { earlyUnlockAllowed: !timerOnly },
+  );
   res.json({
     success: true,
     locked: true,
     lockUntil: new Date(record.lockUntil).toISOString(),
     remainingMs: Math.max(0, record.lockUntil - Date.now()),
     reason: record.reason || null,
+    earlyUnlockAllowed: record.earlyUnlockAllowed !== false,
+    ...buildWalletLockDisclosure(userId),
   });
 });
 
@@ -447,14 +505,21 @@ router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
 
   const status = getWalletActionLockStatus(userId);
   if (status.locked && status.remainingMs && status.remainingMs > 0) {
+    const unlockOptions =
+      status.earlyUnlockAllowed === false ? [] : (['admin_approval', 'paid_early_unlock'] as const);
     res.status(423).json({
-      error: 'Wallet lock is still active. Use admin approval or wait for the timer to expire.',
+      error:
+        status.earlyUnlockAllowed === false
+          ? 'Timer-only wallet lock is active. Wait for the timer to expire.'
+          : 'Wallet lock is still active. Use admin approval or paid early unlock per disclosed fee.',
       code: 'WALLET_LOCK_STILL_ACTIVE',
       lockUntil: status.lockUntil ? new Date(status.lockUntil).toISOString() : null,
       remainingMs: status.remainingMs,
       reason: status.reason || null,
       earlyUnlockRequest: status.earlyUnlockRequest || null,
-      unlockOptions: ['admin_approval', 'paid_early_unlock'],
+      earlyUnlockAllowed: status.earlyUnlockAllowed !== false,
+      unlockOptions,
+      ...buildWalletLockDisclosure(userId),
     });
     return;
   }
@@ -490,6 +555,7 @@ router.post('/:userId/wallet-unlock-request', authMiddleware, async (req, res) =
         locked: true,
         lockUntil: new Date(record.lockUntil).toISOString(),
         earlyUnlockRequest: record.earlyUnlockRequest || null,
+        ...buildWalletLockDisclosure(userId),
       });
     } catch (error) {
       const handled = handleVaultError(error);
@@ -530,6 +596,16 @@ router.post('/:userId/wallet-unlock-approve', authMiddleware, async (req, res) =
   try {
     const approverId = (auth as any)?.discordId || auth?.id || 'admin';
     const record = approveAdminWalletUnlockForUser(userId, approverId);
+    await createAuditLog({
+      admin_id: auth?.id || approverId,
+      action: 'WALLET_LOCK_ADMIN_APPROVE',
+      target_type: 'USER',
+      target_id: userId,
+      metadata: {
+        approverId,
+        requestedBy: record.earlyUnlockRequest?.requestedBy ?? null,
+      },
+    });
     res.json({
       success: true,
       locked: false,

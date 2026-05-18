@@ -84,9 +84,9 @@ When critical tilt is detected:
 
 ---
 
-## Surgical Self-Exclusion
+## Session pause (surgical block)
 
-The Surgical Self-Exclusion system lets users block specific games or entire game categories from their session — without needing to close their account.
+Session pause lets users block specific games or categories **on this browser tab** — without claiming operator-account self-exclusion.
 
 Key behaviors:
 

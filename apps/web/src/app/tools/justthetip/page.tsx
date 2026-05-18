@@ -149,7 +149,7 @@ export default function JustTheTipPage() {
             </h1>
             <p className="text-gray-400 text-sm max-w-xl">
               Send SOL to your fellow degens. Direct tips or broadcast a room rain.
-              Flat fee. Non-custodial. Don&apos;t blame us if you typo the wallet.
+              Flat fee. Direct tips: you sign (non-custodial). Credit balance: pooled relay. Don&apos;t blame us if you typo the wallet.
             </p>
           </div>
 
@@ -312,7 +312,7 @@ export default function JustTheTipPage() {
           {/* Non-custodial note */}
           {accepted && (
             <p className="mt-8 text-[10px] text-gray-600 font-mono text-center uppercase tracking-widest">
-              Non-Custodial Protocol &bull; Your keys. Your problem.
+              Direct tips: your keys. Credits: pooled relay. See custody matrix on Legal.
             </p>
           )}
 
