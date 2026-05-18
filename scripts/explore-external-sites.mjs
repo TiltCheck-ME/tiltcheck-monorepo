@@ -54,7 +54,15 @@ async function collectSameOriginLinks(page, origin) {
       const out = new Set();
       for (const a of anchors) {
         const href = a.getAttribute("href");
-        if (!href || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:"))
+        const hrefNorm = href?.trim().toLowerCase();
+        if (
+          !hrefNorm ||
+          hrefNorm.startsWith("mailto:") ||
+          hrefNorm.startsWith("tel:") ||
+          hrefNorm.startsWith("javascript:") ||
+          hrefNorm.startsWith("data:") ||
+          hrefNorm.startsWith("vbscript:")
+        )
           continue;
         try {
           const u = new URL(href, originStr);
