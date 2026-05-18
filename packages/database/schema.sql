@@ -96,6 +96,17 @@ CREATE TABLE IF NOT EXISTS user_onboarding (
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+-- Canonical User Settings Document (v1)
+-- Stores a single versioned settings document per TiltCheck user.
+CREATE TABLE IF NOT EXISTS user_settings (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  settings_version INTEGER DEFAULT 1 NOT NULL,
+  settings JSONB DEFAULT '{}'::jsonb NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_settings_updated_at ON user_settings(updated_at DESC);
+
 -- Game History Table
 -- Records individual completed games for history and analytics
 CREATE TABLE IF NOT EXISTS game_history (

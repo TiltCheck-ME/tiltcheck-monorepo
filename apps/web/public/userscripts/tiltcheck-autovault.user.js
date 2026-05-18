@@ -2219,9 +2219,23 @@
         log(`${BRAND.name} ${BRAND.product} ready on ${SITE.name}. Press Start when you are.`, 'info');
     }
 
+    function requireAutomationOptIn(): boolean {
+        const key = `${STORAGE_PREFIX}-automation-opt-in-v1`;
+        if (localStorage.getItem(key) === 'true') return true;
+        const ok = window.confirm(
+            'TiltCheck AutoVault is opt-in automation on this casino tab. ' +
+                'You stay in control of confirmations; TiltCheck does not hold your funds. Enable on this device?'
+        );
+        if (!ok) return false;
+        localStorage.setItem(key, 'true');
+        return true;
+    }
+
     // Wait for the page to settle before injecting the widget so Stake's own
     // app shell is mounted and our DOM queries have something to find.
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (!requireAutomationOptIn()) {
+        console.info('[TiltCheck AutoVault] Opt-in declined — script idle.');
+    } else if (document.readyState === 'complete' || document.readyState === 'interactive') {
         setTimeout(init, INIT_DELAY);
     } else {
         window.addEventListener('DOMContentLoaded', () => setTimeout(init, INIT_DELAY));

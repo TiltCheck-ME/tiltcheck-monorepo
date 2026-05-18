@@ -1,5 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
-import React from 'react';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 
 export default function DashboardLayout({
   children,

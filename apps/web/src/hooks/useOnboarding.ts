@@ -154,6 +154,17 @@ export function useOnboarding() {
       })
       .catch(() => setError('Failed to load onboarding status'))
       .finally(() => setLoading(false));
+
+    // Best-effort: warm canonical settings cache (shared across surfaces).
+    fetch(`${apiBase}/me/settings`, { credentials: 'include', headers: buildHeaders() })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const etag = res.headers.get('etag');
+        const body = await res.json();
+        if (etag) window.localStorage.setItem('tc_settings_etag', etag);
+        window.localStorage.setItem('tc_settings', JSON.stringify(body?.settings ?? body));
+      })
+      .catch(() => {});
   }, [user, authLoading]);
 
   return { status, loading: authLoading || loading, error, user };
@@ -170,5 +181,37 @@ export async function submitOnboarding(payload: SubmitOnboardingPayload): Promis
 
   if (!res.ok) throw new Error('Failed to save onboarding');
   const data = await res.json() as CanonicalOnboardingStatusResponse;
-  return normalizeStatus(data);
+  const normalized = normalizeStatus(data);
+
+  // Best-effort: mirror onboarding safety prefs into the canonical /me/settings document.
+  try {
+    const storedEtag = window.localStorage.getItem('tc_settings_etag');
+    const putRes = await fetch(`${apiBase}/me/settings`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        ...buildHeaders(),
+        ...(storedEtag ? { 'If-Match': storedEtag } : {}),
+      },
+      body: JSON.stringify({
+        limits: {
+          cooldownEnabled: normalized.preferences.cooldownEnabled,
+          redeemThresholdUsd: normalized.preferences.redeemThreshold,
+        },
+        notifications: normalized.preferences.notifications,
+        dataSharing: normalized.preferences.dataSharing,
+      }),
+    });
+
+    if (putRes.ok) {
+      const nextEtag = putRes.headers.get('etag');
+      const body = await putRes.json();
+      if (nextEtag) window.localStorage.setItem('tc_settings_etag', nextEtag);
+      window.localStorage.setItem('tc_settings', JSON.stringify(body?.settings ?? body));
+    }
+  } catch {
+    // noop
+  }
+
+  return normalized;
 }

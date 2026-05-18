@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Audit program (delegation matrix)
+    url: https://github.com/TiltCheck-ME/tiltcheck-monorepo/blob/main/docs/audits/delegation-matrix.md
+    about: Owners, cadence, and triggers for scheduled audits
   - name: Security Vulnerability (Critical)
     url: mailto:jmenichole.security@proton.me
     about: For critical security issues - DO NOT file a public issue

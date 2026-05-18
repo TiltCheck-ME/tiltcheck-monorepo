@@ -2008,6 +2008,23 @@ app.get('/api/user/:discordId/wallet-lock', authenticateToken, async (req: Dashb
   }
 });
 
+app.get('/api/user/:discordId/wallet-power-events', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const limit = typeof req.query.limit === 'string' ? req.query.limit : '25';
+    const response = await requestCanonicalApi(
+      req,
+      `/vault/${encodeURIComponent(discordId)}/power-events?limit=${encodeURIComponent(limit)}`,
+    );
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Wallet Power Events GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load wallet power events') });
+  }
+});
+
 app.post('/api/user/:discordId/wallet-lock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = requireAuthorizedDiscordId(req, res);

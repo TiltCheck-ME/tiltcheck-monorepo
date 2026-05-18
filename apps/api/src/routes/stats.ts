@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 /**
  * /stats route for landing page KPI strip.
  * Aggregates KPIs from repository-backed trust datasets.
@@ -96,6 +96,11 @@ async function computeStats() {
     ]
   };
 }
+
+router.get('/', async (_req, res) => {
+  const stats = await computeStats();
+  res.json({ ok: true, stats });
+});
 
 /** Deployment probe — confirms this container version is running. */
 router.get('/ping', (_req, res) => {

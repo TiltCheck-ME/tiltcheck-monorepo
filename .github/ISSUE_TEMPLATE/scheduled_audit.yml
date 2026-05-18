@@ -1,0 +1,72 @@
+---
+name: Scheduled audit (program)
+about: Open a tracked audit from docs/audits/delegation-matrix.md; paste the matching Linear title from docs/audits/linear-title-catalog.md
+title: '[AUDIT] '
+labels: ['audit', 'needs-triage']
+assignees: []
+---
+
+## Tier (pick one)
+- [ ] A — Ship blockers (security, supply chain, secrets, extension/injection, crypto flows)
+- [ ] B — Compliance, privacy, consent, marketing/RG, payments/custody narrative
+- [ ] C — Reliability, DR, chaos, tests, migrations
+- [ ] D — Accessibility, crisis UX, i18n
+- [ ] E — AI governance, trust scores, brand/claim accuracy
+- [ ] F — Vendors, OSS licenses
+- [ ] G — Abuse / guardian / UGC edge ethics
+
+## Audit type (primary focus — one box)
+<!-- Copy the matching Linear title from docs/audits/linear-title-catalog.md -->
+
+- [ ] Application security (auth, IDOR, APIs)
+- [ ] Dependency / supply chain
+- [ ] Secrets and CI hygiene
+- [ ] Extension and injected runtime threat model
+- [ ] Crypto and wallet flows (signing, fees)
+- [ ] Privacy and data map
+- [ ] Consent and dataSharing / complianceBypass
+- [ ] Gambling-adjacent marketing and RG claims
+- [ ] Payments / MT risk (credits, pools)
+- [ ] SRE / production readiness
+- [ ] DR and backup
+- [ ] Chaos / dependency failure
+- [ ] Test coverage gaps (money paths)
+- [ ] Schema and migration safety
+- [ ] WCAG / accessibility (crisis and money flows)
+- [ ] Crisis UX copy
+- [ ] Internationalization
+- [ ] AI and model governance
+- [ ] Trust score fairness
+- [ ] Brand law and claim accuracy
+- [ ] Vendor and subprocessors
+- [ ] Open source license compliance
+- [ ] Guardian and coercion scenarios
+- [ ] Child safety and UGC (if in scope)
+
+## DRI (owner)
+<!-- Name or handle -->
+
+## Cadence vs trigger
+- [ ] Scheduled run (quarterly / semi-annual / annual per matrix)
+- [ ] Triggered run (describe code or org change):
+
+## Time window
+<!-- Planned start — due date (ISO) -->
+
+## Deliverable
+<!-- Link to docs/audits/artifacts/YYYY-MM-DD/<slug>/ or tracking PR -->
+
+## Findings roll-up
+| Severity | Count |
+|----------|-------|
+| Critical | |
+| High | |
+| Medium | |
+| Low | |
+
+## Sign-off
+- [ ] DRI reviewed artifact
+- [ ] Critical and High issues filed or fixed
+
+## Linear (optional)
+Paste title from `docs/audits/linear-title-catalog.md` for the same audit type.

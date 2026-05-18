@@ -8,14 +8,22 @@ import { Router, Request, Response, NextFunction } from 'express';
 import {
     createUser,
     deleteRow,
+    createAuditLog,
     findOnboardingByDiscordId,
     findUserByDiscordId,
+    getUserSettingsRow,
     upsertOnboarding,
+    upsertUserSettingsRow,
     type UserOnboarding,
 } from '@tiltcheck/db';
+import {
+    assertComplianceBypassWrite,
+    sanitizeComplianceBypassForClient,
+} from '../lib/compliance-bypass.js';
 import { ApplicationError, InternalServerError, ValidationError } from '@tiltcheck/error-factory';
 import { optionalAuthMiddleware, type AuthRequest } from '../middleware/auth.js';
 import { z } from 'zod';
+import etag from 'etag';
 
 const router: Router = Router();
 
@@ -49,6 +57,35 @@ const onboardingStatusUpdateSchema = z.object({
         }).optional(),
     }).optional(),
 });
+
+const SETTINGS_VERSION = 1 as const;
+
+const userSettingsPatchSchema = z.object({
+    settingsVersion: z.literal(SETTINGS_VERSION).optional(),
+    limits: z.object({
+        cooldownEnabled: z.boolean().optional(),
+        dailyLimitUsd: z.number().finite().nullable().optional(),
+        redeemThresholdUsd: z.number().finite().nullable().optional(),
+    }).optional(),
+    notifications: z.object({
+        tips: z.boolean().optional(),
+        trivia: z.boolean().optional(),
+        promos: z.boolean().optional(),
+    }).optional(),
+    dataSharing: z.object({
+        sessionTelemetry: z.boolean().optional(),
+        messageContents: z.boolean().optional(),
+        financialData: z.boolean().optional(),
+    }).optional(),
+    featureFlags: z.record(z.string(), z.boolean()).optional(),
+    surfaces: z.object({
+        mobile: z.record(z.string(), z.unknown()).optional(),
+        extension: z.record(z.string(), z.unknown()).optional(),
+        activity: z.record(z.string(), z.unknown()).optional(),
+    }).optional(),
+}).strict();
+
+type UserSettingsDoc = z.infer<typeof userSettingsPatchSchema> & { settingsVersion: typeof SETTINGS_VERSION; updatedAt: string };
 
 interface SerializedQuizState {
     answers: Record<string, number>;
@@ -98,6 +135,84 @@ function onboardingAccessMiddleware(req: Request, res: Response, next: NextFunct
 
         next();
     });
+}
+
+function settingsAccessMiddleware(req: Request, res: Response, next: NextFunction): void {
+    optionalAuthMiddleware(req, res, (err) => {
+        if (err) {
+            next(err);
+            return;
+        }
+
+        const authUser = (req as AuthRequest).user;
+        if (!authUser?.id) {
+            next(new ApplicationError('Unauthorized', 401, 'UNAUTHORIZED'));
+            return;
+        }
+
+        next();
+    });
+}
+
+function defaultSettingsDoc(now = new Date(0)): UserSettingsDoc {
+    return {
+        settingsVersion: SETTINGS_VERSION,
+        updatedAt: now.toISOString(),
+        limits: {
+            cooldownEnabled: true,
+            dailyLimitUsd: null,
+            redeemThresholdUsd: null,
+        },
+        notifications: {
+            tips: true,
+            trivia: true,
+            promos: false,
+        },
+        dataSharing: {
+            sessionTelemetry: false,
+            messageContents: false,
+            financialData: false,
+        },
+        featureFlags: {},
+        surfaces: {},
+    };
+}
+
+function parseStoredSettingsDoc(raw: unknown, fallbackUpdatedAt: Date): UserSettingsDoc {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        return defaultSettingsDoc(fallbackUpdatedAt);
+    }
+
+    const record = raw as Record<string, unknown>;
+    const updatedAt = typeof record.updatedAt === 'string' ? record.updatedAt : fallbackUpdatedAt.toISOString();
+
+    return mergeSettingsPatch(defaultSettingsDoc(new Date(updatedAt)), record as any, updatedAt);
+}
+
+function mergeSettingsPatch(current: UserSettingsDoc, patch: z.infer<typeof userSettingsPatchSchema>, updatedAt: string): UserSettingsDoc {
+    return {
+        ...current,
+        settingsVersion: SETTINGS_VERSION,
+        updatedAt,
+        limits: {
+            ...current.limits,
+            ...(patch.limits ?? {}),
+        },
+        notifications: {
+            ...current.notifications,
+            ...(patch.notifications ?? {}),
+        },
+        dataSharing: {
+            ...current.dataSharing,
+            ...(patch.dataSharing ?? {}),
+        },
+        featureFlags: patch.featureFlags ? { ...current.featureFlags, ...patch.featureFlags } : current.featureFlags,
+        surfaces: patch.surfaces ? { ...current.surfaces, ...patch.surfaces } : current.surfaces,
+    };
+}
+
+function buildSettingsEtag(doc: UserSettingsDoc): string {
+    return etag(JSON.stringify(doc), { weak: true });
 }
 
 function normalizeStepList(input: unknown): OnboardingStep[] {
@@ -211,7 +326,10 @@ function toIsoDate(value: Date | string | null | undefined): string | null {
     return Number.isNaN(normalized.getTime()) ? null : normalized.toISOString();
 }
 
-function toOnboardingStatusResponse(onboarding: UserOnboarding | null) {
+function toOnboardingStatusResponse(
+    onboarding: UserOnboarding | null,
+    viewerRoles?: string[],
+) {
     if (!onboarding) {
         return {
             completedSteps: [] as OnboardingStep[],
@@ -258,7 +376,10 @@ function toOnboardingStatusResponse(onboarding: UserOnboarding | null) {
             dailyLimit: onboarding.daily_limit,
             redeemThreshold: onboarding.redeem_threshold,
             notifyNftIdentityReady: onboarding.notify_nft_identity_ready,
-            complianceBypass: onboarding.compliance_bypass,
+            complianceBypass: sanitizeComplianceBypassForClient(
+                onboarding.compliance_bypass,
+                viewerRoles,
+            ),
             dataSharing: {
                 messageContents: onboarding.share_message_contents,
                 financialData: onboarding.share_financial_data,
@@ -343,7 +464,8 @@ router.get('/onboarding-status', onboardingAccessMiddleware, async (req: Request
     try {
         const discordId = resolveDiscordId(req);
         const onboarding = await findOnboardingByDiscordId(discordId);
-        res.json(toOnboardingStatusResponse(onboarding));
+        const authUser = (req as AuthRequest).user;
+        res.json(toOnboardingStatusResponse(onboarding, authUser?.roles));
     } catch (error) {
         if (error instanceof ApplicationError || error instanceof ValidationError) {
             next(error);
@@ -364,8 +486,15 @@ router.post('/onboarding-status', onboardingAccessMiddleware, async (req: Reques
         }
 
         const discordId = resolveDiscordId(req, parsedBody.data.discordId);
+        const authUser = (req as AuthRequest).user;
+        const requestedBypass = parsedBody.data.preferences?.complianceBypass;
+        assertComplianceBypassWrite(
+            requestedBypass,
+            authUser?.roles,
+        );
         await ensureOnboardingUser(discordId);
         const existingOnboarding = await findOnboardingByDiscordId(discordId);
+        const previousBypass = existingOnboarding?.compliance_bypass === true;
         const existingQuizState = parseStoredQuizState(existingOnboarding?.quiz_scores ?? null);
         const nextQuizAnswers = parsedBody.data.quizScores ?? existingQuizState.answers;
         const completedSteps = buildUpdatedCompletedSteps(
@@ -406,7 +535,24 @@ router.post('/onboarding-status', onboardingAccessMiddleware, async (req: Reques
         });
 
         const updatedOnboarding = await findOnboardingByDiscordId(discordId);
-        res.json(toOnboardingStatusResponse(updatedOnboarding));
+        if (
+            requestedBypass !== undefined &&
+            requestedBypass !== previousBypass &&
+            authUser?.id
+        ) {
+            await createAuditLog({
+                admin_id: authUser.id,
+                action: 'COMPLIANCE_BYPASS_CHANGE',
+                target_type: 'USER',
+                target_id: authUser.id,
+                metadata: {
+                    discordId,
+                    from: previousBypass,
+                    to: requestedBypass === true,
+                },
+            });
+        }
+        res.json(toOnboardingStatusResponse(updatedOnboarding, authUser?.roles));
     } catch (error) {
         if (error instanceof ApplicationError || error instanceof ValidationError) {
             next(error);
@@ -431,6 +577,98 @@ router.delete('/onboarding-status', onboardingAccessMiddleware, async (req: Requ
 
         console.error('[Me API] Reset onboarding status error:', error);
         next(new InternalServerError('Failed to reset onboarding status'));
+    }
+});
+
+router.get('/settings', settingsAccessMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const authUser = (req as AuthRequest).user;
+        if (!authUser?.id) {
+            next(new ApplicationError('Unauthorized', 401, 'UNAUTHORIZED'));
+            return;
+        }
+
+        const row = await getUserSettingsRow(authUser.id);
+        const updatedAt = row?.updated_at ?? new Date(0);
+        const settings = parseStoredSettingsDoc(row?.settings ?? null, updatedAt);
+
+        const computedEtag = buildSettingsEtag(settings);
+        res.setHeader('ETag', computedEtag);
+        res.json({
+            userId: authUser.id,
+            etag: computedEtag,
+            settings,
+        });
+    } catch (error) {
+        if (error instanceof ApplicationError || error instanceof ValidationError) {
+            next(error);
+            return;
+        }
+
+        console.error('[Me API] Get settings error:', error);
+        next(new InternalServerError('Failed to get settings'));
+    }
+});
+
+router.put('/settings', settingsAccessMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const authUser = (req as AuthRequest).user;
+        if (!authUser?.id) {
+            next(new ApplicationError('Unauthorized', 401, 'UNAUTHORIZED'));
+            return;
+        }
+
+        const parsedBody = userSettingsPatchSchema.safeParse(req.body);
+        if (!parsedBody.success) {
+            const firstIssue = parsedBody.error.issues[0];
+            next(new ValidationError(firstIssue?.message || 'Invalid settings payload'));
+            return;
+        }
+
+        const existingRow = await getUserSettingsRow(authUser.id);
+        const existingUpdatedAt = existingRow?.updated_at ?? new Date(0);
+        const existingSettings = parseStoredSettingsDoc(existingRow?.settings ?? null, existingUpdatedAt);
+
+        const existingEtag = buildSettingsEtag(existingSettings);
+        const ifMatch = typeof req.headers['if-match'] === 'string' ? req.headers['if-match'] : undefined;
+        if (ifMatch && ifMatch !== existingEtag) {
+            res.setHeader('ETag', existingEtag);
+            res.status(412).json({
+                error: 'Settings version conflict',
+                code: 'SETTINGS_CONFLICT',
+            });
+            return;
+        }
+
+        const updatedAt = new Date().toISOString();
+        const nextSettings = mergeSettingsPatch(existingSettings, parsedBody.data, updatedAt);
+
+        const persisted = await upsertUserSettingsRow({
+            userId: authUser.id,
+            settingsVersion: SETTINGS_VERSION,
+            settings: nextSettings,
+        });
+
+        if (!persisted) {
+            next(new InternalServerError('Failed to persist settings'));
+            return;
+        }
+
+        const computedEtag = buildSettingsEtag(nextSettings);
+        res.setHeader('ETag', computedEtag);
+        res.json({
+            userId: authUser.id,
+            etag: computedEtag,
+            settings: nextSettings,
+        });
+    } catch (error) {
+        if (error instanceof ApplicationError || error instanceof ValidationError) {
+            next(error);
+            return;
+        }
+
+        console.error('[Me API] Update settings error:', error);
+        next(new InternalServerError('Failed to update settings'));
     }
 });
 

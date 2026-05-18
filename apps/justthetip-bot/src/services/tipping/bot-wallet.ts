@@ -2,7 +2,9 @@
 /**
  * Bot Wallet Service
  *
- * Manages the bot's custodial Solana wallet for sending SOL on behalf of users.
+ * Manages the bot operational relay wallet for JTT credit payouts and coordinated sends.
+ * Direct user-signed tips are non-custodial; credit settlement uses this pooled relay wallet.
+ * See docs/legal/custody-matrix.md (jtt_credits_relay).
  */
 
 import {
@@ -13,6 +15,7 @@ import {
     Transaction,
     sendAndConfirmTransaction,
     LAMPORTS_PER_SOL,
+    type ConfirmedSignatureInfo,
 } from '@solana/web3.js';
 import bs58 from 'bs58';
 
@@ -92,7 +95,7 @@ export class BotWalletService {
         return signature;
     }
 
-    async getRecentTransactions(limit = 20) {
+    async getRecentTransactions(limit = 20): Promise<ConfirmedSignatureInfo[]> {
         return this.connection.getSignaturesForAddress(this.keypair.publicKey, { limit });
     }
 

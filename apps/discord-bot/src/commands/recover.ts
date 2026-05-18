@@ -566,7 +566,7 @@ export const recover: Command = {
           '__**How it works:**__\n' +
           '**1. Apply** — `/sos apply` with honest details about your hardship, what steps you are taking, and an accountability contact (someone who knows about your situation).\n\n' +
           '**2. Accountability contact** — We DM your chosen person (must be on Discord). They confirm they know and are supportive. This is not optional — it is the single most important part.\n\n' +
-          '**3. Community review** — Your application (anonymized where possible) is reviewed by admins and vouched for by community members. Requires 10 community vouches or admin approval.\n\n' +
+          '**3. Community review** — Admins score honesty, non-gambling use of funds, and accountability contact confirmation. Requires 10 community vouches or admin approval. Most denials are incomplete proof or gambling-debt requests — you get a reason when rejected.\n\n' +
           '**4. Grant paid** — Up to **1 SOL** sent directly to your wallet on file. Link one through the JustTheTip bot or the Hub first. One grant per person, ever.\n\n' +
           '__**Requirements:**__\n' +
           '- Must tell a non-gambler in your life about your problem\n' +

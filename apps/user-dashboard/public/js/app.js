@@ -25,7 +25,17 @@ let vaultState = {
     lockedRemainderSOL: 0,
     unlockSchedule: []
 };
-let walletLockState = { locked: false, lockUntil: null, remainingMs: 0, reason: null, earlyUnlockRequest: null };
+let walletLockState = {
+    locked: false,
+    lockUntil: null,
+    remainingMs: 0,
+    reason: null,
+    earlyUnlockRequest: null,
+    earlyUnlockAllowed: true,
+    earlyUnlockFeePercent: 10,
+    feeAllocation: null,
+    basisSOL: 0,
+};
 let vaultApprovalQueue = [];
 let stagedUnlockRows = [];
 let exclusions = [];
@@ -1044,7 +1054,10 @@ async function removeExclusion(exclusionId) {
 
 async function loadWalletLock() {
     try {
-        const res = await apiRequest(`/api/user/${currentUser.discordId}/wallet-lock`);
+        const [res, eventsRes] = await Promise.all([
+            apiRequest(`/api/user/${currentUser.discordId}/wallet-lock`),
+            apiRequest(`/api/user/${currentUser.discordId}/wallet-power-events?limit=8`).catch(() => null),
+        ]);
         if (!res.ok) return;
         const data = await res.json();
         walletLockState = {
@@ -1052,12 +1065,36 @@ async function loadWalletLock() {
             lockUntil: data.lockUntil || null,
             remainingMs: Number(data.remainingMs ?? 0),
             reason: data.reason || null,
-            earlyUnlockRequest: data.earlyUnlockRequest || null
+            earlyUnlockRequest: data.earlyUnlockRequest || null,
+            earlyUnlockAllowed: data.earlyUnlockAllowed !== false,
+            earlyUnlockFeePercent: Number(data.earlyUnlockFeePercent ?? 10),
+            feeAllocation: data.feeAllocation || null,
+            basisSOL: Number(data.basisSOL ?? 0),
         };
         renderWalletLock();
+        if (eventsRes?.ok) {
+            const eventsData = await eventsRes.json().catch(() => ({}));
+            const lines = Array.isArray(eventsData.events)
+                ? eventsData.events.map((e) => `${e.type} — ${new Date(e.at).toLocaleString()}`)
+                : [];
+            setText(
+                'wallet-power-events',
+                lines.length ? `Power activity: ${lines.join(' | ')}` : 'No wallet power events yet.',
+            );
+        }
     } catch (err) {
         console.error('[Wallet Lock]', err);
     }
+}
+
+function formatWalletLockFeeDisclosure() {
+    const pct = walletLockState.earlyUnlockFeePercent ?? 10;
+    const basis = walletLockState.basisSOL ?? 0;
+    const alloc = walletLockState.feeAllocation;
+    if (!alloc) {
+        return `Paid early exit (if allowed): ${pct}% of vault ledger basis (~${basis.toFixed(4)} SOL). Trivia: $0 in RG v1. Remainder: microgrants + dev skim.`;
+    }
+    return `Paid early exit: ${pct}% of ~${basis.toFixed(4)} SOL = ~${Number(alloc.feeTotal).toFixed(4)} SOL fee. Split: dev ~${Number(alloc.devSOL).toFixed(4)}, trivia ${Number(alloc.triviaSOL).toFixed(4)}, microgrant ~${Number(alloc.micrograntSOL).toFixed(4)} SOL.`;
 }
 
 function renderWalletLock() {
@@ -1065,19 +1102,40 @@ function renderWalletLock() {
     setText('wallet-lock-status', status);
     setText('wallet-lock-until', walletLockState.locked && walletLockState.lockUntil ? timeUntil(walletLockState.lockUntil) : 'No active lock');
     setText('wallet-lock-reason', walletLockState.reason || 'No note');
+    setText('wallet-lock-fee-disclosure', formatWalletLockFeeDisclosure());
 
     const requestButton = document.getElementById('request-wallet-unlock-btn');
+    const payButton = document.getElementById('pay-wallet-unlock-btn');
+    const hardCheckbox = document.getElementById('wallet-lock-hard');
+    if (hardCheckbox && walletLockState.locked) {
+        hardCheckbox.disabled = true;
+    } else if (hardCheckbox) {
+        hardCheckbox.disabled = false;
+    }
+    const earlyAllowed = walletLockState.earlyUnlockAllowed !== false;
     if (requestButton) {
-        requestButton.disabled = !walletLockState.locked;
+        requestButton.disabled = !walletLockState.locked || !earlyAllowed;
         requestButton.textContent = walletLockState.earlyUnlockRequest?.status === 'pending'
             ? 'Unlock Request Pending'
             : 'Request Early Unlock';
+    }
+    if (payButton) {
+        payButton.disabled = !walletLockState.locked || !earlyAllowed;
+        payButton.textContent = `Pay Early Unlock (${walletLockState.earlyUnlockFeePercent ?? 10}% fee)`;
     }
 }
 
 async function saveWalletLock() {
     const durationMinutes = Number(document.getElementById('wallet-lock-duration')?.value || 0);
     const reason = document.getElementById('wallet-lock-reason-input')?.value?.trim() || '';
+    const hardLock = document.getElementById('wallet-lock-hard')?.checked === true;
+
+    if (!hardLock) {
+        const ok = window.confirm(
+            `Confirm wallet lock?\n\n${formatWalletLockFeeDisclosure()}\n\nTimer-only checkbox skips early exit paths entirely.`
+        );
+        if (!ok) return;
+    }
 
     setFormMessage('walletLockStatusMsg', 'Saving...');
     try {
@@ -1085,7 +1143,8 @@ async function saveWalletLock() {
             method: 'POST',
             body: JSON.stringify({
                 durationMinutes,
-                reason: reason || undefined
+                reason: reason || undefined,
+                ...(hardLock ? { hardLock: true } : {}),
             })
         });
         const data = await res.json().catch(() => ({}));
@@ -1132,8 +1191,7 @@ async function paidEarlyWalletUnlock() {
     if (!walletLockState.locked) return;
 
     const confirmed = window.confirm(
-        'Pay roughly 10% of your LockVault ledger balance to drop the Wallet Lock early? ' +
-            'That fee splits across the trivia jackpot ledger, the recovery microgrant pool, and a 2% dev skim (logged - no auto chain sweep).'
+        `Confirm paid early unlock?\n\n${formatWalletLockFeeDisclosure()}\n\nThis is irreversible once settled.`
     );
     if (!confirmed) return;
 

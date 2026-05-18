@@ -10,7 +10,8 @@ import type { DatabaseClient } from '@tiltcheck/database';
 export { FLAT_FEE_LAMPORTS, MIN_DEPOSIT_LAMPORTS };
 
 /**
- * CreditManager handles custodial balances and transactions.
+ * CreditManager handles credit ledger entries settled via the bot operational wallet (pooled relay).
+ * See docs/legal/custody-matrix.md (jtt_credits_relay).
  * Now using the shared @tiltcheck/justthetip module.
  */
 export class CreditManager extends CreditService {
