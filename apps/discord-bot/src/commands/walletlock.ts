@@ -32,7 +32,7 @@ function feeDisclosureEmbed(): EmbedBuilder {
       },
       {
         name: 'Configure',
-        value: `[Dashboard vault lane](${getDashboardAppUrl('/dashboard?tab=vault')})`,
+        value: `[Dashboard vault lane](${getDashboardAppUrl({ tab: 'vault' })})`,
         inline: false,
       },
     )
@@ -67,7 +67,7 @@ export const walletlock: Command = {
           .setColor(0x17c3b2)
           .setTitle('Wallet lock status')
           .setDescription(
-            `Live lock state lives on the dashboard. Discord only delivers this handoff.\n\n[Open vault controls](${getDashboardAppUrl('/dashboard?tab=vault')})`,
+            `Live lock state lives on the dashboard. Discord only delivers this handoff.\n\n[Open vault controls](${getDashboardAppUrl({ tab: 'vault' })})`,
           )
           .setFooter({ text: 'Made for Degens. By Degens.' }),
       ],
