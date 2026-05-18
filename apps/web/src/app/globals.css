@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -2445,10 +2445,16 @@ body.degen-background > * {
   color: var(--color-primary);
 }
 
-.drift-status-card__badge--fallback {
+.drift-status-card__badge--degraded {
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.06);
   color: #d3dbe6;
+}
+
+.drift-status-card__badge--unknown {
+  border: 1px solid rgba(255, 215, 0, 0.32);
+  background: rgba(255, 215, 0, 0.08);
+  color: #ffd700;
 }
 
 .drift-status-card__copy,

@@ -17,5 +17,6 @@ Run from repo root:
 - `pnpm --filter @tiltcheck/mobile-wrapper start`
 - `pnpm --filter @tiltcheck/mobile-wrapper ios`
 - `pnpm --filter @tiltcheck/mobile-wrapper android`
+- `pnpm --filter @tiltcheck/mobile-wrapper build` (CI TypeScript validation)
 - `pnpm --filter @tiltcheck/mobile-wrapper typecheck`
 

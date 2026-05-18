@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
 import { db } from '@tiltcheck/database';
@@ -158,7 +158,7 @@ export interface WalletActionLock {
     requestedBy: string;
     feePercentage?: number;
     feeAmountSOL?: number;
-    /** Populated when paid early unlock settles: trivia pot, microgrant ledger, dev skim (logged upstream). */
+    /** Populated when paid early unlock settles: microgrant ledger plus dev skim (logged upstream). */
     feeAllocationSOL?: {
       triviaSOL: number;
       micrograntSOL: number;
@@ -1461,8 +1461,8 @@ class VaultManager {
 
   /**
    * Fee = feePct% of current vault ledger balance (lockedAmountSOL).
-   * Split: devPct% of balance to dev skim (logged by API), remainder split trivia/microgrant by triviaShare (default 0.5 each).
-   * Env: WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE (default 2), WALLET_EARLY_UNLOCK_TRIVIA_SHARE_OF_REMAINDER (default 0.5).
+   * RG v1 defers penalty-funded trivia jackpots, so fee remainder routes to recovery microgrants only.
+   * Env: WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE (default 2).
    */
   private computeEarlyUnlockFeeSplit(
     baseSOL: number,
@@ -1470,11 +1470,6 @@ class VaultManager {
   ): { feeTotal: number; devSOL: number; triviaSOL: number; micrograntSOL: number } {
     const devPctRaw = Number(process.env.WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE);
     const devPct = Number.isFinite(devPctRaw) && devPctRaw >= 0 ? devPctRaw : 2;
-
-    const triviaShareRaw = Number(process.env.WALLET_EARLY_UNLOCK_TRIVIA_SHARE_OF_REMAINDER);
-    const triviaShare = Number.isFinite(triviaShareRaw) && triviaShareRaw >= 0 && triviaShareRaw <= 1
-      ? triviaShareRaw
-      : 0.5;
 
     const feeTotal = normalizeSolAmount(baseSOL * (feePct / 100));
     let devSOL = normalizeSolAmount(baseSOL * (devPct / 100));
@@ -1486,15 +1481,14 @@ class VaultManager {
       remainder = 0;
     }
 
-    let triviaSOL = normalizeSolAmount(remainder * triviaShare);
-    let micrograntSOL = normalizeSolAmount(remainder - triviaSOL);
+    const triviaSOL = 0;
+    let micrograntSOL = remainder;
 
     const sumParts = normalizeSolAmount(devSOL + triviaSOL + micrograntSOL);
     if (sumParts !== feeTotal) {
       micrograntSOL = normalizeSolAmount(feeTotal - devSOL - triviaSOL);
       if (micrograntSOL < 0) {
         micrograntSOL = 0;
-        triviaSOL = normalizeSolAmount(feeTotal - devSOL);
       }
     }
 

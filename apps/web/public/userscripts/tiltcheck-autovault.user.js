@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08
 // ==UserScript==
 // @name         TiltCheck AutoVault — Bag Secured
 // @namespace    https://tiltcheck.me/userscripts
@@ -546,6 +546,115 @@
         }
     }
 
+    // --- Read-only session tracking ---
+    class SessionTracker {
+        constructor() {
+            this.reset();
+        }
+
+        reset(startingBalance = null) {
+            this.startedAt = Date.now();
+            this.updatedAt = null;
+            this.rounds = 0;
+            this.wagered = 0;
+            this.won = 0;
+            this.consecutiveLosses = 0;
+            this.fastRoundStreak = 0;
+            this.lastRoundAt = null;
+            this.startingBalance = Number.isFinite(startingBalance) ? startingBalance : null;
+            this.currentBalance = this.startingBalance;
+        }
+
+        recordBalanceChange(previousBalance, currentBalance, timestamp = Date.now()) {
+            if (!Number.isFinite(previousBalance) || !Number.isFinite(currentBalance) || previousBalance === currentBalance) {
+                return this.snapshot();
+            }
+
+            const delta = currentBalance - previousBalance;
+            const round = {
+                wagered: delta < 0 ? Math.abs(delta) : 0,
+                won: delta > 0 ? delta : 0,
+                balance: currentBalance,
+                timestamp
+            };
+
+            return this.recordRound(round);
+        }
+
+        recordRound(round) {
+            const wagered = this.toMoneyValue(round.wagered);
+            const won = this.toMoneyValue(round.won);
+            const balance = Number.isFinite(round.balance) ? round.balance : null;
+            const timestamp = Number.isFinite(round.timestamp) ? round.timestamp : Date.now();
+            const isLoss = wagered > 0 && won <= 0;
+
+            this.rounds += 1;
+            this.wagered += wagered;
+            this.won += won;
+            this.updatedAt = timestamp;
+
+            if (balance !== null) {
+                if (this.startingBalance === null) this.startingBalance = balance;
+                this.currentBalance = balance;
+            }
+
+            if (this.lastRoundAt !== null && timestamp - this.lastRoundAt > 0 && timestamp - this.lastRoundAt <= 2000) {
+                this.fastRoundStreak += 1;
+            } else {
+                this.fastRoundStreak = 0;
+            }
+
+            this.consecutiveLosses = isLoss ? this.consecutiveLosses + 1 : 0;
+            this.lastRoundAt = timestamp;
+
+            return this.snapshot();
+        }
+
+        snapshot() {
+            const profitLoss = this.won - this.wagered;
+            const rtp = this.wagered > 0 ? (this.won / this.wagered) * 100 : null;
+            return {
+                startedAt: this.startedAt,
+                updatedAt: this.updatedAt,
+                rounds: this.rounds,
+                wagered: this.wagered,
+                won: this.won,
+                profitLoss,
+                rtp,
+                tiltScore: this.calculateTiltScore(rtp),
+                signalsAvailable: this.rounds > 0,
+                consecutiveLosses: this.consecutiveLosses
+            };
+        }
+
+        calculateTiltScore(rtp) {
+            if (this.rounds === 0) return 0;
+            const lossPressure = Math.min(35, this.consecutiveLosses * 10);
+            const pacePressure = Math.min(25, this.fastRoundStreak * 6);
+            const rtpPressure = rtp !== null && rtp < 50 ? 15 : 0;
+            const drawdownPressure = this.calculateDrawdownPressure();
+            return Math.min(100, Math.max(0, Math.round(lossPressure + pacePressure + rtpPressure + drawdownPressure)));
+        }
+
+        calculateDrawdownPressure() {
+            if (
+                this.startingBalance === null ||
+                this.currentBalance === null ||
+                this.startingBalance <= 0 ||
+                this.currentBalance >= this.startingBalance
+            ) {
+                return 0;
+            }
+
+            const drawdownPercent = (this.startingBalance - this.currentBalance) / this.startingBalance;
+            return Math.min(25, drawdownPercent * 50);
+        }
+
+        toMoneyValue(value) {
+            return Number.isFinite(value) ? Math.max(0, value) : 0;
+        }
+    }
+
     // --- Amount parsing (handles Stake's locale variations) ---
     function parseStakeAmount(text) {
         if (!text) return NaN;
@@ -971,6 +1080,8 @@
         }
         #tc-autovault-floaty .tc-stats {
             display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
             justify-content: space-between;
             padding-top: 10px;
             border-top: 1px solid ${BRAND.borderSubtle};
@@ -980,6 +1091,7 @@
             display: flex;
             flex-direction: column;
             gap: 3px;
+            min-width: 72px;
         }
         #tc-autovault-floaty .tc-stat-label {
             color: ${BRAND.textMuted};
@@ -1210,6 +1322,30 @@
                     <span class="tc-stat-label">Vaults / hr</span>
                     <span class="tc-stat-value" id="tcVaultCount">0/${RATE_LIMIT_MAX}</span>
                 </div>
+                <div class="tc-stat">
+                    <span class="tc-stat-label">Rounds</span>
+                    <span class="tc-stat-value" id="tcSessionRounds">0</span>
+                </div>
+                <div class="tc-stat">
+                    <span class="tc-stat-label">Wagered</span>
+                    <span class="tc-stat-value" id="tcSessionWagered">0.0000</span>
+                </div>
+                <div class="tc-stat">
+                    <span class="tc-stat-label">Won</span>
+                    <span class="tc-stat-value" id="tcSessionWon">0.0000</span>
+                </div>
+                <div class="tc-stat">
+                    <span class="tc-stat-label">P/L</span>
+                    <span class="tc-stat-value" id="tcSessionPl">0.0000</span>
+                </div>
+                <div class="tc-stat">
+                    <span class="tc-stat-label">RTP</span>
+                    <span class="tc-stat-value" id="tcSessionRtp">--</span>
+                </div>
+                <div class="tc-stat">
+                    <span class="tc-stat-label">Tilt</span>
+                    <span class="tc-stat-value" id="tcSessionTilt">0/100</span>
+                </div>
             </div>
         `;
         widget.appendChild(content);
@@ -1334,6 +1470,14 @@
         const startBtn = content.querySelector('#tcStartBtn');
         const stopBtn = content.querySelector('#tcStopBtn');
         const vaultCountEl = content.querySelector('#tcVaultCount');
+        const sessionEls = {
+            rounds: content.querySelector('#tcSessionRounds'),
+            wagered: content.querySelector('#tcSessionWagered'),
+            won: content.querySelector('#tcSessionWon'),
+            profitLoss: content.querySelector('#tcSessionPl'),
+            rtp: content.querySelector('#tcSessionRtp'),
+            tiltScore: content.querySelector('#tcSessionTilt')
+        };
 
         function updateVaultCountUI() {
             if (!vaultCountEl || !vaultCountEl.isConnected) return;
@@ -1349,6 +1493,32 @@
         window.__tcUpdateVaultCountUI = updateVaultCountUI;
         updateVaultCountUI();
         vaultCountUiInterval = setInterval(updateVaultCountUI, 10000);
+
+        function formatSessionAmount(value) {
+            const amount = Number.isFinite(value) ? value : 0;
+            const sign = amount < 0 ? '-' : '';
+            return `${sign}${Math.abs(amount).toFixed(4)}`;
+        }
+
+        function updateSessionStatsUI(snapshot) {
+            if (!snapshot) return;
+            if (sessionEls.rounds) sessionEls.rounds.textContent = String(snapshot.rounds);
+            if (sessionEls.wagered) sessionEls.wagered.textContent = formatSessionAmount(snapshot.wagered);
+            if (sessionEls.won) sessionEls.won.textContent = formatSessionAmount(snapshot.won);
+            if (sessionEls.profitLoss) {
+                sessionEls.profitLoss.textContent = formatSessionAmount(snapshot.profitLoss);
+                sessionEls.profitLoss.style.color = snapshot.profitLoss >= 0 ? BRAND.teal : BRAND.danger;
+            }
+            if (sessionEls.rtp) sessionEls.rtp.textContent = snapshot.rtp === null ? '--' : `${snapshot.rtp.toFixed(1)}%`;
+            if (sessionEls.tiltScore) {
+                sessionEls.tiltScore.textContent = `${snapshot.tiltScore}/100`;
+                sessionEls.tiltScore.style.color = snapshot.tiltScore >= 70
+                    ? BRAND.danger
+                    : snapshot.tiltScore >= 40
+                        ? BRAND.gold
+                        : BRAND.teal;
+            }
+        }
 
         function setRunningState(isRunning) {
             statusDot.classList.toggle('running', isRunning);
@@ -1398,7 +1568,8 @@
 
         return {
             setRunning: setRunningState,
-            updateVaultCount: updateVaultCountUI
+            updateVaultCount: updateVaultCountUI,
+            updateSessionStats: updateSessionStatsUI
         };
     }
 
@@ -1407,6 +1578,7 @@
     let apiBalanceInterval = null;
     let vaultDisplay = null;
     let stakeApi = null;
+    let sessionTracker = new SessionTracker();
     let activeCurrency = null;
     let oldBalance = 0;
     let lastBalance = 0;
@@ -1418,6 +1590,12 @@
     let lastVaultedDeposit = 0;
     let isRunning = false;
     let ui = null;
+
+    function publishSessionSnapshot(snapshot = sessionTracker.snapshot()) {
+        const readonlySnapshot = Object.freeze({ ...snapshot });
+        window.__tiltcheckSessionSnapshot = readonlySnapshot;
+        if (ui?.updateSessionStats) ui.updateSessionStats(readonlySnapshot);
+    }
 
     function getParams() {
         return {
@@ -1507,6 +1685,8 @@
             startApiBalancePolling();
             vaultDisplay.setCurrency(activeCurrency);
             vaultDisplay.reset();
+            sessionTracker.reset(0);
+            publishSessionSnapshot();
             isInitialized = false;
             balanceChecks = 0;
             updateCurrentBalance();
@@ -1521,6 +1701,8 @@
             oldBalance = cur;
             if (!isInitialized && balanceChecks++ >= MIN_BALANCE_CHECKS) {
                 isInitialized = true;
+                sessionTracker.reset(oldBalance);
+                publishSessionSnapshot();
                 log(`Initial balance locked: ${oldBalance.toFixed(8)} ${activeCurrency.toUpperCase()}`, 'info');
             }
         }
@@ -1536,12 +1718,16 @@
                 clearInterval(intv);
                 if (oldBalance > 0) {
                     isInitialized = true;
+                    sessionTracker.reset(oldBalance);
+                    publishSessionSnapshot();
                     log(`Starting balance: ${oldBalance.toFixed(8)} ${activeCurrency.toUpperCase()}`, 'info');
                 } else {
                     const cur = getCurrentBalance();
                     if (cur > 0) {
                         oldBalance = cur;
                         isInitialized = true;
+                        sessionTracker.reset(oldBalance);
+                        publishSessionSnapshot();
                         log(`Last attempt balance: ${oldBalance.toFixed(8)} ${activeCurrency.toUpperCase()}`, 'info');
                     } else {
                         log('Could not detect a starting balance. Reload the page after a deposit lands.', 'warning');
@@ -1689,10 +1875,12 @@
             const profit = cur - oldBalance;
             const isBig = cur > oldBalance * config.bigWinThreshold;
             const depAmt = profit * config.saveAmount * (isBig ? config.bigWinMultiplier : 1);
+            publishSessionSnapshot(sessionTracker.recordBalanceChange(oldBalance, cur));
             processDeposit(depAmt, isBig);
             oldBalance = cur;
         } else if (cur < oldBalance) {
             // Loss — reset baseline so the next win calculates from the new floor.
+            publishSessionSnapshot(sessionTracker.recordBalanceChange(oldBalance, cur));
             oldBalance = cur;
         }
 
@@ -1726,6 +1914,8 @@
                 genericLastBalance = cur;
                 if (genericInitChecks++ >= MIN_BALANCE_CHECKS) {
                     genericInitialized = true;
+                    sessionTracker.reset(cur);
+                    publishSessionSnapshot();
                     log(`Initial ${SITE.name} balance locked: ${cur.toFixed(4)}`, 'info');
                 }
             }
@@ -1736,6 +1926,7 @@
             const profit = cur - genericLastBalance;
             const isBig = cur > genericLastBalance * config.bigWinThreshold;
             const suggested = profit * config.saveAmount * (isBig ? config.bigWinMultiplier : 1);
+            publishSessionSnapshot(sessionTracker.recordBalanceChange(genericLastBalance, cur));
 
             const sinceLast = Date.now() - genericLastNudge;
             if (sinceLast < GENERIC_NUDGE_COOLDOWN_MS) {
@@ -1758,6 +1949,7 @@
             genericLastBalance = cur;
         } else if (cur < genericLastBalance) {
             // Loss: reset baseline so the next win calculates from the new floor.
+            publishSessionSnapshot(sessionTracker.recordBalanceChange(genericLastBalance, cur));
             genericLastBalance = cur;
         }
     }
@@ -1781,6 +1973,8 @@
             lastDepositAmount = 0;
             lastBalance = getCurrentBalance();
             lastVaultedDeposit = 0;
+            sessionTracker.reset(lastBalance);
+            publishSessionSnapshot();
             vaultActionTimestamps = loadRateLimitData();
 
             initializeBalance();
@@ -1799,6 +1993,8 @@
             genericInitChecks = 0;
             genericLastNudge = 0;
             checkGenericBalanceChanges._warned = false;
+            sessionTracker.reset(null);
+            publishSessionSnapshot();
 
             // First sweep is immediate so the user gets fast feedback that we
             // can read their balance.

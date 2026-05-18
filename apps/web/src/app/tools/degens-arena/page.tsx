@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
@@ -16,16 +16,16 @@ const HOW_IT_WORKS = [
   },
   {
     eyebrow: '03 // CLAIM THE DROP',
-    title: 'Top players take the bag',
-    body: 'Winners take SOL drops, community clout, and early access priority for future arena formats. If you are sharp, you get paid for being sharp.',
+    title: 'Earn the flex',
+    body: 'Top players take community clout and early access priority. SOL drops stay off until the published rules clear legal review.',
   },
 ];
 
 const REASONS_TO_JOIN = [
   'No house edge. No slots. No fake “entertainment” tax.',
   'Built to redirect tilt energy into something skill-based.',
-  'You can fund the pot on web and test the room in Activity.',
-  'Discord rounds are still live via /triviadrop when you want the public room.',
+  'You can view the voluntary treasury on web and test the room in Activity.',
+  'Discord is the community rail after rules and command copy clear review.',
 ];
 
 const ROUND_FORMAT = [
@@ -52,10 +52,10 @@ const RELATED_SURFACES = [
     cta: 'Open Activity',
   },
   {
-    title: 'Fund the jackpot',
+    title: 'View the trivia treasury',
     href: '/pay/jackpot?amount=1',
-    body: 'The web funding rail is live now. Seed the trivia pot from your own wallet before you run the next round.',
-    cta: 'Fund Pot',
+    body: 'The web treasury page publishes the voluntary wallet address and makes the rules status blunt: no guaranteed pool, no enabled payout until review clears.',
+    cta: 'View Treasury',
   },
   {
     title: 'Join the live Discord drops',
@@ -86,7 +86,7 @@ const RELATED_SURFACES = [
 
 export const metadata: Metadata = {
   title: 'TiltCheck | Live Trivia',
-  description: 'Live TriviaDrop details, round format, and where to join the skill-only SOL drop experience.',
+  description: 'Live TriviaDrop details, round format, voluntary treasury status, and review gates before SOL drops.',
 };
 
 export default function DegensArenaPage() {
@@ -105,10 +105,10 @@ export default function DegensArenaPage() {
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd700]">Web funding surface</span>
             </div>
             <p className="max-w-2xl text-lg leading-relaxed text-gray-300 md:text-xl">
-              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. Take the SOL drop. The web now handles jackpot funding, Activity handles fast room testing, and Discord still carries the public drop rail.
+              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. The web now publishes the voluntary treasury, Activity handles fast room testing, and Discord carries the public room after rules clear.
             </p>
             <p className="mt-5 max-w-2xl text-sm font-mono leading-relaxed text-gray-500">
-              Current funding path: <span className="text-[#17c3b2]">/pay/jackpot</span> on web. Current fast test path: <span className="text-[#17c3b2]">activity.tiltcheck.me</span>. Current public drop path: <span className="text-[#17c3b2]">/triviadrop</span> in Discord.
+              Current treasury path: <span className="text-[#17c3b2]">/pay/jackpot</span> on web. Current fast test path: <span className="text-[#17c3b2]">activity.tiltcheck.me</span>. Public Discord drops wait for published rules and reviewed copy.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a
@@ -120,7 +120,7 @@ export default function DegensArenaPage() {
                 Open Activity
               </a>
               <Link href="/pay/jackpot?amount=1" className="btn btn-secondary px-6 py-3 font-black">
-                Fund Jackpot
+                View Treasury
               </Link>
               <a
                 href="https://discord.gg/gdBsEJfCar"
@@ -128,7 +128,7 @@ export default function DegensArenaPage() {
                 rel="noopener noreferrer"
                 className="border border-[#283347] px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-[#17c3b2] hover:text-[#17c3b2]"
               >
-                Join Live Drops
+                Join Discord
               </a>
               <Link href="/tools" className="btn btn-secondary px-6 py-3 font-black">
                 See All Tools
@@ -142,10 +142,10 @@ export default function DegensArenaPage() {
           <div className="grid w-full max-w-xl grid-cols-2 gap-4">
             {[
               ['Format', 'Live trivia drops'],
-              ['Payout Logic', 'Skill only'],
-              ['Funding Surface', 'Web /pay/jackpot'],
+              ['Payout Status', 'Rules review pending'],
+              ['Treasury Surface', 'Web /pay/jackpot'],
               ['Test Surface', 'Activity host'],
-              ['Public Drop Surface', 'Discord /triviadrop'],
+              ['Public Drop Surface', 'Discord after review'],
             ].map(([label, value]) => (
               <div key={label} className="border border-[#283347] bg-black/30 p-5">
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-gray-500">{label}</p>

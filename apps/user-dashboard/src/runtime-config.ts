@@ -21,8 +21,13 @@ export function resolveDashboardPort(env: DashboardRuntimeEnv): string {
 }
 
 export function resolveCanonicalApiBaseUrl(env: DashboardRuntimeEnv): string {
+  const explicitApiBaseUrl = env.TILT_API_BASE_URL?.trim();
+  if (explicitApiBaseUrl) {
+    return explicitApiBaseUrl;
+  }
+
   if (env.NODE_ENV === 'production') {
-    return env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me';
+    return 'https://api.tiltcheck.me';
   }
 
   return 'http://localhost:8080';

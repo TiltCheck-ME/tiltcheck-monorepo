@@ -1,7 +1,6 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
-// Jackpot view — Live Trivia prize pool fed by JustTheTip
-// The "jackpot" IS the trivia prize pool. It grows from /rain, /triviadrop funding,
-// and direct Solana Pay deposits. Winner of the Live Trivia HQ game takes it.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
+// Jackpot view - voluntary Live Trivia treasury.
+// Prize and payout rules stay disabled until legal review clears the public rules.
 
 import * as relay from '../relay.js';
 import { openExternal } from '../sdk.js';
@@ -80,14 +79,14 @@ function render(): void {
     <div class="card" style="margin-top:0.75rem;">
       <p class="card__eyebrow">How the jackpot works</p>
       <p class="card__body">
-        The pot grows from <strong>/rain</strong> drops, <strong>/triviadrop</strong> escrow funding,
-        and direct Solana Pay deposits. Winner of the Live Trivia HQ game takes it all.
-        No entry fee. Just survive the questions.
+        The treasury grows from voluntary direct deposits only. No entry fee, no guaranteed
+        prize pool, and no payout promise until the public rules clear review. Big yikes if
+        anyone sells it like a guaranteed bag.
       </p>
     </div>
 
     <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
-      <button id="btn-fund" class="btn btn--primary" style="flex:1;">Fund the Pot</button>
+      <button id="btn-fund" class="btn btn--primary" style="flex:1;">View Treasury</button>
       <button id="btn-play" class="btn" style="flex:1;">Play Trivia</button>
     </div>
   `;

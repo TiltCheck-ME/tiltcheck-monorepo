@@ -52,6 +52,7 @@ import type {
   VaultRule,
   CreateVaultRulePayload,
   UpdateVaultRulePayload,
+  UserSettingsRow,
 } from './types.js';
 
 let supabaseAdminClient: SupabaseClient | null | undefined;
@@ -692,6 +693,75 @@ export async function updateUser(id: string, payload: UpdateUserPayload): Promis
     () => update<User>('users', id, data),
     async (client) => updateSupabaseUser(client, id, data)
   );
+}
+
+// ============================================================================
+// Canonical user settings document (v1)
+// ============================================================================
+
+export async function getUserSettingsRow(userId: string): Promise<UserSettingsRow | null> {
+  const client = getSupabaseAdminClient();
+  if (client) {
+    const { data, error } = await client
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('[DB] Error fetching user settings:', error);
+      return null;
+    }
+
+    return (data ?? null) as UserSettingsRow | null;
+  }
+
+  return queryOne<UserSettingsRow>(
+    'SELECT user_id, settings_version, settings, updated_at FROM user_settings WHERE user_id = $1',
+    [userId],
+  );
+}
+
+export async function upsertUserSettingsRow(input: {
+  userId: string;
+  settingsVersion: number;
+  settings: Record<string, unknown>;
+}): Promise<UserSettingsRow | null> {
+  const payload = {
+    user_id: input.userId,
+    settings_version: input.settingsVersion,
+    settings: input.settings,
+    updated_at: new Date(),
+  };
+
+  const client = getSupabaseAdminClient();
+  if (client) {
+    const { data, error } = await client
+      .from('user_settings')
+      .upsert(serializeSupabasePayload(payload))
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[DB] Error upserting user settings:', error);
+      return null;
+    }
+
+    return data as UserSettingsRow;
+  }
+
+  const sql = `
+    INSERT INTO user_settings (user_id, settings_version, settings, updated_at)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (user_id)
+    DO UPDATE SET
+      settings_version = EXCLUDED.settings_version,
+      settings = EXCLUDED.settings,
+      updated_at = EXCLUDED.updated_at
+    RETURNING user_id, settings_version, settings, updated_at
+  `;
+
+  return queryOne<UserSettingsRow>(sql, [payload.user_id, payload.settings_version, payload.settings, payload.updated_at]);
 }
 
 /**

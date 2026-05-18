@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * @vitest-environment jsdom
  */
@@ -11,6 +11,10 @@ const flush = async () => {
   await Promise.resolve();
   await Promise.resolve();
 };
+
+function postedPayloads(spy: ReturnType<typeof vi.spyOn>): any[] {
+  return spy.mock.calls.map(([payload]) => payload);
+}
 
 function createChromeMock() {
   const listeners: OnMessageHandler[] = [];
@@ -113,6 +117,8 @@ function mockContentDependencies() {
           issuingAuthority: 'Malta Gaming Authority',
           jurisdiction: 'Malta',
           verified: true,
+          source: 'Current page footer scan',
+          lastVerifiedAt: '2026-05-09T00:00:00.000Z',
           warnings: [],
         },
         verdict: 'legitimate',
@@ -124,12 +130,31 @@ function mockContentDependencies() {
       buildLicensePresentation: vi.fn().mockImplementation((verification) => ({
         summary: verification?.warningMessage ?? 'License verified: Malta Gaming Authority',
         tone: verification?.shouldAnalyze === false ? 'risk' : 'verified',
+        details: ['Source: test registry', 'Last verified: test run', 'Not legal advice.'],
       })),
       getAnalysisBlockMessage: vi.fn().mockImplementation((verification) => verification?.shouldAnalyze === false ? verification.warningMessage : null),
     };
   });
 
-  vi.doMock('../../src/sidebar.js', () => ({}));
+  vi.doMock('../../src/sidebar/index.js', () => ({
+    initSidebar: vi.fn(() => {
+      let sidebar = document.getElementById('tiltcheck-sidebar');
+      if (!sidebar) {
+        sidebar = document.createElement('div');
+        sidebar.id = 'tiltcheck-sidebar';
+        document.body.appendChild(sidebar);
+      }
+      return {
+        updateLicense: vi.fn(),
+        updateStatus: vi.fn(),
+        updateRealityCheck: vi.fn(),
+        addFeedMessage: vi.fn(),
+        updateTilt: vi.fn(),
+        updateStats: vi.fn(),
+        notifyBuddy: vi.fn(),
+      };
+    }),
+  }));
 
   vi.doMock('../../src/analyzer.js', () => {
     class MockAnalyzer {}
@@ -160,6 +185,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
+    document.head.innerHTML = '';
     document.body.innerHTML = '';
   });
 
@@ -203,6 +229,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
 
     const toggleResponse = vi.fn();
     onMessage({ type: 'toggle_sidebar' }, null, toggleResponse);
+    await flush();
     expect(toggleResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
@@ -212,6 +239,9 @@ describe('Sidebar/content/page-bridge message contracts', () => {
 
     const openResponse = vi.fn();
     onMessage({ type: 'open_sidebar' }, null, openResponse);
+    await vi.waitFor(() => {
+      expect(openResponse).toHaveBeenCalled();
+    });
     expect(openResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
@@ -258,6 +288,164 @@ describe('Sidebar/content/page-bridge message contracts', () => {
       }),
       '*',
     );
+  });
+
+  it('validates versioned native-web bridge commands', async () => {
+    const bridge = await import('../../src/native-web-bridge.ts');
+
+    expect(bridge.isNativeToWebBridgeMessage({
+      version: bridge.TILTCHECK_BRIDGE_VERSION,
+      type: 'init',
+      features: { wallet: true },
+      config: { logLevel: 'debug' },
+    })).toBe(true);
+
+    expect(bridge.isNativeToWebBridgeMessage({
+      version: 2,
+      type: 'init',
+    })).toBe(false);
+
+    expect(bridge.isNativeToWebBridgeMessage({
+      version: bridge.TILTCHECK_BRIDGE_VERSION,
+      type: 'module.start',
+    })).toBe(false);
+  });
+
+  it('handles native-web bridge init, module control, status, logs, and errors', async () => {
+    const bridge = await import('../../src/native-web-bridge.ts');
+    const postMessageSpy = vi.spyOn(window, 'postMessage').mockImplementation(() => {});
+
+    await import('../../src/page-bridge.ts');
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: window,
+        data: {
+          source: bridge.BRIDGE_SOURCE_NATIVE,
+          version: bridge.TILTCHECK_BRIDGE_VERSION,
+          type: 'init',
+          requestId: 'init-1',
+          features: { wallet: true },
+          config: { logLevel: 'debug' },
+        },
+      }),
+    );
+
+    await flush();
+
+    expect(postedPayloads(postMessageSpy)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        source: bridge.BRIDGE_SOURCE_WEB,
+        version: bridge.TILTCHECK_BRIDGE_VERSION,
+        type: 'log',
+        level: 'info',
+        message: 'Bridge initialized',
+      }),
+      expect.objectContaining({
+        source: bridge.BRIDGE_SOURCE_WEB,
+        version: bridge.TILTCHECK_BRIDGE_VERSION,
+        type: 'status.response',
+        requestId: 'init-1',
+        status: expect.objectContaining({
+          initialized: true,
+          features: { wallet: true },
+          config: { logLevel: 'debug' },
+        }),
+      }),
+    ]));
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: window,
+        data: {
+          source: bridge.BRIDGE_SOURCE_NATIVE,
+          version: bridge.TILTCHECK_BRIDGE_VERSION,
+          type: 'module.start',
+          module: 'wallet',
+          requestId: 'start-1',
+        },
+      }),
+    );
+    await flush();
+
+    expect(postedPayloads(postMessageSpy)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        source: bridge.BRIDGE_SOURCE_WEB,
+        version: bridge.TILTCHECK_BRIDGE_VERSION,
+        type: 'module.state',
+        module: 'wallet',
+        state: 'running',
+        requestId: 'start-1',
+      }),
+    ]));
+
+    window.TiltCheckBridge?.log('warn', 'Synthetic bridge log', { module: 'wallet' });
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: window,
+        data: {
+          source: bridge.BRIDGE_SOURCE_NATIVE,
+          version: bridge.TILTCHECK_BRIDGE_VERSION,
+          type: 'status.request',
+          requestId: 'status-1',
+        },
+      }),
+    );
+    await flush();
+
+    expect(postedPayloads(postMessageSpy)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        source: bridge.BRIDGE_SOURCE_WEB,
+        version: bridge.TILTCHECK_BRIDGE_VERSION,
+        type: 'log',
+        level: 'warn',
+        message: 'Synthetic bridge log',
+        context: { module: 'wallet' },
+      }),
+      expect.objectContaining({
+        source: bridge.BRIDGE_SOURCE_WEB,
+        version: bridge.TILTCHECK_BRIDGE_VERSION,
+        type: 'status.response',
+        requestId: 'status-1',
+        status: expect.objectContaining({
+          initialized: true,
+          modules: expect.arrayContaining([
+            expect.objectContaining({
+              module: 'wallet',
+              state: 'running',
+              details: expect.objectContaining({
+                enabled: true,
+              }),
+            }),
+          ]),
+        }),
+      }),
+    ]));
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        source: window,
+        data: {
+          source: bridge.BRIDGE_SOURCE_NATIVE,
+          version: bridge.TILTCHECK_BRIDGE_VERSION,
+          type: 'module.start',
+          module: 'missing',
+          requestId: 'missing-1',
+        },
+      }),
+    );
+    await flush();
+
+    expect(postedPayloads(postMessageSpy)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        source: bridge.BRIDGE_SOURCE_WEB,
+        version: bridge.TILTCHECK_BRIDGE_VERSION,
+        type: 'error',
+        code: 'UNKNOWN_MODULE',
+        requestId: 'missing-1',
+      }),
+    ]));
   });
 
   it('resolves wallet-bridge sendTransaction only on matching requestId', async () => {

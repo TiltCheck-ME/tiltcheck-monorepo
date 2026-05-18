@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09",
   "name": "@tiltcheck/shared",
   "version": "0.1.0",
   "description": "Shared SDK for TiltCheck API",
@@ -39,6 +40,10 @@
     "./fairness": {
       "types": "./dist/fairness.d.ts",
       "import": "./dist/fairness.js"
+    },
+    "./fairness-toolkit": {
+      "types": "./dist/fairness-toolkit.d.ts",
+      "import": "./dist/fairness-toolkit.js"
     },
     "./community-casinos": {
       "types": "./dist/community-casinos.d.ts",

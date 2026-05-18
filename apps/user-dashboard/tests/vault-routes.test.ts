@@ -131,6 +131,17 @@ describe('user-dashboard safety control routes', () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
       success: true,
       vault: {
+        balance: 0,
+        locks: [],
+      },
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      success: true,
+      vault: {
         id: 'v1',
         unlockAt: Date.now() + 3_600_000,
         lockedAmountSOL: 1.5,

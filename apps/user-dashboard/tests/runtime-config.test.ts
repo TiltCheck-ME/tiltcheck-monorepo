@@ -14,11 +14,15 @@ describe('resolveDashboardPort', () => {
 });
 
 describe('resolveCanonicalApiBaseUrl', () => {
-  it('uses the local API surface during development even when a production API base is present', () => {
-    expect(resolveCanonicalApiBaseUrl({ NODE_ENV: 'development', TILT_API_BASE_URL: 'https://api.tiltcheck.me' })).toBe('http://localhost:8080');
+  it('uses the configured API base when provided', () => {
+    expect(resolveCanonicalApiBaseUrl({ NODE_ENV: 'development', TILT_API_BASE_URL: 'https://api.tiltcheck.me' })).toBe('https://api.tiltcheck.me');
   });
 
   it('uses the configured API base in production', () => {
     expect(resolveCanonicalApiBaseUrl({ NODE_ENV: 'production', TILT_API_BASE_URL: 'https://api.internal.tiltcheck.me' })).toBe('https://api.internal.tiltcheck.me');
+  });
+
+  it('falls back to the local API surface during development', () => {
+    expect(resolveCanonicalApiBaseUrl({ NODE_ENV: 'development' })).toBe('http://localhost:8080');
   });
 });

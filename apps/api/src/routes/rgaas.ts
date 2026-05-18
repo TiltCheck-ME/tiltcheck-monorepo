@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 /**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
@@ -79,6 +79,10 @@ const licenseRegistry: {
     return { regulators: {}, operators: [] };
   }
 })();
+
+const LICENSE_REGISTRY_SOURCE = 'TiltCheck license registry';
+const LICENSE_REGISTRY_LAST_VERIFIED_AT = '2026-04-09';
+const LICENSE_REGISTRY_LEGAL_NOTE = 'Registry match is informational only, not legal advice or regulator endorsement.';
 
 const SHADOW_BAN_SIGNAL_WINDOW_MS = 45 * 24 * 60 * 60 * 1000;
 const TRACKED_CASINO_KEYS = ['stake', 'rollbit', 'roobet', 'bc.game', 'shuffle', 'gamdom'] as const;
@@ -863,6 +867,9 @@ router.get('/license-check', (req, res) => {
       licenseNote: regulator?.['note' as keyof typeof regulator] ?? null,
       verifyUrl: regulator?.verifyUrl ?? null,
       active: match.active,
+      source: LICENSE_REGISTRY_SOURCE,
+      lastVerifiedAt: LICENSE_REGISTRY_LAST_VERIFIED_AT,
+      legalDisclaimer: LICENSE_REGISTRY_LEGAL_NOTE,
     });
   } else {
     res.json({
@@ -873,6 +880,9 @@ router.get('/license-check', (req, res) => {
       regulator: null,
       regulatorName: null,
       note: 'Domain not found in TiltCheck license registry. This does not confirm or deny legitimacy.',
+      source: LICENSE_REGISTRY_SOURCE,
+      lastVerifiedAt: LICENSE_REGISTRY_LAST_VERIFIED_AT,
+      legalDisclaimer: LICENSE_REGISTRY_LEGAL_NOTE,
     });
   }
 });

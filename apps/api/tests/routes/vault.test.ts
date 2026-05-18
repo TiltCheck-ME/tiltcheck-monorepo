@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -126,8 +126,8 @@ describe('Vault Routes', () => {
         status: 'completed',
         feeAmountSOL: 0.15,
         feeAllocationSOL: {
-          triviaSOL: 0.06,
-          micrograntSOL: 0.06,
+          triviaSOL: 0,
+          micrograntSOL: 0.12,
           devSOL: 0.03,
         },
       },
@@ -446,20 +446,20 @@ describe('Vault Routes', () => {
     expect(lockvaultMock.approveAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
   });
 
-  it('settles paid early unlock and credits community pools', async () => {
+  it('settles paid early unlock without routing fees to the trivia jackpot', async () => {
     const res = await request(app).post('/vault/user-1/wallet-unlock-pay').send({});
     expect(res.status).toBe(200);
     expect(res.body.feeRouted).toBe(true);
     expect(lockvaultMock.settlePaidWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
     expect(res.body.feeAllocationSOL).toEqual({
-      triviaSOL: 0.06,
-      micrograntSOL: 0.06,
+      triviaSOL: 0,
+      micrograntSOL: 0.12,
       devSOL: 0.03,
     });
     expect(poolsMock.creditEarlyUnlockFeeSplits).toHaveBeenCalledWith({
       userId: 'user-1',
-      triviaSOL: 0.06,
-      micrograntSOL: 0.06,
+      triviaSOL: 0,
+      micrograntSOL: 0.12,
       devSOL: 0.03,
     });
   });

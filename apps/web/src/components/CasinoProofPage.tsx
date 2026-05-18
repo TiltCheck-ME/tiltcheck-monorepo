@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -19,6 +19,9 @@ import {
 import type { CasinoSeedAuditSurface } from '@/lib/seed-audit-surface';
 
 const LOGIN_URL = '/login?redirect=%2Fdashboard';
+const LICENSE_STALE_DAYS = 30;
+const LIVE_TRUST_STALE_HOURS = 48;
+const DEFAULT_LICENSE_LEGAL_NOTE = 'Not legal advice. Registry evidence is not regulator endorsement.';
 
 type FetchState = 'loading' | 'ready' | 'unavailable';
 
@@ -30,8 +33,12 @@ interface LicenseInfo {
   regulatorTier?: number | null;
   licenseId?: string | null;
   note?: string | null;
+  licenseNote?: string | null;
   verifyUrl?: string | null;
   active?: boolean;
+  source?: string | null;
+  lastVerifiedAt?: string | null;
+  legalDisclaimer?: string | null;
 }
 
 interface DomainResult {
@@ -148,6 +155,24 @@ function formatDate(value?: string | null): string {
   }
 
   return new Date(parsed).toLocaleDateString();
+}
+
+function isOlderThan(value: string | null | undefined, maxAgeMs: number): boolean {
+  if (!value) {
+    return false;
+  }
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+
+  return Date.now() - parsed > maxAgeMs;
+}
+
+function formatSource(value: string | null | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return trimmed || fallback;
 }
 
 function ProofBadge({ status }: { status: 'live' | 'baseline' | 'warning' | 'unavailable' }) {
@@ -433,6 +458,15 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
     : hasLiveFeed
       ? 'No live match timestamp'
       : 'Feed unavailable';
+  const liveTrustIsStale = isOlderThan(proof.liveScore?.updatedAt, LIVE_TRUST_STALE_HOURS * 60 * 60 * 1000);
+  const licenseSourceLabel = proof.licenseStatus === 'ready'
+    ? formatSource(proof.license?.source, 'TiltCheck license registry')
+    : 'Registry unavailable';
+  const licenseLastVerifiedLabel = proof.licenseStatus === 'ready'
+    ? formatDate(proof.license?.lastVerifiedAt)
+    : 'Registry unavailable';
+  const licenseIsStale = isOlderThan(proof.license?.lastVerifiedAt, LICENSE_STALE_DAYS * 24 * 60 * 60 * 1000);
+  const licenseLegalNote = proof.license?.legalDisclaimer || DEFAULT_LICENSE_LEGAL_NOTE;
   const seedAuditStatus = seedAudit.summary.statusTone;
   const seedAuditRequiredFields = seedAudit.support.requiredFields;
 
@@ -471,6 +505,16 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                 {proof.liveScore && (
                   <span className="border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">
                     {proof.liveScore.events24h} live events / 24h
+                  </span>
+                )}
+                {liveTrustIsStale && (
+                  <span className="border border-[#ffd700]/30 bg-[#ffd700]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#ffd700]">
+                    Trust feed stale
+                  </span>
+                )}
+                {licenseIsStale && (
+                  <span className="border border-[#ffd700]/30 bg-[#ffd700]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#ffd700]">
+                    License source stale
                   </span>
                 )}
               </div>
@@ -540,6 +584,14 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                 <div className="flex items-start justify-between gap-4">
                   <dt className="text-gray-500">Last live update</dt>
                   <dd className="text-right text-white">{lastLiveUpdateLabel}</dd>
+                </div>
+                <div className="flex items-start justify-between gap-4">
+                  <dt className="text-gray-500">License source</dt>
+                  <dd className="text-right text-white">{licenseSourceLabel}</dd>
+                </div>
+                <div className="flex items-start justify-between gap-4">
+                  <dt className="text-gray-500">License last verified</dt>
+                  <dd className="text-right text-white">{licenseLastVerifiedLabel}</dd>
                 </div>
               </dl>
             </aside>
@@ -657,6 +709,21 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                 <p className="text-sm text-gray-400">
                   {proof.liveScore.events24h} live trust events were observed in the last 24 hours.
                 </p>
+                <dl className="rounded-xl border border-[#283347] bg-black/30 p-4 text-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <dt className="text-gray-500">Source</dt>
+                    <dd className="text-right text-white">{liveSourceLabel}</dd>
+                  </div>
+                  <div className="mt-2 flex items-start justify-between gap-4">
+                    <dt className="text-gray-500">Last verified</dt>
+                    <dd className="text-right text-white">{lastLiveUpdateLabel}</dd>
+                  </div>
+                </dl>
+                {liveTrustIsStale && (
+                  <p className="rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/5 p-3 text-sm text-[#ffd700]">
+                    Stale warning: this trust signal is older than {LIVE_TRUST_STALE_HOURS} hours. Treat it as reference-only until fresh events land.
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-sm text-gray-400">
@@ -681,6 +748,21 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Source</p>
+                    <p className="mt-2 text-sm text-white">{licenseSourceLabel}</p>
+                  </div>
+                  <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Last verified</p>
+                    <p className="mt-2 text-sm text-white">{licenseLastVerifiedLabel}</p>
+                  </div>
+                </div>
+                {licenseIsStale && (
+                  <p className="rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/5 p-3 text-sm text-[#ffd700]">
+                    Stale warning: this license source is older than {LICENSE_STALE_DAYS} days. Verify at the source before trusting the read.
+                  </p>
+                )}
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-xl border border-[#283347] bg-black/30 p-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Registry status</p>
                     <p className="mt-2 text-sm text-white">
                       {proof.licenseStatus === 'ready'
@@ -703,6 +785,9 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                       <p>Registry match: <span className="text-white">{proof.license.brand}</span></p>
                       <p>Regulator: <span className="text-[#17c3b2]">{proof.license.regulatorName}</span></p>
                       {proof.license.licenseId && <p>License ID: <span className="font-mono text-white">{proof.license.licenseId}</span></p>}
+                      {(proof.license.licenseNote || proof.license.note) && (
+                        <p className="text-gray-400">{proof.license.licenseNote || proof.license.note}</p>
+                      )}
                       {proof.license.verifyUrl && (
                         <a href={proof.license.verifyUrl} target="_blank" rel="noreferrer" className="text-[#17c3b2] hover:underline">
                           Open regulator verification
@@ -726,6 +811,9 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                     <p className="mt-2 text-sm text-gray-400">{proof.domainResult.message}</p>
                   </div>
                 )}
+                <p className="rounded-xl border border-[#283347] bg-black/30 p-3 text-sm text-gray-400">
+                  {licenseLegalNote}
+                </p>
               </div>
             ) : (
               <p className="text-sm text-gray-400">

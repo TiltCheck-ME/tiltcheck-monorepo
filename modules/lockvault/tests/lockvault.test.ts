@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const databaseMock = vi.hoisted(() => ({
@@ -278,9 +278,8 @@ describe('LockVault Module', () => {
     ]);
   });
 
-  it('paid early unlock quotes fee then settles with split deductions', async () => {
+  it('paid early unlock quotes fee then settles without funding the trivia jackpot', async () => {
     vi.stubEnv('WALLET_EARLY_UNLOCK_DEV_PERCENT_OF_BALANCE', '2');
-    vi.stubEnv('WALLET_EARLY_UNLOCK_TRIVIA_SHARE_OF_REMAINDER', '0.5');
     try {
       const rec = await vaultManager.lock({
         userId: 'u1',
@@ -303,8 +302,8 @@ describe('LockVault Module', () => {
       const payload = JSON.parse(h!.note || '{}');
       expect(payload.feeTotalSOL).toBeCloseTo(1, 5);
       expect(payload.devSOL).toBeCloseTo(0.2, 5);
-      expect(payload.triviaSOL).toBeCloseTo(0.4, 5);
-      expect(payload.micrograntSOL).toBeCloseTo(0.4, 5);
+      expect(payload.triviaSOL).toBe(0);
+      expect(payload.micrograntSOL).toBeCloseTo(0.8, 5);
 
       expect(vaultManager.getWalletActionLock('u1')).toBeNull();
     } finally {
