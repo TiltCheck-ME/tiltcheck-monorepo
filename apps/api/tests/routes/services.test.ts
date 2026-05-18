@@ -45,14 +45,12 @@ describe('Services Routes', () => {
     });
 
     describe('POST /services/forward/:service', () => {
-        it('should return 501 not implemented', async () => {
+        it('should return 410 gone (forwarding removed)', async () => {
             const response = await request(app).post('/services/forward/auth-service').send();
-            expect(response.status).toBe(501);
+            expect(response.status).toBe(410);
             expect(response.body.success).toBe(false);
-            expect(response.body.code).toBe('FORWARD_NOT_IMPLEMENTED');
-            expect(response.body.message).toBe('Service forwarding is not implemented for beta');
-            expect(response.body.caller).toBe('mock-service');
-            expect(response.body.target).toBe('auth-service');
+            expect(response.body.code).toBe('FORWARD_REMOVED');
+            expect(response.body.message).toContain('removed');
         });
     });
 });
