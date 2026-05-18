@@ -1,12 +1,10 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { casino } from '../../src/commands/casino.js';
-import { db } from '@tiltcheck/database';
+import { findCasinoByDomain } from '@tiltcheck/db';
 
-vi.mock('@tiltcheck/database', () => ({
-    db: {
-        getCasino: vi.fn(),
-    }
+vi.mock('@tiltcheck/db', () => ({
+    findCasinoByDomain: vi.fn(),
 }));
 
 describe('Casino Command', () => {
@@ -31,26 +29,28 @@ describe('Casino Command', () => {
 
     it('should reply with error if casino not found', async () => {
         mockGetString.mockReturnValue('nonexistent.com');
-        vi.mocked(db.getCasino).mockResolvedValueOnce(null as any);
+        vi.mocked(findCasinoByDomain).mockResolvedValueOnce(null as any);
 
         await casino.execute(mockInteraction);
 
         expect(mockDeferReply).toHaveBeenCalled();
         expect(mockEditReply).toHaveBeenCalledWith({
-            content: `❌ No data found for **nonexistent.com**.\n\nTry domains like \`stake.com\`, \`rollbit.com\`, or \`duelbits.com\`.`
+            content: `No audit data on **nonexistent.com** yet. Try stake.com, rollbit.com, or duelbits.com.`
         });
     });
 
     it('should display casino trust data when found', async () => {
         mockGetString.mockReturnValue('validcasino.com');
-        vi.mocked(db.getCasino).mockResolvedValueOnce({
+        vi.mocked(findCasinoByDomain).mockResolvedValueOnce({
             name: 'Valid Casino',
             domain: 'validcasino.com',
-            status: 'active',
-            claimed_rtp: 95,
-            verified_rtp: 94.5,
             updated_at: new Date().toISOString(),
-            license_info: { Curacao: '123' }
+            metadata: {
+                status: 'active',
+                claimed_rtp: 95,
+                verified_rtp: 94.5,
+                license_info: { Curacao: '123' }
+            }
         } as any);
 
         await casino.execute(mockInteraction);
@@ -60,17 +60,17 @@ describe('Casino Command', () => {
 
         const callArg = mockEditReply.mock.calls[0][0];
         expect(callArg.embeds).toBeDefined();
-        expect(callArg.embeds[0].data.title).toContain('Valid Casino');
+        expect(callArg.embeds[0].data.title).toContain('VALID CASINO');
         expect(callArg.embeds[0].data.fields[0].value).toBe('ACTIVE');
     });
 
     it('should handle service errors gracefully', async () => {
         mockGetString.mockReturnValue('errorcasino.com');
-        vi.mocked(db.getCasino).mockRejectedValueOnce(new Error('Db err'));
+        vi.mocked(findCasinoByDomain).mockRejectedValueOnce(new Error('Db err'));
 
         await casino.execute(mockInteraction);
 
         expect(mockDeferReply).toHaveBeenCalled();
-        expect(mockEditReply).toHaveBeenCalledWith({ content: '❌ Failed to fetch casino data.' });
+        expect(mockEditReply).toHaveBeenCalledWith({ content: 'Casino audit pull bricked. Run it again.' });
     });
 });

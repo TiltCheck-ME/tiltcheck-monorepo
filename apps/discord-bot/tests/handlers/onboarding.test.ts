@@ -110,7 +110,10 @@ describe('Onboarding Handler', () => {
                 notifications: { tips: true, trivia: false, promos: true },
                 riskLevel: 'degen' as const,
                 cooldownEnabled: false,
-                hasAcceptedTerms: true
+                voiceInterventionEnabled: false,
+                hasAcceptedTerms: true,
+                quizScores: {},
+                tutorialCompleted: false,
             };
 
             saveUserPreferences(prefs);

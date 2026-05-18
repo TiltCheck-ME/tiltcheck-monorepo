@@ -30,6 +30,11 @@ describe('control-room readiness', () => {
     expect(response.status).toBe(401);
   });
 
+  it('protects analytics summary behind auth', async () => {
+    const response = await request(app).get('/api/analytics/summary');
+    expect(response.status).toBe(401);
+  });
+
   it('reports auth status payload for login screen routing', async () => {
     const response = await request(app).get('/api/auth/status');
     expect(response.status).toBe(200);

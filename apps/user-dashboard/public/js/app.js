@@ -234,6 +234,21 @@ async function loadUserProfile() {
             setText('externalWalletDisplay', addr.slice(0, 6) + '...' + addr.slice(-4));
         }
 
+        if (user.degenIdentity?.magic_address) {
+            const addr = user.degenIdentity.magic_address;
+            setText('magicWalletDisplay', addr.slice(0, 6) + '...' + addr.slice(-4));
+            const magicRow = document.getElementById('magic-wallet-row');
+            if (magicRow) magicRow.style.display = 'flex';
+            const magicBtn = document.getElementById('link-magic-wallet-btn');
+            if (magicBtn) magicBtn.style.display = 'none';
+        } else {
+            setText('magicWalletDisplay', 'Not linked');
+            const magicRow = document.getElementById('magic-wallet-row');
+            if (magicRow) magicRow.style.display = 'flex';
+            const magicBtn = document.getElementById('link-magic-wallet-btn');
+            if (magicBtn) magicBtn.style.display = 'inline-block';
+        }
+
         if (user.nftIdentity) {
             setText('nftIdentityStatus', user.nftIdentity.status);
             setText('nftIdentitySub', user.nftIdentity.detail);
@@ -2015,9 +2030,42 @@ function setupWalletPanel() {
     const form = document.getElementById('wallet-link-form');
     const saveBtn = document.getElementById('save-wallet-btn');
     const cancelBtn = document.getElementById('cancel-wallet-btn');
+    const magicBtn = document.getElementById('link-magic-wallet-btn');
 
     linkBtn?.addEventListener('click', () => { if (form) form.style.display = 'flex'; });
     cancelBtn?.addEventListener('click', () => { if (form) form.style.display = 'none'; });
+
+    magicBtn?.addEventListener('click', async () => {
+        magicBtn.disabled = true;
+        magicBtn.textContent = 'Securing...';
+        try {
+            const res = await apiRequest('/api/auth/magic/server-wallet', {
+                method: 'POST'
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const address = data.address;
+                setText('magicWalletDisplay', address.slice(0, 6) + '...' + address.slice(-4));
+                magicBtn.style.display = 'none';
+                if (data?.nftIdentity) {
+                    profileState.nftIdentity = data.nftIdentity;
+                    setText('nftIdentityStatus', data.nftIdentity.status);
+                    setText('nftIdentitySub', data.nftIdentity.detail);
+                }
+                renderSurveyIdentityPanel();
+                showNotification('Non-custodial server wallet successfully secured!', 'success');
+                loadUserProfile();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                showNotification(data.error || 'Failed to secure server wallet.', 'error');
+            }
+        } catch (err) {
+            showNotification('Error securing server wallet.', 'error');
+        } finally {
+            magicBtn.disabled = false;
+            magicBtn.textContent = 'Secure';
+        }
+    });
 
     saveBtn?.addEventListener('click', async () => {
         const addrInput = document.getElementById('wallet-address-input');

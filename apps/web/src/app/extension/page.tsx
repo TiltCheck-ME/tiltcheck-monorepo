@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -8,12 +8,12 @@ const extensionStats = [
   {
     label: "Security model",
     value: "Read only",
-    description: "The extension watches supported casino tabs and session telemetry without asking for private keys.",
+    description: "The extension watches supported casino tabs and gameplay speed without asking for private keys.",
   },
   {
     label: "Session fit",
     value: "In-tab",
-    description: "Drift, trust signals, and guardrails stay in the same surface where the session is actually happening.",
+    description: "Live warnings, safety limits, and exit buttons stay right on your active screen so you never lose focus.",
   },
   {
     label: "Exit logic",
@@ -38,8 +38,7 @@ export default function ExtensionPage() {
         }
         description={
           <p>
-            TiltCheck runs as a read-only browser extension. It watches live session data, checks RTP drift and fairness
-            signals, and helps enforce the bankroll rules you already set.
+            No tabs to switch, no dashboards to track. TiltCheck runs silently inside your active casino session to block the pressure loops before they cook your account.
           </p>
         }
         actions={
@@ -103,29 +102,29 @@ export default function ExtensionPage() {
               description={<p>If you are new here, this is the short version of what the extension actually does once it is loaded.</p>}
             />
 
-          <div className="public-page-grid public-page-grid--3">
-            {[
-              {
-                title: "Read-only by design",
-                body: "The extension inspects casino responses and session state. It does not ask for seed phrases or direct wallet control.",
-              },
-              {
-                title: "Built for live sessions",
-                body: "It stays inside the tab, tracks drift, and surfaces tilt signals without forcing you to bounce between dashboards.",
-              },
-              {
-                title: "Own your exits",
-                body: "Profit targets, cooldowns, and vault workflows are yours to set. TiltCheck helps enforce the line when your brain refuses to.",
-              },
-            ].map(({ title, body }) => (
-              <article key={title} className="public-page-card">
-                <p className="public-page-card__eyebrow">Core signal</p>
-                <h2 className="public-page-card__title">{title}</h2>
-                <p className="public-page-card__copy">{body}</p>
-              </article>
-            ))}
+            <div className="public-page-grid public-page-grid--3">
+              {[
+                {
+                  title: "Read-only by design",
+                  body: "The extension inspects gameplay logs and session timing. It does not ask for seed phrases or direct wallet control.",
+                },
+                {
+                  title: "Built for live sessions",
+                  body: "It stays inside the tab, tracks playing speed, and signals when you're starting to chase losses without forcing you to bounce between dashboards.",
+                },
+                {
+                  title: "Own your exits",
+                  body: "Profit targets, cooldowns, and vault workflows are yours to set. TiltCheck helps enforce the line when your brain refuses to.",
+                },
+              ].map(({ title, body }) => (
+                <article key={title} className="public-page-card">
+                  <p className="public-page-card__eyebrow">Core signal</p>
+                  <h2 className="public-page-card__title">{title}</h2>
+                  <p className="public-page-card__copy">{body}</p>
+                </article>
+              ))}
+            </div>
           </div>
-        </div>
       </section>
 
       <section className="public-page-section px-4">
@@ -176,10 +175,10 @@ export default function ExtensionPage() {
             <article className="public-page-card">
               <p className="public-page-card__eyebrow">What it covers</p>
               <ul className="public-page-list">
-                <li>Real-time session telemetry and tilt signals.</li>
-                <li>RTP drift and fairness checks against expected numbers.</li>
-                <li>Vault prompts, cooldown signals, and intervention flows.</li>
-                <li>Sidebar-driven workflows for supported casino tabs.</li>
+                <li>Real-time gameplay tracking and tilt signals.</li>
+                <li>Payout drift and fairness checks against expected odds.</li>
+                <li>Vault prompts, cooldown signals, and safety flows.</li>
+                <li>Sidebar-driven exits for supported casino tabs.</li>
               </ul>
             </article>
 

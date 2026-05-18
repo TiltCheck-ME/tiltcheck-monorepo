@@ -1,9 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-15
 // ==UserScript==
 // @name         TiltCheck AutoVault — Bag Secured
 // @namespace    https://tiltcheck.me/userscripts
-// @version      3.0.0
-// @description  TiltCheck AutoVault for crypto + sweeps casinos. Skims a slice of every win straight to the vault so the heater does not give it back. Best on Stake.us (clean API). Stake.com mirrors work when Cloudflare lets them. Best-effort DOM mode for BC.Game, Roobet, Shuffle, Rollbit, Gamdom. Non-custodial — TiltCheck never touches funds. Made for Degens. By Degens.
+// @version      3.3.3
+// @description  TiltCheck AutoVault for crypto + sweeps casinos. Skims a slice of every win straight to the vault so the heater does not give it back. Best on Stake.us (clean API). Stake.com mirrors work when Cloudflare lets them. Best-effort DOM nudge mode for nuts.gg, BC.Game, Roobet, Shuffle, Rollbit, Gamdom, and similar. Non-custodial — TiltCheck never touches funds. Made for Degens. By Degens.
 // @author       TiltCheck (jmenichole) — original Stake logic by Ruby (stakestats.net)
 // @homepage     https://tiltcheck.me
 // @website      https://tiltcheck.me/tools/auto-vault
@@ -23,7 +23,7 @@
 // @match        https://stake.us/*
 // @match        https://stake.pet/*
 // Generic DOM mode (nudge-only — opens vault dialog when a win is detected,
-// leaves the user to confirm the actual deposit. No API access.)
+// leaves the user to confirm the actual deposit. No API access.) nuts.gg, BC.Game, etc.
 // @match        https://shuffle.us/*
 // @match        https://*.shuffle.us/*
 // @match        https://shuffle.com/*
@@ -44,6 +44,11 @@
 // @match        https://*.rollbit.com/*
 // @match        https://gamdom.com/*
 // @match        https://*.gamdom.com/*
+// @match        *://nuts.gg/*
+// @match        *://*.nuts.gg/*
+// @match        https://nuts.gg/*
+// @match        https://www.nuts.gg/*
+// @match        https://*.nuts.gg/*
 // @run-at       document-end
 // @grant        none
 // ==/UserScript==
@@ -152,7 +157,9 @@
         { name: 'BC.Game',     match: /(^|\.)(bc\.game|bcgame\.com)$/i, vaultHints: ['vault', 'safe', 'lock'] },
         { name: 'Roobet',      match: /(^|\.)roobet\.com$/i,        vaultHints: ['vault', 'safe', 'lock'] },
         { name: 'Rollbit',     match: /(^|\.)rollbit\.com$/i,       vaultHints: ['vault', 'lockup', 'lock'] },
-        { name: 'Gamdom',      match: /(^|\.)gamdom\.com$/i,        vaultHints: ['vault', 'safe', 'lock'] }
+        { name: 'Gamdom',      match: /(^|\.)gamdom\.com$/i,        vaultHints: ['vault', 'safe', 'lock'] },
+        // nuts.gg — DOM nudge only (no public vault API in this script). Vault CTA copy varies; hints are ordered most-specific-first.
+        { name: 'nuts.gg',     match: /(^|\.)nuts\.gg$/i,           vaultHints: ['vault', 'safe', 'lock', 'save'] }
     ];
 
     // SITE_MODE drives every downstream branch (which adapter, which UI label,
@@ -218,6 +225,49 @@
         ]
     };
     const pickFlavor = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    // --- Provably-fair style client seed (browser RNG — for pasting into the site, not signing)
+    const CLIENT_SEED_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    function generateClientSeed(length) {
+        const n = typeof length === 'number' && length > 4 ? Math.min(length, 64) : 16;
+        if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+            const buf = new Uint8Array(n);
+            crypto.getRandomValues(buf);
+            let out = '';
+            for (let i = 0; i < n; i++) {
+                out += CLIENT_SEED_CHARS[buf[i] % CLIENT_SEED_CHARS.length];
+            }
+            return out;
+        }
+        let out = '';
+        for (let i = 0; i < n; i++) {
+            out += CLIENT_SEED_CHARS[Math.floor(Math.random() * CLIENT_SEED_CHARS.length)];
+        }
+        return out;
+    }
+
+    async function copyTextToClipboard(text) {
+        try {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        } catch (e) { /* fall through */ }
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+        } catch (e) {
+            return false;
+        }
+    }
 
     // --- Cookie helper ---
     const getCookie = (name) => {
@@ -425,7 +475,18 @@
         // want the most specific vault-flow trigger.
         findVaultButton() {
             const candidates = Array.from(
-                document.querySelectorAll('button, [role="button"], a[href*="vault" i], a[href*="safe" i]')
+                document.querySelectorAll(
+                    [
+                        'button',
+                        '[role="button"]',
+                        'a[href*="vault" i]',
+                        'a[href*="safe" i]',
+                        '[data-testid*="vault" i]',
+                        '[aria-label*="vault" i]',
+                        '[aria-label*="safe" i]',
+                        '[title*="vault" i]'
+                    ].join(', ')
+                )
             );
 
             let best = null;
@@ -446,9 +507,12 @@
                     else if (text.includes(h)) score += 10;  // contains anywhere
                 }
 
-                // Penalize obviously wrong buttons.
+                // Penalize obviously wrong buttons (vault-like wording in non-vault flows).
                 if (/account|2fa|unlock|withdraw|password|wallet.{0,10}lock/i.test(text)) {
                     score -= 30;
+                }
+                if (/bankroll|river|blood/i.test(text)) {
+                    score -= 15;
                 }
 
                 if (score > bestScore) {
@@ -901,7 +965,7 @@
             width: 280px;
             height: auto;
             min-width: 240px;
-            min-height: 280px;
+            min-height: 220px;
             max-width: min(680px, 95vw);
             max-height: min(720px, 90vh);
             user-select: none;
@@ -933,6 +997,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: nowrap;
+            gap: 8px;
             background: ${BRAND.bgElevated};
             padding: 10px 12px;
             border-bottom: 1px solid ${BRAND.borderSubtle};
@@ -949,6 +1015,9 @@
             color: ${BRAND.textPrimary};
             letter-spacing: 0.12em;
             text-transform: uppercase;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
         }
         #tc-autovault-floaty .tc-status-dot {
             width: 7px;
@@ -985,7 +1054,13 @@
             color: ${BRAND.gold};
             border-color: ${BRAND.gold};
         }
-        #tc-autovault-floaty .tc-header-btns { display: flex; gap: 2px; }
+        #tc-autovault-floaty .tc-header-btns {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+        }
         #tc-autovault-floaty .tc-header-btn {
             background: none;
             border: none;
@@ -996,6 +1071,9 @@
             font-size: 14px;
             line-height: 1;
             transition: color 0.15s, background 0.15s;
+            pointer-events: auto;
+            position: relative;
+            z-index: 3;
         }
         #tc-autovault-floaty .tc-header-btn:hover {
             color: ${BRAND.textPrimary};
@@ -1032,6 +1110,54 @@
             outline: none;
             border-color: ${BRAND.teal};
             box-shadow: 0 0 0 1px ${BRAND.tealGlow};
+        }
+        #tc-autovault-floaty .tc-seed-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-top: 8px;
+            margin-top: 4px;
+            border-top: 1px solid ${BRAND.borderSubtle};
+        }
+        #tc-autovault-floaty .tc-seed-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        #tc-autovault-floaty .tc-seed-hint {
+            font-size: 9px;
+            font-family: ${BRAND.fontMono};
+            color: ${BRAND.textDisabled};
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        #tc-autovault-floaty input.tc-seed-input {
+            width: 100%;
+            box-sizing: border-box;
+            background: ${BRAND.bgInput};
+            color: ${BRAND.textPrimary};
+            border: 1px solid ${BRAND.borderDefault};
+            border-radius: 0;
+            padding: 6px 8px;
+            font-size: 11px;
+            font-family: ${BRAND.fontMono};
+            text-align: left;
+            letter-spacing: 0.04em;
+        }
+        #tc-autovault-floaty input.tc-seed-input:focus {
+            outline: none;
+            border-color: ${BRAND.teal};
+            box-shadow: 0 0 0 1px ${BRAND.tealGlow};
+        }
+        #tc-autovault-floaty .tc-seed-btns {
+            display: flex;
+            gap: 6px;
+        }
+        #tc-autovault-floaty .tc-seed-btns .tc-btn {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 10px;
         }
         #tc-autovault-floaty .tc-btn-row {
             display: flex;
@@ -1130,87 +1256,89 @@
             letter-spacing: 0.1em;
             text-transform: uppercase;
         }
-        #tc-autovault-floaty .tc-log-toggle {
+        /* Activity — one line; each new log replaces the previous */
+        #tc-autovault-floaty .tc-ticker-strip {
+            flex-shrink: 0;
+            background: ${BRAND.bgPage};
+            border-bottom: 1px solid ${BRAND.borderSubtle};
+        }
+        #tc-autovault-floaty .tc-ticker-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 14px;
-            background: ${BRAND.bgElevated};
-            border-top: 1px solid ${BRAND.borderSubtle};
-            cursor: pointer;
-            transition: background 0.15s;
+            padding: 3px 10px 2px;
+            gap: 8px;
+            border-bottom: 1px solid ${BRAND.borderSubtle};
         }
-        #tc-autovault-floaty .tc-log-toggle:hover { background: ${BRAND.borderDefault}; }
-        #tc-autovault-floaty .tc-log-toggle-text {
-            font-size: 10px;
+        #tc-autovault-floaty .tc-ticker-label {
+            font-size: 8px;
             font-family: ${BRAND.fontMono};
+            font-weight: 700;
             color: ${BRAND.textMuted};
             text-transform: uppercase;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.14em;
+            white-space: nowrap;
         }
-        #tc-autovault-floaty .tc-log-toggle-icon {
-            font-size: 10px;
-            color: ${BRAND.textMuted};
-            transition: transform 0.2s;
+        #tc-autovault-floaty .tc-ticker-hint {
+            font-size: 8px;
+            font-family: ${BRAND.fontMono};
+            color: ${BRAND.textDisabled};
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
-        #tc-autovault-floaty .tc-log-toggle.open .tc-log-toggle-icon {
-            transform: rotate(180deg);
-        }
-        #tc-autovault-floaty .tc-log {
-            flex: 0 0 0;
-            min-height: 0;
-            overflow: hidden;
-            transition: flex-basis 0.25s ease-out;
-            background: ${BRAND.bgPage};
-            display: flex;
-            flex-direction: column;
-        }
-        /* When open: take the rest of the available widget height so the log
-           grows when the user resizes the widget taller. flex: 1 instead of a
-           fixed max-height. */
-        #tc-autovault-floaty .tc-log.open {
-            flex: 1 1 auto;
-            min-height: 100px;
-        }
-        #tc-autovault-floaty .tc-log-inner {
-            padding: 8px;
-            flex: 1 1 auto;
-            overflow-y: auto;
+        #tc-autovault-floaty .tc-ticker-body {
+            padding: 5px 10px 6px;
+            min-height: 20px;
             font-family: ${BRAND.fontMono};
             font-size: 10px;
-            line-height: 1.45;
-            min-height: 0;
-        }
-        #tc-autovault-floaty .tc-log-inner::-webkit-scrollbar { width: 4px; }
-        #tc-autovault-floaty .tc-log-inner::-webkit-scrollbar-track { background: ${BRAND.bgPage}; }
-        #tc-autovault-floaty .tc-log-inner::-webkit-scrollbar-thumb {
-            background: ${BRAND.borderDefault};
-            border-radius: 0;
-        }
-        #tc-autovault-floaty .tc-log-entry {
-            padding: 2px 0;
+            line-height: 1.35;
             color: ${BRAND.textMuted};
             display: flex;
-            gap: 6px;
+            align-items: baseline;
+            gap: 4px;
+            overflow: hidden;
         }
-        #tc-autovault-floaty .tc-log-entry.success { color: ${BRAND.teal}; }
-        #tc-autovault-floaty .tc-log-entry.profit { color: ${BRAND.teal}; }
-        #tc-autovault-floaty .tc-log-entry.bigwin { color: ${BRAND.gold}; }
-        #tc-autovault-floaty .tc-log-entry.warning { color: ${BRAND.gold}; opacity: 0.85; }
-        #tc-autovault-floaty .tc-log-entry.error { color: ${BRAND.danger}; }
-        #tc-autovault-floaty .tc-log-time {
+        #tc-autovault-floaty .tc-ticker-body .tc-ticker-time {
             color: ${BRAND.textDisabled};
             flex-shrink: 0;
+            font-size: 9px;
         }
-        #tc-autovault-floaty .tc-log-empty {
+        #tc-autovault-floaty .tc-ticker-body .tc-ticker-msg {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+            flex: 1;
+        }
+        #tc-autovault-floaty .tc-ticker-body.success,
+        #tc-autovault-floaty .tc-ticker-body.profit {
+            color: ${BRAND.teal};
+        }
+        #tc-autovault-floaty .tc-ticker-body.info {
+            color: ${BRAND.textMuted};
+        }
+        #tc-autovault-floaty .tc-ticker-body.bigwin {
+            color: ${BRAND.gold};
+        }
+        #tc-autovault-floaty .tc-ticker-body.warning {
+            color: ${BRAND.gold};
+            opacity: 0.9;
+        }
+        #tc-autovault-floaty .tc-ticker-body.error {
+            color: ${BRAND.danger};
+        }
+        #tc-autovault-floaty .tc-ticker-empty {
             color: ${BRAND.textDisabled};
             font-style: italic;
-            text-align: center;
-            padding: 8px;
             font-family: ${BRAND.fontSans};
+            font-size: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 2px 0;
         }
         #tc-autovault-floaty.mini {
-            min-width: auto;
+            min-width: min(200px, 94vw);
             max-width: none;
             min-height: 0;
             max-height: none;
@@ -1218,10 +1346,11 @@
             height: auto;
             resize: none;
         }
+        #tc-autovault-floaty.mini .tc-ticker-strip {
+            display: none !important;
+        }
         #tc-autovault-floaty.mini .tc-header { padding: 6px 12px; border-bottom: none; }
         #tc-autovault-floaty.mini .tc-content,
-        #tc-autovault-floaty.mini .tc-log-toggle,
-        #tc-autovault-floaty.mini .tc-log,
         #tc-autovault-floaty.mini .tc-footer { display: none; }
         #tc-autovault-floaty.mini .tc-title span:not(.tc-brand-mark) { display: none; }
         #tc-autovault-stealth {
@@ -1283,12 +1412,25 @@
                 <span class="tc-mode-chip ${modeChipClass}" title="${modeChipTitle}">${modeChipLabel}</span>
             </div>
             <div class="tc-header-btns">
-                <button class="tc-header-btn" id="tcMinBtn" title="Minimize">−</button>
-                <button class="tc-header-btn" id="tcStealthBtn" title="Stealth Mode">○</button>
-                <button class="tc-header-btn" id="tcCloseBtn" title="Close">×</button>
+                <button type="button" class="tc-header-btn" id="tcMinBtn" title="Minimize">−</button>
+                <button type="button" class="tc-header-btn" id="tcStealthBtn" title="Stealth Mode">○</button>
+                <button type="button" class="tc-header-btn" id="tcCloseBtn" title="Close">×</button>
             </div>
         `;
         widget.appendChild(header);
+
+        const tickerStrip = document.createElement('div');
+        tickerStrip.className = 'tc-ticker-strip';
+        tickerStrip.innerHTML = `
+            <div class="tc-ticker-head">
+                <span class="tc-ticker-label">Activity</span>
+                <span class="tc-ticker-hint">last event</span>
+            </div>
+            <div class="tc-ticker-body info" id="tcTickerBody" role="status" aria-live="polite" aria-atomic="true">
+                <span class="tc-ticker-empty">Nothing yet — Start AutoVault or wait for balance updates.</span>
+            </div>
+        `;
+        widget.appendChild(tickerStrip);
 
         const content = document.createElement('div');
         content.className = 'tc-content';
@@ -1308,6 +1450,17 @@
             <div class="tc-row">
                 <span class="tc-label">Check interval (sec)</span>
                 <input type="number" id="tcCheckInterval" min="10" step="1" value="${getParams().checkInterval}">
+            </div>
+            <div class="tc-seed-block" title="Random alphanumeric seed for provably fair games. Paste where the site asks. Not sent to TiltCheck.">
+                <div class="tc-seed-head">
+                    <span class="tc-label">Client seed</span>
+                    <span class="tc-seed-hint">provably fair</span>
+                </div>
+                <input type="text" class="tc-seed-input" id="tcSeedValue" readonly spellcheck="false" autocomplete="off" value="">
+                <div class="tc-seed-btns">
+                    <button type="button" class="tc-btn" id="tcSeedGen">New seed</button>
+                    <button type="button" class="tc-btn primary" id="tcSeedCopy">Copy</button>
+                </div>
             </div>
             <div class="tc-btn-row">
                 <button class="tc-btn primary" id="tcStartBtn">Start</button>
@@ -1350,25 +1503,6 @@
         `;
         widget.appendChild(content);
 
-        const logToggle = document.createElement('div');
-        logToggle.className = 'tc-log-toggle';
-        logToggle.innerHTML = `
-            <span class="tc-log-toggle-text">Activity Log</span>
-            <span class="tc-log-toggle-icon">▼</span>
-        `;
-        widget.appendChild(logToggle);
-
-        const logPanel = document.createElement('div');
-        logPanel.className = 'tc-log';
-        logPanel.innerHTML = `<div class="tc-log-inner" id="tcLogInner"><div class="tc-log-empty">Nothing here yet — your activity will fill in once a hand is played.</div></div>`;
-        widget.appendChild(logPanel);
-
-        const logInner = logPanel.querySelector('#tcLogInner');
-        logToggle.onclick = () => {
-            logToggle.classList.toggle('open');
-            logPanel.classList.toggle('open');
-        };
-
         const formatTime = (date) => {
             const h = date.getHours().toString().padStart(2, '0');
             const m = date.getMinutes().toString().padStart(2, '0');
@@ -1377,16 +1511,20 @@
         };
 
         function addLogEntry(entry) {
-            const empty = logInner.querySelector('.tc-log-empty');
-            if (empty) empty.remove();
-            const div = document.createElement('div');
-            div.className = `tc-log-entry ${entry.type}`;
-            div.innerHTML = `<span class="tc-log-time">${formatTime(entry.time)}</span><span></span>`;
-            div.lastChild.textContent = entry.message;
-            logInner.insertBefore(div, logInner.firstChild);
-            while (logInner.children.length > 30) {
-                logInner.removeChild(logInner.lastChild);
-            }
+            const tickerBody = tickerStrip.querySelector('#tcTickerBody');
+            if (!tickerBody) return;
+
+            const ty = entry.type || 'info';
+            tickerBody.className = `tc-ticker-body ${ty}`;
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'tc-ticker-time';
+            timeSpan.textContent = `${formatTime(entry.time)}\u00a0`;
+            const msgSpan = document.createElement('span');
+            msgSpan.className = 'tc-ticker-msg';
+            msgSpan.textContent = entry.message;
+            tickerBody.replaceChildren(timeSpan, msgSpan);
+            tickerBody.title = `${formatTime(entry.time)} — ${entry.message}`;
         }
         onLogUpdate = addLogEntry;
 
@@ -1423,28 +1561,48 @@
             }
         }
 
-        minBtn.onclick = (e) => {
-            e.stopPropagation();
-            setViewMode(currentViewMode === 'mini' ? 'full' : 'mini');
-            minBtn.textContent = currentViewMode === 'mini' ? '+' : '−';
-            minBtn.title = currentViewMode === 'mini' ? 'Expand' : 'Minimize';
-        };
-        stealthBtn.onclick = (e) => {
-            e.stopPropagation();
-            setViewMode('stealth');
-        };
-        stealthDot.onclick = () => {
+        minBtn.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const nextMode = currentViewMode === 'mini' ? 'full' : 'mini';
+                setViewMode(nextMode);
+                minBtn.textContent = nextMode === 'mini' ? '+' : '−';
+                minBtn.title = nextMode === 'mini' ? 'Expand' : 'Minimize';
+            },
+            true
+        );
+        stealthBtn.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setViewMode('stealth');
+            },
+            true
+        );
+        stealthDot.addEventListener('click', () => {
             setViewMode('full');
-            minBtn.textContent = '−';
-        };
-        closeBtn.onclick = () => {
-            if (vaultCountUiInterval) {
-                clearInterval(vaultCountUiInterval);
-                vaultCountUiInterval = null;
+            if (minBtn) {
+                minBtn.textContent = '−';
+                minBtn.title = 'Minimize';
             }
-            widget.remove();
-            stealthDot.remove();
-        };
+        });
+        closeBtn.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (vaultCountUiInterval) {
+                    clearInterval(vaultCountUiInterval);
+                    vaultCountUiInterval = null;
+                }
+                widget.remove();
+                stealthDot.remove();
+            },
+            true
+        );
 
         // Drag from header
         let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
@@ -1563,6 +1721,32 @@
             setParams({ checkInterval: v });
             this.value = v;
         };
+
+        const seedInput = content.querySelector('#tcSeedValue');
+        const seedGenBtn = content.querySelector('#tcSeedGen');
+        const seedCopyBtn = content.querySelector('#tcSeedCopy');
+        if (seedInput) {
+            seedInput.value = generateClientSeed();
+        }
+        if (seedGenBtn) {
+            seedGenBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (seedInput) {
+                    seedInput.value = generateClientSeed();
+                    log('New client seed generated.', 'info');
+                }
+            });
+        }
+        if (seedCopyBtn) {
+            seedCopyBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const v = seedInput ? String(seedInput.value || '') : '';
+                if (!v) return;
+                const ok = await copyTextToClipboard(v);
+                if (ok) log('Client seed copied to clipboard.', 'success');
+                else log('Could not copy automatically — select the seed and press Ctrl+C.', 'warning');
+            });
+        }
 
         document.body.appendChild(widget);
 

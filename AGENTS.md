@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 -->
 
 # TiltCheck Agent Directory
 
@@ -30,6 +30,7 @@ Located in .cursor/agents/
 | Brand Specialist | .cursor/agents/design-marketing-brand.md | Visual hierarchy, CTA clarity, and copy coherence. |
 | KPI Agent | .cursor/agents/kpi-agent.md | Metrics, experiment readouts, and funnel analysis. |
 | Production Auditor | .cursor/agents/production-standards-auditor.md | (Renamed) Ensures codebase remains production-ready and high quality. |
+| Degen UX Tester | .cursor/agents/degen-ux-tester.md | **NEW:** Zillennial degen testing user journeys, onboarding, and copy authenticity. |
 
 ## 3. Workflow & CI Agents
 Located in .github/agents/ and .github/workflows/
@@ -73,7 +74,7 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-05-06
+Last Updated: 2026-05-18
 
 ## 6. GitHub Copilot Custom Agents
 Located in .github/agents/
@@ -88,14 +89,15 @@ These agents are available as GitHub Copilot custom agents within the repository
 | fullstack-developer | .github/agents/fullstack-developer.agent.md | Specialized agent for full-stack development in TiltCheck monorepo. Handles building, refactoring, testing, and improving cross-cutting features across frontend and backend. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
 | platform-strategy-agent | .github/agents/platform-strategy-agent.agent.md | Specialized agent for marketing pain-point analysis, UX friction evaluation, and platform-fit strategy. Recommends where tools and flows should live across web, dashboard, Discord, extension, control-room, and API. |
 | scribe-agent | .github/agents/scribe-agent.md | Ecosystem documentarian and rule enforcer. Automates copyright headers, UI footers, and ensures zero-drift between code and docs. |
+| degen-ux-tester | .github/agents/degen-ux-tester.agent.md | Specialized agent for auditing user journeys, onboarding flows, dashboards, and copy authenticity through the lens of a memecoin-trading, Discord-native degenerate. |
 
 ## Latest Additions (This Session)
 
 ### GitHub Copilot Custom Agents (ACTIVE)
 - **Purpose:** Domain-scoped AI assistants available via GitHub Copilot chat in the repository
-- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer, platform-strategy-agent, scribe-agent
+- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer, platform-strategy-agent, scribe-agent, degen-ux-tester
 - **Compliance:** All agents enforce brand laws (copyright headers, no emojis, atomic docs, non-custodial flows)
-- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`, `.github/agents/platform-strategy-agent.agent.md`, `.github/agents/scribe-agent.md`
+- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`, `.github/agents/platform-strategy-agent.agent.md`, `.github/agents/scribe-agent.md`, `.github/agents/degen-ux-tester.agent.md`
 
 ### Platform Strategy Agent (ACTIVE)
 - **Purpose:** Evaluates user pain points, UX friction, and platform-fit across the TiltCheck ecosystem so each tool lives on the right surface.
@@ -118,6 +120,13 @@ These agents are available as GitHub Copilot custom agents within the repository
 - **Categories:** Conversion, messaging, visual hierarchy, friction reduction, mobile, dark mode
 - **Target:** +5-15% engagement and conversion improvements
 - **Files:** `.cursor/agents/frontend-marketing-suggestions.md` + `.github/workflows/frontend-suggestions.yml`
+
+### Degen UX Tester Agent (ACTIVE)
+- **Purpose:** Audits user journeys, dashboard layouts, extensions, and copy authenticity from the perspective of a chronically online Zillennial/Millennial degenerate.
+- **Focus:** Copy hooks, attention span testing, user journey friction, custodial vs non-custodial vibe checks, dark mode visual aesthetics.
+- **Surfaces:** `web`, `user-dashboard`, `chrome-extension`, `discord-bot`, `control-room`, and `api`.
+- **Outcome:** Bulletproof, based UX reviews that minimize cognitive load and drive high engagement.
+- **Files:** `.cursor/agents/degen-ux-tester.md` + `.github/agents/degen-ux-tester.agent.md`
 
 ## Cursor Cloud specific instructions
 

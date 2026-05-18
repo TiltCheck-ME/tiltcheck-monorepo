@@ -102,7 +102,14 @@ function startClock() {
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
-var TAB_TITLES = { containers: 'Containers', logs: 'Logs', reports: 'Channel Reports', metrics: 'Metrics', compose: 'Compose' };
+var TAB_TITLES = {
+  containers: 'Containers',
+  trivia: 'Trivia',
+  logs: 'Logs',
+  reports: 'Channel Reports',
+  metrics: 'Metrics',
+  compose: 'Compose',
+};
 
 function initTabs() {
   document.querySelectorAll('.nav-link').forEach(function(link) {
@@ -602,6 +609,53 @@ window.composeAction = async function (action) {
 
 window.clearComposeOutput = function () {
   document.getElementById('compose-output').textContent = 'No output yet.';
+};
+
+// ── Trivia (Director) ────────────────────────────────────────────────────────
+window.launchTrivia = async function () {
+  var statusEl = document.getElementById('trivia-status');
+  var cat = document.getElementById('trivia-category');
+  var themeIn = document.getElementById('trivia-theme');
+  var roundsEl = document.getElementById('trivia-rounds');
+  var prizeEl = document.getElementById('trivia-prize');
+  if (statusEl) {
+    statusEl.textContent = 'Sending launch to game-arena...';
+    statusEl.className = 'status-msg mt-md muted';
+  }
+
+  var topic = (cat && cat.value) ? String(cat.value).trim() : 'casino';
+  if (!topic) topic = 'casino';
+  var themeVal = (themeIn && themeIn.value) ? String(themeIn.value).trim() : '';
+
+  var payload = {
+    topic: topic,
+    rounds: roundsEl ? parseInt(roundsEl.value, 10) || 10 : 10,
+    prizeSol: prizeEl ? parseFloat(prizeEl.value) || 0 : 0,
+  };
+  if (themeVal) payload.theme = themeVal;
+
+  var result = await api('/api/trivia/director/launch', 'POST', payload);
+  if (!statusEl) return;
+
+  if (!result.ok) {
+    statusEl.textContent = (result.data && result.data.error) ? String(result.data.error) : 'Launch failed';
+    statusEl.className = 'status-msg mt-md error-msg';
+    toast('Trivia launch failed', 'error');
+    return;
+  }
+
+  var data = result.data || {};
+  if (data.ok) {
+    statusEl.textContent = 'Launch request accepted. Check game-arena / Discord for the live game.';
+    statusEl.className = 'status-msg mt-md muted';
+    toast('Trivia launch sent');
+    return;
+  }
+
+  var detail = data.error || data.status || JSON.stringify(data);
+  statusEl.textContent = 'Arena refused launch: ' + detail;
+  statusEl.className = 'status-msg mt-md error-msg';
+  toast('Trivia launch rejected', 'error');
 };
 
 // ── WebSocket ──────────────────────────────────────────────────────────────────

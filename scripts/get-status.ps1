@@ -12,7 +12,9 @@ $ErrorActionPreference = "SilentlyContinue"
 
 # Resolve tool paths — safe for Task Scheduler / non-interactive contexts
 function Get-ToolPath([string]$Name) {
-    return (Get-Command $Name -ErrorAction SilentlyContinue)?.Source
+    $cmd = Get-Command $Name -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    return $null
 }
 $gitPath  = Get-ToolPath "git"
 $nodePath = Get-ToolPath "node"

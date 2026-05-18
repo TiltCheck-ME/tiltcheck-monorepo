@@ -17,7 +17,7 @@ const TOOLS: Tool[] = [
     label: "TAROT FLIP DIFF",
     title: "Tarot Flip Comparison",
     description:
-      "Compare a stored Tarot flip mechanic snapshot against the current runtime table. Recalculates card odds from raw counts instead of trusting on-screen claims.",
+      "Compare a stored Tarot flip snapshot against the live game. Recalculates card odds from actual flips instead of trusting on-screen claims.",
     status: "beta",
   },
   {
@@ -25,15 +25,15 @@ const TOOLS: Tool[] = [
     label: "THE RECEIPT",
     title: "Manual Bet Verifier",
     description:
-      "Independent manual bet verification using the TiltCheck 4-Key Lock or legacy server/client seed model. Recomputes the raw HMAC-SHA256 result for one bet. Use /casinos for proof quality and broader trust evidence.",
+      "Verify any single bet yourself using our simple math tools instead of trusting the casino's word. Recomputes the exact mathematical result of a spin. Use /casinos for proof quality and broader trust evidence.",
     status: "live",
   },
   {
     href: "/tools/session-stats",
-    label: "RTP DRIFT MONITOR",
+    label: "PAYOUT DRIFT MONITOR",
     title: "Slot Math Index",
     description:
-      "Certified RTP tier spreads across 100+ slot titles. Shows the spread between the max and min RTP a casino can legally configure — and the greed premium they pocket from that gap.",
+      "Certified payout tier spreads across 100+ slot titles. Shows the spread between the max and min payouts a casino can configure — and the greed premium they pocket from that gap.",
     status: "live",
   },
   {
@@ -41,7 +41,7 @@ const TOOLS: Tool[] = [
     label: "THE DELTA ENGINE",
     title: "House Edge Calculator",
     description:
-      "Input your certified vs observed RTP and session data. Get your personal greed premium overcharge and a statistical confidence score on whether the variance is real or manufactured.",
+      "Input what the casino claims the payout speed is versus what you actually got. See exactly how much extra they pocketed and get a confidence score on whether the house is rigging your session.",
     status: "live",
   },
   {
@@ -49,7 +49,7 @@ const TOOLS: Tool[] = [
     label: "PHISHING SHIELD",
     title: "Domain + Email Verifier",
     description:
-      "Scan casino domains for license validity, phishing signals, SPF/SSL anomalies, and bonus extraction. Paste a suspicious email to identify impersonation attempts before they cost you.",
+      "Scan casino websites for real licenses, scam signals, fake pages, and hidden traps before you sign up. Paste a suspicious email to identify impersonation attempts before they cost you.",
     status: "live",
   },
   {
@@ -57,7 +57,7 @@ const TOOLS: Tool[] = [
     label: "SHADOW-BAN TRACKER",
     title: "Casino Restriction Log",
     description:
-      "Community-reported withdrawal delays, account locks, silent ToS changes, and payout denials. Updated from Discord reports and the Trust Engine. Named, dated, severity-graded.",
+      "Community-reported withdrawal delays, locked accounts, sneaky rule changes, and denied payouts. Updated from Discord reports and the Trust Engine. Named, dated, severity-graded.",
     status: "live",
   },
   {
@@ -65,7 +65,7 @@ const TOOLS: Tool[] = [
     label: "COLLECTCLOCK",
     title: "BonusCheck 2.0",
     description:
-      "Track cooldowns, log weekly wager and P/L, reverse-engineer reload math, and catch bonuses that land suspiciously light.",
+      "Track cooldowns, log weekly bets and results, check the bonus math, and catch promotions that pay out suspiciously light.",
     status: "live",
   },
   {
@@ -73,7 +73,7 @@ const TOOLS: Tool[] = [
     label: "JUST THE TIP",
     title: "SOL Peer Tipping",
     description:
-      "Send SOL tips to other degens via Discord username from the web UI. Non-custodial — keys never leave your wallet. Direct sends and room rain are both wired.",
+      "Send SOL tips to other players using their Discord username directly from the web. Non-custodial — keys never leave your wallet. Direct sends and room rain are both wired.",
     status: "live",
   },
   {
@@ -105,7 +105,7 @@ const TOOLS: Tool[] = [
     label: "DEGENS ARENA",
     title: "Trivia Drop Arena",
     description:
-      "View the voluntary trivia treasury on web, test the room in Activity, and keep Discord drops gated until the rules are reviewed.",
+      "Join real-time trivia battles, play with other players on Discord, and grab rewards when you win.",
     status: "live",
   },
 ];

@@ -484,6 +484,7 @@
   <main class="dashboard">
     <!-- Overview Section -->
     <section id="overview">
+      <p id="analytics-note" class="muted" style="margin-bottom: 16px; font-size: 0.85rem; line-height: 1.4;"></p>
       <div class="stats-grid">
         <div class="stat-card">
           <div class="label">Page Views</div>
@@ -758,36 +759,66 @@
     // Load analytics data
     async function loadAnalytics(range = '24h') {
       try {
-        const response = await fetch(`/api/analytics/summary?range=${range}`);
+        const response = await fetch(`/api/analytics/summary?range=${encodeURIComponent(range)}`, {
+          credentials: 'same-origin',
+        });
+        if (response.status === 401) {
+          const note = document.getElementById('analytics-note');
+          if (note) note.textContent = 'Sign in to the Control Room first, then reload this page.';
+          return;
+        }
         if (response.ok) {
           const data = await response.json();
           updateDashboard(data);
         }
       } catch (error) {
-        console.log('Using sample data');
+        console.warn('[analytics] summary fetch failed', error);
       }
     }
 
     function updateDashboard(data) {
-      if (data.totalPageViews) {
-        document.getElementById('stat-pageviews').textContent = data.totalPageViews.toLocaleString();
+      const noteEl = document.getElementById('analytics-note');
+      if (noteEl) {
+        noteEl.textContent = data.note
+          ? data.note + (data.apiReachable === false ? ' (API unreachable; some inputs defaulted.)' : '')
+          : '';
       }
-      if (data.uniqueSessions) {
-        document.getElementById('stat-sessions').textContent = data.uniqueSessions.toLocaleString();
+
+      const pv = document.getElementById('stat-pageviews');
+      if (pv && Number.isFinite(data.totalPageViews)) {
+        pv.textContent = data.totalPageViews.toLocaleString();
       }
-      // Update other stats...
+      const us = document.getElementById('stat-sessions');
+      if (us && Number.isFinite(data.uniqueSessions)) {
+        us.textContent = data.uniqueSessions.toLocaleString();
+      }
+      const du = document.getElementById('stat-duration');
+      if (du && data.avgSessionDuration) {
+        du.textContent = data.avgSessionDuration;
+      }
+      const beta = document.getElementById('stat-beta');
+      if (beta && Number.isFinite(data.betaUsers)) {
+        beta.textContent = data.betaUsers.toLocaleString();
+      }
+      const fb = document.getElementById('stat-feedback');
+      if (fb && Number.isFinite(data.feedbackCount)) {
+        fb.textContent = data.feedbackCount.toLocaleString();
+      }
+      const rating = document.getElementById('stat-rating');
+      if (rating) {
+        rating.textContent = data.avgRating != null && data.avgRating !== ''
+          ? String(data.avgRating)
+          : '—';
+      }
+      const hm = document.getElementById('heatmap-views');
+      if (hm && Number.isFinite(data.uniqueSessions)) {
+        hm.textContent = data.uniqueSessions.toLocaleString();
+      }
     }
 
     // Initialize
     generateHeatmapPoints();
     loadAnalytics();
-
-    // Real-time updates simulation
-    setInterval(() => {
-      const pageviews = document.getElementById('stat-pageviews');
-      const current = parseInt(pageviews.textContent.replace(/,/g, ''));
-      pageviews.textContent = (current + Math.floor(Math.random() * 3)).toLocaleString();
-    }, 5000);
   </script>
 </body>
 

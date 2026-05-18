@@ -24,6 +24,13 @@ function getPool(): pg.Pool {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
   });
+  
+  _pool.on('error', (err) => {
+    // Gracefully catch background connection errors so they don't crash the Node process
+    // or clutter the boot logs with massive stack traces.
+    console.warn(`[TiltCheck Database] Connection issue (non-fatal mock routing active): ${err.message}`);
+  });
+
   return _pool;
 }
 

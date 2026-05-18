@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -93,8 +93,7 @@ export default function CasinosPage() {
         }
         description={
           <p>
-            /casinos is the lookup hub. Search the operator, open the trust page, then separate manual bet verification,
-            proof quality, and other evidence without pretending missing data exists.
+            Search the operator, read the receipts. We audit compliance, payout speed, and promotional tricks so you know who is fair and who is actively rigging the board.
           </p>
         }
         stats={[
@@ -194,7 +193,7 @@ export default function CasinosPage() {
                 const violationCount = casino.meta.violations?.length ?? 0;
 
                 return (
-                  <article key={casino.slug} className="rounded-2xl border border-[#283347] bg-black/40 p-6">
+                  <article key={casino.slug} className="public-page-card p-6 border border-[#283347]/50">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{casino.category}</p>
@@ -231,17 +230,16 @@ export default function CasinosPage() {
                     </div>
 
                     <div className="mt-5 rounded-xl border border-[#283347] bg-black/30 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Canonical proof route</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Full Audit & Receipts</p>
                       <p className="mt-2 text-sm text-gray-400">
-                        This lookup card only gets you to the read. The canonical page separates proof quality from licensing,
-                        payout, scam, bonus, and RTP evidence with explicit unavailable states.
+                        This card is just the summary. The full audit page breaks down real payout speeds, fairness scores, known traps, and license verifications so you get the complete picture before you deposit.
                       </p>
                     </div>
 
                     <div className="mt-5 rounded-xl border border-[#283347] bg-black/30 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Supporting modules</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Deep-Dive Scanners</p>
                       <p className="mt-2 text-sm text-gray-400">
-                        Raw bet verification, domain checks, scam intel, bonus evidence, and RTP reference pages support the trust story. They do not replace it.
+                        Bet calculators, domain health trackers, scam alerts, and bonus verifiers help verify the receipts, so you never have to take the operator's word for it.
                       </p>
                     </div>
 
@@ -250,7 +248,7 @@ export default function CasinosPage() {
                         href={`/casinos/${casino.slug}`}
                         className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
                       >
-                        Open canonical trust read
+                        View Full Audit
                       </Link>
                       {casino.affiliateUrl && (
                         <a
@@ -298,12 +296,11 @@ export default function CasinosPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <PublicPageSectionHeader
-            eyebrow="Supporting evidence modules"
-            title="Use these after the trust page, not instead of it."
+            eyebrow="Deep-Dive Scanners"
+            title="Double check the data. Never play blind."
             description={
               <p>
-                /casinos is the lookup hub. /casinos/[slug] is the canonical trust read. These pages widen the evidence
-                trail when you need raw verification, underlying feeds, or reference data.
+                /casinos is your directory. Each casino's page is its official proof file. Use these additional tools below to audit specific bets, check domain updates, or scan active bonus codes.
               </p>
             }
           />
@@ -329,22 +326,22 @@ export default function CasinosPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <PublicPageSectionHeader
-            eyebrow="Trust journey"
-            title="How this trust journey works"
-            description={<p>The path stays ordered so users know where the canonical answer lives and where supporting tools fit.</p>}
+            eyebrow="How We Audit"
+            title="Our verification rules"
+            description={<p>We keep our checks crystal clear so you always know where the raw receipts are and how our verification tools back them up.</p>}
           />
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Trust read first</p>
-              <p className="mt-2 text-sm text-gray-400">The public page is the canonical read. Manual bet verification and other tools support that page instead of competing with it.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">The Audit First</p>
+              <p className="mt-2 text-sm text-gray-400">The casino's proof page is the source of truth. Bet verifiers and other scanners simply back up the data with cold hard math.</p>
             </div>
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Explicit gaps</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">No Fake Trust</p>
               <p className="mt-2 text-sm text-gray-400">If a feed is unavailable, the trust page says it directly. Blank data is not rewritten into fake confidence.</p>
             </div>
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Escalate only when needed</p>
-              <p className="mt-2 text-sm text-gray-400">Auth-bound actions move to the dashboard. Session-bound telemetry moves to the extension.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">The Right Surface</p>
+              <p className="mt-2 text-sm text-gray-400">Durable settings and account tracking live in your Dashboard. Live pacing limits and active gameplay protection run in your Extension.</p>
             </div>
           </div>
 
@@ -363,11 +360,10 @@ export default function CasinosPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-cta-band">
-            <p className="public-page-panel__eyebrow">Public trust read</p>
+            <p className="public-page-panel__eyebrow">Keep Your Edge</p>
             <h2 className="public-page-cta-band__title">Made for Degens. By Degens.</h2>
             <p className="public-page-cta-band__copy">
-              The directory tells you where to look. The slug page tells you what the proof actually says. Everything
-              else exists to widen that evidence trail without muddying it.
+              Use the lookup directory to find the operator. Read their proof file to get the real receipts. Use the calculators to double check your bets. Never play blind.
             </p>
           </div>
         </div>

@@ -5,14 +5,11 @@ vi.mock('@tiltcheck/trust-engines', () => ({
   trustEngines: {
     getCasinoScore: vi.fn().mockReturnValue(82),
     getCasinoBreakdown: vi.fn().mockReturnValue({
-      fairnessScore: 80,
-      payoutScore: 85,
-      bonusScore: 70,
-      userReportScore: 75,
-      freespinScore: 78,
-      complianceScore: 84,
-      supportScore: 79,
-      history: [1, 2],
+      financialPayouts: 85,
+      fairnessTransparency: 80,
+      promotionalHonesty: 70,
+      operationalSupport: 79,
+      communityReputation: 75,
     }),
     explainCasinoScore: vi.fn().mockReturnValue(['Stable payouts']),
     getDegenScore: vi.fn().mockReturnValue(88),
@@ -22,7 +19,6 @@ vi.mock('@tiltcheck/trust-engines', () => ({
       accountabilityBonus: 5,
       scamFlags: 0,
       communityReports: 2,
-      history: [1],
     }),
     getTrustLevel: vi.fn().mockReturnValue('high'),
     explainDegenScore: vi.fn().mockReturnValue(['Good accountability']),
@@ -52,7 +48,7 @@ describe('Trust Command', () => {
 
   it('registers trust command with expected subcommands', () => {
     const json = trustDashboard.data.toJSON();
-    expect(json.name).toBe('trust');
+    expect(json.name).toBe('reputation');
     const names = (json.options || []).map((opt: any) => opt.name);
     expect(names).toEqual(expect.arrayContaining(['casino', 'user', 'explain']));
   });
@@ -68,6 +64,6 @@ describe('Trust Command', () => {
     interaction.options.getSubcommand.mockReturnValue('casino');
     await trustDashboard.execute(interaction);
     const payload = interaction.reply.mock.calls[0][0];
-    expect(payload.embeds[0].data.description).toContain('Overall Score: 82/100');
+    expect(payload.embeds[0].data.description).toContain('TRUST SCORE: 82/100');
   });
 });

@@ -42,7 +42,7 @@ import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
-import { verifySessionCookie, type SessionData } from '@tiltcheck/auth';
+import { verifySessionCookie, type SessionData, getOidcKeys } from '@tiltcheck/auth';
 import { getJWTConfig } from './middleware/auth.js';
 
 import { authRouter } from './routes/auth.js';
@@ -183,6 +183,32 @@ app.use(globalLimiter);
 
 // Health check (no auth required)
 app.use('/health', healthRouter);
+
+// OIDC JWKS and Discovery endpoints for Magic TEE
+app.get('/.well-known/jwks.json', async (req, res) => {
+  try {
+    const { jwk } = await getOidcKeys();
+    res.json({ keys: [jwk] });
+  } catch (err) {
+    console.error('[OIDC JWKS Error]', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/.well-known/openid-configuration', (req, res) => {
+  const host = req.headers.host || 'api.tiltcheck.me';
+  const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+  const baseUrl = `${protocol}://${host}`;
+  
+  res.json({
+    issuer: baseUrl,
+    jwks_uri: `${baseUrl}/.well-known/jwks.json`,
+    response_types_supported: ['id_token'],
+    subject_types_supported: ['public'],
+    id_token_signing_alg_values_supported: ['RS256'],
+    claims_supported: ['sub', 'iss', 'aud', 'exp', 'iat', 'email', 'email_verified'],
+  });
+});
 
 // Authentication routes
 app.use('/auth', authRouter);

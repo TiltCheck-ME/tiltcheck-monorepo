@@ -28,7 +28,7 @@ const philosophyCards = [
   },
   {
     title: "We give you signal, not stories",
-    body: "Live session reads, fairness checks, tilt signals, and trust context. The math is the point.",
+    body: "Live session reads, payout checks, tilt signals, and casino trust records. The math is the point.",
   },
   {
     title: "We enforce accountability, not shame",
@@ -40,7 +40,7 @@ const philosophyCards = [
   },
   {
     title: "We do not ask for direct wallet control",
-    body: "The core session tools are built around signal, evidence, and guardrails. Players stay in charge of the wallet side.",
+    body: "The core session tools are built around signals, proof, and real-time brakes. Players stay in charge of the wallet side.",
   },
 ];
 
@@ -76,15 +76,15 @@ export default function AboutPage() {
         panel={
           <>
             <p className="public-page-panel__eyebrow">What this product is</p>
-            <h2 className="public-page-panel__title">A read-only gambling audit and bankroll defense product.</h2>
+            <h2 className="public-page-panel__title">A read-only gambling guardrail and bankroll defense system.</h2>
             <p className="public-page-panel__body">
-              TiltCheck is not a casino, not a bank, and not a miracle. It watches live sessions, checks fairness
+              TiltCheck is not a casino, not a bank, and not a miracle. It watches live sessions, checks payout
               claims, and helps players leave with more evidence and more control.
             </p>
             <ul className="public-page-list">
-              <li>Audit live sessions without handing over direct wallet control.</li>
-              <li>Turn fairness claims into evidence instead of gut feel.</li>
-              <li>Make exits and accountability feel operational, not optional.</li>
+              <li>Watch live sessions without handing over direct wallet control.</li>
+              <li>Turn casino claims into proof instead of gut feel.</li>
+              <li>Make exits and safety limits feel real, not optional.</li>
             </ul>
           </>
         }
@@ -109,7 +109,7 @@ export default function AboutPage() {
               <h3 className="public-page-card__title">The platform side stays sharp while the player side burns out.</h3>
               <ul className="public-page-list">
                 <li>Casinos are live 24/7. Your discipline is not.</li>
-                <li>Every game ships with a built-in edge and optional RTP tiers.</li>
+                <li>Every game ships with a built-in edge and optional payout tiers.</li>
                 <li>Lights, near-misses, and pacing are engineered to keep you spinning.</li>
               </ul>
             </article>
@@ -119,7 +119,7 @@ export default function AboutPage() {
               <h3 className="public-page-card__title">Most players are flying blind while the platform reads the board.</h3>
               <ul className="public-page-list">
                 <li>Hope feels like a strategy when you are down bad. It is not.</li>
-                <li>You rarely know your actual RTP or whether a slot was quietly nerfed.</li>
+                <li>You rarely know the real payout speed or whether a slot machine was quietly nerfed.</li>
                 <li>Emotions make chasing losses feel logical right when it is most stupid.</li>
               </ul>
             </article>
@@ -132,7 +132,7 @@ export default function AboutPage() {
             <PublicPageSectionHeader
               eyebrow="The philosophy"
               title="Simple rules. Hard edges."
-              description={<p>The product direction stays simple: surface signal, enforce the line, and never pretend feelings are proof.</p>}
+              description={<p>Our direction stays simple: show the signal, enforce the limit, and never pretend feelings are proof.</p>}
             />
 
           <div className="public-page-grid public-page-grid--3">
@@ -158,7 +158,7 @@ export default function AboutPage() {
                   money. Now the product exists for everyone else who needed it too.
                 </p>
                 <p>
-                  Specialties: full-stack architecture, trust engines, behavioral analysis, and knowing exactly what
+                  Specialties: full-stack code, trust engines, spotting tilt habits, and knowing exactly what
                   down bad at 3 a.m. feels like.
                 </p>
               </div>
@@ -166,7 +166,7 @@ export default function AboutPage() {
 
             <article className="public-page-card">
               <p className="public-page-card__eyebrow">What&apos;s next</p>
-              <h2 className="public-page-card__title">More supported sessions. Better proof. Cleaner interventions.</h2>
+              <h2 className="public-page-card__title">More supported sessions. Better proof. Cleaner exits.</h2>
               <ul className="public-page-list">
                 <li>Mobile extension path and tighter live session coverage.</li>
                 <li>Smarter tilt detection and better intervention workflows.</li>

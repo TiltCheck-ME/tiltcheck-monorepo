@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 
 "use client";
 
@@ -193,7 +193,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/tools/degens-arena"
-              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+              className="public-page-card p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
               <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">MULTIPLAYER</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Degen Arena</h3>
@@ -205,7 +205,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/tools/verify"
-              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+              className="public-page-card p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
               <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">TOOL</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Manual Bet Verifier</h3>
@@ -217,7 +217,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/casinos"
-              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+              className="public-page-card p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
             >
               <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Casino Trust Engine</h3>
@@ -231,7 +231,7 @@ export default function TouchGrassPage() {
               href="https://discord.gg/gdBsEJfCar"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-6 border border-[#5865f2]/30 bg-[#5865f2]/5 hover:bg-[#5865f2]/10 hover:border-[#5865f2]/60 transition-all group block"
+              className="public-page-card p-6 border border-[#5865f2]/30 bg-[#5865f2]/5 hover:bg-[#5865f2]/10 hover:border-[#5865f2]/60 transition-all group block"
             >
               <div className="text-[#5865f2] font-black uppercase text-xs tracking-widest mb-2">COMMUNITY</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#5865f2] transition-colors">Hit the Discord</h3>
@@ -243,7 +243,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/bonuses"
-              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+              className="public-page-card p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
               <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Bonus Scanner</h3>
@@ -255,7 +255,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/microgrant"
-              className="p-6 border border-[#ef4444]/30 bg-[#ef4444]/5 hover:bg-[#ef4444]/10 hover:border-[#ef4444]/60 transition-all group block"
+              className="public-page-card p-6 border border-[#ef4444]/30 bg-[#ef4444]/5 hover:bg-[#ef4444]/10 hover:border-[#ef4444]/60 transition-all group block"
             >
               <div className="text-[#ef4444] font-black uppercase text-xs tracking-widest mb-2">COMMUNITY FUND</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#ef4444] transition-colors">Recovery Microgrant</h3>
@@ -269,7 +269,7 @@ export default function TouchGrassPage() {
               href="https://stakaestats.net"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+              className="public-page-card p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
             >
               <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Stake Stats Archive</h3>
@@ -281,7 +281,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/tools/house-edge-scanner"
-              className="p-6 border border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/60 transition-all group block"
+              className="public-page-card p-6 border border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/60 transition-all group block"
             >
               <div className="text-yellow-500 font-black uppercase text-xs tracking-widest mb-2">MATH</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-yellow-500 transition-colors">Run the Numbers</h3>
@@ -293,7 +293,7 @@ export default function TouchGrassPage() {
 
             <a
               href="/tools/auto-vault"
-              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+              className="public-page-card p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
               <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">PROTECTION</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Set Hard Limits Now</h3>
@@ -307,7 +307,7 @@ export default function TouchGrassPage() {
               href="https://lichess.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+              className="public-page-card p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
             >
               <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">SKILL GAME</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Play Chess</h3>
@@ -321,7 +321,7 @@ export default function TouchGrassPage() {
               href="https://www.youtube.com/results?search_query=casino+slot+machine+design+psychology"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+              className="public-page-card p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
             >
               <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">WATCH</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">How Slots Are Designed</h3>
@@ -335,7 +335,7 @@ export default function TouchGrassPage() {
               href="https://www.reddit.com/r/problemgambling/"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-6 border border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 hover:border-orange-500/60 transition-all group block"
+              className="public-page-card p-6 border border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 hover:border-orange-500/60 transition-all group block"
             >
               <div className="text-orange-400 font-black uppercase text-xs tracking-widest mb-2">COMMUNITY</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-orange-400 transition-colors">r/problemgambling</h3>
@@ -345,7 +345,7 @@ export default function TouchGrassPage() {
               <div className="mt-4 text-[10px] font-mono text-orange-400 uppercase tracking-widest">Open Reddit →</div>
             </a>
 
-            <div className="p-6 border border-gray-800/60 bg-gray-900/30">
+            <div className="public-page-card p-6 border border-gray-800/60 bg-gray-900/30">
               <div className="text-gray-600 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
               <h3 className="text-lg font-black text-white uppercase mb-2">Cold Shower</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
@@ -354,7 +354,7 @@ export default function TouchGrassPage() {
               <div className="mt-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">No link. Turn the dial.</div>
             </div>
 
-            <div className="p-6 border border-gray-800/60 bg-gray-900/30">
+            <div className="public-page-card p-6 border border-gray-800/60 bg-gray-900/30">
               <div className="text-gray-600 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
               <h3 className="text-lg font-black text-white uppercase mb-2">Write the Number Down</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
@@ -363,7 +363,7 @@ export default function TouchGrassPage() {
               <div className="mt-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">No link. Just write it.</div>
             </div>
 
-            <div className="p-6 border border-gray-800/60 bg-gray-900/30">
+            <div className="public-page-card p-6 border border-gray-800/60 bg-gray-900/30">
               <div className="text-gray-600 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
               <h3 className="text-lg font-black text-white uppercase mb-2">Actually Touch Grass</h3>
               <p className="text-gray-500 text-sm leading-relaxed">

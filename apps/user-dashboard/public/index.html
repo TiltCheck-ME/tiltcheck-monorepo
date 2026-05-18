@@ -128,22 +128,23 @@
               </div>
 
               <div class="card">
-                <h3 class="card-title">Wallet Addresses</h3>
+                <h3 class="card-title">Secured Wallets</h3>
                 <div class="wallet-row">
                   <span class="wallet-label">External Wallet</span>
                   <code id="externalWalletDisplay" class="wallet-addr">Not linked</code>
                   <button class="btn btn-ghost btn-sm" id="link-wallet-btn">Link</button>
                 </div>
+                <div class="wallet-row" id="magic-wallet-row" style="display: flex">
+                  <span class="wallet-label">Secure Server Wallet</span>
+                  <code id="magicWalletDisplay" class="wallet-addr">Not linked</code>
+                  <button class="btn btn-ghost btn-sm" id="link-magic-wallet-btn">Secure</button>
+                </div>
                 <div class="wallet-row">
-                  <span class="wallet-label">NFT Identity</span>
+                  <span class="wallet-label">Degen NFT Identity</span>
                   <code id="nftIdentityStatus" class="wallet-addr">Checking...</code>
                 </div>
                 <div id="nftIdentitySub" class="stat-sub" style="margin-bottom: 0.75rem">
-                  Opt in during onboarding if you want first-wave NFT identity notice.
-                </div>
-                <div class="wallet-row" id="magic-wallet-row" style="display: none">
-                  <span class="wallet-label">Magic Wallet</span>
-                  <code id="magicWalletDisplay" class="wallet-addr">Not linked</code>
+                  Secure a wallet and sign terms to claim your first-wave NFT profile badge.
                 </div>
                 <div id="wallet-link-form" class="wallet-link-form" style="display: none">
                   <input
@@ -170,15 +171,14 @@
 
             <div class="card-row">
               <div class="card">
-                <h3 class="card-title">Survey Match Readiness</h3>
+                <h3 class="card-title">Degen Fit Check</h3>
                 <div class="identity-hero">
                   <div id="surveyReadinessLabel" class="identity-status-pill">Loading...</div>
                   <div id="surveyReadinessScore" class="identity-readiness-score">
-                    0/5 lanes ready
+                    0/5 gears spinning
                   </div>
                   <div id="surveyReadinessSub" class="stat-sub">
-                    Turning on the right lanes builds a cleaner profile for survey routing without
-                    custody creep.
+                    Power up the right trust gears to unlock elite status, maximum returns, and absolute safety without the suits locking your funds.
                   </div>
                 </div>
                 <div id="surveyReadinessChecklist" class="identity-checklist">
@@ -187,28 +187,28 @@
               </div>
 
               <div class="card">
-                <h3 class="card-title">Identity Controls</h3>
+                <h3 class="card-title">Vibe Settings</h3>
                 <div class="identity-controls">
                   <label class="checkbox-label">
                     <input type="checkbox" id="identity-optin-notify" />
-                    <span>Notify me when NFT identity fingerprint opens</span>
+                    <span>Alert me when our Degen Identity NFT mint goes live</span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" id="identity-optin-session" />
-                    <span>Use session telemetry for survey/profile matching</span>
+                    <span>Share anonymous gameplay signals to match me with high-paying rewards</span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" id="identity-optin-financial" />
-                    <span>Use financial history to avoid garbage-fit survey offers</span>
+                    <span>Connect my transaction records so I never get insulted with low-paying offers</span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" id="identity-optin-messages" />
-                    <span>Use message content signals for tighter survey/profile fit</span>
+                    <span>Let the AI scan my chat style to lock down hyper-targeted, high-value bonuses</span>
                   </label>
                 </div>
                 <div class="identity-actions">
                   <button class="btn btn-primary btn-sm" id="save-identity-settings-btn">
-                    Save Identity Settings
+                    Lock In Profile Vibe
                   </button>
                 </div>
                 <div id="identitySettingsStatus" class="form-msg"></div>
@@ -218,26 +218,25 @@
 
           <!-- TAB: SAFETY -->
           <section id="safety-tab" class="tab-section">
-            <div class="section-header"><h1>Temptation Filter</h1></div>
+            <div class="section-header"><h1>Doomshield Filter</h1></div>
             <p class="section-desc">
-              Dashboard owns the durable block list. The extension enforces it live in-browser.
-              Discord stays summary and quick-add only.
+              This is your master command center. The rules you set here are hard-enforced in your browser by the TiltCheck extension. Discord is your tactical radio for quick panic blocks and daily summaries.
             </p>
 
             <div class="card-row">
               <div class="card">
-                <h3 class="card-title">Add Exclusion</h3>
+                <h3 class="card-title">Forge New Shield</h3>
                 <div class="form-group">
-                  <label class="form-label" for="exclusion-mode">Block type</label>
+                  <label class="form-label" for="exclusion-mode">Shield Type</label>
                   <select id="exclusion-mode" class="input"></select>
                 </div>
                 <div class="form-group" id="exclusion-category-group">
-                  <label class="form-label" for="exclusion-category">Category</label>
+                  <label class="form-label" for="exclusion-category">Target Category</label>
                   <select id="exclusion-category" class="input"></select>
                 </div>
                 <div class="form-group" id="exclusion-target-group" style="display: none">
                   <label class="form-label" id="exclusion-target-label" for="exclusion-target-value"
-                    >Game ID or slug</label
+                    >Casino Game or Slug</label
                   >
                   <input
                     type="text"
@@ -247,34 +246,34 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="exclusion-reason">Reason</label>
+                  <label class="form-label" for="exclusion-reason">Note to future-me</label>
                   <input
                     type="text"
                     id="exclusion-reason"
                     class="input"
-                    placeholder="Optional note for future-you"
+                    placeholder="e.g. 'don't chase at 3 AM'"
                   />
                 </div>
                 <div class="inline-action-row">
-                  <button id="save-exclusion-btn" class="btn btn-primary">Save Exclusion</button>
+                  <button id="save-exclusion-btn" class="btn btn-primary">Deploy Shield</button>
                 </div>
                 <div id="exclusionFormStatus" class="form-msg"></div>
               </div>
 
               <div class="card">
-                <h3 class="card-title">Safety Summary</h3>
+                <h3 class="card-title">Shield Summary</h3>
                 <div class="safety-summary-stack">
                   <div class="safety-stat">
-                    <span class="safety-stat-label">Active exclusions</span>
+                    <span class="safety-stat-label">Active Shields</span>
                     <span id="exclusion-count" class="safety-stat-value">0</span>
                   </div>
                   <div class="safety-stat">
-                    <span class="safety-stat-label">Extension role</span>
-                    <span class="safety-stat-copy">Enforcement and summary</span>
+                    <span class="safety-stat-label">Browser Enforcer</span>
+                    <span class="safety-stat-copy">Active shield enforcement & RTP monitoring</span>
                   </div>
                   <div class="safety-stat">
-                    <span class="safety-stat-label">Discord role</span>
-                    <span class="safety-stat-copy">Alerts, summary, optional quick-add</span>
+                    <span class="safety-stat-label">Discord Tactical Alerts</span>
+                    <span class="safety-stat-copy">Real-time notifications, chat logs, & fast panic blocks</span>
                   </div>
                 </div>
               </div>
@@ -290,10 +289,9 @@
 
           <!-- TAB: ANALYTICS -->
           <section id="analytics-tab" class="tab-section">
-            <div class="section-header"><h1>Session Analytics</h1></div>
+            <div class="section-header"><h1>Session Truth Layer</h1></div>
             <p class="section-desc">
-              Vaulted sessions count as secured wins. Big green sessions over your redeem line show
-              up as redeem windows until you actually lock the profit.
+              Every dollar inside LockVault is a secured victory that the house can never touch. Green bars represent sessions where you broke the house's math. Secure them before your brain lets you hand it all back.
             </p>
 
             <div class="stats-grid-4">
@@ -344,11 +342,9 @@
 
           <!-- TAB: VAULT -->
           <section id="vault-tab" class="tab-section">
-            <div class="section-header"><h1>Vault</h1></div>
+            <div class="section-header"><h1>LockVault Command</h1></div>
             <p class="section-desc">
-              Dashboard owns LockVault timers, withdrawal guardian approvals, Wallet Lock cooldowns,
-              and AutoVault rules. The extension stays on enforcement and quick actions, not durable
-              rule management.
+              Configure your ultimate profit shield here. Dashboard manages LockVault timers, early release rules, and automated safety gates. The browser extension acts as your frontline armor—holding the line and enforcing the blocks in real-time.
             </p>
 
             <div id="vault-status-card" class="vault-hero">
@@ -433,11 +429,10 @@
                   <div class="form-group">
                     <label class="form-label staged-toggle-row" for="vault-staged-toggle">
                       <input type="checkbox" id="vault-staged-toggle" />
-                      <span>Enable staged unlocks</span>
+                      <span>Enable Stepped Cash Outs</span>
                     </label>
                     <p class="form-helper">
-                      Set partial releases before the final expiry. Any remainder not assigned here
-                      stays locked until the end of the lock period.
+                      Cash out in chunks. Set partial releases to drip back to your wallet at key milestones so you don't keep everything in one massive basket.
                     </p>
                   </div>
                   <div id="vault-staged-config" class="vault-staged-config" style="display: none">
@@ -472,26 +467,24 @@
 
             <div class="card-row">
               <div class="card">
-                <h3 class="card-title">Withdrawal Guardian Flow</h3>
+                <h3 class="card-title">Accountability Partner Gate</h3>
                 <p class="section-desc section-desc-inline">
-                  Current LockVault withdrawal flow only executes after the vault owner requests it
-                  and the configured withdrawal guardians clear the approval threshold. No fake
-                  success screens.
+                  Real, unbreakable security. You cannot withdraw a single dollar without approval from your chosen Accountability Partners. They act as your ultimate gatekeepers—no bypass, no overrides, no fake progress bars.
                 </p>
                 <div class="form-group">
                   <label class="form-label" for="vault-guardian-ids-input"
-                    >Withdrawal Guardian Discord IDs</label
+                    >Accountability Partner Discord IDs</label
                   >
                   <textarea
                     id="vault-guardian-ids-input"
                     class="input"
                     rows="4"
-                    placeholder="One Discord ID per line or comma-separated"
+                    placeholder="List their Discord IDs (one per line). Make sure it's someone who won't buckle when you start pleading at 3 AM."
                   ></textarea>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="vault-approval-threshold-input"
-                    >Approval threshold</label
+                    >Required Partner Sign-offs</label
                   >
                   <input
                     type="number"
@@ -504,12 +497,12 @@
                 </div>
                 <div class="inline-action-row">
                   <button id="vault-save-guardians-btn" class="btn btn-secondary">
-                    Save Withdrawal Guardians
+                    Appoint Guardians
                   </button>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="vault-withdrawal-amount-input"
-                    >Withdrawal amount (SOL)</label
+                    >Amount to Cash Out (SOL)</label
                   >
                   <input
                     type="number"
@@ -522,10 +515,10 @@
                 </div>
                 <div class="inline-action-row">
                   <button id="vault-initiate-withdrawal-btn" class="btn btn-primary">
-                    Request Withdrawal
+                    Plead to Cash Out
                   </button>
                   <button id="vault-execute-withdrawal-btn" class="btn btn-ghost">
-                    Execute Approved Withdrawal
+                    Execute Approved Cash Out
                   </button>
                 </div>
                 <div id="vaultApprovalSummary" class="activity-empty">
@@ -535,10 +528,9 @@
               </div>
 
               <div class="card">
-                <h3 class="card-title">Withdrawal Approvals Assigned to You</h3>
+                <h3 class="card-title">Guard Duty (Approvals for Others)</h3>
                 <p class="section-desc section-desc-inline">
-                  If another degen assigned you as a withdrawal guardian, approve from here after
-                  you verify the amount, owner, and threshold progress.
+                  When another player appoints you as their shield, their bankroll safety is in your hands. Verify their story, verify the cash-out amount, and sign off only when they're cool-headed.
                 </p>
                 <div id="vault-approval-queue" class="safety-list">
                   <div class="activity-empty">Loading approval queue...</div>
@@ -549,10 +541,9 @@
 
             <div class="card-row">
               <div class="card">
-                <h3 class="card-title">Wallet Safety Lock</h3>
+                <h3 class="card-title">Full Lockdown Mode</h3>
                 <p class="section-desc section-desc-inline">
-                  Account-level cooldown that blocks wallet actions from the dashboard. No local
-                  shadow timers.
+                  Freeze all dashboard transactions. When you trigger this, you are completely locked out of the command center for the selected duration. No overrides, no local clock bypasses—pure, unadulterated discipline.
                 </p>
                 <div
                   id="wallet-lock-summary"
@@ -582,7 +573,7 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="wallet-lock-reason-input">Reason</label>
+                  <label class="form-label" for="wallet-lock-reason-input">Reason for lockdown</label>
                   <input
                     type="text"
                     id="wallet-lock-reason-input"
@@ -595,25 +586,24 @@
                   Split: recovery microgrant pool plus <strong>2%</strong> dev skim (ledger log until treasury sweep exists). Trivia jackpots are voluntary-only until legal-cleared contest rules exist.
                 </p>
                 <div class="inline-action-row">
-                  <button id="save-wallet-lock-btn" class="btn btn-primary">Set Wallet Lock</button>
+                  <button id="save-wallet-lock-btn" class="btn btn-primary">Activate Lockdown</button>
                   <button id="request-wallet-unlock-btn" class="btn btn-ghost">
-                    Request Early Unlock
+                    Pay the Tax for Early Out
                   </button>
                   <button id="pay-wallet-unlock-btn" class="btn btn-secondary">
-                    Pay Early Unlock Fee
+                    Confirm Fee Payment
                   </button>
                 </div>
                 <div id="walletLockStatusMsg" class="form-msg"></div>
               </div>
 
               <div class="card">
-                <h3 class="card-title">AutoVault Rules</h3>
+                <h3 class="card-title">Autopilot Locks</h3>
                 <p class="section-desc section-desc-inline">
-                  AutoVault defines automatic deposits into LockVault. It does not replace LockVault
-                  timers or the account-level Wallet Lock.
+                  Configure automated sweeps into LockVault. Drip-feed your winnings straight to your secure vault on the fly so you don't even get the chance to bet them back.
                 </p>
                 <div class="form-group">
-                  <label class="form-label" for="vault-rule-type">Rule type</label>
+                  <label class="form-label" for="vault-rule-type">Autopilot Strategy</label>
                   <select id="vault-rule-type" class="input">
                     <option value="percent_of_win">Percent of each win</option>
                     <option value="fixed_per_threshold">Fixed amount per threshold</option>
@@ -622,7 +612,7 @@
                   </select>
                 </div>
                 <div class="form-group" id="vault-rule-percent-group">
-                  <label class="form-label" for="vault-rule-percent">Percent to auto-vault</label>
+                  <label class="form-label" for="vault-rule-percent">Percent to lock away</label>
                   <input
                     type="number"
                     id="vault-rule-percent"
@@ -633,7 +623,7 @@
                   />
                 </div>
                 <div class="form-group" id="vault-rule-fixed-group" style="display: none">
-                  <label class="form-label" for="vault-rule-fixed-amount">Fixed amount</label>
+                  <label class="form-label" for="vault-rule-fixed-amount">Amount to sweep (SOL)</label>
                   <input
                     type="number"
                     id="vault-rule-fixed-amount"
@@ -710,36 +700,35 @@
                   />
                 </div>
                 <div class="inline-action-row">
-                  <button id="save-vault-rule-btn" class="btn btn-primary">Save Rule</button>
+                  <button id="save-vault-rule-btn" class="btn btn-primary">Activate Autopilot</button>
                 </div>
                 <div id="vaultRuleStatus" class="form-msg"></div>
               </div>
             </div>
 
             <div class="card">
-              <h3 class="card-title">Current Vault Rules</h3>
+              <h3 class="card-title">Active Autopilot Strategies</h3>
               <div id="vault-rule-list" class="safety-list">
-                <div class="activity-empty">Loading vault rules...</div>
+                <div class="activity-empty">Loading autopilot rules...</div>
               </div>
             </div>
           </section>
 
           <!-- TAB: BUDDIES -->
           <section id="buddies-tab" class="tab-section">
-            <div class="section-header"><h1>Buddy System</h1></div>
+            <div class="section-header"><h1>Accountability Buddies</h1></div>
             <p class="section-desc">
-              Dashboard owns the durable accountability settings. Discord still does alerts and
-              optional quick-adds. The extension only mirrors quick actions.
+              This is your social safety net. Manage your trusted play partners here. The browser extension monitors and mirrors critical action, while Discord alerts your buddies when you're entering the red zone.
             </p>
 
             <div class="card-row">
               <div class="card">
-                <h3 class="card-title">Accountability Controls</h3>
+                <h3 class="card-title">Intervention Setup</h3>
                 <div class="setting-row">
                   <div>
-                    <div class="setting-row-title">Voice intervention</div>
+                    <div class="setting-row-title">Panic Room Auto-Join</div>
                     <div class="setting-row-copy">
-                      Let TiltCheck move you into accountability voice when critical tilt hits.
+                      Automatically drag me into the Discord accountability voice channel the millisecond critical tilt triggers so my squad can calm me down.
                     </div>
                   </div>
                   <label class="toggle">

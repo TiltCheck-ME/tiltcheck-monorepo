@@ -47,9 +47,12 @@ describe('Scan Command', () => {
     await scan.execute(interaction);
 
     expect(interaction.deferReply).toHaveBeenCalled();
-    expect(interaction.editReply).toHaveBeenCalledWith({
-      embeds: [expect.objectContaining({ title: 'Invalid URL' })],
-    });
+    expect(interaction.editReply).toHaveBeenCalled();
+
+    const callArg = interaction.editReply.mock.calls[0][0];
+    expect(callArg.embeds).toBeDefined();
+    expect(callArg.embeds[0].data.title).toBe('INVALID URL');
+    expect(callArg.embeds[0].data.description).toContain('That URL is busted');
   });
 
   it('scans valid URL via suslink and replies with scan embed', async () => {

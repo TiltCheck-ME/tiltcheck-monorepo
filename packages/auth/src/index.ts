@@ -57,6 +57,8 @@ export {
   getTokenTTL,
   createSessionToken,
   createAdminToken,
+  getOidcKeys,
+  signOidcToken,
 } from './jwt.js';
 
 // Cookie session functions

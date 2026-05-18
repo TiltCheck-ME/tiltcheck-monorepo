@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
 import Link from "next/link";
 
 const coreJobs = [
@@ -31,15 +31,12 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            THE SESSION IS RIGGED AGAINST YOUR BRAIN, NOT JUST THE MATH.
+            HOUSE ALWAYS WINS? FUCK THAT.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
-            TiltCheck is a read-only browser extension that watches how you play, not
-            just what the reels say. It flags tilt, manipulative pacing, and Auto-Pilot
-            mode before The Loop feeds your win back to the machine. While fairness
-            verifiers already exist, we close the psychological gap before the session
-            cooks you.
+            TiltCheck is a read-only browser extension that stops you from giving your wins back to the machine. 
+            We watch your pacing, click-speed, and tilt signals in real time—and pull you out before you rug yourself.
           </p>
 
           <div className="hero-actions">
@@ -65,13 +62,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Three jobs ── */}
+      {/* ── Core Features ── */}
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-section-heading">
             <div>
               <span className="brand-eyebrow">What TiltCheck actually does</span>
-              <h2 className="public-page-section-heading__title">Three jobs. Nothing else.</h2>
+              <h2 className="public-page-section-heading__title">Built to protect your bankroll.</h2>
             </div>
           </div>
 

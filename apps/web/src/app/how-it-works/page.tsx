@@ -5,18 +5,18 @@ import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPage
 const workflowStats = [
   {
     label: "Install path",
-    value: "1 sideload",
-    description: "Load the extension once, then keep the audit layer inside the same tab where the session happens.",
+    value: "1-click load",
+    description: "Install it once, then keep the safety dashboard inside the active browser tab where your gameplay happens.",
   },
   {
     label: "Live job",
     value: "Watch + compare",
-    description: "TiltCheck reads session activity, tilt patterns, and platform pressure while you play, then flags the sus parts before they snowball.",
+    description: "TiltCheck reads session activity, speed spikes, and platform pressure while you play, then flags the sus parts before they snowball.",
   },
   {
     label: "Output",
     value: "Receipts + exits",
-    description: "When the sample is strong enough, you get evidence and a clearer next move instead of more guessing.",
+    description: "When the evidence is strong enough, you get proof and a clear way out instead of more guessing.",
   },
 ];
 
@@ -24,19 +24,19 @@ const workflowSteps = [
   {
     step: "01",
     title: "Install the extension",
-    body: "Load the read-only browser extension so TiltCheck can inspect the casino tab, session events, and fairness inputs. It does not need private keys or direct wallet control to do that job.",
+    body: "Get our read-only extension so TiltCheck can watch gameplay pacing, session events, and check the math. We don't touch your wallet or private keys.",
     note: "One install. It watches the session from inside your browser.",
   },
   {
     step: "02",
-    title: "Spot drift in behavior and payouts",
+    title: "Spot behavior loops and payout shifts",
     body: "TiltCheck compares live behavior to trust signals, payout expectations, and the guardrails you set. If the session pacing gets sus or payouts look weaker than they should, it flags both before tilt starts calling the shots.",
     note: "You stop relying on gut feel and start seeing the trap.",
   },
   {
     step: "03",
     title: "Act on proof, not emotion",
-    body: "When the sample is meaningful, TiltCheck packages the evidence and enforces the guardrails you already set. That can mean a warning, a cash-out push, or a hard stop.",
+    body: "When the evidence is clear, TiltCheck packages the data and enforces the guardrails you already set. That can mean a warning, a cash-out push, or a hard stop.",
     note: "Catch bad math early. Stop bad decisions late.",
   },
 ];
@@ -45,12 +45,12 @@ const faqs = [
   {
     question: "Do you see my wallet key?",
     answer:
-      "No. We never ask for it, store it, or want it. The audit layer reads casino activity and session-visible signals without needing your private key.",
+      "No. We never ask for it, store it, or want it. The extension reads casino activity and session-visible signals without needing your private key.",
   },
   {
-    question: "What does RTP drift mean here?",
+    question: "What does payout drift mean here?",
     answer:
-      "Some slot games are certified at multiple RTP levels. A game that can run at 96.5% may still be deployed lower. TiltCheck looks for that gap and shows players when the live setup is worse than expected.",
+      "Casinos can configure the same slot machine to pay out less. A game set to return 96% might silently be set to 94% on some platforms. TiltCheck runs the math on your session in real time to show you if the casino has secretly nerfed the game's payout speed.",
   },
   {
     question: "When do I actually get evidence?",
@@ -80,10 +80,9 @@ export default function HowItWorksPage() {
         }
         description={
           <p>
-            TiltCheck is a read-only browser extension and trust layer for casino players. While math verifiers
-            already exist, TiltCheck covers the psychological gap by watching live sessions for tilt patterns,
-            manipulative pacing, and payout drift, then applying The Brakes before a bad run turns into an even
-            dumber decision.
+            TiltCheck is a read-only browser guardrail. While normal stats tools only show the damage after the fact, 
+            TiltCheck works in real time—tracking behavioral spirals, speed shifts, and silent payout nerfing, 
+            pulling you out before you blow your bankroll.
           </p>
         }
         actions={

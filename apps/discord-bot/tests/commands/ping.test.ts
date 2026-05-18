@@ -28,21 +28,19 @@ describe('Ping Command', () => {
   it('registers ping command metadata', () => {
     const json = ping.data.toJSON();
     expect(json.name).toBe('ping');
-    expect(json.description).toMatch(/responsive/i);
+    expect(json.description).toMatch(/awake|face-down/i);
   });
 
   it('defer replies and edits with pong embed', async () => {
     await ping.execute(interaction);
 
     expect(deferReply).toHaveBeenCalledWith({ fetchReply: true });
-    expect(editReply).toHaveBeenCalledWith({
-      embeds: [
-        expect.objectContaining({
-          title: '🏓 Pong!',
-          description: expect.stringContaining('Bot latency: 50ms'),
-        }),
-      ],
-    });
-    expect(editReply.mock.calls[0][0].embeds[0].description).toContain('WebSocket: 42ms');
+    expect(editReply).toHaveBeenCalled();
+    
+    const callArg = editReply.mock.calls[0][0];
+    expect(callArg.embeds).toBeDefined();
+    expect(callArg.embeds[0].data.title).toBe('PONG');
+    expect(callArg.embeds[0].data.description).toContain('Bot latency: 50ms');
+    expect(callArg.embeds[0].data.description).toContain('WebSocket: 42ms');
   });
 });

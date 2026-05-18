@@ -4,7 +4,7 @@
  * JWT token issuance and verification using jose library
  */
 
-import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from 'jose';
+import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload, generateKeyPair, exportJWK, importPKCS8, importSPKI, type JWK } from 'jose';
 import type { JWTConfig, JWTPayload, JWTVerifyResult, SessionType } from './types.js';
 
 /**
@@ -206,6 +206,81 @@ export async function createAdminToken(
     },
     config
   );
+}
+
+// ============================================================
+// OIDC / RS256 ASYMMETRIC KEY MANAGEMENT FOR MAGIC TEE
+// ============================================================
+
+let oidcKeyPair: { privateKey: any; publicKey: any } | null = null;
+let oidcJWK: JWK | null = null;
+
+/**
+ * Get or dynamically generate the RS256 key pair for OIDC.
+ */
+export async function getOidcKeys(): Promise<{ privateKey: any; publicKey: any; jwk: JWK }> {
+  if (oidcKeyPair && oidcJWK) {
+    return { ...oidcKeyPair, jwk: oidcJWK };
+  }
+
+  const privateKeyPem = process.env.OIDC_PRIVATE_KEY_PEM?.replace(/\\n/g, '\n');
+  const publicKeyPem = process.env.OIDC_PUBLIC_KEY_PEM?.replace(/\\n/g, '\n');
+
+  if (privateKeyPem && publicKeyPem) {
+    try {
+      const privateKey = await importPKCS8(privateKeyPem, 'RS256');
+      const publicKey = await importSPKI(publicKeyPem, 'RS256');
+      const jwk = await exportJWK(publicKey);
+      jwk.kid = process.env.OIDC_KEY_ID || 'tiltcheck-key-1';
+      jwk.use = 'sig';
+      jwk.alg = 'RS256';
+      
+      oidcKeyPair = { privateKey, publicKey };
+      oidcJWK = jwk;
+      return { privateKey, publicKey, jwk };
+    } catch (err) {
+      console.error('[OIDC] Failed to import OIDC keys from PEM, falling back to dynamic generation:', err);
+    }
+  }
+
+  // Ephemeral key pair generation
+  const { privateKey, publicKey } = await generateKeyPair('RS256', {
+    modulusLength: 2048,
+  });
+  
+  const jwk = await exportJWK(publicKey);
+  jwk.kid = 'tiltcheck-ephemeral-key';
+  jwk.use = 'sig';
+  jwk.alg = 'RS256';
+  
+  oidcKeyPair = { privateKey, publicKey };
+  oidcJWK = jwk;
+  return { privateKey, publicKey, jwk };
+}
+
+/**
+ * Sign an OIDC ID Token for a user to pass to Magic TEE Wallets
+ */
+export async function signOidcToken(
+  user: { id: string; email: string },
+  issuer: string,
+  audience: string,
+  expiresInSeconds = 3600
+): Promise<string> {
+  const { privateKey, jwk } = await getOidcKeys();
+  const now = Math.floor(Date.now() / 1000);
+  
+  return new SignJWT({
+    email: user.email,
+    email_verified: true,
+  })
+    .setProtectedHeader({ alg: 'RS256', kid: jwk.kid })
+    .setIssuedAt(now)
+    .setExpirationTime(now + expiresInSeconds)
+    .setIssuer(issuer)
+    .setAudience(audience)
+    .setSubject(user.id)
+    .sign(privateKey);
 }
 
 export type { JWTConfig, JWTPayload, JWTVerifyResult };

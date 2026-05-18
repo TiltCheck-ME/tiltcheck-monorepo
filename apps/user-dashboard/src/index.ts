@@ -9,7 +9,8 @@ import {
   verifySessionCookie, 
   getCookieConfig,
   type JWTConfig,
-  type SessionData
+  type SessionData,
+  signOidcToken
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
@@ -1282,6 +1283,83 @@ app.post('/api/auth/magic/link', authenticateToken, async (req: DashboardRequest
   } catch (err) {
     console.error('[Magic Link]', err);
     res.status(400).json({ error: 'Invalid Magic link token', code: 'INVALID_INPUT' });
+  }
+});
+
+app.post('/api/auth/magic/server-wallet', authenticateToken, async (req: DashboardRequest, res) => {
+  if (!MAGIC_SECRET_KEY) {
+    res.status(503).json({ error: 'Magic server wallets are not configured', code: 'SERVICE_UNAVAILABLE' });
+    return;
+  }
+
+  // Fallback to configured OIDC provider ID or use a default one for local/cloud dev
+  const providerId = process.env.MAGIC_OIDC_PROVIDER_ID || 'tiltcheck-oidc';
+  
+  // Resolve user info from session
+  const discordId = req.user!.discordId;
+  const username = req.user!.username;
+  const email = `${discordId}@discord.tiltcheck.me`; // Synthesize OIDC email based on discordId since discord ID is unique
+
+  try {
+    // 1. Resolve OIDC issuer and sign RS256 token
+    const issuer = process.env.OIDC_ISSUER || 'http://localhost:8080';
+    const audience = process.env.OIDC_AUDIENCE || 'tiltcheck-app';
+    
+    const oidcToken = await signOidcToken({ id: discordId, email }, issuer, audience);
+    
+    // 2. Call Magic TEE wallet creation REST endpoint
+    const response = await fetch('https://tee.express.magiclabs.com/v1/wallet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${oidcToken}`,
+        'X-Magic-Secret-Key': MAGIC_SECRET_KEY,
+        'X-Magic-API-Key': MAGIC_SECRET_KEY,
+        'X-OIDC-Provider-ID': providerId,
+        'X-Magic-Chain': 'SOL'
+      }
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.error('[Magic TEE Wallet Error]', data);
+      res.status(response.status).json({ 
+        error: data.error || 'Magic server-wallet creation failed.',
+        code: 'MAGIC_TEE_ERROR'
+      });
+      return;
+    }
+
+    const publicAddress = data.public_address || data.address;
+    if (!publicAddress) {
+      res.status(502).json({ 
+        error: 'Failed to retrieve public address from Magic wallet provisioning response.',
+        code: 'BAD_GATEWAY'
+      });
+      return;
+    }
+
+    // 3. Upsert identity with the Magic server-wallet address
+    let updatedIdentity: DegenIdentity | null = null;
+    if (db.isConnected()) {
+      updatedIdentity = await db.upsertDegenIdentity({
+        discord_id: discordId,
+        magic_address: publicAddress
+      });
+    }
+    
+    const onboarding = await findOnboardingByDiscordId(discordId);
+    const nftIdentity = await notifyNftIdentityReady(
+      discordId,
+      username,
+      onboarding,
+      updatedIdentity
+    );
+
+    res.json({ success: true, address: publicAddress, nftIdentity });
+  } catch (err) {
+    console.error('[Server Wallet Provision Error]', err);
+    res.status(500).json({ error: 'Server wallet provisioning failed.', code: 'INTERNAL_ERROR' });
   }
 });
 

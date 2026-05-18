@@ -24,6 +24,7 @@ function ensureDir() { fs.mkdirSync(DATA_DIR, { recursive: true }); }
 
 const DEFAULT_CONFIG = {
   topic: 'casino',
+  theme: 'casino',
   rounds: 10,
   timerSeconds: 20,
   prizeSol: 0,
@@ -147,7 +148,7 @@ async function launchGame(configOverrides = {}) {
   const config = { ...loadConfig(), ...configOverrides };
   return arenaPost('/trivia/schedule', {
     category: config.topic,
-    theme: config.topic,
+    theme: config.theme ?? config.topic,
     totalRounds: config.rounds,
     timerMs: config.timerSeconds * 1000,
     prizeSol: config.prizeSol,
