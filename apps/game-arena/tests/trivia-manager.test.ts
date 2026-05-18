@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
 
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -175,16 +175,16 @@ describe('triviaManager', () => {
     const liveQuestion = liveRound!.currentQuestion!;
     const bankQuestion = TRIVIA_QUESTION_BANK.casino.find((question) => question.id === liveQuestion.id);
     expect(bankQuestion).toBeTruthy();
-    const correctAnswer = bankQuestion!.choices[bankQuestion!.answer];
-    const wrongAnswer = liveQuestion.choices.find((choice) => choice !== correctAnswer);
-    expect(wrongAnswer).toBeTruthy();
+    const wrongKey = (['A', 'B', 'C', 'D'] as const).find((key) => key !== bankQuestion!.answer);
+    expect(wrongKey).toBeTruthy();
 
-    await expect(triviaManager.submitAnswer('user-1', liveQuestion.id, wrongAnswer!)).resolves.toEqual({
+    await expect(triviaManager.submitAnswer('user-1', liveQuestion.id, wrongKey!)).resolves.toEqual({
       success: true,
       message: 'Answer accepted.',
     });
 
     await vi.advanceTimersByTimeAsync(20_000);
+    await vi.advanceTimersByTimeAsync(5_000);
 
     const eliminatedState = triviaManager.getLiveState();
     expect(eliminatedState?.players.find((player) => player.userId === 'user-1')?.eliminated).toBe(true);
