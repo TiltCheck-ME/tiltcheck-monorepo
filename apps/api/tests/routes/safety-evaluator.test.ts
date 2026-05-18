@@ -20,7 +20,7 @@ describe('safety evaluator', () => {
   it('returns escalation intervention for severe sentiment', () => {
     const result = evaluateSentiment({
       userId: 'user-2',
-      message: 'I LOST EVERYTHING and I cannot stop!!! all in now',
+      message: 'I lost it all and I cannot stop — help me stop',
       distressSignals: ['panic'],
     });
 
