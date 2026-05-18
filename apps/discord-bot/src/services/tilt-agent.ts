@@ -160,7 +160,7 @@ function buildMessage(
   const outro: Record<TiltAnalysis['severity'], string> = {
     low: 'Keep an eye on this pattern.',
     medium: 'Take a 10 minute break before the next action.',
-    high: 'Step away now and use /lockvault if you need a hard stop.',
+    high: 'Step away now. /walletlock disclose shows exit fees; dashboard vault lane for a hard stop.',
   };
 
   const flagList = flags.map((f) => `- ${f}`).join('\n');

@@ -6,7 +6,13 @@ Migrated from [github.com/jmenichole/Justthetip](https://github.com/jmenichole/J
 
 ## Features
 
-- **Non-custodial P2P transfers** via Solana Pay (x402 Trustless Agent)
+### Direct tips (non-custodial)
+
+- **P2P transfers** via Solana Pay (x402 Trustless Agent) — user signs; module does not hold keys
+
+### Credits / relay (pooled custody leg)
+
+- **Credit balances** settled via the operational bot wallet — see `src/credits.ts` and [docs/legal/custody-matrix.md](../../docs/legal/custody-matrix.md)
 - **Multi-wallet support**: x402, Magic Link, Phantom, Solflare, WalletConnect
 - **USD to SOL conversion** via pricing oracle abstraction (`@tiltcheck/pricing-oracle`)
 - **Pending tips** for unregistered users (auto-process when they register)

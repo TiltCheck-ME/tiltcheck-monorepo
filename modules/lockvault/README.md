@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 -->
 
 # LockVault Module
 
@@ -38,6 +38,7 @@ Stored JSON at `data/lockvault.json` (configurable via `LOCKVAULT_STORE_PATH`).
 ## Wallet lock enforcement
 - Account-level wallet locks are enforced inside the LockVault domain layer for owner-driven mutators, including deposit, lock creation, unlock/release, guardian changes, and owner-initiated withdrawal execution paths.
 - The API router still performs early rejects for the primary HTTP flows, but domain checks are the fail-closed source of truth so future callers cannot bypass the lock by skipping one route helper.
+- Optional **timer-only** mode (`earlyUnlockAllowed: false` on the persisted lock): admin and paid early-unlock requests are rejected until `lockUntil`. This mirrors commitment-style products (e.g. time-stream vault UIs) in **policy only** — it is not on-chain immutability.
 
 ## Future Enhancements
 - Price oracle conversion USD->SOL

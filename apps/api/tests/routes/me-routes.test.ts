@@ -5,6 +5,7 @@ import request from 'supertest';
 
 const mockedDb = vi.hoisted(() => ({
   createUser: vi.fn(),
+  createAuditLog: vi.fn().mockResolvedValue(null),
   deleteRow: vi.fn(),
   findOnboardingByDiscordId: vi.fn(),
   findUserByDiscordId: vi.fn(),
@@ -126,6 +127,22 @@ describe('Me onboarding status routes', () => {
     expect(readResponse.body.preferences.voiceInterventionEnabled).toBe(true);
     expect(readResponse.body.preferences.redeemThreshold).toBe(250);
     expect(readResponse.body.quizScores).toEqual({ delusion_check: -1 });
+  });
+
+  it('rejects complianceBypass for non-admin in production mode', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('COMPLIANCE_BYPASS_ALLOWED', 'false');
+
+    const response = await request(app)
+      .post('/me/onboarding-status')
+      .send({
+        step: 'preferences',
+        preferences: { complianceBypass: true },
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('complianceBypass');
+    expect(mockedDb.upsertOnboarding).not.toHaveBeenCalled();
   });
 
   it('rejects internal writes without a discord id target', async () => {

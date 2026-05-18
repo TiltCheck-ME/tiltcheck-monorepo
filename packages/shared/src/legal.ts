@@ -5,8 +5,8 @@
 
 export const LEGAL_DISCLAIMERS = {
     DIGITAL_ASSET_RISKS: `
-DIGITAL ASSET RISKS & ZERO CUSTODY: 
-TiltCheck provides non-custodial tools (such as LockVault and JustTheTip). We do not hold, store, or control your digital assets or private keys. By using these tools, you acknowledge that digital assets are highly volatile, are not recognized as legal tender in any jurisdiction, and are subject to market loss or total loss. Digital asset accounts are not protected by the FDIC. All on-chain transfers are strictly irrevocable. You are solely responsible for your wallet security; losing your private key information will result in the permanent and total loss of access to your digital assets. Furthermore, digital assets may be subject to cyber theft or become unrecoverable.
+DIGITAL ASSET RISKS & CUSTODY (SCOPED): 
+TiltCheck provides harm-reduction and transparency tools. Direct wallet tips are non-custodial (you sign). JTT credit balances use a pooled relay bot wallet. LockVault and wallet locks are policy/advisory — see the custody matrix. We do not hold your private keys for direct-signed flows. By using these tools, you acknowledge that digital assets are highly volatile, are not recognized as legal tender in any jurisdiction, and are subject to market loss or total loss. Digital asset accounts are not protected by the FDIC. All on-chain transfers are strictly irrevocable. You are solely responsible for your wallet security; losing your private key information will result in the permanent and total loss of access to your digital assets. Furthermore, digital assets may be subject to cyber theft or become unrecoverable.
     `.trim(),
 
     INFORMATIONAL_PURPOSES: `
