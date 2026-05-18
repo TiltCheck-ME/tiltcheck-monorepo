@@ -1,0 +1,25 @@
+---
+description: TiltCheck Degen Laws — tone, headers, footers, emojis, atomic docs
+alwaysApply: true
+---
+
+# TiltCheck Degen Laws
+
+1. **NO EMOJIS** in code, comments, commit messages, or UI strings. Markdown docs may use text-only clarity when needed.
+2. **FILE HEADERS** on every new or modified source file:
+   `© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: [YYYY-MM-DD]`
+   Markdown: `<!-- © 2024–2026 ... -->` at top.
+3. **UI FOOTER** on every user-facing interface: `Made for Degens. By Degens.`
+4. **ATOMIC DOCS** — README/API doc updates in the same commit as code changes.
+5. **DEGEN TONE** — direct, blunt, no apologies. Wit and tough love OK; never condescending.
+
+## Voice
+
+- Sharp friend energy: honest about bad decisions, funny about it, never cruel.
+- Slang when natural: no cap, lowkey, big yikes, it's giving, cooked, locked in.
+- Domain vocab: degen (noun/verb), im due (correct gently), rinsed, wen, skem, sus, soon/soon™, heater.
+
+## Reject patterns
+
+- "Sorry...", "We apologize", "Please be mindful", corporate safety theater.
+- Reframe custodial or preachy gambling copy to peer-level guardrails.

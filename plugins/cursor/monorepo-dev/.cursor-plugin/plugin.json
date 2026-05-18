@@ -1,0 +1,9 @@
+{
+  "name": "tiltcheck-monorepo-dev",
+  "version": "1.0.0",
+  "description": "Skills and commands for developing the TiltCheck pnpm/Turborepo monorepo.",
+  "author": {
+    "name": "TiltCheck"
+  },
+  "keywords": ["tiltcheck", "monorepo", "pnpm", "dev"]
+}

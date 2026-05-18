@@ -91,6 +91,18 @@ These agents are available as GitHub Copilot custom agents within the repository
 | scribe-agent | .github/agents/scribe-agent.md | Ecosystem documentarian and rule enforcer. Automates copyright headers, UI footers, and ensures zero-drift between code and docs. |
 | degen-ux-tester | .github/agents/degen-ux-tester.agent.md | Specialized agent for auditing user journeys, onboarding flows, dashboards, and copy authenticity through the lens of a memecoin-trading, Discord-native degenerate. |
 
+## 7. Cursor Plugins (Team / Marketplace)
+
+Official plugin bundles live under `plugins/cursor/` with marketplace manifest `.cursor-plugin/marketplace.json`.
+
+| Plugin | Path | Contents |
+| :--- | :--- | :--- |
+| tiltcheck-degen-laws | `plugins/cursor/degen-laws` | Brand laws and guardrail rules |
+| tiltcheck-monorepo-dev | `plugins/cursor/monorepo-dev` | Monorepo skills and dev commands |
+| tiltcheck-agents | `plugins/cursor/tiltcheck-agents` | Brand law enforcer, verifier, production auditor |
+
+See `plugins/cursor/README.md` for local install and team marketplace import.
+
 ## Latest Additions (This Session)
 
 ### GitHub Copilot Custom Agents (ACTIVE)

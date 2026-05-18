@@ -1,0 +1,9 @@
+{
+  "name": "tiltcheck-degen-laws",
+  "version": "1.0.0",
+  "description": "TiltCheck Degen Laws and guardrails for code, copy, and UI.",
+  "author": {
+    "name": "TiltCheck"
+  },
+  "keywords": ["tiltcheck", "brand", "rules", "compliance"]
+}

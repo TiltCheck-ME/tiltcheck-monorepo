@@ -1,0 +1,22 @@
+---
+description: Core repo guardrails for security, scope, and verification
+alwaysApply: true
+---
+
+# TiltCheck Core Guardrails
+
+- Keep changes small and task-scoped; avoid broad refactors unless requested.
+- Never commit secrets, tokens, private keys, or production credential values.
+- Preserve OSS/runtime boundary; do not expose private runtime internals.
+- For risky areas (`auth`, payments, trust scoring, external APIs), include:
+  - threat/risk notes
+  - validation/sanitization notes
+  - rollback notes if behavior regresses
+- Prefer targeted tests/validation for touched code paths before finishing.
+- Do not revert unrelated user changes in a dirty worktree.
+
+## Quick pass/fail check
+
+- [ ] No secret or private runtime leakage
+- [ ] Scope is focused and reversible
+- [ ] Risky changes include verification notes

@@ -1,0 +1,35 @@
+{
+  "name": "tiltcheck-cursor",
+  "owner": {
+    "name": "TiltCheck",
+    "email": "dev@tiltcheck.me"
+  },
+  "metadata": {
+    "description": "Official TiltCheck Cursor plugins: Degen Laws, monorepo dev kit, and review agents.",
+    "version": "1.0.0",
+    "pluginRoot": "plugins/cursor"
+  },
+  "plugins": [
+    {
+      "name": "tiltcheck-degen-laws",
+      "source": "degen-laws",
+      "description": "Non-negotiable brand laws, guardrails, and surface-specific safety rules.",
+      "category": "standards",
+      "keywords": ["tiltcheck", "brand", "compliance", "degen"]
+    },
+    {
+      "name": "tiltcheck-monorepo-dev",
+      "source": "monorepo-dev",
+      "description": "pnpm/Turborepo dev skills and commands for the TiltCheck monorepo.",
+      "category": "developer-tools",
+      "keywords": ["tiltcheck", "monorepo", "pnpm", "turborepo"]
+    },
+    {
+      "name": "tiltcheck-agents",
+      "source": "tiltcheck-agents",
+      "description": "Brand law enforcer, verifier, and production standards auditor agents.",
+      "category": "agents",
+      "keywords": ["tiltcheck", "review", "pr", "agents"]
+    }
+  ]
+}

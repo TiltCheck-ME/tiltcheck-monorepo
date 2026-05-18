@@ -1,0 +1,19 @@
+---
+description: API and auth safety checks for backend changes
+globs: apps/api/**/*
+alwaysApply: false
+---
+
+# API and Auth Risk Checks
+
+- Validate request inputs before business logic and external calls.
+- Avoid leaking internals in errors; sanitize messages and logs.
+- Enforce auth/session/token checks explicitly for protected routes.
+- Add or update tests for success path, failure path, and abuse edge cases.
+- For third-party APIs, include timeout/fallback/error-path handling.
+
+## Quick pass/fail check
+
+- [ ] Input validation exists for new/changed entry points
+- [ ] Auth boundaries are explicit and tested
+- [ ] Errors and logs avoid sensitive leakage

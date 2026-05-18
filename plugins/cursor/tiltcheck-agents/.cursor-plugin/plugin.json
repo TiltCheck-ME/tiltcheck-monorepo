@@ -1,0 +1,9 @@
+{
+  "name": "tiltcheck-agents",
+  "version": "1.0.0",
+  "description": "TiltCheck review agents — brand law, verification, production standards.",
+  "author": {
+    "name": "TiltCheck"
+  },
+  "keywords": ["tiltcheck", "agents", "review", "pr"]
+}
