@@ -40,6 +40,13 @@ export {
 
 // Legal exports
 export * from './legal.js';
+export {
+  CUSTODY_LABELS,
+  CUSTODY_MATRIX_DOC_PATH,
+  getCustodyLabel,
+  getCustodyDetail,
+  type CustodyFlowId,
+} from './custody-labels.js';
 
 // Fairness exports
 export { FairnessService } from './fairness.js';

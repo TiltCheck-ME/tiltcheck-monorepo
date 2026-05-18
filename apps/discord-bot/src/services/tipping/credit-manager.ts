@@ -10,8 +10,8 @@ import type { DatabaseClient } from '@tiltcheck/database';
 export { FLAT_FEE_LAMPORTS, MIN_DEPOSIT_LAMPORTS };
 
 /**
- * CreditManager handles transient credit ledger entries and relay transactions.
- * Non-custodial — credits represent pending transfer state, not held funds.
+ * CreditManager handles credit ledger entries settled via the bot operational wallet (pooled relay).
+ * Not non-custodial for the credit leg — see docs/legal/custody-matrix.md (jtt_credits_relay).
  * Now using the shared @tiltcheck/justthetip module.
  */
 export class CreditManager extends CreditService {

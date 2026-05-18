@@ -582,6 +582,12 @@
                   </select>
                 </div>
                 <div class="form-group">
+                  <label class="form-label" style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer">
+                    <input type="checkbox" id="wallet-lock-hard" />
+                    <span>Timer-only lock (no paid or admin early exit until timer ends)</span>
+                  </label>
+                </div>
+                <div class="form-group">
                   <label class="form-label" for="wallet-lock-reason-input">Reason</label>
                   <input
                     type="text"
@@ -590,9 +596,8 @@
                     placeholder="Optional note for why this lock exists"
                   />
                 </div>
-                <p class="section-desc section-desc-inline" style="font-size: 0.75rem; opacity: 0.85">
-                  Paid early unlock charges about <strong>10%</strong> of your LockVault ledger balance from your newest active lock.
-                  Split: recovery microgrant pool plus <strong>2%</strong> dev skim (ledger log until treasury sweep exists). Trivia jackpots are voluntary-only until legal-cleared contest rules exist.
+                <p id="wallet-lock-fee-disclosure" class="section-desc section-desc-inline" style="font-size: 0.75rem; opacity: 0.85">
+                  Loading fee disclosure...
                 </p>
                 <div class="inline-action-row">
                   <button id="save-wallet-lock-btn" class="btn btn-primary">Set Wallet Lock</button>
@@ -603,6 +608,7 @@
                     Pay Early Unlock Fee
                   </button>
                 </div>
+                <p id="wallet-power-events" class="section-desc section-desc-inline" style="font-size: 0.7rem; opacity: 0.85"></p>
                 <div id="walletLockStatusMsg" class="form-msg"></div>
               </div>
 

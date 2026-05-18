@@ -292,6 +292,13 @@ export default function App() {
             <Text style={styles.metaValue}>{lastLog}</Text>
           </View>
 
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Wallet lock fees</Text>
+            <Text style={styles.metaValue}>
+              {process.env.EXPO_PUBLIC_WALLET_EARLY_UNLOCK_FEE_PERCENT || '10'}% early exit; trivia $0 in RG v1. Full rules on dashboard vault.
+            </Text>
+          </View>
+
           {blockedUrl ? (
             <Text style={styles.warningText}>Blocked off-scope navigation to {formatHost(blockedUrl)}. Stake only for v1.</Text>
           ) : null}
