@@ -20,17 +20,6 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function normalizeUrl(href, origin) {
-  try {
-    const u = new URL(href, origin);
-    if (u.origin !== new URL(origin).origin) return null;
-    u.hash = "";
-    return u.toString();
-  } catch {
-    return null;
-  }
-}
-
 async function collectPageSummary(page, url) {
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: GOTO_TIMEOUT });
   const summary = await page.evaluate(() => {
@@ -54,7 +43,15 @@ async function collectSameOriginLinks(page, origin) {
       const out = new Set();
       for (const a of anchors) {
         const href = a.getAttribute("href");
-        if (!href || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:"))
+        const hrefNorm = href?.trim().toLowerCase();
+        if (
+          !hrefNorm ||
+          hrefNorm.startsWith("mailto:") ||
+          hrefNorm.startsWith("tel:") ||
+          hrefNorm.startsWith("javascript:") ||
+          hrefNorm.startsWith("data:") ||
+          hrefNorm.startsWith("vbscript:")
+        )
           continue;
         try {
           const u = new URL(href, originStr);
