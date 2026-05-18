@@ -100,7 +100,7 @@
       "systeminformation@<5.27.14": ">=5.27.14",
       "basic-ftp": ">=5.3.1",
       "follow-redirects": ">=1.16.0",
-      "protobufjs": ">=7.5.5",
+      "protobufjs": ">=8.3.0",
       "postcss": ">=8.5.10",
       "rollup": ">=3.30.0",
       "minimatch": ">=9.0.5",
