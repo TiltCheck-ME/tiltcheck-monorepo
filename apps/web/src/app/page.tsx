@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
 import Link from "next/link";
 
 const coreJobs = [
@@ -35,11 +35,8 @@ export default function Home() {
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
-            TiltCheck is a read-only browser extension that watches how you play, not
-            just what the reels say. It flags tilt, manipulative pacing, and Auto-Pilot
-            mode before The Loop feeds your win back to the machine. While fairness
-            verifiers already exist, we close the psychological gap before the session
-            cooks you.
+            Read-only extension on your casino tab. Dashboard vault lock before you degen.
+            Discord when you need backup. Three-step setup — install, lock, play with guardrails.
           </p>
 
           <div className="hero-actions">
@@ -53,15 +50,15 @@ export default function Home() {
               INSTALL THE EXTENSION
             </Link>
             <Link
-              href="/casinos"
-              className="hero-actions__secondary-link"
-              data-funnel-event="landing_trust_click"
+              href="/onboarding"
+              className="btn btn-secondary"
+              data-funnel-event="landing_setup_click"
               data-funnel-source="web-home-hero"
-              data-funnel-label="Check Casino Trust"
+              data-funnel-label="Start setup"
             >
-              CHECK CASINO TRUST
+              START SETUP
             </Link>
-          </div>
+            </div>
         </div>
       </section>
 
@@ -91,23 +88,28 @@ export default function Home() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-cta-band">
-            <p className="public-page-panel__eyebrow">Ready to see it work?</p>
+            <p className="public-page-panel__eyebrow">Launch path</p>
             <h2 className="public-page-cta-band__title">
-              Install the extension and let TiltCheck watch your next session.
-              Or check casino trust scores before you deposit if you need the receipts first.
+              Discord connected. Extension installed. Vault lock set. That is the whole v0 — no cap.
             </h2>
             <div className="public-page-cta-band__actions">
               <Link
-                href="/extension"
+                href="/onboarding"
                 className="btn btn-primary"
+                data-funnel-event="landing_bottom_setup_click"
+                data-funnel-source="web-home-bottom-cta"
+                data-funnel-label="Start setup"
+              >
+                START SETUP
+              </Link>
+              <Link
+                href="/extension"
+                className="btn btn-secondary"
                 data-funnel-event="landing_bottom_install_click"
                 data-funnel-source="web-home-bottom-cta"
                 data-funnel-label="Install the Extension"
               >
-                INSTALL THE EXTENSION
-              </Link>
-              <Link href="/casinos" className="btn btn-secondary">
-                CHECK CASINO TRUST
+                INSTALL EXTENSION
               </Link>
             </div>
           </div>

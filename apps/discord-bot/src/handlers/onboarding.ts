@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences.
@@ -864,13 +864,18 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `/session intervene enabled:true - ALLOW AUTO-MOVE INTO ACCOUNTABILITY VC ON CRITICAL TILT\n` +
       `/odds - HOUSE EDGE AUDIT\n` +
       `/verify - PROVABLY FAIR VERIFIER\n\n` +
-      `**NEXT STEP:** Open the dashboard lanes that actually matter.\n` +
-      `Vault: ${getDashboardAppUrl({ tab: 'vault' })}\n` +
-      `Safety: ${getDashboardAppUrl({ tab: 'safety' })}\n` +
-      `Bonuses: ${getDashboardAppUrl({ tab: 'bonuses' })}\n\n` +
-      `IF YOUR BRAIN IS SMOKING, PULL THE BRAKE.`
+      `**LAUNCH PATH (3 STEPS):**\n` +
+      `1. Install extension: ${SITE_URL}/extension\n` +
+      `2. Vault lock: ${getDashboardAppUrl({ tab: 'vault' })}\n` +
+      `3. Safety prefs: ${getDashboardAppUrl({ tab: 'safety' })}\n\n` +
+      `IF IT IS GIVING TILT ENERGY, PULL THE BRAKE.`
     )
     .setFooter({ text: 'Made for Degens. By Degens.' });
+
+  const extensionBtn = new ButtonBuilder()
+    .setLabel('Install Extension')
+    .setStyle(ButtonStyle.Link)
+    .setURL(`${SITE_URL}/extension`);
 
   const vaultBtn = new ButtonBuilder()
     .setLabel('Open Vault')
@@ -882,13 +887,8 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
     .setStyle(ButtonStyle.Link)
     .setURL(getDashboardAppUrl({ tab: 'safety' }));
 
-  const bonusesBtn = new ButtonBuilder()
-    .setLabel('Open Bonuses')
-    .setStyle(ButtonStyle.Link)
-    .setURL(getDashboardAppUrl({ tab: 'bonuses' }));
-
   const row = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(vaultBtn, safetyBtn, bonusesBtn);
+    .addComponents(extensionBtn, vaultBtn, safetyBtn);
 
   await interaction.update({ embeds: [completedEmbed], components: [row] });
 }
