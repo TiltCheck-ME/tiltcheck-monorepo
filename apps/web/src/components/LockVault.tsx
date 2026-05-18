@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -31,6 +31,13 @@ interface EarlyUnlockRequest {
   feeAmountSOL?: number;
 }
 
+interface FeeAllocation {
+  feeTotal: number;
+  devSOL: number;
+  triviaSOL: number;
+  micrograntSOL: number;
+}
+
 interface VaultState {
   balance: number;
   activeLock: ActiveLock | null;
@@ -38,6 +45,9 @@ interface VaultState {
   walletLockUntil: string | null;
   walletUnlockRequest: EarlyUnlockRequest | null;
   walletEarlyUnlockAllowed: boolean;
+  earlyUnlockFeePercent: number;
+  feeAllocation: FeeAllocation | null;
+  basisSOL: number;
   threshold: number;
 }
 
@@ -62,6 +72,9 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     walletLockUntil: null,
     walletUnlockRequest: null,
     walletEarlyUnlockAllowed: true,
+    earlyUnlockFeePercent: 10,
+    feeAllocation: null,
+    basisSOL: 0,
     threshold: 250,
   });
   const [loading, setLoading] = useState(true);
@@ -73,13 +86,18 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
   const [walletLockHours, setWalletLockHours] = useState(24);
   const [walletLockTicker, setWalletLockTicker] = useState('');
   const [walletHardLock, setWalletHardLock] = useState(false);
+  const [showWalletLockConfirm, setShowWalletLockConfirm] = useState(false);
+  const [powerEvents, setPowerEvents] = useState<
+    Array<{ id: string; type: string; actorId: string; at: string }>
+  >([]);
 
   const fetchVault = useCallback(async () => {
     if (!discordId) return;
     try {
-      const [vaultRes, userRes] = await Promise.all([
+      const [vaultRes, userRes, eventsRes] = await Promise.all([
         fetch(`${API}/vault/${discordId}`, { credentials: 'include' }),
         fetch(`${API}/user/${discordId}`, { credentials: 'include' }),
+        fetch(`${API}/vault/${discordId}/power-events?limit=10`, { credentials: 'include' }),
       ]);
 
       if (vaultRes.ok) {
@@ -104,6 +122,9 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
             : null,
           walletUnlockRequest: data.walletLock?.earlyUnlockRequest ?? null,
           walletEarlyUnlockAllowed: data.walletLock?.earlyUnlockAllowed !== false,
+          earlyUnlockFeePercent: Number(data.walletLock?.earlyUnlockFeePercent ?? 10),
+          feeAllocation: data.walletLock?.feeAllocation ?? null,
+          basisSOL: Number(data.walletLock?.basisSOL ?? data.vault?.balance ?? 0),
         }));
       }
 
@@ -113,6 +134,11 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
           ...prev,
           threshold: u.redeemThreshold ?? u.user?.redeem_threshold ?? 250,
         }));
+      }
+
+      if (eventsRes.ok) {
+        const eventsData = await eventsRes.json();
+        setPowerEvents(Array.isArray(eventsData.events) ? eventsData.events : []);
       }
     } catch (err) {
       console.error('[LockVault] Fetch error:', err);
@@ -239,8 +265,25 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     }
   };
 
-  const handleWalletLock = async () => {
+  const feeDisclosureLines = (): string[] => {
+    const pct = vault.earlyUnlockFeePercent;
+    const alloc = vault.feeAllocation;
+    const basis = vault.basisSOL;
+    if (!alloc) {
+      return [
+        `Paid early exit (if allowed): ${pct}% of vault ledger basis (currently ~${basis.toFixed(4)} SOL).`,
+        'Trivia jackpot: $0 in RG v1. Remainder routes to recovery microgrants + disclosed dev skim.',
+      ];
+    }
+    return [
+      `Paid early exit (if allowed): ${pct}% of ~${basis.toFixed(4)} SOL basis = ~${alloc.feeTotal.toFixed(4)} SOL total fee.`,
+      `Split: dev ~${alloc.devSOL.toFixed(4)} SOL, trivia ${alloc.triviaSOL.toFixed(4)} SOL, microgrant ~${alloc.micrograntSOL.toFixed(4)} SOL.`,
+    ];
+  };
+
+  const submitWalletLock = async () => {
     if (!discordId) return;
+    setShowWalletLockConfirm(false);
     setWorking(true);
     setError(null);
     try {
@@ -262,6 +305,42 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
       await fetchVault();
     } catch (err) {
       setError(getErrorMessage(err, 'Wallet lock failed.'));
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleWalletLock = () => {
+    if (!discordId) return;
+    if (walletHardLock) {
+      void submitWalletLock();
+      return;
+    }
+    setShowWalletLockConfirm(true);
+  };
+
+  const handlePaidWalletUnlockRequest = async () => {
+    if (!discordId) return;
+    const lines = feeDisclosureLines().join('\n');
+    if (!window.confirm(`Confirm paid early unlock?\n\n${lines}\n\nThis is irreversible once settled.`)) {
+      return;
+    }
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/vault/${discordId}/wallet-unlock-request`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'paid_early_unlock' }),
+      });
+      if (!res.ok) {
+        const d = (await res.json().catch(() => ({}))) as VaultErrorResponse;
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
+      await fetchVault();
+    } catch (err) {
+      setError(getErrorMessage(err, 'Paid early unlock request failed.'));
     } finally {
       setWorking(false);
     }
@@ -411,7 +490,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                   <p className="text-xs text-yellow-300 mt-2 font-mono">
                     {vault.walletUnlockRequest.mode === 'admin_approval'
                       ? 'Admin override requested'
-                      : 'Paid early unlock is temporarily disabled until fee routing is implemented.'}
+                      : `Paid early unlock pending — fee ~${vault.walletUnlockRequest.feeAmountSOL?.toFixed(4) ?? '?'} SOL`}
                   </p>
                 )}
               </div>
@@ -535,22 +614,59 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                 {vault.walletEarlyUnlockAllowed && (
                   <button
                     type="button"
-                    disabled
-                    className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-300 rounded-xl font-bold transition-all opacity-60 cursor-not-allowed"
+                    onClick={handlePaidWalletUnlockRequest}
+                    disabled={
+                      working ||
+                      vault.walletUnlockRequest?.mode === 'paid_early_unlock'
+                    }
+                    className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    PAID EARLY UNLOCK TEMPORARILY DISABLED
+                    {vault.walletUnlockRequest?.mode === 'paid_early_unlock'
+                      ? 'PAID UNLOCK QUOTED — SETTLE IN DASHBOARD'
+                      : `PAID EARLY UNLOCK (${vault.earlyUnlockFeePercent}% FEE)`}
                   </button>
                 )}
               </div>
             ) : (
-              <button
-                onClick={handleWalletLock}
-                disabled={working}
-                className="w-full py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Lock className="w-5 h-5" />
-                {working ? 'LOCKING WALLET...' : `LOCK WALLET FOR ${walletLockHours}H`}
-              </button>
+              <>
+                {showWalletLockConfirm && !walletHardLock && (
+                  <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 space-y-2" role="dialog" aria-label="Wallet lock fee disclosure">
+                    <p className="text-xs text-yellow-200 font-semibold uppercase tracking-wide">
+                      Fee disclosure (if you exit early later)
+                    </p>
+                    {feeDisclosureLines().map(line => (
+                      <p key={line} className="text-[11px] text-gray-300 leading-snug">
+                        {line}
+                      </p>
+                    ))}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowWalletLockConfirm(false)}
+                        className="flex-1 py-2 text-xs border border-white/10 rounded-lg text-gray-400"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void submitWalletLock()}
+                        disabled={working}
+                        className="flex-1 py-2 text-xs bg-yellow-500/30 border border-yellow-500/50 rounded-lg text-yellow-100 font-bold"
+                      >
+                        I understand — lock wallet
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={handleWalletLock}
+                  disabled={working}
+                  className="w-full py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Lock className="w-5 h-5" />
+                  {working ? 'LOCKING WALLET...' : `LOCK WALLET FOR ${walletLockHours}H`}
+                </button>
+              </>
             )}
           </div>
 
@@ -574,6 +690,19 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
             </div>
           </div>
 
+          {powerEvents.length > 0 && (
+            <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-2">
+              <p className="text-[10px] uppercase tracking-widest text-gray-500">Power activity</p>
+              <ul className="space-y-1 max-h-32 overflow-y-auto">
+                {powerEvents.map(event => (
+                  <li key={event.id} className="text-[10px] font-mono text-gray-400">
+                    {event.type} — {new Date(event.at).toLocaleString()}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {error && (
             <p className="text-xs text-red-400 font-mono text-center">{error}</p>
           )}
@@ -583,7 +712,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
       <div className="mt-8 flex items-center gap-3 px-4 py-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
         <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
         <p className="text-[10px] text-yellow-500 font-medium">
-          NON-CUSTODIAL: TiltCheck cannot access your funds. Vault locks and redemption signals are advisory only.
+          Policy locks are advisory (see custody matrix). Direct tips stay non-custodial; credits use pooled relay.
         </p>
       </div>
       <p className="mt-4 text-center text-[10px] uppercase tracking-[0.3em] text-gray-500">

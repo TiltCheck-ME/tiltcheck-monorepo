@@ -282,8 +282,13 @@ export default function OnboardingPage() {
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">What TiltCheck is not</p>
                 <ul className="space-y-2 text-sm text-gray-300">
                   <li>Not a casino. Not a bank. Not financial advice.</li>
-                  <li>We never hold your funds or access your wallet directly.</li>
-                  <li>No custodial control. Ever.</li>
+                  <li>Direct wallet tips are non-custodial — you sign. Credits use a pooled relay pool (see custody matrix).</li>
+                  <li>
+                    <a href="https://github.com/TiltCheck-ME/tiltcheck-monorepo/blob/main/docs/legal/custody-matrix.md" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">
+                      Custody matrix
+                    </a>{' '}
+                    — who holds what, per flow.
+                  </li>
                 </ul>
               </div>
               <div>

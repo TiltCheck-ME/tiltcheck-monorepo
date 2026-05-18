@@ -22,3 +22,4 @@ export { blockGame, unblockGame, myExclusions } from './exclusions.js';
 export { upgrade } from './upgrade.js';
 export { touchgrass } from './touchgrass.js';
 export { launch } from './launch.js';
+export { walletlock } from './walletlock.js';

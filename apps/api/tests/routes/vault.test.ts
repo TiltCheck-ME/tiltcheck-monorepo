@@ -33,6 +33,8 @@ const lockvaultMock = vi.hoisted(() => ({
   initiateWithdrawal: vi.fn(),
   approveWithdrawal: vi.fn(),
   executeWithdrawal: vi.fn(),
+  previewWalletEarlyUnlockFeeDisclosure: vi.fn(),
+  getWalletPowerEventsForUser: vi.fn().mockReturnValue([]),
 }));
 
 const poolsMock = vi.hoisted(() => ({
@@ -44,6 +46,10 @@ vi.mock('../../src/services/community-pools.js', () => ({
 }));
 
 vi.mock('@tiltcheck/lockvault', () => lockvaultMock);
+
+vi.mock('@tiltcheck/db', () => ({
+  createAuditLog: vi.fn().mockResolvedValue(null),
+}));
 
 import { vaultRouter } from '../../src/routes/vault.js';
 
@@ -88,6 +94,11 @@ describe('Vault Routes', () => {
       withdrawnAmountSOL: 0,
     });
     lockvaultMock.getWalletActionLockStatus.mockReturnValue({ locked: false });
+    lockvaultMock.previewWalletEarlyUnlockFeeDisclosure.mockReturnValue({
+      earlyUnlockFeePercent: 10,
+      basisSOL: 1.5,
+      feeAllocation: { feeTotal: 0.15, devSOL: 0.03, triviaSOL: 0, micrograntSOL: 0.12 },
+    });
     lockvaultMock.requestAdminWalletUnlockForUser.mockReturnValue({
       userId: 'user-1',
       lockUntil: Date.now() + 30 * 60_000,
@@ -390,6 +401,8 @@ describe('Vault Routes', () => {
     expect(clearRes.status).toBe(423);
     expect(clearRes.body.code).toBe('WALLET_LOCK_STILL_ACTIVE');
     expect(clearRes.body.unlockOptions).toEqual(['admin_approval', 'paid_early_unlock']);
+    expect(clearRes.body.earlyUnlockFeePercent).toBe(10);
+    expect(clearRes.body.feeAllocation?.triviaSOL).toBe(0);
     expect(lockvaultMock.clearWalletActionLockForUser).not.toHaveBeenCalled();
   });
 

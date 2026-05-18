@@ -2,7 +2,9 @@
 /**
  * Bot Wallet Service
  *
- * Manages the bot's custodial Solana wallet for sending SOL on behalf of users.
+ * Manages the bot operational relay wallet for JTT credit payouts and coordinated sends.
+ * Direct user-signed tips are non-custodial; credit settlement uses this pooled relay wallet.
+ * See docs/legal/custody-matrix.md (jtt_credits_relay).
  */
 
 import {
