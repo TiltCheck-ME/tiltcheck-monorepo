@@ -60,7 +60,6 @@ describe('Telemetry consent enforcement', () => {
     expect(response.body).toEqual({
       success: true,
       accepted: true,
-      auditLogId: 'audit-1',
       telemetry: {
         userId: 'd1',
         bet: 5,

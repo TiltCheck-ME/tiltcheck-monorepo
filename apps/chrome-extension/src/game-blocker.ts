@@ -1,6 +1,7 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
- * Game Blocker — Surgical Self-Exclusion enforcement for the Chrome Extension.
+ * Game Blocker — Session pause (surgical block) for the Chrome Extension.
+ * Blocks games on the user's tab only; not operator-account self-exclusion.
  *
  * Fetches the user's ForbiddenGamesProfile from the TiltCheck API, then watches
  * the casino DOM for matching game launchers, providers, and casino hostnames.

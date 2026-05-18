@@ -8,6 +8,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import {
     createUser,
     deleteRow,
+    createAuditLog,
     findOnboardingByDiscordId,
     findUserByDiscordId,
     getUserSettingsRow,
@@ -15,6 +16,10 @@ import {
     upsertUserSettingsRow,
     type UserOnboarding,
 } from '@tiltcheck/db';
+import {
+    assertComplianceBypassWrite,
+    sanitizeComplianceBypassForClient,
+} from '../lib/compliance-bypass.js';
 import { ApplicationError, InternalServerError, ValidationError } from '@tiltcheck/error-factory';
 import { optionalAuthMiddleware, type AuthRequest } from '../middleware/auth.js';
 import { z } from 'zod';
@@ -321,7 +326,10 @@ function toIsoDate(value: Date | string | null | undefined): string | null {
     return Number.isNaN(normalized.getTime()) ? null : normalized.toISOString();
 }
 
-function toOnboardingStatusResponse(onboarding: UserOnboarding | null) {
+function toOnboardingStatusResponse(
+    onboarding: UserOnboarding | null,
+    viewerRoles?: string[],
+) {
     if (!onboarding) {
         return {
             completedSteps: [] as OnboardingStep[],
@@ -368,7 +376,10 @@ function toOnboardingStatusResponse(onboarding: UserOnboarding | null) {
             dailyLimit: onboarding.daily_limit,
             redeemThreshold: onboarding.redeem_threshold,
             notifyNftIdentityReady: onboarding.notify_nft_identity_ready,
-            complianceBypass: onboarding.compliance_bypass,
+            complianceBypass: sanitizeComplianceBypassForClient(
+                onboarding.compliance_bypass,
+                viewerRoles,
+            ),
             dataSharing: {
                 messageContents: onboarding.share_message_contents,
                 financialData: onboarding.share_financial_data,
@@ -453,7 +464,8 @@ router.get('/onboarding-status', onboardingAccessMiddleware, async (req: Request
     try {
         const discordId = resolveDiscordId(req);
         const onboarding = await findOnboardingByDiscordId(discordId);
-        res.json(toOnboardingStatusResponse(onboarding));
+        const authUser = (req as AuthRequest).user;
+        res.json(toOnboardingStatusResponse(onboarding, authUser?.roles));
     } catch (error) {
         if (error instanceof ApplicationError || error instanceof ValidationError) {
             next(error);
@@ -474,8 +486,15 @@ router.post('/onboarding-status', onboardingAccessMiddleware, async (req: Reques
         }
 
         const discordId = resolveDiscordId(req, parsedBody.data.discordId);
+        const authUser = (req as AuthRequest).user;
+        const requestedBypass = parsedBody.data.preferences?.complianceBypass;
+        assertComplianceBypassWrite(
+            requestedBypass,
+            authUser?.roles,
+        );
         await ensureOnboardingUser(discordId);
         const existingOnboarding = await findOnboardingByDiscordId(discordId);
+        const previousBypass = existingOnboarding?.compliance_bypass === true;
         const existingQuizState = parseStoredQuizState(existingOnboarding?.quiz_scores ?? null);
         const nextQuizAnswers = parsedBody.data.quizScores ?? existingQuizState.answers;
         const completedSteps = buildUpdatedCompletedSteps(
@@ -516,7 +535,24 @@ router.post('/onboarding-status', onboardingAccessMiddleware, async (req: Reques
         });
 
         const updatedOnboarding = await findOnboardingByDiscordId(discordId);
-        res.json(toOnboardingStatusResponse(updatedOnboarding));
+        if (
+            requestedBypass !== undefined &&
+            requestedBypass !== previousBypass &&
+            authUser?.id
+        ) {
+            await createAuditLog({
+                admin_id: authUser.id,
+                action: 'COMPLIANCE_BYPASS_CHANGE',
+                target_type: 'USER',
+                target_id: authUser.id,
+                metadata: {
+                    discordId,
+                    from: previousBypass,
+                    to: requestedBypass === true,
+                },
+            });
+        }
+        res.json(toOnboardingStatusResponse(updatedOnboarding, authUser?.roles));
     } catch (error) {
         if (error instanceof ApplicationError || error instanceof ValidationError) {
             next(error);
