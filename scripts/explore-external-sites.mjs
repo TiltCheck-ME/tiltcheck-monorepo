@@ -20,17 +20,6 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function normalizeUrl(href, origin) {
-  try {
-    const u = new URL(href, origin);
-    if (u.origin !== new URL(origin).origin) return null;
-    u.hash = "";
-    return u.toString();
-  } catch {
-    return null;
-  }
-}
-
 async function collectPageSummary(page, url) {
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: GOTO_TIMEOUT });
   const summary = await page.evaluate(() => {
