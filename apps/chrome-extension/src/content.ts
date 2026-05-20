@@ -74,6 +74,9 @@ import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
 
+/** Pro dispatches bet rounds so Core tilt scoring includes loss-streak signals. */
+export const TILTCHECK_CORE_RECORD_BET_EVENT = 'tiltcheck-core-record-bet';
+
 
 
 type ProMonolithModule = {
@@ -282,7 +285,13 @@ async function startCoreCircuitBreaker(): Promise<void> {
 
   document.addEventListener('click', coreClickListener, true);
 
-
+  window.addEventListener(TILTCHECK_CORE_RECORD_BET_EVENT, (event) => {
+    const detail = (event as CustomEvent<{ bet?: number; payout?: number }>).detail;
+    const bet = Number(detail?.bet);
+    const payout = Number(detail?.payout);
+    if (!tiltDetector || !Number.isFinite(bet)) return;
+    tiltDetector.recordBet(bet, Number.isFinite(payout) ? payout : 0);
+  });
 
   corePoll = window.setInterval(() => {
 
@@ -408,9 +417,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       });
 
-      break;
-
-
+      return true;
 
     case 'get_sidebar_state':
 
@@ -426,19 +433,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       });
 
-      break;
-
-
+      return true;
 
     default:
 
-      sendResponse({ error: 'Unknown message type' });
+      return false;
 
   }
-
-
-
-  return true;
 
 });
 

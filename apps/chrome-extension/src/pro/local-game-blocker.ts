@@ -134,30 +134,37 @@ export class LocalGameBlocker {
   }
 
   private redactDomMatches(): void {
-    for (const slug of this.blockedSlugs) {
-      const nodes = this.findGameNodes(slug);
+    const nodesBySlug = this.collectBlockedNodes();
+    for (const [slug, nodes] of nodesBySlug) {
       for (const node of nodes) {
         this.sanitizeNode(node, slug);
       }
     }
   }
 
-  private findGameNodes(slug: string): HTMLElement[] {
-    const out = new Set<HTMLElement>();
-    const lower = slug.toLowerCase();
+  /** Single-pass DOM scan: map each blocked slug to nodes that reference it. */
+  private collectBlockedNodes(): Map<string, HTMLElement[]> {
+    const buckets = new Map<string, Set<HTMLElement>>();
+    for (const slug of this.blockedSlugs) {
+      buckets.set(slug, new Set());
+    }
 
-    const tryAdd = (el: Element | null) => {
+    const tryAdd = (el: Element | null, slug: string) => {
       if (!el || !(el instanceof HTMLElement)) return;
       if (isInsideTiltcheckSafetyRoot(el)) return;
       if (el.closest(`#${LOCAL_OVERLAY_ID}`)) return;
       const card = el.closest('a, button, [role="button"], article, li, div') as HTMLElement | null;
-      out.add(card ?? el);
+      buckets.get(slug)?.add(card ?? el);
     };
 
+    const slugLowers = this.blockedSlugs.map((s) => ({ slug: s, lower: s.toLowerCase() }));
+
     for (const anchor of document.querySelectorAll<HTMLAnchorElement>('a[href]')) {
-      const href = anchor.getAttribute('href') ?? '';
-      if (href.toLowerCase().includes(lower)) {
-        tryAdd(anchor);
+      const href = (anchor.getAttribute('href') ?? '').toLowerCase();
+      for (const { slug, lower } of slugLowers) {
+        if (href.includes(lower)) {
+          tryAdd(anchor, slug);
+        }
       }
     }
 
@@ -174,12 +181,31 @@ export class LocalGameBlocker {
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
-      if (blob.includes(lower)) {
-        tryAdd(el);
+      for (const { slug, lower } of slugLowers) {
+        if (blob.includes(lower)) {
+          tryAdd(el, slug);
+        }
       }
     }
 
-    return [...out];
+    const result = new Map<string, HTMLElement[]>();
+    for (const [slug, set] of buckets) {
+      if (set.size > 0) {
+        result.set(slug, [...set]);
+      }
+    }
+    return result;
+  }
+
+  private disableInteractiveTarget(target: HTMLElement): void {
+    target.style.pointerEvents = 'none';
+    if (target instanceof HTMLButtonElement) {
+      target.disabled = true;
+    }
+    if (target.getAttribute('role') === 'button') {
+      target.setAttribute('aria-disabled', 'true');
+      target.tabIndex = -1;
+    }
   }
 
   private sanitizeNode(target: HTMLElement, slug: string): void {
@@ -216,13 +242,13 @@ export class LocalGameBlocker {
       wrap.appendChild(placeholder);
       target.replaceChildren(wrap);
       target.removeAttribute('href');
-      target.style.pointerEvents = 'none';
+      this.disableInteractiveTarget(target);
       target.setAttribute(SANITIZED_ATTR, slug);
       return;
     }
 
     target.replaceChildren(placeholder);
-    target.style.pointerEvents = 'none';
+    this.disableInteractiveTarget(target);
     target.setAttribute(SANITIZED_ATTR, slug);
   }
 

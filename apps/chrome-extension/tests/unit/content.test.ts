@@ -91,13 +91,14 @@ describe('core content script contracts', () => {
     );
   });
 
-  it('returns explicit error for unknown runtime message type', async () => {
+  it('does not claim unknown runtime messages (allows other listeners to respond)', async () => {
     const { listeners } = createChromeMock();
     await import('../../src/content.ts');
     await flush();
 
     const response = vi.fn();
-    listeners[0]!({ type: 'unknown_message' }, null, response);
-    expect(response).toHaveBeenCalledWith({ error: 'Unknown message type' });
+    const handled = listeners[0]!({ type: 'unknown_message' }, null, response);
+    expect(handled).toBe(false);
+    expect(response).not.toHaveBeenCalled();
   });
 });

@@ -321,11 +321,9 @@ async function restoreSidebarVisibility(defaultVisible: boolean) {
 function toggleSidebarVisibility(): boolean {
   const sidebarEl = document.getElementById('tiltcheck-sidebar');
   if (!sidebarEl) {
-    const created = initSidebar(disableInjectionFromHud);
-    sidebar = created;
-    const sidebarCreated = created !== null;
-    if (sidebarCreated) persistSidebarVisibility(true);
-    return sidebarCreated;
+    sidebar = initSidebar(disableInjectionFromHud);
+    persistSidebarVisibility(true);
+    return true;
   }
   const currentlyVisible = sidebarEl.style.display !== 'none';
   const visible = setSidebarVisibility(!currentlyVisible);
@@ -978,6 +976,9 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
   // Record in tilt detector
   if (tiltDetector) {
     tiltDetector.recordBet(bet, payout);
+    window.dispatchEvent(
+      new CustomEvent('tiltcheck-core-record-bet', { detail: { bet, payout } })
+    );
     if (typeof spinData.balance === 'number') {
       tiltDetector.updateBalance(spinData.balance);
     }
@@ -1792,7 +1793,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         .catch((err) => {
           sendResponse({ success: false, error: err instanceof Error ? err.message : 'Runtime toggle failed' });
         });
-      break;
+      return true;
     }
 
     case 'open_sidebar': {
@@ -1809,17 +1810,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         .catch((err) => {
           sendResponse({ success: false, error: err instanceof Error ? err.message : 'Runtime open failed' });
         });
-      break;
+      return true;
     }
 
     case 'get_sidebar_state':
       sendResponse(getSidebarState());
-      break;
+      return true;
 
     default:
-      sendResponse({ error: 'Unknown message type' });
+      return false;
   }
-  return true;
 });
 
 /**
