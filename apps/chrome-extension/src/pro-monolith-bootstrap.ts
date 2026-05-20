@@ -153,8 +153,6 @@ let fairnessPlayObserver: MutationObserver | null = null;
 let proMonolithActive = false;
 let injectionDisabled = false;
 let lastAnalysisBlockMessage: string | null = null;
-const FULL_SIDEBAR_WIDTH = 340;
-const MINIMIZED_SIDEBAR_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
 const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
 const SUPPORT_INTERVENTION_COOLDOWN_MS = 10 * 60 * 1000;
@@ -323,9 +321,11 @@ async function restoreSidebarVisibility(defaultVisible: boolean) {
 function toggleSidebarVisibility(): boolean {
   const sidebarEl = document.getElementById('tiltcheck-sidebar');
   if (!sidebarEl) {
-    sidebar = initSidebar(disableInjectionFromHud);
-    if (sidebar) persistSidebarVisibility(true);
-    return !!sidebar;
+    const created = initSidebar(disableInjectionFromHud);
+    sidebar = created;
+    const sidebarCreated = created !== null;
+    if (sidebarCreated) persistSidebarVisibility(true);
+    return sidebarCreated;
   }
   const currentlyVisible = sidebarEl.style.display !== 'none';
   const visible = setSidebarVisibility(!currentlyVisible);
@@ -1149,6 +1149,11 @@ function startTiltMonitoring() {
         risk: tiltRisk,
         indicators,
       });
+    }
+
+    const generated = tiltDetector.generateInterventions();
+    if (generated.length > 0) {
+      handleInterventions(generated as RuntimeIntervention[]);
     }
   }, 5000); // Check every 5 seconds
 }
