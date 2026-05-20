@@ -85,6 +85,7 @@
         "auth-bridge.html",
         "auth-bridge.js",
         "warning.html",
+        "pro-monolith-bootstrap.js",
         "icons/*"
       ],
       "matches": ["<all_urls>"]

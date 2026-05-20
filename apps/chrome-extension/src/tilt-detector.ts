@@ -67,6 +67,19 @@ export interface InterventionAction {
   data?: any;
 }
 
+export type RiskProfile = 'conservative' | 'moderate' | 'degen';
+
+const PROFILE_MULTIPLIERS: Record<RiskProfile, number> = {
+  conservative: 1.2,
+  moderate: 1.0,
+  degen: 0.8,
+};
+
+/** Typical reel / animation loop window on instant games (ms). */
+const ANIMATION_LOOP_MS = 500;
+/** Retain click timestamps for micro-pacing trend analysis. */
+const MICRO_PACING_RETENTION_MS = 60_000;
+
 export class TiltDetector {
   private bets: BetEvent[] = [];
   private clicks: number[] = []; // Timestamps of clicks
@@ -78,6 +91,7 @@ export class TiltDetector {
   private currentBalance: number | null = null;
   private initialBalance: number | null = null;
   private redeemThreshold: number | null = null;
+  private riskProfile: RiskProfile = 'moderate';
 
   // Configuration
   private config = {
@@ -117,11 +131,20 @@ export class TiltDetector {
     ]
   };
 
-  constructor(initialBalance: number | null, riskLevel: 'conservative' | 'moderate' | 'degen' = 'moderate', redeemThreshold?: number) {
+  constructor(initialBalance: number | null, riskLevel: RiskProfile = 'moderate', redeemThreshold?: number) {
     this.currentBalance = initialBalance;
     this.initialBalance = initialBalance;
     this.redeemThreshold = redeemThreshold || null;
-    this.applyRiskProfile(riskLevel);
+    this.setRiskProfile(riskLevel);
+  }
+
+  setRiskProfile(level: RiskProfile): void {
+    this.riskProfile = level;
+    this.applyRiskProfile(level);
+  }
+
+  getRiskProfile(): RiskProfile {
+    return this.riskProfile;
   }
 
   private classifyBetResult(bet: number, payout: number): BetEvent['result'] {
@@ -212,9 +235,100 @@ export class TiltDetector {
   recordClick(): void {
     const now = Date.now();
     this.clicks.push(now);
+    this.clicks = this.clicks.filter((t) => now - t < MICRO_PACING_RETENTION_MS);
+  }
 
-    // Keep only recent clicks (within window)
-    this.clicks = this.clicks.filter(t => now - t < this.config.clickWindow);
+  /** Recent inter-click deltas (ms), oldest first. */
+  private computeRecentClickDeltas(maxDeltas = 8): number[] {
+    const sorted = [...this.clicks].sort((a, b) => a - b);
+    const deltas: number[] = [];
+    for (let i = 1; i < sorted.length && deltas.length < maxDeltas; i++) {
+      deltas.push(sorted[i] - sorted[i - 1]);
+    }
+    return deltas;
+  }
+
+  getLastClickDeltaMs(): number | null {
+    const deltas = this.computeRecentClickDeltas();
+    return deltas.length > 0 ? deltas[deltas.length - 1] : null;
+  }
+
+  /**
+   * Continuous velocity contribution (0–45) from compressing click pacing.
+   */
+  private getMicroPacingComponent(): number {
+    const deltas = this.computeRecentClickDeltas();
+    if (deltas.length < 2) return 0;
+
+    const lastDelta = deltas[deltas.length - 1];
+    const recent = deltas.slice(-4);
+    const avgDelta = recent.reduce((sum, d) => sum + d, 0) / recent.length;
+
+    let velocity = 0;
+    if (lastDelta < ANIMATION_LOOP_MS) {
+      velocity += ((ANIMATION_LOOP_MS - lastDelta) / ANIMATION_LOOP_MS) * 28;
+    }
+    if (avgDelta < ANIMATION_LOOP_MS) {
+      velocity += ((ANIMATION_LOOP_MS - avgDelta) / ANIMATION_LOOP_MS) * 12;
+    }
+
+    let compressingSteps = 0;
+    for (let i = 1; i < recent.length; i++) {
+      if (recent[i] < recent[i - 1] * 0.92) {
+        compressingSteps++;
+      }
+    }
+    if (compressingSteps >= 2 && lastDelta < ANIMATION_LOOP_MS + 100) {
+      velocity += compressingSteps * 6;
+    }
+
+    return Math.min(45, velocity);
+  }
+
+  /**
+   * Exponential loss-streak weight when pacing is hot (co-occurrence required).
+   */
+  private getLossStreakCompoundComponent(): number {
+    if (this.consecutiveLosses <= 3) return 0;
+
+    const pacingHot =
+      this.getMicroPacingComponent() >= 10 ||
+      (this.getLastClickDeltaMs() !== null && this.getLastClickDeltaMs()! < ANIMATION_LOOP_MS);
+
+    if (!pacingHot) return 0;
+
+    const streakExcess = this.consecutiveLosses - 3;
+    const exponential = Math.pow(1.35, streakExcess);
+    const linear = streakExcess * 7;
+    return Math.min(35, linear * Math.min(2.5, exponential / 1.8));
+  }
+
+  private getIndicatorCompositeScore(): number {
+    const tiltSigns = this.detectAllTiltSigns();
+    const weights: Record<string, number> = {
+      rage_betting: 22,
+      chasing_losses: 26,
+      fast_clicks: 12,
+      bet_escalation: 18,
+      duration_warning: 8,
+      emotional_pattern: 16,
+      fatigue: 12,
+      martingale: 20,
+    };
+    const severityMultipliers = {
+      low: 0.5,
+      medium: 1.0,
+      high: 1.5,
+      critical: 2.0,
+    };
+
+    let score = 0;
+    for (const sign of tiltSigns) {
+      const weight = weights[sign.type] ?? 10;
+      const multiplier = severityMultipliers[sign.severity];
+      score += weight * multiplier * sign.confidence;
+    }
+    return Math.min(55, score);
   }
 
   /**
@@ -642,36 +756,15 @@ export class TiltDetector {
   }
 
   /**
-   * Get current tilt risk score (0-100)
+   * Composite tilt risk (0–100): indicators + micro-pacing + loss-streak compound, scaled by profile.
    */
   getTiltRiskScore(): number {
-    const tiltSigns = this.detectAllTiltSigns();
-
-    const weights = {
-      rage_betting: 25,
-      chasing_losses: 30,
-      fast_clicks: 15,
-      bet_escalation: 20,
-      duration_warning: 10,
-      emotional_pattern: 20,
-      fatigue: 15
-    };
-
-    const severityMultipliers = {
-      low: 0.5,
-      medium: 1.0,
-      high: 1.5,
-      critical: 2.0
-    };
-
-    let score = 0;
-    for (const sign of tiltSigns) {
-      const weight = weights[sign.type] || 10;
-      const multiplier = severityMultipliers[sign.severity];
-      score += weight * multiplier * sign.confidence;
-    }
-
-    return Math.min(100, Math.round(score));
+    const indicatorScore = this.getIndicatorCompositeScore();
+    const velocityScore = this.getMicroPacingComponent();
+    const lossCompound = this.getLossStreakCompoundComponent();
+    const raw = indicatorScore + velocityScore + lossCompound;
+    const profileMu = PROFILE_MULTIPLIERS[this.riskProfile];
+    return Math.min(100, Math.round(raw * profileMu));
   }
 
   /**

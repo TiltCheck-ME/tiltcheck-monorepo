@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 -->
 
 # TiltCheck Site Map
 
@@ -10,6 +10,12 @@
 - **[Safety (TiltGuard)](/safety)**: Chrome extension and Discord bot safety tools.
 - **[JustTheTip](/justthetip)**: Non-custodial Discord tipping service.
 - **[User Profile](/user)**: Manage linked accounts and earnings.
+
+## Strategy & positioning (internal / docs site)
+- **[Player sovereignty & category strategy](product/player-sovereignty-category-strategy.md)** — thesis vs compliance-theater RG, pillars, risks.
+- **[TiltCheck positioning memo (one-pager)](product/tiltcheck-positioning-memo-one-pager.md)** — copy-ready blocks for web and briefings.
+- **[Monorepo roadmap pillars checklist](product/monorepo-roadmap-pillars-checklist.md)** — pillar backlog mapped to `apps/*` and packages.
+- **[Product strategy index](product/README.md)** — hub for the three docs above.
 
 ## RG v1 Discovery Lanes
 - **[RG Tools v1 Plan](product/rg-tools-v1-plan.md)**: Cross-surface discovery map, dashboard ownership rules, and "where do I click?" QA checklist.
