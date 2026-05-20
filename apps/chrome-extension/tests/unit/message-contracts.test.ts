@@ -221,19 +221,18 @@ describe('Sidebar/content/page-bridge message contracts', () => {
     onMessage({ type: 'get_sidebar_state' }, null, getStateResponse);
     expect(getStateResponse).toHaveBeenCalledWith(
       expect.objectContaining({
-        exists: true,
+        exists: false,
+        coreOnly: true,
       }),
     );
-    const initialState = getStateResponse.mock.calls[0]?.[0];
-    expect(typeof initialState?.visible).toBe('boolean');
 
     const toggleResponse = vi.fn();
     onMessage({ type: 'toggle_sidebar' }, null, toggleResponse);
     await flush();
     expect(toggleResponse).toHaveBeenCalledWith(
       expect.objectContaining({
-        success: true,
-        visible: !initialState.visible,
+        success: false,
+        coreOnly: true,
       }),
     );
 
@@ -244,8 +243,8 @@ describe('Sidebar/content/page-bridge message contracts', () => {
     });
     expect(openResponse).toHaveBeenCalledWith(
       expect.objectContaining({
-        success: true,
-        visible: true,
+        success: false,
+        coreOnly: true,
       }),
     );
   });

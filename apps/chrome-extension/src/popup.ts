@@ -1,5 +1,20 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+import {
+  addCustomSlug,
+  clampDurationMs,
+  clampRisk,
+  formatDurationLabel,
+  loadGameBlockUiState,
+  loadTouchGrassUiState,
+  riskLabel,
+  saveBlockedGames,
+  saveGameBlockOptIn,
+  saveRiskThreshold,
+  saveTouchGrassDurationMs,
+  saveTouchGrassOptIn,
+  toggleSlugInList,
+} from './popup-settings.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -402,6 +417,147 @@ function renderExclusions() {
 }
 
 // ---------------------------------------------------------------------------
+// Guards settings (Touch Grass + strategic blocklist)
+// ---------------------------------------------------------------------------
+
+let guardSlugs: string[] = [];
+
+function setTouchGrassControlsEnabled(enabled: boolean): void {
+  const fieldset = $<HTMLFieldSetElement>('slider-controls');
+  fieldset.disabled = !enabled;
+}
+
+function setGameBlockControlsEnabled(enabled: boolean): void {
+  const container = $<HTMLDivElement>('game-block-controls-container');
+  container.style.opacity = enabled ? '1' : '0.45';
+  container.style.pointerEvents = enabled ? 'auto' : 'none';
+}
+
+function syncRiskSliderUi(value: number): void {
+  const clamped = clampRisk(value);
+  $<HTMLInputElement>('risk-threshold-slider').value = String(clamped);
+  $('risk-threshold-label').textContent = `${clamped} — ${riskLabel(clamped)}`;
+}
+
+function syncDurationSliderUi(ms: number): void {
+  const clamped = clampDurationMs(ms);
+  const sec = Math.round(clamped / 1000);
+  $<HTMLInputElement>('duration-slider').value = String(sec);
+  $('duration-label').textContent = formatDurationLabel(clamped);
+}
+
+function renderSlugRegistry(): void {
+  const registry = $('slug-registry');
+  if (guardSlugs.length === 0) {
+    registry.innerHTML = '<span class="guard-note" style="margin:0">No slugs armed.</span>';
+  } else {
+    registry.innerHTML = guardSlugs
+      .map(
+        (slug) =>
+          `<span class="registry-chip">${slug}<button type="button" data-remove-slug="${slug}" aria-label="Remove ${slug}">×</button></span>`
+      )
+      .join('');
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-slug]').forEach((btn) => {
+    const slug = btn.dataset['slug'] ?? '';
+    btn.classList.toggle('active', guardSlugs.includes(slug));
+  });
+}
+
+async function refreshGuardSettingsUi(): Promise<void> {
+  const touch = await loadTouchGrassUiState();
+  $<HTMLInputElement>('opt-in-checkbox').checked = touch.optIn;
+  setTouchGrassControlsEnabled(touch.optIn);
+  syncRiskSliderUi(touch.riskThreshold);
+  syncDurationSliderUi(touch.durationMs);
+
+  const game = await loadGameBlockUiState();
+  $<HTMLInputElement>('game-block-master-toggle').checked = game.optIn;
+  guardSlugs = [...game.slugs];
+  setGameBlockControlsEnabled(game.optIn);
+  renderSlugRegistry();
+}
+
+function initGuardSettingsPanel(): void {
+  void refreshGuardSettingsUi();
+
+  $<HTMLInputElement>('opt-in-checkbox').addEventListener('change', async (e) => {
+    const enabled = (e.target as HTMLInputElement).checked;
+    await saveTouchGrassOptIn(enabled);
+    setTouchGrassControlsEnabled(enabled);
+    toast(enabled ? 'Touch Grass enforcement armed.' : 'Touch Grass enforcement off.');
+  });
+
+  $<HTMLInputElement>('risk-threshold-slider').addEventListener('input', async (e) => {
+    const value = Number((e.target as HTMLInputElement).value);
+    syncRiskSliderUi(value);
+    await saveRiskThreshold(value);
+  });
+
+  $<HTMLInputElement>('duration-slider').addEventListener('input', async (e) => {
+    const sec = Number((e.target as HTMLInputElement).value);
+    const ms = clampDurationMs(sec * 1000);
+    syncDurationSliderUi(ms);
+    await saveTouchGrassDurationMs(ms);
+  });
+
+  $<HTMLInputElement>('game-block-master-toggle').addEventListener('change', async (e) => {
+    const enabled = (e.target as HTMLInputElement).checked;
+    await saveGameBlockOptIn(enabled);
+    setGameBlockControlsEnabled(enabled);
+    toast(enabled ? 'Strategic filters armed.' : 'Strategic filters off.');
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-slug]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!$<HTMLInputElement>('game-block-master-toggle').checked) return;
+      const slug = btn.dataset['slug'] ?? '';
+      guardSlugs = toggleSlugInList(guardSlugs, slug);
+      await saveBlockedGames(guardSlugs);
+      renderSlugRegistry();
+    });
+  });
+
+  $('btn-add-slug').addEventListener('click', async () => {
+    if (!$<HTMLInputElement>('game-block-master-toggle').checked) return;
+    const input = $<HTMLInputElement>('custom-slug-input');
+    const next = addCustomSlug(guardSlugs, input.value);
+    if (next.length === guardSlugs.length) {
+      toast('Invalid slug. Use letters and numbers only.', true);
+      return;
+    }
+    guardSlugs = next;
+    input.value = '';
+    await saveBlockedGames(guardSlugs);
+    renderSlugRegistry();
+    toast('Slug added.');
+  });
+
+  $('slug-registry').addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+    const remove = target.closest<HTMLButtonElement>('[data-remove-slug]');
+    if (!remove || !$<HTMLInputElement>('game-block-master-toggle').checked) return;
+    const slug = remove.dataset['removeSlug'] ?? '';
+    guardSlugs = guardSlugs.filter((s) => s !== slug);
+    await saveBlockedGames(guardSlugs);
+    renderSlugRegistry();
+  });
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local') return;
+    const keys = Object.keys(changes);
+    if (
+      keys.some((k) =>
+        k.startsWith('tiltcheck_') && k !== 'activityFeed'
+      )
+    ) {
+      void refreshGuardSettingsUi();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Tabs
 // ---------------------------------------------------------------------------
 
@@ -563,10 +719,12 @@ async function init() {
   // Activity refresh
   $('btn-refresh-feed').addEventListener('click', loadFeed);
 
-  // Settings (open options page if it exists, else dashboard)
+  // Settings gear opens Guards tab (local circuit breaker + strategic filters)
   $('btn-settings').addEventListener('click', () => {
-    openDashboardTab('profile');
+    activateTab('block');
   });
+
+  initGuardSettingsPanel();
 
   // Vault listeners
   initVaultListeners();

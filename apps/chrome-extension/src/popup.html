@@ -547,6 +547,141 @@
       height: 12px;
     }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* --- GUARDS (Touch Grass + Strategic Filters) --- */
+    .guard-panel {
+      background: #0f1115;
+      border: 1px solid rgba(255, 74, 74, 0.22);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      font-family: var(--mono);
+    }
+    .guard-panel h3 {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #ff4a4a;
+      margin-bottom: 8px;
+    }
+    .guard-policy {
+      font-size: 11px;
+      line-height: 1.55;
+      color: rgba(245, 245, 245, 0.78);
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .guard-opt-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .guard-opt-row input { width: auto; margin-top: 2px; accent-color: #ff4a4a; }
+    .guard-opt-row span { font-size: 11px; line-height: 1.45; color: rgba(245, 245, 245, 0.9); }
+    fieldset.guard-controls {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 10px;
+      margin: 0;
+    }
+    fieldset.guard-controls:disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    fieldset.guard-controls legend {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+    .slider-row { margin-bottom: 12px; }
+    .slider-row:last-child { margin-bottom: 0; }
+    .slider-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .slider-value { color: #fff; font-weight: 700; }
+    input[type="range"].guard-range {
+      width: 100%;
+      accent-color: #ff4a4a;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .slug-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .slug-chip {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .slug-chip.active {
+      border-color: rgba(255, 74, 74, 0.55);
+      background: rgba(255, 74, 74, 0.14);
+      color: #ff9a9a;
+    }
+    .slug-add-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .slug-add-row input { flex: 1; font-family: var(--mono); font-size: 11px; }
+    .slug-add-row .btn { flex-shrink: 0; padding: 8px 12px; }
+    .slug-registry {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 24px;
+    }
+    .slug-registry .registry-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(23, 195, 178, 0.12);
+      border: 1px solid rgba(23, 195, 178, 0.35);
+      color: var(--teal);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .registry-chip button {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      padding: 0;
+    }
+    .guard-note {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -572,7 +707,7 @@
 
 <div class="tabs">
   <button class="tab active" data-tab="status">Status</button>
-  <button class="tab" data-tab="block">Filters</button>
+  <button class="tab" data-tab="block">Guards</button>
   <button class="tab" data-tab="vault">Vault</button>
   <button class="tab" data-tab="activity">Activity</button>
 </div>
@@ -648,16 +783,74 @@
 
 </div>
 
-<!-- ===== BLOCK PANEL ===== -->
+<!-- ===== GUARDS PANEL ===== -->
 <div id="panel-block" class="panel">
 
+  <section class="guard-panel" id="touch-grass-panel">
+    <h3>Touch Grass Timeout</h3>
+    <p class="guard-policy">
+      When click velocity or tilt risk crosses your line, this tab locks for the full countdown.
+      You cannot dismiss it early. Not a suggestion — the timer must hit zero.
+    </p>
+    <label class="guard-opt-row" for="opt-in-checkbox">
+      <input type="checkbox" id="opt-in-checkbox" />
+      <span>I accept enforced session lockouts on this device. I understand the tab cannot be unlocked until the timer ends.</span>
+    </label>
+    <fieldset id="slider-controls" class="guard-controls" disabled>
+      <legend>Thresholds (enabled after opt-in)</legend>
+      <div class="slider-row">
+        <div class="slider-meta">
+          <span>Sensitivity</span>
+          <span class="slider-value" id="risk-threshold-label">85 — Balanced</span>
+        </div>
+        <input type="range" id="risk-threshold-slider" class="guard-range" min="50" max="100" step="1" value="85" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-meta">
+          <span>Lockout duration</span>
+          <span class="slider-value" id="duration-label">2m 0s</span>
+        </div>
+        <input type="range" id="duration-slider" class="guard-range" min="30" max="300" step="15" value="120" />
+      </div>
+    </fieldset>
+    <p class="guard-note">Core circuit breaker runs locally. No server required to fire.</p>
+  </section>
+
+  <section class="guard-panel" id="strategic-filter-panel">
+    <h3>Strategic Filters</h3>
+    <p class="guard-policy">
+      Permanently remove game types from your lobby grid and block direct URLs.
+      Requires Pro mode on the casino tab (<code style="color:#ff9a9a">tiltcheck_pro_monolith_enabled</code>).
+    </p>
+    <label class="guard-opt-row" for="game-block-master-toggle">
+      <input type="checkbox" id="game-block-master-toggle" />
+      <span>I enable local game-type exclusion on this device. I choose which games never render.</span>
+    </label>
+    <div id="game-block-controls-container" style="opacity:0.45; pointer-events:none;">
+      <p class="guard-note" style="margin-top:0; margin-bottom:8px;">Quick targets</p>
+      <div class="slug-grid" id="slug-quick-grid">
+        <button type="button" class="slug-chip" data-slug="plinko">Plinko</button>
+        <button type="button" class="slug-chip" data-slug="mines">Mines</button>
+        <button type="button" class="slug-chip" data-slug="dice">Dice</button>
+        <button type="button" class="slug-chip" data-slug="crash">Crash</button>
+      </div>
+      <div class="slug-add-row">
+        <input type="text" id="custom-slug-input" placeholder="e.g. keno, hacksaw" autocomplete="off" />
+        <button type="button" class="btn btn-ghost" id="btn-add-slug">Add</button>
+      </div>
+      <div class="slug-registry" id="slug-registry" aria-label="Active blocked game slugs"></div>
+    </div>
+  </section>
+
+  <hr />
+
   <div class="section-head">
-    <span class="section-title">Temptation Filters</span>
+    <span class="section-title">Dashboard sync (Discord)</span>
     <button class="btn btn-ghost" id="btn-add-toggle" style="padding:5px 10px; font-size:11px">
       Manage in dashboard
     </button>
   </div>
-  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Summary only here. The dashboard owns durable game, category, provider, and casino filters. The extension just enforces them on-page.</p>
+  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Server-backed exclusions when Discord is linked. Local guards above work without login.</p>
 
   <!-- List -->
   <div id="exclusion-list-wrap">

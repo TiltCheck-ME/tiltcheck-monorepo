@@ -73,7 +73,7 @@ async function build() {
     minify: true,
   });
 
-  // Build content script
+  // Build content script (Core + dynamic import of Pro monolith; keeps content.js small)
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/content.ts')],
     bundle: true,
@@ -84,6 +84,28 @@ async function build() {
     sourcemap: true,
     minify: false,
     plugins: [],
+    alias: {
+      crypto: 'crypto-browserify',
+      stream: 'stream-browserify',
+      vm: 'vm-browserify',
+      buffer: 'buffer',
+    },
+    define: {
+      global: 'window',
+      process: '{"env":{}}',
+    },
+  });
+
+  // Pro monolith — full sidebar, extractor, fairness, telemetry (loaded when storage flag is on)
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/pro-monolith-bootstrap.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/pro-monolith-bootstrap.js'),
+    format: 'esm',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: true,
+    minify: false,
     alias: {
       crypto: 'crypto-browserify',
       stream: 'stream-browserify',

@@ -84,19 +84,53 @@ pnpm -C apps/chrome-extension build
 
 ### content.ts
 
-Main content script. Runs on every page (minus excluded domains). Responsibilities:
+Slim **core** content script. Runs on supported casino origins (see manifest). Responsibilities:
 
 - Early exit for excluded domains (discord.com, API auth routes, localhost dev ports).
-- Initializes `CasinoDataExtractor`, `TiltDetector`, `CasinoLicenseVerifier`, `FairnessService`, and `GameBlocker`.
-- Manages the sidebar lifecycle.
-- Handles `WalletBridge` and `SolanaProvider` injection.
-- Listens for messages from `background.js`.
+- **Always-on core circuit breaker** — single capture-phase `click` listener on `document` for velocity; 2s poll; `triggerTouchGrassTimeout` from `core-options.ts` keys only.
+- Reads `chrome.storage.local['tiltcheck_pro_monolith_enabled']`.
+  - When **`true`**: lazy-imports `pro-monolith-bootstrap.js` and runs `startProMonolith()` in addition to core (does not replace core).
+  - When flag flips **`false`**: calls `deactivateProMonolith()` — disconnects Pro observers/WebSocket paths, removes Pro UI roots; **does not** remove `#tiltcheck-lockdown-root` (core-owned).
+- Core options refresh only on `CORE_CIRCUIT_BREAKER_STORAGE_KEYS` changes (Pro/popup must not write those keys mid-session except via popup).
+- Sets `window.__tiltcheckCoreShieldActive` so Pro skips duplicate Touch Grass at risk ≥ 80.
 
-`GameBlocker` is initialized after the user session resolves. If no Discord session is present, the blocker is skipped silently.
+### pro-monolith-bootstrap.ts
+
+Former monolith logic from `content.ts`. Built to `dist/pro-monolith-bootstrap.js` (ESM). Exports `startProMonolith()` / `deactivateProMonolith()`. `LocalGameBlocker` and fairness bet-button observers ignore mutations inside safety roots (`pro/containment.ts`: lockdown overlay, local block overlay, sidebar, etc.).
+
+### touch-grass-timeout.ts
+
+Fullscreen **Touch Grass Timeout** overlay (~120s), no dismiss controls, paired with `blockBettingUI`. Used by core and Pro (`triggerEmergencyStop` replaced by this flow). Timer uses `aria-live="polite"`; forensic ticker is static (`aria-live="off"`) inside a region labeled for 20s updates.
+
+### core-options.ts
+
+`chrome.storage.local` keys for the core circuit breaker (popup/options should write after explicit opt-in):
+
+- `tiltcheck_risk_profile` — `conservative` (μ=1.2), `moderate` (1.0), `degen` (0.8); falls back to legacy `riskLevel` if unset.
+
+### tilt-detector.ts (Core scoring)
+
+`getTiltRiskScore()` combines indicator composite (capped), continuous micro-pacing (`last_click_delta_ms` trend under ~500ms), and exponential loss-streak compound when both co-occur (`consecutiveLosses > 3` + hot pacing). Core `content.ts` polls every 2s against `tiltcheck_risk_threshold`.
+
+| Key | Default | Notes |
+| :--- | :--- | :--- |
+| `tiltcheck_risk_threshold` | `85` | Clamped 50–100 |
+| `tiltcheck_touch_grass_duration_ms` | `120000` | Clamped 30s–10m |
+| `tiltcheck_touch_grass_cooldown_ms` | duration + 5s | Must exceed lockout to avoid re-fire |
+| `tiltcheck_touch_grass_opt_in` | unset = on | Set `false` to disable core enforcement; popup should require policy ack before `true` |
 
 ### game-blocker.ts
 
-Enforces the user's Surgical Self-Exclusion list at the DOM level. See [docs/surgical-self-exclusion.md](surgical-self-exclusion.md) for the full reference.
+Enforces the user's Surgical Self-Exclusion list at the DOM level (API-backed `ForbiddenGamesProfile`). See [docs/surgical-self-exclusion.md](surgical-self-exclusion.md) for the full reference.
+
+### pro/local-game-blocker.ts (Pro only)
+
+**Strategic filter** — persistent local blocklist via `tiltcheck_blocked_games` (`string[]` slugs, e.g. `plinko`, `mines`). Loaded only from `pro-monolith-bootstrap.js`:
+
+- **URL hard-stop** — full-page overlay before the game client loads.
+- **DOM redaction** — MutationObserver replaces matching lobby cards with `[ GAME EXCLUDED ]`.
+
+Schema helpers: `pro/blocked-games-options.ts`. No network; does not touch core click-velocity logic.
 
 Key internals:
 

@@ -50,6 +50,9 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 - [18 Coding Standards](18-coding-standards.md)
 - [18 Dashboard Design](18-dashboard-design.md)
 - [19 Testing Strategy](19-testing-strategy.md)
+- [Player sovereignty & category strategy (product)](../product/player-sovereignty-category-strategy.md)
+- [Positioning memo (one-pager)](../product/tiltcheck-positioning-memo-one-pager.md)
+- [Monorepo pillars checklist](../product/monorepo-roadmap-pillars-checklist.md)
 
 ## Design Prompts & Enhancements
 - [Design Prompts](DESIGN_PROMPTS.md)
