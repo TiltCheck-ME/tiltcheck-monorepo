@@ -21,7 +21,7 @@
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "tweetnacl": "^1.0.3",
-    "ws": "^8.20.0"
+    "ws": "^8.20.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
