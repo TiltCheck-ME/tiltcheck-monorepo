@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TiltCheck AutoVault — Android install (in order)</title>
+  <meta name="description" content="Step-by-step QR install for AutoVault on Android: browser, userscript manager, Share Edition script, then Stake.us or nuts.gg." />
+  <style>
+    :root {
+      --teal: #17c3b2;
+      --bg: #0a0c10;
+      --card: #12161e;
+      --border: #283347;
+      --text: #c4ced8;
+      --muted: #8a97a8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    main { max-width: 640px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #fff;
+      margin: 0 0 0.5rem;
+    }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .tracks { display: grid; gap: 0.75rem; margin-bottom: 1.25rem; }
+    @media (min-width: 520px) { .tracks { grid-template-columns: 1fr 1fr; } }
+    .track-btn {
+      cursor: pointer;
+      text-align: left;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 1rem;
+      font: inherit;
+    }
+    .track-btn[aria-pressed="true"] {
+      border-color: rgba(23, 195, 178, 0.6);
+      background: rgba(23, 195, 178, 0.1);
+    }
+    .track-btn strong { display: block; color: #fff; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.35rem; }
+    .track-btn span { font-size: 0.8rem; color: var(--muted); }
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .step-head { display: flex; gap: 0.85rem; align-items: flex-start; }
+    .step-num {
+      flex-shrink: 0;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(23, 195, 178, 0.5);
+      background: rgba(23, 195, 178, 0.1);
+      color: var(--teal);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+    .step h2 { margin: 0 0 0.35rem; font-size: 0.95rem; color: #fff; text-transform: uppercase; letter-spacing: 0.03em; }
+    .step p { margin: 0 0 0.85rem; font-size: 0.88rem; color: var(--muted); }
+    .step-body { display: flex; flex-direction: column; gap: 0.85rem; align-items: center; }
+    @media (min-width: 520px) {
+      .step-body { flex-direction: row; align-items: flex-start; }
+    }
+    .qr-wrap {
+      flex-shrink: 0;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      background: #080a0d;
+    }
+    .step-url { font-size: 0.7rem; font-family: ui-monospace, monospace; word-break: break-all; }
+    .step-url a { color: var(--teal); }
+    .badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.15rem 0.4rem;
+      margin-left: 0.35rem;
+      vertical-align: middle;
+    }
+    .card { background: var(--card); border: 1px solid var(--border); padding: 1.25rem; margin-bottom: 1rem; }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .link-row a { color: var(--teal); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>AutoVault — Android install</h1>
+    <p class="sub">Scan each QR in order. Browser → userscript manager → AutoVault script → casino. Works on Stake.us and nuts.gg.</p>
+
+    <p class="label">Pick your browser path</p>
+    <div class="tracks" role="tablist" aria-label="Install path">
+      <button type="button" class="track-btn" id="track-firefox" aria-pressed="true" data-track="firefox">
+        <strong>Firefox + Violentmonkey <span style="color:var(--teal);font-size:0.65rem;">Recommended</span></strong>
+        <span>Play Store Firefox, then official Violentmonkey add-on.</span>
+      </button>
+      <button type="button" class="track-btn" id="track-edge" aria-pressed="false" data-track="edge">
+        <strong>Edge + Tampermonkey</strong>
+        <span>Play Store Edge, then Tampermonkey from Edge Add-ons.</span>
+      </button>
+    </div>
+
+    <div id="steps"></div>
+
+    <div class="card">
+      <div class="label">After install</div>
+      <ul style="margin:0;padding-left:1.2rem;font-size:0.88rem;">
+        <li>First visit: one-time setup, then Get started.</li>
+        <li>Big AUTOVAULT toggle stays ON until you turn it off.</li>
+        <li>Disable old separate AutoVault scripts if you had them.</li>
+      </ul>
+    </div>
+
+    <p class="link-row" style="font-size:0.8rem;">
+      Richer page: <a href="https://tiltcheck.me/tools/auto-vault/android">tiltcheck.me/tools/auto-vault/android</a>
+      · Script only: <a href="https://tiltcheck.me/userscripts/tiltcheck-autovault-share.user.js">Share Edition</a>
+    </p>
+
+    <footer>Made for Degens. By Degens.</footer>
+  </main>
+  <script>
+    (function () {
+      var scriptUrl = 'https://tiltcheck.me/userscripts/tiltcheck-autovault-share.user.js';
+      var tracks = {
+        firefox: [
+          { order: 1, title: 'Install Firefox for Android', body: 'Get Firefox from Google Play.', url: 'https://play.google.com/store/apps/details?id=org.mozilla.firefox', label: 'Firefox on Google Play', size: 220 },
+          { order: 2, title: 'Add Violentmonkey to Firefox', body: 'Open Firefox, scan, tap Add to Firefox.', url: 'https://addons.mozilla.org/android/addon/violentmonkey/', label: 'Violentmonkey add-on', size: 220 },
+          { order: 3, title: 'Install AutoVault Share Edition', body: 'Same browser. Tap Install when prompted.', url: scriptUrl, label: 'Share Edition userscript', size: 240 },
+          { order: 4, title: 'Open Stake.us', body: 'Log in and complete one-time setup.', url: 'https://stake.us', label: 'stake.us', size: 200, optional: true },
+          { order: 5, title: 'Open nuts.gg', body: 'Same script. Optional auto-tip in Advanced only.', url: 'https://nuts.gg', label: 'nuts.gg', size: 200, optional: true }
+        ],
+        edge: [
+          { order: 1, title: 'Install Microsoft Edge', body: 'Get Edge from Google Play.', url: 'https://play.google.com/store/apps/details?id=com.microsoft.emmx', label: 'Edge on Google Play', size: 220 },
+          { order: 2, title: 'Enable Tampermonkey in Edge', body: 'Menu → Extensions → install Tampermonkey → enable.', url: 'https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd', label: 'Tampermonkey on Edge', size: 220 },
+          { order: 3, title: 'Install AutoVault Share Edition', body: 'Same browser. Tap Install when prompted.', url: scriptUrl, label: 'Share Edition userscript', size: 240 },
+          { order: 4, title: 'Open Stake.us', body: 'Log in and complete one-time setup.', url: 'https://stake.us', label: 'stake.us', size: 200, optional: true },
+          { order: 5, title: 'Open nuts.gg', body: 'Same script. Optional auto-tip in Advanced only.', url: 'https://nuts.gg', label: 'nuts.gg', size: 200, optional: true }
+        ]
+      };
+
+      function qr(data, size) {
+        var p = new URLSearchParams({ size: size + 'x' + size, margin: '12', ecc: 'M', color: '17c3b2', bgcolor: '0a0c10', data: data });
+        return 'https://api.qrserver.com/v1/create-qr-code/?' + p.toString();
+      }
+
+      function render(track) {
+        var host = document.getElementById('steps');
+        host.innerHTML = tracks[track].map(function (step) {
+          var badge = step.optional ? '<span class="badge">Pick one casino</span>' : '';
+          return '<article class="step"><div class="step-head"><div class="step-num">' + step.order + '</div><div style="flex:1;min-width:0"><h2>' + step.title + badge + '</h2><p>' + step.body + '</p><div class="step-body"><div class="qr-wrap"><img src="' + qr(step.url, step.size) + '" width="' + step.size + '" height="' + step.size + '" alt="QR step ' + step.order + '" /></div><div class="step-url"><div class="label" style="margin-bottom:0.35rem">' + step.label + '</div><a href="' + step.url + '" target="_blank" rel="noopener noreferrer">' + step.url + '</a></div></div></div></div></article>';
+        }).join('');
+      }
+
+      var active = 'firefox';
+      render(active);
+
+      document.querySelectorAll('.track-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          active = btn.getAttribute('data-track');
+          document.querySelectorAll('.track-btn').forEach(function (b) {
+            b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+          });
+          render(active);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

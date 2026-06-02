@@ -7,6 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Allow phone browsers on LAN to load Next dev assets (HMR, chunks) during local testing.
+  allowedDevOrigins: ['192.168.0.8'],
   // Pin Turbopack's workspace root to the monorepo root (apps/web -> ../..).
   // Without this, Next.js can pick up stray pnpm-workspace.yaml files higher
   // up the filesystem (e.g. in a developer's home directory) and silently
@@ -52,9 +54,9 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/trust-scores.html',
-        destination: '/dashboard',
-        permanent: true,
+        source: '/tools/auto-vault/install',
+        destination: '/tools/auto-vault/android',
+        permanent: false,
       },
       {
         source: '/casinos.html',
