@@ -132,6 +132,13 @@ export default function CasinoSetupClient({ siteId }: Props) {
               className="block w-full text-center py-3.5 px-4 bg-[#17c3b2] text-[#041210] text-sm font-black uppercase tracking-[0.12em] hover:brightness-110 transition"
               target="_blank"
               rel="noopener noreferrer"
+              {...(step.order === 3
+                ? {
+                    'data-funnel-event': 'autovault_script_install_click',
+                    'data-funnel-source': `dm-install-${siteId}`,
+                    'data-funnel-label': step.actionLabel,
+                  }
+                : {})}
             >
               {step.actionLabel}
             </a>
@@ -198,6 +205,9 @@ export default function CasinoSetupClient({ siteId }: Props) {
           <button
             type="button"
             onClick={() => copyText(dmBlurb, 'dm')}
+            data-funnel-event="dm_blurb_copy"
+            data-funnel-source={`dm-install-${siteId}`}
+            data-funnel-label="Copy DM text"
             className="flex-1 min-w-[140px] py-2.5 px-3 border border-[#17c3b2]/50 text-[#17c3b2] text-xs font-black uppercase tracking-wider hover:bg-[#17c3b2]/10 transition"
           >
             {copied === 'dm' ? 'Copied' : 'Copy DM text'}
@@ -205,6 +215,9 @@ export default function CasinoSetupClient({ siteId }: Props) {
           <button
             type="button"
             onClick={() => copyText(pageUrl || preset.pageProduction, 'link')}
+            data-funnel-event="install_link_copy"
+            data-funnel-source={`dm-install-${siteId}`}
+            data-funnel-label="Copy link only"
             className="flex-1 min-w-[140px] py-2.5 px-3 border border-[#283347] text-gray-300 text-xs font-black uppercase tracking-wider hover:border-[#17c3b2]/40 transition"
           >
             {copied === 'link' ? 'Copied' : 'Copy link only'}

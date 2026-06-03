@@ -1,8 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const allowedEventTypes = new Set(['page_view', 'cta_click']);
+const allowedEventTypes = new Set(['page_view', 'cta_click', 'install_ping']);
 
 type FunnelEventPayload = {
   type?: unknown;

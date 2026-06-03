@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         TiltCheck AutoVault — Share Edition
 // @namespace    https://tiltcheck.me/userscripts
-// @version      1.1.0
+// @version      1.1.1
 // @description  One link for Stake.us + nuts.gg. Mobile-first big toggle. Skims wins to vault. Non-custodial.
 // @author       TiltCheck
 // @homepage     https://tiltcheck.me/tools/auto-vault/share
@@ -60,6 +60,42 @@
     }
     const SITE = detectSite();
     if (!SITE) return;
+
+    const SCRIPT_VERSION = '1.1.1';
+    const INSTALL_PING_KEY = `${STORAGE_PREFIX}-install-pinged`;
+
+    function pingFirstInstall() {
+        try {
+            if (localStorage.getItem(INSTALL_PING_KEY)) return;
+            localStorage.setItem(INSTALL_PING_KEY, new Date().toISOString());
+            const body = JSON.stringify({
+                type: 'install_ping',
+                step: 'share_edition_first_run',
+                source: SITE.mode,
+                label: SITE.name,
+                path: window.location.pathname || '/',
+                sessionId: `script_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`,
+                metadata: {
+                    site: SITE.mode,
+                    version: SCRIPT_VERSION,
+                },
+            });
+            const url = 'https://tiltcheck.me/api/funnel';
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+            } else {
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body,
+                    keepalive: true,
+                }).catch(() => {});
+            }
+        } catch (e) {
+            /* quota or privacy mode — skip */
+        }
+    }
+    pingFirstInstall();
 
     const DEFAULT_CONFIG = {
         saveAmount: 0.1,
