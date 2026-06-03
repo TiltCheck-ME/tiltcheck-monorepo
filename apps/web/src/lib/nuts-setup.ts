@@ -1,9 +1,17 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-02 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
 
-/** Direct install script — live on tiltcheck.me today (nuts-only build). */
-export const NUTS_AUTOVAULT_SCRIPT_PATH = '/userscripts/tiltcheck-nuts-autovault.user.js';
-export const NUTS_AUTOVAULT_SCRIPT_PRODUCTION =
-  'https://tiltcheck.me/userscripts/tiltcheck-nuts-autovault.user.js';
+import {
+  AUTOVAULT_SHARE_SCRIPT_PATH,
+  AUTOVAULT_SHARE_SCRIPT_PRODUCTION,
+} from '@/lib/share-qr';
+
+/** Share Edition — mobile ON/OFF UI + session wager on nuts.gg (and Stake.us). */
+export const NUTS_SETUP_SCRIPT_PATH = AUTOVAULT_SHARE_SCRIPT_PATH;
+export const NUTS_SETUP_SCRIPT_PRODUCTION = AUTOVAULT_SHARE_SCRIPT_PRODUCTION;
+
+/** @deprecated Use NUTS_SETUP_SCRIPT_* — kept for any stale imports. */
+export const NUTS_AUTOVAULT_SCRIPT_PATH = NUTS_SETUP_SCRIPT_PATH;
+export const NUTS_AUTOVAULT_SCRIPT_PRODUCTION = NUTS_SETUP_SCRIPT_PRODUCTION;
 
 export const NUTS_SETUP_PAGE_PATH = '/nuts';
 export const NUTS_SETUP_PAGE_PRODUCTION = 'https://tiltcheck.me/nuts';
@@ -58,7 +66,7 @@ function playStep(scriptUrl: string): NutsSetupStep {
   return {
     order: 4,
     title: 'Open nuts and flip ON',
-    body: 'Log in on nuts.gg. You will see a big AUTOVAULT ON / OFF button. Tap ON. It skims wins to vault while you play.',
+    body: 'Log in on nuts.gg. You will see a big AUTOVAULT ON / OFF button. Tap ON. It skims wins to vault and shows session wager + P/L in the panel.',
     actionLabel: 'Open nuts.gg',
     url: NUTS_CASINO_URL,
   };
@@ -135,21 +143,21 @@ export const NUTS_FAQ: NutsFaqItem[] = [
   },
   {
     q: 'What does it actually do?',
-    a: 'When you are winning, it moves a slice of each win to vault before you can degen it back. Saves you from rinsing the whole heater.',
+    a: 'When you are winning, it moves a slice of each win to vault before you can degen it back. Panel also tracks session wager and P/L.',
   },
 ];
 
 export function resolveNutsScriptUrl(origin?: string): string {
-  if (!origin) return NUTS_AUTOVAULT_SCRIPT_PRODUCTION;
+  if (!origin) return NUTS_SETUP_SCRIPT_PRODUCTION;
   const base = origin.replace(/\/$/, '');
   if (
     origin.includes('localhost') ||
     origin.includes('127.0.0.1') ||
     /^https?:\/\/192\.168\.|^https?:\/\/10\.|^https?:\/\/172\.(1[6-9]|2\d|3[01])\./.test(origin)
   ) {
-    return `${base}${NUTS_AUTOVAULT_SCRIPT_PATH}`;
+    return `${base}${NUTS_SETUP_SCRIPT_PATH}`;
   }
-  return NUTS_AUTOVAULT_SCRIPT_PRODUCTION;
+  return NUTS_SETUP_SCRIPT_PRODUCTION;
 }
 
 export function resolveNutsPageUrl(origin?: string): string {

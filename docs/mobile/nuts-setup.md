@@ -1,6 +1,6 @@
 # nuts.gg setup page
 
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-02
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03
 
 ## Purpose
 
@@ -23,7 +23,7 @@
 
 - Copy and steps: `apps/web/src/lib/nuts-setup.ts`
 - Page: `apps/web/src/app/nuts/`
-- Script (prod today): `/userscripts/tiltcheck-nuts-autovault.user.js`
+- Script: `/userscripts/tiltcheck-autovault-share.user.js` (Share Edition — mobile UI + session wager)
 
 ## Chrome on Android
 
