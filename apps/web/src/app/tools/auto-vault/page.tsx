@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-02 */
 'use client';
 
 import React from 'react';
@@ -163,6 +163,39 @@ export default function AutoVaultPage() {
               press the vault button while you play. Pick one — they do the same job, the
               extension just has nicer ergonomics.
             </p>
+
+            <div className="rounded-2xl border border-[#17c3b2]/50 bg-[#17c3b2]/5 p-6 flex flex-col mb-4">
+              <p className="text-[10px] font-mono font-black uppercase tracking-[0.18em] text-[#17c3b2] mb-2">
+                Easy share
+              </p>
+              <h3 className="text-lg font-black uppercase tracking-tight text-white mb-2">
+                Share Edition (Stake.us + nuts.gg)
+              </h3>
+              <p className="text-sm text-gray-300 flex-1 mb-4 max-w-2xl">
+                One install link for mobile. Big AUTOVAULT toggle, stays on until you turn it off. Android: scan QRs in
+                order — browser, userscript manager, script, casino.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/nuts"
+                  className="inline-flex w-fit items-center justify-center rounded-xl border border-[#ffd700]/40 bg-[#ffd700]/10 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#ffd700] transition-all hover:bg-[#ffd700]/20"
+                >
+                  nuts.gg setup (DM link)
+                </Link>
+                <Link
+                  href="/tools/auto-vault/android"
+                  className="inline-flex w-fit items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/15 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/25"
+                >
+                  Android install (QR steps)
+                </Link>
+                <Link
+                  href="/tools/auto-vault/share"
+                  className="inline-flex w-fit items-center justify-center rounded-xl border border-[#283347] bg-black/30 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/40 hover:text-[#17c3b2]"
+                >
+                  Copy / share link
+                </Link>
+              </div>
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               {/* Chrome extension — primary recommendation */}

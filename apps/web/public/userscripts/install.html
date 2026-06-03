@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TiltCheck AutoVault — Install</title>
+  <meta name="description" content="One link to install TiltCheck AutoVault on Stake.us and nuts.gg. Android-friendly mobile toggle." />
+  <style>
+    :root {
+      --teal: #17c3b2;
+      --bg: #0a0c10;
+      --card: #12161e;
+      --border: #283347;
+      --text: #c4ced8;
+      --muted: #8a97a8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    main {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #fff;
+      margin: 0 0 0.5rem;
+    }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(23, 195, 178, 0.35);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .link-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+    input#installUrl {
+      flex: 1;
+      background: #080a0d;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.6rem 0.5rem;
+      font-family: ui-monospace, monospace;
+    }
+    button {
+      cursor: pointer;
+      border: 1px solid var(--teal);
+      background: rgba(23, 195, 178, 0.12);
+      color: var(--teal);
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.6rem 0.85rem;
+    }
+    button:active { opacity: 0.85; }
+    a.install-btn {
+      display: block;
+      text-align: center;
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      background: transparent;
+      border: 2px solid var(--teal);
+      color: var(--teal);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    a.install-btn:hover { background: rgba(23, 195, 178, 0.1); }
+    ol { padding-left: 1.2rem; margin: 0.5rem 0 0; }
+    li { margin-bottom: 0.5rem; font-size: 0.88rem; }
+    .sites { font-size: 0.85rem; color: var(--muted); }
+    .sites strong { color: #fff; }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .copied { color: var(--teal); font-size: 0.75rem; margin-top: 0.35rem; min-height: 1.2em; }
+    .qr-card { text-align: center; }
+    .qr-wrap {
+      display: inline-block;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      background: #080a0d;
+      margin: 0.5rem 0;
+    }
+    .qr-wrap.small { padding: 0.5rem; }
+    .qr-url { font-size: 0.65rem; font-family: ui-monospace, monospace; color: var(--muted); word-break: break-all; margin: 0.5rem 0 0; }
+    .qr-divider { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+    .local-hint { font-size: 0.75rem; color: #ffd700; font-family: ui-monospace, monospace; margin-top: 0.75rem; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>AutoVault — Share install</h1>
+    <p class="sub">One script. Stake.us + nuts.gg. Big ON/OFF toggle. Stays on until you turn it off.</p>
+
+    <div class="card qr-card">
+      <div class="label">Scan on your phone</div>
+      <div class="qr-wrap">
+        <img id="pageQr" width="280" height="280" alt="QR code — AutoVault share install page" />
+      </div>
+      <p class="qr-url" id="pageUrlText"></p>
+      <p class="local-hint" id="localHint" hidden>Local dev: QR uses your LAN IP so your phone can reach this PC. Same Wi-Fi required.</p>
+      <div class="qr-divider">
+        <div class="label" style="margin-bottom:0.5rem">Direct script QR</div>
+        <div class="qr-wrap small">
+          <img id="scriptQr" width="200" height="200" alt="QR code — userscript install URL" />
+        </div>
+        <p class="qr-url" id="scriptUrlText"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Install link</div>
+      <div class="link-row">
+        <input id="installUrl" readonly value="https://tiltcheck.me/userscripts/tiltcheck-autovault-share.user.js" />
+        <button type="button" id="copyBtn">Copy</button>
+      </div>
+      <p class="copied" id="copiedMsg" aria-live="polite"></p>
+      <a class="install-btn" id="installBtn" href="https://tiltcheck.me/userscripts/tiltcheck-autovault-share.user.js">Install in Tampermonkey</a>
+    </div>
+
+    <div class="card">
+      <div class="label">Android (no Play Store Tampermonkey)</div>
+      <ol>
+        <li>Install <strong>Violentmonkey</strong> or <strong>Tampermonkey</strong> from the official APK on their website (enable install from unknown sources if prompted).</li>
+        <li>Open this page in that browser, tap <strong>Install in Tampermonkey</strong>, or paste the link into the manager as a new script.</li>
+        <li>Go to <strong>stake.us</strong> or <strong>nuts.gg</strong>, log in, complete the one-time setup, then use the big <strong>AUTOVAULT</strong> toggle.</li>
+      </ol>
+    </div>
+
+    <div class="card sites">
+      <div class="label">Works on</div>
+      <p><strong>Stake.us</strong> — full vault API</p>
+      <p><strong>nuts.gg</strong> — WebSocket vault (optional auto-tip in settings, off by default)</p>
+    </div>
+
+    <p class="sites">Android step-by-step QRs: <a href="https://tiltcheck.me/tools/auto-vault/android" style="color:var(--teal)">tiltcheck.me/tools/auto-vault/android</a> · Desktop rules: <a href="https://tiltcheck.me/tools/auto-vault" style="color:var(--teal)">auto-vault</a>.</p>
+
+    <footer>Made for Degens. By Degens.</footer>
+  </main>
+  <script>
+    (function () {
+      var productionScript = 'https://tiltcheck.me/userscripts/tiltcheck-autovault-share.user.js';
+      var origin = window.location.origin;
+      var port = window.location.port || '3000';
+      var hostname = window.location.hostname;
+
+      function isLocalDevHost(h, p) {
+        if (/^localhost$|^127\.0\.0\.1$/.test(h)) return true;
+        if (String(p) !== '3000') return false;
+        if (/^192\.168\./.test(h)) return true;
+        if (/^10\./.test(h)) return true;
+        if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
+        return false;
+      }
+
+      var localDev = isLocalDevHost(hostname, port);
+      var isLocalhost = /^localhost$|^127\.0\.0\.1$/.test(hostname);
+      var pageUrl = localDev
+        ? origin + '/tools/auto-vault/share'
+        : 'https://tiltcheck.me/tools/auto-vault/share';
+      var scriptUrl = localDev
+        ? origin + '/userscripts/tiltcheck-autovault-share.user.js'
+        : productionScript;
+      var qrPageUrl = pageUrl;
+      var qrScriptUrl = scriptUrl;
+
+      function applyUrls() {
+        document.getElementById('installUrl').value = scriptUrl;
+        document.getElementById('installBtn').href = scriptUrl;
+        document.getElementById('pageUrlText').textContent = qrPageUrl;
+        document.getElementById('scriptUrlText').textContent = qrScriptUrl;
+        document.getElementById('pageQr').src = qr(qrPageUrl, 280);
+        document.getElementById('scriptQr').src = qr(qrScriptUrl, 200);
+        if (localDev) {
+          document.getElementById('localHint').hidden = false;
+          var hint = document.getElementById('localHint');
+          if (isLocalhost && qrPageUrl.indexOf('192.168.') !== -1) {
+            hint.textContent = 'Local dev: QR uses your LAN IP so your phone can reach this PC. Same Wi-Fi required. Not on tiltcheck.me yet.';
+          } else if (localDev) {
+            hint.textContent = 'Local dev server — not deployed to tiltcheck.me yet. Same Wi-Fi required for other devices.';
+          }
+        }
+      }
+
+      function qr(data, size) {
+        var p = new URLSearchParams({
+          size: size + 'x' + size,
+          margin: '12',
+          ecc: 'M',
+          color: '17c3b2',
+          bgcolor: '0a0c10',
+          data: data
+        });
+        return 'https://api.qrserver.com/v1/create-qr-code/?' + p.toString();
+      }
+
+      if (localDev && isLocalhost) {
+        fetch('/api/dev/share-origin?port=' + encodeURIComponent(port))
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (data && data.pageUrl && data.scriptUrl) {
+              qrPageUrl = data.pageUrl;
+              qrScriptUrl = data.scriptUrl;
+            }
+            applyUrls();
+          })
+          .catch(function () { applyUrls(); });
+      } else {
+        applyUrls();
+      }
+
+      document.getElementById('copyBtn').addEventListener('click', function () {
+        var msg = document.getElementById('copiedMsg');
+        function done(ok) {
+          msg.textContent = ok ? 'Link copied.' : 'Copy failed — select the URL and copy manually.';
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(scriptUrl).then(function () { done(true); }).catch(function () { done(false); });
+        } else {
+          document.getElementById('installUrl').select();
+          done(document.execCommand('copy'));
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
