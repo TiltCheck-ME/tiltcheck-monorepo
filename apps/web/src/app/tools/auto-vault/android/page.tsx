@@ -3,8 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
+import ToolBetaGate from '@/components/ToolBetaGate';
 import AutoVaultInstallStep from '@/components/AutoVaultInstallStep';
 import {
   ANDROID_INSTALL_TRACKS,
@@ -27,10 +26,9 @@ export default function AutoVaultAndroidPage() {
   );
 
   return (
-    <>
-      <Nav />
+    <ToolBetaGate title="Android QR wizard">
       <main className="min-h-screen bg-[#0a0c10] text-white">
-        <div className="max-w-2xl mx-auto px-4 py-12 pt-32">
+        <div className="max-w-2xl mx-auto px-4 py-8 pb-16">
           <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">
             <Link href="/tools" className="hover:text-[#17c3b2] transition-colors">
               Tools
@@ -128,7 +126,6 @@ export default function AutoVaultAndroidPage() {
           </p>
         </div>
       </main>
-      <Footer />
-    </>
+    </ToolBetaGate>
   );
 }

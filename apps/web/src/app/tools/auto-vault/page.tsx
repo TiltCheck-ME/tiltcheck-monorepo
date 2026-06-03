@@ -183,6 +183,12 @@ export default function AutoVaultPage() {
                   nuts.gg setup (DM link)
                 </Link>
                 <Link
+                  href="/stake"
+                  className="inline-flex w-fit items-center justify-center rounded-xl border border-[#ffd700]/40 bg-[#ffd700]/10 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#ffd700] transition-all hover:bg-[#ffd700]/20"
+                >
+                  Stake.us setup (DM link)
+                </Link>
+                <Link
                   href="/tools/auto-vault/android"
                   className="inline-flex w-fit items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/15 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/25"
                 >

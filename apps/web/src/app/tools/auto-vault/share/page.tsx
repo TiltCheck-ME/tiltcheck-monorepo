@@ -3,8 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
+import ToolBetaGate from '@/components/ToolBetaGate';
 import {
   AUTOVAULT_SHARE_SCRIPT_PRODUCTION,
   buildShareQrImageUrl,
@@ -83,10 +82,9 @@ export default function AutoVaultSharePage() {
   };
 
   return (
-    <>
-      <Nav />
+    <ToolBetaGate title="Share Edition QR page">
       <main className="min-h-screen bg-[#0a0c10] text-white">
-        <div className="max-w-lg mx-auto px-4 py-12 pt-32">
+        <div className="max-w-lg mx-auto px-4 py-8 pb-16">
           <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">
             <Link href="/tools" className="hover:text-[#17c3b2] transition-colors">
               Tools
@@ -292,7 +290,6 @@ export default function AutoVaultSharePage() {
           </p>
         </div>
       </main>
-      <Footer />
-    </>
+    </ToolBetaGate>
   );
 }
