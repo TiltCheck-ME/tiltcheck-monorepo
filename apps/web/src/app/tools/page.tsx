@@ -77,6 +77,14 @@ const TOOLS: Tool[] = [
     status: "live",
   },
   {
+    href: "/tools/session-wager",
+    label: "SESSION WAGER",
+    title: "Session Wager Tracker",
+    description:
+      "Live wagered volume, P/L, rounds, and session RTP on Stake.us and nuts.gg — built into AutoVault Share Edition. Balance-based, no extension required.",
+    status: "live",
+  },
+  {
     href: "/tools/auto-vault",
     label: "LOCKVAULT",
     title: "Auto Profit Lock",

@@ -1,8 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-02
 // ==UserScript==
 // @name         TiltCheck AutoVault — Share Edition
 // @namespace    https://tiltcheck.me/userscripts
-// @version      1.0.0
+// @version      1.1.0
 // @description  One link for Stake.us + nuts.gg. Mobile-first big toggle. Skims wins to vault. Non-custodial.
 // @author       TiltCheck
 // @homepage     https://tiltcheck.me/tools/auto-vault/share
@@ -188,6 +188,204 @@
         vaultActionTimestamps.push(Date.now());
         saveRateLimitData(vaultActionTimestamps);
     }
+
+    // --- Session wager tracking (read-only) ---
+    class SessionTracker {
+        constructor() {
+            this.reset();
+        }
+
+        reset(startingBalance = null) {
+            this.startedAt = Date.now();
+            this.updatedAt = null;
+            this.rounds = 0;
+            this.wagered = 0;
+            this.won = 0;
+            this.consecutiveLosses = 0;
+            this.fastRoundStreak = 0;
+            this.lastRoundAt = null;
+            this.startingBalance = Number.isFinite(startingBalance) ? startingBalance : null;
+            this.currentBalance = this.startingBalance;
+        }
+
+        recordBalanceChange(previousBalance, currentBalance, timestamp = Date.now()) {
+            if (
+                !Number.isFinite(previousBalance) ||
+                !Number.isFinite(currentBalance) ||
+                previousBalance === currentBalance
+            ) {
+                return this.snapshot();
+            }
+            const delta = currentBalance - previousBalance;
+            return this.recordRound({
+                wagered: delta < 0 ? Math.abs(delta) : 0,
+                won: delta > 0 ? delta : 0,
+                balance: currentBalance,
+                timestamp
+            });
+        }
+
+        recordRound(round) {
+            const wagered = this.toMoneyValue(round.wagered);
+            const won = this.toMoneyValue(round.won);
+            const balance = Number.isFinite(round.balance) ? round.balance : null;
+            const timestamp = Number.isFinite(round.timestamp) ? round.timestamp : Date.now();
+            const isLoss = wagered > 0 && won <= 0;
+
+            this.rounds += 1;
+            this.wagered += wagered;
+            this.won += won;
+            this.updatedAt = timestamp;
+
+            if (balance !== null) {
+                if (this.startingBalance === null) this.startingBalance = balance;
+                this.currentBalance = balance;
+            }
+
+            if (this.lastRoundAt !== null && timestamp - this.lastRoundAt > 0 && timestamp - this.lastRoundAt <= 2000) {
+                this.fastRoundStreak += 1;
+            } else {
+                this.fastRoundStreak = 0;
+            }
+
+            this.consecutiveLosses = isLoss ? this.consecutiveLosses + 1 : 0;
+            this.lastRoundAt = timestamp;
+
+            return this.snapshot();
+        }
+
+        snapshot() {
+            const profitLoss = this.won - this.wagered;
+            const rtp = this.wagered > 0 ? (this.won / this.wagered) * 100 : null;
+            return {
+                startedAt: this.startedAt,
+                updatedAt: this.updatedAt,
+                rounds: this.rounds,
+                wagered: this.wagered,
+                won: this.won,
+                profitLoss,
+                rtp,
+                consecutiveLosses: this.consecutiveLosses
+            };
+        }
+
+        toMoneyValue(value) {
+            return Number.isFinite(value) ? Math.max(0, value) : 0;
+        }
+    }
+
+    const sessionTracker = new SessionTracker();
+
+    function formatWagerLine(snap) {
+        if (!snap || snap.rounds === 0) return 'Session: no bets tracked yet';
+        const pl = snap.profitLoss;
+        const sign = pl >= 0 ? '+' : '';
+        const rtp = snap.rtp !== null ? ` · ${snap.rtp.toFixed(1)}% RTP` : '';
+        return `Wagered ${snap.wagered.toFixed(4)} · ${sign}${pl.toFixed(4)} P/L · ${snap.rounds} rnd${rtp}`;
+    }
+
+    function sessionUnitLabel() {
+        if (SITE.mode === 'stake-us') {
+            return (stakeEngine.activeCurrency || getCurrency() || DEFAULT_US_CURRENCY).toUpperCase();
+        }
+        return 'SOL';
+    }
+
+    const sessionWatch = {
+        oldBalance: 0,
+        initialized: false,
+        balanceChecks: 0,
+        interval: null,
+        currency: null,
+
+        readBalance() {
+            if (SITE.mode === 'stake-us') return getCurrentBalance();
+            if (nutsEngine.playBalance === null) return null;
+            return unitToSol(nutsEngine.playBalance);
+        },
+
+        start() {
+            if (this.interval) return;
+            sessionTracker.reset(this.readBalance() || 0);
+            this.oldBalance = this.readBalance() || 0;
+            this.initialized = false;
+            this.balanceChecks = 0;
+            this.currency = SITE.mode === 'stake-us' ? getCurrency() : 'sol';
+            this.interval = setInterval(() => this.tick(), config.checkInterval * 1000);
+            this.tick();
+        },
+
+        stop() {
+            if (this.interval) clearInterval(this.interval);
+            this.interval = null;
+        },
+
+        resetSession() {
+            const cur = this.readBalance();
+            sessionTracker.reset(cur || 0);
+            this.oldBalance = cur || 0;
+            this.initialized = (cur || 0) > 0;
+            this.balanceChecks = 0;
+            if (uiApi) uiApi.render();
+            log('Session wager stats reset.', 'info');
+        },
+
+        tick() {
+            if (SITE.mode === 'stake-us') {
+                getCurrency.cached = null;
+                const newCur = getCurrency();
+                if (newCur !== this.currency) {
+                    this.currency = newCur;
+                    const cur = getCurrentBalance();
+                    sessionTracker.reset(cur || 0);
+                    this.oldBalance = cur || 0;
+                    this.initialized = false;
+                    this.balanceChecks = 0;
+                }
+                const cur = getCurrentBalance();
+                if (!this.initialized) {
+                    if (cur > 0 && ++this.balanceChecks >= MIN_BALANCE_CHECKS) {
+                        this.initialized = true;
+                        this.oldBalance = cur;
+                        sessionTracker.reset(cur);
+                    }
+                    return;
+                }
+                if (cur !== this.oldBalance) {
+                    sessionTracker.recordBalanceChange(this.oldBalance, cur);
+                    this.oldBalance = cur;
+                    if (uiApi) uiApi.render();
+                }
+                return;
+            }
+            const cur = this.readBalance();
+            if (cur === null) return;
+            if (!this.initialized) {
+                if (cur > 0 && ++this.balanceChecks >= MIN_BALANCE_CHECKS) {
+                    this.initialized = true;
+                    this.oldBalance = cur;
+                    sessionTracker.reset(cur);
+                }
+            }
+        },
+
+        onNutsBalance(prevUnits, nextUnits) {
+            if (prevUnits === null || nextUnits === null || prevUnits === nextUnits) return;
+            const prev = unitToSol(prevUnits);
+            const next = unitToSol(nextUnits);
+            if (!this.initialized) {
+                if (next > 0 && ++this.balanceChecks >= MIN_BALANCE_CHECKS) {
+                    this.initialized = true;
+                    this.oldBalance = next;
+                    sessionTracker.reset(next);
+                }
+                return;
+            }
+            sessionTracker.recordBalanceChange(prev, next);
+            this.oldBalance = next;
+            if (uiApi) uiApi.render();
+        }
+    };
 
     // --- Stake.us engine ---
     let cloudflareLockoutUntil = 0;
@@ -729,7 +927,9 @@
         const d = msg.payload.data;
         if (!d) return;
         if ('balance' in d && d.balance?.after !== undefined) {
+            const prevBalance = nutsEngine.playBalance;
             nutsEngine.playBalance = Number(d.balance.after);
+            sessionWatch.onNutsBalance(prevBalance, nutsEngine.playBalance);
             if (nutsEngine.playBalance > 0 && nutsEngine.oldBalance === null) nutsEngine.oldBalance = nutsEngine.playBalance;
             if (!nutsEngine.isInitialized && ++nutsEngine.balanceChecks >= MIN_BALANCE_CHECKS && nutsEngine.playBalance > 0) {
                 nutsEngine.isInitialized = true;
@@ -925,6 +1125,7 @@
         #tc-av-share-root .tc-master.on { background: ${BRAND.teal}; color: #041210; }
         #tc-av-share-root .tc-master.on:active { background: ${BRAND.tealDark}; }
         #tc-av-share-root .tc-stat { font-size: 12px; color: ${BRAND.teal}; font-weight: 600; }
+        #tc-av-share-root .tc-wager { font-size: 11px; color: ${BRAND.muted}; line-height: 1.35; font-family: ui-monospace, monospace; }
         #tc-av-share-root .tc-status { font-size: 11px; color: ${BRAND.muted}; line-height: 1.4; word-break: break-word; }
         #tc-av-share-root .tc-status .tc-time { color: #4B5563; margin-right: 6px; }
         #tc-av-share-root .tc-status.success { color: ${BRAND.teal}; }
@@ -1056,6 +1257,7 @@
             body.innerHTML = `
                 <button type="button" class="tc-master off" id="tc-master">AUTOVAULT OFF</button>
                 <div class="tc-stat" id="tc-vaulted-stat">0 vaulted</div>
+                <div class="tc-wager" id="tc-wager-stat">Session: waiting for bets…</div>
                 <div class="tc-status" id="tc-status-line"><span class="tc-time"></span><span class="tc-msg">Ready</span></div>
                 <div class="tc-drawer" id="tc-drawer"><div class="tc-drawer-inner" id="tc-drawer-inner"></div></div>`;
         }
@@ -1109,7 +1311,10 @@
             if (drawerOpen && drawerInner && !drawerInner.innerHTML) {
                 drawerInner.innerHTML =
                     settingsHtml() +
+                    `<div class="tc-wager" id="tc-wager-detail"></div>` +
+                    `<a class="tc-link" href="https://tiltcheck.me/tools/session-wager" target="_blank" rel="noopener">Session wager tool</a>` +
                     `<a class="tc-link" href="${BRAND.home}" target="_blank" rel="noopener">AutoVault docs</a>` +
+                    `<button type="button" class="tc-reset" id="tc-reset-session">Reset session stats</button>` +
                     `<button type="button" class="tc-reset" id="tc-reset-onboard">Reset onboarding</button>`;
                 drawerInner.querySelectorAll('input').forEach((inp) => {
                     inp.addEventListener('change', () => {
@@ -1123,8 +1328,13 @@
                 });
                 drawerInner.querySelector('#tc-reset-onboard')?.addEventListener('click', () => {
                     engineStop(true);
+                    sessionWatch.stop();
                     resetOnboarding();
                     createUI();
+                });
+                drawerInner.querySelector('#tc-reset-session')?.addEventListener('click', () => {
+                    sessionWatch.resetSession();
+                    render();
                 });
             }
         });
@@ -1134,6 +1344,7 @@
             setOnboarded();
             setLastRunning(true);
             createUI();
+            sessionWatch.start();
             engineStart();
         });
 
@@ -1196,6 +1407,18 @@
         function render() {
             const stat = root.querySelector('#tc-vaulted-stat');
             if (stat) stat.textContent = engine.formatVaulted();
+            const snap = sessionTracker.snapshot();
+            const unit = sessionUnitLabel();
+            const wagerLine = formatWagerLine(snap);
+            const wagerEl = root.querySelector('#tc-wager-stat');
+            if (wagerEl) wagerEl.textContent = `${wagerLine} (${unit})`;
+            const wagerDetail = root.querySelector('#tc-wager-detail');
+            if (wagerDetail) {
+                wagerDetail.textContent =
+                    snap.rounds > 0
+                        ? `Won ${snap.won.toFixed(4)} · Loss streak ${snap.consecutiveLosses} · ${unit}`
+                        : 'Play a round — balance changes become wager stats.';
+            }
             if (master) {
                 const on = engine.isRunning();
                 master.classList.toggle('on', on);
@@ -1207,6 +1430,7 @@
         }
 
         render();
+        if (onboarded) sessionWatch.start();
         if (onboarded && getLastRunning()) {
             setTimeout(() => {
                 if (!engine.isRunning()) engineStart();

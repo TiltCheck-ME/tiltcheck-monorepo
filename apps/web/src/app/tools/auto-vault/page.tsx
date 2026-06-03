@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-02 */
 'use client';
 
 import React from 'react';
@@ -176,6 +176,12 @@ export default function AutoVaultPage() {
                 order — browser, userscript manager, script, casino.
               </p>
               <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/nuts"
+                  className="inline-flex w-fit items-center justify-center rounded-xl border border-[#ffd700]/40 bg-[#ffd700]/10 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#ffd700] transition-all hover:bg-[#ffd700]/20"
+                >
+                  nuts.gg setup (DM link)
+                </Link>
                 <Link
                   href="/tools/auto-vault/android"
                   className="inline-flex w-fit items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/15 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/25"
