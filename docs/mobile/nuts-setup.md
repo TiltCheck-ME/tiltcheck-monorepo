@@ -1,30 +1,35 @@
-# nuts.gg setup page
+# Casino install pages (nuts + Stake.us)
 
 © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03
 
-## Purpose
+## DM-ready links
 
-**https://tiltcheck.me/nuts** — single link for DMs. Plain-language install for nuts.gg auto-vault. No site nav, no jargon.
+| URL | Casino |
+|-----|--------|
+| https://tiltcheck.me/nuts | nuts.gg |
+| https://tiltcheck.me/stake | Stake.us |
 
-## Distribution
+Same Share Edition script (`tiltcheck-autovault-share.user.js`). Plain 4-step UI per casino.
 
-- **Public nuts chat:** do not post the link (mute risk). One casual line only; link in DM.
-- **DM:** send `https://tiltcheck.me/nuts` or use **Copy DM text** on the page.
+## Auto-tip
 
-## User flow
+- **Default: OFF** (`autoTipEnabled: false` in script defaults).
+- **Stake.us:** no tip UI — vault skim only.
+- **nuts.gg:** optional checkbox in Advanced gear only. 1% on vault withdraw to `@jmenichole` if enabled.
 
-1. Pick Firefox (easiest) or Edge.
-2. Install browser from Play Store.
-3. Add Violentmonkey (Firefox) or Tampermonkey (Edge).
-4. Tap **Install auto-vault** → confirm in browser.
-5. Open nuts.gg → flip **AUTOVAULT ON**.
+## Tools index
+
+`/tools` lists **Install now** (nuts + stake) first, then **live** web tools, then **beta** (dashboard handoffs, QR wizards, Discord arena).
+
+Power-user pages (`/tools/auto-vault/share`, `/android`, `/session-wager`) show a banner pointing to `/nuts` and `/stake`.
 
 ## Code
 
-- Copy and steps: `apps/web/src/lib/nuts-setup.ts`
-- Page: `apps/web/src/app/nuts/`
-- Script: `/userscripts/tiltcheck-autovault-share.user.js` (Share Edition — mobile UI + session wager)
+- Presets: `apps/web/src/lib/casino-install-setup.ts`
+- Registry: `apps/web/src/lib/tool-registry.ts`
+- UI: `apps/web/src/components/CasinoSetupClient.tsx`
+- Minimal chrome (no nav): `/nuts`, `/stake` via `SiteChrome.tsx`
 
-## Chrome on Android
+## Distribution
 
-Page shows a warning. Chrome cannot run userscript managers; user must switch to Firefox or Edge.
+Public casino chat: no links. DM only.

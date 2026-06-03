@@ -1,7 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { RootProvider } from "@/lib/providers";
+import AriaSlangProvider from "@/components/AriaSlangProvider";
+import FunnelTracker from "@/components/FunnelTracker";
+import SiteChrome from "@/components/SiteChrome";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,13 +20,11 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
   weight: ["400", "500", "700", "800"],
 });
-// import "@rainbow-me/rainbowkit/styles.css";
-import { RootProvider } from "@/lib/providers";
-
 
 export const metadata: Metadata = {
   title: "TiltCheck | Tilt guardrails for real sessions",
-  description: "Spot tilt, sus session dynamics, and sketch nudges before you do something stupid. Math verifiers exist; TiltCheck handles the mental game.",
+  description:
+    "Spot tilt, sus session dynamics, and sketch nudges before you do something stupid. Math verifiers exist; TiltCheck handles the mental game.",
   metadataBase: new URL("https://tiltcheck.me"),
   icons: {
     icon: "/icon.png",
@@ -31,7 +33,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "TiltCheck | Tilt guardrails for real sessions",
-    description: "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
+    description:
+      "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
     url: "https://tiltcheck.me",
     siteName: "TiltCheck",
     type: "website",
@@ -39,15 +42,10 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "TiltCheck | Tilt guardrails for real sessions",
-    description: "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
+    description:
+      "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
   },
 };
-
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import AriaSlangProvider from "@/components/AriaSlangProvider";
-import FunnelTracker from "@/components/FunnelTracker";
-import PublicPageFrame from "@/components/PublicPageFrame";
 
 export default function RootLayout({
   children,
@@ -62,12 +60,10 @@ export default function RootLayout({
         <RootProvider>
           <AriaSlangProvider />
           <FunnelTracker />
-          <a href="#main-content" className="nav-skip-link">Skip to main content</a>
-          <Header />
-          <main id="main-content" className="nav-main-content">
-            <PublicPageFrame>{children}</PublicPageFrame>
-          </main>
-          <div className="nav-main-content"><Footer /></div>
+          <a href="#main-content" className="nav-skip-link">
+            Skip to main content
+          </a>
+          <SiteChrome>{children}</SiteChrome>
         </RootProvider>
       </body>
     </html>
