@@ -1,10 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-23 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
 'use client';
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-type FunnelEventType = 'page_view' | 'cta_click';
+type FunnelEventType = 'page_view' | 'cta_click' | 'install_ping';
 
 type FunnelPayload = {
   type: FunnelEventType;
@@ -23,6 +23,8 @@ const PAGE_STEPS: Record<string, { step: string; source: string }> = {
   '/casinos': { step: 'casino_trust_page_view', source: 'web-casinos' },
   '/dashboard': { step: 'dashboard_handoff_view', source: 'web-dashboard' },
   '/tools/auto-vault': { step: 'vault_handoff_view', source: 'web-autovault' },
+  '/nuts': { step: 'nuts_install_page_view', source: 'dm-install-nuts' },
+  '/stake': { step: 'stake_install_page_view', source: 'dm-install-stake' },
 };
 
 function getSessionId(): string {

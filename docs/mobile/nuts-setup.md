@@ -30,6 +30,19 @@ Power-user pages (`/tools/auto-vault/share`, `/android`, `/session-wager`) show 
 - UI: `apps/web/src/components/CasinoSetupClient.tsx`
 - Minimal chrome (no nav): `/nuts`, `/stake` via `SiteChrome.tsx`
 
+## Analytics (first-party funnel)
+
+Events POST to `/api/funnel` and log as `[TiltCheck Funnel]` in Railway web logs.
+
+| Step | Meaning |
+|------|---------|
+| `nuts_install_page_view` / `stake_install_page_view` | DM link opened |
+| `autovault_script_install_click` | Install button tapped |
+| `dm_blurb_copy` / `install_link_copy` | Sharer copied text |
+| `share_edition_first_run` (`install_ping`) | Script ran once on stake/nuts |
+
+Filter Railway logs: `[TiltCheck Funnel]` + step name. No third-party tracker required.
+
 ## Distribution
 
 Public casino chat: no links. DM only.
