@@ -140,7 +140,8 @@ export default function NutsSetupClient() {
         </p>
         <p className="text-sm text-gray-300 leading-relaxed">
           nuts.gg is open, you are logged in, and the panel says{' '}
-          <strong className="text-white">AUTOVAULT ON</strong>. Wins start skimming to vault on their own.
+          <strong className="text-white">AUTOVAULT ON</strong>. Wins skim to vault on their own. Session
+          wager and P/L show in the same panel.
         </p>
       </section>
 
