@@ -1,19 +1,23 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import PublicPageHero, { PublicPageSectionHeader } from '@/components/PublicPageHero';
 import RtpDriftTicker from '@/components/RtpDriftTicker';
+import CasinoGradingMethodology from '@/components/CasinoGradingMethodology';
 import {
   ALL_CATEGORIES,
   CASINOS,
   COLLECTCLOCK_NO_CODE,
   PUBLIC_TRUST_SUPPORT_MODULES,
+  TRUST_PILLAR_DEFINITIONS,
   type LiveTrustScore,
   casinoMatchesQuery,
   findLiveTrustScore,
   formatRiskLabel,
+  formatTrustTimestamp,
+  getCasinoPillarScore,
   getRiskBadgeStyle,
   getScoreColor,
   gradeFromNumericScore,
@@ -119,9 +123,15 @@ export default function CasinosPage() {
             <h2 className="public-page-panel__title">Lookup, open the trust read, then escalate only if you need more.</h2>
             <ul className="public-page-list">
               <li>Search by casino name or monitored domain.</li>
-              <li>Open /casinos/[slug] for the canonical proof page.</li>
-              <li>Use tools and dashboard handoffs after the trust read, not instead of it.</li>
+              <li>Read the card — grade, pillars, license, and known issues are the work.</li>
+              <li>Open /casinos/[slug] for live registry, domain, scam, RTP, and bonus proof.</li>
             </ul>
+            <Link
+              href="#grading-methodology"
+              className="mt-4 inline-flex items-center text-[11px] font-black uppercase tracking-[0.16em] text-[#17c3b2] hover:underline"
+            >
+              How grades are built
+            </Link>
           </>
         }
       />
@@ -143,6 +153,8 @@ export default function CasinosPage() {
           </div>
         </div>
       </section>
+
+      <CasinoGradingMethodology />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
@@ -192,6 +204,9 @@ export default function CasinosPage() {
                 const scoreColor = getScoreColor(displayScore);
                 const violationCount = casino.meta.violations?.length ?? 0;
 
+                const violations = casino.meta.violations ?? [];
+                const previewViolations = violations.slice(0, 2);
+
                 return (
                   <article key={casino.slug} className="public-page-card p-6 border border-[#283347]/50">
                     <div className="flex items-start justify-between gap-4">
@@ -203,6 +218,9 @@ export default function CasinosPage() {
                       <div className="text-right">
                         <div className="text-4xl font-black" style={{ color: scoreColor }}>{displayGrade}</div>
                         <p className="text-[11px] font-mono text-gray-500">{displayScore}/100</p>
+                        <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-gray-600">
+                          {live ? 'Live overlay' : `Curated ${casino.grade}`}
+                        </p>
                       </div>
                     </div>
 
@@ -216,6 +234,11 @@ export default function CasinosPage() {
                       <span className="border border-[#283347] px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
                         {live ? 'Live score matched' : 'Curated baseline'}
                       </span>
+                      {live && (
+                        <span className="border border-[#17c3b2]/30 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">
+                          {live.events24h} events / 24h
+                        </span>
+                      )}
                       {violationCount > 0 && (
                         <span className="border border-[#ef4444]/30 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#ef4444]">
                           {violationCount} known issues
@@ -223,24 +246,53 @@ export default function CasinosPage() {
                       )}
                     </div>
 
+                    {live?.updatedAt && (
+                      <p className="mt-3 text-[10px] font-mono uppercase tracking-wider text-gray-500">
+                        Live feed updated {formatTrustTimestamp(live.updatedAt)}
+                      </p>
+                    )}
+
                     <div className="mt-5 space-y-3">
-                      <PillarBar label="Financial" score={casino.financialPayouts} color={scoreColor} />
-                      <PillarBar label="Proof quality" score={casino.fairnessTransparency} color={scoreColor} />
-                      <PillarBar label="Promo honesty" score={casino.promotionalHonesty} color={scoreColor} />
+                      {TRUST_PILLAR_DEFINITIONS.map((pillar) => (
+                        <PillarBar
+                          key={pillar.key}
+                          label={pillar.shortLabel}
+                          score={getCasinoPillarScore(casino, pillar.key)}
+                          color={scoreColor}
+                        />
+                      ))}
                     </div>
 
                     <div className="mt-5 rounded-xl border border-[#283347] bg-black/30 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Full Audit & Receipts</p>
-                      <p className="mt-2 text-sm text-gray-400">
-                        This card is just the summary. The full audit page breaks down real payout speeds, fairness scores, known traps, and license verifications so you get the complete picture before you deposit.
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                        Curated evidence on this card
                       </p>
-                    </div>
-
-                    <div className="mt-5 rounded-xl border border-[#283347] bg-black/30 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Deep-Dive Scanners</p>
-                      <p className="mt-2 text-sm text-gray-400">
-                        Bet calculators, domain health trackers, scam alerts, and bonus verifiers help verify the receipts, so you never have to take the operator's word for it.
-                      </p>
+                      <dl className="mt-3 space-y-2 text-sm">
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-gray-500 shrink-0">License basis</dt>
+                          <dd className="text-right text-gray-300">{casino.meta.license ?? 'Not curated yet'}</dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-gray-500 shrink-0">Baseline grade</dt>
+                          <dd className="text-right text-white font-mono">{casino.grade}</dd>
+                        </div>
+                      </dl>
+                      {previewViolations.length > 0 ? (
+                        <ul className="mt-3 space-y-1.5 text-xs text-gray-400 leading-relaxed list-disc list-inside">
+                          {previewViolations.map((violation) => (
+                            <li key={violation}>{violation}</li>
+                          ))}
+                          {violations.length > previewViolations.length && (
+                            <li className="list-none text-[10px] font-mono uppercase tracking-wider text-gray-500">
+                              +{violations.length - previewViolations.length} more on full audit
+                            </li>
+                          )}
+                        </ul>
+                      ) : (
+                        <p className="mt-3 text-xs text-gray-500 leading-relaxed">
+                          No curated violations attached. That is not a clean bill — just no documented issue on file yet.
+                        </p>
+                      )}
                     </div>
 
                     <div className="mt-5 flex flex-wrap gap-3">
@@ -249,6 +301,12 @@ export default function CasinosPage() {
                         className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
                       >
                         View Full Audit
+                      </Link>
+                      <Link
+                        href="#grading-methodology"
+                        className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 transition-all hover:border-[#17c3b2]/30 hover:text-[#17c3b2]"
+                      >
+                        Grading method
                       </Link>
                       {casino.affiliateUrl && (
                         <a
@@ -327,21 +385,32 @@ export default function CasinosPage() {
         <div className="landing-shell">
           <PublicPageSectionHeader
             eyebrow="How We Audit"
-            title="Our verification rules"
-            description={<p>We keep our checks crystal clear so you always know where the raw receipts are and how our verification tools back them up.</p>}
+            title="Receipts over vibes"
+            description={
+              <p>
+                Cards show curated work inline. Full audit pages add live registry, domain, scam, RTP, and bonus lanes —
+                each labeled when proof is missing.
+              </p>
+            }
           />
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">The Audit First</p>
-              <p className="mt-2 text-sm text-gray-400">The casino's proof page is the source of truth. Bet verifiers and other scanners simply back up the data with cold hard math.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Show the work</p>
+              <p className="mt-2 text-sm text-gray-400">
+                Grades, pillars, license basis, and violations are visible before you click through. See{' '}
+                <Link href="#grading-methodology" className="text-[#17c3b2] hover:underline">
+                  how grades are built
+                </Link>
+                .
+              </p>
             </div>
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">No Fake Trust</p>
               <p className="mt-2 text-sm text-gray-400">If a feed is unavailable, the trust page says it directly. Blank data is not rewritten into fake confidence.</p>
             </div>
             <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">The Right Surface</p>
-              <p className="mt-2 text-sm text-gray-400">Durable settings and account tracking live in your Dashboard. Live pacing limits and active gameplay protection run in your Extension.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Separate proof lanes</p>
+              <p className="mt-2 text-sm text-gray-400">Manual bet verify, domain scan, scam intel, and RTP reference stay separate tools — not one blended score pretending to be certainty.</p>
             </div>
           </div>
 

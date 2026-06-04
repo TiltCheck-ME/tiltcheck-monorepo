@@ -270,6 +270,83 @@ export const SCAM_FLAGS = [
   'KYC requests used to stall payouts',
 ];
 
+export const TRUST_PILLAR_DEFINITIONS = [
+  {
+    key: 'financialPayouts',
+    label: 'Financial & payouts',
+    shortLabel: 'Financial',
+    description: 'Withdrawal friction, payout history, and financial stability signals.',
+  },
+  {
+    key: 'fairnessTransparency',
+    label: 'Proof quality',
+    shortLabel: 'Proof quality',
+    description: 'Public verification coverage, RTP transparency, and seed/provably-fair hygiene.',
+  },
+  {
+    key: 'promotionalHonesty',
+    label: 'Promo honesty',
+    shortLabel: 'Promo honesty',
+    description: 'Bonus terms clarity, bait-and-switch patterns, and promo follow-through.',
+  },
+  {
+    key: 'operationalSupport',
+    label: 'Operations & support',
+    shortLabel: 'Operations',
+    description: 'Support responsiveness, dispute handling, and platform reliability.',
+  },
+  {
+    key: 'communityReputation',
+    label: 'Community reputation',
+    shortLabel: 'Community',
+    description: 'Degens-reported friction, watchdog lists, and recurring complaint themes.',
+  },
+] as const;
+
+export type TrustPillarKey = (typeof TRUST_PILLAR_DEFINITIONS)[number]['key'];
+
+export const GRADING_METHODOLOGY_STEPS = [
+  {
+    title: 'Curated baseline grade',
+    body: 'Each operator starts from a researched letter grade in our casino directory. That maps to a numeric score — not vibes, not affiliate rank.',
+  },
+  {
+    title: 'Category + pillar split',
+    body: 'Five pillar bars are derived from the baseline score plus category modifiers (Regulated, Sweeps, Crypto, Offshore, etc.). Same grade, different category — different pillar shape.',
+  },
+  {
+    title: 'Documented issues',
+    body: 'Known violations and license basis are listed on the card when curated. Empty violations is not a clean bill — it means no issue is attached yet.',
+  },
+  {
+    title: 'Live feed overlay',
+    body: 'When RGaaS matches an operator, the card switches to a live score with timestamp. No match = curated baseline only. We do not invent live data.',
+  },
+  {
+    title: 'Full proof page',
+    body: 'Open /casinos/[slug] for license registry checks, domain scan, scam blacklist, RTP reference, and bonus evidence — each lane separate, no fake certainty.',
+  },
+] as const;
+
+export function formatTrustTimestamp(value?: string | null): string {
+  if (!value) {
+    return 'Unknown';
+  }
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return 'Unknown';
+  }
+  return new Date(parsed).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function getCasinoPillarScore(casino: CasinoEntry, key: TrustPillarKey): number {
+  return casino[key];
+}
+
 export interface PublicTrustSupportModule {
   key: 'verification' | 'domain' | 'scams' | 'bonuses' | 'rtp';
   eyebrow: string;
