@@ -7,7 +7,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getActiveEmailBonusEntries, readEmailBonusFeed } from '../lib/email-bonus-feed.js';
+import { buildInboxBonusResponse } from '../lib/bonus-inbox-response.js';
+import { parseBonusListQuery } from '../lib/bonus-urgency.js';
 import { optionalAuthMiddleware } from '../middleware/auth.js';
 import { resolveExclusionProfileForRequest, suppressBonusEntries } from '../services/bonus-suppression.js';
 
@@ -29,10 +30,20 @@ const COLLECTCLOCK_BONUS_URL =
 
 // ---------------------------------------------------------------------------
 // GET /bonuses
-// Fetches CollectClock bonus-data.json, caches for 1 hour, returns with CORS.
+// ?source=inbox — email-sourced feed, sorted by urgency (see docs/api/bonuses.md)
+// default — CollectClock proxy, 1h cache
 // ---------------------------------------------------------------------------
 router.get('/', optionalAuthMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
+    const { source } = parseBonusListQuery(req.query as Record<string, unknown>);
+    if (source === 'inbox') {
+      const profile = await resolveExclusionProfileForRequest(req);
+      const body = buildInboxBonusResponse(req.query as Record<string, unknown>, profile);
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.json(body);
+      return;
+    }
+
     const cached = cache.get('bonus-data');
     const now = Date.now();
     const profile = await resolveExclusionProfileForRequest(req);
@@ -97,29 +108,11 @@ router.get('/', optionalAuthMiddleware, async (req: Request, res: Response): Pro
 // ---------------------------------------------------------------------------
 router.get('/inbox', optionalAuthMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const feed = readEmailBonusFeed();
-    const activeBonuses = getActiveEmailBonusEntries();
     const profile = await resolveExclusionProfileForRequest(req);
-    const suppression = suppressBonusEntries(activeBonuses, profile);
-    const message = suppression.entries.length === 0
-      ? suppression.hiddenCount > 0 && suppression.active
-        ? 'Inbox bonus feed is live, but your active filters suppressed every matching casino bonus.'
-        : 'Inbox bonus feed is empty or no active email bonuses are available.'
-      : undefined;
+    const body = buildInboxBonusResponse(req.query as Record<string, unknown>, profile);
 
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.json({
-      source: 'email-inbox',
-      available: suppression.entries.length > 0,
-      updatedAt: feed.updatedAt,
-      total: suppression.entries.length,
-      data: suppression.entries,
-      message,
-      suppression: {
-        active: suppression.active,
-        hiddenCount: suppression.hiddenCount,
-      },
-    });
+    res.json(body);
   } catch (error) {
     console.error('[Bonuses] Failed to load inbox bonus feed:', error);
     res.status(500).json({

@@ -28,11 +28,11 @@ import { findUserByDiscordId } from '@tiltcheck/db';
 import { ValidationError } from '@tiltcheck/error-factory';
 import { loadDomainBlacklist } from '../lib/live-feed-data.js';
 import {
-  getActiveEmailBonusEntries,
   getEmailBonusFeedPath,
   markEmailBonusEntriesPublished,
   persistEmailBonusIntel,
 } from '../lib/email-bonus-feed.js';
+import { buildInboxBonusResponse } from '../lib/bonus-inbox-response.js';
 import { parseEmailIntel, type EmailIntelData } from '../lib/email-parser.js';
 import {
   assertEmailIngestSecret,
@@ -1119,19 +1119,19 @@ router.post('/email-ingest', emailIngestLimiter, async (req, res) => {
  * Returns the active inbox bonus feed for the web bonus hub.
  */
 router.get('/bonus-feed', optionalAuthMiddleware, async (req, res) => {
-  const bonuses = getActiveEmailBonusEntries();
   const profile = await resolveExclusionProfileForRequest(req);
-  const suppression = suppressBonusEntries(bonuses, profile);
+  const inbox = buildInboxBonusResponse(req.query as Record<string, unknown>, profile);
   res.json({
     success: true,
-    bonuses: suppression.entries,
-    source: 'email-inbox',
+    bonuses: inbox.data,
+    source: inbox.source,
     file: getEmailBonusFeedPath(),
-    updatedAt: bonuses[0]?.updatedAt ?? null,
-    suppression: {
-      active: suppression.active,
-      hiddenCount: suppression.hiddenCount,
-    },
+    updatedAt: inbox.updatedAt,
+    limit: inbox.limit,
+    sort: inbox.sort,
+    total: inbox.total,
+    ...(inbox.message ? { message: inbox.message } : {}),
+    suppression: inbox.suppression,
   });
 });
 

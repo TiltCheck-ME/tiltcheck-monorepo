@@ -108,10 +108,113 @@ describe('Bonuses Routes', () => {
     expect(response.body.data).toEqual([
       expect.objectContaining({
         brand: 'McLuck',
+        casinoName: 'McLuck',
+        offerTitle: expect.any(String),
         code: 'DROP500',
         url: 'https://mcluck.com/promos/claim',
+        expiresSoon: expect.any(Boolean),
+        urgent: expect.any(Boolean),
       }),
     ]);
+  });
+
+  it('sorts inbox bonuses by urgency with limit', async () => {
+    writeFileSync(
+      TEST_EMAIL_BONUS_FEED_PATH,
+      JSON.stringify({
+        updatedAt: '2026-04-19T12:00:00.000Z',
+        bonuses: [
+          {
+            id: 'slow-offer',
+            brand: 'McLuck',
+            bonus: 'Match later',
+            url: 'https://mcluck.com/promos/slow',
+            verified: '2026-04-19T12:00:00.000Z',
+            code: null,
+            source: 'email-inbox',
+            senderDomain: 'mcluck.com',
+            senderEmail: null,
+            subject: 'Slow',
+            bonusType: 'Match',
+            bonusValue: '100%',
+            terms: 'terms',
+            expiryMessage: 'expires in 30 days',
+            expiresAt: '2099-05-19T12:00:00.000Z',
+            isExpired: false,
+            discoveredAt: '2026-04-19T12:00:00.000Z',
+            updatedAt: '2026-04-19T12:00:00.000Z',
+          },
+          {
+            id: 'urgent-offer',
+            brand: 'Stake.us',
+            bonus: 'Today only spins',
+            url: 'https://stake.us/promotions/today',
+            verified: '2026-04-19T11:00:00.000Z',
+            code: null,
+            source: 'email-inbox',
+            senderDomain: 'stake.us',
+            senderEmail: null,
+            subject: 'Today',
+            bonusType: 'Free spins',
+            bonusValue: '25',
+            terms: 'terms',
+            expiryMessage: 'today only',
+            expiresAt: '2099-04-19T23:59:59.999Z',
+            isExpired: false,
+            discoveredAt: '2026-04-19T11:00:00.000Z',
+            updatedAt: '2026-04-19T11:00:00.000Z',
+          },
+        ],
+      }),
+      'utf8',
+    );
+
+    const response = await request(app).get('/bonuses/inbox?sort=urgency&limit=1');
+
+    expect(response.status).toBe(200);
+    expect(response.body.sort).toBe('urgency');
+    expect(response.body.limit).toBe(1);
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].brand).toBe('Stake.us');
+    expect(response.body.data[0].urgent).toBe(true);
+  });
+
+  it('returns inbox feed from GET /bonuses?source=inbox', async () => {
+    writeFileSync(
+      TEST_EMAIL_BONUS_FEED_PATH,
+      JSON.stringify({
+        updatedAt: '2026-04-17T12:00:00.000Z',
+        bonuses: [
+          {
+            id: 'mcluck-claim',
+            brand: 'McLuck',
+            bonus: '100% match bonus up to $500',
+            url: 'https://mcluck.com/promos/claim',
+            verified: '2026-04-17T12:00:00.000Z',
+            code: 'DROP500',
+            source: 'email-inbox',
+            senderDomain: 'mcluck.com',
+            senderEmail: 'promos@mcluck.com',
+            subject: 'Match bonus drop',
+            bonusType: 'Match',
+            bonusValue: '100%',
+            terms: 'terms',
+            expiryMessage: 'expires in 2 days',
+            expiresAt: '2099-04-19T12:00:00.000Z',
+            isExpired: false,
+            discoveredAt: '2026-04-17T12:00:00.000Z',
+            updatedAt: '2026-04-17T12:00:00.000Z',
+          },
+        ],
+      }),
+      'utf8',
+    );
+
+    const response = await request(app).get('/bonuses?source=inbox&limit=5');
+
+    expect(response.status).toBe(200);
+    expect(response.body.source).toBe('email-inbox');
+    expect(response.body.data).toHaveLength(1);
   });
 
   it('suppresses excluded inbox bonuses for authenticated users', async () => {
