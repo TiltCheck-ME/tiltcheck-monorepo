@@ -34,33 +34,13 @@ const legalCards = [
 
 export default function LegalPage() {
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
+        compact
+        centered
         eyebrow="Legal"
         title="Legal documents"
-        description={
-          <p>
-            Everything you need to understand what TiltCheck is, what it does with your data, and what you are agreeing
-            to when you use it.
-          </p>
-        }
-        stats={[
-          {
-            label: "Public docs",
-            value: "3",
-            description: "Terms, privacy, and self-managed risk limits stay grouped under one clear legal surface.",
-          },
-          {
-            label: "Data posture",
-            value: "Minimal",
-            description: "The product is built to keep signals useful without becoming a surveillance warehouse.",
-          },
-          {
-            label: "Support route",
-            value: "Direct",
-            description: "Legal, privacy, and billing contacts are published without forcing users through a maze.",
-          },
-        ]}
+        description={<p>Terms, privacy, custody reference, and self-set risk limits.</p>}
       />
 
       <section className="public-page-section px-4">

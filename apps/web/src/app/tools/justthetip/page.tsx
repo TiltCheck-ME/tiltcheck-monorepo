@@ -3,8 +3,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
 import LegalModal from '@/components/LegalModal';
 import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
 import { fetchAuthSession } from '@/lib/auth-session';
@@ -131,12 +129,10 @@ export default function JustTheTipPage() {
   const canSend = !!to && !!amount && parseFloat(amount) > 0 && feeAcknowledged && !sending;
 
   return (
-    <>
-      <Nav />
-      <main className="min-h-screen bg-[#0a0c10] text-white">
+    <main className="min-h-screen bg-[#0a0c10] text-white">
         <LegalModal isOpen={showLegal} onAccept={handleAccept} title="TIPPING PROTOCOL COMPLIANCE" />
 
-        <div className="max-w-4xl mx-auto px-4 py-12 pt-32">
+        <div className="max-w-4xl mx-auto px-4 py-12">
           {/* Header */}
           <div className="mb-10">
             <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">
@@ -335,7 +331,5 @@ export default function JustTheTipPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
   );
 }

@@ -69,33 +69,17 @@ const sections = [
 
 export default function TermsPage() {
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
+        compact
+        centered
         eyebrow="Legal / Terms"
         title="Terms of Service"
         description={
           <p>
-            TiltCheck is an audit and transparency tool for gamblers who want to play with data instead of vibes. It is
-            not a gambling operator, financial advisor, or bank.
+            Audit and transparency tool — not a gambling operator, advisor, or bank. Version 2.1.
           </p>
         }
-        stats={[
-          {
-            label: "Version",
-            value: "2.1",
-            description: "Current public terms version.",
-          },
-          {
-            label: "Custody model",
-            value: "Zero",
-            description: "TiltCheck does not hold your funds or keys.",
-          },
-          {
-            label: "Advice posture",
-            value: "None",
-            description: "The product provides signal and enforcement, not financial or gambling advice.",
-          },
-        ]}
       />
 
       <section className="public-page-section px-4">

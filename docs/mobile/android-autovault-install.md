@@ -10,6 +10,7 @@ Production URLs (after web deploy):
 | Static fallback | https://tiltcheck.me/userscripts/android-install.html |
 | Script only | https://tiltcheck.me/userscripts/tiltcheck-autovault-share.user.js |
 | Copy-link share | https://tiltcheck.me/tools/auto-vault/share |
+| Session wager docs | https://tiltcheck.me/tools/session-wager |
 
 ## Install order
 

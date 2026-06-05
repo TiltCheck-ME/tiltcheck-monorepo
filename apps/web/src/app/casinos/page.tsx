@@ -9,7 +9,6 @@ import CasinoGradingMethodology from '@/components/CasinoGradingMethodology';
 import {
   ALL_CATEGORIES,
   CASINOS,
-  COLLECTCLOCK_NO_CODE,
   PUBLIC_TRUST_SUPPORT_MODULES,
   TRUST_PILLAR_DEFINITIONS,
   type LiveTrustScore,
@@ -85,79 +84,29 @@ export default function CasinosPage() {
   }, [category, query]);
 
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
-        eyebrow="Public trust lookup"
-        title={
-          <>
-            Look up the casino.
-            <br />
-            Read the proof.
-          </>
-        }
+        compact
+        eyebrow="Casino trust"
+        title="Look up the operator. Read the proof."
         description={
           <p>
-            Search the operator, read the receipts. We audit compliance, payout speed, and promotional tricks so you know who is fair and who is actively rigging the board.
-          </p>
-        }
-        stats={[
-          {
-            label: 'Tracked casinos',
-            value: `${CASINOS.length}`,
-            description: 'Directory first. Canonical trust read second. No fake all-in-one shortcuts.',
-          },
-          {
-            label: 'Live matches',
-            value: `${liveMatchedCount}`,
-            description: 'Live scores are shown only when the feed actually matches a curated casino record.',
-          },
-          {
-            label: 'Evidence rule',
-            value: 'No fallback',
-            description: 'If a feed is missing, the public read says it directly instead of manufacturing confidence.',
-          },
-        ]}
-        panel={
-          <>
-            <p className="public-page-panel__eyebrow">Trust journey</p>
-            <h2 className="public-page-panel__title">Lookup, open the trust read, then escalate only if you need more.</h2>
-            <ul className="public-page-list">
-              <li>Search by casino name or monitored domain.</li>
-              <li>Read the card — grade, pillars, license, and known issues are the work.</li>
-              <li>Open /casinos/[slug] for live registry, domain, scam, RTP, and bonus proof.</li>
-            </ul>
-            <Link
-              href="#grading-methodology"
-              className="mt-4 inline-flex items-center text-[11px] font-black uppercase tracking-[0.16em] text-[#17c3b2] hover:underline"
-            >
+            Grades, pillars, license basis, and known issues on every card.{' '}
+            <Link href="#grading-methodology" className="text-[#17c3b2] hover:underline">
               How grades are built
             </Link>
-          </>
+            .
+          </p>
         }
       />
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <div className="public-page-card">
-            <div className="public-page-meta-strip">
-              <span>{CASINOS.length} tracked casinos</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>{liveMatchedCount} live trust matches</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>feed source: {liveFeedLabel}</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>trust read lives on /casinos/[slug]</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>no fake fallback evidence</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <CasinoGradingMethodology />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
+          <p className="mb-4 text-[11px] font-mono uppercase tracking-[0.16em] text-gray-500">
+            {CASINOS.length} tracked · {liveMatchedCount} live matches · feed: {liveFeedLabel}
+          </p>
           <div className="mb-8 flex flex-col gap-4 lg:flex-row">
             <input
               type="text"
@@ -300,13 +249,7 @@ export default function CasinosPage() {
                         href={`/casinos/${casino.slug}`}
                         className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
                       >
-                        View Full Audit
-                      </Link>
-                      <Link
-                        href="#grading-methodology"
-                        className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 transition-all hover:border-[#17c3b2]/30 hover:text-[#17c3b2]"
-                      >
-                        Grading method
+                        Full audit
                       </Link>
                       {casino.affiliateUrl && (
                         <a
@@ -354,16 +297,12 @@ export default function CasinosPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <PublicPageSectionHeader
-            eyebrow="Deep-Dive Scanners"
-            title="Double check the data. Never play blind."
-            description={
-              <p>
-                /casinos is your directory. Each casino's page is its official proof file. Use these additional tools below to audit specific bets, check domain updates, or scan active bonus codes.
-              </p>
-            }
+            compact
+            eyebrow="More tools"
+            title="Double-check before you deposit."
           />
 
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {PUBLIC_TRUST_SUPPORT_MODULES.map((module) => (
               <article key={module.key} className="rounded-2xl border border-[#283347] bg-black/30 p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">{module.eyebrow}</p>
@@ -381,62 +320,7 @@ export default function CasinosPage() {
         </div>
       </section>
 
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <PublicPageSectionHeader
-            eyebrow="How We Audit"
-            title="Receipts over vibes"
-            description={
-              <p>
-                Cards show curated work inline. Full audit pages add live registry, domain, scam, RTP, and bonus lanes —
-                each labeled when proof is missing.
-              </p>
-            }
-          />
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Show the work</p>
-              <p className="mt-2 text-sm text-gray-400">
-                Grades, pillars, license basis, and violations are visible before you click through. See{' '}
-                <Link href="#grading-methodology" className="text-[#17c3b2] hover:underline">
-                  how grades are built
-                </Link>
-                .
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">No Fake Trust</p>
-              <p className="mt-2 text-sm text-gray-400">If a feed is unavailable, the trust page says it directly. Blank data is not rewritten into fake confidence.</p>
-            </div>
-            <div className="rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Separate proof lanes</p>
-              <p className="mt-2 text-sm text-gray-400">Manual bet verify, domain scan, scam intel, and RTP reference stay separate tools — not one blended score pretending to be certainty.</p>
-            </div>
-          </div>
-
-          {COLLECTCLOCK_NO_CODE.length > 0 && (
-            <div className="mt-8 rounded-2xl border border-[#283347] bg-black/20 p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">Outbound links without codes</p>
-              <p className="mt-2 text-sm text-gray-400">{COLLECTCLOCK_NO_CODE.join(' · ')}</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Live RTP drift feed — contextual to casino intel */}
       <RtpDriftTicker />
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <div className="public-page-cta-band">
-            <p className="public-page-panel__eyebrow">Keep Your Edge</p>
-            <h2 className="public-page-cta-band__title">Made for Degens. By Degens.</h2>
-            <p className="public-page-cta-band__copy">
-              Use the lookup directory to find the operator. Read their proof file to get the real receipts. Use the calculators to double check your bets. Never play blind.
-            </p>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

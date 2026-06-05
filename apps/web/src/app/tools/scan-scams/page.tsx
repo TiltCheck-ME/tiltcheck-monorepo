@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
 
 interface CasinoFlag {
   name: string;
@@ -95,21 +96,12 @@ export default function ScanScamsPage() {
       <div className="sr-only" aria-live="polite">
         Shadow-ban feed status: {feedStatusLabel}
       </div>
-      <section className="border-b border-[#283347] py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">TRUST ENGINE</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="PAYOUT DELAY SIGNALS">
-            PAYOUT DELAY SIGNALS
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            Live trust-engine feed for payout friction and ToS volatility only.
-            Account locks and Discord anecdotes are not shown here unless the backend actually supports them.
-          </p>
-          <p className="text-xs font-mono text-gray-600 mt-3 uppercase tracking-widest">
-            No fake fallback intel. Unsupported signal classes stay blank.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        centered
+        eyebrow="Trust engine"
+        title="Payout delay signals"
+        description="Live feed for payout friction and ToS volatility. No fake fallback when the backend is down."
+      />
 
       {error && (
         <div className="px-4 py-4 border-b border-[#ffd700]/20 bg-[#ffd700]/5 text-center">

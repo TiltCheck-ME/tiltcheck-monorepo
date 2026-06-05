@@ -1,7 +1,9 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import ToolPageHeader from '@/components/ToolPageHeader';
 
 interface ScamEntry {
   domain: string;
@@ -31,7 +33,7 @@ export default function ScamsPage() {
         const res = await fetch(`${apiUrl}/rgaas/scam-domains`);
         if (!res.ok) throw new Error('Scam blacklist unavailable');
 
-        const data = await res.json() as ScamFeedResponse;
+        const data = (await res.json()) as ScamFeedResponse;
         setScams(Array.isArray(data.scams) ? data.scams : []);
         setAvailability(data.availability || 'unavailable');
         setMessage(data.message || 'Scam blacklist unavailable.');
@@ -51,105 +53,67 @@ export default function ScamsPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-      <section className="border-b border-[#283347] py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#ef4444] uppercase tracking-widest mb-4">THREAT INTEL</p>
-          <h1 className="text-5xl font-black uppercase tracking-tighter mb-6" data-text="SCAM BLACKLIST">
-            SCAM BLACKLIST
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            Repository-backed domain blacklist. If the source file is unavailable or empty, this page says that directly instead of faking a live feed.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        centered
+        eyebrow="Threat intel"
+        title="Scam blacklist"
+        description={
+          <>
+            Repo-backed domain list. Empty or down = we say so — no fake feed.{' '}
+            <Link href="/tools/domain-verifier" className="text-[#17c3b2] hover:underline">
+              Check a domain
+            </Link>
+            .
+          </>
+        }
+      />
 
       {!loading && (
-        <section className="px-4 py-4 border-b border-[#283347] bg-black/30">
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-sm font-mono">
-            <p className={availability === 'available' ? 'text-[#17c3b2]' : 'text-[#ffd700]'}>
-              {message}
-            </p>
-            <p className="text-gray-500 uppercase tracking-widest">
-              {source ? `Source: ${source}` : 'Source unavailable'}
-            </p>
-          </div>
-        </section>
+        <p className="px-4 py-3 text-center text-xs font-mono border-b border-[#283347] bg-black/30">
+          <span className={availability === 'available' ? 'text-[#17c3b2]' : 'text-[#ffd700]'}>{message}</span>
+          {source ? <span className="text-gray-500 ml-2">· {source}</span> : null}
+        </p>
       )}
 
-      <section className="py-16 px-4">
+      <section className="py-10 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-black uppercase tracking-tight">
-              {loading ? 'Loading...' : `${scams.length} Blacklisted Domains`}
-            </h2>
-            <a
-              href="/tools/domain-verifier"
-              className="text-xs font-black text-[#17c3b2] uppercase tracking-widest hover:underline"
-            >
-              Check a Domain →
-            </a>
-          </div>
+          <p className="mb-6 text-sm font-black uppercase tracking-tight text-gray-400">
+            {loading ? 'Loading...' : `${scams.length} blacklisted domains`}
+          </p>
 
           {loading ? (
-            <div className="text-center py-16 font-mono text-gray-500">Loading blacklist source...</div>
+            <div className="text-center py-12 font-mono text-gray-500">Loading blacklist...</div>
           ) : scams.length === 0 ? (
             <div className="border border-[#283347] bg-black/40 p-8 text-center">
-              <p className="text-white font-black uppercase tracking-wide mb-3">No blacklist entries to show</p>
-              <p className="text-sm font-mono text-gray-400">
-                {message || 'Blacklist feed unavailable.'}
-              </p>
+              <p className="text-white font-black uppercase tracking-wide mb-2">Nothing to show</p>
+              <p className="text-sm font-mono text-gray-400">{message || 'Blacklist feed unavailable.'}</p>
             </div>
           ) : (
             <div className="space-y-3">
               {scams.map((scam, i) => (
-                <div key={i} className="p-5 border border-[#283347] bg-black/40 flex flex-col md:flex-row md:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
+                <div
+                  key={i}
+                  className="p-4 border border-[#283347] bg-black/40 flex flex-col md:flex-row md:items-center gap-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span
                         className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border"
                         style={{ color: '#ef4444', borderColor: '#ef444440' }}
                       >
                         blacklisted
                       </span>
-                      <code className="text-white font-mono text-sm font-bold">{scam.domain}</code>
+                      <code className="text-white font-mono text-sm font-bold truncate">{scam.domain}</code>
                     </div>
                     <p className="text-gray-400 text-sm">{scam.classification}</p>
                   </div>
-                  <div className="text-xs font-mono text-gray-600 whitespace-nowrap">
-                    Source: {scam.source}
-                  </div>
+                  <p className="text-xs font-mono text-gray-600 shrink-0">Source: {scam.source}</p>
                 </div>
               ))}
             </div>
           )}
         </div>
       </section>
-
-      <section className="py-12 px-4 border-t border-[#283347] bg-black/40 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-xl font-black uppercase mb-4">Before You Click Anything</h2>
-          <p className="text-gray-400 mb-6 text-sm">
-            Always verify a casino URL before connecting your wallet. This blacklist is a blunt repo snapshot, not a complete live intel feed.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a href="/tools/domain-verifier" className="btn btn-primary py-3 px-6 font-black">
-              Verify a Domain
-            </a>
-            <a
-              href="https://discord.gg/gdBsEJfCar"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-secondary py-3 px-6 font-black"
-            >
-              Report a Scam
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-8 px-4 border-t border-[#283347] text-center text-xs font-mono text-gray-500 uppercase tracking-[0.3em]">
-        Made for Degens. By Degens.
-      </footer>
     </main>
   );
 }

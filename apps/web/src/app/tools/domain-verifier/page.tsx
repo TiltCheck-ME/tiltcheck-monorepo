@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
 
 type Mode = 'domain' | 'email';
 
@@ -142,21 +143,14 @@ export default function DomainVerifierPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-      {/* Hero */}
-      <section className="border-b border-[#283347] py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">LINKGUARD + LICENSE CHECK</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="PHISHING SHIELD">
-            PHISHING SHIELD
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            Verify any casino domain or paste a marketing email. We check the sender domain, license status, embedded links, and extract bonus data for the trust engine.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        centered
+        eyebrow="LinkGuard"
+        title="Phishing Shield"
+        description="Scan a casino domain or paste a marketing email — license, links, bonus signals."
+      />
 
-      {/* Mode Toggle */}
-      <section className="pt-12 px-4">
+      <section className="pt-8 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex border border-[#283347] mb-8">
             {(['domain', 'email'] as Mode[]).map((m) => (

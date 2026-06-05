@@ -1,30 +1,36 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import React from 'react';
+import Link from 'next/link';
+import ToolPageHeader from '@/components/ToolPageHeader';
 import rtpData from '@data/provider-master-rtp.json';
 
 export default function RtpPage() {
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-      <section className="border-b border-[#283347] py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="brand-eyebrow">RTP Intel</p>
-          <h1 className="brand-page-title">
-            <span className="text-[#17c3b2]">Certified RTP.</span>
-            <br />
-            Database first.
-          </h1>
-          <p className="brand-lead mx-auto">
-            Manufacturer-certified RTP tiers sourced from GLI, eCOGRA, and BMM lab certifications.
-            These are the numbers slot providers certify before a game ships — the anchors the Delta Engine compares live sessions against. The gap between max and min tier is the <strong className="text-[#17c3b2]">Greed Premium</strong> the casino can silently take from you.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        centered
+        eyebrow="RTP intel"
+        title="Certified RTP database"
+        description={
+          <>
+            GLI / eCOGRA / BMM tier anchors for the Delta Engine. Greed Premium = max minus min tier.{' '}
+            <Link href="/tools/house-edge-scanner" className="text-[#17c3b2] hover:underline">
+              Run session math
+            </Link>
+            {' · '}
+            <Link href="/tools/session-stats" className="text-[#17c3b2] hover:underline">
+              Drift monitor
+            </Link>
+            .
+          </>
+        }
+      />
 
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-16">
+      <section className="py-10 px-4">
+        <div className="max-w-6xl mx-auto space-y-12">
           {rtpData.providers.map((provider) => (
             <div key={provider.providerName}>
-              <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-[#17c3b2] border-b border-[#283347] pb-4">
+              <h2 className="text-lg font-black uppercase tracking-tight mb-4 text-[#17c3b2] border-b border-[#283347] pb-3">
                 {provider.providerName}
               </h2>
               <div className="overflow-x-auto">
@@ -45,7 +51,7 @@ export default function RtpPage() {
                         <td className="py-3 px-4 text-white font-bold">{game.gameTitle}</td>
                         <td className="py-3 px-4 text-right text-[#17c3b2]">{game.maxRtp.toFixed(2)}%</td>
                         <td className="py-3 px-4 text-right text-gray-400">{game.minRtp.toFixed(2)}%</td>
-                        <td className="py-3 px-4 text-gray-500 text-xs">{game.certifiedTiers.map(t => `${t}%`).join(' / ')}</td>
+                        <td className="py-3 px-4 text-gray-500 text-xs">{game.certifiedTiers.map((t) => `${t}%`).join(' / ')}</td>
                         <td className="py-3 px-4 text-center text-gray-500">{game.certifiedBy}</td>
                         <td className="py-3 px-4 text-center text-gray-600">{game.certifiedYear}</td>
                       </tr>
@@ -57,23 +63,6 @@ export default function RtpPage() {
           ))}
         </div>
       </section>
-
-      <section className="py-12 px-4 border-t border-[#283347] text-center">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-gray-500 text-sm font-mono mb-6">
-            Real-time platform RTP monitoring is in development. The Delta Engine will cross-reference live sessions against these certified tiers automatically.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a href="/tools/session-stats" className="btn btn-primary py-3 px-6 font-black">
-              View RTP Drift Monitor
-            </a>
-            <a href="/tools/house-edge-scanner" className="btn btn-secondary py-3 px-6 font-black">
-              Delta Engine (Coming Soon)
-            </a>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
-

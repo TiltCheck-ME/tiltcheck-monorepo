@@ -204,7 +204,7 @@ Shared behavioral core target: `@tiltcheck/injected-runtime` + extension autovau
 3. Master toggle component (replace Start/Stop in mobile Compact).
 4. Advanced drawer + dashboard deep link.
 5. Install doc: `docs/mobile/android-autovault-install.md` (sideload VM path).
-6. **Shipped:** Share Edition `tiltcheck-autovault-share.user.js` + `/tools/auto-vault/share` + `/userscripts/install.html`.
+6. **Shipped:** Share Edition `tiltcheck-autovault-share.user.js` + `/tools/auto-vault/share` + `/userscripts/install.html` + session wager line in Share panel + `/tools/session-wager`.
 7. Mobile wrapper native toggle + nuts allowlist (separate milestone).
 
 ---

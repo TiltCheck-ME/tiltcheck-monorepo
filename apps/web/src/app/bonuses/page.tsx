@@ -125,20 +125,14 @@ export default async function BonusesPage() {
   const sourceLabel = inboxFeed.available ? 'COLLECTCLOCK + EMAIL INBOX' : 'COLLECTCLOCK';
 
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
-        eyebrow="Bonus intel // CollectClock + email feed"
-        title={
-          <>
-            Claim first.
-            <br />
-            Deposit later.
-          </>
-        }
+        compact
+        eyebrow="Bonus intel"
+        title="Claim first. Deposit later."
         description={
           <p>
-            Extend your play without depositing real money. CollectClock keeps the broad tracker live, and inbox-ingested
-            casino emails fill in fresh drops that hit the community first.
+            CollectClock plus inbox email drops — free value before real-money deposits.
           </p>
         }
         actions={
@@ -152,43 +146,13 @@ export default async function BonusesPage() {
             VIEW COLLECTCLOCK
           </a>
         }
-        stats={[
-          {
-            label: 'Tracked offers',
-            value: `${bonuses.length}`,
-            description: `Merged from ${sourceLabel.toLowerCase()} so fresh drops do not live in disconnected silos.`,
-          },
-          {
-            label: 'Refresh cadence',
-            value: 'Hourly',
-            description: 'CollectClock stays on the broad watch while inbox intel fills in faster community sightings.',
-          },
-          {
-            label: 'Player move',
-            value: 'Claim first',
-            description: 'Use the tracker to stretch sessions with free value before real-money deposits even enter the picture.',
-          },
-        ]}
       />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <div className="public-page-card">
-            <div className="public-page-meta-strip">
-              <span>Live feed</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>{bonuses.length} bonus{bonuses.length !== 1 ? 'es' : ''} tracked</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>refreshes hourly</span>
-              <span className="public-page-meta-strip__separator">/</span>
-              <span>sources: {sourceLabel.toLowerCase()}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
+          <p className="mb-4 text-[11px] font-mono uppercase tracking-[0.16em] text-gray-500">
+            {bonuses.length} offers · {sourceLabel.toLowerCase()} · verify terms before claiming
+          </p>
           {!collectClockFeed.available && inboxFeed.available && (
             <div className="mb-6 public-page-card public-page-card--accent">
               <p className="text-xs font-mono uppercase tracking-widest text-[#17c3b2]">
@@ -218,20 +182,6 @@ export default async function BonusesPage() {
           ) : (
             <BonusGrid bonuses={bonuses} />
           )}
-        </div>
-      </section>
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <div className="public-page-cta-band">
-            <p className="public-page-panel__eyebrow">Feed note</p>
-            <h2 className="public-page-cta-band__title">Bonus data stays useful only if you still verify before claiming.</h2>
-            <p className="public-page-cta-band__copy">
-              CollectClock covers the broad tracker. TiltCheck inbox intel fills in newer drops. The tracker is a signal
-              surface, not a replacement for checking terms with your own eyes.
-            </p>
-            <p className="public-page-cta-band__tagline">Made for Degens. By Degens.</p>
-          </div>
         </div>
       </section>
     </main>

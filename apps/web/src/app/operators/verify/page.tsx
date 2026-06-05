@@ -75,19 +75,13 @@ export default function OperatorVerifyPage() {
   }, [token]);
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] px-4 py-24 text-white">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-10">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Operators / Verify</p>
-          <h1 className="text-4xl font-black uppercase tracking-tighter md:text-5xl">
-            Activate sandbox keys
-            <br />
-            without guessing.
-          </h1>
-          <p className="mt-4 max-w-3xl text-sm text-gray-400 md:text-base">
-            This link is single-use and expires after 24 hours. Replay-safe by design. No skem links, no mystery state.
-          </p>
-        </div>
+    <main className="public-page public-page--tight min-h-screen bg-[#0a0c10] px-4 py-16 text-white">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-8">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Verify sandbox</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Activate sandbox keys</h1>
+          <p className="mt-3 text-sm text-gray-400">Single-use link, 24h expiry.</p>
+        </header>
 
         {state === 'pending' && (
           <section className="rounded-3xl border border-[#17c3b2]/30 bg-black/40 p-8">

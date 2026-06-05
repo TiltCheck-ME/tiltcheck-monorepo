@@ -2882,6 +2882,29 @@ body.degen-background > * {
   padding-top: clamp(2.5rem, 6vw, 5rem);
 }
 
+.public-page-hero--compact {
+  padding-top: clamp(1.25rem, 3vw, 2rem);
+}
+
+.public-page-hero--compact .public-page-hero__title {
+  max-width: none;
+  font-size: clamp(1.85rem, 4.5vw, 3rem);
+  line-height: 1.05;
+}
+
+.public-page-hero--compact .public-page-hero__description {
+  max-width: 42rem;
+}
+
+.public-page--tight {
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.public-page-section-heading--compact .public-page-section-heading__title {
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  max-width: none;
+}
+
 .public-page-hero__shell {
   display: grid;
   gap: 1.5rem;

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import Link from 'next/link';
 
 const tiers = [
@@ -30,21 +30,12 @@ const tiers = [
 
 export default function OperatorPricingPage() {
   return (
-    <main className="min-h-screen bg-[#0a0c10] px-4 py-24 text-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-14">
-        <header className="max-w-4xl">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">
-            RGaaS pricing and limits
-          </p>
-          <h1 className="text-4xl font-black uppercase tracking-tighter md:text-6xl">
-            Free sandbox first.
-            <br />
-            Production still gets human review.
-          </h1>
-          <p className="mt-6 max-w-3xl text-base leading-relaxed text-gray-400">
-            The goal is simple: let operators validate the integration path without waiting on ops, then force the real
-            review gate before anything touches production. No cap, that is the whole point of a sandbox.
-          </p>
+    <main className="public-page public-page--tight min-h-screen bg-[#0a0c10] px-4 py-16 text-white">
+      <div className="mx-auto flex max-w-4xl flex-col gap-10">
+        <header>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">RGaaS pricing</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Free sandbox. Production by review.</h1>
+          <p className="mt-3 text-sm text-gray-400">Validate integration without ops wait — then earn production access.</p>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -67,31 +58,18 @@ export default function OperatorPricingPage() {
           ))}
         </section>
 
-        <section className="rounded-3xl border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-8">
-          <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Promotion gate</p>
-              <h2 className="mt-3 text-2xl font-black uppercase tracking-tight">Sandbox is instant. Production is earned.</h2>
-              <p className="mt-4 max-w-3xl text-sm leading-relaxed text-gray-300">
-                Verified operators can request production access from the keys portal. That records the intent in the
-                funnel, but a human still reviews usage, compliance posture, and whether the integration looks less sus
-                than a “trust us bro” launch checklist.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/operators"
-                className="inline-flex items-center justify-center rounded-2xl bg-[#17c3b2] px-5 py-4 text-[11px] font-black uppercase tracking-[0.25em] text-black transition hover:bg-[#14a99a]"
-              >
-                Get sandbox keys
-              </Link>
-              <Link
-                href="/operators/keys"
-                className="inline-flex items-center justify-center rounded-2xl border border-[#17c3b2]/30 px-5 py-4 text-[11px] font-black uppercase tracking-[0.25em] text-[#17c3b2] transition hover:bg-[#17c3b2]/10"
-              >
-                Open operator portal
-              </Link>
-            </div>
+        <section className="rounded-2xl border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-6">
+          <h2 className="text-lg font-black uppercase tracking-tight">Production = human review</h2>
+          <p className="mt-2 text-sm text-gray-300">
+            Request from the keys portal after sandbox smoke tests. partners@tiltcheck.me for commercial terms.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/operators" className="inline-flex items-center rounded-xl bg-[#17c3b2] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-black hover:bg-[#14a99a]">
+              Get sandbox keys
+            </Link>
+            <Link href="/operators/keys" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">
+              Key portal
+            </Link>
           </div>
         </section>
 

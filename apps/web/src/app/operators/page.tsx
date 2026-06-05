@@ -69,82 +69,42 @@ export default function OperatorsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] px-4 py-24 text-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-16">
-        <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
-            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">
-              Operators / RGaaS
-            </p>
-            <h1 className="text-4xl font-black uppercase tracking-tighter md:text-6xl">
-              Self-serve sandbox keys for operators that want signal, not vibes.
-            </h1>
-            <p className="mt-6 max-w-3xl text-base leading-relaxed text-gray-400 md:text-lg">
-              Plug TiltCheck RGaaS into onboarding flows, trust surfaces, affordability checks, or manual review queues.
-              Sandbox gets you mocked responses, quota caps, and a live integration path without waiting on ops to wake up.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/operators/pricing"
-                className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
-              >
-                Pricing and limits
-              </Link>
-              <Link
-                href="/operators/keys"
-                className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/30"
-              >
-                Open operator portal
-              </Link>
-            </div>
+    <main className="public-page public-page--tight min-h-screen bg-[#0a0c10] px-4 py-16 text-white">
+      <div className="mx-auto flex max-w-4xl flex-col gap-10">
+        <header>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">Operators / RGaaS</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Sandbox keys for trust signal — not vibes.</h1>
+          <p className="mt-3 max-w-2xl text-sm text-gray-400 leading-relaxed">
+            Plug RGaaS into onboarding, trust surfaces, or review queues. Free sandbox: mocked responses, 1k req/24h, human gate for production.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link href="/operators/pricing" className="inline-flex items-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/20">
+              Pricing
+            </Link>
+            <Link href="/operators/keys" className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:border-[#17c3b2]/30">
+              Key portal
+            </Link>
+            <a href="/docs/RGAAS-QUICKSTART" className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white">
+              Quickstart docs
+            </a>
           </div>
+        </header>
 
-          <div className="rounded-3xl border border-[#283347] bg-black/40 p-8">
-            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Why teams ship this</p>
-            <div className="space-y-5">
-              {OPERATOR_BENEFITS.map((item) => (
-                <article key={item.title} className="rounded-2xl border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-5">
-                  <h2 className="text-lg font-black uppercase tracking-tight text-white">{item.title}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-400">{item.body}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mt-6 rounded-2xl border border-[#ef4444]/30 bg-[#ef4444]/5 p-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#ef4444]">Sandbox contract</p>
-              <ul className="mt-3 space-y-2 text-sm text-gray-300">
-                <li>Mode is locked to sandbox until manual review says otherwise.</li>
-                <li>Quota defaults to 1000 requests per rolling 24h window.</li>
-                <li>No trust-rollup writes. No fake production flexing. Just mocked proof.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
+        <ul className="grid gap-3 sm:grid-cols-3 text-sm">
+          {OPERATOR_BENEFITS.map((item) => (
+            <li key={item.title} className="rounded-xl border border-[#283347] bg-black/30 p-4">
+              <p className="text-xs font-black uppercase tracking-wide text-white">{item.title}</p>
+              <p className="mt-1 text-xs text-gray-500 leading-relaxed">{item.body}</p>
+            </li>
+          ))}
+        </ul>
 
-        <section className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-3xl border border-[#283347] bg-black/30 p-8">
-            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Flow</p>
-            <ol className="space-y-5 text-sm text-gray-300">
-              <li>
-                <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">Step 01</span>
-                Submit operator details with your work email and a dev reCAPTCHA token.
-              </li>
-              <li>
-                <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">Step 02</span>
-                Verify the email link. The token is signed, single-use, and dies after 24 hours.
-              </li>
-              <li>
-                <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">Step 03</span>
-                Log in with Magic or Discord, view keys in the operator portal, and hit the sandbox mock route.
-              </li>
-            </ol>
-          </div>
-
-          <div className="rounded-3xl border border-[#17c3b2]/25 bg-black/50 p-8">
-            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Request sandbox access</p>
-            <h2 className="text-2xl font-black uppercase tracking-tight">Get sandbox keys without the ops scavenger hunt</h2>
-            <p className="mt-3 text-sm leading-relaxed text-gray-400">
-              Use your operator email. In dev, any non-empty reCAPTCHA token passes unless you literally send garbage that says invalid.
-            </p>
+        <section className="rounded-2xl border border-[#17c3b2]/25 bg-black/50 p-6 md:p-8">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Sandbox signup</p>
+          <h2 className="text-xl font-black uppercase tracking-tight">Request keys</h2>
+          <p className="mt-2 text-sm text-gray-400">
+            Work email → verify link (24h, single-use) → portal. Flow: submit → verify → curl mock route.
+          </p>
 
             {submitState === 'success' ? (
               <div className="mt-8 rounded-2xl border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-6">
@@ -243,33 +203,6 @@ export default function OperatorsPage() {
                 </button>
               </form>
             )}
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-[#283347] bg-black/30 p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Need the docs?</p>
-              <h2 className="text-2xl font-black uppercase tracking-tight">Curl it before you buy into it.</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-400">
-                Quickstart docs and Postman collection live in-repo so your team can hit the mock route immediately after verification.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="/docs/RGAAS-QUICKSTART"
-                className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/30 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2]"
-              >
-                Quickstart
-              </a>
-              <Link
-                href="/operators/pricing"
-                className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white"
-              >
-                Pricing and limits
-              </Link>
-            </div>
-          </div>
         </section>
       </div>
     </main>

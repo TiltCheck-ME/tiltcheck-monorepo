@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ToolPageHeader from '@/components/ToolPageHeader';
 import BonusFormulaLab from '@/components/BonusFormulaLab';
 
 interface BonusTimer {
@@ -130,24 +131,16 @@ export default function CollectClockPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-
-      {/* Hero */}
-      <section className="border-b border-[#283347] py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">BONUS TIMING</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="COLLECTCLOCK">
-            COLLECTCLOCK
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono leading-relaxed">
-            Track bonus cooldowns by casino and category, then reverse-engineer the reload formula with your own wager and payout history. Know when the bonus resets and whether the amount got shaved.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        centered
+        eyebrow="Bonus timing"
+        title="CollectClock"
+        description="Track cooldowns and reverse-engineer reload formulas from your wager history."
+      />
 
       <BonusFormulaLab />
 
-      {/* Your Timers */}
-      <section className="py-16 px-4 border-b border-[#283347]">
+      <section className="py-10 px-4 border-b border-[#283347]">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-8">Your Timers</h2>
 
@@ -288,36 +281,16 @@ export default function CollectClockPage() {
         </div>
       </section>
 
-      {/* Cross-link to bonuses scanner */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Link
-            href="/bonuses"
-            className="block p-8 border border-[#283347] hover:border-[#17c3b2]/40 hover:bg-[#17c3b2]/5 transition-colors"
-          >
-            <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">RELATED TOOL</p>
-            <p className="font-black uppercase text-lg mb-2">Bonus Scanner</p>
-            <p className="text-sm font-mono text-gray-400">
-              Cross-platform RTP comparison and bonus value scanner. Check if the reload you just collected is worth wagering through.
-            </p>
+      <section className="py-10 px-4">
+        <div className="max-w-4xl mx-auto flex flex-wrap gap-4">
+          <Link href="/bonuses" className="text-sm font-black uppercase text-[#17c3b2] hover:underline">
+            Live bonus feed
           </Link>
-          <Link
-            href="/tools/house-edge-scanner"
-            className="block p-8 border border-[#283347] hover:border-[#17c3b2]/40 hover:bg-[#17c3b2]/5 transition-colors"
-          >
-            <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">RELATED TOOL</p>
-            <p className="font-black uppercase text-lg mb-2">Delta Engine</p>
-            <p className="text-sm font-mono text-gray-400">
-              Run the math on whether that bonus playthrough is profitable at the table's configured RTP. Certified vs observed.
-            </p>
+          <Link href="/tools/house-edge-scanner" className="text-sm font-black uppercase text-gray-400 hover:text-[#17c3b2]">
+            Delta Engine
           </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-[#283347] py-6 px-4 text-center">
-        <p className="text-xs text-gray-600 font-mono">Made for Degens. By Degens.</p>
-      </footer>
     </main>
   );
 }

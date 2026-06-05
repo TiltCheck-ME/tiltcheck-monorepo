@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -224,30 +224,21 @@ export default function OnboardingPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] text-white px-4 py-16">
-      <div className="mx-auto max-w-2xl">
-        {/* Progress bar */}
-        <div className="mb-10">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2] mb-4">
-            Setup — Step {currentStepIndex + 1} of {STEP_ORDER.length}
+    <main className="min-h-screen bg-[#0a0c10] text-white px-4 py-12">
+      <div className="mx-auto max-w-xl">
+        <div className="mb-8">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2] mb-3">
+            Setup · {currentStepIndex + 1}/{STEP_ORDER.length} — {STEP_LABELS[step]}
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {STEP_ORDER.map((s, i) => (
-              <div key={s} className="flex-1 flex flex-col gap-1">
-                <div
-                  className="h-1 transition-all duration-500"
-                  style={{
-                    backgroundColor: i <= currentStepIndex ? '#17c3b2' : 'rgba(255,255,255,0.08)',
-                    boxShadow: i <= currentStepIndex ? '0 0 8px rgba(23,195,178,0.4)' : 'none',
-                  }}
-                />
-                <span
-                  className="text-[9px] font-black uppercase tracking-[0.2em]"
-                  style={{ color: i <= currentStepIndex ? '#17c3b2' : '#4b5563' }}
-                >
-                  {STEP_LABELS[s]}
-                </span>
-              </div>
+              <div
+                key={s}
+                className="h-1 flex-1 transition-all duration-300"
+                style={{
+                  backgroundColor: i <= currentStepIndex ? '#17c3b2' : 'rgba(255,255,255,0.08)',
+                }}
+              />
             ))}
           </div>
         </div>
@@ -261,47 +252,38 @@ export default function OnboardingPage() {
         {/* ── TERMS ──────────────────────────────────────────────────────── */}
         {step === 'terms' && (
           <section>
-            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-4">
-              Before we start
-            </h1>
-            <p className="text-sm text-gray-400 leading-relaxed mb-8">
-              TiltCheck watches live casino sessions, checks fairness claims, and helps you leave with
-              more evidence and more control. Read the ground rules.
+            <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Ground rules</h1>
+            <p className="text-sm text-gray-400 mb-6">
+              Read-only audit layer. Not a casino, bank, or financial advice.
             </p>
 
-            <div className="rounded-2xl border border-[#283347] bg-black/40 p-6 mb-6 space-y-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">What TiltCheck is</p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li>A read-only audit layer for casino sessions</li>
-                  <li>A tilt detection engine that tells you when to stop</li>
-                  <li>A trust scorer for casinos based on real evidence</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">What TiltCheck is not</p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li>Not a casino. Not a bank. Not financial advice.</li>
-                  <li>Direct wallet tips are non-custodial — you sign. Credits use a pooled relay pool (see custody matrix).</li>
-                  <li>
-                    <a href="https://github.com/TiltCheck-ME/tiltcheck-monorepo/blob/main/docs/legal/custody-matrix.md" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">
-                      Custody matrix
-                    </a>{' '}
-                    — who holds what, per flow.
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">Responsible gaming</p>
-                <p className="text-sm text-gray-300">
-                  If you or someone you know has a gambling problem, contact{' '}
+            <details className="rounded-xl border border-[#283347] bg-black/40 mb-6 group">
+              <summary className="cursor-pointer list-none px-5 py-4 text-sm font-black uppercase tracking-wide text-white">
+                What TiltCheck is and is not
+              </summary>
+              <div className="border-t border-[#283347] px-5 py-4 space-y-3 text-sm text-gray-300">
+                <p>Session audit, tilt detection, casino trust scoring. Read-only — no wallet custody.</p>
+                <p>
+                  Tips: direct SOL is non-custodial; credits use pooled relay.{' '}
+                  <a
+                    href="https://github.com/TiltCheck-ME/tiltcheck-monorepo/blob/main/docs/legal/custody-matrix.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#17c3b2] hover:underline"
+                  >
+                    Custody matrix
+                  </a>
+                  .
+                </p>
+                <p>
+                  Problem gambling:{' '}
                   <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">
                     NCPG.org
                   </a>{' '}
-                  or call <strong className="text-white">1-800-GAMBLER</strong>.
+                  · <strong className="text-white">1-800-GAMBLER</strong>
                 </p>
               </div>
-            </div>
+            </details>
 
             <button
               type="button"
@@ -323,13 +305,8 @@ export default function OnboardingPage() {
         {/* ── QUIZ ───────────────────────────────────────────────────────── */}
         {step === 'quiz' && (
           <section>
-            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">
-              Calibrate your guardrails
-            </h1>
-            <p className="text-sm text-gray-400 leading-relaxed mb-8">
-              Three questions. No wrong answers. This sets your default risk profile and
-              how aggressively TiltCheck intervenes.
-            </p>
+            <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Risk quiz</h1>
+            <p className="text-sm text-gray-400 mb-6">Three questions. Sets default guardrail intensity.</p>
 
             <div className="mb-4">
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-1">
@@ -372,12 +349,8 @@ export default function OnboardingPage() {
         {/* ── PREFERENCES ────────────────────────────────────────────────── */}
         {step === 'preferences' && (
           <section>
-            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">
-              Your profile
-            </h1>
-            <p className="text-sm text-gray-400 leading-relaxed mb-8">
-              Based on your answers, here is your suggested risk profile. You can change it anytime.
-            </p>
+            <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Your profile</h1>
+            <p className="text-sm text-gray-400 mb-6">Suggested from your answers — change anytime.</p>
 
             {/* Risk level result */}
             <div className="rounded-2xl border border-[#283347] bg-black/40 p-6 mb-6">
@@ -457,36 +430,13 @@ export default function OnboardingPage() {
         {/* ── EXTENSION ──────────────────────────────────────────────────── */}
         {step === 'extension' && (
           <section>
-            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">
-              Link the extension
-            </h1>
-            <p className="text-sm text-gray-400 leading-relaxed mb-8">
-              The Chrome extension watches your live casino sessions and feeds tilt data back to your
-              TiltCheck profile. This step is optional but recommended.
+            <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Extension</h1>
+            <p className="text-sm text-gray-400 mb-6">
+              Optional but recommended — watches live sessions, read-only, links via Discord login.
             </p>
 
-            <div className="rounded-2xl border border-[#283347] bg-black/40 p-6 mb-6 space-y-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">
-                  How it works
-                </p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li>Install the extension from the Chrome Web Store or /extension page</li>
-                  <li>Click the TiltCheck icon in Chrome and log in with Discord</li>
-                  <li>Extension links to your profile automatically via your Discord ID</li>
-                  <li>Session data flows to your tilt score and accountability tools</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">
-                  What it sees
-                </p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li>Read-only page observation on supported casino domains</li>
-                  <li>Click speed, bet patterns, session pacing</li>
-                  <li>No wallet access. No fund control. Browser observation only.</li>
-                </ul>
-              </div>
+            <div className="rounded-xl border border-[#283347] bg-black/40 p-5 mb-6 text-sm text-gray-300">
+              <p>Install from /extension → log in in the sidebar → session data flows to your profile. No wallet access.</p>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -511,18 +461,11 @@ export default function OnboardingPage() {
         {/* ── COMPLETE ───────────────────────────────────────────────────── */}
         {step === 'complete' && (
           <section className="text-center">
-            <div className="mb-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2] mb-4">
-                Profile activated
-              </p>
-              <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-4">
-                You are in.
-              </h1>
-              <p className="text-sm text-gray-400 leading-relaxed max-w-lg mx-auto">
-                Your guardrails are set. Your profile is live. Head to the dashboard to see your
-                session data, manage accountability buddies, and control your vault rules.
-              </p>
-            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2] mb-3">Done</p>
+            <h1 className="text-2xl font-black uppercase tracking-tight mb-3">You are in.</h1>
+            <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
+              Guardrails set. Dashboard has session data, buddies, and vault rules.
+            </p>
 
             <div className="rounded-2xl border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-6 mb-6 inline-block">
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">
@@ -551,7 +494,7 @@ export default function OnboardingPage() {
               </Link>
             </div>
 
-            <p className="mt-8 text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
+            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
               Made for Degens. By Degens.
             </p>
           </section>

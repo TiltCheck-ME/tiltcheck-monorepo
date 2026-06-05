@@ -2,8 +2,6 @@
 'use client';
 
 import React from 'react';
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
 
@@ -26,10 +24,8 @@ export default function BuddySystemPage() {
   }, [buddiesLaneUrl, loading, user]);
 
   return (
-    <>
-      <Nav />
-      <main className="min-h-screen bg-[#0a0c10] text-white">
-        <section className="mx-auto max-w-5xl px-4 py-24 pt-32">
+    <main className="min-h-screen bg-[#0a0c10] text-white">
+        <section className="mx-auto max-w-5xl px-4 py-12">
           <div className="rounded-3xl border border-[#17c3b2]/25 bg-black/40 p-8 md:p-10">
             <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Accountability handoff</p>
             <h1 className="text-4xl font-black uppercase tracking-tighter md:text-5xl">Buddy System lives in the dashboard now</h1>
@@ -103,7 +99,5 @@ export default function BuddySystemPage() {
           </div>
         </section>
       </main>
-      <Footer />
-    </>
   );
 }
