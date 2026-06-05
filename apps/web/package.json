@@ -18,6 +18,8 @@
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.98.0",
     "@tanstack/react-query": "^5.95.2",
+    "@tiltcheck/intel-agent": "workspace:*",
+    "@tiltcheck/intel-tools": "workspace:*",
     "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "gray-matter": "^4.0.3",

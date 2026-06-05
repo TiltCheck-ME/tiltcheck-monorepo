@@ -19,6 +19,7 @@ const PAGES: Array<{ url: string; changeFrequency: MetadataRoute.Sitemap[number]
   { url: '/',                           changeFrequency: 'weekly',  priority: 1.0 },
   { url: '/extension',                  changeFrequency: 'monthly', priority: 0.9 },
   { url: '/casinos',                    changeFrequency: 'daily',   priority: 0.9 },
+  { url: '/ask',                        changeFrequency: 'weekly',  priority: 0.85 },
   { url: '/bonuses',                    changeFrequency: 'daily',   priority: 0.9 },
   { url: getDashboardHandoffUrl('/dashboard'), changeFrequency: 'weekly', priority: 0.6 },
   // Tools
