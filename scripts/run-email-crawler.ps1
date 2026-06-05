@@ -8,7 +8,8 @@ param(
     [int]$Limit = 500,
     [switch]$DryRun,
     [switch]$All,
-    [switch]$DeleteProcessed
+    [switch]$DeleteProcessed,
+    [switch]$Digest
 )
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -70,6 +71,7 @@ $args = @($crawlerScript, "--limit", $Limit)
 if ($DryRun) { $args += "--dry-run" }
 if ($All)    { $args += "--all" }
 if ($DeleteProcessed) { $args += "--delete-processed" }
+if ($Digest)         { $args += "--digest" }
 Write-Log "Running: tsx $($args -join ' ')"
 
 # Run and capture output into the log

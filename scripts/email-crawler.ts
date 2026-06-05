@@ -17,14 +17,26 @@
  *   npx tsx scripts/email-crawler.ts --dry-run    # parse only, don't call API
  *   npx tsx scripts/email-crawler.ts --limit 50   # cap at 50 emails per run
  *   npx tsx scripts/email-crawler.ts --delete-processed # delete emails after successful ingest
+ *   npx tsx scripts/email-crawler.ts --digest          # bonus digest + JSON in scripts/logs/
+ *   npx tsx scripts/email-crawler.ts --report          # alias for --digest
+ *
+ * Digest: after each run, summarizes daily bonuses and top time-sensitive offers from
+ * successful ingests. Reuses API intel (bonusSignals, urgencyFlags). Dry-run parses locally.
  */
 
 import Imap from 'imap';
 import { simpleParser } from 'mailparser';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { resolve, join } from 'node:path';
 import { promisify } from 'node:util';
 import { config as dotenvConfig } from 'dotenv';
+import { parseEmailIntel } from '../apps/api/src/lib/email-parser.js';
+import {
+  buildBonusDigest,
+  formatBonusDigestText,
+  writeBonusDigestJson,
+  type CrawlIngestIntel,
+} from './lib/email-bonus-digest.js';
 
 dotenvConfig({ path: resolve(process.cwd(), '.env') });
 
@@ -39,11 +51,20 @@ const FLAGS = {
   all: process.argv.includes('--all'),
   dryRun: process.argv.includes('--dry-run'),
   deleteProcessed: process.argv.includes('--delete-processed'),
+  digest: process.argv.includes('--digest') || process.argv.includes('--report'),
   limit: (() => {
     const idx = process.argv.indexOf('--limit');
     return idx !== -1 ? parseInt(process.argv[idx + 1], 10) || 100 : 200;
   })(),
 };
+
+const DIGEST_TOP_N = (() => {
+  const raw = process.env.CRAWLER_DIGEST_TOP_N?.trim();
+  const n = raw ? parseInt(raw, 10) : 5;
+  return Number.isFinite(n) && n > 0 ? n : 5;
+})();
+
+const LOG_DIR = resolve(process.cwd(), 'scripts', 'logs');
 
 // ─── Known casino sender domains to search for ────────────────────────────────
 // Add any domain you get emails from here.
@@ -200,8 +221,37 @@ function saveSeen(seen: Set<string>): void {
 
 // ─── API call ────────────────────────────────────────────────────────────────
 
-async function ingestEmail(rawEmail: string): Promise<{ success: boolean; brand?: string; bonusCount?: number; riskLevel?: string; error?: string }> {
-  if (FLAGS.dryRun) return { success: true };
+type IngestResult = {
+  success: boolean;
+  brand?: string;
+  bonusCount?: number;
+  riskLevel?: string;
+  error?: string;
+  intel?: CrawlIngestIntel;
+};
+
+function intelFromParse(rawEmail: string): CrawlIngestIntel {
+  const intel = parseEmailIntel(rawEmail);
+  return {
+    casinoBrand: intel.casinoBrand,
+    subject: intel.subject,
+    sentAt: intel.sentAt,
+    bonusSignals: intel.bonusSignals,
+    urgencyFlags: intel.urgencyFlags,
+    promoCode: intel.promoCode,
+  };
+}
+
+async function ingestEmail(rawEmail: string): Promise<IngestResult> {
+  if (FLAGS.dryRun) {
+    const intel = intelFromParse(rawEmail);
+    return {
+      success: true,
+      brand: intel.casinoBrand ?? undefined,
+      bonusCount: intel.bonusSignals.length,
+      intel,
+    };
+  }
 
   try {
     const res = await fetch(`${API_URL}/rgaas/email-ingest`, {
@@ -222,15 +272,41 @@ async function ingestEmail(rawEmail: string): Promise<{ success: boolean; brand?
       return { success: false, error: `api ${res.status}${snippet ? `: ${snippet}` : ''}` };
     }
 
-    const data = await res.json() as { intel?: { casinoBrand?: string; bonusSignals?: unknown[] }; domainScan?: { riskLevel?: string } };
+    const data = await res.json() as {
+      intel?: {
+        casinoBrand?: string | null;
+        subject?: string | null;
+        sentAt?: string | null;
+        bonusSignals?: CrawlIngestIntel['bonusSignals'];
+        urgencyFlags?: string[];
+        promoCode?: string | null;
+      };
+      domainScan?: { riskLevel?: string };
+    };
+    const intel: CrawlIngestIntel | undefined = data.intel
+      ? {
+          casinoBrand: data.intel.casinoBrand ?? null,
+          subject: data.intel.subject ?? null,
+          sentAt: data.intel.sentAt ?? null,
+          bonusSignals: data.intel.bonusSignals ?? [],
+          urgencyFlags: data.intel.urgencyFlags ?? [],
+          promoCode: data.intel.promoCode ?? null,
+        }
+      : undefined;
     return {
       success: true,
-      brand: data.intel?.casinoBrand ?? undefined,
-      bonusCount: data.intel?.bonusSignals?.length ?? 0,
+      brand: intel?.casinoBrand ?? undefined,
+      bonusCount: intel?.bonusSignals.length ?? 0,
       riskLevel: data.domainScan?.riskLevel ?? 'unknown',
+      intel,
     };
   } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : String(err) };
+    const message = err instanceof Error ? err.message : String(err);
+    const hint =
+      message === 'fetch failed' && /localhost|127\.0\.0\.1/i.test(String(API_URL))
+        ? ' (is the API running locally? For scheduled runs use CRAWLER_API_URL=https://api.tiltcheck.me)'
+        : '';
+    return { success: false, error: `${message}${hint}` };
   }
 }
 
@@ -319,7 +395,7 @@ async function run(): Promise<void> {
   }
 
   console.log(`\nTiltCheck Casino Email Crawler`);
-  console.log(`Mode: ${FLAGS.dryRun ? 'DRY RUN' : 'LIVE'} | Limit: ${FLAGS.limit} | Reset: ${FLAGS.all} | Delete processed: ${FLAGS.deleteProcessed}`);
+  console.log(`Mode: ${FLAGS.dryRun ? 'DRY RUN' : 'LIVE'} | Limit: ${FLAGS.limit} | Reset: ${FLAGS.all} | Delete processed: ${FLAGS.deleteProcessed} | Digest: ${FLAGS.digest ? 'full' : 'compact'}`);
   console.log(`API: ${API_URL}`);
   console.log(`Searching for emails from ${CASINO_SENDER_DOMAINS.length} known casino domains...\n`);
 
@@ -363,6 +439,7 @@ async function run(): Promise<void> {
         let processed = 0;
         let errors = 0;
         let totalBonuses = 0;
+        const digestIntel: CrawlIngestIntel[] = [];
 
         for (const uid of toProcess) {
           try {
@@ -380,6 +457,9 @@ async function run(): Promise<void> {
             if (result.success) {
               seen.add(String(uid));
               totalBonuses += result.bonusCount ?? 0;
+              if (result.intel) {
+                digestIntel.push(result.intel);
+              }
               if (FLAGS.deleteProcessed) {
                 await deleteMessage(imap, uid);
               }
@@ -400,6 +480,27 @@ async function run(): Promise<void> {
         }
 
         console.log(`\nDone. Processed: ${processed} | Errors: ${errors} | Total bonuses extracted: ${totalBonuses}`);
+
+        const digest = buildBonusDigest(digestIntel, { topTimeSensitive: DIGEST_TOP_N });
+        const digestText = formatBonusDigestText(digest, FLAGS.digest);
+        console.log(digestText);
+
+        if (digest.offerCount > 0) {
+          if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
+          const date = new Date().toISOString().slice(0, 10);
+          const digestLog = join(LOG_DIR, `email-crawler-${date}.log`);
+          try {
+            appendFileSync(digestLog, `\n[bonus-digest]\n${digestText}\n`, 'utf8');
+          } catch {
+            // non-fatal
+          }
+        }
+
+        if (FLAGS.digest && digest.offerCount > 0) {
+          const jsonPath = writeBonusDigestJson(digest, LOG_DIR);
+          console.log(`Digest JSON: ${jsonPath}`);
+        }
+
         if (!FLAGS.dryRun) saveSeen(seen);
 
         imap.end();
