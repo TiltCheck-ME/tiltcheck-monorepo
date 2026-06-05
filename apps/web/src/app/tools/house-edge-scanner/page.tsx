@@ -1,6 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 "use client";
 import React, { useState } from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
+import Link from 'next/link';
 
 function calcGreedPremium(certifiedRtp: number, observedRtp: number, totalWagered: number) {
   const delta = certifiedRtp - observedRtp;
@@ -46,23 +48,22 @@ export default function HouseEdgeScannerPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
+      <ToolPageHeader
+        centered
+        eyebrow="RTP forensics"
+        title="The Delta Engine"
+        description={
+          <>
+            Certified RTP vs what your session returned — gap in dollars.{' '}
+            <Link href="/tools/session-stats" className="text-[#17c3b2] hover:underline">
+              Slot tier spreads
+            </Link>
+            .
+          </>
+        }
+      />
 
-      {/* Hero */}
-      <section className="border-b border-[#283347] py-24 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">RTP FORENSICS</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6 font-black uppercase tracking-tighter" data-text="THE DELTA ENGINE">
-            THE DELTA ENGINE
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            The house says it pays 96.5%. Your session is running 88%.
-            The Delta Engine finds the gap — and tells you exactly how much that costs.
-          </p>
-        </div>
-      </section>
-
-      {/* Calculator */}
-      <section className="py-16 px-4 border-b border-[#283347]">
+      <section className="py-10 px-4">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-2xl font-black uppercase tracking-tight mb-2">Greed Premium Calculator</h2>
           <p className="text-gray-500 font-mono text-xs mb-8 uppercase tracking-widest">
@@ -211,70 +212,6 @@ export default function HouseEdgeScannerPage() {
           )}
         </div>
       </section>
-
-      {/* How It Will Work — full telemetry pipeline */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-2">Coming via Extension</p>
-          <h2 className="text-3xl font-black uppercase tracking-tight mb-12">Automated Live Analysis</h2>
-
-          <div className="space-y-8">
-            {[
-              {
-                n: '01',
-                title: 'Live Session Telemetry',
-                body: 'The browser extension captures your spin outcomes in real-time — bet size, result, running balance, game identifier. No screenshots. No manual input. Passive.',
-              },
-              {
-                n: '02',
-                title: 'GLI Tier Cross-Reference',
-                body: 'Every outcome is compared against manufacturer-certified RTP tiers — the same numbers GLI and eCOGRA stamp on the game before it ships. We know the max tier. We know the floor.',
-              },
-              {
-                n: '03',
-                title: 'Automated Greed Premium',
-                body: 'After a statistically meaningful sample, the engine calculates the delta between your observed return and the certified maximum automatically — no manual input required.',
-              },
-              {
-                n: '04',
-                title: 'Evidence Packet Trigger',
-                body: 'Once community sample across a platform reaches 5,000+ spins, a Certified Evidence Packet can be generated — binomial z-score, GLI tier proof, and platform metadata pre-formatted for regulatory submission.',
-              },
-            ].map(step => (
-              <div key={step.n} className="flex gap-8 items-start">
-                <div className="flex-shrink-0 flex items-center justify-center h-14 w-14 bg-[#17c3b2] text-black font-black text-lg">
-                  {step.n}
-                </div>
-                <div>
-                  <h3 className="text-lg font-black uppercase mb-2 text-[#17c3b2]">{step.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{step.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 px-4 border-t border-[#283347] bg-black/40">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-black uppercase mb-6">While You Wait for the Extension</h2>
-          <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
-            The Nerf Radar is live now. It shows the certified RTP spread for every major slot — the gap a casino can legally exploit per game.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a href="/tools/session-stats" className="btn btn-primary py-3 px-6 font-black">
-              View the Nerf Radar
-            </a>
-            <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer" className="btn btn-secondary py-3 px-6 font-black">
-              Join Beta Waitlist on Discord
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-8 text-center text-xs text-gray-600 uppercase tracking-[0.3em]">
-        Made for Degens. By Degens.
-      </footer>
     </main>
   );
 }

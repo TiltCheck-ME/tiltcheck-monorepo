@@ -1,65 +1,32 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
-import ValueProposition from "@/components/ValueProposition";
-
-const problemStats = [
-  {
-    label: "Casino edge",
-    value: "24/7",
-    description: "The casino stays open, the math stays live, and the player is the only part of the system that gets tired.",
-  },
-  {
-    label: "Data gap",
-    value: "0 proof",
-    description: "Most players have gut feel, not evidence, when payouts drift or terms get buried.",
-  },
-  {
-    label: "Guardrail job",
-    value: "Hard stop",
-    description: "TiltCheck exists to turn raw session data into warnings, receipts, and cleaner exits before tilt wins.",
-  },
-];
 
 const philosophyCards = [
   {
-    title: "We do not pretend gambling disappears",
-    body: "People are going to gamble. The real question is whether they do it with data and guardrails or with denial.",
+    title: "Signal, not stories",
+    body: "Live session reads, payout checks, tilt signals, and trust records. The math is the point.",
   },
   {
-    title: "We give you signal, not stories",
-    body: "Live session reads, payout checks, tilt signals, and casino trust records. The math is the point.",
+    title: "Enforce, not shame",
+    body: "When your line gets hit, The Brakes engage. No fake concern theater.",
   },
   {
-    title: "We enforce accountability, not shame",
-    body: "When your line gets hit, The Brakes engage. No fake concern theater. No passive warning wallpaper.",
-  },
-  {
-    title: "We play the long game",
-    body: "Winning a session matters less than keeping the money. Guardrails exist because cashing out is the hard part.",
-  },
-  {
-    title: "We do not ask for direct wallet control",
-    body: "The core session tools are built around signals, proof, and real-time brakes. Players stay in charge of the wallet side.",
+    title: "No wallet custody",
+    body: "Session tools run on signals and proof. You stay in charge of funds.",
   },
 ];
 
 export default function AboutPage() {
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
-        eyebrow="About TiltCheck"
-        title={
-          <>
-            Built by a player.
-            <br />
-            Shipped like a defense system.
-          </>
-        }
+        compact
+        eyebrow="About"
+        title="Built by a player. Shipped like defense."
         description={
           <p>
-            TiltCheck was built by someone who knows exactly what a 3 a.m. loss streak feels like and decided the right
-            answer was better math, better guardrails, and better receipts instead of another gambling pep talk.
+            Built after too many 3 a.m. loss streaks — better math, guardrails, and receipts instead of pep talks.
           </p>
         }
         actions={
@@ -72,69 +39,11 @@ export default function AboutPage() {
             </Link>
           </>
         }
-        stats={problemStats}
-        panel={
-          <>
-            <p className="public-page-panel__eyebrow">What this product is</p>
-            <h2 className="public-page-panel__title">A read-only gambling guardrail and bankroll defense system.</h2>
-            <p className="public-page-panel__body">
-              TiltCheck is not a casino, not a bank, and not a miracle. It watches live sessions, checks payout
-              claims, and helps players leave with more evidence and more control.
-            </p>
-            <ul className="public-page-list">
-              <li>Watch live sessions without handing over direct wallet control.</li>
-              <li>Turn casino claims into proof instead of gut feel.</li>
-              <li>Make exits and safety limits feel real, not optional.</li>
-            </ul>
-          </>
-        }
       />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader
-            eyebrow="The problem"
-            title="Most players are facing a machine built to outlast them."
-            description={
-              <p>
-                Players usually fight back with hope, memory, and a feeling that something seems off. That is not a fair
-                fight. TiltCheck exists because the blind spot is the real tax.
-              </p>
-            }
-          />
-
-          <div className="public-page-grid public-page-grid--2">
-            <article className="public-page-card">
-              <p className="public-page-card__eyebrow">Casino advantage</p>
-              <h3 className="public-page-card__title">The platform side stays sharp while the player side burns out.</h3>
-              <ul className="public-page-list">
-                <li>Casinos are live 24/7. Your discipline is not.</li>
-                <li>Every game ships with a built-in edge and optional payout tiers.</li>
-                <li>Lights, near-misses, and pacing are engineered to keep you spinning.</li>
-              </ul>
-            </article>
-
-            <article className="public-page-card">
-              <p className="public-page-card__eyebrow">Player disadvantage</p>
-              <h3 className="public-page-card__title">Most players are flying blind while the platform reads the board.</h3>
-              <ul className="public-page-list">
-                <li>Hope feels like a strategy when you are down bad. It is not.</li>
-                <li>You rarely know the real payout speed or whether a slot machine was quietly nerfed.</li>
-                <li>Emotions make chasing losses feel logical right when it is most stupid.</li>
-              </ul>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-            <PublicPageSectionHeader
-              eyebrow="The philosophy"
-              title="Simple rules. Hard edges."
-              description={<p>Our direction stays simple: show the signal, enforce the limit, and never pretend feelings are proof.</p>}
-            />
-
+          <PublicPageSectionHeader compact eyebrow="Philosophy" title="Simple rules." />
           <div className="public-page-grid public-page-grid--3">
             {philosophyCards.map((item) => (
               <article key={item.title} className="public-page-card">
@@ -151,49 +60,36 @@ export default function AboutPage() {
           <div className="public-page-grid public-page-grid--2">
             <article className="public-page-card public-page-card--accent">
               <p className="public-page-card__eyebrow">Who built this</p>
-              <h2 className="public-page-card__title">jmenichole (Founder &amp; Dev)</h2>
+              <h2 className="public-page-card__title">jmenichole</h2>
               <div className="public-page-card__body">
                 <p>
-                  Spent years chasing losses. Learned to code. Built the tool that would have saved past-me a lot of
-                  money. Now the product exists for everyone else who needed it too.
-                </p>
-                <p>
-                  Specialties: full-stack code, trust engines, spotting tilt habits, and knowing exactly what
-                  down bad at 3 a.m. feels like.
+                  Chased losses, learned to code, built the tool past-me needed. Full-stack, trust engines, tilt habits.
                 </p>
               </div>
             </article>
 
             <article className="public-page-card">
-              <p className="public-page-card__eyebrow">What&apos;s next</p>
-              <h2 className="public-page-card__title">More supported sessions. Better proof. Cleaner exits.</h2>
-              <ul className="public-page-list">
-                <li>Mobile extension path and tighter live session coverage.</li>
-                <li>Smarter tilt detection and better intervention workflows.</li>
-                <li>Casino fairness lawsuit tracking and stronger trust evidence.</li>
-                <li>Multiplayer accountability, live tournament mode, and community safety layers.</li>
-              </ul>
+              <p className="public-page-card__eyebrow">Product</p>
+              <h2 className="public-page-card__title">Read-only guardrail + trust layer</h2>
+              <p className="public-page-card__copy">
+                Not a casino or bank. Watches sessions, checks payout claims, helps players exit with evidence.
+              </p>
             </article>
           </div>
         </div>
       </section>
 
-      {/* Value proposition — players + platforms */}
-      <ValueProposition />
-
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-cta-band">
-            <p className="public-page-panel__eyebrow">One more thing</p>
-            <h2 className="public-page-cta-band__title">You are already facing live math. Better to see it than guess.</h2>
             <p className="public-page-cta-band__copy">
-              TiltCheck exists because gambling gets expensive fast when the signal disappears. If you&apos;ve lost money
-              you cannot afford to lose, reach out to{" "}
+              Gambling help:{" "}
               <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">
                 NCPG.org
               </a>{" "}
-              or call <strong>1-800-GAMBLER</strong>. Real help exists.
+              · <strong>1-800-GAMBLER</strong>
             </p>
+            <p className="public-page-cta-band__tagline">Made for Degens. By Degens.</p>
           </div>
         </div>
       </section>

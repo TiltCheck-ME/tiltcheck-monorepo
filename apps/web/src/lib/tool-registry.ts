@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 
 /** Honest public tool status — install = DM-ready mobile setup pages. */
 export type ToolStatus = 'install' | 'live' | 'beta' | 'soon';
@@ -24,15 +24,13 @@ export const INSTALL_SURFACES: InstallSurface[] = [
     href: '/nuts',
     label: 'NUTS AUTOVAULT',
     title: 'Auto-lock wins on nuts.gg',
-    description:
-      'Plain 4-step setup for Android. Auto-vault + session wager. Send this link in DMs — not nuts chat.',
+    description: '4-step Android setup. DM link only — not nuts chat.',
   },
   {
     href: '/stake',
     label: 'STAKE AUTOVAULT',
     title: 'Auto-lock wins on Stake.us',
-    description:
-      'Same Share Edition script, Stake.us steps. SC/GC vault skim + session stats. DM link only.',
+    description: 'Same script, Stake.us steps. SC/GC vault + session stats.',
   },
 ];
 
@@ -41,96 +39,84 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     href: '/tools/verify',
     label: 'THE RECEIPT',
     title: 'Manual Bet Verifier',
-    description:
-      'Verify a single bet with simple math instead of trusting the casino. Paste seeds / outcomes and recompute.',
+    description: 'Recompute one bet from seeds/outcomes — no trusting the casino.',
     status: 'live',
   },
   {
     href: '/tools/domain-verifier',
     label: 'PHISHING SHIELD',
     title: 'Domain + Email Verifier',
-    description:
-      'Scan casino domains and suspicious emails for scam signals before you deposit or click.',
+    description: 'Scan domains and emails for scam signals before you click.',
     status: 'live',
   },
   {
     href: '/tools/house-edge-scanner',
     label: 'THE DELTA ENGINE',
     title: 'House Edge Calculator',
-    description:
-      'Compare claimed payout vs what you actually got. Confidence score on whether the session looks rigged.',
+    description: 'Claimed payout vs what you got — rigged-session confidence score.',
     status: 'live',
   },
   {
     href: '/tools/geo-laws',
     label: 'GEO LAWS',
     title: 'Regulation by Region',
-    description:
-      'Gambling law snapshot by country — legal status, regulators, self-exclusion links.',
+    description: 'Legal status, regulators, and self-exclusion links by country.',
     status: 'live',
   },
   {
     href: '/tools/justthetip',
     label: 'JUST THE TIP',
     title: 'SOL Peer Tipping',
-    description:
-      'Send SOL tips by Discord username from the web. Non-custodial — keys stay in your wallet.',
+    description: 'Tip SOL by Discord username. Non-custodial.',
     status: 'live',
   },
   {
     href: '/tools/tarot-flip-comparison',
     label: 'TAROT FLIP DIFF',
     title: 'Tarot Flip Comparison',
-    description:
-      'Compare a stored Tarot flip snapshot against live play. Recalculates odds from actual flips.',
+    description: 'Compare stored flip snapshot vs live play.',
     status: 'beta',
   },
   {
     href: '/tools/session-stats',
     label: 'PAYOUT DRIFT MONITOR',
     title: 'Slot Math Index',
-    description:
-      'Certified payout tier spreads across slot titles — max vs min RTP gap per casino.',
+    description: 'Certified RTP tier spreads per casino.',
     status: 'beta',
   },
   {
     href: '/tools/scan-scams',
     label: 'SHADOW-BAN TRACKER',
     title: 'Casino Restriction Log',
-    description:
-      'Community-reported withdrawal delays and account restrictions from Discord + Trust Engine.',
+    description: 'Community withdrawal delays and account restrictions.',
     status: 'beta',
   },
   {
     href: '/tools/collectclock',
     label: 'COLLECTCLOCK',
     title: 'BonusCheck 2.0',
-    description:
-      'Bonus cooldown timers and formula lab. Useful, but not the primary mobile install path.',
+    description: 'Bonus cooldown timers and formula lab.',
     status: 'beta',
   },
   {
     href: '/tools/auto-vault',
     label: 'LOCKVAULT',
     title: 'Auto Profit Lock (dashboard)',
-    description:
-      'Durable vault rules live in the dashboard. For in-tab skim-while-you-play, use the install links above.',
+    description: 'Durable vault rules in dashboard. In-tab skim: use install links.',
     status: 'beta',
   },
   {
     href: '/tools/buddy-system',
     label: 'BUDDY SYSTEM',
     title: 'Accountability Partner',
-    description:
-      'Partner alerts when sessions go sideways. Settings live in the dashboard after login.',
+    description: 'Partner alerts when sessions go sideways.',
     status: 'beta',
   },
   {
     href: '/tools/degens-arena',
     label: 'DEGENS ARENA',
     title: 'Trivia Drop Arena',
-    description:
-      'Discord-native trivia battles. Not a standalone mobile install — arena runs in community channels.',
+    description: 'Discord-native trivia — not a mobile install.',
     status: 'beta',
   },
 ];

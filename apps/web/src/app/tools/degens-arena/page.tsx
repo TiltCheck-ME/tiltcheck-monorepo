@@ -1,268 +1,97 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
 
-const HOW_IT_WORKS = [
+const STEPS = [
   {
-    eyebrow: '01 // QUEUE UP',
-    title: 'Jump into a live round',
-    body: 'TriviaDrop runs fast rounds built for degens who want action without opening another casino tab. Activity is the fast test surface. Discord still handles the big public drop flow.',
+    title: 'Join a round',
+    body: 'Activity for fast tests. Discord for public drops after rules clear review.',
   },
   {
-    eyebrow: '02 // ANSWER FAST',
-    title: 'Skill decides the outcome',
-    body: 'Questions hit gambling strategy, RTP math, crypto, internet filth, and degen culture. No reels. No rake disguised as fun. Just who knows the answer first.',
+    title: 'Answer fast',
+    body: 'Gambling math, RTP, crypto, degen culture — skill only, no house edge.',
   },
   {
-    eyebrow: '03 // CLAIM THE DROP',
-    title: 'Earn the flex',
-    body: 'Top players take community clout and early access priority. SOL drops stay off until the published rules clear legal review.',
-  },
-];
-
-const REASONS_TO_JOIN = [
-  'No house edge. No slots. No fake “entertainment” tax.',
-  'Built to redirect tilt energy into something skill-based.',
-  'You can view the voluntary treasury on web and test the room in Activity.',
-  'Discord is the community rail after rules and command copy clear review.',
-];
-
-const ROUND_FORMAT = [
-  {
-    title: 'Instant drops',
-    body: 'Short-notice rounds for whoever is online and ready to move. Good for fast chaos. Good for cooldown windows.',
-  },
-  {
-    title: 'Scheduled events',
-    body: 'Larger rounds with bigger prize attention, better prep time, and more bodies in queue.',
-  },
-  {
-    title: 'Cooldown activation',
-    body: 'Long term, the arena becomes the clean redirect when TiltCheck tells you to stop chasing losses.',
-  },
-];
-
-const RELATED_SURFACES = [
-  {
-    title: 'Open the live Activity room',
-    href: 'https://activity.tiltcheck.me',
-    external: true,
-    body: 'Use the Activity when you want to test join flow, prompt flow, and the live room shell without waiting for a Discord drop.',
-    cta: 'Open Activity',
-  },
-  {
-    title: 'View the trivia treasury',
-    href: '/pay/jackpot?amount=1',
-    body: 'The web treasury page publishes the voluntary wallet address and makes the rules status blunt: no guaranteed pool, no enabled payout until review clears.',
-    cta: 'View Treasury',
-  },
-  {
-    title: 'Join the live Discord drops',
-    href: 'https://discord.gg/gdBsEJfCar',
-    external: true,
-    body: 'Use Discord when you want the full public drop flow and the existing /triviadrop crowd.',
-    cta: 'Join Discord',
-  },
-  {
-    title: 'Run the audit tools',
-    href: '/tools',
-    body: 'When the trivia ends, the toolkit is still here: RTP drift, house edge, phishing checks, and the rest.',
-    cta: 'Open tools',
-  },
-  {
-    title: 'Track future launch changes',
-    href: '/beta-tester',
-    body: 'If the launch surface changes later, the beta list is where those updates land first.',
-    cta: 'Track updates',
-  },
-  {
-    title: 'Hit Touch Grass instead',
-    href: '/touch-grass',
-    body: 'If you need a hard pivot away from gambling tabs, use the anti-spiral page and keep moving.',
-    cta: 'Open Touch Grass',
+    title: 'Claim the drop',
+    body: 'Clout and priority now. SOL drops wait on published rules and legal review.',
   },
 ];
 
 export const metadata: Metadata = {
   title: 'TiltCheck | Live Trivia',
-  description: 'Live TriviaDrop details, round format, voluntary treasury status, and review gates before SOL drops.',
+  description: 'Live TriviaDrop — skill-only rounds, voluntary treasury, Activity test surface.',
 };
 
 export default function DegensArenaPage() {
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-      <section className="border-b border-[#283347] px-4 py-24 md:py-32">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="mb-4 text-xs font-mono uppercase tracking-[0.35em] text-[#17c3b2]">LIVE TRIVIA // TRIVIADROP</p>
-            <h1 className="neon neon-main mb-6 text-5xl md:text-7xl" data-text="SKILL-ONLY CHAOS">
-              SKILL-ONLY CHAOS
-            </h1>
-            <div className="mb-6 inline-flex flex-wrap items-center gap-3 border border-[#17c3b2]/30 bg-[#17c3b2]/5 px-4 py-3">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Activity testing live</span>
-              <span className="hidden h-1 w-1 rounded-full bg-[#17c3b2] sm:block" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd700]">Web funding surface</span>
-            </div>
-            <p className="max-w-2xl text-lg leading-relaxed text-gray-300 md:text-xl">
-              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. The web now publishes the voluntary treasury, Activity handles fast room testing, and Discord carries the public room after rules clear.
-            </p>
-            <p className="mt-5 max-w-2xl text-sm font-mono leading-relaxed text-gray-500">
-              Current treasury path: <span className="text-[#17c3b2]">/pay/jackpot</span> on web. Current fast test path: <span className="text-[#17c3b2]">activity.tiltcheck.me</span>. Public Discord drops wait for published rules and reviewed copy.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="https://activity.tiltcheck.me"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary px-6 py-3 font-black"
-              >
-                Open Activity
-              </a>
-              <Link href="/pay/jackpot?amount=1" className="btn btn-secondary px-6 py-3 font-black">
-                View Treasury
-              </Link>
-              <a
-                href="https://discord.gg/gdBsEJfCar"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border border-[#283347] px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-[#17c3b2] hover:text-[#17c3b2]"
-              >
-                Join Discord
-              </a>
-              <Link href="/tools" className="btn btn-secondary px-6 py-3 font-black">
-                See All Tools
-              </Link>
-              <Link href="/beta-tester" className="border border-[#283347] px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-[#17c3b2] hover:text-[#17c3b2]">
-                Track Launch Updates
-              </Link>
-            </div>
-          </div>
+      <ToolPageHeader
+        eyebrow="Live trivia"
+        title="Skill-only chaos"
+        description="Off-ramp when the casino tab needs to die. No reels, no rake dressed as fun."
+        actions={
+          <>
+            <a
+              href="https://activity.tiltcheck.me"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary px-5 py-2.5 text-[11px] font-black"
+            >
+              Open Activity
+            </a>
+            <Link href="/pay/jackpot?amount=1" className="btn btn-secondary px-5 py-2.5 text-[11px] font-black">
+              Treasury
+            </Link>
+            <a
+              href="https://discord.gg/gdBsEJfCar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-[#283347] px-5 py-2.5 text-[11px] font-black uppercase tracking-wider text-white hover:border-[#17c3b2] hover:text-[#17c3b2]"
+            >
+              Discord
+            </a>
+          </>
+        }
+      />
 
-          <div className="grid w-full max-w-xl grid-cols-2 gap-4">
+      <section className="px-4 py-10">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 text-center text-xs">
             {[
-              ['Format', 'Live trivia drops'],
-              ['Payout Status', 'Rules review pending'],
-              ['Treasury Surface', 'Web /pay/jackpot'],
-              ['Test Surface', 'Activity host'],
-              ['Public Drop Surface', 'Discord after review'],
+              ['Format', 'Live trivia'],
+              ['Treasury', '/pay/jackpot'],
+              ['Test', 'Activity'],
+              ['Public drops', 'Discord'],
             ].map(([label, value]) => (
-              <div key={label} className="border border-[#283347] bg-black/30 p-5">
-                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-gray-500">{label}</p>
-                <p className="mt-3 text-base font-black uppercase tracking-wide text-white md:text-lg">{value}</p>
+              <div key={label} className="rounded-lg border border-[#283347] bg-black/30 px-3 py-3">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-gray-500">{label}</p>
+                <p className="mt-1 font-black uppercase text-white">{value}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      <section className="px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="mb-3 text-xs font-mono uppercase tracking-[0.35em] text-[#17c3b2]">WHAT IT IS</p>
-            <h2 className="text-3xl font-black uppercase tracking-tight md:text-4xl">A competitive off-ramp, not another casino loop</h2>
-            <p className="mt-4 text-base leading-relaxed text-gray-400">
-              Live trivia exists to give players something sharp and social to do when the gambling tab needs to die. It keeps the pace, strips out the house edge, and replaces bankroll bleed with a skill contest the room can actually win.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {HOW_IT_WORKS.map((item) => (
-                <article key={item.title} className="border border-[#283347] bg-black/30 p-6">
-                  <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-[#17c3b2]">{item.eyebrow}</p>
-                  <h3 className="mt-4 text-xl font-black uppercase tracking-tight text-white">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.body}</p>
-                </article>
-              ))}
-            </div>
-
-            <aside className="border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-6">
-              <p className="text-xs font-mono uppercase tracking-[0.35em] text-[#17c3b2]">WHY JOIN</p>
-              <ul className="mt-5 space-y-4 text-sm leading-relaxed text-gray-300">
-                {REASONS_TO_JOIN.map((reason) => (
-                  <li key={reason} className="flex gap-3">
-                    <span className="mt-1 text-[#17c3b2]">▹</span>
-                    <span>{reason}</span>
-                  </li>
-                ))}
-              </ul>
-            </aside>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y border-[#283347] bg-black/30 px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="mb-3 text-xs font-mono uppercase tracking-[0.35em] text-[#ffd700]">HOW ROUNDS WORK</p>
-            <h2 className="text-3xl font-black uppercase tracking-tight md:text-4xl">Fast rounds. Clean rules. No fake edge.</h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {ROUND_FORMAT.map((item) => (
-              <article key={item.title} className="border border-[#283347] bg-[#111827]/40 p-6">
-                <h3 className="text-xl font-black uppercase tracking-tight text-white">{item.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.body}</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            {STEPS.map((step, index) => (
+              <article key={step.title} className="rounded-xl border border-[#283347] bg-black/30 p-5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#17c3b2]">Step {index + 1}</p>
+                <h2 className="mt-2 text-lg font-black uppercase tracking-tight">{step.title}</h2>
+                <p className="mt-2 text-sm text-gray-400 leading-relaxed">{step.body}</p>
               </article>
             ))}
           </div>
 
-          <div className="mt-8 border border-[#283347] bg-black/40 p-6 md:p-8">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.35em] text-gray-500">Question mix</p>
-                <p className="mt-3 text-sm leading-relaxed text-gray-300">
-                  Expect gambling math, RTP logic, bankroll survival, crypto basics, internet culture, and the kind of degen knowledge that should probably not be useful but is.
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.35em] text-gray-500">TiltCheck role</p>
-                <p className="mt-3 text-sm leading-relaxed text-gray-300">
-                  The long-term job is simple: when TiltCheck tells you to cool off, trivia becomes the safer place to dump that energy instead of lighting another deposit on fire.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="mb-3 text-xs font-mono uppercase tracking-[0.35em] text-[#17c3b2]">NEXT MOVES</p>
-            <h2 className="text-3xl font-black uppercase tracking-tight md:text-4xl">Pick the surface that matches what you need</h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {RELATED_SURFACES.map((item) => {
-              const cardClasses = 'flex h-full flex-col justify-between border border-[#283347] bg-black/30 p-6 transition-colors hover:border-[#17c3b2]/50 hover:bg-[#17c3b2]/5';
-
-              const content = (
-                <>
-                  <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight text-white">{item.title}</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.body}</p>
-                  </div>
-                  <div className="mt-6 text-[11px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">{item.cta} →</div>
-                </>
-              );
-
-              if (item.external) {
-                return (
-                  <a key={item.title} href={item.href} target="_blank" rel="noopener noreferrer" className={cardClasses}>
-                    {content}
-                  </a>
-                );
-              }
-
-              return (
-                <Link key={item.title} href={item.href} className={cardClasses}>
-                  {content}
-                </Link>
-              );
-            })}
-          </div>
+          <p className="mt-8 text-center text-sm text-gray-500">
+            Need a hard pivot?{' '}
+            <Link href="/touch-grass" className="text-[#17c3b2] hover:underline">
+              Touch Grass
+            </Link>
+            {' · '}
+            <Link href="/tools" className="text-[#17c3b2] hover:underline">
+              All tools
+            </Link>
+          </p>
         </div>
       </section>
     </main>

@@ -135,18 +135,13 @@ export default function OperatorKeysPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] px-4 py-24 text-white">
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-12">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Operators / Sandbox Keys</p>
-          <h1 className="text-4xl font-black uppercase tracking-tighter md:text-5xl">
-            Operator portal.
-            <br />
-            Grab the keys and stop guessing.
-          </h1>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-gray-400 md:text-base">
-            This page is the low-friction operator lane: see your sandbox app IDs, secret keys, quota usage, and the manual
-            step for production review. Magic email works if Discord is not your thing. No scavenger hunt.
+    <main className="public-page public-page--tight min-h-screen bg-[#0a0c10] px-4 py-16 text-white">
+      <div className="mx-auto max-w-4xl">
+        <header className="mb-8">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Operator portal</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Sandbox keys and quota</h1>
+          <p className="mt-3 text-sm text-gray-400 max-w-2xl">
+            Auth with the verified operator email. Magic or Discord. Scope matches the inbox on the partner record.
           </p>
         </header>
 

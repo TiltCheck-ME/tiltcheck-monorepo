@@ -3,6 +3,7 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-25 */
 
 import React, { useMemo, useState } from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
 import {
   compareTarotFlipMechanics,
   type TarotFlipComparisonResult,
@@ -276,29 +277,13 @@ export default function TarotFlipComparisonPage() {
   }, [baselineText, currentText]);
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] px-4 pb-16 pt-24 text-white">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-        <header className="rounded-3xl border border-[#283347] bg-black/30 p-6 md:p-8">
-          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Tarot flip comparison</p>
-          <h1 className="mt-3 text-3xl font-black md:text-5xl">Compare the stored Tarot flip table against the live one.</h1>
-          <p className="mt-4 max-w-4xl text-sm text-gray-400 md:text-base">
-            Paste the stored mechanic snapshot from the dashboard lane beside the current runtime snapshot. TiltCheck normalizes both sides, recalculates card survival odds from raw card counts, and flags drift without trusting UI claims.
-          </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-[#283347] bg-black/40 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Scope</p>
-              <p className="mt-2 text-sm text-gray-300">Card count, safe-card count, hazard count, per-step win odds, and multiplier table drift.</p>
-            </div>
-            <div className="rounded-2xl border border-[#283347] bg-black/40 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Zero trust</p>
-              <p className="mt-2 text-sm text-gray-300">Declared probabilities are checked against our own survival math. Bad odds claims get called out.</p>
-            </div>
-            <div className="rounded-2xl border border-[#283347] bg-black/40 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Guardrail</p>
-              <p className="mt-2 text-sm text-gray-300">This validates game logic snapshots. It does not replace seed verification, seed hygiene, or trust-rollup evidence.</p>
-            </div>
-          </div>
-        </header>
+    <main className="min-h-screen bg-[#0a0c10] px-4 pb-16 pt-8 text-white">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+        <ToolPageHeader
+          eyebrow="Tarot flip"
+          title="Compare stored vs live mechanics"
+          description="Paste baseline and runtime snapshots. We normalize card counts and flag odds drift — no trusting UI claims."
+        />
 
         <section className="grid gap-6 xl:grid-cols-2">
           <EditorCard

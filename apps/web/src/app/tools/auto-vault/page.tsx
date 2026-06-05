@@ -3,8 +3,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
 
@@ -95,10 +93,8 @@ export default function AutoVaultPage() {
   }, [loading, user, vaultLaneUrl]);
 
   return (
-    <>
-      <Nav />
-      <main className="min-h-screen bg-[#0a0c10] text-white">
-        <div className="max-w-4xl mx-auto px-4 py-12 pt-32">
+    <main className="min-h-screen bg-[#0a0c10] text-white">
+        <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="mb-10 rounded-3xl border border-[#17c3b2]/25 bg-black/40 p-8 md:p-10">
             <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">
               <Link href="/tools" className="hover:text-[#17c3b2] transition-colors">
@@ -354,7 +350,5 @@ export default function AutoVaultPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
   );
 }

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import type { ReactNode } from "react";
 
 export type PublicPageHeroStat = {
@@ -15,6 +15,8 @@ type PublicPageHeroProps = {
   panel?: ReactNode;
   stats?: PublicPageHeroStat[];
   centered?: boolean;
+  /** Tighter hero — no side panel or stat strip. Default for most public pages. */
+  compact?: boolean;
 };
 
 type PublicPageSectionHeaderProps = {
@@ -22,6 +24,7 @@ type PublicPageSectionHeaderProps = {
   title: ReactNode;
   description?: ReactNode;
   split?: boolean;
+  compact?: boolean;
 };
 
 export default function PublicPageHero({
@@ -32,25 +35,29 @@ export default function PublicPageHero({
   panel,
   stats = [],
   centered = false,
+  compact = false,
 }: PublicPageHeroProps) {
+  const showPanel = !compact && panel;
+  const showStats = !compact && stats.length > 0;
+
   const shellClassName = [
     "landing-shell",
     "public-page-hero__shell",
-    panel ? "public-page-hero__shell--panel" : "",
+    showPanel ? "public-page-hero__shell--panel" : "",
     centered ? "public-page-hero__shell--centered" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <section className="hero-surface public-page-hero">
+    <section className={`hero-surface public-page-hero${compact ? " public-page-hero--compact" : ""}`}>
       <div className={shellClassName}>
         <div className="public-page-hero__copy">
           <span className="brand-eyebrow">{eyebrow}</span>
           <h1 className="public-page-hero__title">{title}</h1>
           <div className="public-page-hero__description">{description}</div>
           {actions ? <div className="hero-actions public-page-hero__actions">{actions}</div> : null}
-          {stats.length > 0 ? (
+          {showStats ? (
             <ul className="public-page-hero__stats" aria-label={`${eyebrow} proof points`}>
               {stats.map((stat) => (
                 <li key={stat.label} className="public-page-hero__stat">
@@ -65,7 +72,7 @@ export default function PublicPageHero({
           ) : null}
         </div>
 
-        {panel ? (
+        {showPanel ? (
           <aside className="public-page-hero__panel" aria-label={`${eyebrow} summary`}>
             {panel}
           </aside>
@@ -80,9 +87,12 @@ export function PublicPageSectionHeader({
   title,
   description,
   split = true,
+  compact = false,
 }: PublicPageSectionHeaderProps) {
   return (
-    <div className={`public-page-section-heading ${split ? "public-page-section-heading--split" : ""}`}>
+    <div
+      className={`public-page-section-heading ${split ? "public-page-section-heading--split" : ""}${compact ? " public-page-section-heading--compact" : ""}`}
+    >
       <div>
         <span className="brand-eyebrow">{eyebrow}</span>
         <h2 className="public-page-section-heading__title">{title}</h2>

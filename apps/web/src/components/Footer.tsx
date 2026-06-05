@@ -32,6 +32,7 @@ const footerGroups = [
   {
     title: "Intel",
     links: [
+      { href: "/ask", label: "Ask Intel" },
       { href: "/casinos", label: "Casino Trust Scores" },
       { href: "/bonuses", label: "Daily Bonus Tracker" },
       { href: "/intel/rtp", label: "RTP Intel" },

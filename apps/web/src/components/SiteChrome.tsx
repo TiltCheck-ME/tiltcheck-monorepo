@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import IntelChatWidget from '@/components/intel/IntelChatWidget';
 import PublicPageFrame from '@/components/PublicPageFrame';
 
 /** DM install pages — no site nav, no footer clutter. */
@@ -37,6 +38,7 @@ export default function SiteChrome({ children }: { children: ReactNode }) {
       <div className="nav-main-content">
         <Footer />
       </div>
+      <IntelChatWidget />
     </>
   );
 }

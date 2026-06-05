@@ -1,5 +1,6 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
 import React from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
 import rtpData from '@data/provider-master-rtp.json';
 
 interface GameEntry {
@@ -43,27 +44,14 @@ export default function SessionStatsPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-      <section className="border-b border-[#283347] py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">TILT TELEMETRY</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="RTP DRIFT MONITOR">
-            RTP DRIFT MONITOR
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            Slot providers certify games at multiple RTP tiers. Casinos pick which tier to deploy. This table shows the maximum legal gap between the best and worst certified tier — the range a casino can legally exploit without disclosing it.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        centered
+        eyebrow="Slot math"
+        title="RTP drift monitor"
+        description="Max vs min certified RTP per title — the legal gap casinos can deploy without telling you. Greed Premium = max minus min."
+      />
 
-      <section className="py-8 px-4 bg-[#ffd700]/5 border-b border-[#ffd700]/20">
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-sm font-mono text-[#ffd700]">
-            <strong>Greed Premium</strong> = Max Certified RTP minus Min Certified RTP. If a casino deploys the minimum tier, this is the extra edge they silently take from you per session.
-          </p>
-        </div>
-      </section>
-
-      <section className="py-16 px-4">
+      <section className="py-10 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-black uppercase tracking-tight">

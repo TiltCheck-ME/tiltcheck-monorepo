@@ -1,24 +1,21 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import { getWebLoginRedirect } from "@/lib/dashboard-handoff";
 
-const extensionStats = [
+const coreSignals = [
   {
-    label: "Security model",
-    value: "Read only",
-    description: "The extension watches supported casino tabs and gameplay speed without asking for private keys.",
+    title: "Read-only",
+    body: "Watches supported casino tabs. No private keys.",
   },
   {
-    label: "Session fit",
-    value: "In-tab",
-    description: "Live warnings, safety limits, and exit buttons stay right on your active screen so you never lose focus.",
+    title: "In-tab",
+    body: "Warnings and exit controls stay on your active screen.",
   },
   {
-    label: "Exit logic",
-    value: "Player set",
-    description: "Profit targets, cooldowns, and vault rules still belong to you. The extension enforces them. It does not invent them.",
+    title: "Your rules",
+    body: "Profit targets and vault limits — we enforce what you set.",
   },
 ];
 
@@ -26,19 +23,14 @@ export default function ExtensionPage() {
   const dashboardSetupHref = getWebLoginRedirect('/dashboard');
 
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
+        compact
         eyebrow="Browser extension"
-        title={
-          <>
-            TiltCheck lives
-            <br />
-            in the casino tab.
-          </>
-        }
+        title="TiltCheck lives in the casino tab."
         description={
           <p>
-            No tabs to switch, no dashboards to track. TiltCheck runs silently inside your active casino session to block the pressure loops before they cook your account.
+            Runs inside your active session — blocks pressure loops before they cook your account. Sideload beta now; store listing later.
           </p>
         }
         actions={
@@ -54,142 +46,37 @@ export default function ExtensionPage() {
             >
               DOWNLOAD THE ZIP
             </a>
-            {/* Built extension zip lives at apps/web/public/downloads/tiltcheck-extension.zip.
-                Replace that file with each new release build output. */}
             <Link href={dashboardSetupHref} className="btn btn-secondary" data-text="OPEN DASHBOARD SETUP">
               OPEN DASHBOARD SETUP
             </Link>
           </>
         }
-        stats={extensionStats}
-        panel={
-          <>
-            <p className="public-page-panel__eyebrow">Current beta path</p>
-            <h2 className="public-page-panel__title">Sideload now. Store listing later.</h2>
-              <p className="public-page-panel__body">
-                Download the current beta bundle, extract it locally, then load the unpacked folder in Chrome or Brave.
-              </p>
-              <ul className="public-page-list">
-                <li>Current package: tiltcheck-extension.zip</li>
-                <li>Currently available as a direct install. Chrome Web Store submission in progress.</li>
-                <li>After install, use dashboard setup before opening a supported session.</li>
-              </ul>
-            </>
-          }
       />
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <div className="public-page-card public-page-card--accent" style={{ marginBottom: '2rem' }}>
-            <p className="public-page-card__eyebrow">Direct install — store listing coming soon</p>
-            <h2 className="public-page-card__title">Two steps to install right now</h2>
+          <div className="public-page-card public-page-card--accent">
+            <p className="public-page-card__eyebrow">Install</p>
+            <h2 className="public-page-card__title">Two steps</h2>
             <ol className="public-page-list">
-              <li>Download the zip above and extract it to a local folder.</li>
-              <li>Open chrome://extensions, enable Developer mode, click Load unpacked, and select the extracted folder.</li>
+              <li>Download the zip, extract to a folder.</li>
+              <li>chrome://extensions → Developer mode → Load unpacked → select folder.</li>
             </ol>
-            <p className="public-page-card__copy">
-              Sideload install. Not from the Chrome Web Store yet. Read-only by design.
-            </p>
+            <p className="public-page-card__copy">Then open dashboard setup before a live session.</p>
           </div>
         </div>
       </section>
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-            <PublicPageSectionHeader
-              eyebrow="Core signals"
-              title="Built to be useful mid-session, not just sound impressive on a page."
-              description={<p>If you are new here, this is the short version of what the extension actually does once it is loaded.</p>}
-            />
-
-            <div className="public-page-grid public-page-grid--3">
-              {[
-                {
-                  title: "Read-only by design",
-                  body: "The extension inspects gameplay logs and session timing. It does not ask for seed phrases or direct wallet control.",
-                },
-                {
-                  title: "Built for live sessions",
-                  body: "It stays inside the tab, tracks playing speed, and signals when you're starting to chase losses without forcing you to bounce between dashboards.",
-                },
-                {
-                  title: "Own your exits",
-                  body: "Profit targets, cooldowns, and vault workflows are yours to set. TiltCheck helps enforce the line when your brain refuses to.",
-                },
-              ].map(({ title, body }) => (
-                <article key={title} className="public-page-card">
-                  <p className="public-page-card__eyebrow">Core signal</p>
-                  <h2 className="public-page-card__title">{title}</h2>
-                  <p className="public-page-card__copy">{body}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-      </section>
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-            <PublicPageSectionHeader
-              eyebrow="Install flow"
-              title="Three steps. Zero guesswork."
-              description={<p>The honest beta path is simple: sideload the bundle, load the extension, and set one guardrail before you test a live session.</p>}
-            />
-
+          <PublicPageSectionHeader compact eyebrow="Core" title="What it does." />
           <div className="public-page-grid public-page-grid--3">
-            <article className="public-page-card">
-              <p className="public-page-card__eyebrow">Step 01</p>
-              <h2 className="public-page-card__title">Download the beta bundle</h2>
-              <p className="public-page-card__copy">
-                Grab the beta zip, extract it locally, and keep the bundled extension folder intact. Do not point Chrome
-                at the zip itself.
-              </p>
-            </article>
-
-            <article className="public-page-card">
-              <p className="public-page-card__eyebrow">Step 02</p>
-              <h2 className="public-page-card__title">Load it in Chrome or Brave</h2>
-              <p className="public-page-card__copy">
-                Open chrome://extensions, enable Developer mode, click Load unpacked, and select the extracted extension
-                folder.
-              </p>
-            </article>
-
-            <article className="public-page-card public-page-card--accent">
-              <p className="public-page-card__eyebrow">Step 03</p>
-              <h2 className="public-page-card__title">Set one guardrail in the dashboard</h2>
-              <p className="public-page-card__copy">
-                Open dashboard setup, turn on at least one rule, then open a supported casino tab so TiltCheck has
-                something real to enforce mid-session.
-              </p>
-              <div className="public-page-card__body">
-                <p>Rule first. Session second. Read only. No mystery.</p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <div className="public-page-grid public-page-grid--2">
-            <article className="public-page-card">
-              <p className="public-page-card__eyebrow">What it covers</p>
-              <ul className="public-page-list">
-                <li>Real-time gameplay tracking and tilt signals.</li>
-                <li>Payout drift and fairness checks against expected odds.</li>
-                <li>Vault prompts, cooldown signals, and safety flows.</li>
-                <li>Sidebar-driven exits for supported casino tabs.</li>
-              </ul>
-            </article>
-
-            <article className="public-page-card public-page-card--danger">
-              <p className="public-page-card__eyebrow">Beta</p>
-              <h2 className="public-page-card__title">Toolbar popup is not the primary entry point yet.</h2>
-              <p className="public-page-card__copy">
-                The extension runs sidebar-first. Load the unpacked extension via Developer mode, use the sidebar
-                workflow, and treat the Chrome Web Store listing as coming soon.
-              </p>
-            </article>
+            {coreSignals.map(({ title, body }) => (
+              <article key={title} className="public-page-card">
+                <h2 className="public-page-card__title">{title}</h2>
+                <p className="public-page-card__copy">{body}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>

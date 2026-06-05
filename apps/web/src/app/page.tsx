@@ -1,42 +1,37 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
 import Link from "next/link";
 
 const coreJobs = [
   {
     step: "01",
     title: "Kill the Auto-Pilot",
-    description:
-      "We track click-speed, bet patterns, and session pacing in real time. If you are playing like a bot, we wake you up.",
+    description: "Tracks click-speed and bet pacing. Wakes you up when you play like a bot.",
   },
   {
     step: "02",
     title: "Read the Room",
-    description:
-      "We flag sus pacing, pressure loops, and manipulative session cues. Math verifiers can rerun the numbers later. We catch the headspace drift while you are still inside it.",
+    description: "Flags sus pacing and pressure loops while you are still in the session.",
   },
   {
     step: "03",
     title: "Enforce the Exit",
-    description:
-      "We are not a suggestion. Set your line. We enforce it. No passive warnings. No concern theater.",
+    description: "Set your line. We enforce it — not passive warnings.",
   },
 ];
 
 export default function Home() {
   return (
     <main className="landing-page">
-      {/* ── Hero ── */}
       <section className="hero-surface">
         <div className="landing-shell landing-hero-centered">
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            HOUSE ALWAYS WINS? FUCK THAT.
+            STOP GIVING WINS BACK.
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
-            TiltCheck is a read-only browser extension that stops you from giving your wins back to the machine. 
-            We watch your pacing, click-speed, and tilt signals in real time—and pull you out before you rug yourself.
+            Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.
           </p>
 
           <div className="hero-actions">
@@ -62,13 +57,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Core Features ── */}
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-section-heading">
             <div>
-              <span className="brand-eyebrow">What TiltCheck actually does</span>
-              <h2 className="public-page-section-heading__title">Built to protect your bankroll.</h2>
+              <span className="brand-eyebrow">Three jobs</span>
+              <h2 className="public-page-section-heading__title">Protect the bankroll.</h2>
             </div>
           </div>
 
@@ -84,43 +78,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Bridge CTA ── */}
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <div className="public-page-cta-band">
-            <p className="public-page-panel__eyebrow">Ready to see it work?</p>
-            <h2 className="public-page-cta-band__title">
-              Install the extension and let TiltCheck watch your next session.
-              Or check casino trust scores before you deposit if you need the receipts first.
-            </h2>
-            <div className="public-page-cta-band__actions">
-              <Link
-                href="/extension"
-                className="btn btn-primary"
-                data-funnel-event="landing_bottom_install_click"
-                data-funnel-source="web-home-bottom-cta"
-                data-funnel-label="Install the Extension"
-              >
-                INSTALL THE EXTENSION
-              </Link>
-              <Link href="/casinos" className="btn btn-secondary">
-                CHECK CASINO TRUST
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Responsible Gaming ── */}
-      <section className="public-page-section px-4" style={{ paddingBottom: '2rem' }}>
-        <div className="landing-shell" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '0.75rem', color: '#6b7a8d', lineHeight: 1.6 }}>
-            TiltCheck is not a casino, not a bank, and not financial advice. If you or someone you know
-            has a gambling problem, contact{' '}
-            <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" style={{ color: '#17c3b2' }}>
+      <section className="public-page-section px-4" style={{ paddingBottom: "2rem" }}>
+        <div className="landing-shell" style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "0.75rem", color: "#6b7a8d", lineHeight: 1.6 }}>
+            Not a casino, not a bank, not financial advice. Problem gambling help:{" "}
+            <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" style={{ color: "#17c3b2" }}>
               NCPG.org
-            </a>{' '}
-            or call <strong style={{ color: '#ffffff' }}>1-800-GAMBLER</strong>.
+            </a>{" "}
+            or <strong style={{ color: "#ffffff" }}>1-800-GAMBLER</strong>.
           </p>
         </div>
       </section>

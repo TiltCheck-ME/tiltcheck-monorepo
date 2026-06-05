@@ -15,6 +15,7 @@ const NAV_LINKS_PRIMARY: NavLink[] = [
   { href: '/how-it-works', label: 'How it works' },
   { href: '/tools',        label: 'Tools' },
   { href: '/casinos',      label: 'Casinos' },
+  { href: '/ask',          label: 'Ask Intel' },
   { href: '/about',        label: 'About' },
 ];
 

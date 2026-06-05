@@ -2,6 +2,8 @@
 
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import ToolPageHeader from '@/components/ToolPageHeader';
+import Link from 'next/link';
 import { auditSeedHealth } from '@tiltcheck/shared';
 import { FairnessService } from '@tiltcheck/shared/fairness';
 import type {
@@ -202,30 +204,24 @@ export default function VerifyPage() {
   }, [buildVerificationInput, fairness]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 pt-24 bg-[#0a0c10]">
-      <header className="terminal-header w-full max-w-4xl mb-8">
-        <div className="container mx-auto text-center font-mono">
-            <h1 className="terminal-title" data-slang="VERIFY_OS">THE RECEIPT — Manual bet verification.</h1>
-            <p className="terminal-subtitle text-[#17c3b2]">Raw provably fair math checker. Verify one bet. Do not confuse this with proof quality, seed hygiene, or full casino trust.</p>
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#0a0c10] text-white">
+      <ToolPageHeader
+        centered
+        eyebrow="Provably fair"
+        title="The Receipt"
+        description={
+          <>
+            Recompute one bet from seeds and nonce. Not seed hygiene or full casino trust — see{' '}
+            <Link href="/casinos" className="text-[#17c3b2] hover:underline">
+              /casinos
+            </Link>
+            .
+          </>
+        }
+      />
 
-      <section className="w-full max-w-4xl mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="border border-[#283347] bg-black/30 p-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">What it does</p>
-          <p className="mt-2 text-sm text-gray-400">Recomputes the outcome from the exact seeds, nonce, and public input for one bet.</p>
-        </div>
-        <div className="border border-[#283347] bg-black/30 p-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">What it does not do</p>
-          <p className="mt-2 text-sm text-gray-400">It does not grade seed hygiene, proof quality, sample depth, or platform trust on its own.</p>
-        </div>
-        <div className="border border-[#283347] bg-black/30 p-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">Where the rest lives</p>
-          <p className="mt-2 text-sm text-gray-400">Use /casinos for licensing, payouts, scam flags, RTP evidence, and broader proof-quality framing.</p>
-        </div>
-      </section>
-
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="mx-auto flex max-w-4xl flex-col items-center px-4 pb-12">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Input Section */}
         <div className="terminal-box border-[#283347] p-6 bg-black/40">
            <div className="flex gap-4 mb-8">
@@ -468,21 +464,10 @@ export default function VerifyPage() {
         </div>
       </section>
 
-      <footer className="mt-16 text-center max-w-2xl px-6">
-        <div className="p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20">
-          <h3 className="text-sm font-black text-[#17c3b2] uppercase tracking-widest mb-2 italic underline underline-offset-4">What this verifier actually proves</h3>
-          <p className="text-xs text-gray-500 leading-relaxed font-mono">
-             It proves whether the disclosed inputs reproduce the published outcome for one bet. That is manual verification, not a full trust verdict.
-          </p>
-          <p className="text-xs text-gray-500 leading-relaxed font-mono mt-3">
-             Seed hygiene, proof quality, partial proof states, and insufficient-sample calls belong on the broader trust surfaces. This page stays the math checker.
-          </p>
-          <p className="text-[9px] text-gray-700 font-mono mt-3 uppercase tracking-wider">
-            Blockhash sourced from Solana mainnet via <a href="https://solana.com/docs/rpc/http/getlatestblockhash" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">getLatestBlockhash RPC</a>. Verify independently at <a href="https://solscan.io" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">solscan.io</a>.
-          </p>
-          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Made for Degens. By Degens.</p>
-        </div>
-      </footer>
+      <p className="mt-8 w-full max-w-4xl text-center text-[10px] text-gray-600 font-mono">
+        One-bet math only. Blockhash via Solana RPC — verify on solscan.io.
+      </p>
+      </div>
     </main>
   );
 }

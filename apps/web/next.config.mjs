@@ -22,7 +22,9 @@ const nextConfig = {
     "@tiltcheck/shared",
     "@tiltcheck/justthetip",
     "@tiltcheck/auth",
-    "@tiltcheck/config"
+    "@tiltcheck/config",
+    "@tiltcheck/intel-tools",
+    "@tiltcheck/intel-agent",
   ],
   images: {
     unoptimized: true,

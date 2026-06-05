@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import ToolPageHeader from '@/components/ToolPageHeader';
 
 interface Region {
   code: string;
@@ -179,26 +180,13 @@ export default function GeoLawsPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
-      {/* Hero */}
-      <section className="border-b border-[#283347] py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">
-            REGULATORY AWARENESS
-          </p>
-          <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tight mb-6">
-            GEO LAWS
-          </h1>
-          <p className="text-gray-400 font-mono text-base max-w-2xl leading-relaxed">
-            Online gambling laws vary wildly by country. This is a reference guide — not legal advice. Know your jurisdiction, know your regulator, and know regulator self-exclusion options (GAMSTOP, OASIS, etc.) before you deposit. TiltCheck Session pause only blocks games in your browser — it is not operator self-exclusion.
-          </p>
-          <p className="mt-4 text-xs font-mono text-gray-600">
-            Last updated: 2026-04-11. Laws change. Verify with official sources.
-          </p>
-        </div>
-      </section>
+      <ToolPageHeader
+        eyebrow="Regulatory"
+        title="Geo laws"
+        description="Reference by country — not legal advice. Session pause in TiltCheck is browser-only, not operator self-exclusion."
+      />
 
-      {/* Filter + Search */}
-      <section className="border-b border-[#283347] py-6 px-4">
+      <section className="border-b border-[#283347] py-4 px-4">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <input
             type="text"

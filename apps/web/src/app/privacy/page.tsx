@@ -83,33 +83,17 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <main className="public-page text-white">
+    <main className="public-page public-page--tight text-white">
       <PublicPageHero
+        compact
+        centered
         eyebrow="Legal / Privacy"
         title="Privacy Policy"
         description={
           <p>
-            Short version: TiltCheck collects the minimum required to make the product work. We do not sell your data,
-            and we do not store your private keys.
+            Minimum data to run the product. No private keys, no ad-tech, no resale. Version 1.1.
           </p>
         }
-        stats={[
-          {
-            label: "Version",
-            value: "1.1",
-            description: "Current public privacy policy version.",
-          },
-          {
-            label: "Retention floor",
-            value: "7 days",
-            description: "Session logs are purged fast because the product is not trying to hoard surveillance data.",
-          },
-          {
-            label: "Ad-tech policy",
-            value: "None",
-            description: "No analytics trackers, no pixel sludge, no resale posture.",
-          },
-        ]}
       />
 
       <section className="public-page-section px-4">

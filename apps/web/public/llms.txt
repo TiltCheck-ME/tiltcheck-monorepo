@@ -38,6 +38,8 @@ The house has the math. TiltCheck is the audit layer that gives players the same
 
 - `/` — Home / landing page
 - `/casinos` — Casino Trust Engine. Full list of rated operators. Default filter: Sweeps. Live trust scores overlaid when trust-rollup service is online.
+- `/ask` — Intel chat agent. Natural-language casino trust lookups, filtered lists (e.g. US crypto casinos), and domain scans. Tool-backed grades — not LLM hallucination.
+- `/ask/v/{token}` — Shared intel view (read-only list/card snapshot, 7-day TTL).
 - `/bonuses` — Daily sweepstakes bonus tracker. Collectible cooldowns for major platforms.
 - `/tools/domain-verifier` — Domain + license checker. Paste any casino domain. Also accepts raw email for intel extraction.
 - `/tools/auto-vault` — LockVault interface. Requires legal consent and Chrome extension for auto-triggers.
