@@ -115,6 +115,20 @@ Unregister-ScheduledTask -TaskName "TiltCheck-ChannelWatcher-Cloud" -Confirm:$fa
 
 The browser will open to Discord's login page. Log in normally — the session is saved to `.session.json` so you only need to do this once.
 
+## Railway / headless deploy
+
+If logs show `Log into Discord in the browser` then `Login timeout`, the container has **no valid auth**. Headless cannot show a login window.
+
+**Fix (pick one):**
+
+1. **Recommended:** set `DISCORD_TOKEN` on the Railway service (user token from browser DevTools → Network → `Authorization` header on a `discord.com/api/` request). The entrypoint injects it at runtime; it is not written to disk.
+2. Set `DISCORD_SESSION_JSON` to the base64 output of `npm run railway:seed-session` (sanitized cookies only).
+3. Mount a Railway Volume at `/data` and copy a fresh `.session.json` from `npm run session:create`.
+
+After updating auth, redeploy or wait for the next cron run (`railway.json`: 09:00, 15:00, 21:00 UTC).
+
+Expired cookies/tokens produce the same symptom — refresh `DISCORD_TOKEN` or re-run `session:create`.
+
 ## Getting the channel URL
 
 In Discord: right-click the channel name → **Copy Link**. Paste that into `WATCH_CHANNEL_URL`.

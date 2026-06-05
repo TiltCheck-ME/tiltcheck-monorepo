@@ -19,6 +19,13 @@ import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { buildTiltCheckDailyDegenSummary } from './report-summary.js';
 import { getFallbackProviders, getRequestedProvider } from './provider-switcher.js';
+import {
+  applyDiscordAuth,
+  assertHeadlessAuthConfigured,
+  ensureDiscordLoggedIn,
+  isHeadlessRuntime,
+  loadSessionState,
+} from './discord-session.js';
 
 dotenv.config();
 
@@ -543,11 +550,11 @@ async function run() {
     console.log(chalk.white('   npm run analyze       — Run intelligence report on collected logs'));
     console.log(chalk.white('   npm run analyze:lore  — Run business + comedy lore reports\n'));
 
-    const storageState = existsSync(SESSION_FILE) ? SESSION_FILE : undefined;
+    assertHeadlessAuthConfigured(SESSION_FILE);
+    const storageState = loadSessionState(SESSION_FILE);
 
     // On Railway (headless Linux), use system Chromium installed via apt-get.
-    // executablePath takes precedence over env vars which Playwright may ignore.
-    const isHeadless = process.env.RAILWAY_ENVIRONMENT !== undefined || process.env.CI === 'true' || !process.env.DISPLAY;
+    const isHeadless = isHeadlessRuntime();
     const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
         || (isHeadless ? ('/usr/bin/chromium') : undefined);
 
@@ -560,27 +567,25 @@ async function run() {
     });
 
     const context = await browser.newContext({
-        storageState,
+        ...(storageState ? { storageState } : {}),
         viewport: { width: 1280, height: 900 },
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     });
 
+    const authMode = await applyDiscordAuth(context, { sessionFile: SESSION_FILE });
     const page = await context.newPage();
 
-    // Navigate — check login
-    await page.goto('https://discord.com/login', { waitUntil: 'domcontentloaded' });
-    const loggedIn = await page.locator('[data-list-id="guildsnav"]').isVisible({ timeout: 5000 }).catch(() => false);
-
-    if (!loggedIn) {
-        console.log(chalk.yellow('⚠️  Log into Discord in the browser. Waiting 3 minutes...'));
-        await page.waitForSelector('[data-list-id="guildsnav"]', { timeout: 180_000 }).catch(() => {
-            console.error(chalk.red('❌ Login timeout. Restart and log in quicker.'));
-            process.exit(1);
-        });
-        await context.storageState({ path: SESSION_FILE });
-        console.log(chalk.green('✅ Session saved.\n'));
-    } else {
-        console.log(chalk.green('✅ Already logged in.\n'));
+    try {
+        const login = await ensureDiscordLoggedIn(page, context, { sessionFile: SESSION_FILE });
+        if (login.savedSession) {
+            console.log(chalk.green('✅ Session saved.\n'));
+        } else {
+            console.log(chalk.green(`✅ Discord login OK (${authMode.mode}).\n`));
+        }
+    } catch (err) {
+        console.error(chalk.red(`❌ ${err instanceof Error ? err.message : String(err)}`));
+        await browser.close();
+        process.exit(1);
     }
 
     await page.goto(CHANNEL_URL, { waitUntil: 'domcontentloaded' });
