@@ -27,29 +27,15 @@ Defer full v1 repair (ports, activity diet, bonus consolidation on v1).
 
 ## MVP daily feed port (local branch)
 
-Branch `cursor/daily-bonus-feed-port-ec58` was built locally with:
+Branch `cursor/daily-bonus-feed-port-ec58` — commit `37b2256` — built and verified (`pnpm build` passes).
 
-- `apps/api/src/lib/daily-bonus-feed.ts`
-- `GET /bonuses/daily-feed` on Hono API
-- `apps/web/src/components/DailyBonusFeed.tsx`
-- `apps/web/src/app/bonuses/page.tsx` (no longer redirects to dashboard)
-
-To push from a machine with `jmenichole/tiltcheckmvp` write access:
-
-```bash
-git clone https://github.com/jmenichole/tiltcheckmvp
-cd tiltcheckmvp
-git fetch <remote-with-branch> cursor/daily-bonus-feed-port-ec58
-git checkout cursor/daily-bonus-feed-port-ec58
-git push -u origin cursor/daily-bonus-feed-port-ec58
-```
-
-Or cherry-pick commit message: `feat(bonuses): port unified daily bonus feed to MVP`
+Apply instructions: `docs/migration/tiltcheckmvp-bonus-feed-port.md`  
+Patch artifact: `/opt/cursor/artifacts/tiltcheckmvp-daily-bonus-feed-port.patch`
 
 ## Cutover order
 
-1. Merge v1 P0 security PR (fleet wave)
-2. Merge MVP daily-feed PR on `tiltcheckmvp`
+1. Merge v1 P0 security PR #591 (fleet wave)
+2. Merge MVP daily-feed PR on `tiltcheckmvp` (branch `cursor/daily-bonus-feed-port-ec58`)
 3. Pass MVP Phase 2 staging gate
 4. Point crawler `CRAWLER_API_URL` at v2 API when ingest is verified
 5. DNS cutover per `tiltcheckmvp/docs/cutover-checklist.md`
