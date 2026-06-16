@@ -62,4 +62,45 @@ describe('buildDailyBonusFeed', () => {
     expect(mcluck).toBeDefined();
     expect(feed.sources.some((source) => source.key === 'email-inbox' && source.count > 0)).toBe(true);
   });
+
+  it('does not treat non-alphanumeric brands as US casinos', async () => {
+    vi.resetModules();
+    writeFileSync(
+      TEST_EMAIL_BONUS_FEED_PATH,
+      JSON.stringify({
+        updatedAt: '2026-06-16T12:00:00.000Z',
+        bonuses: [
+          {
+            id: 'symbol-brand',
+            brand: '!!!',
+            bonus: 'Fake promo',
+            url: 'https://example.com/promo',
+            verified: '2026-06-16T12:00:00.000Z',
+            code: null,
+            source: 'email-inbox',
+            senderDomain: 'example.com',
+            senderEmail: 'promo@example.com',
+            subject: 'Bonus',
+            bonusType: 'Unknown',
+            bonusValue: '0',
+            terms: 'None',
+            expiryMessage: 'Valid through end of year',
+            expiresAt: '2026-12-31T23:59:59.999Z',
+            isExpired: false,
+            discoveredAt: '2026-06-16T12:00:00.000Z',
+            updatedAt: '2026-06-16T12:00:00.000Z',
+            lastPublishedAt: null,
+            imageUrl: null,
+          },
+        ],
+      }),
+    );
+
+    const { buildDailyBonusFeed } = await import('../../src/lib/daily-bonus-feed.js');
+    const feed = await buildDailyBonusFeed({ usOnly: false });
+    const symbolBrand = feed.data.find((entry) => entry.brand === '!!!');
+
+    expect(symbolBrand).toBeDefined();
+    expect(symbolBrand?.isUsCasino).toBe(false);
+  });
 });

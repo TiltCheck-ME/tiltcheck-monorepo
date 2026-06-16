@@ -47,9 +47,8 @@ export const SOURCE_BADGE_LABELS: Record<BonusFeedSourceKey, string> = {
   'local-fallback': 'Cache',
 };
 
-export function getDailyFeedApiUrl(usOnly = true): string | null {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
-  if (!apiBase) return null;
+export function getDailyFeedApiUrl(usOnly = true): string {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://api.tiltcheck.me';
   const suffix = usOnly ? '?usOnly=true' : '?usOnly=false';
   return `${apiBase.replace(/\/$/, '')}/bonuses/daily-feed${suffix}`;
 }

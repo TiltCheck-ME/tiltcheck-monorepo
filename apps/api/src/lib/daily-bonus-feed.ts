@@ -159,9 +159,11 @@ function resolveUsCasino(brand: string, url: string): { isUsCasino: boolean; cas
   const index = loadUsCasinoIndex();
   const normalizedBrand = normalizeKey(brand);
 
-  for (const [key, entry] of index.entries()) {
-    if (normalizedBrand.includes(key) || key.includes(normalizedBrand)) {
-      return { isUsCasino: true, casinoCategory: entry.category ?? null };
+  if (normalizedBrand) {
+    for (const [key, entry] of index.entries()) {
+      if (normalizedBrand.includes(key) || key.includes(normalizedBrand)) {
+        return { isUsCasino: true, casinoCategory: entry.category ?? null };
+      }
     }
   }
 
@@ -177,9 +179,13 @@ function resolveUsCasino(brand: string, url: string): { isUsCasino: boolean; cas
   return { isUsCasino: false, casinoCategory: null };
 }
 
+let cachedLocalFallback: RawBonusEntry[] | null = null;
+
 function readLocalFallbackBonuses(): RawBonusEntry[] {
+  if (cachedLocalFallback) return cachedLocalFallback;
+
   const localPath = path.join(resolveDataDir(), 'bonus-data.json');
-  return readJsonArray(localPath)
+  const entries = readJsonArray(localPath)
     .filter(isRawBonusEntry)
     .map((entry) => ({
       brand: entry.brand.trim(),
@@ -188,6 +194,12 @@ function readLocalFallbackBonuses(): RawBonusEntry[] {
       verified: entry.verified,
       code: entry.code ?? null,
     }));
+
+  if (entries.length > 0) {
+    cachedLocalFallback = entries;
+  }
+
+  return entries;
 }
 
 async function fetchCollectClockBonuses(): Promise<{
@@ -218,7 +230,8 @@ async function fetchCollectClockBonuses(): Promise<{
       entries,
       updatedAt: entries[0]?.verified ?? null,
     };
-  } catch {
+  } catch (error) {
+    console.error('[CollectClock] Failed to fetch or parse bonuses:', error);
     return { entries: [], updatedAt: null };
   }
 }

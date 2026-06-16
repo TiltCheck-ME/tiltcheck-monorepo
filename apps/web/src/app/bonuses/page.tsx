@@ -59,9 +59,6 @@ const EMPTY_FEED: DailyBonusFeedResponse = {
 
 async function fetchDailyBonusFeed(): Promise<DailyBonusFeedResponse> {
   const apiUrl = getDailyFeedApiUrl(true);
-  if (!apiUrl) {
-    return EMPTY_FEED;
-  }
 
   try {
     const response = await fetch(apiUrl, { next: { revalidate: 300 } });

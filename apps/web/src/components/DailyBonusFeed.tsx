@@ -81,7 +81,7 @@ function BonusCard({
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }).catch((err) => {
-        console.error('Failed to copy text: ', err);
+        console.error('Failed to copy text:', err);
       });
     }
   }, [entry.code]);
@@ -211,12 +211,16 @@ export default function DailyBonusFeed({ initialFeed, usOnlyDefault = true }: Da
 
   useEffect(() => {
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
-    fetch(`${apiUrl}/rgaas/casino-scores`, { cache: 'no-store' })
+    const controller = new AbortController();
+
+    fetch(`${apiUrl}/rgaas/casino-scores`, { cache: 'no-store', signal: controller.signal })
       .then((response) => (response.ok ? response.json() : null))
       .then((payload: { casinos?: LiveTrustScore[] } | null) => {
         setLiveScores(Array.isArray(payload?.casinos) ? payload.casinos : []);
       })
-      .catch(() => setLiveScores([]));
+      .catch(() => {});
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
