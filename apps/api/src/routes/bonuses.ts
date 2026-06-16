@@ -1,12 +1,15 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
 /**
  * @tiltcheck/api - CollectClock Bonuses Proxy Routes
  *
- * Route: GET /bonuses         - Proxy CollectClock bonus data with trust score enrichment
+ * Route: GET /bonuses              - Proxy CollectClock bonus data with trust score enrichment
+ * Route: GET /bonuses/inbox          - Email inbox bonus feed
+ * Route: GET /bonuses/daily-feed     - Unified daily bonus feed (all sources)
  * Route: GET /bonuses/trust/:casinoName - Get trust score for a casino by name
  */
 
 import { Router, Request, Response } from 'express';
+import { buildDailyBonusFeed } from '../lib/daily-bonus-feed.js';
 import { getActiveEmailBonusEntries, readEmailBonusFeed } from '../lib/email-bonus-feed.js';
 import { optionalAuthMiddleware } from '../middleware/auth.js';
 import { resolveExclusionProfileForRequest, suppressBonusEntries } from '../services/bonus-suppression.js';
@@ -128,6 +131,36 @@ router.get('/inbox', optionalAuthMiddleware, async (req: Request, res: Response)
       total: 0,
       data: [],
       error: 'INBOX_FEED_LOAD_FAILED',
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /bonuses/daily-feed
+// Unified aggregator: CollectClock + email inbox + local fallback.
+// ---------------------------------------------------------------------------
+router.get('/daily-feed', optionalAuthMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const usOnly = req.query.usOnly !== 'false';
+    const profile = await resolveExclusionProfileForRequest(req);
+    const feed = await buildDailyBonusFeed({ usOnly });
+    const suppression = suppressBonusEntries(feed.data, profile);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.json({
+      ...feed,
+      total: suppression.entries.length,
+      data: suppression.entries,
+      suppression: {
+        active: suppression.active,
+        hiddenCount: suppression.hiddenCount,
+      },
+    });
+  } catch (error) {
+    console.error('[Bonuses] Failed to build daily bonus feed:', error);
+    res.status(500).json({
+      error: 'DAILY_FEED_BUILD_FAILED',
+      message: 'Could not build unified daily bonus feed.',
     });
   }
 });

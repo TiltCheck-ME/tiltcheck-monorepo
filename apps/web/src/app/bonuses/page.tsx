@@ -1,138 +1,95 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 import React from 'react';
 import type { Metadata } from 'next';
-import BonusGrid, { BonusEntry } from '@/components/BonusGrid';
+import DailyBonusFeed from '@/components/DailyBonusFeed';
 import PublicPageHero from '@/components/PublicPageHero';
+import {
+  getDailyFeedApiUrl,
+  type DailyBonusFeedResponse,
+} from '@/lib/daily-bonus-feed';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Daily Bonus Tracker | TiltCheck',
+  title: 'US Daily Bonus Feed | TiltCheck',
   description:
-    'Sweepstakes and social casino bonuses sourced from CollectClock and TiltCheck inbox intel.',
+    'Daily bonus intel for US sweepstakes and social casinos — merged from CollectClock, email inbox parsing, and local cache.',
   openGraph: {
-    title: 'Daily Bonus Tracker | TiltCheck',
+    title: 'US Daily Bonus Feed | TiltCheck',
     description:
-      'Sweepstakes and social casino bonuses sourced from CollectClock and TiltCheck inbox intel.',
+      'Daily bonus intel for US sweepstakes and social casinos — merged from CollectClock, email inbox parsing, and local cache.',
     url: 'https://tiltcheck.me/bonuses',
   },
 };
 
-const COLLECTCLOCK_RAW_URL =
-  'https://raw.githubusercontent.com/TiltCheck-ME/CollectClock/main/bonus-data.json';
-
 const COLLECTCLOCK_SITE_URL = 'https://tiltcheck-me.github.io/CollectClock/';
-const EMAIL_FEED_API_URL = (() => {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
-  if (!apiBase) return null;
-  return `${apiBase.replace(/\/$/, '')}/bonuses/inbox`;
-})();
 
-type BonusFeedResponse = {
-  data?: BonusEntry[];
-  available?: boolean;
-  updatedAt?: string | null;
+const EMPTY_FEED: DailyBonusFeedResponse = {
+  updatedAt: new Date().toISOString(),
+  total: 0,
+  usTotal: 0,
+  data: [],
+  sources: [
+    {
+      key: 'email-inbox',
+      label: 'Email inbox',
+      available: false,
+      count: 0,
+      updatedAt: null,
+      detail: 'No active inbox promos',
+    },
+    {
+      key: 'collectclock',
+      label: 'CollectClock',
+      available: false,
+      count: 0,
+      updatedAt: null,
+      detail: 'CollectClock unreachable',
+    },
+    {
+      key: 'local-fallback',
+      label: 'Local cache',
+      available: false,
+      count: 0,
+      updatedAt: null,
+      detail: 'No local cache',
+    },
+  ],
 };
 
-function normalizeBonusKey(entry: BonusEntry): string {
-  return `${entry.brand.trim().toLowerCase()}::${entry.bonus.trim().toLowerCase()}::${entry.url.trim().toLowerCase()}`;
-}
-
-function mergeBonuses(...sources: BonusEntry[][]): BonusEntry[] {
-  const byKey = new Map<string, BonusEntry>();
-
-  for (const source of sources) {
-    for (const entry of source) {
-      const key = normalizeBonusKey(entry);
-      const existing = byKey.get(key);
-
-      if (!existing || Date.parse(entry.verified) > Date.parse(existing.verified)) {
-        byKey.set(key, entry);
-      }
-    }
-  }
-
-  return [...byKey.values()].sort(
-    (left, right) => Date.parse(right.verified) - Date.parse(left.verified)
-  );
-}
-
-type BonusFeedResult = {
-  bonuses: BonusEntry[];
-  available: boolean;
-  updatedAt: string | null;
-};
-
-async function fetchCollectClockBonuses(): Promise<BonusFeedResult> {
-  try {
-    const res = await fetch(COLLECTCLOCK_RAW_URL, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) {
-      console.error(
-        `[BonusTracker] CollectClock fetch failed: ${res.status} ${res.statusText}`
-      );
-      return { bonuses: [], available: false, updatedAt: null };
-    }
-    const data: BonusEntry[] = await res.json();
-    const bonuses = Array.isArray(data) ? data : [];
-    return {
-      bonuses,
-      available: bonuses.length > 0,
-      updatedAt: bonuses[0]?.verified ?? null,
-    };
-  } catch (err) {
-    console.error('[BonusTracker] Failed to load bonus data:', err);
-    return { bonuses: [], available: false, updatedAt: null };
-  }
-}
-
-async function fetchInboxBonuses(): Promise<BonusFeedResult> {
-  if (!EMAIL_FEED_API_URL) {
-    return { bonuses: [], available: false, updatedAt: null };
+async function fetchDailyBonusFeed(): Promise<DailyBonusFeedResponse> {
+  const apiUrl = getDailyFeedApiUrl(true);
+  if (!apiUrl) {
+    return EMPTY_FEED;
   }
 
   try {
-    const res = await fetch(EMAIL_FEED_API_URL, {
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) {
-      console.error(
-        `[BonusTracker] Inbox bonus feed fetch failed: ${res.status} ${res.statusText}`
-      );
-      return { bonuses: [], available: false, updatedAt: null };
+    const response = await fetch(apiUrl, { next: { revalidate: 300 } });
+    if (!response.ok) {
+      console.error(`[BonusFeed] daily-feed fetch failed: ${response.status} ${response.statusText}`);
+      return EMPTY_FEED;
     }
-    const data: BonusFeedResponse = await res.json();
-    const bonuses = Array.isArray(data.data) ? data.data : [];
-    return {
-      bonuses,
-      available: Boolean(data.available) && bonuses.length > 0,
-      updatedAt: data.updatedAt ?? bonuses[0]?.verified ?? null,
-    };
-  } catch (err) {
-    console.error('[BonusTracker] Failed to load inbox bonus feed:', err);
-    return { bonuses: [], available: false, updatedAt: null };
+    return await response.json() as DailyBonusFeedResponse;
+  } catch (error) {
+    console.error('[BonusFeed] Failed to load daily bonus feed:', error);
+    return EMPTY_FEED;
   }
 }
 
 export default async function BonusesPage() {
-  const [collectClockFeed, inboxFeed] = await Promise.all([
-    fetchCollectClockBonuses(),
-    fetchInboxBonuses(),
-  ]);
-  const bonuses = mergeBonuses(inboxFeed.bonuses, collectClockFeed.bonuses);
-  const hasAnyFeed = bonuses.length > 0;
-  const sourceLabel = inboxFeed.available ? 'COLLECTCLOCK + EMAIL INBOX' : 'COLLECTCLOCK';
+  const feed = await fetchDailyBonusFeed();
+  const hasAnyFeed = feed.data.length > 0;
+  const liveSources = feed.sources.filter((source) => source.available).map((source) => source.label);
 
   return (
     <main className="public-page public-page--tight text-white">
       <PublicPageHero
         compact
         eyebrow="Bonus intel"
-        title="Claim first. Deposit later."
+        title="US daily bonus feed"
         description={
           <p>
-            CollectClock plus inbox email drops — free value before real-money deposits.
+            One lane for US casino promos — CollectClock daily trackers, parsed email drops, and cached intel merged into a single feed.
           </p>
         }
         actions={
@@ -150,38 +107,23 @@ export default async function BonusesPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <p className="mb-4 text-[11px] font-mono uppercase tracking-[0.16em] text-gray-500">
-            {bonuses.length} offers · {sourceLabel.toLowerCase()} · verify terms before claiming
-          </p>
-          {!collectClockFeed.available && inboxFeed.available && (
+          {!hasAnyFeed && (
             <div className="mb-6 public-page-card public-page-card--accent">
               <p className="text-xs font-mono uppercase tracking-widest text-[#17c3b2]">
-                [COLLECTCLOCK OFFLINE] Showing inbox-discovered bonuses only.
+                [FEED OFFLINE] All sources are empty or unreachable. Inbox crawler and CollectClock sync run on schedule — check back shortly.
               </p>
             </div>
           )}
 
-          {!hasAnyFeed ? (
-            <div className="public-page-card py-20 text-center">
-              <p className="font-mono text-xs uppercase tracking-widest text-[#17c3b2] mb-2">
-                [DATA UNAVAILABLE]
-              </p>
-              <p className="font-mono text-[#8a97a8] text-sm">
-                CollectClock and inbox feeds are empty or unreachable. Check back shortly or visit{' '}
-                <a
-                  href={COLLECTCLOCK_SITE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#17c3b2] hover:underline"
-                >
-                  CollectClock directly
-                </a>
-                .
+          {hasAnyFeed && liveSources.length > 0 && (
+            <div className="mb-6 public-page-card">
+              <p className="text-xs font-mono uppercase tracking-widest text-[#8a97a8]">
+                Live sources: {liveSources.join(' · ')} · {feed.usTotal} US casino offers indexed
               </p>
             </div>
-          ) : (
-            <BonusGrid bonuses={bonuses} />
           )}
+
+          <DailyBonusFeed initialFeed={feed} usOnlyDefault />
         </div>
       </section>
     </main>
