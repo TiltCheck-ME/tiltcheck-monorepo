@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
 /**
  * Abuse controls for POST /rgaas/email-ingest: optional shared secret, payload
  * size cap, sender allow/deny lists (domain-level), and structured log helpers.
@@ -99,14 +99,27 @@ export function evaluateEmailIngestSenderPolicy(
   return 'allowlist_block';
 }
 
-export function assertEmailIngestSecret(req: Request): { ok: true } | { ok: false } {
+export type EmailIngestSecretResult =
+  | { ok: true }
+  | { ok: false; reason: 'not_configured' | 'invalid_credential' };
+
+/**
+ * Production requires EMAIL_INGEST_SECRET; dev/test may omit it for local workflows.
+ * Rollback: set EMAIL_INGEST_SECRET in production env and redeploy.
+ */
+export function assertEmailIngestSecret(req: Request): EmailIngestSecretResult {
   const secret = process.env.EMAIL_INGEST_SECRET?.trim();
-  if (!secret) return { ok: true };
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      return { ok: false, reason: 'not_configured' };
+    }
+    return { ok: true };
+  }
   const auth = req.get('authorization');
   const bearer = auth?.toLowerCase().startsWith('bearer ') ? auth.slice(7).trim() : '';
   const headerKey = req.get('x-email-ingest-key')?.trim() ?? '';
   if (bearer === secret || headerKey === secret) return { ok: true };
-  return { ok: false };
+  return { ok: false, reason: 'invalid_credential' };
 }
 
 export function logEmailIngestEvent(event: string, fields: Record<string, unknown>): void {

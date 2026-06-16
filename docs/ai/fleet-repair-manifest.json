@@ -1,0 +1,179 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16",
+  "version": "1.0.0",
+  "description": "Fleet repair manifest — maps audit repair tasks to subagent types and file ownership to avoid merge conflicts.",
+  "lanes": [
+    {
+      "id": "lane-security-auth",
+      "subagent_type": "generalPurpose",
+      "priority": "P0",
+      "status": "complete",
+      "title": "Security: auth boundaries + credential removal",
+      "owned_paths": [
+        "packages/database/scripts/ingest-legacy-casinos.ts",
+        "apps/api/src/routes/tip.ts",
+        "apps/api/src/routes/telemetry.ts",
+        "apps/api/src/routes/user.ts",
+        "apps/api/tests/routes/tip.test.ts",
+        "apps/api/tests/routes/telemetry.test.ts",
+        "apps/api/tests/routes/user-routes.test.ts"
+      ],
+      "tasks": [
+        "Remove hardcoded CLOUD_SQL_URL fallback from ingest-legacy-casinos.ts",
+        "Require sessionAuth on POST /tip/send and POST /tip/claim; bind userId from req.auth only",
+        "Require auth on telemetry write endpoints; verify caller matches userId",
+        "Re-enable auth on GET /user/:discordId, /resolve, /lookup, /activities with self-or-admin checks",
+        "Add or update targeted vitest coverage for impersonation attempts"
+      ],
+      "validation": [
+        "cd apps/api && pnpm exec vitest run tests/routes/tip.test.ts tests/routes/telemetry.test.ts tests/routes/user-routes.test.ts"
+      ]
+    },
+    {
+      "id": "lane-security-ingest",
+      "subagent_type": "generalPurpose",
+      "priority": "P0",
+      "status": "complete",
+      "title": "Security: fail-closed ingest and internal routes",
+      "owned_paths": [
+        "apps/api/src/lib/email-ingest-controls.ts",
+        "apps/api/src/middleware/auth.ts",
+        "apps/api/src/routes/rgaas.ts",
+        "apps/api/tests/routes/rgaas-email-feed.test.ts",
+        "apps/api/tests/routes/rgaas.test.ts"
+      ],
+      "tasks": [
+        "EMAIL_INGEST_SECRET unset in production must return 503 on email ingest, not open",
+        "internalServiceAuth must fail closed on all deployed environments",
+        "Protect POST /rgaas/audit with service auth",
+        "Add tests for fail-closed behavior"
+      ],
+      "validation": [
+        "cd apps/api && pnpm exec vitest run tests/routes/rgaas-email-feed.test.ts tests/routes/rgaas.test.ts"
+      ]
+    },
+    {
+      "id": "lane-devops-bootstrap",
+      "subagent_type": "generalPurpose",
+      "priority": "P0",
+      "status": "complete",
+      "title": "DevOps: cloud agent bootstrap",
+      "owned_paths": [
+        "scripts/cloud-agent-env-setup.sh",
+        "docs/migration/cloud-agent-environment-setup.md"
+      ],
+      "tasks": [
+        "Seed .env from .env.example when missing with SKIP_ENV_VALIDATION, SKIP_DISCORD_LOGIN, dummy VAULT_ENCRYPTION_KEY",
+        "Add CLOUD_AGENT_SKIP_VERIFY flag to skip tail verification steps",
+        "Document required Cursor Cloud startup command: bash scripts/cloud-agent-env-setup.sh"
+      ],
+      "validation": [
+        "bash -n scripts/cloud-agent-env-setup.sh"
+      ]
+    },
+    {
+      "id": "lane-ci-brand-law",
+      "subagent_type": "generalPurpose",
+      "priority": "P1",
+      "status": "complete",
+      "title": "CI: brand law enforcer workflow",
+      "owned_paths": [
+        ".github/workflows/brand-law-enforcer.yml",
+        ".github/agents/brand-law-enforcer.yml"
+      ],
+      "tasks": [
+        "Create .github/workflows/brand-law-enforcer.yml from .github/agents/brand-law-enforcer.yml",
+        "Fix brittle grep patterns (avoid false positives on .env.example)",
+        "Keep .github/agents copy as reference or add pointer comment"
+      ],
+      "validation": [
+        "test -f .github/workflows/brand-law-enforcer.yml"
+      ]
+    },
+    {
+      "id": "lane-devops-ports",
+      "subagent_type": "generalPurpose",
+      "priority": "P1",
+      "title": "DevOps: port matrix alignment",
+      "owned_paths": [
+        ".github/workflows/configure-tunnel.yml",
+        "apps/activity/Dockerfile",
+        "apps/api/Dockerfile",
+        "docs/DEPLOY.md"
+      ],
+      "tasks": [
+        "Fix tunnel ingress ports to match service listen ports",
+        "Fix activity Dockerfile api proxy_pass port",
+        "Align api Dockerfile EXPOSE with runtime-config default",
+        "Add canonical port table to docs/DEPLOY.md"
+      ],
+      "validation": [
+        "grep -E 'railway.internal' .github/workflows/configure-tunnel.yml"
+      ]
+    },
+    {
+      "id": "lane-mvp-bonus-feed",
+      "subagent_type": "generalPurpose",
+      "priority": "P1",
+      "title": "MVP: port daily bonus feed to tiltcheckmvp",
+      "repo": "https://github.com/jmenichole/tiltcheckmvp",
+      "branch": "cursor/daily-bonus-feed-port-ec58",
+      "owned_paths": [
+        "apps/api/src/lib/daily-bonus-feed.ts",
+        "apps/api/src/routes/bonuses.ts",
+        "apps/web/src/app/bonuses/page.tsx",
+        "apps/web/src/components/DailyBonusFeed.tsx",
+        "apps/web/src/lib/daily-bonus-feed.ts",
+        "docs/bonuses.md"
+      ],
+      "status": "complete_local",
+      "notes": "Built on /tmp/tiltcheckmvp; push requires jmenichole repo write access",
+      "tasks": [
+        "Port GET /bonuses/daily-feed aggregator to Hono API",
+        "Replace /bonuses redirect with public DailyBonusFeed page",
+        "Update docs/bonuses.md"
+      ],
+      "validation": [
+        "cd tiltcheckmvp && pnpm build"
+      ]
+    },
+    {
+      "id": "lane-product-bonus",
+      "subagent_type": "generalPurpose",
+      "priority": "P2",
+      "title": "Product: bonus feed consolidation",
+      "owned_paths": [
+        "apps/web/src/components/BonusGrid.tsx",
+        "apps/activity/src/views/BonusFeedView.ts",
+        "apps/activity/main.ts"
+      ],
+      "tasks": [
+        "Remove orphaned BonusGrid.tsx if unused",
+        "Thin activity BonusFeedView to deep-link web /bonuses",
+        "Archive or delete orphaned apps/activity/main.ts"
+      ],
+      "depends_on": ["cursor/daily-bonus-feed-ec58"],
+      "validation": [
+        "cd apps/activity && pnpm test 2>/dev/null || true"
+      ]
+    },
+    {
+      "id": "lane-verify",
+      "subagent_type": "verifier",
+      "priority": "P1",
+      "title": "Verifier: post-lane smoke",
+      "depends_on": ["lane-security-auth", "lane-security-ingest", "lane-devops-bootstrap"],
+      "tasks": [
+        "Run validation commands from completed lanes",
+        "Confirm no secrets in diff",
+        "Report pass/fail matrix"
+      ]
+    }
+  ],
+  "dispatch_rules": {
+    "max_parallel_lanes": 4,
+    "no_overlap": "Each lane owns exclusive paths; never dispatch two lanes with overlapping owned_paths",
+    "merge_order": ["lane-security-auth", "lane-security-ingest", "lane-devops-bootstrap", "lane-ci-brand-law", "lane-devops-ports", "lane-product-bonus"],
+    "branch_prefix": "cursor/fleet-"
+  }
+}

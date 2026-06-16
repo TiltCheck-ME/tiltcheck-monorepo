@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 /**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
@@ -21,7 +21,12 @@ import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus, evaluateRtpLegalTrigger } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
-import { authMiddleware, AuthRequest, optionalAuthMiddleware } from '../middleware/auth.js';
+import {
+  authMiddleware,
+  AuthRequest,
+  internalServiceAuth,
+  optionalAuthMiddleware,
+} from '../middleware/auth.js';
 import type { CasinoTrustRecord, GameCategory, RtpReportSubmittedEvent, TrustEvent } from '@tiltcheck/types';
 import { isGameBlocked } from '../services/exclusion-cache.js';
 import { findUserByDiscordId } from '@tiltcheck/db';
@@ -412,7 +417,7 @@ router.get('/casinos', (_req, res) => {
  * Trigger a system-wide trust score audit/recalculation.
  * Intended for Cloud Scheduler or manual override.
  */
-router.post('/audit', (_req, res) => {
+router.post('/audit', internalServiceAuth, (_req, res) => {
   // Publish an audit trigger event
   eventRouter.publish('trust.audit.trigger', 'trust-engine-api', {
     timestamp: Date.now(),
@@ -903,6 +908,11 @@ router.get('/license-check', (req, res) => {
 router.post('/email-ingest', emailIngestLimiter, async (req, res) => {
   const auth = assertEmailIngestSecret(req);
   if (!auth.ok) {
+    if (auth.reason === 'not_configured') {
+      logEmailIngestEvent('auth_disabled', { code: 'EMAIL_INGEST_DISABLED' });
+      res.status(503).json({ error: 'Email intake service unavailable', code: 'EMAIL_INGEST_DISABLED' });
+      return;
+    }
     logEmailIngestEvent('auth_failed', { code: 'EMAIL_INGEST_AUTH_FAILED' });
     res.status(401).json({ error: 'Email intake authentication required', code: 'EMAIL_INGEST_AUTH_FAILED' });
     return;

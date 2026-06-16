@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
 import pg from 'pg';
 import fs from 'fs';
 import path from 'path';
@@ -5,8 +6,11 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Connection Strings
-const CLOUD_SQL_URL = process.env.CLOUD_SQL_URL || `postgresql://trust-worker:T1lt_Ch3ck_Pr0d_5ecure_!2026@34.29.231.218:5432/tilt-trust-prod`;
+const CLOUD_SQL_URL = process.env.CLOUD_SQL_URL?.trim();
+if (!CLOUD_SQL_URL) {
+  console.error('FATAL: CLOUD_SQL_URL environment variable is required. Set it before running ingest.');
+  process.exit(1);
+}
 
 const GRADE_MAP: Record<string, number> = {
   'A+': 98, 'A': 95, 'A-': 90,

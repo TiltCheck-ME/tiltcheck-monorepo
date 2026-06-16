@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
 #
 # Idempotent cloud-agent bootstrap for Cursor Cloud sessions:
 # - installs a managed Node 20 toolchain when the base image is missing Node
@@ -23,9 +23,12 @@ DOWNLOADS_DIR="$CACHE_ROOT/downloads"
 STATE_DIR="$CACHE_ROOT/state"
 LOCAL_BIN_DIR="$HOME/.local/bin"
 LOCKFILE="$ROOT_DIR/pnpm-lock.yaml"
+ENV_FILE="$ROOT_DIR/.env"
+ENV_EXAMPLE_FILE="$ROOT_DIR/.env.example"
 DEPENDENCY_STATE_FILE="$STATE_DIR/workspace-bootstrap.state"
 PROFILE_BEGIN="# >>> tiltcheck cloud agent path >>>"
 PROFILE_END="# <<< tiltcheck cloud agent path <<<"
+CLOUD_AGENT_DEV_VAULT_KEY="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 log() {
   printf '[cloud-agent-env] %s\n' "$*"
@@ -208,6 +211,54 @@ build_workspace_prerequisites() {
   pnpm --filter @tiltcheck/trust-engines build >/dev/null
 }
 
+ensure_env_var() {
+  local env_file="$1"
+  local key="$2"
+  local value="$3"
+  local tmp_file
+
+  if grep -q "^${key}=" "$env_file"; then
+    tmp_file="$(mktemp)"
+    awk -v key="$key" -v value="$value" '
+      BEGIN { updated = 0 }
+      $0 ~ "^" key "=" {
+        print key "=" value
+        updated = 1
+        next
+      }
+      { print }
+      END {
+        if (!updated) {
+          print key "=" value
+        }
+      }
+    ' "$env_file" > "$tmp_file"
+    mv "$tmp_file" "$env_file"
+    return
+  fi
+
+  printf '%s=%s\n' "$key" "$value" >> "$env_file"
+}
+
+seed_cloud_agent_env() {
+  if [[ ! -f "$ENV_EXAMPLE_FILE" ]]; then
+    fail ".env.example not found at repository root."
+  fi
+
+  if [[ ! -f "$ENV_FILE" ]]; then
+    log "Seeding .env from .env.example..."
+    cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+  else
+    log ".env already present. Skipping copy from .env.example."
+    return
+  fi
+
+  ensure_env_var "$ENV_FILE" "SKIP_ENV_VALIDATION" "true"
+  ensure_env_var "$ENV_FILE" "SKIP_DISCORD_LOGIN" "true"
+  ensure_env_var "$ENV_FILE" "VAULT_ENCRYPTION_KEY" "$CLOUD_AGENT_DEV_VAULT_KEY"
+  log "Cloud-agent .env defaults applied (SKIP_ENV_VALIDATION, SKIP_DISCORD_LOGIN, VAULT_ENCRYPTION_KEY)."
+}
+
 seed_runtime_trust_state() {
   if [[ -f "$ROOT_DIR/data/trust-engine/remaining-sweepstakes-records.v3.json" ]]; then
     log "Seeding runtime trust data from scrape artifacts..."
@@ -222,6 +273,11 @@ seed_runtime_trust_state() {
 }
 
 verify_target_commands() {
+  if [[ "${CLOUD_AGENT_SKIP_VERIFY:-}" == "1" ]]; then
+    log "CLOUD_AGENT_SKIP_VERIFY=1 set. Skipping partner test, web tsc, and trust:start verification."
+    return
+  fi
+
   log "Verifying partner route test command..."
   pnpm --filter @tiltcheck/api exec vitest run tests/routes/partner.test.ts >/dev/null
 
@@ -232,6 +288,7 @@ verify_target_commands() {
   pnpm trust:start >/dev/null
 }
 
+seed_cloud_agent_env
 ensure_managed_node
 ensure_pnpm
 sync_workspace_dependencies

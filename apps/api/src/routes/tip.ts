@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
 /**
  * Tip Routes - /tip/* (also mounted at /justthetip/*)
  * JustTheTip tipping endpoints — direct tips, room rains, claim, history.
@@ -262,12 +262,19 @@ router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res)
  * Send a tip to a user or rain the ROOM.
  * Body: { fromUserId, toUsername, amountSol, message?, channelId }
  */
-router.post('/send', tipLimiter, sessionAuth(undefined, { required: false }), async (req: Request, res) => {
+router.post('/send', tipLimiter, sessionAuth(undefined, { required: true }), async (req: Request, res) => {
   try {
-    const { fromUserId, toUsername, amountSol, message = '', channelId } = req.body;
-    const userId = (req.auth as { userId?: string } | undefined)?.userId ?? fromUserId;
+    const { toUsername, amountSol, message = '', channelId } = req.body;
+    const auth = req.auth;
 
-    if (!userId || !toUsername || !amountSol || amountSol <= 0 || !channelId) {
+    if (!auth?.discordId) {
+      res.status(401).json({ error: 'Not authenticated with Discord' });
+      return;
+    }
+
+    const userId = auth.discordId;
+
+    if (!toUsername || !amountSol || amountSol <= 0 || !channelId) {
       res.status(400).json({ error: 'Missing required fields: toUsername, amountSol, channelId' });
       return;
     }
@@ -387,13 +394,20 @@ router.post('/send', tipLimiter, sessionAuth(undefined, { required: false }), as
  * Claim an active room rain.
  * Body: { rainId, userId, channelId }
  */
-router.post('/claim', tipLimiter, sessionAuth(undefined, { required: false }), async (req: Request, res) => {
+router.post('/claim', tipLimiter, sessionAuth(undefined, { required: true }), async (req: Request, res) => {
   try {
-    const { rainId, userId, channelId } = req.body;
-    const claimerId = (req.auth as { userId?: string } | undefined)?.userId ?? userId;
+    const { rainId, channelId } = req.body;
+    const auth = req.auth;
 
-    if (!rainId || !claimerId || !channelId) {
-      res.status(400).json({ error: 'Missing required fields: rainId, userId, channelId' });
+    if (!auth?.discordId) {
+      res.status(401).json({ error: 'Not authenticated with Discord' });
+      return;
+    }
+
+    const claimerId = auth.discordId;
+
+    if (!rainId || !channelId) {
+      res.status(400).json({ error: 'Missing required fields: rainId, channelId' });
       return;
     }
 

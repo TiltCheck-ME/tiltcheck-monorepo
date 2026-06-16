@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
 /**
  * DEPRECATED: This file is kept for backwards compatibility only.
  * New implementations should use middleware from @tiltcheck/auth/middleware/express.js:
@@ -125,38 +126,54 @@ export function optionalAuthMiddleware(req: Request, res: Response, next: NextFu
   });
 }
 
+/** Local-only dev: NODE_ENV unset or explicitly "development". All other envs fail closed. */
+function isLocalOnlyDevEnvironment(): boolean {
+  const nodeEnv = process.env.NODE_ENV?.trim();
+  return nodeEnv === undefined || nodeEnv === '' || nodeEnv === 'development';
+}
+
 /**
- * Internal service authentication (kept for backwards compatibility)
- * Validates Bearer token against INTERNAL_API_SECRET
+ * Internal service authentication (kept for backwards compatibility).
+ * Validates Bearer token against INTERNAL_API_SECRET.
+ *
+ * Fail-closed on deployed environments (production, test, staging, etc.).
+ * Only skips auth when INTERNAL_API_SECRET is unset in local-only dev
+ * (NODE_ENV unset or "development"). Set the secret everywhere else.
+ *
+ * Risk: misconfigured secret blocks internal callers; verify Railway env vars.
+ * Rollback: restore INTERNAL_API_SECRET and redeploy.
  */
-export function internalServiceAuth(req: Request, _res: Response, next: NextFunction): void {
-  const secret = process.env.INTERNAL_API_SECRET;
-  if (!secret || typeof secret !== 'string' || secret.trim() === '') {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('INTERNAL_API_SECRET must be set to a non-empty string in production');
+export function internalServiceAuth(req: Request, res: Response, next: NextFunction): void {
+  const secret = process.env.INTERNAL_API_SECRET?.trim();
+  if (!secret) {
+    if (isLocalOnlyDevEnvironment()) {
+      console.warn('[Auth] INTERNAL_API_SECRET unset — bypass allowed in local dev only');
+      next();
+      return;
     }
-    // Allow in dev (but warn)
-    if (secret === '') {
-      console.warn('[Auth] INTERNAL_API_SECRET is set to empty string - authentication will fail');
-    }
-    next();
+    res.status(503).json({
+      error: 'Internal service authentication not configured',
+      code: 'SERVICE_AUTH_DISABLED',
+    });
     return;
   }
 
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    // Middleware should reject, not pass
-    throw new Error('Missing authorization header');
+    res.status(401).json({ error: 'Missing authorization header', code: 'UNAUTHORIZED' });
+    return;
   }
 
   const parts = authHeader.split(' ');
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    throw new Error('Invalid authorization format');
+    res.status(401).json({ error: 'Invalid authorization format', code: 'UNAUTHORIZED' });
+    return;
   }
 
   const token = parts[1];
   if (token !== secret) {
-    throw new Error('Invalid service token');
+    res.status(401).json({ error: 'Invalid service token', code: 'UNAUTHORIZED' });
+    return;
   }
 
   next();

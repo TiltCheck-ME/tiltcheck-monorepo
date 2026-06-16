@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 /**
  * User Routes - /user/*
  * Handles user profile, onboarding status, and preferences
@@ -113,6 +113,59 @@ function buildUserProfileResponse(user: UserProfileData, onboarding: OnboardingD
     };
 }
 
+function isAdmin(auth: AuthRequest['user'] | undefined): boolean {
+    return Array.isArray(auth?.roles) && auth.roles.includes('admin');
+}
+
+function canAccessDiscordProfile(auth: AuthRequest['user'] | undefined, discordId: string): boolean {
+    if (!auth) {
+        return false;
+    }
+    if (isAdmin(auth)) {
+        return true;
+    }
+    return auth.discordId === discordId;
+}
+
+function canAccessWalletLookup(auth: AuthRequest['user'] | undefined, wallet: string): boolean {
+    if (!auth) {
+        return false;
+    }
+    if (isAdmin(auth)) {
+        return true;
+    }
+    return typeof auth.walletAddress === 'string' && auth.walletAddress === wallet;
+}
+
+function canAccessResolveIdentity(auth: AuthRequest['user'] | undefined, identity: string): boolean {
+    if (!auth) {
+        return false;
+    }
+    if (isAdmin(auth)) {
+        return true;
+    }
+    if (auth.discordId === identity) {
+        return true;
+    }
+    if (typeof auth.walletAddress === 'string' && auth.walletAddress === identity) {
+        return true;
+    }
+    return false;
+}
+
+function enforceSelfOrAdmin(
+    auth: AuthRequest['user'] | undefined,
+    allowed: boolean,
+    message: string,
+): void {
+    if (!auth) {
+        throw new ApplicationError('Authentication required', 401, 'UNAUTHORIZED');
+    }
+    if (!allowed) {
+        throw new ApplicationError(message, 403, 'FORBIDDEN');
+    }
+}
+
 function extractBearerToken(authHeader: string | undefined): string | null {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return null;
@@ -201,9 +254,11 @@ function buildExclusionTaxonomy() {
     };
 }
 
-router.get('/lookup/:wallet', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/lookup/:wallet', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const wallet = req.params.wallet as string;
+        const auth = (req as AuthRequest).user;
+        enforceSelfOrAdmin(auth, canAccessWalletLookup(auth, wallet), 'Forbidden: wallet lookup restricted to owner or admin');
         await handleLookupByWallet(wallet, res);
     } catch (err) {
         next(err);
@@ -247,12 +302,19 @@ router.post('/upgrade', authMiddleware, async (_req: Request, _res: Response, ne
  * Resolve a wallet address from a Discord ID or generic identity string.
  * Used by the JustTheTip protocol.
  */
-router.get('/resolve', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/resolve', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const identity = req.query.identity as string;
+        const auth = (req as AuthRequest).user;
         if (!identity) {
             return next(new ValidationError('Identity query is required'));
         }
+
+        enforceSelfOrAdmin(
+            auth,
+            canAccessResolveIdentity(auth, identity),
+            'Forbidden: resolve restricted to self or admin',
+        );
 
         // Try Discord ID first
         const user = await findUserByDiscordId(identity);
@@ -284,9 +346,11 @@ router.get('/resolve', async (req: Request, res: Response, next: NextFunction) =
 /**
  * Backward compatible alias for older clients.
  */
-router.get('/lookup/:address', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/lookup/:address', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const address = req.params.address as string;
+        const auth = (req as AuthRequest).user;
+        enforceSelfOrAdmin(auth, canAccessWalletLookup(auth, address), 'Forbidden: wallet lookup restricted to owner or admin');
         await handleLookupByWallet(address, res);
     } catch (err) {
         next(err);
@@ -540,9 +604,16 @@ router.delete('/:discordId/buddies/:buddyId', authMiddleware, async (req: Reques
  * GET /user/:discordId/activities
  * Get recent audit logs for a user (Activity Feed)
  */
-router.get('/:discordId/activities', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:discordId/activities', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const discordId = req.params.discordId as string;
+        const auth = (req as AuthRequest).user;
+        enforceSelfOrAdmin(
+            auth,
+            canAccessDiscordProfile(auth, discordId),
+            'Forbidden: activity feed restricted to self or admin',
+        );
+
         const user = await findUserByDiscordId(discordId);
         
         if (!user) {
@@ -571,10 +642,16 @@ router.get('/:discordId/activities', async (req: Request, res: Response, next: N
  * GET /user/:discordId
  * Get user profile and analytics by Discord ID (used by Dashboard)
  */
-router.get('/:discordId', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:discordId', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const discordId = Array.isArray(req.params.discordId) ? req.params.discordId[0] : req.params.discordId;
-        // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
+        const auth = (req as AuthRequest).user;
+        enforceSelfOrAdmin(
+            auth,
+            canAccessDiscordProfile(auth, discordId),
+            'Forbidden: profile access restricted to self or admin',
+        );
+
         const user = await findUserByDiscordId(discordId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });

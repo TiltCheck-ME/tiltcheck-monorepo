@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -31,7 +31,9 @@ const mockAuthUser = vi.hoisted(() => ({
   id: 'user-1',
   discordId: 'discord-self',
   walletAddress: 'wallet-1',
+  roles: [] as string[],
 }));
+let authEnabled = true;
 
 vi.mock('@tiltcheck/db', () => mockedDb);
 vi.mock('../../src/services/exclusion-cache.js', () => mockedExclusionCache);
@@ -56,7 +58,11 @@ vi.mock('@tiltcheck/discord-monetization', async () => {
   };
 });
 vi.mock('../../src/middleware/auth.js', () => ({
-  authMiddleware: (req: any, _res: any, next: any) => {
+  authMiddleware: (req: any, res: any, next: any) => {
+    if (!authEnabled) {
+      res.status(401).json({ error: 'Authentication required', code: 'UNAUTHORIZED' });
+      return;
+    }
     if (!req.user) {
       req.user = { ...mockAuthUser };
     }
@@ -79,6 +85,8 @@ describe('User route ordering and shape', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    authEnabled = true;
+    mockAuthUser.roles = [];
     mockJttGetBalance.mockResolvedValue({ total_fees_lamports: 0 });
     mockDiscordGetEntitlements.mockResolvedValue([]);
   });
@@ -96,7 +104,7 @@ describe('User route ordering and shape', () => {
   it('returns canonical profile payload with backward-compatible fields', async () => {
     mockedDb.findUserByDiscordId.mockResolvedValueOnce({
       id: 'u1',
-      discord_id: 'd1',
+      discord_id: 'discord-self',
       discord_username: 'tester',
       discord_avatar: null,
       wallet_address: 'wallet-1',
@@ -115,13 +123,57 @@ describe('User route ordering and shape', () => {
       signals_count: 21,
     });
 
-    const response = await request(app).get('/user/d1');
+    const response = await request(app).get('/user/discord-self');
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.discordId).toBe('d1');
-    expect(response.body.user.discordId).toBe('d1');
+    expect(response.body.discordId).toBe('discord-self');
+    expect(response.body.user.discordId).toBe('discord-self');
     expect(response.body.analytics.trustScore).toBe(88);
+  });
+
+  it('returns 401 for profile lookup without auth', async () => {
+    authEnabled = false;
+
+    const response = await request(app).get('/user/discord-self');
+
+    expect(response.status).toBe(401);
+    expect(mockedDb.findUserByDiscordId).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 when reading another user profile', async () => {
+    const response = await request(app).get('/user/discord-other');
+
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe('FORBIDDEN');
+    expect(mockedDb.findUserByDiscordId).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 for activities without auth', async () => {
+    authEnabled = false;
+
+    const response = await request(app).get('/user/discord-self/activities');
+
+    expect(response.status).toBe(401);
+    expect(mockedDb.findUserByDiscordId).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 for wallet lookup without auth', async () => {
+    authEnabled = false;
+
+    const response = await request(app).get('/user/lookup/wallet-1');
+
+    expect(response.status).toBe(401);
+    expect(mockedDb.findUserByWallet).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 for resolve without auth', async () => {
+    authEnabled = false;
+
+    const response = await request(app).get('/user/resolve').query({ identity: 'discord-self' });
+
+    expect(response.status).toBe(401);
+    expect(mockedDb.findUserByDiscordId).not.toHaveBeenCalled();
   });
 
   it('returns internal consent state before dynamic discordId lookup', async () => {

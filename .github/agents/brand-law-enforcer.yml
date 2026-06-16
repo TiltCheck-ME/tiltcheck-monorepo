@@ -1,3 +1,4 @@
+<!-- Canonical workflow: .github/workflows/brand-law-enforcer.yml -->
 name: Brand Law Enforcer
 
 on:

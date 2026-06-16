@@ -54,6 +54,7 @@ vi.mock('@tiltcheck/tiltcheck-core', () => ({
 vi.mock('../../src/middleware/auth.js', () => ({
   authMiddleware: (_req: any, _res: any, next: any) => next(),
   optionalAuthMiddleware: (_req: any, _res: any, next: any) => next(),
+  internalServiceAuth: (_req: any, _res: any, next: any) => next(),
 }));
 
 const app = express();

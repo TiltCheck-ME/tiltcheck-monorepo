@@ -1,6 +1,6 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import request from 'supertest';
 import { errorHandler } from '../../src/middleware/error.js';
 
@@ -12,7 +12,34 @@ const mockedDb = vi.hoisted(() => ({
   updateUser: vi.fn(),
 }));
 
+let mockAuthUser: {
+  userId: string;
+  discordId: string;
+} | null = {
+  userId: 'u1',
+  discordId: 'd1',
+};
+
 vi.mock('@tiltcheck/db', () => mockedDb);
+vi.mock('@tiltcheck/auth/middleware/express', () => ({
+  sessionAuth: vi.fn((_jwtConfig?: unknown, options?: { required?: boolean }) => (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const required = options?.required !== false;
+    if (!mockAuthUser) {
+      if (required) {
+        res.status(401).json({ error: 'UNAUTHORIZED', message: 'Authentication required' });
+        return;
+      }
+      next();
+      return;
+    }
+    (req as Request & { auth?: typeof mockAuthUser }).auth = mockAuthUser;
+    next();
+  }),
+}));
 
 import { telemetryRouter } from '../../src/routes/telemetry.js';
 
@@ -25,6 +52,10 @@ describe('Telemetry consent enforcement', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuthUser = {
+      userId: 'u1',
+      discordId: 'd1',
+    };
   });
 
   it('accepts round telemetry on the canonical versioned route', async () => {
