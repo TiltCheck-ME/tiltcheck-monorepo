@@ -117,13 +117,13 @@ Users may start a write on one surface and confirm on another. All surfaces shar
 
 | Origin surface | Handoff mechanism |
 |----------------|-------------------|
-| **Discord** | Ephemeral message with **Confirm here** (interaction → `POST /copilot/confirm`) and **Confirm on web** button linking to `{WEB_ORIGIN}/dashboard/copilot?confirm={confirmToken}` |
+| **Discord** | Ephemeral message with **Confirm here** (interaction → `POST /copilot/confirm`) and **Confirm on web** button linking to `{WEB_ORIGIN}/dashboard/copilot?confirm=:confirmToken` |
 | **Web** | In-panel Confirm button; pending confirms also listed at `/dashboard/copilot/pending` for the logged-in user |
 | **Extension** | FAB chat Confirm button; optional **Open in dashboard** deep link with same `?confirm=` query param |
 
 **Deep link contract:**
-- URL: `/dashboard/copilot?confirm={confirmToken}`
-- Web app loads preview via `GET /copilot/pending/{confirmToken}` (authed; token must belong to session `userId`)
+- URL: `/dashboard/copilot?confirm=:confirmToken`
+- Web app loads preview via `GET /copilot/pending/:confirmToken` (authed; token must belong to session `userId`)
 - User clicks Confirm → `POST /copilot/confirm` → redirect to success state
 
 **Security:** Token is useless without authenticated session matching `PendingConfirm.userId`. Tokens are single-use and expire in 5 minutes regardless of surface.
@@ -307,7 +307,7 @@ On auth connect: pull `UserRecipe[]` and active vault config (`AutoVaultConfig`)
 |--------|------|------|-------------|
 | POST | `/copilot/chat` | flexAuth (optional) | Message in → blocks out |
 | POST | `/copilot/confirm` | required | Consume token; route to executor |
-| GET | `/copilot/pending/{confirmToken}` | required | Load preview for deep link / handoff |
+| GET | `/copilot/pending/:confirmToken` | required | Load preview for deep link / handoff |
 | GET | `/copilot/pending` | required | List user's open pending confirms |
 | GET | `/copilot/recipes` | required | List user recipes |
 | PUT | `/copilot/recipes/:id` | required | Update recipe |
