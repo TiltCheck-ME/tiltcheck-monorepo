@@ -8,7 +8,7 @@ This document maps user-facing pages across **v1** (`TiltCheck-ME/tiltcheck-mono
 
 | Stack | Human (styled) | Machine (crawlers) | Source |
 |-------|----------------|-------------------|--------|
-| v1 | `https://tiltcheck.me/site-map` | `https://tiltcheck.me/sitemap.xml` (+ XSL in Firefox) | `apps/web/src/app/site-map/`, `sitemap.xml/route.ts`, `public/sitemap.xsl` |
+| v1 | `https://tiltcheck.me/site-map` | `https://tiltcheck.me/sitemap.xml` (+ XSL in Firefox) | `apps/web/src/lib/sitemap-entries.ts`, `site-map/`, `sitemap.xml/route.ts`, `public/sitemap.xsl` |
 | MVP | same | same | [apply guide](./migration/tiltcheckmvp-web-seo/README.md) |
 
 **Chrome note:** Chrome does not render XSL. Use `/site-map` for a styled index; `/sitemap.xml` remains for bots.

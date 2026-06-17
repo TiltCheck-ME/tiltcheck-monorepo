@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import PublicPageHero from '@/components/PublicPageHero';
 import { CASINOS } from '@/lib/casino-trust';
 import {
+  isExternalSitemapHref,
   resolveSitemapHref,
   SITEMAP_CATEGORY_ORDER,
   SITEMAP_PAGE_ENTRIES,
@@ -61,7 +62,7 @@ export default function SiteMapPage() {
                 <ul className="public-page-grid public-page-grid--2">
                   {entries.map((entry) => {
                     const href = resolveSitemapHref(BASE, entry);
-                    const isExternal = href.startsWith('http') && !href.startsWith(BASE);
+                    const isExternal = isExternalSitemapHref(href, BASE);
                     return (
                       <li key={entry.path}>
                         <Link

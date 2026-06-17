@@ -17,12 +17,14 @@ function xmlEscape(value: string): string {
     .replace(/'/g, '&apos;');
 }
 
-function urlNode(base: string, entry: Pick<SitemapPageEntry, 'path' | 'href' | 'changeFrequency' | 'priority'>, lastmod: string): string {
-  const loc = resolveSitemapHref(base, entry as SitemapPageEntry);
+function urlNode(
+  base: string,
+  entry: Pick<SitemapPageEntry, 'path' | 'href' | 'changeFrequency' | 'priority'>,
+): string {
+  const loc = resolveSitemapHref(base, entry);
   return [
     '  <url>',
     `    <loc>${xmlEscape(loc)}</loc>`,
-    `    <lastmod>${xmlEscape(lastmod)}</lastmod>`,
     `    <changefreq>${entry.changeFrequency}</changefreq>`,
     `    <priority>${entry.priority.toFixed(1)}</priority>`,
     '  </url>',
@@ -30,18 +32,13 @@ function urlNode(base: string, entry: Pick<SitemapPageEntry, 'path' | 'href' | '
 }
 
 export function buildSitemapXml(base = DEFAULT_BASE): string {
-  const lastmod = new Date().toISOString();
-  const staticUrls = SITEMAP_PAGE_ENTRIES.map((entry) => urlNode(base, entry, lastmod));
+  const staticUrls = SITEMAP_PAGE_ENTRIES.map((entry) => urlNode(base, entry));
   const casinoUrls = CASINOS.map((casino) =>
-    urlNode(
-      base,
-      {
-        path: `/casinos/${casino.slug}`,
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      },
-      lastmod,
-    ),
+    urlNode(base, {
+      path: `/casinos/${casino.slug}`,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }),
   );
 
   return [
