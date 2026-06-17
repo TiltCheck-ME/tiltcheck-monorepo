@@ -258,7 +258,7 @@ router.get('/lookup/:wallet', authMiddleware, async (req: Request, res: Response
     try {
         const wallet = req.params.wallet as string;
         const auth = (req as AuthRequest).user;
-        enforceSelfOrAdmin(auth, canAccessWalletLookup(auth, wallet), 'Forbidden: wallet lookup restricted to owner or admin');
+        // Allowed for any authenticated user to support tipping history lookup
         await handleLookupByWallet(wallet, res);
     } catch (err) {
         next(err);
