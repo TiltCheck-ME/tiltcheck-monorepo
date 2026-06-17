@@ -88,8 +88,18 @@ export const SITEMAP_CATEGORY_ORDER: SitemapCategory[] = [
   'Legal & RG',
 ];
 
-export function resolveSitemapHref(base: string, entry: SitemapPageEntry): string {
+export function resolveSitemapHref(base: string, entry: Pick<SitemapPageEntry, 'path' | 'href'>): string {
   if (entry.href) return entry.href;
   const path = entry.path.startsWith('/') ? entry.path : `/${entry.path}`;
   return `${base.replace(/\/$/, '')}${path}`;
+}
+
+/** True when resolved href targets a different origin than siteBase (avoids substring false positives). */
+export function isExternalSitemapHref(resolvedHref: string, siteBase: string): boolean {
+  if (!/^https?:\/\//i.test(resolvedHref)) return false;
+  try {
+    return new URL(resolvedHref).origin !== new URL(siteBase).origin;
+  } catch {
+    return false;
+  }
 }

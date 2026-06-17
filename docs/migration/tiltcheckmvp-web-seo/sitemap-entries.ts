@@ -27,7 +27,8 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
 
 export const SITEMAP_CATEGORY_ORDER: SitemapCategory[] = ['Core', 'Casino setup', 'Legal & RG'];
 
-export function resolveSitemapHref(base: string, entry: SitemapPageEntry): string {
+export function resolveSitemapHref(base: string, entry: Pick<SitemapPageEntry, 'path' | 'href'>): string {
+  if ('href' in entry && entry.href) return entry.href;
   const path = entry.path.startsWith('/') ? entry.path : `/${entry.path}`;
   return `${base.replace(/\/$/, '')}${path}`;
 }
