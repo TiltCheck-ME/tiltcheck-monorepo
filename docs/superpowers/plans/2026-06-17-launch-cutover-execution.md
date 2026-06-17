@@ -15,7 +15,8 @@
 - v1 P0 security merged (#591)
 - Degen Copilot design spec (#594, #595 doc)
 - MVP Phase 1 web + API staging deployed (health, casino-scores, OAuth shell)
-- Local MVP branches: daily bonus feed, web sitemap/404 (awaiting owner push)
+- Launch documentation merged on v1 monorepo (#597, 2026-06-17)
+- MVP branches pushed: `cursor/daily-bonus-feed-port-ec58`, `cursor/web-sitemap-ec58` (2026-06-17)
 - v1 WEB-SITEMAP + styled sitemap/404 on branch `cursor/web-sitemap-ec58`
 
 ---
@@ -30,8 +31,8 @@
 - `docs/ai/hybrid-v1-mvp-strategy.md` (link updates)
 - `docs/migration/tiltcheckmvp-launch/README.md` + doc copies
 
-- [ ] All files committed on `cursor/launch-cutover-plan-ec58`
-- [ ] PR opened against v1 `main`
+- [x] All files committed on `cursor/launch-cutover-plan-ec58` (2026-06-17)
+- [x] PR opened against v1 `main` — merged #597 (2026-06-17)
 
 ---
 
@@ -42,7 +43,7 @@
 
 **Files:** `apps/api` bonuses routes, `apps/web` `/bonuses`, shared types
 
-- [ ] Owner pushes branch (403 workaround)
+- [x] Owner pushes branch (403 workaround) — 2026-06-17
 - [ ] `pnpm build` passes on MVP
 - [ ] PR merged to MVP `main`
 - [ ] Staging web `/bonuses` shows daily picks (upstream or local)
@@ -62,7 +63,7 @@
 - `apps/web/src/app/site-map/page.tsx`
 - `apps/web/src/app/not-found.tsx`
 
-- [ ] Owner pushes branch
+- [x] Owner pushes branch — 2026-06-17
 - [ ] Verify `/sitemap.xml`, `/site-map`, 404 recovery links
 - [ ] PR merged to MVP `main`
 

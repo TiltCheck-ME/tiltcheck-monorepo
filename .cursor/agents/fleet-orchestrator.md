@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
 
 # Fleet Orchestrator Agent
 
@@ -87,3 +87,25 @@ Queued P1:
 
 Blocked on branch merge:
 6. `lane-product-bonus` — depends on `cursor/daily-bonus-feed-ec58`
+
+## Launch cutover wave (2026-06-17)
+
+**Source of truth:** `docs/ai/launch-fleet-manifest.json`
+
+Use this manifest (not `fleet-repair-manifest.json`) for B+D launch lanes after M0 branch push.
+
+Each lane defines the same fields as repair lanes, plus optional `repo`, `branch`, and `status` (`pending`, `in_flight`, `completed`).
+
+**Active launch lanes:**
+1. `lane-mvp-integration` — merge bonus + sitemap branches on `jmenichole/tiltcheckmvp`
+2. `lane-launch-docs-sync` — monorepo execution plan + checklist sync
+3. `lane-m1-staging-audit` — readonly M1 gate readiness matrix
+4. `lane-v1-pr-triage` — PR disposition docs (#590, #595, #596)
+
+**Queued:**
+5. `lane-mvp-email-ingest-tests` — depends on `lane-mvp-integration`
+6. `lane-verify-launch` — verifier after P0 lanes complete
+
+**Dispatch:** Same protocol as repair wave; read `launch-fleet-manifest.json`, respect `depends_on`, merge in `dispatch_rules.merge_order`. MVP pushes may require SSH bypass — see manifest `mvp_push_command`.
+
+**Operator handoff:** When Tasks 1–3 in [2026-06-17-launch-cutover-execution.md](../../docs/superpowers/plans/2026-06-17-launch-cutover-execution.md) are done, operator continues from [LAUNCH-CHECKLIST.md § M1](../../docs/LAUNCH-CHECKLIST.md).

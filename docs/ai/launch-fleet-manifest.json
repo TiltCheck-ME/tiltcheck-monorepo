@@ -1,0 +1,149 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17",
+  "version": "1.0.0",
+  "wave": "launch-cutover-2026-06-17",
+  "description": "Parallel lanes for B+D launch cutover — post M0 branch push. See docs/superpowers/plans/2026-06-17-launch-cutover-execution.md",
+  "lanes": [
+    {
+      "id": "lane-mvp-integration",
+      "subagent_type": "generalPurpose",
+      "priority": "P0",
+      "status": "in_flight",
+      "repo": "/workspace/tiltcheckmvp",
+      "branch": "cursor/mvp-integration-ec58",
+      "title": "MVP: merge bonus + sitemap branches, build, push",
+      "owned_paths": [
+        "tiltcheckmvp/apps/",
+        "tiltcheckmvp/packages/",
+        "tiltcheckmvp/pnpm-lock.yaml"
+      ],
+      "depends_on": [],
+      "tasks": [
+        "Fetch origin; base integration branch from main",
+        "Merge cursor/daily-bonus-feed-port-ec58 and cursor/web-sitemap-ec58",
+        "Resolve conflicts if any; run pnpm build",
+        "Push cursor/mvp-integration-ec58 via SSH bypass (GIT_CONFIG_GLOBAL=/dev/null git push git@github.com:jmenichole/tiltcheckmvp.git ...)",
+        "Open or document PR to main on jmenichole/tiltcheckmvp"
+      ],
+      "validation": [
+        "cd /workspace/tiltcheckmvp && pnpm build"
+      ]
+    },
+    {
+      "id": "lane-launch-docs-sync",
+      "subagent_type": "generalPurpose",
+      "priority": "P1",
+      "status": "completed",
+      "repo": "/workspace",
+      "branch": "cursor/fleet-launch-docs-ec58",
+      "title": "Monorepo: sync execution plan + fleet manifest",
+      "owned_paths": [
+        "docs/ai/launch-fleet-manifest.json",
+        "docs/superpowers/plans/2026-06-17-launch-cutover-execution.md",
+        "docs/LAUNCH-CHECKLIST.md",
+        ".cursor/agents/fleet-orchestrator.md"
+      ],
+      "depends_on": [],
+      "tasks": [
+        "Mark execution plan Tasks 1-3 complete with dates",
+        "Ensure launch-fleet-manifest.json reflects wave status",
+        "Add fleet orchestrator pointer to launch wave",
+        "Commit on cursor/fleet-launch-docs-ec58; open PR to main"
+      ],
+      "validation": [
+        "test -f docs/ai/launch-fleet-manifest.json"
+      ]
+    },
+    {
+      "id": "lane-m1-staging-audit",
+      "subagent_type": "explore",
+      "priority": "P0",
+      "status": "in_flight",
+      "readonly": true,
+      "title": "Audit M1 staging gate readiness (operator checklist)",
+      "owned_paths": [],
+      "depends_on": [],
+      "tasks": [
+        "Read docs/migration/tiltcheckmvp-ops/manual-tasks.md sections H-I and cutover-checklist.md Phase 2",
+        "Compare against MVP repo state at /workspace/tiltcheckmvp",
+        "Produce pass/fail matrix: what operator can run now vs blocked",
+        "List exact URLs, env vars, and extension build commands for M1"
+      ],
+      "validation": []
+    },
+    {
+      "id": "lane-mvp-email-ingest-tests",
+      "subagent_type": "generalPurpose",
+      "priority": "P1",
+      "status": "pending",
+      "repo": "/workspace/tiltcheckmvp",
+      "branch": "cursor/fleet-email-ingest-tests-ec58",
+      "title": "MVP: email-ingest route tests + deploy docs",
+      "owned_paths": [
+        "tiltcheckmvp/apps/api/tests/",
+        "tiltcheckmvp/docs/deploy.md",
+        "tiltcheckmvp/.env.example"
+      ],
+      "depends_on": ["lane-mvp-integration"],
+      "tasks": [
+        "Verify POST /rgaas/email-ingest exists in trust.ts",
+        "Add vitest coverage: auth fail, payload too large, happy path mock",
+        "Document EMAIL_INGEST_SECRET in deploy.md and .env.example",
+        "Run tests; commit on cursor/fleet-email-ingest-tests-ec58"
+      ],
+      "validation": [
+        "cd /workspace/tiltcheckmvp/apps/api && pnpm exec vitest run 2>/dev/null || true"
+      ]
+    },
+    {
+      "id": "lane-v1-pr-triage",
+      "subagent_type": "generalPurpose",
+      "priority": "P2",
+      "status": "in_flight",
+      "repo": "/workspace",
+      "branch": "cursor/fleet-v1-pr-triage-ec58",
+      "title": "v1: PR disposition docs (590/595/596)",
+      "owned_paths": [
+        "docs/superpowers/specs/2026-06-17-launch-cutover-plan.md",
+        "docs/history/deploy/SESSION_LOG.md"
+      ],
+      "depends_on": [],
+      "tasks": [
+        "Update launch spec PR disposition with current merge state (#597 merged, MVP branches pushed)",
+        "Add SESSION_LOG entry for fleet wave dispatch",
+        "Do NOT merge PRs without explicit approval — document recommended actions only"
+      ],
+      "validation": []
+    },
+    {
+      "id": "lane-verify-launch",
+      "subagent_type": "verifier",
+      "priority": "P1",
+      "status": "pending",
+      "title": "Verifier: post-wave launch smoke",
+      "depends_on": [
+        "lane-mvp-integration",
+        "lane-launch-docs-sync",
+        "lane-m1-staging-audit"
+      ],
+      "tasks": [
+        "Confirm MVP integration branch builds",
+        "Confirm monorepo fleet manifest committed",
+        "Summarize M1 audit for operator handoff"
+      ]
+    }
+  ],
+  "dispatch_rules": {
+    "max_parallel_lanes": 4,
+    "no_overlap": "Each lane owns exclusive paths; MVP code lanes serialize on repo unless paths disjoint",
+    "merge_order": [
+      "lane-mvp-integration",
+      "lane-mvp-email-ingest-tests",
+      "lane-launch-docs-sync",
+      "lane-v1-pr-triage",
+      "lane-verify-launch"
+    ],
+    "branch_prefix": "cursor/fleet-",
+    "mvp_push_command": "GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null git push git@github.com:jmenichole/tiltcheckmvp.git"
+  }
+}

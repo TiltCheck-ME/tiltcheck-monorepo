@@ -86,8 +86,8 @@ git push -u origin cursor/web-sitemap-ec58
 
 When prompted for password, use a GitHub **fine-grained PAT** with Contents write on `tiltcheckmvp`.
 
-- [ ] MVP branch `cursor/daily-bonus-feed-port-ec58` includes bonus feed commit on remote
-- [ ] MVP branch `cursor/web-sitemap-ec58` on remote
+- [x] MVP branch `cursor/daily-bonus-feed-port-ec58` includes bonus feed commit on remote (2026-06-17)
+- [x] MVP branch `cursor/web-sitemap-ec58` on remote (2026-06-17)
 - [ ] Open PRs on MVP repo for each (or merge to `main` when ready)
 
 ### Sync launch docs to MVP repo
