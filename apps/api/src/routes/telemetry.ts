@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 /**
  * Telemetry Routes - /telemetry/*
  * Handles behavioral telemetry, win securing, and nudge efficacy tracking.
@@ -6,8 +6,9 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+import { sessionAuth } from '@tiltcheck/auth/middleware/express';
 import { createAuditLog, findUserByDiscordId, findUserById, updateUser } from '@tiltcheck/db';
-import { InternalServerError, ValidationError } from '@tiltcheck/error-factory';
+import { ApplicationError, InternalServerError, ValidationError } from '@tiltcheck/error-factory';
 import { getUserDataConsentState } from '../lib/data-consent.js';
 
 const router: Router = Router();
@@ -45,11 +46,27 @@ async function resolveUser(userId: string): Promise<ResolvedUser | null> {
     return byUserId || null;
 }
 
+function assertCallerMatchesUser(
+    auth: NonNullable<Express.Request['auth']>,
+    user: ResolvedUser,
+    requestedUserId: string,
+): void {
+    const matchesUser =
+        auth.userId === user.id ||
+        auth.userId === requestedUserId ||
+        (auth.discordId != null &&
+            (auth.discordId === user.discord_id || auth.discordId === requestedUserId));
+
+    if (!matchesUser) {
+        throw new ApplicationError('Forbidden: userId does not match authenticated caller', 403, 'FORBIDDEN');
+    }
+}
+
 /**
  * POST /telemetry/round
  * Accept extension round telemetry on the canonical API host.
  */
-router.post('/round', async (req, res, next) => {
+router.post('/round', sessionAuth(undefined, { required: true }), async (req, res, next) => {
     try {
         const parsed = roundTelemetrySchema.safeParse(req.body);
         if (!parsed.success) {
@@ -70,6 +87,8 @@ router.post('/round', async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
+        assertCallerMatchesUser(req.auth!, user, userId);
 
         const consentState = await getUserDataConsentState(user.discord_id || userId);
         if (!consentState.sessionTelemetry || !consentState.financialData) {
@@ -114,6 +133,9 @@ router.post('/round', async (req, res, next) => {
             },
         });
     } catch (error) {
+        if (error instanceof ApplicationError) {
+            return next(error);
+        }
         console.error('[Telemetry API] Round ingest error:', error);
         return next(new InternalServerError('Failed to accept round telemetry'));
     }
@@ -123,7 +145,7 @@ router.post('/round', async (req, res, next) => {
  * POST /telemetry/win-secure
  * Log a successful profit-securing event (user followed a redeem nudge).
  */
-router.post('/win-secure', async (req, res, next) => {
+router.post('/win-secure', sessionAuth(undefined, { required: true }), async (req, res, next) => {
     try {
         const parsed = winSecureSchema.safeParse(req.body);
         if (!parsed.success) {
@@ -136,6 +158,8 @@ router.post('/win-secure', async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
+        assertCallerMatchesUser(req.auth!, user, userId);
 
         const consentState = await getUserDataConsentState(user.discord_id || userId);
         if (!consentState.financialData) {
@@ -166,6 +190,9 @@ router.post('/win-secure', async (req, res, next) => {
             }
         });
     } catch (error) {
+        if (error instanceof ApplicationError) {
+            return next(error);
+        }
         console.error('[Telemetry API] Win secure error:', error);
         return next(new InternalServerError('Failed to log win secure event'));
     }

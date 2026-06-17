@@ -1,0 +1,233 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+name: Brand Law Enforcer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  enforce-brand:
+    runs-on: ubuntu-latest
+    name: Check Brand Compliance
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed
+        uses: tj-actions/changed-files@v41
+        with:
+          files: |
+            **/*.ts
+            **/*.js
+            **/*.tsx
+            **/*.jsx
+            **/*.md
+            package.json
+
+      - name: Check for critical violations
+        id: violations
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          CRITICAL=0
+          HIGH=0
+          MEDIUM=0
+
+          EXCLUDE_PATHS=(
+            '.env.example'
+            'docs/history'
+          )
+
+          should_skip_file() {
+            local file="$1"
+            for excluded in "${EXCLUDE_PATHS[@]}"; do
+              if [[ "$file" == "$excluded" || "$file" == "$excluded"/* ]]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          # Check for hardcoded secrets in the PR diff (skip template and archive paths)
+          SECRET_HITS=$(
+            git diff "${BASE_SHA}..${HEAD_SHA}" -- . \
+              ':(exclude).env.example' \
+              ':(exclude)docs/history' \
+            | grep -E "(sk_live_|DISCORD_TOKEN|JWT_SECRET|DATABASE_URL)" \
+            | grep -v renovate \
+            || true
+          )
+          if [ -n "$SECRET_HITS" ]; then
+            echo "CRITICAL: Hardcoded secrets detected in PR diff"
+            echo "$SECRET_HITS"
+            CRITICAL=$((CRITICAL + 1))
+          fi
+
+          # Check for custodial patterns in changed source files
+          for file in ${{ steps.changed.outputs.all_changed_files }}; do
+            if should_skip_file "$file"; then
+              continue
+            fi
+            if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [ -f "$file" ]; then
+              if grep -E "privateKey|private_key|seed|mnemonic" "$file" \
+                | grep -vE "node_modules|dist|\.next|test|mock|example|placeholder"; then
+                echo "CRITICAL: Potential custodial code detected in $file"
+                CRITICAL=$((CRITICAL + 1))
+              fi
+            fi
+          done
+
+          # Check for copyright headers in new/changed source files
+          for file in ${{ steps.changed.outputs.all_changed_files }}; do
+            if should_skip_file "$file"; then
+              continue
+            fi
+            if [[ "$file" =~ \.(ts|tsx|js|jsx)$ ]] && [ -f "$file" ]; then
+              if ! head -1 "$file" | grep -q "©.*TiltCheck"; then
+                echo "MEDIUM: Missing copyright header in $file"
+                MEDIUM=$((MEDIUM + 1))
+              fi
+            fi
+          done
+
+          # Check for emojis in changed source files (Perl regex for Unicode ranges)
+          for file in ${{ steps.changed.outputs.all_changed_files }}; do
+            if should_skip_file "$file"; then
+              continue
+            fi
+            if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [ -f "$file" ]; then
+              if grep -n -P '[\x{1F300}-\x{1FAFF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]' "$file"; then
+                echo "MEDIUM: Emojis detected in source code: $file"
+                MEDIUM=$((MEDIUM + 1))
+              fi
+            fi
+          done
+
+          echo "CRITICAL=$CRITICAL" >> "$GITHUB_OUTPUT"
+          echo "HIGH=$HIGH" >> "$GITHUB_OUTPUT"
+          echo "MEDIUM=$MEDIUM" >> "$GITHUB_OUTPUT"
+
+      - name: Check for SESSION_LOG.md update
+        id: session-log
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          CODE_CHANGES=$(git diff --name-only "${BASE_SHA}..${HEAD_SHA}" \
+            | grep -E '\.(ts|tsx|js|jsx|py|go|rs)$' \
+            | grep -vE '^docs/history/' \
+            || true)
+          if [ -z "$CODE_CHANGES" ]; then
+            echo "SESSION_LOG_UPDATED=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "${BASE_SHA}..${HEAD_SHA}" | grep -q "SESSION_LOG.md"; then
+            echo "SESSION_LOG_UPDATED=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "SESSION_LOG_UPDATED=false" >> "$GITHUB_OUTPUT"
+            echo "CODE CHANGES WITHOUT SESSION_LOG.md UPDATE"
+          fi
+
+      - name: Check for tone violations
+        id: tone
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          TONE_ISSUES=0
+          TONE_FILES=$(git diff --name-only "${BASE_SHA}..${HEAD_SHA}" \
+            | grep -E '\.(ts|tsx|js|jsx|md)$' \
+            | grep -vE '^docs/history/' \
+            || true)
+
+          for file in $TONE_FILES; do
+            if [ -f "$file" ]; then
+              if grep -iE "sorry|we apologize|unfortunately" "$file" \
+                | grep -vE "node_modules|test/|\.test\.|\.spec\."; then
+                echo "Tone violation in $file: apologetic language"
+                TONE_ISSUES=$((TONE_ISSUES + 1))
+              fi
+              if grep -E "powerful|revolutionary|cutting-edge|please|kindly" "$file" \
+                | grep -vE "node_modules|test/|\.test\.|\.spec\."; then
+                echo "Tone violation in $file: marketing fluff"
+                TONE_ISSUES=$((TONE_ISSUES + 1))
+              fi
+            fi
+          done
+
+          echo "TONE_ISSUES=$TONE_ISSUES" >> "$GITHUB_OUTPUT"
+
+      - name: Post review comment
+        if: >-
+          steps.violations.outputs.CRITICAL > 0 ||
+          steps.violations.outputs.MEDIUM > 0 ||
+          steps.session-log.outputs.SESSION_LOG_UPDATED == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const critical = parseInt('${{ steps.violations.outputs.CRITICAL }}') || 0;
+            const medium = parseInt('${{ steps.violations.outputs.MEDIUM }}') || 0;
+            const sessionLogUpdated = '${{ steps.session-log.outputs.SESSION_LOG_UPDATED }}';
+            const toneIssues = parseInt('${{ steps.tone.outputs.TONE_ISSUES }}') || 0;
+
+            let comment = '## Brand Law Compliance Review\n\n';
+
+            if (critical > 0) {
+              comment += `### CRITICAL (${critical})\n`;
+              comment += '- Hardcoded secrets or custodial code detected\n';
+              comment += '**Action:** Must fix before merge\n\n';
+            }
+
+            if (medium > 0 || toneIssues > 0) {
+              comment += `### MEDIUM (${medium + toneIssues})\n`;
+              comment += '- Missing copyright headers\n';
+              comment += '- Emojis in source code\n';
+              if (toneIssues > 0) {
+                comment += `- Tone violations (${toneIssues})\n`;
+              }
+              comment += '**Action:** Requested changes\n\n';
+            }
+
+            if (sessionLogUpdated === 'false') {
+              comment += '### SESSION_LOG.md\n';
+              comment += '- PR has code changes but SESSION_LOG.md was not updated\n';
+              comment += '**Action:** Add entry with date and summary of changes\n\n';
+            }
+
+            if (critical === 0 && medium === 0 && (sessionLogUpdated === 'true' || sessionLogUpdated === 'skipped')) {
+              comment += 'Brand compliance checks passed.\n';
+            }
+
+            comment += '\n---\n';
+            comment += 'See [Brand Law Enforcer Agent](.cursor/agents/brand-law-enforcer.md) for details.';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Fail if critical violations
+        if: steps.violations.outputs.CRITICAL > 0
+        run: |
+          echo "Critical brand law violations detected. Cannot merge."
+          exit 1
+
+      - name: Request changes if medium violations
+        if: >-
+          (steps.violations.outputs.MEDIUM > 0 ||
+           steps.session-log.outputs.SESSION_LOG_UPDATED == 'false' ||
+           steps.tone.outputs.TONE_ISSUES > 0) &&
+          steps.violations.outputs.CRITICAL == 0
+        run: |
+          echo "Medium-priority brand compliance issues detected. Review requested."

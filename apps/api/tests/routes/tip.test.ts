@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
@@ -13,8 +13,21 @@ let mockAuthUser: {
 } | null = null;
 
 vi.mock('@tiltcheck/auth/middleware/express', () => ({
-  sessionAuth: vi.fn(() => (req: Request, _res: Response, next: NextFunction) => {
-    (req as Request & { auth?: typeof mockAuthUser }).auth = mockAuthUser ?? undefined;
+  sessionAuth: vi.fn((_jwtConfig?: unknown, options?: { required?: boolean }) => (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const required = options?.required !== false;
+    if (!mockAuthUser) {
+      if (required) {
+        res.status(401).json({ error: 'UNAUTHORIZED', message: 'Authentication required' });
+        return;
+      }
+      next();
+      return;
+    }
+    (req as Request & { auth?: typeof mockAuthUser }).auth = mockAuthUser;
     next();
   }),
 }));
@@ -214,6 +227,26 @@ describe('Tip Routes', () => {
       const response = await request(app).get('/tip/t1');
       expect(response.status).toBe(200);
       expect(response.body.tip.message).toBe('test');
+    });
+  });
+
+  describe('POST /tip/send', () => {
+    it('should return 401 if not authenticated', async () => {
+      mockAuthUser = null;
+      const response = await request(app)
+        .post('/tip/send')
+        .send({ toUsername: 'peer', amountSol: 1, channelId: 'ch-1' });
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe('POST /tip/claim', () => {
+    it('should return 401 if not authenticated', async () => {
+      mockAuthUser = null;
+      const response = await request(app)
+        .post('/tip/claim')
+        .send({ rainId: 'rain-1', channelId: 'ch-1' });
+      expect(response.status).toBe(401);
     });
   });
 });
