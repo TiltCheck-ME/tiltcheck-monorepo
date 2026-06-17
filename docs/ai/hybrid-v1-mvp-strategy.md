@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
 
 # Hybrid v1 + MVP Strategy
 
@@ -34,12 +34,22 @@ Patch artifact: `/opt/cursor/artifacts/tiltcheckmvp-daily-bonus-feed-port.patch`
 
 ## Cutover order
 
-1. Merge v1 P0 security PR #591 (fleet wave)
+1. ~~Merge v1 P0 security PR #591~~ (done)
 2. Merge MVP daily-feed PR on `tiltcheckmvp` (branch `cursor/daily-bonus-feed-port-ec58`)
-3. Pass MVP Phase 2 staging gate
-4. Point crawler `CRAWLER_API_URL` at v2 API when ingest is verified
-5. DNS cutover per `tiltcheckmvp/docs/cutover-checklist.md`
-6. Archive v1 monorepo read-only
+3. Pass MVP Phase 2 staging gate (M1 — **blocks DNS**)
+4. DNS cutover to MVP Railway (M2)
+5. Point crawler `CRAWLER_API_URL` at v2 API when ingest is verified (M3)
+6. Archive v1 monorepo read-only (M3)
+
+## Launch docs (operator + agent)
+
+| Doc | Purpose |
+|-----|---------|
+| [LAUNCH-CHECKLIST.md](../LAUNCH-CHECKLIST.md) | **Start here** — step-by-step M0–M5 |
+| [2026-06-17-launch-cutover-plan.md](../superpowers/specs/2026-06-17-launch-cutover-plan.md) | Strategy, milestones, KPIs, PR disposition |
+| [2026-06-17-launch-cutover-execution.md](../superpowers/plans/2026-06-17-launch-cutover-execution.md) | Engineering task breakdown |
+| [metrics-weekly.md](../metrics-weekly.md) | Weekly KPI worksheet |
+| MVP [manual-tasks.md](../../tiltcheckmvp/docs/manual-tasks.md) | Supabase, Railway, Discord, DNS detail |
 
 ## Orchestrator
 
