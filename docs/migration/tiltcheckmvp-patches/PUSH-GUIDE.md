@@ -6,67 +6,85 @@ Cloud agents and `cursor[bot]` **cannot push** to this repo (403). You must push
 
 ---
 
+## "no such file tiltcheckmvp"
+
+**`tiltcheckmvp` is not inside the monorepo.** It is a separate GitHub repo. Clone it as a **sibling folder**:
+
+```text
+~/projects/
+  tiltcheck-monorepo/   ← this repo (patches live here)
+  tiltcheckmvp/         ← clone this separately
+```
+
+```bash
+cd ~/projects
+git clone https://github.com/jmenichole/tiltcheckmvp.git
+```
+
+If you only cloned `tiltcheck-monorepo`, `cd tiltcheckmvp` will fail until you run `git clone` above.
+
+Patches are in the **monorepo** at `docs/migration/tiltcheckmvp-patches/`. Apply them from **inside** the MVP clone:
+
+```bash
+export MONOREPO=~/projects/tiltcheck-monorepo
+export MVP=~/projects/tiltcheckmvp
+cd "$MVP"
+git am "$MONOREPO"/docs/migration/tiltcheckmvp-patches/daily-bonus-feed/*.patch
+```
+
+---
+
 ## Current branch status (2026-06-17)
 
 | Branch | Remote | What's missing |
 |--------|--------|----------------|
-| `cursor/daily-bonus-feed-port-ec58` | Exists at `06ac641` | **1 commit** — bonus feed port (`140337e`) |
-| `cursor/web-sitemap-ec58` | **Not on remote** | **2 commits** — sitemap/robots + styled site-map/404/launch docs |
+| `cursor/daily-bonus-feed-port-ec58` | Exists at `06ac641` | **1 commit** — bonus feed port patch |
+| `cursor/web-sitemap-ec58` | **Not on remote** | **2 commits** — web-sitemap patches |
 
 ---
 
 ## Option A — HTTPS + Personal Access Token (recommended if SSH fails)
 
-SSH (`git@github.com:...`) fails when no SSH key is loaded or the key is not added to GitHub.
-
 ### 1. Create a PAT
 
-GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained** (or classic with `repo` scope).
+GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained**
 
 - Resource owner: **jmenichole**
-- Repository access: **tiltcheckmvp** only
+- Repository: **tiltcheckmvp**
 - Permissions: **Contents** → Read and write
 
-### 2. Clone with HTTPS (not SSH)
+### 2. Clone both repos
 
 ```bash
+cd ~/projects
+git clone https://github.com/TiltCheck-ME/tiltcheck-monorepo.git
 git clone https://github.com/jmenichole/tiltcheckmvp.git
-cd tiltcheckmvp
+export MONOREPO=~/projects/tiltcheck-monorepo
+export MVP=~/projects/tiltcheckmvp
 ```
 
-Also clone or open v1 monorepo for patch files under `docs/migration/tiltcheckmvp-patches/`.
-
-### 3. Apply patches and push
-
-**Daily bonus** (1 commit ahead of remote branch):
+### 3. Daily bonus branch
 
 ```bash
+cd "$MVP"
 git fetch origin cursor/daily-bonus-feed-port-ec58
 git checkout cursor/daily-bonus-feed-port-ec58
 git pull origin cursor/daily-bonus-feed-port-ec58
-git am /path/to/tiltcheck-monorepo/docs/migration/tiltcheckmvp-patches/daily-bonus-feed/*.patch
+git am "$MONOREPO"/docs/migration/tiltcheckmvp-patches/daily-bonus-feed/*.patch
 git push origin cursor/daily-bonus-feed-port-ec58
 ```
 
-**Web sitemap** (new branch):
+### 4. Web sitemap branch
 
 ```bash
-git checkout main
-git pull origin main
+cd "$MVP"
+git checkout main && git pull origin main
 git checkout -b cursor/web-sitemap-ec58
-git am /path/to/tiltcheck-monorepo/docs/migration/tiltcheckmvp-patches/web-sitemap/*.patch
+git am "$MONOREPO"/docs/migration/tiltcheckmvp-patches/web-sitemap/*.patch
 git push -u origin cursor/web-sitemap-ec58
 ```
 
-When `git push` prompts for password, paste the **PAT** (not your GitHub password).
-
-### 4. GitHub CLI alternative
-
-```bash
-gh auth login
-gh repo clone jmenichole/tiltcheckmvp
-# then apply patches and push as above
-```
+Password at push prompt = **PAT**, not GitHub account password.
 
 ---
 
@@ -76,42 +94,32 @@ gh repo clone jmenichole/tiltcheckmvp
 ssh -T git@github.com
 ```
 
-Expected: `Hi jmenichole! You've successfully authenticated...`
-
 | Error | Fix |
 |-------|-----|
-| `Permission denied (publickey)` | `ssh-keygen -t ed25519 -C "your@email"` → add pubkey to GitHub **Settings → SSH keys** |
-| `Repository not found` | Wrong GitHub account on SSH key, or no repo access |
-| `Permission denied to X` | SSH key belongs to another user — use HTTPS+PAT |
+| `Permission denied (publickey)` | Add SSH key to GitHub → Settings → SSH keys |
+| `Repository not found` | Wrong account or no access |
 
 ```bash
-cd tiltcheckmvp
+cd "$MVP"
 git remote set-url origin git@github.com:jmenichole/tiltcheckmvp.git
 git push -u origin cursor/web-sitemap-ec58
 ```
 
 ---
 
-## Option C — GitHub web UI
-
-1. Create branch on https://github.com/jmenichole/tiltcheckmvp
-2. Upload files from `docs/migration/tiltcheckmvp-web-seo/` (v1 monorepo)
-3. Open PR manually
-
----
-
-## Verify after push
+## Verify
 
 ```bash
+cd "$MVP"
 git ls-remote origin 'cursor/*'
 ```
 
-Open PRs: https://github.com/jmenichole/tiltcheckmvp/pulls
+PRs: https://github.com/jmenichole/tiltcheckmvp/pulls
 
 ---
 
-## Still stuck?
+## MVP docs without second clone
 
-Paste the **exact error line** — `publickey`, `403`, and `Repository not found` each need different fixes.
+Read mirrors in monorepo: [docs/migration/tiltcheckmvp-ops/README.md](../tiltcheckmvp-ops/README.md)
 
 Made for Degens. By Degens.

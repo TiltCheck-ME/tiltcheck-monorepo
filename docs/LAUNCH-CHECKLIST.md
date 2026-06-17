@@ -16,7 +16,9 @@ Follow top to bottom. Do **not** skip M1 before M2 DNS. Full rationale: [launch-
 | `[agent]` | Cloud agent or dev implements (see [execution plan](./superpowers/plans/2026-06-17-launch-cutover-execution.md)) |
 | **BLOCKER** | Must be green before next milestone |
 
-Detailed env vars and URLs: MVP [manual-tasks.md](../tiltcheckmvp/docs/manual-tasks.md).
+Detailed env vars and URLs: [MVP manual-tasks.md](./migration/tiltcheckmvp-ops/manual-tasks.md) (mirror — [live repo](https://github.com/jmenichole/tiltcheckmvp/blob/main/docs/manual-tasks.md)).
+
+> **Note:** `tiltcheckmvp` is a **separate repo**, not a subfolder of this monorepo. See [tiltcheckmvp-ops/README.md](./migration/tiltcheckmvp-ops/README.md).
 
 ---
 
@@ -44,36 +46,45 @@ Detailed env vars and URLs: MVP [manual-tasks.md](../tiltcheckmvp/docs/manual-ta
 
 ### Push MVP branches (403 blocker for cursor bot)
 
-**If push failed:** see [PUSH-GUIDE.md](./migration/tiltcheckmvp-patches/PUSH-GUIDE.md) — SSH vs HTTPS vs patches.
+**If push failed:** see [PUSH-GUIDE.md](./migration/tiltcheckmvp-patches/PUSH-GUIDE.md).
 
-Use **HTTPS + Personal Access Token** if `git@github.com` gives `Permission denied (publickey)`:
+**Two repos, two folders** — clone MVP next to (not inside) this monorepo:
 
 ```bash
+cd ~/projects   # parent folder that already contains tiltcheck-monorepo
 git clone https://github.com/jmenichole/tiltcheckmvp.git
 cd tiltcheckmvp
 ```
 
-**Daily bonus** (remote branch exists; you are 1 commit behind local port):
+Set paths for your machine:
 
 ```bash
+export MONOREPO=~/projects/tiltcheck-monorepo   # path to THIS repo
+export MVP=~/projects/tiltcheckmvp              # path to MVP repo
+```
+
+**Daily bonus** (remote branch exists; needs 1 patch commit):
+
+```bash
+cd "$MVP"
 git fetch origin cursor/daily-bonus-feed-port-ec58
 git checkout cursor/daily-bonus-feed-port-ec58
 git pull origin cursor/daily-bonus-feed-port-ec58
-# From v1 monorepo clone — apply patch:
-git am docs/migration/tiltcheckmvp-patches/daily-bonus-feed/*.patch
+git am "$MONOREPO"/docs/migration/tiltcheckmvp-patches/daily-bonus-feed/*.patch
 git push origin cursor/daily-bonus-feed-port-ec58
 ```
 
-**Web sitemap** (branch not on remote yet):
+**Web sitemap** (new branch):
 
 ```bash
+cd "$MVP"
 git checkout main && git pull origin main
 git checkout -b cursor/web-sitemap-ec58
-git am docs/migration/tiltcheckmvp-patches/web-sitemap/*.patch
+git am "$MONOREPO"/docs/migration/tiltcheckmvp-patches/web-sitemap/*.patch
 git push -u origin cursor/web-sitemap-ec58
 ```
 
-When prompted for password, use a GitHub **fine-grained PAT** with Contents write on `tiltcheckmvp` — not your account password.
+When prompted for password, use a GitHub **fine-grained PAT** with Contents write on `tiltcheckmvp`.
 
 - [ ] MVP branch `cursor/daily-bonus-feed-port-ec58` includes bonus feed commit on remote
 - [ ] MVP branch `cursor/web-sitemap-ec58` on remote
@@ -81,10 +92,10 @@ When prompted for password, use a GitHub **fine-grained PAT** with Contents writ
 
 ### Sync launch docs to MVP repo
 
-Copy from v1 monorepo after merging launch PR, or copy from `docs/migration/tiltcheckmvp-launch/`:
+After merging launch PR on monorepo, copy into your **MVP clone** (`$MVP/docs/`):
 
-- [ ] `LAUNCH-CHECKLIST.md` → `tiltcheckmvp/docs/`
-- [ ] Link added in `tiltcheckmvp/docs/phases.md` (see execution plan)
+- [ ] `docs/migration/tiltcheckmvp-launch/LAUNCH-CHECKLIST.md` → `$MVP/docs/LAUNCH-CHECKLIST.md`
+- [ ] `docs/migration/tiltcheckmvp-launch/metrics-weekly.md` → `$MVP/docs/metrics-weekly.md`
 
 **M0 exit:** Policy agreed, secrets set, MVP branches pushed, PRs triaged.
 
@@ -94,7 +105,7 @@ Copy from v1 monorepo after merging launch PR, or copy from `docs/migration/tilt
 
 **Goal:** Prove login → vault → enforcement on staging before any prod DNS move.
 
-Reference: MVP [cutover-checklist.md](../tiltcheckmvp/docs/cutover-checklist.md) Phase 2, [manual-tasks.md § H–I](../tiltcheckmvp/docs/manual-tasks.md).
+Reference: [cutover-checklist.md](./migration/tiltcheckmvp-ops/cutover-checklist.md) Phase 2, [manual-tasks.md § H–I](./migration/tiltcheckmvp-ops/manual-tasks.md).
 
 ### Infrastructure (mostly done — verify)
 
@@ -132,7 +143,7 @@ On a test casino with extension enabled:
 - [ ] Overlay not dismissible early
 - [ ] Service worker console: `[TiltCheck] Enforcement fired`
 
-Full checklist: [real-accounts-signoff.md](../tiltcheckmvp/docs/superpowers/reports/2026-05-27-real-accounts-signoff.md)
+Full checklist: [real-accounts-signoff.md](https://github.com/jmenichole/tiltcheckmvp/blob/main/docs/superpowers/reports/2026-05-27-real-accounts-signoff.md)
 
 ### CI
 
@@ -205,7 +216,7 @@ Full checklist: [real-accounts-signoff.md](../tiltcheckmvp/docs/superpowers/repo
 
 ## M4 — Phase 3 + Degen Copilot (post-cutover)
 
-Ship in order per [phases.md](../tiltcheckmvp/docs/phases.md):
+Ship in order per [phases.md](./migration/tiltcheckmvp-ops/phases.md):
 
 ### Dashboard depth [agent]
 
@@ -254,9 +265,10 @@ Every Monday (or your chosen day):
 |-----|------|
 | Strategy spec | [docs/superpowers/specs/2026-06-17-launch-cutover-plan.md](./superpowers/specs/2026-06-17-launch-cutover-plan.md) |
 | Engineering tasks | [docs/superpowers/plans/2026-06-17-launch-cutover-execution.md](./superpowers/plans/2026-06-17-launch-cutover-execution.md) |
-| MVP manual ops | [tiltcheckmvp/docs/manual-tasks.md](../tiltcheckmvp/docs/manual-tasks.md) |
-| Smoke definition | [tiltcheckmvp/docs/cutover-checklist.md](../tiltcheckmvp/docs/cutover-checklist.md) |
-| v1 crawler ops | [tiltcheckmvp/docs/v1-ops.md](../tiltcheckmvp/docs/v1-ops.md) |
+| MVP manual ops | [migration/tiltcheckmvp-ops/manual-tasks.md](./migration/tiltcheckmvp-ops/manual-tasks.md) |
+| Smoke definition | [migration/tiltcheckmvp-ops/cutover-checklist.md](./migration/tiltcheckmvp-ops/cutover-checklist.md) |
+| v1 crawler ops | [migration/tiltcheckmvp-ops/v1-ops.md](./migration/tiltcheckmvp-ops/v1-ops.md) |
+| MVP clone help | [migration/tiltcheckmvp-ops/README.md](./migration/tiltcheckmvp-ops/README.md) |
 | Site map inventory | [docs/WEB-SITEMAP.md](./WEB-SITEMAP.md) |
 
 Made for Degens. By Degens.
