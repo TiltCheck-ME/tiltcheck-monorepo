@@ -6,10 +6,12 @@ Canonical production host: **https://tiltcheck.me**
 
 This document maps user-facing pages across **v1** (`TiltCheck-ME/tiltcheck-monorepo`, production today) and **MVP** (`jmenichole/tiltcheckmvp`, cutover target). Machine-readable sitemaps:
 
-| Stack | URL | Source |
-|-------|-----|--------|
-| v1 | `https://tiltcheck.me/sitemap.xml` | `apps/web/src/app/sitemap.ts` |
-| MVP | `https://tiltcheck.me/sitemap.xml` (post-cutover) | `tiltcheckmvp/apps/web/src/app/sitemap.ts` ([apply guide](./migration/tiltcheckmvp-web-seo/README.md)) |
+| Stack | Human (styled) | Machine (crawlers) | Source |
+|-------|----------------|-------------------|--------|
+| v1 | `https://tiltcheck.me/site-map` | `https://tiltcheck.me/sitemap.xml` (+ XSL in Firefox) | `apps/web/src/app/site-map/`, `sitemap.xml/route.ts`, `public/sitemap.xsl` |
+| MVP | same | same | [apply guide](./migration/tiltcheckmvp-web-seo/README.md) |
+
+**Chrome note:** Chrome does not render XSL. Use `/site-map` for a styled index; `/sitemap.xml` remains for bots.
 
 ---
 
@@ -114,6 +116,7 @@ This document maps user-facing pages across **v1** (`TiltCheck-ME/tiltcheck-mono
 | `/terms` | Yes | ToS |
 | `/privacy` | Yes | Privacy |
 | `/touch-grass` | Yes | RG / crisis resources |
+| `/site-map` | Yes | Styled human-readable sitemap index |
 
 ### Proxied (not Next pages — excluded from sitemap)
 
@@ -167,6 +170,7 @@ Dashboard and settings live **on the same host** (no `dashboard.tiltcheck.me` po
 | `/touch-grass` | 0.4 | Break / lockout hub |
 | `/terms` | 0.3 | ToS |
 | `/privacy` | 0.3 | Privacy |
+| `/site-map` | 0.5 | Styled sitemap index |
 
 ### Auth-gated (excluded from sitemap; disallowed in robots)
 
