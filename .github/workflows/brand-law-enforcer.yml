@@ -63,6 +63,8 @@ jobs:
             git diff "${BASE_SHA}..${HEAD_SHA}" -- . \
               ':(exclude).env.example' \
               ':(exclude)docs/history' \
+            | grep -E '^\+' \
+            | grep -vE '^\+\+\+' \
             | grep -E "$SECRET_PATTERN" \
             | grep -v renovate \
             || true
