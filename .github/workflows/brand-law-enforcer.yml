@@ -58,7 +58,7 @@ jobs:
           }
 
           # Check for hardcoded secrets in the PR diff (skip template and archive paths)
-          SECRET_PATTERN='sk_live_|DISCORD_TOKEN|JWT_SECRET|DATABASE''_URL'
+          SECRET_PATTERN='sk''_live_|DISCORD''_TOKEN|JWT''_SECRET|DATABASE''_URL'
           SECRET_HITS=$(
             git diff "${BASE_SHA}..${HEAD_SHA}" -- . \
               ':(exclude).env.example' \
