@@ -46,6 +46,7 @@ git push -u origin cursor/web-sitemap-ec58
 - `https://tiltcheck.me/site-map` — dark themed index with category cards
 - `https://tiltcheck.me/sitemap.xml` — XML with `xml-stylesheet` PI (styled in Firefox)
 - `/site-map` listed in sitemap feed
+- `/not-a-real-page` returns styled 404 with recovery links (not in sitemap; `robots: noindex`)
 
 ## Reference
 
