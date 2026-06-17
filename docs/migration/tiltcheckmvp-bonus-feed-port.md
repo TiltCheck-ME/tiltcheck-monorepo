@@ -47,10 +47,11 @@ git push -u origin cursor/daily-bonus-feed-port-ec58
 
 ## Option B: Apply patch
 
-Patch artifact (generated from commit `37b2256`):
+Patch file in this repo:
 
-- Cloud agent path: `/opt/cursor/artifacts/tiltcheckmvp-daily-bonus-feed-port.patch`
-- Regenerate from any clone that has the commit:
+- `docs/migration/tiltcheckmvp-daily-bonus-feed-port.patch`
+
+Cloud agent copy (same content): `/opt/cursor/artifacts/tiltcheckmvp-daily-bonus-feed-port.patch`
 
 ```bash
 git format-patch -1 37b2256 --stdout > tiltcheckmvp-daily-bonus-feed-port.patch

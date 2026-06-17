@@ -1,0 +1,1066 @@
+From 37b2256c2ba02f2ac96a230d229a57855a22cb0f Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 16 Jun 2026 07:30:01 +0000
+Subject: [PATCH] feat(bonuses): port unified daily bonus feed to MVP
+
+- Add daily-bonus-feed aggregator (CollectClock + inbox + local cache)
+- Expose GET /bonuses/daily-feed with usOnly=true default
+- Replace /bonuses redirect with public DailyBonusFeed page
+- Document daily-feed contract in docs/bonuses.md
+---
+ apps/api/src/lib/daily-bonus-feed.ts       | 434 +++++++++++++++++++++
+ apps/api/src/routes/bonuses.ts             |  23 ++
+ apps/web/src/app/bonuses/page.tsx          | 127 +++++-
+ apps/web/src/components/DailyBonusFeed.tsx | 289 ++++++++++++++
+ apps/web/src/lib/daily-bonus-feed.ts       |  51 +++
+ docs/bonuses.md                            |  49 ++-
+ 6 files changed, 968 insertions(+), 5 deletions(-)
+ create mode 100644 apps/api/src/lib/daily-bonus-feed.ts
+ create mode 100644 apps/web/src/components/DailyBonusFeed.tsx
+ create mode 100644 apps/web/src/lib/daily-bonus-feed.ts
+
+diff --git a/apps/api/src/lib/daily-bonus-feed.ts b/apps/api/src/lib/daily-bonus-feed.ts
+new file mode 100644
+index 0000000..1e52063
+--- /dev/null
++++ b/apps/api/src/lib/daily-bonus-feed.ts
+@@ -0,0 +1,434 @@
++// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
++/**
++ * Daily Bonus Feed Aggregator
++ *
++ * Merges CollectClock, email inbox intel, and local fallback bonus data
++ * into a single deduplicated feed for US casino discovery surfaces.
++ */
++
++import { existsSync, readFileSync } from 'node:fs';
++import path from 'node:path';
++import { fileURLToPath } from 'node:url';
++import type { EmailBonusFeedEntry } from './email-bonus-feed.js';
++import { loadBonusFeed } from './bonus-feed-store.js';
++
++export type BonusFeedSourceKey = 'collectclock' | 'email-inbox' | 'local-fallback';
++
++export interface DailyBonusFeedEntry {
++  id: string;
++  brand: string;
++  bonus: string;
++  url: string;
++  verified: string;
++  code: string | null;
++  sources: BonusFeedSourceKey[];
++  bonusType: string | null;
++  bonusValue: string | null;
++  expiresAt: string | null;
++  expiryMessage: string | null;
++  imageUrl: string | null;
++  isUsCasino: boolean;
++  casinoCategory: string | null;
++  trustScore: number | null;
++}
++
++export interface BonusSourceStatus {
++  key: BonusFeedSourceKey;
++  label: string;
++  available: boolean;
++  count: number;
++  updatedAt: string | null;
++  detail: string;
++}
++
++export interface DailyBonusFeedResult {
++  updatedAt: string;
++  total: number;
++  usTotal: number;
++  data: DailyBonusFeedEntry[];
++  sources: BonusSourceStatus[];
++}
++
++interface RawBonusEntry {
++  brand: string;
++  bonus: string;
++  url: string;
++  verified: string;
++  code?: string | null;
++}
++
++interface CasinoCatalogEntry {
++  name: string;
++  category?: string;
++}
++
++const COLLECTCLOCK_BONUS_URL =
++  'https://raw.githubusercontent.com/TiltCheck-ME/CollectClock/main/bonus-data.json';
++
++const SOURCE_LABELS: Record<BonusFeedSourceKey, string> = {
++  collectclock: 'CollectClock',
++  'email-inbox': 'Email inbox',
++  'local-fallback': 'Local cache',
++};
++
++const API_LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
++
++const US_CASINO_CATEGORIES = new Set(['Sweeps', 'Regulated', 'Sweeps Hybrid']);
++
++let usCasinoIndex: Map<string, CasinoCatalogEntry> | null = null;
++
++function normalizeKey(value: string): string {
++  return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
++}
++
++function normalizeBonusKey(entry: Pick<RawBonusEntry, 'brand' | 'bonus' | 'url'>): string {
++  return `${entry.brand.trim().toLowerCase()}::${entry.bonus.trim().toLowerCase()}::${entry.url.trim().toLowerCase()}`;
++}
++
++function isRawBonusEntry(value: unknown): value is RawBonusEntry {
++  if (!value || typeof value !== 'object') return false;
++  const candidate = value as Partial<RawBonusEntry>;
++  return (
++    typeof candidate.brand === 'string'
++    && typeof candidate.bonus === 'string'
++    && typeof candidate.url === 'string'
++    && typeof candidate.verified === 'string'
++  );
++}
++
++function readJsonArray(filePath: string): unknown[] {
++  if (!existsSync(filePath)) return [];
++  try {
++    const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as unknown;
++    return Array.isArray(parsed) ? parsed : [];
++  } catch {
++    return [];
++  }
++}
++
++function resolveDataDir(): string {
++  const candidates = [
++    process.env.STATS_DATA_DIR?.trim(),
++    path.resolve(process.cwd(), 'data'),
++    path.resolve(API_LIB_DIR, '../../../../data'),
++    path.resolve(API_LIB_DIR, '../../data'),
++  ].filter((candidate): candidate is string => Boolean(candidate));
++
++  for (const candidate of candidates) {
++    if (
++      existsSync(path.join(candidate, 'sweepstakes-casinos.json'))
++      || existsSync(path.join(candidate, 'bonus-data.json'))
++    ) {
++      return candidate;
++    }
++  }
++
++  return path.resolve(process.cwd(), 'data');
++}
++
++function ingestTrustCasinos(index: Map<string, CasinoCatalogEntry>): void {
++  const trustPath = path.resolve(API_LIB_DIR, '../../../../packages/trust/src/casinos.json');
++  for (const entry of readJsonArray(trustPath)) {
++    if (!entry || typeof entry !== 'object') continue;
++    const candidate = entry as CasinoCatalogEntry;
++    if (!candidate.name) continue;
++    if (candidate.category && !US_CASINO_CATEGORIES.has(candidate.category)) continue;
++    index.set(normalizeKey(candidate.name), {
++      name: candidate.name,
++      category: candidate.category ?? 'Sweeps',
++    });
++  }
++}
++
++function loadUsCasinoIndex(): Map<string, CasinoCatalogEntry> {
++  if (usCasinoIndex) return usCasinoIndex;
++
++  const index = new Map<string, CasinoCatalogEntry>();
++  const dataDir = resolveDataDir();
++  const sweepstakesPath = path.join(dataDir, 'sweepstakes-casinos.json');
++
++  if (existsSync(sweepstakesPath)) {
++    for (const entry of readJsonArray(sweepstakesPath)) {
++      if (!entry || typeof entry !== 'object') continue;
++      const name = (entry as CasinoCatalogEntry).name;
++      if (!name) continue;
++      index.set(normalizeKey(name), {
++        name,
++        category: (entry as CasinoCatalogEntry).category ?? 'Sweeps',
++      });
++    }
++  }
++
++  for (const entry of readJsonArray(path.join(dataDir, 'online-casinos.json'))) {
++    if (!entry || typeof entry !== 'object') continue;
++    const candidate = entry as CasinoCatalogEntry;
++    if (!candidate.name) continue;
++    if (candidate.category === 'Regulated' || candidate.category === 'Sweeps Hybrid') {
++      index.set(normalizeKey(candidate.name), {
++        name: candidate.name,
++        category: candidate.category,
++      });
++    }
++  }
++
++  if (index.size === 0) {
++    ingestTrustCasinos(index);
++  }
++
++  if (index.size > 0) {
++    usCasinoIndex = index;
++  }
++
++  return index;
++}
++
++function resolveUsCasino(brand: string, url: string): { isUsCasino: boolean; casinoCategory: string | null } {
++  const index = loadUsCasinoIndex();
++  const normalizedBrand = normalizeKey(brand);
++
++  if (normalizedBrand) {
++    for (const [key, entry] of index.entries()) {
++      if (normalizedBrand.includes(key) || key.includes(normalizedBrand)) {
++        return { isUsCasino: true, casinoCategory: entry.category ?? null };
++      }
++    }
++  }
++
++  try {
++    const hostname = new URL(url).hostname.toLowerCase();
++    if (hostname.endsWith('.us') || hostname.includes('stake.us')) {
++      return { isUsCasino: true, casinoCategory: 'US Domain' };
++    }
++  } catch {
++    // ignore invalid URLs
++  }
++
++  return { isUsCasino: false, casinoCategory: null };
++}
++
++let cachedLocalFallback: RawBonusEntry[] | null = null;
++
++function readLocalFallbackBonuses(): RawBonusEntry[] {
++  if (cachedLocalFallback) return cachedLocalFallback;
++
++  const localPath = path.join(resolveDataDir(), 'bonus-data.json');
++  const entries = readJsonArray(localPath)
++    .filter(isRawBonusEntry)
++    .map((entry) => ({
++      brand: entry.brand.trim(),
++      bonus: entry.bonus.trim(),
++      url: entry.url.trim(),
++      verified: entry.verified,
++      code: entry.code ?? null,
++    }));
++
++  if (entries.length > 0) {
++    cachedLocalFallback = entries;
++  }
++
++  return entries;
++}
++
++async function fetchCollectClockBonuses(): Promise<{
++  entries: RawBonusEntry[];
++  updatedAt: string | null;
++}> {
++  try {
++    const response = await fetch(COLLECTCLOCK_BONUS_URL, {
++      headers: { Accept: 'application/json' },
++      signal: AbortSignal.timeout(10_000),
++    });
++    if (!response.ok) {
++      return { entries: [], updatedAt: null };
++    }
++
++    const data = await response.json();
++    const entries = Array.isArray(data)
++      ? data.filter(isRawBonusEntry).map((entry) => ({
++          brand: entry.brand.trim(),
++          bonus: entry.bonus.trim(),
++          url: entry.url.trim(),
++          verified: entry.verified,
++          code: entry.code ?? null,
++        }))
++      : [];
++
++    return {
++      entries,
++      updatedAt: entries[0]?.verified ?? null,
++    };
++  } catch (error) {
++    console.error('[CollectClock] Failed to fetch or parse bonuses:', error);
++    return { entries: [], updatedAt: null };
++  }
++}
++
++function isActiveInboxEntry(entry: EmailBonusFeedEntry, now = new Date()): boolean {
++  if (entry.isExpired) return false;
++  if (!entry.expiresAt) return true;
++  const ms = new Date(entry.expiresAt).getTime();
++  return !Number.isNaN(ms) && ms > now.getTime();
++}
++
++async function getActiveInboxEntries(): Promise<EmailBonusFeedEntry[]> {
++  const feed = await loadBonusFeed();
++  return feed.bonuses.filter((entry) => isActiveInboxEntry(entry));
++}
++
++function toDailyEntry(
++  base: RawBonusEntry,
++  source: BonusFeedSourceKey,
++  inboxMeta?: EmailBonusFeedEntry,
++): DailyBonusFeedEntry {
++  const usMeta = resolveUsCasino(base.brand, base.url);
++  return {
++    id: normalizeBonusKey(base),
++    brand: base.brand,
++    bonus: base.bonus,
++    url: base.url,
++    verified: base.verified,
++    code: base.code ?? null,
++    sources: [source],
++    bonusType: inboxMeta?.bonusType ?? null,
++    bonusValue: inboxMeta?.bonusValue ?? null,
++    expiresAt: inboxMeta?.expiresAt ?? null,
++    expiryMessage: inboxMeta?.expiryMessage ?? null,
++    imageUrl: inboxMeta?.imageUrl ?? null,
++    isUsCasino: usMeta.isUsCasino,
++    casinoCategory: usMeta.casinoCategory,
++    trustScore: null,
++  };
++}
++
++function mergeEntry(
++  existing: DailyBonusFeedEntry,
++  incoming: DailyBonusFeedEntry,
++): DailyBonusFeedEntry {
++  const preferIncoming = Date.parse(incoming.verified) >= Date.parse(existing.verified);
++  const primary = preferIncoming ? incoming : existing;
++  const secondary = preferIncoming ? existing : incoming;
++
++  return {
++    ...primary,
++    sources: [...new Set([...existing.sources, ...incoming.sources])],
++    code: primary.code ?? secondary.code,
++    bonusType: primary.bonusType ?? secondary.bonusType,
++    bonusValue: primary.bonusValue ?? secondary.bonusValue,
++    expiresAt: primary.expiresAt ?? secondary.expiresAt,
++    expiryMessage: primary.expiryMessage ?? secondary.expiryMessage,
++    imageUrl: primary.imageUrl ?? secondary.imageUrl,
++    isUsCasino: existing.isUsCasino || incoming.isUsCasino,
++    casinoCategory: primary.casinoCategory ?? secondary.casinoCategory,
++    trustScore: primary.trustScore ?? secondary.trustScore,
++  };
++}
++
++function buildSourceStatus(
++  key: BonusFeedSourceKey,
++  entries: readonly DailyBonusFeedEntry[],
++  available: boolean,
++  updatedAt: string | null,
++  detail: string,
++): BonusSourceStatus {
++  const count = entries.filter((entry) => entry.sources.includes(key)).length;
++  return {
++    key,
++    label: SOURCE_LABELS[key],
++    available: available && count > 0,
++    count,
++    updatedAt,
++    detail,
++  };
++}
++
++export async function buildDailyBonusFeed(options?: {
++  usOnly?: boolean;
++}): Promise<DailyBonusFeedResult> {
++  const usOnly = options?.usOnly ?? false;
++  const [collectClock, inboxEntries] = await Promise.all([
++    fetchCollectClockBonuses(),
++    getActiveInboxEntries(),
++  ]);
++  const localFallback = readLocalFallbackBonuses();
++
++  const merged = new Map<string, DailyBonusFeedEntry>();
++
++  const ingest = (
++    entry: RawBonusEntry,
++    source: BonusFeedSourceKey,
++    inboxMeta?: EmailBonusFeedEntry,
++  ) => {
++    const daily = toDailyEntry(entry, source, inboxMeta);
++    const existing = merged.get(daily.id);
++    merged.set(daily.id, existing ? mergeEntry(existing, daily) : daily);
++  };
++
++  for (const entry of localFallback) {
++    ingest(entry, 'local-fallback');
++  }
++
++  for (const entry of collectClock.entries) {
++    ingest(entry, 'collectclock');
++  }
++
++  for (const entry of inboxEntries) {
++    ingest(
++      {
++        brand: entry.brand,
++        bonus: entry.bonus,
++        url: entry.url,
++        verified: entry.verified,
++        code: entry.code,
++      },
++      'email-inbox',
++      entry,
++    );
++  }
++
++  let data = [...merged.values()].sort(
++    (left, right) => Date.parse(right.verified) - Date.parse(left.verified),
++  );
++
++  if (usOnly) {
++    data = data.filter((entry) => entry.isUsCasino);
++  }
++
++  const allEntries = [...merged.values()];
++  const sources: BonusSourceStatus[] = [
++    buildSourceStatus(
++      'email-inbox',
++      allEntries,
++      inboxEntries.length > 0,
++      inboxEntries[0]?.verified ?? null,
++      inboxEntries.length > 0
++        ? `${inboxEntries.length} inbox promos parsed`
++        : 'No active inbox promos',
++    ),
++    buildSourceStatus(
++      'collectclock',
++      allEntries,
++      collectClock.entries.length > 0,
++      collectClock.updatedAt,
++      collectClock.entries.length > 0
++        ? `${collectClock.entries.length} CollectClock entries`
++        : 'CollectClock unreachable',
++    ),
++    buildSourceStatus(
++      'local-fallback',
++      allEntries,
++      localFallback.length > 0,
++      localFallback[0]?.verified ?? null,
++      localFallback.length > 0
++        ? `${localFallback.length} cached entries`
++        : 'No local cache',
++    ),
++  ];
++
++  return {
++    updatedAt: new Date().toISOString(),
++    total: data.length,
++    usTotal: allEntries.filter((entry) => entry.isUsCasino).length,
++    data,
++    sources,
++  };
++}
+diff --git a/apps/api/src/routes/bonuses.ts b/apps/api/src/routes/bonuses.ts
+index 0359ccb..c78ef3e 100644
+--- a/apps/api/src/routes/bonuses.ts
++++ b/apps/api/src/routes/bonuses.ts
+@@ -1,3 +1,4 @@
++// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+ import { Hono } from 'hono';
+ import {
+   STATIC_BONUS_PICKS,
+@@ -6,6 +7,7 @@ import {
+   type UpstreamBonusPayload,
+ } from '../lib/bonus-fallback.js';
+ import { buildInboxBonusResponse } from '../lib/bonus-inbox.js';
++import { buildDailyBonusFeed } from '../lib/daily-bonus-feed.js';
+ 
+ export const bonusesRoutes = new Hono();
+ 
+@@ -129,6 +131,27 @@ bonusesRoutes.get('/inbox', async (c) => {
+   return c.json({ success: true, ...inbox });
+ });
+ 
++bonusesRoutes.get('/daily-feed', async (c) => {
++  try {
++    const usOnly = c.req.query('usOnly') !== 'false';
++    const feed = await buildDailyBonusFeed({ usOnly });
++    return c.json({
++      success: true,
++      ...feed,
++    });
++  } catch (error) {
++    console.error('[Bonuses] Failed to build daily bonus feed:', error);
++    return c.json(
++      {
++        success: false,
++        error: 'DAILY_FEED_BUILD_FAILED',
++        message: 'Could not build unified daily bonus feed.',
++      },
++      500,
++    );
++  }
++});
++
+ bonusesRoutes.get('/picks', async (c) => {
+   const rawLimit = Number(c.req.query('limit') ?? '3');
+   const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? rawLimit : 3, 1), 10);
+diff --git a/apps/web/src/app/bonuses/page.tsx b/apps/web/src/app/bonuses/page.tsx
+index 5d9d5e6..15f2726 100644
+--- a/apps/web/src/app/bonuses/page.tsx
++++ b/apps/web/src/app/bonuses/page.tsx
+@@ -1,5 +1,126 @@
+-import { redirect } from 'next/navigation';
++// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
++import type { Metadata } from 'next';
++import DailyBonusFeed from '@/components/DailyBonusFeed';
++import { apiBaseUrl } from '@/lib/api';
++import {
++  getDailyFeedApiUrl,
++  type DailyBonusFeedResponse,
++} from '@/lib/daily-bonus-feed';
+ 
+-export default function BonusesPage() {
+-  redirect('/dashboard');
++export const dynamic = 'force-dynamic';
++
++export const metadata: Metadata = {
++  title: 'US Daily Bonus Feed | TiltCheck',
++  description:
++    'Daily bonus intel for US sweepstakes and social casinos — merged from CollectClock, email inbox parsing, and local cache.',
++  openGraph: {
++    title: 'US Daily Bonus Feed | TiltCheck',
++    description:
++      'Daily bonus intel for US sweepstakes and social casinos — merged from CollectClock, email inbox parsing, and local cache.',
++  },
++};
++
++const COLLECTCLOCK_SITE_URL = 'https://tiltcheck-me.github.io/CollectClock/';
++
++const EMPTY_FEED: DailyBonusFeedResponse = {
++  updatedAt: new Date().toISOString(),
++  total: 0,
++  usTotal: 0,
++  data: [],
++  sources: [
++    {
++      key: 'email-inbox',
++      label: 'Email inbox',
++      available: false,
++      count: 0,
++      updatedAt: null,
++      detail: 'No active inbox promos',
++    },
++    {
++      key: 'collectclock',
++      label: 'CollectClock',
++      available: false,
++      count: 0,
++      updatedAt: null,
++      detail: 'CollectClock unreachable',
++    },
++    {
++      key: 'local-fallback',
++      label: 'Local cache',
++      available: false,
++      count: 0,
++      updatedAt: null,
++      detail: 'No local cache',
++    },
++  ],
++};
++
++async function fetchDailyBonusFeed(): Promise<DailyBonusFeedResponse> {
++  const apiUrl = getDailyFeedApiUrl(true);
++
++  try {
++    const response = await fetch(apiUrl, {
++      next: { revalidate: 300 },
++      headers: { Accept: 'application/json' },
++    });
++    if (!response.ok) {
++      console.error(`[BonusFeed] daily-feed fetch failed: ${response.status} ${response.statusText}`);
++      return EMPTY_FEED;
++    }
++    return (await response.json()) as DailyBonusFeedResponse;
++  } catch (error) {
++    console.error('[BonusFeed] Failed to load daily bonus feed:', error);
++    return EMPTY_FEED;
++  }
++}
++
++export default async function BonusesPage() {
++  const feed = await fetchDailyBonusFeed();
++  const hasAnyFeed = feed.data.length > 0;
++  const liveSources = feed.sources.filter((source) => source.available).map((source) => source.label);
++
++  return (
++    <main className="public-page text-white">
++      <section className="hero-surface">
++        <div className="landing-shell">
++          <span className="brand-eyebrow">Bonus intel</span>
++          <h1 className="landing-hero-title">US daily bonus feed</h1>
++          <p className="landing-hero-subtitle">
++            One lane for US casino promos — CollectClock daily trackers, parsed email drops, and cached
++            intel merged into a single feed.
++          </p>
++          <a
++            href={COLLECTCLOCK_SITE_URL}
++            target="_blank"
++            rel="noopener noreferrer"
++            className="btn btn-primary mt-4"
++          >
++            VIEW COLLECTCLOCK
++          </a>
++        </div>
++      </section>
++
++      <section className="public-page-section px-4">
++        <div className="landing-shell">
++          {!hasAnyFeed ? (
++            <div className="mb-6 public-page-card public-page-card--accent">
++              <p className="text-xs font-mono uppercase tracking-widest text-[#17c3b2]">
++                [FEED OFFLINE] All sources are empty or unreachable. API: {apiBaseUrl()}/bonuses/daily-feed
++              </p>
++            </div>
++          ) : null}
++
++          {hasAnyFeed && liveSources.length > 0 ? (
++            <div className="mb-6 public-page-card">
++              <p className="text-xs font-mono uppercase tracking-widest text-[#8a97a8]">
++                Live sources: {liveSources.join(' · ')} · {feed.usTotal} US casino offers indexed
++              </p>
++            </div>
++          ) : null}
++
++          <DailyBonusFeed initialFeed={feed} usOnlyDefault />
++        </div>
++      </section>
++    </main>
++  );
+ }
+diff --git a/apps/web/src/components/DailyBonusFeed.tsx b/apps/web/src/components/DailyBonusFeed.tsx
+new file mode 100644
+index 0000000..7c54af0
+--- /dev/null
++++ b/apps/web/src/components/DailyBonusFeed.tsx
+@@ -0,0 +1,289 @@
++// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
++'use client';
++
++import { useCallback, useEffect, useMemo, useState } from 'react';
++import { apiFetch } from '@/lib/api';
++import {
++  SOURCE_BADGE_LABELS,
++  type BonusFeedSourceKey,
++  type BonusSourceStatus,
++  type DailyBonusFeedEntry,
++  type DailyBonusFeedResponse,
++} from '@/lib/daily-bonus-feed';
++
++interface DailyBonusFeedProps {
++  initialFeed: DailyBonusFeedResponse;
++  usOnlyDefault?: boolean;
++}
++
++type SourceFilter = 'all' | BonusFeedSourceKey;
++
++function formatShortDate(value: string | null | undefined): string {
++  if (!value) return 'Unknown';
++  const timestamp = Date.parse(value);
++  if (Number.isNaN(timestamp)) return 'Unknown';
++  return new Date(timestamp).toLocaleDateString('en-US', {
++    year: 'numeric',
++    month: 'short',
++    day: 'numeric',
++  });
++}
++
++function SourceBadge({ source }: { source: BonusFeedSourceKey }) {
++  const tone =
++    source === 'email-inbox'
++      ? 'text-[#ffd700] border-[#ffd700]/40'
++      : source === 'collectclock'
++        ? 'text-[#17c3b2] border-[#17c3b2]/40'
++        : 'text-[#8a97a8] border-[#8a97a8]/40';
++
++  return (
++    <span className={`text-[10px] font-mono font-bold uppercase tracking-widest border px-2 py-0.5 ${tone}`}>
++      [{SOURCE_BADGE_LABELS[source]}]
++    </span>
++  );
++}
++
++function SourceStatusBar({ sources }: { sources: readonly BonusSourceStatus[] }) {
++  return (
++    <div className="mb-8 grid gap-3 sm:grid-cols-3">
++      {sources.map((source) => (
++        <div
++          key={source.key}
++          className={`public-page-card px-4 py-3 ${source.available ? 'public-page-card--accent' : ''}`}
++        >
++          <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-gray-500">
++            {source.label}
++          </p>
++          <p className="mt-1 text-sm font-mono text-white">
++            {source.available ? `${source.count} live` : 'offline'}
++          </p>
++          <p className="mt-1 text-[11px] font-mono text-[#8a97a8]">{source.detail}</p>
++        </div>
++      ))}
++    </div>
++  );
++}
++
++function BonusCard({ entry }: { entry: DailyBonusFeedEntry }) {
++  const [copied, setCopied] = useState(false);
++
++  const handleCopy = useCallback(() => {
++    if (!entry.code) return;
++    navigator.clipboard.writeText(entry.code).then(() => {
++      setCopied(true);
++      window.setTimeout(() => setCopied(false), 2000);
++    });
++  }, [entry.code]);
++
++  const expiryLabel = entry.expiresAt
++    ? `EXPIRES ${formatShortDate(entry.expiresAt)}`
++    : entry.expiryMessage && entry.expiryMessage !== 'Expiry not stated in email'
++      ? entry.expiryMessage.toUpperCase()
++      : null;
++
++  return (
++    <div
++      className="group relative flex flex-col justify-between p-6 border border-[#283347] bg-gradient-to-br from-[#0E0E0F] to-[#0a0c10] transition-all duration-300 hover:border-[#17c3b2] hover:shadow-[0_0_20px_rgba(23,195,178,0.15)]"
++      style={{ minHeight: '260px' }}
++    >
++      <div className="flex-1 mt-2">
++        <div className="flex gap-2 mb-3 flex-wrap">
++          {entry.sources.map((source) => (
++            <SourceBadge key={source} source={source} />
++          ))}
++          {entry.code ? (
++            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#ffd700] border border-[#ffd700]/40 px-2 py-0.5">
++              [HAS CODE]
++            </span>
++          ) : null}
++          {entry.isUsCasino ? (
++            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#17c3b2] border border-[#17c3b2]/30 px-2 py-0.5">
++              [US]
++            </span>
++          ) : null}
++        </div>
++
++        <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-2 leading-tight">
++          {entry.brand}
++        </h3>
++
++        {entry.bonusType ? (
++          <p className="text-[10px] font-mono uppercase tracking-widest text-[#8a97a8] mb-2">
++            {entry.bonusType}
++            {entry.bonusValue ? ` · ${entry.bonusValue}` : ''}
++          </p>
++        ) : null}
++
++        <p className="text-[#c4ced8] text-sm font-mono leading-relaxed mb-4">{entry.bonus}</p>
++
++        {entry.code ? (
++          <div className="flex items-center gap-2 mb-4 p-2 border border-[#ffd700]/20 bg-[#ffd700]/5">
++            <span className="text-xs font-mono uppercase tracking-widest text-[#8a97a8]">CODE:</span>
++            <span className="text-[#ffd700] font-mono font-bold tracking-widest flex-1">{entry.code}</span>
++            <button
++              type="button"
++              onClick={handleCopy}
++              className="text-[10px] font-mono font-bold uppercase tracking-widest border px-2 py-1 transition-all duration-200"
++              style={{
++                borderColor: copied ? '#17c3b2' : 'rgba(255,215,0,0.4)',
++                color: copied ? '#17c3b2' : '#ffd700',
++              }}
++              aria-label={`Copy promo code for ${entry.brand}`}
++            >
++              {copied ? '[COPIED]' : '[COPY]'}
++            </button>
++          </div>
++        ) : null}
++      </div>
++
++      <div className="flex flex-col gap-2 pt-4 border-t border-[#283347]">
++        <a
++          href={entry.url}
++          target="_blank"
++          rel="noopener noreferrer"
++          className="btn btn-primary text-center text-xs font-black tracking-widest"
++          aria-label={`Claim bonus at ${entry.brand}`}
++        >
++          CLAIM BONUS
++        </a>
++        <div className="flex justify-between items-center pt-1 gap-2">
++          <span className="text-[10px] font-mono uppercase tracking-widest text-[#4B5563]">
++            LAST VERIFIED:
++          </span>
++          <span className="text-[10px] font-mono text-[#8a97a8]">{formatShortDate(entry.verified)}</span>
++        </div>
++        {expiryLabel ? (
++          <div className="flex justify-between items-center gap-2">
++            <span className="text-[10px] font-mono uppercase tracking-widest text-[#4B5563]">
++              EXPIRY:
++            </span>
++            <span className="text-[10px] font-mono text-[#ffd700]">{expiryLabel}</span>
++          </div>
++        ) : null}
++      </div>
++    </div>
++  );
++}
++
++export default function DailyBonusFeed({ initialFeed, usOnlyDefault = true }: DailyBonusFeedProps) {
++  const [feed, setFeed] = useState(initialFeed);
++  const [usOnly, setUsOnly] = useState(usOnlyDefault);
++  const [query, setQuery] = useState('');
++  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
++
++  useEffect(() => {
++    const controller = new AbortController();
++
++    apiFetch(`/bonuses/daily-feed?usOnly=${usOnly ? 'true' : 'false'}`, {
++      signal: controller.signal,
++      cache: 'no-store',
++    })
++      .then(async (response) => {
++        if (!response.ok) return;
++        const body = (await response.json()) as DailyBonusFeedResponse;
++        setFeed(body);
++      })
++      .catch(() => {});
++
++    return () => controller.abort();
++  }, [usOnly]);
++
++  const filtered = useMemo(() => {
++    let entries = feed.data;
++
++    if (sourceFilter !== 'all') {
++      entries = entries.filter((entry) => entry.sources.includes(sourceFilter));
++    }
++
++    const trimmed = query.trim().toLowerCase();
++    if (trimmed) {
++      entries = entries.filter(
++        (entry) =>
++          entry.brand.toLowerCase().includes(trimmed) || entry.bonus.toLowerCase().includes(trimmed),
++      );
++    }
++
++    return entries;
++  }, [feed.data, query, sourceFilter]);
++
++  return (
++    <div>
++      <SourceStatusBar sources={feed.sources} />
++
++      <div className="mb-6 flex flex-wrap items-center gap-3">
++        <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-gray-500">
++          {filtered.length} offers · updated {formatShortDate(feed.updatedAt)} · verify terms before
++          claiming
++        </p>
++        <button
++          type="button"
++          onClick={() => setUsOnly((current) => !current)}
++          className={`text-[10px] font-mono uppercase tracking-widest border px-3 py-1 transition-colors ${
++            usOnly
++              ? 'border-[#17c3b2] text-[#17c3b2]'
++              : 'border-[#283347] text-[#8a97a8] hover:border-[#17c3b2]/50'
++          }`}
++        >
++          {usOnly ? '[US CASINOS ONLY]' : '[ALL SOURCES]'}
++        </button>
++      </div>
++
++      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
++        <div className="relative max-w-lg flex-1">
++          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#17c3b2] font-mono text-sm select-none pointer-events-none">
++            $
++          </span>
++          <input
++            type="text"
++            value={query}
++            onChange={(event) => setQuery(event.target.value)}
++            placeholder="FILTER BY BRAND OR BONUS..."
++            className="w-full pl-8 pr-4 py-3 bg-[#080a0d] border border-[#283347] text-white font-mono text-sm uppercase tracking-widest placeholder:text-[#4B5563] focus:outline-none focus:border-[#17c3b2] focus:shadow-[0_0_10px_rgba(23,195,178,0.2)] transition-all duration-200"
++            aria-label="Filter bonuses by brand or bonus text"
++          />
++        </div>
++
++        <div className="flex flex-wrap gap-2">
++          {(['all', 'email-inbox', 'collectclock', 'local-fallback'] as const).map((filter) => (
++            <button
++              key={filter}
++              type="button"
++              onClick={() => setSourceFilter(filter)}
++              className={`text-[10px] font-mono uppercase tracking-widest border px-3 py-2 transition-colors ${
++                sourceFilter === filter
++                  ? 'border-[#17c3b2] text-[#17c3b2]'
++                  : 'border-[#283347] text-[#8a97a8] hover:border-[#17c3b2]/50'
++              }`}
++            >
++              {filter === 'all' ? '[ALL SOURCES]' : `[${SOURCE_BADGE_LABELS[filter]}]`}
++            </button>
++          ))}
++        </div>
++      </div>
++
++      {query ? (
++        <p className="mb-4 text-xs font-mono text-[#8a97a8] uppercase tracking-widest">
++          {filtered.length} RESULT{filtered.length !== 1 ? 'S' : ''} FOR &quot;{query.toUpperCase()}&quot;
++        </p>
++      ) : null}
++
++      {filtered.length === 0 ? (
++        <div className="public-page-card py-20 text-center">
++          <p className="font-mono text-xs uppercase tracking-widest text-[#17c3b2] mb-2">
++            [NO BONUSES FOUND]
++          </p>
++          <p className="font-mono text-[#8a97a8] text-sm">
++            No cap — the feed is dry right now. Toggle filters or check back after the next inbox crawl.
++          </p>
++        </div>
++      ) : (
++        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
++          {filtered.map((entry) => (
++            <BonusCard key={entry.id} entry={entry} />
++          ))}
++        </div>
++      )}
++    </div>
++  );
++}
+diff --git a/apps/web/src/lib/daily-bonus-feed.ts b/apps/web/src/lib/daily-bonus-feed.ts
+new file mode 100644
+index 0000000..70b8810
+--- /dev/null
++++ b/apps/web/src/lib/daily-bonus-feed.ts
+@@ -0,0 +1,51 @@
++// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
++
++export type BonusFeedSourceKey = 'collectclock' | 'email-inbox' | 'local-fallback';
++
++export interface DailyBonusFeedEntry {
++  id: string;
++  brand: string;
++  bonus: string;
++  url: string;
++  verified: string;
++  code: string | null;
++  sources: BonusFeedSourceKey[];
++  bonusType: string | null;
++  bonusValue: string | null;
++  expiresAt: string | null;
++  expiryMessage: string | null;
++  imageUrl: string | null;
++  isUsCasino: boolean;
++  casinoCategory: string | null;
++  trustScore: number | null;
++}
++
++export interface BonusSourceStatus {
++  key: BonusFeedSourceKey;
++  label: string;
++  available: boolean;
++  count: number;
++  updatedAt: string | null;
++  detail: string;
++}
++
++export interface DailyBonusFeedResponse {
++  success?: boolean;
++  updatedAt: string;
++  total: number;
++  usTotal: number;
++  data: DailyBonusFeedEntry[];
++  sources: BonusSourceStatus[];
++}
++
++export const SOURCE_BADGE_LABELS: Record<BonusFeedSourceKey, string> = {
++  collectclock: 'CollectClock',
++  'email-inbox': 'Inbox',
++  'local-fallback': 'Cache',
++};
++
++export function getDailyFeedApiUrl(usOnly = true): string {
++  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
++  const suffix = usOnly ? '?usOnly=true' : '?usOnly=false';
++  return `${apiBase.replace(/\/$/, '')}/bonuses/daily-feed${suffix}`;
++}
+diff --git a/docs/bonuses.md b/docs/bonuses.md
+index ad47449..4b7973d 100644
+--- a/docs/bonuses.md
++++ b/docs/bonuses.md
+@@ -2,6 +2,8 @@
+ 
+ Architecture approved for inbox marketing offers. **No wallet or claim automation** — display only.
+ 
++Last Updated: 2026-06-16
++
+ ## Flow
+ 
+ ```mermaid
+@@ -22,12 +24,55 @@ flowchart LR
+ |-------|------------------------|----------------|
+ | Crawler | `tiltcheck-monorepo/scripts/email-crawler.ts` | `scripts/email-crawler.ts` (`pnpm crawl:emails`) |
+ | Ingest | `POST /rgaas/email-ingest` on production API | `POST /rgaas/email-ingest` on v2 API (parse + Supabase/JSON feed) |
+-| Read API | `GET /bonuses?source=inbox` | `GET /bonuses`, `GET /bonuses/inbox`, `GET /bonuses/picks` |
+-| Web | Legacy `tiltcheck.me/bonuses` | `/bonuses` — live inbox grid from your email feed |
++| Read API | `GET /bonuses?source=inbox` | `GET /bonuses`, `GET /bonuses/inbox`, `GET /bonuses/picks`, `GET /bonuses/daily-feed` |
++| Web | Legacy `tiltcheck.me/bonuses` | `/bonuses` — unified daily feed (CollectClock + inbox + cache) |
+ | Dashboard | Legacy bonus hub | **Phase 3** — full list on Bonuses tab |
+ 
+ ## v2 API contract
+ 
++**`GET /bonuses/daily-feed?usOnly=true`**
++
++Unified aggregator merging CollectClock upstream, active email inbox entries, and local `data/bonus-data.json` cache. US casino matching uses `data/sweepstakes-casinos.json` when present, otherwise `packages/trust/src/casinos.json` (Sweeps + Regulated categories).
++
++Query:
++
++| Param | Default | Description |
++|-------|---------|-------------|
++| `usOnly` | `true` | When `true`, only entries matched to US sweepstakes/regulated casinos are returned. Pass `usOnly=false` for the full merged feed. |
++
++```json
++{
++  "success": true,
++  "updatedAt": "2026-06-16T12:00:00.000Z",
++  "total": 42,
++  "usTotal": 38,
++  "data": [
++    {
++      "id": "mcluck::daily login::https://mcluck.com/",
++      "brand": "McLuck",
++      "bonus": "Daily login reward",
++      "url": "https://mcluck.com/",
++      "verified": "2026-06-16T10:00:00.000Z",
++      "code": null,
++      "sources": ["collectclock", "email-inbox"],
++      "bonusType": "Daily",
++      "bonusValue": "1 SC",
++      "expiresAt": null,
++      "expiryMessage": null,
++      "imageUrl": null,
++      "isUsCasino": true,
++      "casinoCategory": "Sweeps",
++      "trustScore": null
++    }
++  ],
++  "sources": [
++    { "key": "email-inbox", "label": "Email inbox", "available": true, "count": 12, "updatedAt": "...", "detail": "12 inbox promos parsed" },
++    { "key": "collectclock", "label": "CollectClock", "available": true, "count": 35, "updatedAt": "...", "detail": "35 CollectClock entries" },
++    { "key": "local-fallback", "label": "Local cache", "available": false, "count": 0, "updatedAt": null, "detail": "No local cache" }
++  ]
++}
++```
++
+ **`GET /bonuses/picks?limit=3`**
+ 
+ ```json
+-- 
+2.43.0
+
