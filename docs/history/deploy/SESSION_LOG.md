@@ -1,5 +1,11 @@
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-06-17 - Fleet v1 PR triage + MVP branch push
+
+- **Fleet lane `lane-v1-pr-triage`**: Updated `2026-06-17-launch-cutover-plan.md` section 6 with current v1 PR disposition (#597 merged; #595 recommend merge; #596 optional; #590 recommend close).
+- **MVP push**: Owner pushed `cursor/daily-bonus-feed-port-ec58` and `cursor/web-sitemap-ec58` to `jmenichole/tiltcheckmvp` (daily bonus feed + web sitemap/SEO ports).
+- **Policy**: v1 frozen for product; MVP owns bonuses and forward SEO; v1 PRs triaged docs-only — no merge of duplicate product work on v1.
+
 ## 2026-06-17 - Launch cutover docs + web sitemap/404 (PR #597)
 
 - **Launch documentation**: Added B+D cutover strategy spec, operator `LAUNCH-CHECKLIST.md` (M0–M5), execution plan, weekly KPI template, and MVP push troubleshooting with git patches for manual apply.

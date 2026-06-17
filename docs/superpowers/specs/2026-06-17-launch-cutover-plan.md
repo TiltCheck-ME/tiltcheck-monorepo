@@ -153,26 +153,29 @@ Ship in order per [phases.md](../../../tiltcheckmvp/docs/phases.md):
 
 ## 6. Open PR disposition (v1 monorepo)
 
+**Last triage:** 2026-06-17 (fleet lane `lane-v1-pr-triage`)
+
 | PR | Recommendation | Rationale |
 |----|----------------|-----------|
 | **#591** | Merged | P0 security + fleet docs |
 | **#594** | Merged | Degen Copilot design spec |
-| **#596** | Merge optional | Sitemap, `/site-map`, 404 — low-risk marketing SEO on v1 until cutover |
-| **#590** | Close or short bridge | MVP owns bonuses long-term; avoid duplicate maintenance |
-| **#595** | Merge doc-only | Copilot spec review fixes; no v1 implementation |
+| **#597** | Merged | Launch cutover docs, `LAUNCH-CHECKLIST.md`, MVP migration pack, web sitemap/404 on v1 |
+| **#595** | **Recommend merge** | Doc-only Copilot spec review fixes; no v1 implementation |
+| **#596** | **Optional merge** | v1 sitemap, `/site-map`, 404 — low-risk marketing SEO until cutover; MVP also has `cursor/web-sitemap-ec58` |
+| **#590** | **Recommend close** | MVP owns bonuses long-term (`cursor/daily-bonus-feed-port-ec58` on `jmenichole/tiltcheckmvp`); avoid duplicate maintenance |
 
-New launch docs: branch `cursor/launch-cutover-plan-ec58`.
+**MVP forward build (`jmenichole/tiltcheckmvp`):** branches `cursor/daily-bonus-feed-port-ec58` and `cursor/web-sitemap-ec58` **pushed** 2026-06-17. Open PRs there when ready; v1 product PRs above are disposition-only — do not merge v1 bonus/sitemap duplicates unless bridging pre-M2.
 
 ---
 
-## 7. MVP branches awaiting owner push
+## 7. MVP branches on `jmenichole/tiltcheckmvp`
 
-`cursor[bot]` gets **403** on `jmenichole/tiltcheckmvp`. Push from an account with write access:
+Pushed 2026-06-17 from owner account (`cursor[bot]` cannot push to MVP repo).
 
-| Branch | Contents | Verify |
-|--------|----------|--------|
-| `cursor/daily-bonus-feed-port-ec58` | `GET /bonuses/daily-feed` + `/bonuses` | `pnpm build` |
-| `cursor/web-sitemap-ec58` | sitemap, robots, `/site-map`, 404 | `pnpm -C apps/web dev` |
+| Branch | Status | Contents | Verify |
+|--------|--------|----------|--------|
+| `cursor/daily-bonus-feed-port-ec58` | Pushed | `GET /bonuses/daily-feed` + `/bonuses` | `pnpm build` |
+| `cursor/web-sitemap-ec58` | Pushed | sitemap, robots, `/site-map`, 404 | `pnpm -C apps/web dev` |
 
 Local clone: `/workspace/tiltcheckmvp` (or fresh clone on your machine).
 
