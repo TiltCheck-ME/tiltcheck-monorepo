@@ -1,0 +1,955 @@
+From d9a506f8651e776adde917d87cb3f8a946b753e5 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Wed, 17 Jun 2026 06:35:41 +0000
+Subject: [PATCH 2/2] feat(web): styled site-map, XSL sitemap.xml, 404
+ recovery, launch docs
+
+- Replace MetadataRoute sitemap.ts with route handler + XSL
+- Add /site-map HTML index and sitemap-entries lib
+- Upgrade not-found with site-map recovery links
+- Add LAUNCH-CHECKLIST, metrics-weekly, cutover spec/plan copies
+---
+ apps/web/public/sitemap.xsl                   | 120 +++++++++
+ apps/web/src/app/not-found.tsx                |  57 +++--
+ apps/web/src/app/site-map/page.tsx            | 104 ++++++++
+ apps/web/src/app/sitemap.ts                   |  43 ----
+ apps/web/src/app/sitemap.xml/route.ts         |  15 ++
+ apps/web/src/lib/sitemap-entries.ts           |  33 +++
+ apps/web/src/lib/sitemap-xml.ts               |  41 +++
+ docs/LAUNCH-CHECKLIST.md                      | 237 ++++++++++++++++++
+ docs/metrics-weekly.md                        |  98 ++++++++
+ docs/phases.md                                |   3 +
+ .../2026-06-17-launch-cutover-execution.md    |  16 ++
+ .../specs/2026-06-17-launch-cutover-plan.md   |  59 +++++
+ 12 files changed, 769 insertions(+), 57 deletions(-)
+ create mode 100644 apps/web/public/sitemap.xsl
+ create mode 100644 apps/web/src/app/site-map/page.tsx
+ delete mode 100644 apps/web/src/app/sitemap.ts
+ create mode 100644 apps/web/src/app/sitemap.xml/route.ts
+ create mode 100644 apps/web/src/lib/sitemap-entries.ts
+ create mode 100644 apps/web/src/lib/sitemap-xml.ts
+ create mode 100644 docs/LAUNCH-CHECKLIST.md
+ create mode 100644 docs/metrics-weekly.md
+ create mode 100644 docs/superpowers/plans/2026-06-17-launch-cutover-execution.md
+ create mode 100644 docs/superpowers/specs/2026-06-17-launch-cutover-plan.md
+
+diff --git a/apps/web/public/sitemap.xsl b/apps/web/public/sitemap.xsl
+new file mode 100644
+index 0000000..314ca6c
+--- /dev/null
++++ b/apps/web/public/sitemap.xsl
+@@ -0,0 +1,120 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
++<xsl:stylesheet version="1.0"
++  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
++  xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9">
++  <xsl:output method="html" encoding="UTF-8" indent="yes"/>
++
++  <xsl:template match="/">
++    <html lang="en">
++      <head>
++        <meta charset="utf-8"/>
++        <meta name="viewport" content="width=device-width, initial-scale=1"/>
++        <title>TiltCheck Sitemap</title>
++        <style>
++          :root {
++            color-scheme: dark;
++            --bg: #0a0c10;
++            --panel: #12151c;
++            --border: rgba(23, 195, 178, 0.18);
++            --text: #e5e7eb;
++            --muted: #8a97a8;
++            --accent: #17c3b2;
++            --gold: #ffd700;
++          }
++          * { box-sizing: border-box; }
++          body {
++            margin: 0;
++            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
++            background: radial-gradient(circle at top, rgba(23,195,178,0.08), transparent 40%), var(--bg);
++            color: var(--text);
++            line-height: 1.5;
++          }
++          .wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
++          header {
++            border: 1px solid var(--border);
++            background: rgba(18, 21, 28, 0.92);
++            border-radius: 16px;
++            padding: 1.5rem;
++            margin-bottom: 1.5rem;
++          }
++          h1 { margin: 0 0 0.35rem; font-size: 1.75rem; letter-spacing: -0.02em; }
++          .eyebrow {
++            font-size: 0.65rem;
++            letter-spacing: 0.18em;
++            text-transform: uppercase;
++            color: var(--accent);
++            font-weight: 800;
++          }
++          .sub { color: var(--muted); margin: 0.75rem 0 0; max-width: 52ch; }
++          .meta { margin-top: 1rem; font-size: 0.85rem; color: var(--muted); }
++          .meta strong { color: var(--gold); }
++          table {
++            width: 100%;
++            border-collapse: collapse;
++            border: 1px solid var(--border);
++            background: var(--panel);
++            border-radius: 16px;
++            overflow: hidden;
++          }
++          th, td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
++          th {
++            font-size: 0.65rem;
++            letter-spacing: 0.14em;
++            text-transform: uppercase;
++            color: var(--muted);
++            background: rgba(0,0,0,0.25);
++          }
++          tr:last-child td { border-bottom: 0; }
++          a { color: var(--accent); text-decoration: none; word-break: break-all; }
++          a:hover { text-decoration: underline; }
++          .pill {
++            display: inline-block;
++            font-size: 0.65rem;
++            letter-spacing: 0.08em;
++            text-transform: uppercase;
++            border: 1px solid rgba(255,215,0,0.35);
++            color: var(--gold);
++            border-radius: 999px;
++            padding: 0.15rem 0.45rem;
++          }
++          footer {
++            margin-top: 1.5rem;
++            text-align: center;
++            color: var(--muted);
++            font-size: 0.85rem;
++          }
++        </style>
++      </head>
++      <body>
++        <div class="wrap">
++          <header>
++            <p class="eyebrow">TiltCheck // crawl map</p>
++            <h1>Sitemap</h1>
++            <p class="sub">Machine-readable URL index for tiltcheck.me. Humans: use the styled page at <a href="/site-map">/site-map</a>.</p>
++            <p class="meta"><strong><xsl:value-of select="count(s:urlset/s:url)"/></strong> URLs in this feed.</p>
++          </header>
++          <table>
++            <thead>
++              <tr>
++                <th>URL</th>
++                <th>Changefreq</th>
++                <th>Priority</th>
++              </tr>
++            </thead>
++            <tbody>
++              <xsl:for-each select="s:urlset/s:url">
++                <tr>
++                  <td><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></td>
++                  <td><span class="pill"><xsl:value-of select="s:changefreq"/></span></td>
++                  <td><xsl:value-of select="s:priority"/></td>
++                </tr>
++              </xsl:for-each>
++            </tbody>
++          </table>
++          <footer>Made for Degens. By Degens.</footer>
++        </div>
++      </body>
++    </html>
++  </xsl:template>
++</xsl:stylesheet>
+diff --git a/apps/web/src/app/not-found.tsx b/apps/web/src/app/not-found.tsx
+index 61612e6..1ed9397 100644
+--- a/apps/web/src/app/not-found.tsx
++++ b/apps/web/src/app/not-found.tsx
+@@ -1,29 +1,58 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
+ import Link from 'next/link';
++import type { Metadata } from 'next';
++
++export const metadata: Metadata = {
++  title: '404 — Page not found',
++  description: 'This route does not exist. Head home before you chase a dead link.',
++  robots: { index: false, follow: false },
++};
++
++const RECOVERY_LINKS = [
++  { href: '/', label: 'Home', primary: true },
++  { href: '/site-map', label: 'Site map', primary: false },
++  { href: '/casinos', label: 'Casino trust', primary: false },
++  { href: '/bonuses', label: 'Daily bonuses', primary: false },
++  { href: '/touch-grass', label: 'Touch Grass', primary: false },
++] as const;
+ 
+ export default function NotFound() {
+   return (
+     <main className="public-page text-white">
+       <section className="hero-surface">
+         <div className="landing-shell landing-hero-centered">
+-          <span className="brand-eyebrow">404</span>
++          <span className="brand-eyebrow">ERR-404 // route_not_found</span>
+           <h1 className="brand-page-title">Wrong table.</h1>
+-          <p className="landing-hero-subtitle landing-hero-subtitle--centered">
+-            This page doesn&apos;t exist — maybe a bad bookmark, maybe a deleted route. Either way, no
+-            casino tab here.
++          <p className="landing-hero-subtitle landing-hero-subtitle--centered max-w-xl">
++            Bad bookmark, deleted route, or a link that aged out. No casino tab here — pick a real
++            exit before you tilt on a 404.
+           </p>
+-          <div className="hero-actions hero-actions--desktop hero-actions--mobile">
+-            <Link href="/" className="btn btn-primary">
+-              Home
+-            </Link>
+-            <Link href="/casinos" className="btn btn-ghost">
+-              Casino trust
+-            </Link>
+-            <Link href="/touch-grass" className="btn btn-ghost">
+-              Touch Grass
+-            </Link>
++        </div>
++      </section>
++
++      <section className="public-page-section px-4 pb-12">
++        <div className="landing-shell max-w-2xl mx-auto">
++          <div className="grid gap-3 sm:grid-cols-2">
++            {RECOVERY_LINKS.map((link) => (
++              <Link
++                key={link.href}
++                href={link.href}
++                className={
++                  link.primary
++                    ? 'btn btn-primary text-center'
++                    : 'public-page-card block border-gray-800/60 bg-gray-900/30 px-5 py-4 text-center text-xs font-black uppercase tracking-[0.18em] text-gray-300 hover:border-[#17c3b2]/40 hover:text-[#17c3b2] transition-colors'
++                }
++              >
++                {link.label}
++              </Link>
++            ))}
+           </div>
+         </div>
+       </section>
++
++      <footer className="public-page-section px-4 pb-12 text-center text-sm text-gray-500">
++        Made for Degens. By Degens.
++      </footer>
+     </main>
+   );
+ }
+diff --git a/apps/web/src/app/site-map/page.tsx b/apps/web/src/app/site-map/page.tsx
+new file mode 100644
+index 0000000..99fe5f1
+--- /dev/null
++++ b/apps/web/src/app/site-map/page.tsx
+@@ -0,0 +1,104 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
++import Link from 'next/link';
++import type { Metadata } from 'next';
++import { CASINOS } from '@tiltcheck/trust';
++import {
++  SITEMAP_CATEGORY_ORDER,
++  SITEMAP_PAGE_ENTRIES,
++  type SitemapCategory,
++} from '@/lib/sitemap-entries';
++
++const BASE = (process.env.NEXT_PUBLIC_WEB_URL ?? 'https://tiltcheck.me').replace(/\/$/, '');
++
++export const metadata: Metadata = {
++  title: 'Site map',
++  description: 'Browse every public TiltCheck page — trust directory, bonuses, extension, and legal.',
++  alternates: { canonical: `${BASE}/site-map` },
++};
++
++function groupByCategory() {
++  const groups = new Map<SitemapCategory, typeof SITEMAP_PAGE_ENTRIES>();
++  for (const category of SITEMAP_CATEGORY_ORDER) groups.set(category, []);
++  for (const entry of SITEMAP_PAGE_ENTRIES) groups.get(entry.category)?.push(entry);
++  return groups;
++}
++
++export default function SiteMapPage() {
++  const groups = groupByCategory();
++  const casinoSample = CASINOS.slice(0, 12);
++
++  return (
++    <main className="public-page text-white">
++      <section className="hero-surface">
++        <div className="landing-shell">
++          <span className="brand-eyebrow">Index // public routes</span>
++          <h1 className="landing-hero-title">Site map</h1>
++          <p className="landing-hero-subtitle max-w-2xl">
++            Every crawlable page on tiltcheck.me. Raw XML at{' '}
++            <Link href="/sitemap.xml" className="text-[#17c3b2] underline-offset-2 hover:underline">
++              /sitemap.xml
++            </Link>
++            .
++          </p>
++        </div>
++      </section>
++
++      <section className="public-page-section px-4">
++        <div className="landing-shell space-y-10">
++          {SITEMAP_CATEGORY_ORDER.map((category) => {
++            const entries = groups.get(category) ?? [];
++            if (entries.length === 0) return null;
++            return (
++              <div key={category}>
++                <h2 className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-[#17c3b2]">{category}</h2>
++                <ul className="grid gap-3 sm:grid-cols-2">
++                  {entries.map((entry) => (
++                    <li key={entry.path}>
++                      <Link
++                        href={entry.path}
++                        className="public-page-card block h-full border-gray-800/60 bg-gray-900/30 hover:border-[#17c3b2]/40 hover:bg-[#17c3b2]/5 transition-colors"
++                      >
++                        <p className="font-semibold text-white">{entry.title}</p>
++                        <p className="mt-1 font-mono text-xs text-gray-500">{entry.path}</p>
++                      </Link>
++                    </li>
++                  ))}
++                </ul>
++              </div>
++            );
++          })}
++
++          <div>
++            <h2 className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-[#ffd700]">
++              Casinos ({CASINOS.length})
++            </h2>
++            <ul className="flex flex-wrap gap-2">
++              {casinoSample.map((casino) => (
++                <li key={casino.slug}>
++                  <Link
++                    href={`/casinos/${casino.slug}`}
++                    className="inline-block rounded-full border border-gray-700/80 bg-gray-900/50 px-3 py-1.5 text-xs text-gray-200 hover:border-[#17c3b2]/50 hover:text-[#17c3b2]"
++                  >
++                    {casino.name}
++                  </Link>
++                </li>
++              ))}
++              <li>
++                <Link
++                  href="/casinos"
++                  className="inline-block rounded-full border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#17c3b2]"
++                >
++                  View all
++                </Link>
++              </li>
++            </ul>
++          </div>
++        </div>
++      </section>
++
++      <footer className="public-page-section px-4 pb-12 text-center text-sm text-gray-500">
++        Made for Degens. By Degens.
++      </footer>
++    </main>
++  );
++}
+diff --git a/apps/web/src/app/sitemap.ts b/apps/web/src/app/sitemap.ts
+deleted file mode 100644
+index a1aac7a..0000000
+--- a/apps/web/src/app/sitemap.ts
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
+-import type { MetadataRoute } from 'next';
+-import { CASINOS } from '@tiltcheck/trust';
+-
+-const BASE = (process.env.NEXT_PUBLIC_WEB_URL ?? 'https://tiltcheck.me').replace(/\/$/, '');
+-
+-type SitemapPage = {
+-  path: string;
+-  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
+-  priority: number;
+-};
+-
+-// Public indexable routes only. Auth-gated and noindex layouts excluded.
+-const PAGES: SitemapPage[] = [
+-  { path: '/', changeFrequency: 'weekly', priority: 1.0 },
+-  { path: '/extension', changeFrequency: 'monthly', priority: 0.9 },
+-  { path: '/casinos', changeFrequency: 'daily', priority: 0.9 },
+-  { path: '/bonuses', changeFrequency: 'daily', priority: 0.9 },
+-  { path: '/stake', changeFrequency: 'monthly', priority: 0.7 },
+-  { path: '/nuts', changeFrequency: 'monthly', priority: 0.7 },
+-  { path: '/touch-grass', changeFrequency: 'monthly', priority: 0.4 },
+-  { path: '/terms', changeFrequency: 'yearly', priority: 0.3 },
+-  { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },
+-];
+-
+-export default function sitemap(): MetadataRoute.Sitemap {
+-  const now = new Date().toISOString();
+-
+-  return [
+-    ...PAGES.map(({ path, changeFrequency, priority }) => ({
+-      url: `${BASE}${path}`,
+-      lastModified: now,
+-      changeFrequency,
+-      priority,
+-    })),
+-    ...CASINOS.map((casino) => ({
+-      url: `${BASE}/casinos/${casino.slug}`,
+-      lastModified: now,
+-      changeFrequency: 'weekly' as const,
+-      priority: 0.8,
+-    })),
+-  ];
+-}
+diff --git a/apps/web/src/app/sitemap.xml/route.ts b/apps/web/src/app/sitemap.xml/route.ts
+new file mode 100644
+index 0000000..04613be
+--- /dev/null
++++ b/apps/web/src/app/sitemap.xml/route.ts
+@@ -0,0 +1,15 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
++import { buildSitemapXml } from '@/lib/sitemap-xml';
++
++export const revalidate = 3600;
++
++export async function GET() {
++  const base = process.env.NEXT_PUBLIC_WEB_URL ?? 'https://tiltcheck.me';
++  const xml = buildSitemapXml(base);
++  return new Response(xml, {
++    headers: {
++      'Content-Type': 'application/xml; charset=utf-8',
++      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
++    },
++  });
++}
+diff --git a/apps/web/src/lib/sitemap-entries.ts b/apps/web/src/lib/sitemap-entries.ts
+new file mode 100644
+index 0000000..70d6327
+--- /dev/null
++++ b/apps/web/src/lib/sitemap-entries.ts
+@@ -0,0 +1,33 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
++import type { MetadataRoute } from 'next';
++
++export type SitemapCategory = 'Core' | 'Casino setup' | 'Legal & RG';
++
++export type SitemapPageEntry = {
++  path: string;
++  title: string;
++  description?: string;
++  category: SitemapCategory;
++  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
++  priority: number;
++};
++
++export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
++  { path: '/', title: 'Home', category: 'Core', changeFrequency: 'weekly', priority: 1.0 },
++  { path: '/extension', title: 'Chrome extension', category: 'Core', changeFrequency: 'monthly', priority: 0.9 },
++  { path: '/casinos', title: 'Casino trust directory', category: 'Core', changeFrequency: 'daily', priority: 0.9 },
++  { path: '/bonuses', title: 'Daily bonus feed', category: 'Core', changeFrequency: 'daily', priority: 0.9 },
++  { path: '/site-map', title: 'Site map', category: 'Core', changeFrequency: 'monthly', priority: 0.5 },
++  { path: '/stake', title: 'Stake.us setup', category: 'Casino setup', changeFrequency: 'monthly', priority: 0.7 },
++  { path: '/nuts', title: 'nuts.gg setup', category: 'Casino setup', changeFrequency: 'monthly', priority: 0.7 },
++  { path: '/touch-grass', title: 'Touch Grass', category: 'Legal & RG', changeFrequency: 'monthly', priority: 0.4 },
++  { path: '/terms', title: 'Terms of service', category: 'Legal & RG', changeFrequency: 'yearly', priority: 0.3 },
++  { path: '/privacy', title: 'Privacy policy', category: 'Legal & RG', changeFrequency: 'yearly', priority: 0.3 },
++];
++
++export const SITEMAP_CATEGORY_ORDER: SitemapCategory[] = ['Core', 'Casino setup', 'Legal & RG'];
++
++export function resolveSitemapHref(base: string, entry: SitemapPageEntry): string {
++  const path = entry.path.startsWith('/') ? entry.path : `/${entry.path}`;
++  return `${base.replace(/\/$/, '')}${path}`;
++}
+diff --git a/apps/web/src/lib/sitemap-xml.ts b/apps/web/src/lib/sitemap-xml.ts
+new file mode 100644
+index 0000000..389d878
+--- /dev/null
++++ b/apps/web/src/lib/sitemap-xml.ts
+@@ -0,0 +1,41 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
++import { CASINOS } from '@tiltcheck/trust';
++import { resolveSitemapHref, SITEMAP_PAGE_ENTRIES, type SitemapPageEntry } from '@/lib/sitemap-entries';
++
++function xmlEscape(value: string): string {
++  return value
++    .replace(/&/g, '&amp;')
++    .replace(/</g, '&lt;')
++    .replace(/>/g, '&gt;')
++    .replace(/"/g, '&quot;')
++    .replace(/'/g, '&apos;');
++}
++
++function urlNode(base: string, entry: Pick<SitemapPageEntry, 'path' | 'changeFrequency' | 'priority'>, lastmod: string): string {
++  const loc = resolveSitemapHref(base, entry as SitemapPageEntry);
++  return [
++    '  <url>',
++    `    <loc>${xmlEscape(loc)}</loc>`,
++    `    <lastmod>${xmlEscape(lastmod)}</lastmod>`,
++    `    <changefreq>${entry.changeFrequency}</changefreq>`,
++    `    <priority>${entry.priority.toFixed(1)}</priority>`,
++    '  </url>',
++  ].join('\n');
++}
++
++export function buildSitemapXml(base: string): string {
++  const lastmod = new Date().toISOString();
++  const staticUrls = SITEMAP_PAGE_ENTRIES.map((entry) => urlNode(base, entry, lastmod));
++  const casinoUrls = CASINOS.map((casino) =>
++    urlNode(base, { path: `/casinos/${casino.slug}`, changeFrequency: 'weekly', priority: 0.8 }, lastmod),
++  );
++
++  return [
++    '<?xml version="1.0" encoding="UTF-8"?>',
++    '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
++    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
++    ...staticUrls,
++    ...casinoUrls,
++    '</urlset>',
++  ].join('\n');
++}
+diff --git a/docs/LAUNCH-CHECKLIST.md b/docs/LAUNCH-CHECKLIST.md
+new file mode 100644
+index 0000000..a145d9b
+--- /dev/null
++++ b/docs/LAUNCH-CHECKLIST.md
+@@ -0,0 +1,237 @@
++<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
++
++# Launch Checklist — Operator Steps (M0 → M5)
++
++Follow top to bottom. Do **not** skip M1 before M2 DNS. Full rationale: [launch-cutover-plan spec](./superpowers/specs/2026-06-17-launch-cutover-plan.md).
++
++**North-star KPI:** Protected sessions/week — authed user, enabled `session_cap`, enforcement fired ≥1× in 7d. Track in [metrics-weekly.md](./metrics-weekly.md).
++
++---
++
++## How to use this doc
++
++| Symbol | Meaning |
++|--------|---------|
++| `[ ]` | You do this manually |
++| `[agent]` | Cloud agent or dev implements (see [execution plan](./superpowers/plans/2026-06-17-launch-cutover-execution.md)) |
++| **BLOCKER** | Must be green before next milestone |
++
++Detailed env vars and URLs: [manual-tasks.md](./manual-tasks.md).
++
++---
++
++## M0 — Freeze policy (do first)
++
++**Goal:** Stop duplicate work; lock v1 to ops-only.
++
++### Policy
++
++- [ ] **Agree:** v1 monorepo = ops + crawler only; no new product features
++- [ ] **Agree:** MVP repo = all forward product (bonuses, copilot, dashboard depth)
++- [ ] **Agree:** No DNS cutover until M1 staging gate passes
++
++### v1 production secrets (post-PR #591)
++
++- [ ] Railway v1 API: `EMAIL_INGEST_SECRET` set (non-empty, not default)
++- [ ] Railway v1 API: `INTERNAL_SERVICE_TOKEN` set
++- [ ] Smoke: email ingest rejects requests without secret (401/403)
++
++### Triage open v1 PRs
++
++- [ ] **#596** — merge if you want sitemap + 404 on v1 before cutover (optional)
++- [ ] **#590** — close or merge as short bridge; MVP owns bonuses long-term
++- [ ] **#595** — merge doc-only (copilot spec fixes)
++
++### Push MVP branches (403 blocker for cursor bot)
++
++From a machine with write access to `jmenichole/tiltcheckmvp`:
++
++```bash
++git clone git@github.com:jmenichole/tiltcheckmvp.git
++cd tiltcheckmvp
++git fetch origin
++git checkout cursor/daily-bonus-feed-port-ec58
++git push -u origin cursor/daily-bonus-feed-port-ec58
++
++git checkout cursor/web-sitemap-ec58
++git push -u origin cursor/web-sitemap-ec58
++```
++
++- [ ] MVP branch `cursor/daily-bonus-feed-port-ec58` on remote
++- [ ] MVP branch `cursor/web-sitemap-ec58` on remote
++- [ ] Open PRs on MVP repo for each (or merge to `main` when ready)
++
++**M0 exit:** Policy agreed, secrets set, MVP branches pushed, PRs triaged.
++
++---
++
++## M1 — Staging Phase 2 gate **BLOCKER**
++
++**Goal:** Prove login → vault → enforcement on staging before any prod DNS move.
++
++Reference: [cutover-checklist.md](./cutover-checklist.md) Phase 2, [manual-tasks.md § H–I](./manual-tasks.md).
++
++### Infrastructure (mostly done — verify)
++
++- [ ] Staging Supabase: migration applied, `pnpm seed:casino-scores` run
++- [ ] Staging API health: `GET …/health` → 200
++- [ ] Staging API scores: `GET …/rgaas/casino-scores` → `source: supabase`
++- [ ] Staging web loads: home, `/casinos`, `/extension`, `/login`
++- [ ] Discord OAuth redirect URIs include staging API callback
++
++### Extension staging build
++
++```powershell
++$env:EXTENSION_API_URL = "https://tiltcheck-api-production.up.railway.app"
++$env:EXTENSION_WEB_URL = "https://tiltcheckmvp-production.up.railway.app"
++cd apps/extension
++node build.js
++```
++
++- [ ] Load unpacked `apps/extension/dist` in Chrome
++- [ ] Discord login via extension → `tc_demo: false`, token in storage
++
++### Vault persistence
++
++- [ ] Web `/dashboard` → Vault tab → save **session cap**
++- [ ] Refresh page — rule still present (not `stub: true`)
++- [ ] Extension **Refresh rules** — syncs vault from API
++
++### Enforcement gate (required)
++
++On a test casino with extension enabled:
++
++- [ ] Tilt reaches **critical** (sustained fast-click or configured test)
++- [ ] **Touch Grass** fullscreen overlay appears (`#tiltcheck-lockdown-root`)
++- [ ] Betting/spin controls blocked until timer ends
++- [ ] Overlay not dismissible early
++- [ ] Service worker console: `[TiltCheck] Enforcement fired`
++
++Full checklist: [real-accounts-signoff.md](./superpowers/reports/2026-05-27-real-accounts-signoff.md)
++
++### CI
++
++- [ ] MVP `main`: `pnpm test:e2e` green (or run locally and note commit SHA)
++
++**M1 exit:** All Phase 2 items checked; sign-off date recorded in [metrics-weekly.md](./metrics-weekly.md).
++
++---
++
++## M2 — DNS cutover
++
++**Prerequisite:** M1 complete.
++
++### Production Supabase + Railway
++
++- [ ] Production Supabase: run migration + `pnpm seed:casino-scores`
++- [ ] Production Railway API env: `WEB_URL`, `API_URL`, Discord, Supabase, `SESSION_SECRET`
++- [ ] Production Railway web env: `NEXT_PUBLIC_*`, `BONUSES_UPSTREAM_URL` (v1 API until M3)
++- [ ] Discord prod redirect: `https://api.tiltcheck.me/auth/discord/callback`
++
++### DNS
++
++- [ ] `tiltcheck.me` → Railway **web** (MVP)
++- [ ] `api.tiltcheck.me` → Railway **api** (MVP)
++- [ ] `dashboard.tiltcheck.me` → **301** → `https://tiltcheck.me/dashboard`
++
++### Chrome Web Store
++
++- [ ] Extension update published with `EXTENSION_API_URL=https://api.tiltcheck.me`
++- [ ] Store listing still points to same extension ID (no broken install links)
++
++### Prod smoke (throwaway session)
++
++- [ ] `/` and `/casinos` load
++- [ ] Discord login → dashboard
++- [ ] Save vault rule
++- [ ] One enforcement test on test casino
++
++### v1 parallel (during M2)
++
++- [ ] Email crawler still on v1: `CRAWLER_API_URL=https://api.tiltcheck.me` (until M3)
++- [ ] MVP `/bonuses` works via upstream or local feed
++
++**M2 exit:** Prod DNS on MVP; core loop works on production hostnames.
++
++**Rollback:** Revert DNS to v1 Railway; document incident in metrics weekly notes.
++
++---
++
++## M3 — Decommission v1
++
++**Prerequisite:** M2 stable ≥1 week (recommended).
++
++### Email ingest on MVP [agent]
++
++- [ ] `POST /rgaas/email-ingest` live on MVP API with shared secret auth
++- [ ] Crawler moved: `CRAWLER_API_URL` → MVP API host
++- [ ] Run crawler with limit if backlog: `pnpm crawl:emails -- --limit 100`
++- [ ] Remove `BONUSES_UPSTREAM_URL` proxy; bonuses read from MVP Supabase
++
++### Archive v1
++
++- [ ] Confirm no production traffic to v1 Railway web/api
++- [ ] GitHub: archive `TiltCheck-ME/tiltcheck-monorepo` (read-only)
++- [ ] Keep local clone for reference until M5
++
++**M3 exit:** Single repo (`tiltcheckmvp`) owns prod stack + ingest.
++
++---
++
++## M4 — Phase 3 + Degen Copilot (post-cutover)
++
++Ship in order per [phases.md](./phases.md):
++
++### Dashboard depth [agent]
++
++- [ ] Analytics tab + API endpoints
++- [ ] Buddies (simplified social/accountability)
++- [ ] Dashboard **Bonuses** tab (full inbox list)
++
++### Degen Copilot [agent]
++
++Spec: v1 monorepo `docs/superpowers/specs/2026-06-17-degen-copilot-design.md` (copy to MVP when implementing)
++
++- [ ] API: `POST /copilot/chat`, `POST /copilot/confirm`, tool registry
++- [ ] Web: `/dashboard/copilot`
++- [ ] Extension: FAB chat bubble
++- [ ] Discord: `/copilot` or DM flow
++
++**M4 exit:** Phase 3 tabs live; copilot Phase 1 (configure) on at least one surface.
++
++---
++
++## M5 — Tools + Discord bot
++
++- [ ] **session-stats** — web page + API module
++- [ ] **verify** — domain/casino verifier
++- [ ] **house-edge** — calculator/tool page
++- [ ] Discord bot on Railway: `/vault status`, alert webhook
++- [ ] Retire v1 `discord-bot` Railway service
++
++**M5 exit:** v1 fully retired; MVP runs marketing, API, extension, crawler, Discord.
++
++---
++
++## Weekly rhythm (after M2)
++
++Every Monday (or your chosen day):
++
++1. Fill [metrics-weekly.md](./metrics-weekly.md)
++2. Check protected sessions/week vs prior week
++3. Note blockers in checklist margin or MVP issues
++
++---
++
++## Quick links
++
++| Doc | Path |
++|-----|------|
++| Strategy spec | [superpowers/specs/2026-06-17-launch-cutover-plan.md](./superpowers/specs/2026-06-17-launch-cutover-plan.md) |
++| Engineering tasks | [superpowers/plans/2026-06-17-launch-cutover-execution.md](./superpowers/plans/2026-06-17-launch-cutover-execution.md) |
++| Manual ops | [manual-tasks.md](./manual-tasks.md) |
++| Smoke definition | [cutover-checklist.md](./cutover-checklist.md) |
++| v1 crawler ops | [v1-ops.md](./v1-ops.md) |
++| Phase backlog | [phases.md](./phases.md) |
++
++Made for Degens. By Degens.
+diff --git a/docs/metrics-weekly.md b/docs/metrics-weekly.md
+new file mode 100644
+index 0000000..897a1ca
+--- /dev/null
++++ b/docs/metrics-weekly.md
+@@ -0,0 +1,98 @@
++<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
++
++# Weekly Metrics — TiltCheck Launch
++
++Copy this section each week. North-star and supporting KPIs defined in [launch-cutover-plan spec](./superpowers/specs/2026-06-17-launch-cutover-plan.md).
++
++---
++
++## Week of: YYYY-MM-DD
++
++**Milestone focus:** M0 / M1 / M2 / M3 / M4 / M5 (circle one)
++
++**Operator:** ____________________
++
++---
++
++### North-star: Protected sessions / week
++
++| Metric | This week | Last week | Notes |
++|--------|-----------|-----------|-------|
++| Users with enabled `session_cap` | | | |
++| Users with ≥1 enforcement event (7d) | | | |
++| **Protected session rate** (enforcement / enabled cap) | | | |
++
++**Data source:** Extension telemetry / API / manual staging count
++
++**Staging sign-off date (M1):** ____________________
++
++---
++
++### Supporting KPIs
++
++| KPI | This week | Last week | Target / notes |
++|-----|-----------|-----------|----------------|
++| Chrome extension installs (store) | | | Trend ↑ |
++| Discord OAuth completions | | | |
++| New vault rules saved (`POST /vault`) | | | ≥1 per new authed user |
++| Raw enforcement events | | | |
++| `/casinos` sessions (analytics) | | | |
++| Extension page CTR → store | | | |
++| Bonus feed freshness (oldest top pick) | | | <24h until M3 ingest |
++| API p95 latency (`/health`, `/vault`) | | | |
++| E2E CI last green SHA | | | MVP `main` |
++
++---
++
++### Milestone checklist status
++
++| Milestone | Status | Blocker |
++|-----------|--------|---------|
++| M0 Freeze | ☐ Done | |
++| M1 Staging P2 gate | ☐ Done | |
++| M2 DNS cutover | ☐ Done | |
++| M3 v1 decommission | ☐ Done | |
++| M4 Phase 3 + Copilot | ☐ In progress / Done | |
++| M5 Tools + Discord | ☐ Not started | |
++
++---
++
++### Incidents / rollback notes
++
++| Date | Event | Action |
++|------|-------|--------|
++| | | |
++
++---
++
++### Decisions made this week
++
++1.
++2.
++
++---
++
++### Next week priorities
++
++1.
++2.
++3.
++
++---
++
++## Template (blank week)
++
++<details>
++<summary>Copy from here next week</summary>
++
++### Week of: YYYY-MM-DD
++
++**Milestone focus:**
++
++| Metric | This week | Last week | Notes |
++|--------|-----------|-----------|-------|
++| Protected session users (7d) | | | |
++
++</details>
++
++Made for Degens. By Degens.
+diff --git a/docs/phases.md b/docs/phases.md
+index 48b5ad9..c26bfea 100644
+--- a/docs/phases.md
++++ b/docs/phases.md
+@@ -255,6 +255,9 @@ _Last updated: execution plan implementation (docs + trust API + vault + extensi
+ 
+ ## Related docs
+ 
++- **[LAUNCH-CHECKLIST.md](./LAUNCH-CHECKLIST.md)** — operator steps M0–M5 (start here for cutover)
++- [2026-06-17-launch-cutover-plan.md](./superpowers/specs/2026-06-17-launch-cutover-plan.md) — strategy, KPIs, milestones (sync from v1 if missing)
++- [metrics-weekly.md](./metrics-weekly.md) — weekly KPI worksheet
+ - [migration-from-v1.md](./migration-from-v1.md) — trust data and user cutover notes
+ - [deploy.md](./deploy.md) — hosting and env
+ - [cutover-checklist.md](./cutover-checklist.md) — DNS and redirect checklist
+diff --git a/docs/superpowers/plans/2026-06-17-launch-cutover-execution.md b/docs/superpowers/plans/2026-06-17-launch-cutover-execution.md
+new file mode 100644
+index 0000000..75a4d5b
+--- /dev/null
++++ b/docs/superpowers/plans/2026-06-17-launch-cutover-execution.md
+@@ -0,0 +1,16 @@
++# Launch Cutover — Execution Plan (MVP)
++
++**Spec:** [2026-06-17-launch-cutover-plan.md](../specs/2026-06-17-launch-cutover-plan.md)  
++**Operator checklist:** [LAUNCH-CHECKLIST.md](../../LAUNCH-CHECKLIST.md)
++
++> Full task breakdown with v1 paths: `TiltCheck-ME/tiltcheck-monorepo` → `docs/superpowers/plans/2026-06-17-launch-cutover-execution.md`
++
++## Remaining engineering (summary)
++
++1. Merge `cursor/daily-bonus-feed-port-ec58` and `cursor/web-sitemap-ec58` (owner push)
++2. M3: `POST /rgaas/email-ingest` on MVP API
++3. M4: Phase 3 tabs + Degen Copilot (configure model)
++4. M5: Tools + Discord bot
++5. Telemetry for protected-sessions/week KPI
++
++See full plan in v1 monorepo migration folder: `docs/migration/tiltcheckmvp-launch/2026-06-17-launch-cutover-execution.md`
+diff --git a/docs/superpowers/specs/2026-06-17-launch-cutover-plan.md b/docs/superpowers/specs/2026-06-17-launch-cutover-plan.md
+new file mode 100644
+index 0000000..a7eddf4
+--- /dev/null
++++ b/docs/superpowers/specs/2026-06-17-launch-cutover-plan.md
+@@ -0,0 +1,59 @@
++# Launch & Cutover Plan — B+D Strategy (v1 freeze + MVP forward build)
++
++**Date:** 2026-06-17  
++**Status:** Approved  
++**Strategy:** **B** (staging gate before DNS) + **D** (solo bandwidth — v1 ops-only, MVP owns product)  
++**Related:** [LAUNCH-CHECKLIST.md](../LAUNCH-CHECKLIST.md), [phases.md](../phases.md), [manual-tasks.md](../manual-tasks.md)
++
++> Canonical copy with v1 cross-links: `TiltCheck-ME/tiltcheck-monorepo` → `docs/superpowers/specs/2026-06-17-launch-cutover-plan.md`
++
++---
++
++## 1. Decision summary
++
++| Choice | What it means |
++|--------|----------------|
++| **Two repos until M3** | v1 monorepo stays live for crawler, legacy bots, and prod API until cutover. This MVP repo is the forward build. |
++| **v1 freeze (M0)** | No new product features on v1. Only P0 ops: secrets, ingest auth, crawler runs, hotfixes. |
++| **MVP owns product** | Bonuses feed, sitemap/SEO, Degen Copilot, dashboard depth — all land here post-M2 unless explicitly bridged on v1. |
++| **Staging gate (M1)** | Production DNS does **not** move until Phase 2 protected-session loop passes on staging. |
++| **Archive v1 (M3)** | After DNS stable + email-ingest on MVP, mark v1 monorepo read-only. |
++
++---
++
++## 2. North-star KPI
++
++**Protected sessions per week** — authed user, enabled `session_cap`, enforcement fired ≥1× in 7d.
++
++Track in [metrics-weekly.md](../metrics-weekly.md).
++
++---
++
++## 3. Milestones M0–M5
++
++| ID | Name | Key exit |
++|----|------|----------|
++| M0 | Freeze policy | v1 = ops; MVP = product; push pending branches |
++| M1 | Staging P2 gate | Extension → login → vault → Touch Grass enforcement |
++| M2 | DNS cutover | `tiltcheck.me` + `api.tiltcheck.me` → MVP Railway |
++| M3 | Decommission v1 | v2 email ingest; archive monorepo |
++| M4 | Phase 3 | Analytics, bonuses tab, buddies, Degen Copilot |
++| M5 | Phase 4–5 | Tools depth, Discord bot, operators |
++
++**Operator checklist:** [LAUNCH-CHECKLIST.md](../LAUNCH-CHECKLIST.md)  
++**Engineering tasks:** [2026-06-17-launch-cutover-execution.md](../plans/2026-06-17-launch-cutover-execution.md)
++
++---
++
++## 4. MVP branches awaiting owner push
++
++`cursor[bot]` gets **403** on this repo. Push from an account with write access:
++
++| Branch | Contents |
++|--------|----------|
++| `cursor/daily-bonus-feed-port-ec58` | Daily bonus feed + `/bonuses` |
++| `cursor/web-sitemap-ec58` | sitemap, robots, `/site-map`, 404 |
++
++---
++
++**Next step:** [LAUNCH-CHECKLIST.md § M0](../LAUNCH-CHECKLIST.md)
+-- 
+2.43.0
+

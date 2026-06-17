@@ -44,21 +44,38 @@ Detailed env vars and URLs: MVP [manual-tasks.md](../tiltcheckmvp/docs/manual-ta
 
 ### Push MVP branches (403 blocker for cursor bot)
 
-From a machine with write access to `jmenichole/tiltcheckmvp`:
+**If push failed:** see [PUSH-GUIDE.md](./migration/tiltcheckmvp-patches/PUSH-GUIDE.md) — SSH vs HTTPS vs patches.
+
+Use **HTTPS + Personal Access Token** if `git@github.com` gives `Permission denied (publickey)`:
 
 ```bash
-git clone git@github.com:jmenichole/tiltcheckmvp.git
+git clone https://github.com/jmenichole/tiltcheckmvp.git
 cd tiltcheckmvp
-# If you have local commits from agent work, cherry-pick or merge:
-git fetch origin
-git checkout -b cursor/daily-bonus-feed-port-ec58 origin/cursor/daily-bonus-feed-port-ec58 2>/dev/null || git checkout cursor/daily-bonus-feed-port-ec58
-git push -u origin cursor/daily-bonus-feed-port-ec58
+```
 
-git checkout -b cursor/web-sitemap-ec58 origin/cursor/web-sitemap-ec58 2>/dev/null || git checkout cursor/web-sitemap-ec58
+**Daily bonus** (remote branch exists; you are 1 commit behind local port):
+
+```bash
+git fetch origin cursor/daily-bonus-feed-port-ec58
+git checkout cursor/daily-bonus-feed-port-ec58
+git pull origin cursor/daily-bonus-feed-port-ec58
+# From v1 monorepo clone — apply patch:
+git am docs/migration/tiltcheckmvp-patches/daily-bonus-feed/*.patch
+git push origin cursor/daily-bonus-feed-port-ec58
+```
+
+**Web sitemap** (branch not on remote yet):
+
+```bash
+git checkout main && git pull origin main
+git checkout -b cursor/web-sitemap-ec58
+git am docs/migration/tiltcheckmvp-patches/web-sitemap/*.patch
 git push -u origin cursor/web-sitemap-ec58
 ```
 
-- [ ] MVP branch `cursor/daily-bonus-feed-port-ec58` on remote
+When prompted for password, use a GitHub **fine-grained PAT** with Contents write on `tiltcheckmvp` — not your account password.
+
+- [ ] MVP branch `cursor/daily-bonus-feed-port-ec58` includes bonus feed commit on remote
 - [ ] MVP branch `cursor/web-sitemap-ec58` on remote
 - [ ] Open PRs on MVP repo for each (or merge to `main` when ready)
 

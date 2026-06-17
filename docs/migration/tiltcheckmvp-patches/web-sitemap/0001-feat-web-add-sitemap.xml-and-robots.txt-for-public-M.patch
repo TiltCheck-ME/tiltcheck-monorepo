@@ -1,0 +1,104 @@
+From 934886a64ddddd3294bd3ef4fee99ef165fba147 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Wed, 17 Jun 2026 02:40:30 +0000
+Subject: [PATCH 1/2] feat(web): add sitemap.xml and robots.txt for public MVP
+ routes
+
+---
+ apps/web/src/app/robots.ts  | 33 ++++++++++++++++++++++++++++
+ apps/web/src/app/sitemap.ts | 43 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 76 insertions(+)
+ create mode 100644 apps/web/src/app/robots.ts
+ create mode 100644 apps/web/src/app/sitemap.ts
+
+diff --git a/apps/web/src/app/robots.ts b/apps/web/src/app/robots.ts
+new file mode 100644
+index 0000000..2fbd84d
+--- /dev/null
++++ b/apps/web/src/app/robots.ts
+@@ -0,0 +1,33 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
++import type { MetadataRoute } from 'next';
++
++const BASE = (process.env.NEXT_PUBLIC_WEB_URL ?? 'https://tiltcheck.me').replace(/\/$/, '');
++
++export default function robots(): MetadataRoute.Robots {
++  return {
++    rules: [
++      {
++        userAgent: '*',
++        allow: '/',
++        disallow: ['/api/', '/login', '/dashboard', '/settings', '/_next/'],
++      },
++      {
++        userAgent: [
++          'GPTBot',
++          'ChatGPT-User',
++          'Claude-Web',
++          'Anthropic-AI',
++          'anthropic-ai',
++          'CCBot',
++          'Google-Extended',
++          'PerplexityBot',
++          'cohere-ai',
++        ],
++        allow: '/',
++        disallow: ['/dashboard', '/settings', '/login'],
++      },
++    ],
++    sitemap: `${BASE}/sitemap.xml`,
++    host: BASE,
++  };
++}
+diff --git a/apps/web/src/app/sitemap.ts b/apps/web/src/app/sitemap.ts
+new file mode 100644
+index 0000000..a1aac7a
+--- /dev/null
++++ b/apps/web/src/app/sitemap.ts
+@@ -0,0 +1,43 @@
++/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
++import type { MetadataRoute } from 'next';
++import { CASINOS } from '@tiltcheck/trust';
++
++const BASE = (process.env.NEXT_PUBLIC_WEB_URL ?? 'https://tiltcheck.me').replace(/\/$/, '');
++
++type SitemapPage = {
++  path: string;
++  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
++  priority: number;
++};
++
++// Public indexable routes only. Auth-gated and noindex layouts excluded.
++const PAGES: SitemapPage[] = [
++  { path: '/', changeFrequency: 'weekly', priority: 1.0 },
++  { path: '/extension', changeFrequency: 'monthly', priority: 0.9 },
++  { path: '/casinos', changeFrequency: 'daily', priority: 0.9 },
++  { path: '/bonuses', changeFrequency: 'daily', priority: 0.9 },
++  { path: '/stake', changeFrequency: 'monthly', priority: 0.7 },
++  { path: '/nuts', changeFrequency: 'monthly', priority: 0.7 },
++  { path: '/touch-grass', changeFrequency: 'monthly', priority: 0.4 },
++  { path: '/terms', changeFrequency: 'yearly', priority: 0.3 },
++  { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },
++];
++
++export default function sitemap(): MetadataRoute.Sitemap {
++  const now = new Date().toISOString();
++
++  return [
++    ...PAGES.map(({ path, changeFrequency, priority }) => ({
++      url: `${BASE}${path}`,
++      lastModified: now,
++      changeFrequency,
++      priority,
++    })),
++    ...CASINOS.map((casino) => ({
++      url: `${BASE}/casinos/${casino.slug}`,
++      lastModified: now,
++      changeFrequency: 'weekly' as const,
++      priority: 0.8,
++    })),
++  ];
++}
+-- 
+2.43.0
+
