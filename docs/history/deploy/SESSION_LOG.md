@@ -1,5 +1,11 @@
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-06-17 - Launch cutover docs + web sitemap/404 (PR #597)
+
+- **Launch documentation**: Added B+D cutover strategy spec, operator `LAUNCH-CHECKLIST.md` (M0–M5), execution plan, weekly KPI template, and MVP push troubleshooting with git patches for manual apply.
+- **Web SEO**: Styled `/site-map` HTML index, XSL-backed `/sitemap.xml` route handler, upgraded `not-found.tsx` with recovery links, and `WEB-SITEMAP.md` route inventory.
+- **Review fixes**: Narrowed `resolveSitemapHref` types, removed dynamic `<lastmod>` from sitemap XML, fixed external URL detection via origin comparison (CodeQL).
+
 ## 2026-03-24 - Blog System & Automated Intel Generation
 
 - **Blog System Implementation**: Successfully architected and deployed a full-stack blog system. 

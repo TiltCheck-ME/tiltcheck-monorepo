@@ -1,55 +1,78 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
-import React from 'react';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import PublicPageHero from '@/components/PublicPageHero';
+
+export const metadata: Metadata = {
+  title: '404 — Page not found',
+  description: 'This route does not exist. Head back to safety before you degen into a dead link.',
+  robots: { index: false, follow: false },
+};
+
+const RECOVERY_LINKS = [
+  { href: '/', label: 'Home', primary: true },
+  { href: '/site-map', label: 'Site map', primary: false },
+  { href: '/casinos', label: 'Casino trust', primary: false },
+  { href: '/bonuses', label: 'Daily bonuses', primary: false },
+  { href: '/touch-grass', label: 'Touch Grass', primary: false },
+] as const;
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 text-white">
-      <div className="max-w-xl w-full text-center flex flex-col gap-10 animate-in fade-in duration-500">
-        <header>
-          <h1
-            className="neon neon-main neon-hero-bottom text-7xl font-black uppercase tracking-tighter mb-2"
-            data-text="FUCK."
-          >
-            FUCK.
-          </h1>
-          <div className="inline-block bg-red-600/10 border border-red-600/20 px-3 py-1">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-red-500">
+    <main className="public-page public-page--tight text-white">
+      <PublicPageHero
+        compact
+        eyebrow="ERR-404 // route_not_found"
+        title="Wrong table."
+        description={
+          <p>
+            This page got scrubbed, moved, or never existed. Bad bookmark, stale link, or someone
+            shipped code mid-Plinko run. No cap — you are not getting a session here.
+          </p>
+        }
+      />
+
+      <section className="public-page-section px-4">
+        <div className="landing-shell max-w-2xl">
+          <div className="public-page-card border-red-500/20 bg-red-950/10 px-6 py-5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-400">
               CRITICAL_FAILURE: ARCHITECTURAL_JUDGMENT_NOT_FOUND
             </p>
+            <p className="mt-3 text-sm italic text-[#17c3b2]">
+              The house takes your money. Dead routes take your time. Lock in and pick a real exit.
+            </p>
           </div>
-        </header>
 
-        <section className="relative p-10 border-l-2 border-[#17c3b2]/30 bg-white/[0.02] text-left">
-          <p className="font-mono text-sm text-gray-300 mb-6 leading-relaxed">
-            The page you are looking for has been scrubbed, relocated, or Jme simply pushed broken code to production while distracted by a high-multiplier Plinko run.
-          </p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            {RECOVERY_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={
+                  link.primary
+                    ? 'public-page-card block border-[#17c3b2]/40 bg-[#17c3b2]/10 px-5 py-4 text-center text-xs font-black uppercase tracking-[0.18em] text-[#17c3b2] hover:bg-[#17c3b2]/20 transition-colors'
+                    : 'public-page-card block border-gray-800/60 bg-gray-900/30 px-5 py-4 text-center text-xs font-black uppercase tracking-[0.18em] text-gray-300 hover:border-[#17c3b2]/40 hover:text-[#17c3b2] transition-colors'
+                }
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
 
-          <p className="text-xs text-[#17c3b2] font-mono italic mb-10 border-b border-white/5 pb-6">
-            &quot;The house takes your money. Jme takes your uptime. Neither of them are sorry.&quot;
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link
-              href="/"
-              className="px-6 py-4 bg-[#17c3b2]/10 text-[#17c3b2] border border-[#17c3b2]/20 uppercase text-[10px] font-black tracking-widest hover:bg-[#17c3b2]/20 transition-all text-center"
-            >
-              &gt; BACK_TO_SAFETY
-            </Link>
-
+          <p className="mt-10 text-center">
             <Link
               href="https://discord.gg/gdBsEJfCar"
-              className="px-6 py-4 border border-white/10 text-gray-500 uppercase text-[10px] font-black tracking-widest hover:text-red-500 hover:border-red-500/30 transition-all text-center"
+              className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-600 hover:text-red-400 transition-colors"
             >
-              &gt; HARASS_THE_DEV
+              Still sus? Harass the dev on Discord
             </Link>
-          </div>
-        </section>
+          </p>
+        </div>
+      </section>
 
-        <p className="text-[9px] text-gray-700 font-mono uppercase tracking-[0.4em] opacity-50">
-          TILTCHECK ECOSYSTEM // ERR-404-JME
-        </p>
-      </div>
+      <footer className="public-page-section px-4 pb-12 text-center text-sm text-gray-600">
+        Made for Degens. By Degens.
+      </footer>
     </main>
   );
 }
