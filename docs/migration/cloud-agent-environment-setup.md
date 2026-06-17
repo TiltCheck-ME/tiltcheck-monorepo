@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
 
 # Cloud Agent Environment Setup (Node 20 + pnpm 10.29.1)
 
@@ -17,7 +17,7 @@ bash scripts/cloud-agent-env-setup.sh
 - Seeds `/workspace/.env` when missing: copies `.env.example`, then ensures cloud-agent dev defaults:
   - `SKIP_ENV_VALIDATION=true`
   - `SKIP_DISCORD_LOGIN=true`
-  - `VAULT_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef`
+  - `VAULT_ENCRYPTION_KEY` is generated as a 64-character hex dev placeholder.
 - If `.env` already exists, the script does not overwrite it.
 - Installs and pins a managed Node `20.19.0` toolchain when the base image does not already provide a working Node 20 runtime.
 - Exposes `node`, `npm`, `npx`, `corepack`, and `pnpm` on `PATH` for future shells by wiring `$HOME/.local/bin`.

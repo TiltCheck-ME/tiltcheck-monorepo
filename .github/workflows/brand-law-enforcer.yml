@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17
 name: Brand Law Enforcer
 
 on:
@@ -58,11 +58,12 @@ jobs:
           }
 
           # Check for hardcoded secrets in the PR diff (skip template and archive paths)
+          SECRET_PATTERN='sk_live_|DISCORD_TOKEN|JWT_SECRET|DATABASE''_URL'
           SECRET_HITS=$(
             git diff "${BASE_SHA}..${HEAD_SHA}" -- . \
               ':(exclude).env.example' \
               ':(exclude)docs/history' \
-            | grep -E "(sk_live_|DISCORD_TOKEN|JWT_SECRET|DATABASE_URL)" \
+            | grep -E "$SECRET_PATTERN" \
             | grep -v renovate \
             || true
           )

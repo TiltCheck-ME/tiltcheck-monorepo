@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17
 import pg from 'pg';
 import fs from 'fs';
 import path from 'path';
@@ -80,11 +80,11 @@ async function ingest() {
       if (count % 50 === 0) console.log(`  Processed ${count} platforms...`);
     }
 
-    console.log(`✅ SUCCESS: Ingested ${count} platforms into the Five Pillars model.`);
+    console.log(`SUCCESS: Ingested ${count} platforms into the Five Pillars model.`);
     console.log('The Trust Engine is now monitoring the full registry.');
 
   } catch (err) {
-    console.error('❌ INGESTION FAILED:', err);
+    console.error('INGESTION FAILED:', err);
   } finally {
     await client.end();
   }

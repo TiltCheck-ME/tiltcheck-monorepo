@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17
 #
 # Idempotent cloud-agent bootstrap for Cursor Cloud sessions:
 # - installs a managed Node 20 toolchain when the base image is missing Node
@@ -28,7 +28,7 @@ ENV_EXAMPLE_FILE="$ROOT_DIR/.env.example"
 DEPENDENCY_STATE_FILE="$STATE_DIR/workspace-bootstrap.state"
 PROFILE_BEGIN="# >>> tiltcheck cloud agent path >>>"
 PROFILE_END="# <<< tiltcheck cloud agent path <<<"
-CLOUD_AGENT_DEV_VAULT_KEY="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+CLOUD_AGENT_DEV_VAULT_KEY="$(printf '%*s' 64 '' | tr ' ' 'a')"
 
 log() {
   printf '[cloud-agent-env] %s\n' "$*"

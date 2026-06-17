@@ -1,4 +1,12 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 -->
+
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
+
+## 2026-06-17 - CI Autofix: Brand and Secret Scan Repair
+
+- **Secret Scan Repair**: Removed the committed 64-hex cloud-agent dev vault placeholder from setup docs/code and replaced runtime seeding with generated placeholder construction.
+- **Gitleaks History Allowlist**: Added a narrow path-and-key allowlist for the historical non-secret cloud-agent placeholder already present in the PR commit range.
+- **Brand Gate Cleanup**: Split the `DATABASE_URL` scanner pattern to avoid self-matching the workflow diff and removed source emojis from the legacy casino ingest script.
 
 ## 2026-03-24 - Blog System & Automated Intel Generation
 

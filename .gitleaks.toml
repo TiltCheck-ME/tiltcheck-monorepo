@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17
 
 title = "TiltCheck Gitleaks Overrides"
 
@@ -25,4 +25,16 @@ paths = [
 regexTarget = "line"
 regexes = [
   '''"key":\s*"[A-Z0-9]+(?:-[A-Z0-9]+)+"''',
+]
+
+[[allowlists]]
+description = "Allow cloud-agent dev vault placeholder history"
+condition = "AND"
+paths = [
+  '''^scripts/cloud-agent-env-setup\.sh$''',
+  '''^docs/migration/cloud-agent-environment-setup\.md$''',
+]
+regexTarget = "line"
+regexes = [
+  '''(?:CLOUD_AGENT_DEV_VAULT_KEY|VAULT_ENCRYPTION_KEY)\s*=?\s*["`']?[0-9a-f]{64}["`']?''',
 ]
