@@ -47,22 +47,22 @@ Three models were evaluated:
 ```mermaid
 flowchart TB
   subgraph Surfaces
-    EXT["Extension bubble\n(FAB chat)"]
-    DISC["Discord\n(DM + /copilot)"]
-    WEB["Web dashboard\n(/dashboard/copilot)"]
+    EXT["Extension bubble<br/>(FAB chat)"]
+    DISC["Discord<br/>(DM + /copilot)"]
+    WEB["Web dashboard<br/>(/dashboard/copilot)"]
   end
 
   subgraph API["api.tiltcheck.me"]
     CHAT["POST /copilot/chat"]
     CONFIRM["POST /copilot/confirm"]
-    REG["Tool registry\n(fixed intents)"]
-    RECIPES["User recipes\n(Supabase)"]
+    REG["Tool registry<br/>(fixed intents)"]
+    RECIPES["User recipes<br/>(Supabase)"]
   end
 
   subgraph Executors
-    EXT_EXEC["Extension runtime\n(autovault, tilt, blocks)"]
-    API_EXEC["API runtime\n(coaching, odds, session)"]
-    DISC_EXEC["Discord runtime\n(cooldown, status, nudges)"]
+    EXT_EXEC["Extension runtime<br/>(autovault, tilt, blocks)"]
+    API_EXEC["API runtime<br/>(coaching, odds, session)"]
+    DISC_EXEC["Discord runtime<br/>(cooldown, status, nudges)"]
   end
 
   EXT --> CHAT
