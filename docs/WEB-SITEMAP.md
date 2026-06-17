@@ -9,7 +9,7 @@ This document maps user-facing pages across **v1** (`TiltCheck-ME/tiltcheck-mono
 | Stack | URL | Source |
 |-------|-----|--------|
 | v1 | `https://tiltcheck.me/sitemap.xml` | `apps/web/src/app/sitemap.ts` |
-| MVP | `https://tiltcheck.me/sitemap.xml` (post-cutover) | `tiltcheckmvp/apps/web/src/app/sitemap.ts` |
+| MVP | `https://tiltcheck.me/sitemap.xml` (post-cutover) | `tiltcheckmvp/apps/web/src/app/sitemap.ts` ([apply guide](./migration/tiltcheckmvp-web-seo/README.md)) |
 
 ---
 
