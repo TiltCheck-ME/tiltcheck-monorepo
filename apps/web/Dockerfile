@@ -22,7 +22,7 @@ RUN pnpm install --frozen-lockfile
 # Build shared package before Next.js requires its dist
 RUN pnpm --filter @tiltcheck/shared build
 # Build Intel packages before Next.js resolves their package exports
-RUN pnpm --filter @tiltcheck/intel-agent... build
+RUN pnpm --filter @tiltcheck/intel-tools build && pnpm --filter @tiltcheck/intel-agent build
 # Next.js Build requires NODE_ENV=production to optimize bundles
 ENV NODE_ENV=production
 RUN pnpm --filter web build
