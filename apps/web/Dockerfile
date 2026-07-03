@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-03
 # TiltCheck Web (Landing Page) - Production Container
 # Built for GitHub Actions -> GHCR -> Railway deploys in the monorepo
 
@@ -19,7 +19,9 @@ COPY . .
 # Perform full workspace install for monorepo dependency resolution
 ENV CI=true
 RUN pnpm install --frozen-lockfile
-# Build shared package before Next.js requires its dist
+# Build generated workspace packages before Next.js resolves their dist entrypoints.
+RUN pnpm --filter @tiltcheck/intel-tools build
+RUN pnpm --filter @tiltcheck/intel-agent build
 RUN pnpm --filter @tiltcheck/shared build
 # Next.js Build requires NODE_ENV=production to optimize bundles
 ENV NODE_ENV=production
