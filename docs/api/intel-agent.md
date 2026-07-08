@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-08
 
 # Intel Agent API
 
@@ -105,6 +105,10 @@ Personal bonus/session/vault reads return `login_prompt` when unauthenticated.
 |---------|------|
 | `@tiltcheck/intel-tools` | RGaaS + casino.json tool implementations |
 | `@tiltcheck/intel-agent` | Intent router + block builder |
+
+## Deployment build notes
+
+The web production image must build `@tiltcheck/intel-tools` and `@tiltcheck/intel-agent` before `pnpm --filter web build`. Both packages export compiled `dist/index.js` entrypoints, and Next.js resolves those exports while bundling `/api/intel/*` route handlers.
 
 ## Data sources
 
