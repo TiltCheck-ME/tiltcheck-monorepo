@@ -35,7 +35,7 @@ This folder has many one-off and historical utilities. If you are working solo, 
 
 ## Use With Caution (Specialized / One-off)
 
-- Docs/content conversion: `convert-markdown.js`, `generate-regulations-draft.mjs`, `sync-regulations-us.mjs`
+- Docs/content conversion: `convert-markdown.js` (`pnpm docs:pages`), `sync-docs.sh`, `generate-regulations-draft.mjs`, `sync-regulations-us.mjs`
 - Repo/admin helpers: `migrate-repo.sh`, `build-gitlab-wiki.js`, `add-copyright-headers.sh`
 - Setup/deploy diagnostics: `validate-production-env.sh`, `validate-docker-credentials.sh`, `check-health.sh`
 - Experimental automation: `devx-duo-agent.mjs`

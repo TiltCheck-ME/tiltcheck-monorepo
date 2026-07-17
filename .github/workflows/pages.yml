@@ -1,0 +1,39 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+name: Deploy GitHub Pages Specs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/tiltcheck/**'
+      - 'scripts/convert-markdown.js'
+      - 'scripts/pages-assets/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build spec HTML
+        run: node scripts/convert-markdown.js docs/tiltcheck out/docs
+
+      - name: Add shared assets
+        run: |
+          mkdir -p out/styles
+          cp scripts/pages-assets/styles/base.css out/styles/base.css
+          mkdir -p out/docs-md
+          rsync -av docs/tiltcheck/ out/docs-md/
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: out
+          force_orphan: true

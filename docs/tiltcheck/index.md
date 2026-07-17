@@ -3,7 +3,7 @@ title: TiltCheck Documentation Hub
 layout: default
 ---
 
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17 -->
 
 # TiltCheck Ecosystem Docs
 
@@ -26,6 +26,7 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 - [8A Instagram Stake.us Code Timing (Observed)](8a-instagram-stake-us-code-timing.md)
 - [9 Architecture](9-architecture.md)
 - [10 Data Models](10-data-models.md)
+- [TRUST-POLICY](TRUST-POLICY.md)
 
 ## System Intelligence & APIs
 - [11 System Prompts](11-system-prompts.md)
@@ -34,12 +35,15 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 
 ## Modules & Features
 - [14 Poker Module](14-poker-module.md)
+- [16 RGaaS Pivot](16-rgaas-pivot.md)
 - [17 LockVault](17-lockvault.md)
 - [17 LinkGuard Integration](17-linkguard-integration.md)
 - [17 Branch Protection](17-branch-protection.md)
+- [17 Components & A11y Audits](17-components-audits.md)
 - [17 Migration Checklist](17-migration-checklist.md)
 - [17 Trust Migration](17-trust-migration.md)
-- [21 Surgical Self-Exclusion](../surgical-self-exclusion.md)
+- [20 Casino Trust Score Page](20-casino-trust-score-page.md)
+- [21 Provably Fair Limitations](21-provably-fair-limitations.md)
 - [22 Auto-Vault Rule Engine](22-autovault.md)
 
 ## Roadmap & Diagrams
@@ -59,8 +63,7 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 - [Design Prompts Replies](DESIGN_PROMPTS_REPLIES.md)
 - [Dashboard Enhancements](DASHBOARD_ENHANCEMENTS.md)
 
-## Deployment & Infra Notes
-- [Render Deployment Notes](RENDER_DEPLOYMENT.md)
-
 ---
 Generated index for GitHub Pages fast navigation. Update when adding new spec files.
+
+Made for Degens. By Degens.
