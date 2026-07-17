@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
 name: Validate Changed Packages (PR)
 
 on:
@@ -7,6 +7,30 @@ on:
       - main
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    name: Detect E2E-Relevant Changes
+    outputs:
+      e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            e2e:
+              - 'apps/web/src/**'
+              - 'apps/web/public/**'
+              - 'apps/web/next.config.*'
+              - 'apps/api/**'
+              - 'apps/chrome-extension/**'
+              - 'apps/user-dashboard/**'
+              - 'tests/e2e/**'
+              - 'playwright.config.ts'
+              - 'packages/**'
+              - 'modules/**'
+              - 'pnpm-lock.yaml'
+
   validate-changed:
     runs-on: ubuntu-latest
     name: Validate Changed Packages
@@ -46,7 +70,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     name: E2E Tests (Playwright)
-    needs: validate-changed
+    needs: [changes, validate-changed]
+    if: needs.changes.outputs.e2e == 'true'
 
     steps:
       - name: Checkout repository
