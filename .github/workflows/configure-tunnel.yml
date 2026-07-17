@@ -1,6 +1,6 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
 # Optional one-shot workflow: if a Cloudflare Tunnel exists, set public hostname
-# ingress rules pointing to Railway internal services.
+# ingress rules pointing to Railway internal services OR Docker Compose service names.
 # Trigger manually from Actions tab only when tunnel-based routing is the chosen
 # delivery path. Direct custom-domain routing does not require this workflow.
 
@@ -13,6 +13,14 @@ on:
         description: "Cloudflare Tunnel UUID (find it at: zero-trust dash -> Networks -> Tunnels). Leave empty to recover from existing DNS records or auto-discover as a last resort."
         required: false
         type: string
+      ingress_target:
+        description: "Upstream target for tunnel ingress rules"
+        required: true
+        type: choice
+        default: railway
+        options:
+          - railway
+          - compose
 
 permissions:
   contents: read
@@ -23,6 +31,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Find tunnel ID
         id: tunnel
         env:
@@ -107,26 +118,15 @@ jobs:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           TUNNEL_ID: ${{ steps.tunnel.outputs.id }}
+          INGRESS_TARGET: ${{ github.event.inputs.ingress_target }}
         run: |
-          # Railway internal hostnames — cloudflared and all services share the same project network
-          CONFIG=$(cat <<'EOF'
-          {
-            "config": {
-              "ingress": [
-                { "hostname": "api.tiltcheck.me",      "service": "http://api.railway.internal:3000" },
-                { "hostname": "hub.tiltcheck.me",      "service": "http://user-dashboard.railway.internal:6001" },
-                { "hostname": "dashboard.tiltcheck.me","service": "http://user-dashboard.railway.internal:6001" },
-                { "hostname": "activity.tiltcheck.me", "service": "http://activity.railway.internal:3000" },
-                { "hostname": "arena.tiltcheck.me",    "service": "http://game-arena.railway.internal:3000" },
-                { "hostname": "admin.tiltcheck.me",    "service": "http://control-room.railway.internal:3000" },
-                { "hostname": "tiltcheck.me",          "service": "http://web.railway.internal:3000" },
-                { "hostname": "www.tiltcheck.me",      "service": "http://web.railway.internal:3000" },
-                { "service": "http_status:404" }
-              ]
-            }
-          }
-          EOF
-          )
+          CONFIG_FILE="infra/compose/tunnel-ingress.${INGRESS_TARGET}.json"
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "Missing ingress config: $CONFIG_FILE"
+            exit 1
+          fi
+          echo "Applying ingress from $CONFIG_FILE"
+          CONFIG=$(cat "$CONFIG_FILE")
 
           RESULT=$(curl -sf -X PUT \
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel/${TUNNEL_ID}/configurations" \
@@ -141,7 +141,7 @@ jobs:
             exit 1
           fi
 
-          echo "Tunnel routes configured successfully."
+          echo "Tunnel routes configured for target: ${INGRESS_TARGET}"
 
       - name: Verify DNS records exist
         env:

@@ -13,8 +13,8 @@ This folder has many one-off and historical utilities. If you are working solo, 
   - Inserts a new migration milestone template into `docs/migration/logs/milestone-log.md`.
 - `docs/DEPLOY.md`
   - Canonical source of truth for the current GHCR -> Railway production path.
-- `scripts/mvp-beta-tools-smoke.sh`
-  - Quick smoke checks for beta/tools pages.
+- `scripts/ops/deploy-ghcr-stack.sh` / `scripts/ops/verify-stack-health.sh`
+  - VPS compose deploy and health checks (Railway exit). See `docs/migration/exit-railway-plan.md`.
 - `scripts/linear-sync.mjs`
   - Syncs `docs/ops/linear-tasks.json` into Linear issues.
 - `scripts/daily-ops.ps1`

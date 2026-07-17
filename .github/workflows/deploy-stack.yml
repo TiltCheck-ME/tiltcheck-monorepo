@@ -1,0 +1,55 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# Deploy GHCR images to VPS Docker Compose stack (Railway exit path).
+# Requires GitHub secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY
+# Optional: VPS_DEPLOY_PATH (default /opt/tiltcheck)
+
+name: Deploy Stack to VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "GHCR image tag to deploy (e.g. latest or sha-<commit>)"
+        required: true
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-vps:
+    name: Pull and restart on VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+        run: |
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_USER" ] || [ -z "$VPS_SSH_KEY" ]; then
+            echo "Missing VPS_HOST, VPS_USER, or VPS_SSH_KEY secrets."
+            exit 1
+          fi
+
+          DEPLOY_PATH="${VPS_DEPLOY_PATH:-/opt/tiltcheck}"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
+          mkdir -p ~/.ssh
+          echo "$VPS_SSH_KEY" > ~/.ssh/vps_key
+          chmod 600 ~/.ssh/vps_key
+
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/vps_key "${VPS_USER}@${VPS_HOST}" bash -s <<EOF
+          set -euo pipefail
+          cd "${DEPLOY_PATH}"
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          export GHCR_OWNER="${OWNER}"
+          export IMAGE_TAG="${IMAGE_TAG}"
+          bash scripts/ops/deploy-ghcr-stack.sh
+          VERIFY_PUBLIC=1 bash scripts/ops/verify-stack-health.sh || true
+          EOF

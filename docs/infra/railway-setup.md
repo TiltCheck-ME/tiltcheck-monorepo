@@ -2,6 +2,8 @@
 
 # Railway Setup Guide
 
+> **Migration:** Full-stack exit plan lives at [`docs/migration/exit-railway-plan.md`](../migration/exit-railway-plan.md). Keep this guide until Railway is decommissioned.
+
 One-time steps required in Railway and GitHub before the `deploy-railway.yml` workflow can run.
 
 ---

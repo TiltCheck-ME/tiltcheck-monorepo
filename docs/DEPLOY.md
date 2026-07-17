@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17 -->
 
 # TiltCheck Deployment Inventory
 
@@ -6,10 +6,11 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 
 ## Current Reality
 
-- Containerized services ship through `.github/workflows/deploy-railway.yml`.
+- Containerized services ship through `.github/workflows/deploy-railway.yml` (legacy) or `.github/workflows/deploy-stack.yml` (VPS compose target).
 - Images are built in GitHub Actions and pushed to GHCR as `ghcr.io/tiltcheck-me/tiltcheck-<service>`.
-- Railway pulls the SHA-tagged image for each wired service.
-- Public hostnames may be routed either through direct custom-domain mappings or, when explicitly enabled, through `.github/workflows/configure-tunnel.yml`.
+- **Production today:** Railway pulls GHCR images; Cloudflare Tunnel routes public hostnames.
+- **Migration target:** VPS running `infra/compose/docker-compose.ghcr.yml` — see `docs/migration/exit-railway-plan.md`.
+- Public hostnames may be routed either through direct custom-domain mappings or, when explicitly enabled, through `.github/workflows/configure-tunnel.yml` (`ingress_target`: `railway` | `compose`).
 - `.github/workflows/deploy-web.yml` is a manual Vercel fallback, not the primary production path.
 - There is no active in-repo GCP deploy workflow.
 
@@ -17,7 +18,8 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 
 | Workflow | Required secrets | Notes |
 | :--- | :--- | :--- |
-| `.github/workflows/deploy-railway.yml` | `RAILWAY_TOKEN` | `PACKAGES_TOKEN` is optional but needed if GHCR package visibility updates should succeed without warnings. |
+| `.github/workflows/deploy-railway.yml` | `RAILWAY_TOKEN` | Legacy production redeploy to Railway. Disable after VPS cutover. |
+| `.github/workflows/deploy-stack.yml` | `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, optional `VPS_DEPLOY_PATH` | Manual VPS compose deploy (Railway exit). |
 | `.github/workflows/deploy-hub.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Deploys `apps/hub` with Wrangler to Cloudflare Workers. D1 and KV bindings remain configured in `apps/hub/wrangler.toml`. |
 | `.github/workflows/configure-tunnel.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID` | Optional: reconciles tunnel ingress rules and DNS when Cloudflare Tunnel is the chosen public ingress path. |
 | `.github/workflows/deploy-web.yml` | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TOKEN` | Manual fallback only. |
@@ -52,15 +54,27 @@ Packages such as **`@tiltcheck/event-router`** point `exports` at **`dist/*.js`*
 
 ## Public Routing
 
-Public hostnames do not automatically come from the deploy workflow itself. This repo includes an optional Cloudflare Tunnel reconciler at `.github/workflows/configure-tunnel.yml`, but teams may also map Railway custom domains directly. The tunnel workflow mappings currently described in-repo are:
+Public hostnames do not automatically come from the deploy workflow itself. This repo includes an optional Cloudflare Tunnel reconciler at `.github/workflows/configure-tunnel.yml` with `ingress_target`:
 
-- `api.tiltcheck.me` -> `api.railway.internal:3000`
-- `tiltcheck.me` and `www.tiltcheck.me` -> `web.railway.internal:3000`
-- `dashboard.tiltcheck.me` and `hub.tiltcheck.me` -> `user-dashboard.railway.internal:6001`
-- activity.tiltcheck.me -> activity.railway.internal:8080 (matches the container listen port in the Dockerfile)
-- `arena.tiltcheck.me` -> `game-arena.railway.internal:3000` (historic / alternate DNS; Socket.IO and web may also use **`game-arena.tiltcheck.me`** per your edge mapping)
-- Degens second Activity (example): **`degens.activity.tiltcheck.me`** -> `degens-activity.railway.internal:<port>` once the Railway service and custom domain exist
-- `admin.tiltcheck.me` -> `control-room.railway.internal:3000`
+| Target | Config file | Upstream style |
+|--------|-------------|----------------|
+| `railway` (legacy) | `infra/compose/tunnel-ingress.railway.json` | `*.railway.internal` |
+| `compose` (VPS exit) | `infra/compose/tunnel-ingress.compose.json` | Docker service names (`api:3001`, `web:3000`, …) |
+
+Teams may also map custom domains directly in Railway or on the VPS host without the tunnel workflow.
+
+### Compose ingress (VPS target)
+
+- `api.tiltcheck.me` -> `api:3001`
+- `tiltcheck.me` and `www.tiltcheck.me` -> `web:3000`
+- `dashboard.tiltcheck.me` and `hub.tiltcheck.me` -> `user-dashboard:6001`
+- `activity.tiltcheck.me` -> `activity:8080`
+- `arena.tiltcheck.me` / `game-arena.tiltcheck.me` -> `game-arena:8080`
+- `admin.tiltcheck.me` -> `control-room:3001`
+
+### Railway ingress (legacy)
+
+- Same hostnames via `*.railway.internal` — see `infra/compose/tunnel-ingress.railway.json`
 
 ## Discord Activity (`apps/activity`) — production checklist
 
@@ -151,9 +165,9 @@ If you copy the `apps/activity` Dockerfile pattern, proxy **`/socket.io/`** to `
 
 ## Rollback Notes
 
-- Container services: rollback from the Railway dashboard to the prior image or release.
+- Container services: rollback from the Railway dashboard to the prior image, **or** on VPS `export IMAGE_TAG=<previous-sha> && bash scripts/ops/deploy-ghcr-stack.sh`
 - `hub` Worker: rollback from the Cloudflare dashboard or redeploy the previous Worker bundle with Wrangler.
-- Tunnel drift: rerun `.github/workflows/configure-tunnel.yml` only if tunnel-based ingress is intentionally enabled; otherwise verify direct custom-domain mapping in Railway/Cloudflare.
+- Tunnel drift: rerun `.github/workflows/configure-tunnel.yml` with the correct `ingress_target` (`railway` or `compose`).
 - Browser assets: republish the previous extension or SPA artifact manually.
 
 ## Manual Publish Notes
