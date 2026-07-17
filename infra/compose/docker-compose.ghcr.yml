@@ -1,0 +1,141 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# Production stack — pull pre-built images from GHCR (built by deploy-railway.yml / deploy-stack.yml).
+#
+# Usage on VPS:
+#   export GHCR_OWNER=tiltcheck-me IMAGE_TAG=latest   # or sha-<git-sha>
+#   docker compose -f infra/compose/docker-compose.ghcr.yml pull
+#   docker compose -f infra/compose/docker-compose.ghcr.yml up -d
+#
+# Requires .env at repo root (or path via --env-file).
+
+name: tiltcheck-production
+
+x-common: &common
+  env_file:
+    - ../../.env
+  environment:
+    NODE_ENV: production
+    SKIP_ENV_VALIDATION: "1"
+  restart: unless-stopped
+  networks:
+    - tiltcheck-network
+
+services:
+  api:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-api:${IMAGE_TAG:-latest}
+    container_name: api
+    environment:
+      PORT: "3001"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3001/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  web:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-web:${IMAGE_TAG:-latest}
+    container_name: web
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  discord-bot:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-discord-bot:${IMAGE_TAG:-latest}
+    container_name: discord-bot
+    depends_on:
+      api:
+        condition: service_healthy
+
+  justthetip-bot:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-justthetip-bot:${IMAGE_TAG:-latest}
+    container_name: justthetip-bot
+    depends_on:
+      api:
+        condition: service_healthy
+
+  dad-bot:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-dad-bot:${IMAGE_TAG:-latest}
+    container_name: dad-bot
+    depends_on:
+      api:
+        condition: service_healthy
+
+  trust-rollup:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-trust-rollup:${IMAGE_TAG:-latest}
+    container_name: trust-rollup
+    environment:
+      PORT: "8082"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  control-room:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-control-room:${IMAGE_TAG:-latest}
+    container_name: control-room
+    environment:
+      PORT: "3001"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  game-arena:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-game-arena:${IMAGE_TAG:-latest}
+    container_name: game-arena
+    environment:
+      PORT: "8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  user-dashboard:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-user-dashboard:${IMAGE_TAG:-latest}
+    container_name: user-dashboard
+    environment:
+      PORT: "6001"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  activity:
+    <<: *common
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-activity:${IMAGE_TAG:-latest}
+    container_name: activity
+    environment:
+      API_UPSTREAM: http://api:3001
+      ARENA_UPSTREAM: http://game-arena:8080
+    depends_on:
+      - api
+      - game-arena
+
+  cloudflared:
+    image: ghcr.io/${GHCR_OWNER:-tiltcheck-me}/tiltcheck-cloudflared:${IMAGE_TAG:-latest}
+    container_name: cloudflared
+    restart: unless-stopped
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    depends_on:
+      - api
+      - web
+      - user-dashboard
+      - activity
+      - game-arena
+      - control-room
+    networks:
+      - tiltcheck-network
+
+networks:
+  tiltcheck-network:
+    driver: bridge

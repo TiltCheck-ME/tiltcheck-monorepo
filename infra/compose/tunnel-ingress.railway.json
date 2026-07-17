@@ -1,0 +1,15 @@
+{
+  "config": {
+    "ingress": [
+      { "hostname": "api.tiltcheck.me", "service": "http://api.railway.internal:3000" },
+      { "hostname": "hub.tiltcheck.me", "service": "http://user-dashboard.railway.internal:6001" },
+      { "hostname": "dashboard.tiltcheck.me", "service": "http://user-dashboard.railway.internal:6001" },
+      { "hostname": "activity.tiltcheck.me", "service": "http://activity.railway.internal:3000" },
+      { "hostname": "arena.tiltcheck.me", "service": "http://game-arena.railway.internal:3000" },
+      { "hostname": "admin.tiltcheck.me", "service": "http://control-room.railway.internal:3000" },
+      { "hostname": "tiltcheck.me", "service": "http://web.railway.internal:3000" },
+      { "hostname": "www.tiltcheck.me", "service": "http://web.railway.internal:3000" },
+      { "service": "http_status:404" }
+    ]
+  }
+}

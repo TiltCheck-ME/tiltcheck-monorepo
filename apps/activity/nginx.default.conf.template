@@ -1,0 +1,45 @@
+server {
+    listen 8080;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /.proxy/ {
+        resolver 1.1.1.1 valid=30s;
+        proxy_pass https://discord.com/;
+        proxy_set_header Host discord.com;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_ssl_server_name on;
+    }
+
+    location /api/ {
+        proxy_pass ${API_UPSTREAM}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /socket.io/ {
+        proxy_pass ${ARENA_UPSTREAM}/socket.io/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Content-Security-Policy "frame-ancestors https://discord.com https://*.discord.com https://*.discordsays.com https://*.discordapp.com" always;
+        add_header Access-Control-Allow-Origin "*" always;
+    }
+
+    location /assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+}
