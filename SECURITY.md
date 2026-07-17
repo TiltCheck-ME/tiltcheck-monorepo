@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17 -->
 
 # TiltCheck Security Policy
 
@@ -67,7 +67,9 @@ TiltCheck does not directly invoke bigint-buffer functions. Usage occurs inside 
   - Base58 charset validation (no 0, O, I, l characters)
   - Address length validation (32-44 characters)
   - 32-byte buffer constraint enforcement
-- ✅ Automated daily security audit workflow (`.github/workflows/security-audit.yml`)
+- ✅ Automated dependency audit workflow (`.github/workflows/security-audit.yml`)
+- ✅ Dependabot configuration (`.github/dependabot.yml`)
+- ✅ CodeQL scanning (org-managed dynamic workflow)
 - ✅ Comprehensive test coverage for validation logic
 - ✅ Vulnerability documented with upstream tracking
 
@@ -78,7 +80,7 @@ Monitoring for patched release of `@solana/buffer-layout-utils` or removal of bi
 
 - Monitor upstream repositories for security patches
 - Upgrade dependency chain when fix released
-- Track progress in issue [#15](https://github.com/jmenichole/tiltcheck-monorepo/issues/15)
+- Track progress in the repository security advisories tab and Dependabot alerts
 
 ## Open source boundary and secrets
 

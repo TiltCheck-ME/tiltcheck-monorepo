@@ -7,7 +7,7 @@ FROM node:20-slim AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
-RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.34.4 --activate
 WORKDIR /app
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
