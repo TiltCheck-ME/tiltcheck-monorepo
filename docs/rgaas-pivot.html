@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>16. RGaaS Pivot: Responsible Gaming as a Service - TiltCheck</title><meta name="description" content="© 2024–2025 TiltCheck Ecosystem. All Rights Reserved."/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / 16. RGaaS Pivot: Responsible Gaming as a Service</div><h1>16. RGaaS Pivot: Responsible Gaming as a Service</h1><p class="lede">© 2024–2025 TiltCheck Ecosystem. All Rights Reserved.</p></header><main id="content"><h1>16. RGaaS Pivot: Responsible Gaming as a Service</h1>
+
+<p>© 2024–2025 TiltCheck Ecosystem. All Rights Reserved.</p>
+
+<h2>16.1 Overview</h2>
+<p>TiltCheck has pivoted from a consumer-only toolset to a <strong>Service-Oriented Model (RGaaS)</strong>. This allows third-party platforms (casinos, betting apps, community bots) to integrate TiltCheck's harm reduction tools via a unified API.</p>
+
+<h2>16.2 Core Offerings</h2>
+<p>The RGaaS layer exposes four primary engines as services:</p>
+
+<p>1.  <strong>Tilt Detection Service</strong>: Real-time behavioral analysis to detect "tilt" (impulsive, high-risk gambling).</p>
+<p>2.  <strong>Trust Scoring Service</strong>: Dual-sided reputation scoring for both Casinos and Users (Degens).</p>
+<p>3.  <strong>Link Scanning Service (SusLink)</strong>: Automated identification of scam, phishing, and predatory casino domains.</p>
+<p>4.  <strong>Risk Profiling</strong>: A unified view of a user's current risk level across all behavioral signals.</p>
+
+<h2>16.3 Unified API Reference (<code>/api/rgaas/*</code>)</h2>
+
+<h3>16.3.1 Tilt Detection</h3>
+<ul>
+<li><strong>POST <code>/breathalyzer/evaluate</code></strong>: Analyzes betting velocity and loss streaks.</li>
+<li><strong>POST <code>/anti-tilt/evaluate</code></strong>: Sentiment analysis of user communications for distress signals.</li>
+</ul>
+
+<h3>16.3.2 Trust Scoring</h3>
+<ul>
+<li><strong>GET <code>/trust/casino/:name</code></strong>: Returns a 0-100 reputation score and weighted breakdown.</li>
+<li><strong>GET <code>/trust/user/:id</code></strong>: Returns user trust level (<code>very-high</code> to <code>high-risk</code>) based on history.</li>
+</ul>
+
+<h3>16.3.3 Link Scanning</h3>
+<ul>
+<li><strong>POST <code>/scan</code></strong>: Real-time analysis of a URL against the SusLink database and heuristics.</li>
+</ul>
+
+<h3>16.3.4 Unified Risk Profile</h3>
+<ul>
+<li><strong>GET <code>/profile/:userId</code></strong>: Aggregates trust level, tilt status, and recent signals into a single recommendation.</li>
+</ul>
+
+<h2>16.4 Recommendation Tiers</h2>
+<p>| Tier | Action | Description |</p>
+<p>| :--- | :--- | :--- |</p>
+<p>| <code>NORMAL_PLAY</code> | None | User shows healthy behavioral patterns. |</p>
+<p>| <code>MONITOR_CLOSELY</code> | Warning | Minor signals detected; increased observation recommended. |</p>
+<p>| <code>INTERVENE_IMMEDIATELY</code> | Cooldown | High-risk behavior or active tilt; immediate intervention required. |</p>
+
+<h2>16.5 Integration Philosophy</h2>
+<p>RGaaS is designed to be <strong>non-custodial</strong> and <strong>privacy-first</strong>. We do not require real identities or private keys—only a consistent identifier (e.g., Discord ID, hashed wallet) to provide personalized harm reduction.</p>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>

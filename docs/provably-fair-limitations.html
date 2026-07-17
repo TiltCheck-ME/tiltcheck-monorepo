@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Provably Fair ≠ Holistically Fair - TiltCheck</title><meta name="description" content="Provably fair systems (server seed + client seed + nonce hashed with a known algorithm) let a player verify that the raw RNG outputs were not altered post‑generation. They DO NOT g"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / Provably Fair ≠ Holistically Fair</div><h1>Provably Fair ≠ Holistically Fair</h1><p class="lede">Provably fair systems (server seed + client seed + nonce hashed with a known algorithm) let a player verify that the raw RNG outputs were not altered post‑generation. They DO NOT g</p></header><main id="content"><h1>Provably Fair ≠ Holistically Fair</h1>
+
+<p>Provably fair systems (server seed + client seed + nonce hashed with a known algorithm) let a player verify that the raw RNG outputs were not altered post‑generation. They DO NOT guarantee that the surrounding game logic, payout tables, reel mapping, or dynamic configuration is stable, honest, or consistent across time. Casinos can truthfully say “the RNG is provably fair” while still shaping player outcomes through non-RNG layers.</p>
+
+<h2>1. What Provably Fair Actually Verifies</h2>
+<p>| Layer | Covered | Explanation |</p>
+<p>|-------|---------|-------------|</p>
+<p>| Seed hash pre‑commit (server seed) | Yes | Casino reveals hash of secret seed ahead of play, later reveals seed for verification. |</p>
+<p>| Client seed influence | Partially | Player can set / randomize their client seed, but casino can constrain its effect size. |</p>
+<p>| Nonce increment per bet | Yes | Sequential index ensures deterministic ordering of outputs. |</p>
+<p>| Hash / HMAC algorithm correctness | Yes (auditable) | Player can recompute outcomes locally (e.g., SHA256(serverSeed + clientSeed + nonce)). |</p>
+<p>| Post-generation tampering of RNG output | Designed to prevent | If final seed disclosed, any divergence becomes detectable. |</p>
+<p>| Game logic fairness (RTP, reel weighting, volatility mode) | NO | Outside the cryptographic commitment. |</p>
+<p>| Dynamic config changes mid‑session | NO | Casino can change mapping without altering seed sequence. |</p>
+<p>| Seed rotation timing strategies | NO | Rotation schedule can be exploited (e.g., avoiding ‘hot’ windows). |</p>
+<p>| Bonus / feature trigger weighting | NO | Separate layer can scale trigger chances independent of RNG purity. |</p>
+
+<h2>2. Gray-Area Mechanics Creating Illusion of Time-Based RTP Swings</h2>
+<p>These techniques do not falsify RNG outputs; they alter interpretation or payout mapping so players perceive “RTP changes” even though seed + nonce sequences remain valid.</p>
+
+<p>1. Reel / Outcome Mapping Layers</p>
+<p>- RNG picks an index; mapping table can be swapped (e.g., daytime table vs nighttime table) with different symbol distributions.</p>
+<p>- Weighted tables can bias toward low volatility when player balance is high, then increase volatility after a loss streak.</p>
+<p>2. Multiple RTP Versions</p>
+<p>- Vendor may offer 96%, 94%, 92% variants. Casino can silently toggle which variant a player gets based on session metadata (geo, bankroll, recency, VIP tag).</p>
+<p>3. Volatility Modes / Hidden States</p>
+<p>- Behind-the-scenes state machine selects a volatility regime (low / medium / high). RNG output decides symbol, but per-mode payout intervals differ.</p>
+<p>4. Feature Trigger Scaling</p>
+<p>- Free spins / bonus entries apply multiplicative weighting per player segment. Not visible to player yet still consistent with RNG draws.</p>
+<p>5. Seed Rotation Timing Games</p>
+<p>- Provably fair claims often rotate server seeds daily or per X bets. A casino can align rotations with observed hot/cold streak patterns to ‘reset’ favorable distributions without appearing manipulative.</p>
+<p>6. Adaptive RTP Dampening</p>
+<p>- If a player wins above expected EV, subsequent mapping can bias toward outcomes with lower variance—subtle suppression rather than overt rigging.</p>
+<p>7. Session Segmentation / A/B Logic</p>
+<p>- Player bucket assignment (new vs returning vs chasing losses) chooses which RTP/volatility profile they experience, while RNG remains identical in form.</p>
+<p>8. Hidden Bonus Bank Mechanics</p>
+<p>- Some slots accumulate internal meters that pay out only when crossing thresholds; adjusting threshold progression rate alters effective RTP timing.</p>
+<p>9. Cascading Outcome Filters</p>
+<p>- Initial RNG output selects a large outcome set; secondary filters prune rare high payouts in certain windows (e.g., peak traffic) to manage liability.</p>
+<p>10. Time-of-Day Payout Scheduling</p>
+<p>- Operator caches large wins for marketing bursts at prime times; near-real-time mapping throttles large payouts at off-peak while RNG is still verifiable per bet.</p>
+
+<h2>3. Why Players Perceive “RTP Changes”</h2>
+<p>| Perception | Underlying Cause |</p>
+<p>|------------|------------------|</p>
+<p>| Morning feels colder | Shift to lower volatility mode or tighter reel mapping before peak engagement period. |</p>
+<p>| After big win, dead spins | Adaptive dampening logic engages; high-value symbols recede due to alt reel weighting. |</p>
+<p>| Late night ‘comebacks’ | Release of stored bonus bank / high-volatility mapping reactivated. |</p>
+<p>| Different luck across devices | Device fingerprint used for segmentation (mobile flagged as ‘casual’, gets safer RTP variant). |</p>
+
+<h2>4. Player Verification Limits</h2>
+<p>Even with seed transparency, the player can only recompute the raw numeric or index outcome. They CANNOT:</p>
+<ul>
+<li>Prove reel table remained constant across the session.</li>
+<li>Detect silent RTP version toggles.</li>
+<li>See volatility mode transitions unless surfaced by the UI.</li>
+<li>Distinguish legitimate variance vs mapping manipulations without historical mapping snapshots.</li>
+</ul>
+
+<h2>5. Detection & Auditing Strategies (TiltCheck Angle)</h2>
+<p>TiltCheck cannot “break” the seed model, but it can accumulate signals suggesting behavioral or config shifts:</p>
+<p>1. Outcome Distribution Drift: Track symbol frequencies vs published paytable baseline; alert if sustained deviation > threshold (e.g., chi-square test p < 0.01).</p>
+<p>2. RTP Variant Fingerprinting: Estimate rolling EV over N spins and cluster sessions; multiple stable plateaus hint variant switching.</p>
+<p>3. Volatility Mode Inference: Compute variance of net returns in sliding windows; abrupt variance compression after large win = flag.</p>
+<p>4. Time-of-Day Curve Analysis: Compare aggregate payout % by hour vs expected uniform; persistent cyclical dips = potential scheduling.</p>
+<p>5. Seed Rotation Impact: Correlate rotation boundary with win clusters; excessive alignment triggers suspicion.</p>
+<p>6. Bonus Trigger Latency: Track expected trigger frequency vs actual; chronic undershoot then sudden catch-up suggests bank throttling.</p>
+
+<h2>6. Trust Engine Integration</h2>
+<p>Proposed events / metrics (extend existing <code>trust.casino.updated</code> reasoning):</p>
+<p>| Metric | Event / Field | Meaning |</p>
+<p>|--------|---------------|---------|</p>
+<p>| payout.drift.score | trust.casino.updated.metadata.payoutDrift | Normalized 0–1 divergence from baseline distribution |</p>
+<p>| volatility.shift.score | metadata.volatilityShift | Magnitude of variance change after feature/win |</p>
+<p>| rotation.correlation.score | metadata.seedRotationCorrelation | Correlation of seed boundaries with payout anomalies |</p>
+<p>| bonus.latency.score | metadata.bonusLatency | Relative delay factor vs expected trigger model |</p>
+
+<p>High composite anomaly could auto-suggest a LockVault CTA: “High configuration volatility detected – consider locking funds for cooldown.”</p>
+
+<h2>7. Player Protection Patterns</h2>
+<p>| Pattern | Benefit |</p>
+<p>|---------|---------|</p>
+<p>| Pre‑session snapshot (mapping hash claim) | Later diff shows mapping change |</p>
+<p>| Independent spin logger (local) | Builds evidence for distribution drift |</p>
+<p>| Volatility threshold alerts | Notifies when variance suppression likely |</p>
+<p>| Cooldown / LockVault after surge | Reduces chase behavior in manipulated post‑win environment |</p>
+<p>| Casino trust scoreboard (live) | External transparency discourages predatory config shifts |</p>
+
+<h2>8. Recommended Transparency Upgrades for Casinos</h2>
+<p>Minimum baseline to meaningfully claim fairness beyond RNG:</p>
+<p>1. Publish reel / mapping version IDs with timestamps.</p>
+<p>2. Expose RTP variant currently applied per session.</p>
+<p>3. Emit volatility mode transitions as signed events.</p>
+<p>4. Commit future seed rotation schedule (pre-announced) so timing cannot be adaptive.</p>
+<p>5. Provide bonus trigger expected frequency vs actual stats daily.</p>
+
+<h2>9. Red Flags for Manipulative Configuration</h2>
+<p>| Indicator | Interpretation |</p>
+<p>|-----------|---------------|</p>
+<p>| Frequent RTP version changes (< 500 spins apart) | Variant targeting / micro-profiling |</p>
+<p>| Large score drop immediately after seed rotation | Rotation used to clear favorable mapping state |</p>
+<p>| Sustained symbol scarcity (high-paying) without global win events | Possible selective pruning |</p>
+<p>| Volatility collapse after high payout | Post-win dampening logic engaged |</p>
+<p>| Bonus trigger drought then burst near peak hours | Scheduled payout release |</p>
+
+<h2>10. Limitations & Ethical Boundary</h2>
+<p>Not every deviation = malicious. Legit factors:</p>
+<ul>
+<li>Network outages altering bonus progression.</li>
+<li>Regulatory enforced RTP adjustments regionally.</li>
+<li>Genuine statistical clusters (variance) misread as manipulation.</li>
+<p>Our detection must report “anomaly” with confidence bands & avoid accusatory tone.</p>
+</ul>
+
+<h2>11. Roadmap Hooks</h2>
+<p>Short-term:</p>
+<ul>
+<li>Implement payout drift and volatility shift metrics (chi-square + rolling variance).</li>
+<p>Medium:</p>
+<li>Integrate seed rotation correlation tracking.</li>
+<p>Long-term:</p>
+<li>Open standard schema: Casino emits signed JSON describing mapping + RTP variant per hour.</li>
+</ul>
+
+<h2>12. Player-Facing Simplified Summary (TL;DR)</h2>
+<p>“Provably fair proves the randomness hash. It does NOT prove the game’s payout configuration stayed constant. Casinos can keep RNG legit while altering RTP variants, reel weights, volatility modes, timing of seed rotations, or bonus throttling—making it feel like the game is ‘cold’ or ‘hot’ at certain times. We monitor distribution drift and configuration signals to flag these gray zones and recommend cool-off locks when volatility patterns look engineered.”</p>
+
+<p>---</p>
+<p>Update this document as measurement modules ship (payout drift listener, volatility analyzer, rotation correlation engine).</p></main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>

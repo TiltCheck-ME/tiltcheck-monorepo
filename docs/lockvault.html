@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>17 - LockVault Module Spec - TiltCheck</title><meta name="description" content="Disposable Magic-style wallets used as *intentional friction* devices to prevent tilt-driven bankroll nuking. Users lock funds for a fixed interval; early unlock blocked."/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / 17 - LockVault Module Spec</div><h1>17 - LockVault Module Spec</h1><p class="lede">Disposable Magic-style wallets used as *intentional friction* devices to prevent tilt-driven bankroll nuking. Users lock funds for a fixed interval; early unlock blocked.</p></header><main id="content"><h1>17 - LockVault Module Spec</h1>
+
+<p>Disposable Magic-style wallets used as <em>intentional friction</em> devices to prevent tilt-driven bankroll nuking. Users lock funds for a fixed interval; early unlock blocked.</p>
+
+<h2>Rationale</h2>
+<p>Tilt moments drive impulsive, high-risk actions. By encouraging players to proactively time-lock a portion of their assets, we reduce harm without custodial control. Vault wallets are generated per lock (Keypair for MVP; Magic integration later) and never reused.</p>
+
+<h2>Core Principles</h2>
+<ul>
+<li>Non-custodial: user funds reside in a user-controlled disposable wallet.</li>
+<li>Time enforcement: unlock only after <code>unlockAt</code>. No silent bypass.</li>
+<li>Simple mental model: "Parking funds until Future Me is calmer.".</li>
+<li>Event-driven: all actions create auditable events.</li>
+<li>Cheap infra: JSON persistence; no DB requirement initially.</li>
+</ul>
+
+<h2>Commands (Discord)</h2>
+<pre class="code-block" data-lang=""><code>
+/vault lock amount:&lt;&quot;5 SOL&quot;|&quot;$100&quot;|&quot;all&quot;&gt; duration:&lt;&quot;24h&quot;|&quot;3d&quot;|&quot;90m&quot;&gt; reason:&lt;optional&gt;
+/vault status
+/vault extend id:&lt;vaultId&gt; additional:&lt;duration&gt;
+/vault unlock id:&lt;vaultId&gt;
+</code></pre>
+
+<h2>Event Types (proposed)</h2>
+<ul>
+<li>vault.locked</li>
+<li>vault.extended</li>
+<li>vault.unlocked</li>
+<p>(For now cast as <code>any</code> until types package updated.)</p>
+</ul>
+
+<h2>Data Model</h2>
+<pre class="code-block" data-lang=""><code>
+LockVaultRecord {
+  id: string;                // unique vault id
+  userId: string;            // Discord user
+  vaultAddress: string;      // ephemeral wallet public key
+  createdAt: number;
+  unlockAt: number;          // ms epoch
+  lockedAmountSOL: number;   // normalized SOL (0 =&gt; ALL snapshot)
+  originalInput: string;     // raw amount input
+  status: &#39;locked&#39; | &#39;extended&#39; | &#39;unlock-requested&#39; | &#39;unlocked&#39; | &#39;emergency-unlocked&#39;;
+  reason?: string;           // user-provided rationale
+  extendedCount: number;     // how many times extended
+  history: { ts: number; action: string; note?: string }[];
+}
+</code></pre>
+
+<h2>Duration Parsing</h2>
+<p>MVP supports shorthand: <code>30m</code>, <code>12h</code>, <code>3d</code>. Min 10m, Max 30d.</p>
+
+<h2>Amount Parsing</h2>
+<p>Natural language via existing parser. USD treated 1:1 to SOL until oracle integration. <code>all</code> stores <code>0</code> as sentinel.</p>
+
+<h2>Persistence Strategy</h2>
+<ul>
+<li>JSON file at <code>data/lockvault.json</code> (override via <code>LOCKVAULT_STORE_PATH</code>).</li>
+<li>Debounced writes (250ms) after mutating operations.</li>
+<li>On startup load existing vault records.</li>
+</ul>
+
+<h2>Security / Trust Considerations</h2>
+<ul>
+<li>No private key persistence of generated vaults in MVP.</li>
+<li>Real SOL transfer logic deferred (would require secure key mgmt / user signing flows).</li>
+<li>Early unlock path not implemented to avoid accidental vulnerability.</li>
+<li>Future: penalty events on emergency unlock affecting trust engines.</li>
+</ul>
+
+<h2>Roadmap Enhancements</h2>
+<p>1. USD/SOL conversion via pricing oracle.</p>
+<p>2. Real transfer flows (user signs send to vault / unlock return tx).</p>
+<p>3. Multi-user consensus vault (group locking).</p>
+<p>4. Automated tilt triggers (suggest lock based on behavior).</p>
+<p>5. Analytics: average lock duration, extension frequency.</p>
+
+<h2>Anti-Patterns Avoided</h2>
+<ul>
+<li>No custodial balance ledger.</li>
+<li>No hidden override to unlock before time.</li>
+<li>No reliance on centralized session state.</li>
+</ul>
+
+<h2>Integration Points</h2>
+<ul>
+<li>JustTheTip bot commands (implemented in <code>/apps/justthetip-bot/src/commands/lockvault.ts</code>).</li>
+<li>EventRouter event emissions for telemetry & daily rollup inclusion.</li>
+<li>Natural language parser for user-friendly amounts/durations.</li>
+</ul>
+
+<h2>Future Type Integration</h2>
+<p>Add new event types to <code>@tiltcheck/types</code> and remove <code>as any</code> casts.</p>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>

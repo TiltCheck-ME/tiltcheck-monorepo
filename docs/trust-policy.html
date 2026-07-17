@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>TiltCheck Trust &amp; Testimonial Policy - TiltCheck</title><meta name="description" content="TiltCheck does not fabricate social proof, endorsements, or user quotes."/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / TiltCheck Trust &amp; Testimonial Policy</div><h1>TiltCheck Trust &amp; Testimonial Policy</h1><p class="lede">TiltCheck does not fabricate social proof, endorsements, or user quotes.</p></header><main id="content"><h1>TiltCheck Trust & Testimonial Policy</h1>
+
+<p>TiltCheck does not fabricate social proof, endorsements, or user quotes.</p>
+
+<h2>Principles</h2>
+<ul>
+<li><strong>Authenticity Only:</strong> Testimonials appear only after real users voluntarily submit feedback and explicitly consent to publication.</li>
+<li><strong>No Incentives:</strong> We do not pay, reward, discount, or otherwise incentivize testimonials.</li>
+<li><strong>No AI Praise Fabrication:</strong> AI is never used to generate or embellish user quotes.</li>
+<li><strong>Immediate Opt-Out:</strong> Any published testimonial can be removed within 24h on request (Discord or email).</li>
+<li><strong>No Placeholder Quotes:</strong> Empty slots on <code>/testimonials</code> are intentional; they communicate transparency instead of staged hype.</li>
+<li><strong>Source Channel:</strong> All testimonial intake will occur in the Discord feedback/support channel (ID: <code>1441697360785834085</code>).</li>
+</ul>
+
+<h2>Submission Flow (Planned)</h2>
+<p>1. User posts feedback in Discord #feedback or triggers <code>/support</code> command.</p>
+<p>2. Maintainer reviews for authenticity & non-sensitive content.</p>
+<p>3. User receives explicit consent prompt (future automation) before publication.</p>
+<p>4. Entry stored with hash of Discord user ID + timestamp for audit integrity.</p>
+<p>5. Page updated; schema enhancement (e.g., <code>Review</code> markup) only after minimum 5 authentic submissions.</p>
+
+<h2>Anti-Abuse Safeguards</h2>
+<ul>
+<li>Rate limiting ingestion (per Discord ID) to prevent spam praise flooding.</li>
+<li>Newsletter endpoints protected by Redis-backed rate limiter (5 requests per 10 minutes per IP).</li>
+<li>Automatic fallback to in-memory rate limiting when Redis is unavailable.</li>
+<li>Manual review ensures no doxxing or personal health claims.</li>
+<li>Automated profanity + scam filter prior to publish.</li>
+</ul>
+
+<h2>Test Coverage</h2>
+<ul>
+<li>Newsletter API: Subscribe/unsubscribe with honeypot detection, duplicate prevention, SHA-256 email hashing.</li>
+<li>Testimonials form: Disabled state verification, accessibility compliance, channel ID validation.</li>
+<li>Rate limiting: Request throttling, header validation, overflow protection.</li>
+<li>All tests located in <code>/tests/</code> directory with vitest framework.</li>
+</ul>
+
+<h2>Removal / Opt-Out</h2>
+<p>Message in the Discord support channel or email <code>jme@tiltcheck.me</code> with the testimonial reference. Removal is executed and confirmed.</p>
+
+<h2>Alignment With Security Posture</h2>
+<p>This policy complements <code>SECURITY.md</code> by reducing trust attack vectors (fake endorsements, fabricated authority signals).</p>
+
+<h2>JustTheTip Specific Notes</h2>
+<ul>
+<li>JustTheTip channel ID: <code>1437295074856927363</code> is used only for tipping support and not for testimonial collection.</li>
+<li>No performance, win-rate, or earnings claims will ever be published as testimonials.</li>
+</ul>
+
+<p>TiltCheck Ecosystem © 2024–2025</p>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>

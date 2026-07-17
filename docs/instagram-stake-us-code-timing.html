@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>8A. Instagram Stake.us Code Timing (Observed) - TiltCheck</title><meta name="description" content="© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / 8A. Instagram Stake.us Code Timing (Observed)</div><h1>8A. Instagram Stake.us Code Timing (Observed)</h1><p class="lede">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07</p></header><main id="content"><p>© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07</p>
+
+<h1>8A. Instagram Stake.us Code Timing (Observed)</h1>
+
+<p>This is a raw observation log of Stake.us Instagram code drops (as captured by a user) with a basic timing analysis.</p>
+
+<p>Scope:</p>
+<ul>
+<li>Date range: 2026-01-02 through 2026-05-04</li>
+<li>Sample size: 32 drops</li>
+<li>Amounts: $5 and $10</li>
+<li>Timezone: America/Los_Angeles (Pacific). DST is handled implicitly (Jan/Feb are PST, mid-March onward is PDT).</li>
+</ul>
+
+<h2>Raw log (Pacific time)</h2>
+<pre class="code-block" data-lang=""><code>
+01/02/2026     20:14   $5
+01/04/2026     22:30   $10
+01/07/2026     13:23   $10
+01/09/2026     21:11   $5
+01/10/2026     16:50   $5
+01/12/2026     14:56   $5
+01/13/2026     16:41   $10
+01/16/2026     21:26   $5
+01/18/2026     19:05   $5
+01/19/2026     15:40   $10
+01/21/2026     17:25   $5
+01/23/2026     18:35   $10
+01/26/2026     14:33   $5
+01/28/2026     13:14   $10
+02/01/2026     15:36   $10
+02/09/2026     15:18   $5
+02/17/2026     14:55   $10
+02/23/2026     15:11   $10
+02/28/2026     19:01   $10
+03/03/2026     14:28   $5
+03/10/2026     15:01   $10
+03/15/2026     17:10   $5
+03/18/2026     18:05   $10
+03/23/2026     20:53   $5
+03/27/2026     20:13   $10
+03/29/2026     17:58   $5
+04/06/2026     18:58   $10
+04/11/2026     22:52   $5
+04/19/2026     17:39   $10
+04/28/2026     18:42   $10
+04/29/2026     16:20   $5
+05/04/2026     17:41   $10
+</code></pre>
+
+<h2>Summary stats</h2>
+<p>Totals:</p>
+<ul>
+<li>32 drops</li>
+<li>$245 total</li>
+<li>$10: 17 drops</li>
+<li>$5: 15 drops</li>
+</ul>
+
+<p>Weekday counts (Pacific):</p>
+<ul>
+<li>Mon: 8</li>
+<li>Tue: 5</li>
+<li>Wed: 5</li>
+<li>Thu: 0</li>
+<li>Fri: 5</li>
+<li>Sat: 3</li>
+<li>Sun: 6</li>
+</ul>
+
+<p>Time-of-day bucket counts (Pacific):</p>
+<ul>
+<li>12:00–14:59: 6</li>
+<li>15:00–17:59: 13</li>
+<li>18:00–20:59: 9</li>
+<li>21:00–23:59: 4</li>
+<li>00:00–11:59: 0</li>
+</ul>
+
+<p>Gaps between drops (calendar days, based on Pacific-local timestamps):</p>
+<ul>
+<li>min: ~0.82 days</li>
+<li>median: ~3.04 days</li>
+<li>mean: ~3.93 days</li>
+<li>max: ~9.04 days</li>
+</ul>
+
+<h2>Practical takeaway</h2>
+<p>If you’re watching for drops, the only real signal in this sample is the window:</p>
+<ul>
+<li>Most common: 15:00–17:59 Pacific</li>
+<li>Next most common: 18:00–20:59 Pacific</li>
+</ul>
+
+<p>There is not enough evidence here to treat “weekday” as a reliable schedule, and the $5/$10 amounts do not show a clear time-based rule.</p>
+
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>

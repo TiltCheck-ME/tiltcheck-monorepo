@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Auto-Vault Rule Engine - TiltCheck</title><meta name="description" content="&lt;!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 --&gt;"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / Auto-Vault Rule Engine</div><h1>Auto-Vault Rule Engine</h1><p class="lede">&lt;!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 --&gt;</p></header><main id="content"><p><!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 --></p>
+
+<h1>Auto-Vault Rule Engine</h1>
+
+<p><strong>Made for Degens. By Degens.</strong></p>
+
+<p>The Auto-Vault Rule Engine lets users configure flexible, automatic vault rules that move winnings into the casino's vault feature based on configurable triggers — before the urge to gamble them back kicks in.</p>
+
+<p>---</p>
+
+<h2>The Problem It Solves</h2>
+
+<p>Winning is easy. Keeping the win is hard. Manual vaulting requires discipline in the exact moment you have the least of it. The rule engine automates the decision so the discipline is set once, not every hand.</p>
+
+<p>---</p>
+
+<h2>Rule Types</h2>
+
+<h3>1. <code>percent_of_win</code></h3>
+<p>Vault a fixed percentage of every win.</p>
+
+<ul>
+<li><strong>Config</strong>: <code>percent</code> (1-100)</li>
+<li><strong>Trigger</strong>: On every win event</li>
+<li><strong>Example</strong>: Vault 25% of every win above $2.</li>
+</ul>
+
+<h3>2. <code>fixed_per_threshold</code></h3>
+<p>Vault a fixed dollar amount for every X dollars won cumulatively.</p>
+
+<ul>
+<li><strong>Config</strong>: <code>fixed_amount</code>, <code>threshold_amount</code></li>
+<li><strong>Trigger</strong>: When running win total crosses threshold; resets after each vault</li>
+<li><strong>Example</strong>: Vault $5 for every $20 won. Hit $20, vault $5. Hit $40, vault $5 again.</li>
+</ul>
+
+<h3>3. <code>balance_ceiling</code></h3>
+<p>Vault everything above a set balance ceiling.</p>
+
+<ul>
+<li><strong>Config</strong>: <code>ceiling_amount</code></li>
+<li><strong>Trigger</strong>: After each win, if balance exceeds ceiling</li>
+<li><strong>Example</strong>: Never hold more than $100. Everything above auto-vaults.</li>
+</ul>
+
+<h3>4. <code>session_profit_lock</code></h3>
+<p>Lock in your session profit once a target is hit.</p>
+
+<ul>
+<li><strong>Config</strong>: <code>profit_target</code></li>
+<li><strong>Trigger</strong>: Once session profit (balance - starting balance) reaches target</li>
+<li><strong>Example</strong>: Lock $50 profit into vault once session is $50 up.</li>
+</ul>
+
+<p>---</p>
+
+<h2>Casino Support</h2>
+
+<p>| Casino | Vault Method | Notes |</p>
+<p>|--------|-------------|-------|</p>
+<p>| Stake.com | GraphQL API | Full native support, uses session cookie |</p>
+<p>| Roobet | DOM-based | Finds and clicks the vault button |</p>
+<p>| BC.Game | DOM-based | Targets "Safe" UI button |</p>
+<p>| Rollbit | DOM-based | Targets vault/lock button |</p>
+<p>| Gamdom | DOM-based | Targets save button |</p>
+<p>| Shuffle | DOM-based | Targets vault button |</p>
+
+<p>Casinos without a native vault feature are not supported. Rules scoped to unsupported casinos are silently skipped.</p>
+
+<p>---</p>
+
+<h2>Architecture</h2>
+
+<pre class="code-block" data-lang=""><code>
+CasinoWinEvent
+    |
+    v
+VaultRuleEngine.evaluate(event)
+    |-- filters by casino match
+    |-- filters by min_win_amount
+    |-- enforces cooldown_ms
+    |-- per-rule type logic
+    |
+    v
+VaultActionResult[]
+    |
+    v
+CasinoAdapterRegistry.getAdapterForHost(hostname)
+    |
+    v
+CasinoVaultAdapter.vaultAmount(amount)
+    (StakeVaultAdapter | GenericDOMVaultAdapter)
+</code></pre>
+
+<p>State (running totals, last vault timestamps) persists in <code>chrome.storage.local</code> under <code>vault_rule_state</code>. Session-scoped rules (<code>session_profit_lock</code>) are cleared on session reset.</p>
+
+<p>---</p>
+
+<h2>API Reference</h2>
+
+<h3>List rules</h3>
+<pre class="code-block" data-lang=""><code>
+GET /user/:discordId/vault-rules
+Authorization: Bearer &lt;token&gt;
+</code></pre>
+
+<h3>Create rule</h3>
+<pre class="code-block" data-lang=""><code>
+POST /user/:discordId/vault-rules
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  &quot;type&quot;: &quot;percent_of_win&quot;,
+  &quot;casino&quot;: &quot;all&quot;,
+  &quot;percent&quot;: 25,
+  &quot;min_win_amount&quot;: 2.00,
+  &quot;label&quot;: &quot;Slots cleanup&quot;
+}
+</code></pre>
+
+<h3>Update rule</h3>
+<pre class="code-block" data-lang=""><code>
+PATCH /user/:discordId/vault-rules/:ruleId
+Authorization: Bearer &lt;token&gt;
+
+{ &quot;enabled&quot;: false }
+</code></pre>
+
+<h3>Delete rule</h3>
+<pre class="code-block" data-lang=""><code>
+DELETE /user/:discordId/vault-rules/:ruleId
+Authorization: Bearer &lt;token&gt;
+</code></pre>
+
+<p>---</p>
+
+<h2>Extension UI</h2>
+
+<p>The Vault tab in the extension popup provides:</p>
+
+<ul>
+<li>Session auto-vault total (resets per session)</li>
+<li>Per-rule enable/disable toggle</li>
+<li>Add/remove rules with a type-aware form</li>
+<li>Per-casino rule scoping</li>
+</ul>
+
+<p>---</p>
+
+<h2>Database Schema</h2>
+
+<pre class="code-block" data-lang="sql"><code>
+CREATE TABLE user_vault_rules (
+    id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id           TEXT NOT NULL,
+    type              TEXT NOT NULL CHECK (type IN (
+                          &#39;percent_of_win&#39;, &#39;fixed_per_threshold&#39;,
+                          &#39;balance_ceiling&#39;, &#39;session_profit_lock&#39;
+                      )),
+    enabled           BOOLEAN NOT NULL DEFAULT TRUE,
+    casino            TEXT NOT NULL DEFAULT &#39;all&#39;,
+    percent           NUMERIC(5,2),
+    fixed_amount      NUMERIC(18,8),
+    threshold_amount  NUMERIC(18,8),
+    ceiling_amount    NUMERIC(18,8),
+    profit_target     NUMERIC(18,8),
+    min_win_amount    NUMERIC(18,8),
+    cooldown_ms       INTEGER,
+    label             TEXT,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+</code></pre>
+
+<p>---</p>
+
+<h2>Files</h2>
+
+<p>| File | Description |</p>
+<p>|------|-------------|</p>
+<p>| <code>apps/chrome-extension/src/vault-rule-engine.ts</code> | Core rule evaluation engine |</p>
+<p>| <code>apps/chrome-extension/src/casino-vault-adapters.ts</code> | Casino-specific vault execution |</p>
+<p>| <code>apps/chrome-extension/src/popup.ts</code> | Vault tab UI controller |</p>
+<p>| <code>apps/api/src/routes/user.ts</code> | REST CRUD for vault rules |</p>
+<p>| <code>packages/db/src/queries.ts</code> | DB query helpers |</p>
+<p>| <code>packages/types/src/index.ts</code> | Shared TypeScript types |</p>
+<p>| <code>SCHEMA.sql</code> | DB migration |</p>
+
+<p>---</p>
+
+<h2>Limitations</h2>
+
+<ul>
+<li>DOM-based adapters depend on casino UI not changing. If the vault button moves, the adapter will not find it.</li>
+<li>Balance detection for DOM-based adapters is not implemented — rules requiring balance comparisons (<code>balance_ceiling</code>) work only on Stake.</li>
+<li><code>session_profit_lock</code> requires the content script to track <code>session_profit</code> and include it in the win event payload.</li>
+<li>No server-side execution — all rule evaluation runs in the Chrome Extension.</li>
+</ul>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>

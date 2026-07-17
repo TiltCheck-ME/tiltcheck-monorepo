@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Casino Trust Score Page Specification - TiltCheck</title><meta name="description" content="Status: Draft (2025-11-20)"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / Casino Trust Score Page Specification</div><h1>Casino Trust Score Page Specification</h1><p class="lede">Status: Draft (2025-11-20)</p></header><main id="content"><h1>Casino Trust Score Page Specification</h1>
+
+<p>Status: Draft (2025-11-20)</p>
+<p>Owner: jmenichole / TiltCheck Agent</p>
+<p>Purpose: Provide a fast, transparent, anti-tilt single page that surfaces per-casino trust health, recent bonus adjustments, volatility, and actionable context for degens.</p>
+
+<p>---</p>
+<h2>1. Objectives</h2>
+<ul>
+<li>Real-time view of casino-level trust scores (0–100) sourced from <code>trust.casino.updated</code> events.</li>
+<li>Highlight bonus changes (events: <code>bonus.updated</code>, <code>bonus.nerf.detected</code>) & correlate with trust deltas.</li>
+<li>Detect and visualize volatility / risk (sudden nerfs, high negative deltas, frequency of adjustments).</li>
+<li>Provide a short narrative explanation per casino (reason field / aggregated cause rollup).</li>
+<li>Enable early intervention before degenerative behavior (tie-ins with LockVault suggestions if volatility spikes).</li>
+</ul>
+
+<h2>2. Event Inputs</h2>
+<p>| Event | Fields Used | Purpose |</p>
+<p>|-------|-------------|---------|</p>
+<p>| <code>trust.casino.updated</code> | <code>casinoName</code>, <code>previousScore</code>, <code>newScore</code>, <code>delta</code>, <code>severity</code>, <code>reason</code>, <code>source</code> | Core trust timeline & deltas |</p>
+<p>| <code>bonus.updated</code> | <code>casinoName</code>, <code>newAmount</code>, <code>oldAmount</code> | Detect positive or neutral changes, feed value trend |</p>
+<p>| <code>bonus.nerf.detected</code> | <code>casinoName</code>, <code>previousAmount</code>, <code>newAmount</code>, <code>percentDrop</code> | Negative impact, increase risk score |</p>
+<p>| <code>bonus.logged</code> (optional) | <code>amount</code> | Volume / activity context |</p>
+
+<h3>Optional Future Events</h3>
+<ul>
+<li><code>promo.approved</code> / <code>promo.denied</code> for promotional integrity signals.</li>
+<li><code>tilt.detected</code> cross-reference to flag casinos where user-specific tilt clusters overlap.</li>
+</ul>
+
+<h2>3. Data Model (Page-level Aggregation)</h2>
+<pre class="code-block" data-lang="ts"><code>
+interface CasinoTrustSnapshot {
+  casinoName: string;
+  currentScore: number;         // last trust.casino.updated newScore
+  previousScore?: number;       // before last update
+  scoreDelta?: number;          // currentScore - previousScore
+  lastUpdated: number;          // timestamp
+  severity?: number;            // last event severity (1-5)
+  volatility24h: number;        // computed metric (0-1) scaled
+  events24h: number;            // count trust updates in last 24h
+  nerfs24h: number;             // count bonus.nerf.detected in last 24h
+  avgBonusChange24h?: number;   // mean of (new - old) from bonus.updated
+  percentNerfMax24h?: number;   // worst nerf percent in window
+  activityScore?: number;       // composite (events24h weighted)
+  riskLevel: &#39;low&#39; | &#39;watch&#39; | &#39;elevated&#39; | &#39;high&#39; | &#39;critical&#39;;
+  lastReasons: string[];        // up to last N reason strings
+  sources: Set&lt;string&gt;;         // modules contributing (collectclock, trust-engine-casino,...)
+}
+</code></pre>
+
+<h3>Volatility Computation</h3>
+<ul>
+<li>Collect score deltas and bonus percentage changes over rolling 24h window.</li>
+<li><code>volatility24h = normalize(stdDev(deltas + bonusPercentChanges))</code> (0-1).</li>
+<li>Weight nerf events heavier: each nerf delta multiplied by 1.5 before stdDev.</li>
+</ul>
+
+<h3>Risk Level Mapping</h3>
+<p>| Condition | Risk Level |</p>
+<p>|-----------|-----------|</p>
+<p>| volatility24h < 0.15 and nerfs24h = 0 | low |</p>
+<p>| volatility24h < 0.3 and nerfs24h <= 1 | watch |</p>
+<p>| volatility24h < 0.5 and nerfs24h <= 2 | elevated |</p>
+<p>| volatility24h < 0.7 or nerfs24h <= 3 | high |</p>
+<p>| volatility24h >= 0.7 or nerfs24h > 3 | critical |</p>
+
+<h2>4. Aggregation Service</h2>
+<p>Location: <code>services/dashboard</code> (or dedicated <code>services/trust-rollup</code>) extension.</p>
+<p>Responsibilities:</p>
+<p>1. Subscribe to relevant events via <code>eventRouter.subscribe</code>.</p>
+<p>2. Maintain in-memory window (deque) per casino of last 24h events.</p>
+<p>3. Recompute snapshot on each incoming event; publish synthetic <code>trust.casino.rollup</code> event with snapshot payload for any listeners (UI SSE/WebSocket).</p>
+<p>4. Persist periodic JSON (every 5 min) for reload resilience.</p>
+
+<h2>5. Delivery to Front-End</h2>
+<p>Transport Options:</p>
+<ul>
+<li>Server-Sent Events (SSE) for lightweight streaming (preferred, minimal complexity).</li>
+<li>WebSocket multiplex if dashboard already uses it.</li>
+<li>Fallback: Poll REST endpoint <code>/api/trust/casinos</code> every 30s if real-time not required.</li>
+</ul>
+
+<h3>API Sketch</h3>
+<p><code>GET /api/trust/casinos</code> -> array of <code>CasinoTrustSnapshot</code> sorted by risk then score.</p>
+<p><code>GET /api/trust/casinos/:name/history?limit=50</code> -> chronological trust + bonus events merged.</p>
+<p><code>GET /api/trust/casinos/metrics</code> -> aggregated stats (mean volatility, global nerf count, top movers).</p>
+
+<h2>6. UI Components</h2>
+<p>1. Scoreboard Grid</p>
+<p>- Columns: Casino, Score (progress bar), Δ, Risk Badge, Volatility Sparkline, Last Reason Tooltip, Actions.</p>
+<p>2. Volatility Sparkline</p>
+<p>- Mini line or area chart of last N score values.</p>
+<p>3. Nerf Indicator</p>
+<p>- Icon (⚠) with count in last 24h; colored by severity.</p>
+<p>4. Reason Tooltip</p>
+<p>- Hover shows lastReasons joined; highlight sources.</p>
+<p>5. Action Suggestions</p>
+<p>- If riskLevel ≥ high: show "Consider Vault Lock" CTA linking to <code>/vault</code> command guidance (LockVault synergy).</p>
+<p>6. Filter Bar</p>
+<p>- Risk filter, min score, show only high volatility.</p>
+<p>7. Event Feed Panel</p>
+<p>- Live scrolling list: timestamp, eventType, short reason, delta.</p>
+<p>8. Accessibility Considerations</p>
+<p>- All color-coded risk statuses must have shape + text label.</p>
+<p>- High contrast palette (no green/red only; include icons).</p>
+
+<h2>7. Styling & A11y</h2>
+<ul>
+<li>Use existing design tokens (contrast-checked) from dashboard standards.</li>
+<li>Risk colors: low (blue), watch (purple), elevated (amber), high (orange), critical (red) ensuring WCAG AA contrast.</li>
+<li>Provide ARIA live region for event feed updates (announce only risk escalations, throttle).</li>
+</ul>
+
+<h2>8. Performance & Limits</h2>
+<ul>
+<li>Max casinos tracked initially: 50.</li>
+<li>Window size per casino: events in last 24h capped at 500.</li>
+<li>Snapshot recompute < 5ms typical; aggregate once per event.</li>
+<li>Memory footprint target < 10MB.</li>
+</ul>
+
+<h2>9. Persistence Strategy</h2>
+<ul>
+<li>JSON file <code>data/casino-trust-snapshots.json</code> persisted every 5 minutes and on graceful shutdown.</li>
+<li>On load, rebuild rolling windows where possible (only trust score timeline; volatility recalculated ignoring missing intermediate bonus events older than window).</li>
+</ul>
+
+<h2>10. Anti-Tilt Integration Hooks</h2>
+<ul>
+<li>When riskLevel transitions to <code>critical</code>, publish <code>tilt.cooldown.requested</code> for internal consideration.</li>
+<li>Provide secondary action: "Lock temptation for Xh" prefilled with suggested duration based on volatility (e.g., 12h if volatility24h ≥ 0.7).</li>
+</ul>
+
+<h2>11. Security / Abuse Considerations</h2>
+<ul>
+<li>Validate incoming event data (no negative scores outside delta logic; clamp 0–100).</li>
+<li>Guard against event spam (rate-limit updates per casino > 30/min triggers anomaly flag).</li>
+<li>Do not allow user-submitted text directly into reason rendering without sanitization.</li>
+</ul>
+
+<h2>12. Future Extensions</h2>
+<ul>
+<li>Add correlation matrix: trust score vs bonus amount slope.</li>
+<li>Predict next score movement using simple linear regression of last N deltas.</li>
+<li>Multi-user personalization overlay (user-specific trust signals).</li>
+</ul>
+
+<h2>13. Implementation Checklist</h2>
+<ul>
+<li>[ ] Subscribe to events in aggregator service.</li>
+<li>[ ] Build rolling window + snapshot computation.</li>
+<li>[ ] Publish <code>trust.casino.rollup</code> synthetic events.</li>
+<li>[ ] Add REST endpoints (3 listed).</li>
+<li>[ ] Add SSE endpoint <code>/api/trust/stream</code>.</li>
+<li>[ ] Implement UI components (grid, volatility sparkline, feed).</li>
+<li>[ ] Add LockVault CTA logic.</li>
+<li>[ ] Add persistence & reload.</li>
+<li>[ ] Accessibility audit (contrast & keyboard nav).</li>
+</ul>
+
+<p>---</p>
+<p>Update this spec as modules evolve (pricing oracle integration for USD normalization, promo integrity, cross-module trust fusion).</p>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>
