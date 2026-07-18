@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
+import DiscordIcon from './DiscordIcon';
+import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 const DASHBOARD_URL = getDashboardHandoffUrl('/dashboard');
 const LOGIN_URL = getWebLoginRedirect('/dashboard');
@@ -129,6 +131,16 @@ const Nav = () => {
       >
         Install the Extension
       </Link>
+      <a
+        href={DISCORD_INVITE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={close}
+        className="nav-sidebar-link nav-discord-link"
+      >
+        <DiscordIcon size={16} />
+        Join Discord
+      </a>
     </>
   );
 
@@ -150,6 +162,15 @@ const Nav = () => {
 
         {/* Desktop right actions */}
         <div className="nav-desktop-actions">
+          <a
+            href={DISCORD_INVITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-desktop-link nav-discord-link"
+          >
+            <DiscordIcon size={16} />
+            JOIN DISCORD
+          </a>
           <AuthButton />
         </div>
 

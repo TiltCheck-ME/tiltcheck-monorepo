@@ -18,22 +18,23 @@ Last updated: 2026-03-29
   - callback redirect cookie validated before redirect
   - default fallback used when redirect cookie is unsafe
 
-- [ ] **Test runner reliability restoration**  
+- [x] **Test runner reliability restoration**  
   Scope: workspace vitest install/runtime consistency  
   Acceptance:
   - `pnpm --filter @tiltcheck/api test -- tests/routes/auth-oauth-state.test.ts` passes
   - `pnpm -r test -- --passWithNoTests` no longer fails with missing vitest modules
+  - `test:all` pre-builds packages/modules; `db-client` has local vitest config
 
-- [ ] **Typecheck gate restoration**  
+- [x] **Typecheck gate restoration**  
   Scope: `packages/agent`, `apps/trust-rollup`  
   Acceptance:
-  - `pnpm -r typecheck` passes cleanly
+  - `pnpm -r typecheck` passes cleanly when deps built (`tsc -b` on agent + trust-rollup)
 
-- [ ] **Route/link integrity pass (web user journey)**  
-  Scope: `apps/web/src/config/features.ts`, nav/footer route targets  
+- [x] **Route/link integrity pass (web user journey)**  
+  Scope: `apps/web/src/lib/tool-registry.ts`, nav/footer route targets  
   Acceptance:
   - no links to non-existent routes
-  - route map matches implemented surfaces
+  - route map matches implemented surfaces (see `sitemap-entries.test.ts`)
 
 ### P1 (Correctness + security hardening)
 

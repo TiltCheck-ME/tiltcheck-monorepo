@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SentryMonitor } from '../src/sentry';
@@ -62,7 +62,7 @@ describe('SentryMonitor', () => {
         expect(Sentry.setUser).toHaveBeenCalledWith({ id: 'user-123', role: 'admin' });
 
         SentryMonitor.clearUser();
-        expect(Sentry.configureScope).toHaveBeenCalled();
+        expect(Sentry.setUser).toHaveBeenCalledWith(null);
     });
 
     it('sets arbitrary context', () => {

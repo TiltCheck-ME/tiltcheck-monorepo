@@ -1,4 +1,11 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
+
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
+
+## 2026-07-18 - PR #612 CI brand compliance
+
+- **Brand scanner**: Removed false custodial keyword matches from microgrant copy.
+- **Source headers**: Standardized the required TiltCheck copyright header in the modified Open Graph image and Sentry test files.
 
 ## 2026-06-17 - Launch cutover docs + web sitemap/404 (PR #597)
 

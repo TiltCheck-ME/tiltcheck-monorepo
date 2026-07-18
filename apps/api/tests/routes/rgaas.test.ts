@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -38,6 +38,9 @@ vi.mock('../../src/middleware/auth.js', () => ({
         next();
     },
     optionalAuthMiddleware: (_req: any, _res: unknown, next: (err?: unknown) => void) => {
+        next();
+    },
+    internalServiceAuth: (_req: any, _res: unknown, next: (err?: unknown) => void) => {
         next();
     },
 }));

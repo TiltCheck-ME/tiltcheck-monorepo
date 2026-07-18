@@ -6,6 +6,10 @@ import { RootProvider } from "@/lib/providers";
 import AriaSlangProvider from "@/components/AriaSlangProvider";
 import FunnelTracker from "@/components/FunnelTracker";
 import SiteChrome from "@/components/SiteChrome";
+import JsonLd from "@/components/JsonLd";
+import { organizationJsonLd } from "@/lib/structured-data";
+import { SITE_ONE_LINER, SITE_SEO_TITLE } from "@/lib/site-copy";
+import { SITE_URL } from "@/lib/site-links";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,28 +26,25 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TiltCheck | Tilt guardrails for real sessions",
-  description:
-    "Spot tilt, sus session dynamics, and sketch nudges before you do something stupid. Math verifiers exist; TiltCheck handles the mental game.",
-  metadataBase: new URL("https://tiltcheck.me"),
+  title: SITE_SEO_TITLE,
+  description: SITE_ONE_LINER,
+  metadataBase: new URL(SITE_URL),
   icons: {
     icon: "/icon.png",
     apple: "/icon.png",
     shortcut: "/icon.png",
   },
   openGraph: {
-    title: "TiltCheck | Tilt guardrails for real sessions",
-    description:
-      "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
-    url: "https://tiltcheck.me",
+    title: SITE_SEO_TITLE,
+    description: SITE_ONE_LINER,
+    url: SITE_URL,
     siteName: "TiltCheck",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TiltCheck | Tilt guardrails for real sessions",
-    description:
-      "Catch tilt and platform pressure before the session cooks you. Verifiers do the math; we watch your decisions.",
+    title: SITE_SEO_TITLE,
+    description: SITE_ONE_LINER,
   },
 };
 
@@ -57,6 +58,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} degen-background antialiased`}
       >
+        <JsonLd data={organizationJsonLd()} />
         <RootProvider>
           <AriaSlangProvider />
           <FunnelTracker />

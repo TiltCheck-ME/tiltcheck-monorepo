@@ -114,7 +114,7 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
             </div>
 
             <div className="mt-8">
-                <button disabled className="text-[10px] font-black uppercase text-gray-600 bg-gray-800/30 border border-gray-700/30 px-3 py-1 cursor-not-allowed" title="Coming soon">
+                <button disabled className="text-[10px] font-black uppercase text-gray-600 bg-gray-800/30 border border-gray-700/30 px-3 py-1 cursor-not-allowed" title="Wen dashboard export — soon">
                     Generate Proof of Degen — Soon
                 </button>
             </div>
