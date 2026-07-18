@@ -117,14 +117,6 @@ export const FEATURE_CARDS = [
     href: 'tools.html',
     cta: 'See tools',
   },
-  {
-    eyebrow: 'Operators',
-    title: 'For platforms',
-    description:
-      'If you run a casino or RG product: RGaaS sandbox keys for trust signals — non-affiliated, non-custodial. Players skip this.',
-    href: 'operators.html',
-    cta: 'Operator access',
-  },
 ];
 
 export const FAQS = [
@@ -164,27 +156,6 @@ export const EXTENSION_SIGNALS = [
   { title: 'Read-only', body: 'Watches supported casino tabs. No private keys.' },
   { title: 'In-tab', body: 'Warnings and exit controls stay on your active screen.' },
   { title: 'Your rules', body: 'Profit targets and vault limits — we enforce what you set.' },
-];
-
-export const OPERATOR_BULLETS = [
-  'Trust scoring as a service — non-affiliated, evidence-backed.',
-  'RGaaS API for session guardrails without custodial flows.',
-  'Sandbox access for operators who want tilt signals, not affiliate spam.',
-];
-
-export const OPERATOR_BENEFITS = [
-  {
-    title: 'Trust scoring API',
-    body: 'Evidence-backed operator scores you can plug into onboarding or review queues.',
-  },
-  {
-    title: 'RG signals',
-    body: 'Session pacing and pressure-loop signals without custodial money movement.',
-  },
-  {
-    title: 'Sandbox first',
-    body: 'Free sandbox with mocked responses. Production keys by review — not vibes.',
-  },
 ];
 
 export const GRADING_STEPS = [

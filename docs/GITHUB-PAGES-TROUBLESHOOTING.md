@@ -11,11 +11,10 @@ GitHub Pages (`gh-pages` branch) is a **static product twin** of tiltcheck.me â€
 
 | Path on Pages | Source |
 |---------------|--------|
-| `/` | Product landing (hero + three jobs + tools/features + operators) |
+| `/` | Product landing (hero + what-it-is + how it works + tools/features + FAQ) |
 | `/extension.html` | Extension install twin |
 | `/casinos.html` | Curated casino directory from `apps/web/src/data/casinos.json` (search/filter) |
 | `/tools.html` | Toolkit catalog (links to live interactive tools) |
-| `/operators.html` | RGaaS marketing shell (key form stays on live site) |
 | `/docs/*.html` | Specs secondary surface |
 | `/styles/base.css` | `scripts/pages-assets/styles/base.css` |
 | `/docs-md/*.md` | Raw markdown from `docs/tiltcheck/` |

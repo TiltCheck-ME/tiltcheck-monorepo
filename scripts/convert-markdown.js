@@ -4,7 +4,7 @@
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` product landing twin
- * - `/extension|casinos|tools|operators.html` product pages
+ * - `/extension|casinos|tools.html` product pages
  * - `/docs/*` specs from markdown
  *
  * Project Pages require relative asset paths — never "/styles/...".
@@ -30,8 +30,6 @@ import {
   FEATURE_CARDS,
   FAQS,
   EXTENSION_SIGNALS,
-  OPERATOR_BULLETS,
-  OPERATOR_BENEFITS,
   GRADING_STEPS,
   TOOL_REGISTRY,
   INSTALL_SURFACES,
@@ -178,7 +176,6 @@ function navHtml(depth, current) {
     { id: 'extension', file: 'extension.html', label: 'Extension' },
     { id: 'casinos', file: 'casinos.html', label: 'Casinos' },
     { id: 'tools', file: 'tools.html', label: 'Tools' },
-    { id: 'operators', file: 'operators.html', label: 'Operators' },
     { id: 'specs', file: null, label: 'Specs' },
   ];
 
@@ -332,8 +329,6 @@ function buildRootLanding() {
 </details>`,
   ).join('\n');
 
-  const operatorList = OPERATOR_BULLETS.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
-
   const content = `<main class="landing-page">
   <section class="hero-surface" aria-label="TiltCheck">
     <div class="landing-shell landing-hero-centered">
@@ -399,7 +394,7 @@ function buildRootLanding() {
         <span class="brand-eyebrow">Open these next</span>
         <h2 class="public-page-section-heading__title">Pages on this site.</h2>
       </div>
-      <p class="section-lede">Cold start? Extension first. Depositing somewhere new? Casinos. Want math tools? Toolkit. Running a platform? Operators.</p>
+      <p class="section-lede">Cold start? Extension first. Depositing somewhere new? Casinos. Want math tools? Toolkit.</p>
       <div class="public-page-grid public-page-grid--2">${featuresHtml}</div>
     </div>
   </section>
@@ -411,20 +406,6 @@ function buildRootLanding() {
         <h2 class="public-page-section-heading__title">Straight answers.</h2>
       </div>
       <div class="faq-list">${faqHtml}</div>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="Operators">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <span class="brand-eyebrow">For platforms / operators</span>
-        <h2 class="public-page-section-heading__title">Trust scoring as a service. Non-affiliated. RGaaS API.</h2>
-        <p class="public-page-card__copy">Players can skip this. If you need API access for trust signals or RG hooks:</p>
-        <ul class="public-page-card__copy public-page-card__copy--list">${operatorList}</ul>
-        <div style="margin-top:1.5rem">
-          <a class="btn btn-primary" href="operators.html">Operator details</a>
-        </div>
-      </article>
     </div>
   </section>
 
@@ -687,50 +668,6 @@ function buildToolsPage() {
   });
 }
 
-function buildOperatorsPage() {
-  const benefits = OPERATOR_BENEFITS.map(
-    (b) => `<article class="public-page-card">
-  <h3 class="public-page-card__title">${escapeHtml(b.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(b.body)}</p>
-</article>`,
-  ).join('\n');
-
-  const content = `${productHero({
-    eyebrow: 'Operators / RGaaS',
-    title: 'Sandbox keys for trust signal — not vibes.',
-    lede: 'Plug RGaaS into onboarding, trust, or review queues. Free sandbox on the live site. This Pages twin is marketing-only — no key form here.',
-    actionsHtml: `<a class="btn btn-primary" href="${SITE_URL}/operators">Request sandbox keys</a>
-    <a class="hero-actions__secondary-link" href="${SITE_URL}/operators/pricing">Pricing</a>`,
-  })}
-<main class="product-main">
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <div class="public-page-grid public-page-grid--3">${benefits}</div>
-    </div>
-  </section>
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Pricing snapshot</p>
-        <h2 class="public-page-card__title">Free sandbox. Production by review.</h2>
-        <p class="public-page-card__copy">Sandbox: mocked responses, capped volume. Production: manual review. Request keys on tiltcheck.me — we do not collect partner emails on GitHub Pages.</p>
-        <div style="margin-top:1.25rem">
-          <a class="btn btn-primary" href="${SITE_URL}/operators">Go to live operators</a>
-        </div>
-      </article>
-    </div>
-  </section>
-</main>`;
-
-  return shell({
-    title: 'Operators | TiltCheck',
-    description: 'TiltCheck RGaaS sandbox — trust scoring API for platforms.',
-    depth: 'root',
-    current: 'operators',
-    body: content,
-  });
-}
-
 function run() {
   if (!fs.existsSync(sourceRoot)) {
     console.error('Source directory missing:', sourceRoot);
@@ -770,11 +707,10 @@ function run() {
   fs.writeFileSync(path.join(siteRoot, 'extension.html'), buildExtensionPage());
   fs.writeFileSync(path.join(siteRoot, 'casinos.html'), buildCasinosPage(casinos));
   fs.writeFileSync(path.join(siteRoot, 'tools.html'), buildToolsPage());
-  fs.writeFileSync(path.join(siteRoot, 'operators.html'), buildOperatorsPage());
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
 
   console.log(
-    `Built Pages site: ${files.length} specs + product pages (home, extension, casinos[${casinos.length}], tools, operators) → ${siteRoot}`,
+    `Built Pages site: ${files.length} specs + product pages (home, extension, casinos[${casinos.length}], tools) → ${siteRoot}`,
   );
 }
 
