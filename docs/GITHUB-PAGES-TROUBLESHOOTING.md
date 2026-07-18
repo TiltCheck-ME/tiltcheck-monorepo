@@ -48,14 +48,24 @@ git show origin/gh-pages:docs/index.html | head -10
 
 **Expected**: Recent commit with specs index HTML visible
 
-### 3. Verify Repository Settings
+### 3. Verify Repository Settings (common live-stale cause)
 
-1. Go to Repository Settings
-2. Navigate to Pages section
-3. Check:
-   - **Source**: Deploy from branch → gh-pages
-   - **Branch**: gh-pages, / (root)
-   - **Custom domain**: empty (production is Railway, not Pages)
+Workflow publishes to the **`gh-pages`** branch. If Pages is pointed at **`main` / (root)** instead, the share URL stays on an old/errored build and will not show the product landing.
+
+1. Go to Repository Settings → Pages
+2. Set:
+   - **Source**: Deploy from a branch
+   - **Branch**: `gh-pages` / `(root)` → Save
+   - **Custom domain**: empty (production hostname is not Pages)
+3. Wait ~1 minute, hard-refresh `https://tiltcheck-me.github.io/tiltcheck-monorepo/`
+4. Confirm hero text: `House always wins? FUCK THAT.`
+
+Check via API (read-only):
+
+```bash
+gh api repos/TiltCheck-ME/tiltcheck-monorepo/pages --jq '"branch=\(.source.branch) path=\(.source.path) status=\(.status)"'
+# expect: branch=gh-pages path=/ status=built|building
+```
 
 ### 4. Production site (tiltcheck.me) issues
 
