@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-16
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
 // E2E test: Discord login flow — asserts button presence, redirect behavior, and error param handling.
 
 import { test, expect } from "@playwright/test";
@@ -64,20 +64,8 @@ test.describe("Discord Login Flow", () => {
     const bodyText = await page.locator("body").innerText();
     expect(bodyText.trim().length).toBeGreaterThan(20);
 
-    // There must be a visible error indicator — message, banner, or alert.
-    const errorIndicator = page
-      .locator(
-        "[role='alert'], .error, .alert, [data-testid*='error'], [class*='error']"
-      )
-      .first();
-
-    // Either an explicit error element is present OR the body text mentions the error.
-    const hasErrorText = /denied|error|failed|unable|try again/i.test(bodyText);
-    const errorVisible = await errorIndicator.isVisible().catch(() => false);
-
-    expect(
-      hasErrorText || errorVisible,
-      "Page should surface an error message when access_denied is passed"
-    ).toBe(true);
+    await expect(
+      page.getByText("Discord login failed. Try again or use email login.").first()
+    ).toBeVisible();
   });
 });

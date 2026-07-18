@@ -45,7 +45,7 @@
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "discord.js": "^14.25.1"
+    "discord.js": "^14.27.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

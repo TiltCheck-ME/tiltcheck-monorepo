@@ -15,7 +15,7 @@
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.1"
   },
   "optionalDependencies": {
     "@tiltcheck/ai-client": "workspace:*"
@@ -24,6 +24,6 @@
     "@types/uuid": "^11.0.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.10"
   }
 }

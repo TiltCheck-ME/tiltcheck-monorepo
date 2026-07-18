@@ -11,9 +11,9 @@
     "smoke:cloud": "node ./smoke-test-cloud.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.731.0",
+    "@aws-sdk/client-s3": "^3.1090.0",
     "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1"
   },
   "devDependencies": {

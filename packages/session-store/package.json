@@ -15,10 +15,10 @@
   "devDependencies": {
     "@types/node": "^25.5.0",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.10"
   },
   "optionalDependencies": {
-    "ioredis": "^5.10.1"
+    "ioredis": "^5.11.1"
   },
   "exports": {
     ".": {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TrustEnginesService } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
@@ -40,7 +40,7 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const breakdown = service.getCasinoBreakdown('stake.com');
-      expect(breakdown.bonusScore).toBeLessThan(75);
+      expect(breakdown.promotionalHonesty).toBeLessThan(75);
       expect(breakdown.history.length).toBeGreaterThan(0);
     });
 
@@ -60,7 +60,7 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const breakdown = service.getCasinoBreakdown('rollup-casino.com');
-      expect(breakdown.bonusScore).toBeLessThan(75);
+      expect(breakdown.promotionalHonesty).toBeLessThan(75);
     });
 
     it('processes domain rollup events', async () => {
@@ -79,20 +79,18 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const breakdown = service.getCasinoBreakdown('bad-domain.xyz');
-      expect(breakdown.complianceScore).toBeLessThan(75);
+      expect(breakdown.operationalSupport).toBeLessThan(75);
     });
 
     it('calculates weighted total score correctly', () => {
       const breakdown = service.getCasinoBreakdown('test.com');
       
       const expectedScore = Math.round(
-        breakdown.fairnessScore * 0.30 +
-        breakdown.payoutScore * 0.20 +
-        breakdown.bonusScore * 0.15 +
-        breakdown.userReportScore * 0.15 +
-        breakdown.freespinScore * 0.10 +
-        breakdown.complianceScore * 0.05 +
-        breakdown.supportScore * 0.05
+        breakdown.financialPayouts * 0.40 +
+        breakdown.fairnessTransparency * 0.25 +
+        breakdown.promotionalHonesty * 0.15 +
+        breakdown.operationalSupport * 0.10 +
+        breakdown.communityReputation * 0.10
       );
 
       expect(breakdown.score).toBe(expectedScore);
