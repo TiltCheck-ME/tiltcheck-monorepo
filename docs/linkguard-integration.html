@@ -1,4 +1,30 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>LinkGuard (SusLink) Integration Design - TiltCheck</title><meta name="description" content="Purpose: Migrate LinkGuard (&quot;SusLink&quot;) link verification outcomes into the unified `trust.casino.updated` (and future `trust.domain.updated`) event fabric so downstream adapters (D"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / LinkGuard (SusLink) Integration Design</div><h1>LinkGuard (SusLink) Integration Design</h1><p class="lede">Purpose: Migrate LinkGuard (&quot;SusLink&quot;) link verification outcomes into the unified `trust.casino.updated` (and future `trust.domain.updated`) event fabric so downstream adapters (D</p></header><main id="content"><h1>LinkGuard (SusLink) Integration Design</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>LinkGuard (SusLink) Integration Design - TiltCheck</title>
+<meta name="description" content="Purpose: Migrate LinkGuard (&quot;SusLink&quot;) link verification outcomes into the unified trust.casino.updated (and future trust.domain.updated) event fabric so downstream adapters (Disco"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles/base.css"/>
+</head>
+<body>
+<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="../index.html"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="https://tiltcheck.me/extension">Extension</a>
+    <a href="https://tiltcheck.me/casinos">Casinos</a>
+    <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
+    <a href="index.html" aria-current="page">Specs</a>
+  </div>
+</nav>
+<header class="doc-hero"><div class="doc-hero__inner">
+<p class="doc-hero__crumb">Specs / LinkGuard (SusLink) Integration Design</p>
+<h1>LinkGuard (SusLink) Integration Design</h1>
+<p class="lede">Purpose: Migrate LinkGuard (&quot;SusLink&quot;) link verification outcomes into the unified trust.casino.updated (and future trust.domain.updated) event fabric so downstream adapters (Disco</p>
+</div></header>
+<main class="doc-main" id="content"><h1>LinkGuard (SusLink) Integration Design</h1>
 
 <p>Purpose: Migrate LinkGuard ("SusLink") link verification outcomes into the unified <code>trust.casino.updated</code> (and future <code>trust.domain.updated</code>) event fabric so downstream adapters (Discord bots, monitoring, volatility engines) can react uniformly with severity scoring.</p>
 
@@ -119,4 +145,15 @@ rollup = {
 
 <p>---</p>
 <p>This document provides the blueprint; awaiting LinkGuard source code integration points to proceed with concrete patches.</p>
-</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">Made for Degens. By Degens. // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</footer></body></html>
+</main>
+<footer class="site-footer">
+  <span class="site-footer__tag">Made for Degens. By Degens.</span>
+  <div class="site-footer__links">
+    <a href="https://tiltcheck.me">tiltcheck.me</a>
+    <a href="index.html">Specs</a>
+    <a href="https://ko-fi.com/jmenichole0" rel="noopener noreferrer">Support</a>
+  </div>
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+</footer>
+</body>
+</html>
