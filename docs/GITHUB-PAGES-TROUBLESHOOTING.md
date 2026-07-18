@@ -63,7 +63,7 @@ Workflow publishes to the **`gh-pages`** branch. If Pages is pointed at **`main`
 Check via API (read-only):
 
 ```bash
-gh api repos/TiltCheck-ME/tiltcheck-monorepo/pages --jq '.source,.status,.html_url'
+gh api repos/TiltCheck-ME/tiltcheck-monorepo/pages --jq '"branch=\(.source.branch) path=\(.source.path) status=\(.status)"'
 # expect: branch=gh-pages path=/ status=built|building
 ```
 
