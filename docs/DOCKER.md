@@ -125,7 +125,7 @@ curl http://localhost:5055/api/health
 
 # Container health
 docker-compose ps
-docker inspect tiltcheck-dashboard --format='{{.State.Health.Status}}'
+docker inspect tiltcheck-dashboard --format='{% raw %}{{.State.Health.Status}}{% endraw %}'
 ```
 
 ### Resource Usage
