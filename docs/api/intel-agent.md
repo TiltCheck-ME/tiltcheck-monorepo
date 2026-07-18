@@ -1,8 +1,8 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
 
 # Intel Agent API
 
-Public conversational intel for casino trust lookups, filtered lists, and domain scans. Responses are structured JSON blocks rendered by the web UI — not LLM-generated HTML.
+Public conversational intel for casino trust lookups, filtered lists, domain scans, and sourced operator fact answers for VIP terms, redemption timing, and welcome bonus questions. Responses are structured JSON blocks rendered by the web UI — not LLM-generated HTML.
 
 ## Web routes
 
@@ -94,7 +94,7 @@ Fetch snapshot JSON for client use. Returns 404 when expired or missing.
 
 | Tier | Capabilities |
 |------|----------------|
-| Public | lookup, list, domain check, methodology |
+| Public | lookup, list, domain check, methodology, sourced operator fact answers/refusals |
 | Authenticated | above + personal handoff CTAs (dashboard) |
 
 Personal bonus/session/vault reads return `login_prompt` when unauthenticated.
@@ -108,7 +108,7 @@ Personal bonus/session/vault reads return `login_prompt` when unauthenticated.
 
 ## Data sources
 
-Grades and lists use curated `apps/web/src/data/casinos.json` overlaid with `GET /rgaas/casino-scores` when live. Domain scans call `/rgaas/domain-check` and `/rgaas/license-check`.
+Grades and lists use curated `apps/web/src/data/casinos.json` overlaid with `GET /rgaas/casino-scores` when live. Domain scans call `/rgaas/domain-check` and `/rgaas/license-check`. Operator fact answers load from `data/trust-engine/operator-facts.live.json`, filtered to `status: "live"` only. When no sourced fact exists, the agent refuses instead of inventing VIP, bonus, or redemption terms.
 
 ## Legal copy
 

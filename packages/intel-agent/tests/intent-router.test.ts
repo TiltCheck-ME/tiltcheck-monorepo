@@ -44,6 +44,14 @@ describe('routeIntelIntent', () => {
     }
   });
 
+  it('routes redemption timing questions when the operator name appears before redemption', () => {
+    const intent = routeIntelIntent('How long does MetaWin redemption take?');
+    expect(intent.kind).toBe('operator_redemption_fact');
+    if (intent.kind === 'operator_redemption_fact') {
+      expect(intent.name.toLowerCase()).toContain('metawin');
+    }
+  });
+
   it('does not route generic how-long questions without redemption keywords', () => {
     const intent = routeIntelIntent('How long does support take on Stake?');
     expect(intent.kind).not.toBe('operator_redemption_fact');

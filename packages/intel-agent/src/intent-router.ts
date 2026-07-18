@@ -57,6 +57,11 @@ function extractOperatorName(text: string): string | null {
     return domain.split('.')[0] ?? domain;
   }
 
+  const howLongMatch = text.match(/\bhow long does\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+redemption\b|\s+take\s+for\s+redemption\b|\?|$)/i);
+  if (howLongMatch?.[1]) {
+    return howLongMatch[1].replace(/[?.!]+$/, '').trim();
+  }
+
   const onMatch = text.match(/\bon\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+in\b|\?|$)/i);
   if (onMatch?.[1]) {
     return onMatch[1].replace(/[?.!]+$/, '').trim();

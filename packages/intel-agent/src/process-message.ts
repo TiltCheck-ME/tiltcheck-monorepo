@@ -1,9 +1,21 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
-import { createIntelTools, type CasinoSummary, type IntelTools } from '@tiltcheck/intel-tools';
+import {
+  createIntelTools,
+  type CasinoRecord,
+  type CasinoSummary,
+  type IntelTools,
+  type OperatorFactRecord,
+  type VipCurrencyRule,
+} from '@tiltcheck/intel-tools';
 import {
   buildListBlocks,
   buildLookupBlocks,
+  buildOperatorFactAmbiguousBlocks,
+  buildOperatorFactHitBlocks,
+  buildOperatorFactMissBlocks,
+  buildOperatorFactNoneBlocks,
+  buildOperatorFactTypeBlocks,
   resolveDataSource,
 } from './block-builder.js';
 import { routeIntelIntent } from './intent-router.js';
@@ -15,6 +27,28 @@ import type {
 } from './types.js';
 
 const METHODOLOGY_TEXT = `Grades run A+ through F from a curated baseline, then five pillars (payouts, proof quality, promo honesty, ops, community). Category modifiers shift the shape — Sweeps, Crypto, and Scam are not the same animal. When RGaaS matches an operator, live scores overlay the card with a timestamp. No match means snapshot only. We do not invent live data. Full methodology lives on /casinos#grading-methodology.`;
+
+function operatorFactResponse(blocks: IntelBlock[], shareEligible: boolean): IntelChatResponse {
+  return {
+    blocks,
+    dataSource: 'snapshot',
+    shareEligible,
+  };
+}
+
+function matchVipRules(rules: VipCurrencyRule[], currencyHint?: string) {
+  if (!currencyHint) {
+    return rules;
+  }
+
+  const normalizedHint = currencyHint.toLowerCase();
+  const filtered = rules.filter((rule) => {
+    const haystack = `${rule.currencyName} ${rule.notes}`.toLowerCase();
+    return haystack.includes(normalizedHint);
+  });
+
+  return filtered.length > 0 ? filtered : rules;
+}
 
 function personalLoginBlock(topic: string): IntelBlock[] {
   const reasons: Record<string, string> = {
@@ -107,6 +141,103 @@ export function createIntelAgent(options: IntelAgentOptions) {
       };
     }
 
+    if (intent.kind === 'operator_vip_fact') {
+      const answer = tools.getOperatorVipFacts(intent.name);
+      if (answer.kind === 'hit') {
+        const rules = matchVipRules(answer.rules, intent.currencyHint);
+        return operatorFactResponse(
+          buildOperatorFactHitBlocks(
+            rules.map((rule) => ({
+              content: rule.notes,
+              sourceUrl: rule.sourceUrl,
+              asOf: rule.asOf,
+            })),
+            answer.record.slug,
+            answer.stale,
+          ),
+          true,
+        );
+      }
+      if (answer.kind === 'miss') {
+        return operatorFactResponse(buildOperatorFactMissBlocks(answer.record.name, answer.record.slug), true);
+      }
+      if (answer.kind === 'ambiguous') {
+        return operatorFactResponse(buildOperatorFactAmbiguousBlocks(answer.matches), false);
+      }
+      return operatorFactResponse(buildOperatorFactNoneBlocks(intent.name), false);
+    }
+
+    if (intent.kind === 'operator_redemption_fact') {
+      const answer = tools.getOperatorRedemptionFacts(intent.name);
+      if (answer.kind === 'hit') {
+        return operatorFactResponse(
+          buildOperatorFactHitBlocks(
+            [
+              {
+                content: answer.payload.claim,
+                sourceUrl: answer.payload.sourceUrl,
+                asOf: answer.payload.asOf,
+              },
+            ],
+            answer.record.slug,
+            answer.stale,
+          ),
+          true,
+        );
+      }
+      if (answer.kind === 'miss') {
+        return operatorFactResponse(buildOperatorFactMissBlocks(answer.record.name, answer.record.slug), true);
+      }
+      if (answer.kind === 'ambiguous') {
+        return operatorFactResponse(buildOperatorFactAmbiguousBlocks(answer.matches), false);
+      }
+      return operatorFactResponse(buildOperatorFactNoneBlocks(intent.name), false);
+    }
+
+    if (intent.kind === 'operator_welcome_bonus_fact') {
+      const answer = tools.getOperatorWelcomeBonusFacts(intent.name, intent.geoTag);
+      if (answer.kind === 'hit') {
+        return operatorFactResponse(
+          buildOperatorFactHitBlocks(
+            [
+              {
+                content: answer.payload.summary,
+                sourceUrl: answer.payload.sourceUrl,
+                asOf: answer.payload.asOf,
+              },
+            ],
+            answer.record.slug,
+            answer.stale,
+          ),
+          true,
+        );
+      }
+      if (answer.kind === 'miss') {
+        return operatorFactResponse(buildOperatorFactMissBlocks(answer.record.name, answer.record.slug), true);
+      }
+      if (answer.kind === 'ambiguous') {
+        return operatorFactResponse(buildOperatorFactAmbiguousBlocks(answer.matches), false);
+      }
+      return operatorFactResponse(buildOperatorFactNoneBlocks(intent.name), false);
+    }
+
+    if (intent.kind === 'operator_fact_lookup') {
+      const answer = tools.listAvailableFactTypes(intent.name);
+      if (answer.kind === 'hit') {
+        return operatorFactResponse(
+          buildOperatorFactTypeBlocks(answer.record.name, answer.payload, answer.record.slug, answer.stale),
+          true,
+        );
+      }
+      if (answer.kind === 'miss') {
+        return operatorFactResponse(buildOperatorFactMissBlocks(answer.record.name, answer.record.slug), true);
+      }
+      if (answer.kind === 'ambiguous') {
+        return operatorFactResponse(buildOperatorFactAmbiguousBlocks(answer.matches), false);
+      }
+      return operatorFactResponse(buildOperatorFactNoneBlocks(intent.name), false);
+    }
+
     if (intent.kind === 'lookup') {
       const { matches, source } = await tools.lookupCasino(intent.name);
       let domainScan;
@@ -172,7 +303,11 @@ export function createIntelAgent(options: IntelAgentOptions) {
 
 export type IntelAgent = ReturnType<typeof createIntelAgent>;
 
-export function createDefaultIntelAgent(apiBase: string, casinos: import('@tiltcheck/intel-tools').CasinoRecord[]) {
-  const tools = createIntelTools({ apiBase, casinos });
+export function createDefaultIntelAgent(
+  apiBase: string,
+  casinos: CasinoRecord[],
+  operatorFacts?: OperatorFactRecord[],
+) {
+  const tools = createIntelTools({ apiBase, casinos, operatorFacts });
   return createIntelAgent({ tools });
 }
