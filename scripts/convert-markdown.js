@@ -133,7 +133,11 @@ function extractMeta(md) {
     if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('<!--')) continue;
     if (/^©|^Copyright\b|^All Rights Reserved/i.test(trimmed)) continue;
     if (/^Last Updated:/i.test(trimmed)) continue;
-    description = trimmed;
+    description = trimmed
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1$2')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
     break;
   }
   return { title: title || 'Untitled', description: description.slice(0, 180) };
