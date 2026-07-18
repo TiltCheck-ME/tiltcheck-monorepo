@@ -1,7 +1,5 @@
-#!/usr/bin/env node
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
- *
  * GitHub Pages site builder for TiltCheck.
  * - `/` product landing twin
  * - `/extension|casinos|tools|operators.html` product pages
@@ -653,7 +651,7 @@ function buildToolsPage() {
   const content = `${productHero({
     eyebrow: 'TiltCheck Toolkit',
     title: 'Install first. Tools second.',
-    lede: 'The extension is the session brakes. These tools are the homework: verify a bet from seeds, compare claimed payout vs what you got, check if a domain is sus, look up geo rules, track bonus timers. Interactive versions run on tiltcheck.me — this page tells you what each tool is for.',
+    lede: 'The extension is the session brakes. These tools are the homework: verify a bet from its published inputs, compare claimed payout vs what you got, check if a domain is sus, look up geo rules, track bonus timers. Interactive versions run on tiltcheck.me — this page tells you what each tool is for.',
     actionsHtml: `<a class="btn btn-primary" href="extension.html">Install extension</a>
     <a class="hero-actions__secondary-link" href="${SITE_URL}/tools">Open live tools</a>`,
   })}
