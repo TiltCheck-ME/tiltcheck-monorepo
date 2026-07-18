@@ -1,11 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 "use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
 
 const RECOVERY_WALLET = "CCXEVwUyfMLFwEzyusBLZ2VY1PyDe6qYhLHtgRqeBm51";
-const APPLICATIONS_OPEN = false; // Set true when fund is seeded
+const APPLICATIONS_OPEN = false; // Set true when the fund has enough backing
 
 type FormStep = "eligibility" | "application" | "submitted";
 
@@ -130,7 +130,7 @@ export default function MicrograntPage() {
             </span>
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mt-8">
-            The TiltCheck Community Recovery Microgrant is a real fund, seeded
+            The TiltCheck Community Recovery Microgrant is a real fund, backed
             by real degens who thought it would be a good idea to build a
             recovery program inside a gambling tools app. The irony is not lost
             on us. We leaned into it.

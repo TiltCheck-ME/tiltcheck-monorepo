@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 import { ImageResponse } from 'next/og';
 import { SITE_OG_SUBLINE, SITE_OG_TAGLINE } from '@/lib/site-copy';
 
