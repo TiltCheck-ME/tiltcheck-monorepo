@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
  *
- * Lightweight Markdown → HTML converter for TiltCheck docs.
+ * Lightweight Markdown → HTML converter for TiltCheck docs / GitHub Pages.
  * No external deps; supports:
  *  - YAML frontmatter (skipped in body)
  *  - Headings (# .. ######)
@@ -18,6 +18,8 @@
  * Defaults:
  *   sourceDir = docs/tiltcheck
  *   outDir = out/docs
+ *
+ * Project Pages (github.io/<repo>/) require relative asset paths — never "/styles/...".
  */
 import fs from 'fs';
 import path from 'path';
@@ -26,6 +28,14 @@ const sourceRoot = path.resolve(process.argv[2] || 'docs/tiltcheck');
 const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
+const SITE_URL = 'https://tiltcheck.me';
+const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
+const KOFI_URL = 'https://ko-fi.com/jmenichole0';
+const SITE_HERO_HEADLINE = 'STOP GIVING WINS BACK.';
+const SITE_ONE_LINER =
+  'Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.';
+
+const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
 function slugify(name) {
   return name
@@ -117,8 +127,15 @@ function extractMeta(md) {
   const body = stripFrontmatter(md);
   const heading = body.match(/^#\s+(.+)$/m);
   if (heading) title = heading[1].trim();
-  const para = body.replace(/```[\s\S]*?```/g, '').match(/(^|\n)([^#\n][^\n]+)\n/);
-  if (para) description = para[2].trim();
+  const plain = body.replace(/```[\s\S]*?```/g, '');
+  for (const line of plain.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('<!--')) continue;
+    if (/^©|^Copyright\b|^All Rights Reserved/i.test(trimmed)) continue;
+    if (/^Last Updated:/i.test(trimmed)) continue;
+    description = trimmed;
+    break;
+  }
   return { title: title || 'Untitled', description: description.slice(0, 180) };
 }
 
@@ -131,20 +148,138 @@ function sortKey(file) {
   return `9999-${base.toLowerCase()}`;
 }
 
+/** @param {'root' | 'docs'} depth */
+function assetHref(depth, file) {
+  return depth === 'root' ? `styles/${file}` : `../styles/${file}`;
+}
+
+/** @param {'root' | 'docs'} depth */
+function navHtml(depth, current) {
+  const home = depth === 'root' ? 'index.html' : '../index.html';
+  const specs = depth === 'root' ? 'docs/index.html' : 'index.html';
+  const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
+  const specsCurrent = current === 'specs' ? ' aria-current="page"' : '';
+  return `<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="${home}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="${SITE_URL}">tiltcheck.me</a>
+    <a href="${specs}"${specsCurrent}>Specs</a>
+    <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
+    <a href="${KOFI_URL}" rel="noopener noreferrer">Support</a>
+  </div>
+</nav>`;
+}
+
+function footerHtml() {
+  return `<footer class="site-footer"><span class="site-footer__tag">${FOOTER}</span>${COPYRIGHT}</footer>`;
+}
+
+function shell({ title, description, depth, current, body }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+${FONT_LINKS}
+<link rel="stylesheet" href="${assetHref(depth, 'base.css')}"/>
+</head>
+<body>
+${navHtml(depth, current)}
+${body}
+${footerHtml()}
+</body>
+</html>`;
+}
+
 function buildPage({ title, description, body }) {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>${escapeHtml(title)} - TiltCheck</title><meta name="description" content="${escapeHtml(description)}"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / ${escapeHtml(title)}</div><h1>${escapeHtml(title)}</h1><p class="lede">${escapeHtml(description)}</p></header><main id="content">${body}</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">${FOOTER} // ${COPYRIGHT}</footer></body></html>`;
+  const content = `<header class="doc-hero"><div class="doc-hero__inner">
+<p class="doc-hero__crumb">Specs / ${escapeHtml(title)}</p>
+<h1>${escapeHtml(title)}</h1>
+<p class="lede">${escapeHtml(description)}</p>
+</div></header>
+<main class="doc-main" id="content">${body}</main>`;
+
+  return shell({
+    title: `${title} - TiltCheck`,
+    description,
+    depth: 'docs',
+    current: 'specs',
+    body: content,
+  });
 }
 
 function buildIndexPage(entries) {
   const listHtml = entries
-    .map((e) => `<li><a href="${e.slug}.html"><strong>${escapeHtml(e.title)}</strong></a><br/><span style="color:#888;font-size:.75rem">${escapeHtml(e.description)}</span></li>`)
+    .map(
+      (e) =>
+        `<li><a href="${e.slug}.html"><strong>${escapeHtml(e.title)}</strong><span class="spec-list__desc">${escapeHtml(e.description)}</span></a></li>`,
+    )
     .join('\n');
 
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>TiltCheck Specs - GitHub Pages</title><meta name="description" content="TiltCheck ecosystem specifications and architecture docs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0}main{max-width:900px;margin:0 auto;padding:44px 20px;line-height:1.6}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}h1{font-size:2.4rem;margin:0 0 22px;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}ul{list-style:disc;padding-left:22px}nav{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current='page']{color:#00d4aa;font-weight:600}</style></head><body><nav><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><main><h1>TiltCheck Specs</h1><p style="color:#aaa;font-size:1.05rem;max-width:760px">Ecosystem specifications mirrored from <code>docs/tiltcheck/</code>. Production docs live at <a href="https://tiltcheck.me/docs">tiltcheck.me/docs</a>.</p><ul>${listHtml}</ul></main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">${FOOTER} // ${COPYRIGHT}</footer></body></html>`;
+  const content = `<header class="doc-hero"><div class="doc-hero__inner">
+<p class="doc-hero__crumb">TiltCheck / Specs</p>
+<h1>Ecosystem specs</h1>
+<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. Production product lives at <a href="${SITE_URL}">tiltcheck.me</a>.</p>
+</div></header>
+<main class="doc-main">
+<ul class="spec-list">${listHtml}</ul>
+</main>`;
+
+  return shell({
+    title: 'TiltCheck Specs',
+    description: 'TiltCheck ecosystem specifications and architecture docs',
+    depth: 'docs',
+    current: 'specs',
+    body: content,
+  });
 }
 
-function buildRootRedirect() {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta http-equiv="refresh" content="0;url=/docs/index.html"/><title>TiltCheck Specs</title><meta name="viewport" content="width=device-width, initial-scale=1"/></head><body style="background:#0a0a0a;color:#e0e0e0;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh"><p>Redirecting to <a href="/docs/index.html" style="color:#00d4aa">TiltCheck specs</a>...</p></body></html>`;
+function buildRootLanding(entries) {
+  const listHtml = entries
+    .slice(0, 12)
+    .map(
+      (e) =>
+        `<li><a href="docs/${e.slug}.html"><strong>${escapeHtml(e.title)}</strong><span class="spec-list__desc">${escapeHtml(e.description)}</span></a></li>`,
+    )
+    .join('\n');
+
+  const moreLink =
+    entries.length > 12
+      ? `<p class="section__lede" style="margin-top:1.25rem"><a href="docs/index.html">See all ${entries.length} specs →</a></p>`
+      : `<p class="section__lede" style="margin-top:1.25rem"><a href="docs/index.html">Browse all specs →</a></p>`;
+
+  const content = `<section class="landing-hero" aria-label="TiltCheck">
+  <div class="landing-hero__inner">
+    <p class="brand-wordmark">Tilt<span>Check</span></p>
+    <h1 class="landing-hero__headline">${escapeHtml(SITE_HERO_HEADLINE)}</h1>
+    <p class="landing-hero__lede">${escapeHtml(SITE_ONE_LINER)}</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="${SITE_URL}">Open tiltcheck.me</a>
+      <a class="btn btn-ghost" href="${DISCORD_URL}" rel="noopener noreferrer">Join Discord</a>
+      <a class="btn btn-ghost" href="${KOFI_URL}" rel="noopener noreferrer">Support on Ko-fi</a>
+    </div>
+  </div>
+</section>
+<section class="section section--specs" id="specs" aria-label="Specs">
+  <div class="section__inner">
+    <span class="section__eyebrow">Docs mirror</span>
+    <h2 class="section__title">Specs without Railway</h2>
+    <p class="section__lede">Same brand chrome. Static HTML from the monorepo — share this link when the app host is down or you just need architecture notes.</p>
+    <ul class="spec-list">${listHtml}</ul>
+    ${moreLink}
+  </div>
+</section>`;
+
+  return shell({
+    title: 'TiltCheck | Specs Mirror',
+    description: SITE_ONE_LINER,
+    depth: 'root',
+    current: 'home',
+    body: content,
+  });
 }
 
 function run() {
@@ -176,7 +311,7 @@ function run() {
   }
 
   fs.writeFileSync(path.join(outRoot, 'index.html'), buildIndexPage(indexEntries));
-  fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootRedirect());
+  fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding(indexEntries));
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
 
   console.log(`Converted ${files.length} markdown files to HTML in ${outRoot}`);
