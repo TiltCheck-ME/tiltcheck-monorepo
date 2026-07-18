@@ -2,57 +2,48 @@
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
  *
- * Lightweight Markdown → HTML converter for TiltCheck docs / GitHub Pages.
- * Root `/` is a static product twin of tiltcheck.me. Specs live under `/docs`.
+ * GitHub Pages site builder for TiltCheck.
+ * - `/` product landing twin
+ * - `/extension|casinos|tools|operators.html` product pages
+ * - `/docs/*` specs from markdown
  *
- * Project Pages (github.io/<repo>/) require relative asset paths — never "/styles/...".
+ * Project Pages require relative asset paths — never "/styles/...".
  *
  * Usage:
  *   node scripts/convert-markdown.js [sourceDir] [outDir]
- * Defaults:
- *   sourceDir = docs/tiltcheck
- *   outDir = out/docs
  */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import {
+  SITE_URL,
+  DISCORD_URL,
+  KOFI_URL,
+  EXTENSION_ZIP_URL,
+  SITE_HERO_HEADLINE,
+  SITE_ONE_LINER,
+  SITE_META_DESCRIPTION,
+  WHAT_IT_IS,
+  HOW_IT_WORKS,
+  CORE_JOBS,
+  PROBLEM_SIGNALS,
+  FEATURE_CARDS,
+  FAQS,
+  EXTENSION_SIGNALS,
+  OPERATOR_BULLETS,
+  OPERATOR_BENEFITS,
+  GRADING_STEPS,
+  TOOL_REGISTRY,
+  INSTALL_SURFACES,
+} from './pages-product-data.mjs';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, '..');
 const sourceRoot = path.resolve(process.argv[2] || 'docs/tiltcheck');
 const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
-const SITE_URL = 'https://tiltcheck.me';
-const EXTENSION_URL = `${SITE_URL}/extension`;
-const CASINOS_URL = `${SITE_URL}/casinos`;
-const OPERATORS_URL = `${SITE_URL}/operators`;
-const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
-const KOFI_URL = 'https://ko-fi.com/jmenichole0';
-const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
-const SITE_ONE_LINER =
-  'Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.';
-
-const CORE_JOBS = [
-  {
-    step: '01',
-    title: 'Kill the Auto-Pilot',
-    description: 'Tracks click-speed and bet pacing. Wakes you up when you play like a bot.',
-  },
-  {
-    step: '02',
-    title: 'Read the Room',
-    description: 'Flags sus pacing and pressure loops while you are still in the session.',
-  },
-  {
-    step: '03',
-    title: 'Enforce the Exit',
-    description: 'Set your line. We enforce it — not passive warnings.',
-  },
-];
-
-const OPERATOR_BULLETS = [
-  'Trust scoring as a service — non-affiliated, evidence-backed.',
-  'RGaaS API for session guardrails without custodial flows.',
-  'Sandbox access for operators who want tilt signals, not affiliate spam.',
-];
+const CASINOS_JSON = path.join(repoRoot, 'apps/web/src/data/casinos.json');
 
 const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
@@ -66,7 +57,7 @@ function slugify(name) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function stripFrontmatter(md) {
@@ -176,37 +167,53 @@ function assetHref(depth, file) {
   return depth === 'root' ? `styles/${file}` : `../styles/${file}`;
 }
 
-/** @param {'root' | 'docs'} depth @param {'home' | 'specs'} current */
+/** @param {'root' | 'docs'} depth */
+function href(depth, file) {
+  return depth === 'root' ? file : `../${file}`;
+}
+
+/** @param {'root' | 'docs'} depth @param {string} current */
 function navHtml(depth, current) {
-  const home = depth === 'root' ? 'index.html' : '../index.html';
-  const specs = depth === 'root' ? 'docs/index.html' : 'index.html';
-  const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
-  const specsCurrent = current === 'specs' ? ' aria-current="page"' : '';
+  const links = [
+    { id: 'extension', file: 'extension.html', label: 'Extension' },
+    { id: 'casinos', file: 'casinos.html', label: 'Casinos' },
+    { id: 'tools', file: 'tools.html', label: 'Tools' },
+    { id: 'operators', file: 'operators.html', label: 'Operators' },
+    { id: 'specs', file: null, label: 'Specs' },
+  ];
+
+  const linkHtml = links
+    .map((l) => {
+      const resolved =
+        l.id === 'specs' ? (depth === 'root' ? 'docs/index.html' : 'index.html') : href(depth, l.file);
+      const cur = current === l.id ? ' aria-current="page"' : '';
+      return `<a href="${resolved}"${cur}>${l.label}</a>`;
+    })
+    .join('\n    ');
+
   return `<nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="${home}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <a class="site-nav__brand" href="${href(depth, 'index.html')}"${current === 'home' ? ' aria-current="page"' : ''}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="${EXTENSION_URL}">Extension</a>
-    <a href="${CASINOS_URL}">Casinos</a>
+    ${linkHtml}
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
-    <a href="${specs}"${specsCurrent}>Specs</a>
   </div>
 </nav>`;
 }
 
 function footerHtml(depth) {
-  const specs = depth === 'root' ? 'docs/index.html' : 'index.html';
   return `<footer class="site-footer">
   <span class="site-footer__tag">${FOOTER}</span>
   <div class="site-footer__links">
     <a href="${SITE_URL}">tiltcheck.me</a>
-    <a href="${specs}">Specs</a>
+    <a href="${href(depth, 'tools.html')}">Tools</a>
+    <a href="${depth === 'root' ? 'docs/index.html' : 'index.html'}">Specs</a>
     <a href="${KOFI_URL}" rel="noopener noreferrer">Support</a>
   </div>
   ${COPYRIGHT}
 </footer>`;
 }
 
-function shell({ title, description, depth, current, body }) {
+function shell({ title, description, depth, current, body, extraHead = '' }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -217,6 +224,7 @@ function shell({ title, description, depth, current, body }) {
 <meta name="theme-color" content="#06080b"/>
 ${FONT_LINKS}
 <link rel="stylesheet" href="${assetHref(depth, 'base.css')}"/>
+${extraHead}
 </head>
 <body>
 ${navHtml(depth, current)}
@@ -226,7 +234,18 @@ ${footerHtml(depth)}
 </html>`;
 }
 
-function buildPage({ title, description, body }) {
+function productHero({ eyebrow, title, lede, actionsHtml }) {
+  return `<header class="product-hero">
+  <div class="landing-shell">
+    <span class="brand-eyebrow">${escapeHtml(eyebrow)}</span>
+    <h1 class="product-hero__title">${escapeHtml(title)}</h1>
+    <p class="product-hero__lede">${escapeHtml(lede)}</p>
+    ${actionsHtml ? `<div class="hero-actions hero-actions--start">${actionsHtml}</div>` : ''}
+  </div>
+</header>`;
+}
+
+function buildDocPage({ title, description, body }) {
   const content = `<header class="doc-hero"><div class="doc-hero__inner">
 <p class="doc-hero__crumb">Specs / ${escapeHtml(title)}</p>
 <h1>${escapeHtml(title)}</h1>
@@ -243,7 +262,7 @@ function buildPage({ title, description, body }) {
   });
 }
 
-function buildIndexPage(entries) {
+function buildDocsIndexPage(entries) {
   const listHtml = entries
     .map(
       (e) =>
@@ -254,7 +273,7 @@ function buildIndexPage(entries) {
   const content = `<header class="doc-hero"><div class="doc-hero__inner">
 <p class="doc-hero__crumb">TiltCheck / Specs</p>
 <h1>Ecosystem specs</h1>
-<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. The product lives at <a href="${SITE_URL}">tiltcheck.me</a>.</p>
+<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. Product pages live on this same Pages site.</p>
 </div></header>
 <main class="doc-main">
 <ul class="spec-list">${listHtml}</ul>
@@ -270,12 +289,47 @@ function buildIndexPage(entries) {
 }
 
 function buildRootLanding() {
+  const whatParas = WHAT_IT_IS.paragraphs.map((p) => `<p class="explainer__p">${escapeHtml(p)}</p>`).join('\n');
+  const whatBullets = WHAT_IT_IS.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
+
+  const flowHtml = HOW_IT_WORKS.map(
+    (step) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step ${escapeHtml(step.step)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(step.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(step.body)}</p>
+  <p class="public-page-card__note">${escapeHtml(step.note)}</p>
+</article>`,
+  ).join('\n');
+
   const jobsHtml = CORE_JOBS.map(
     (job) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step ${escapeHtml(job.step)}</p>
+  <p class="public-page-card__eyebrow">Job ${escapeHtml(job.step)}</p>
   <h3 class="public-page-card__title">${escapeHtml(job.title)}</h3>
   <p class="public-page-card__copy">${escapeHtml(job.description)}</p>
 </article>`,
+  ).join('\n');
+
+  const signalsHtml = PROBLEM_SIGNALS.map(
+    (s) => `<article class="signal-row">
+  <h3 class="signal-row__title">${escapeHtml(s.title)}</h3>
+  <p class="signal-row__body">${escapeHtml(s.body)}</p>
+</article>`,
+  ).join('\n');
+
+  const featuresHtml = FEATURE_CARDS.map(
+    (card) => `<article class="public-page-card feature-card">
+  <p class="public-page-card__eyebrow">${escapeHtml(card.eyebrow)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(card.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(card.description)}</p>
+  <a class="feature-card__link" href="${escapeHtml(card.href)}">${escapeHtml(card.cta)} →</a>
+</article>`,
+  ).join('\n');
+
+  const faqHtml = FAQS.map(
+    (faq) => `<details class="faq-item">
+  <summary class="faq-item__q">${escapeHtml(faq.question)}</summary>
+  <p class="faq-item__a">${escapeHtml(faq.answer)}</p>
+</details>`,
   ).join('\n');
 
   const operatorList = OPERATOR_BULLETS.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
@@ -284,25 +338,79 @@ function buildRootLanding() {
   <section class="hero-surface" aria-label="TiltCheck">
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
-      <span class="brand-eyebrow">Built for Degens. By Degens.</span>
+      <span class="brand-eyebrow">The Degen Audit Layer</span>
       <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_HERO_HEADLINE)}</h1>
       <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_ONE_LINER)}</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="${EXTENSION_URL}">Install the Extension</a>
-        <a class="hero-actions__secondary-link" href="${CASINOS_URL}">Check Casino Trust</a>
+        <a class="btn btn-primary" href="extension.html">Install the Extension</a>
+        <a class="hero-actions__secondary-link" href="#what">What is this?</a>
       </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" id="what" aria-label="What is TiltCheck">
+    <div class="landing-shell explainer">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">${escapeHtml(WHAT_IT_IS.eyebrow)}</span>
+        <h2 class="public-page-section-heading__title">${escapeHtml(WHAT_IT_IS.title)}</h2>
+      </div>
+      ${whatParas}
+      <ul class="explainer__list">${whatBullets}</ul>
+      <div class="hero-actions hero-actions--start" style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="extension.html">Start with the extension</a>
+        <a class="hero-actions__secondary-link" href="casinos.html">Or check a casino first</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="How it works">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">How it works</span>
+        <h2 class="public-page-section-heading__title">Install. Watch. Exit.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--3">${flowHtml}</div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="What it catches">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">What you get</span>
+        <h2 class="public-page-section-heading__title">Problems it actually names.</h2>
+      </div>
+      <div class="signal-list">${signalsHtml}</div>
     </div>
   </section>
 
   <section class="public-page-section" aria-label="Three jobs">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Three jobs</span>
+        <span class="brand-eyebrow">In-session jobs</span>
         <h2 class="public-page-section-heading__title">Protect the bankroll.</h2>
       </div>
-      <div class="public-page-grid public-page-grid--3">
-        ${jobsHtml}
+      <div class="public-page-grid public-page-grid--3">${jobsHtml}</div>
+    </div>
+  </section>
+
+  <section class="public-page-section" id="features" aria-label="Tools and features">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Open these next</span>
+        <h2 class="public-page-section-heading__title">Pages on this site.</h2>
       </div>
+      <p class="section-lede">Cold start? Extension first. Depositing somewhere new? Casinos. Want math tools? Toolkit. Running a platform? Operators.</p>
+      <div class="public-page-grid public-page-grid--2">${featuresHtml}</div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="FAQ">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">FAQ</span>
+        <h2 class="public-page-section-heading__title">Straight answers.</h2>
+      </div>
+      <div class="faq-list">${faqHtml}</div>
     </div>
   </section>
 
@@ -311,11 +419,10 @@ function buildRootLanding() {
       <article class="public-page-card">
         <span class="brand-eyebrow">For platforms / operators</span>
         <h2 class="public-page-section-heading__title">Trust scoring as a service. Non-affiliated. RGaaS API.</h2>
-        <ul class="public-page-card__copy public-page-card__copy--list">
-          ${operatorList}
-        </ul>
+        <p class="public-page-card__copy">Players can skip this. If you need API access for trust signals or RG hooks:</p>
+        <ul class="public-page-card__copy public-page-card__copy--list">${operatorList}</ul>
         <div style="margin-top:1.5rem">
-          <a class="btn btn-primary" href="${OPERATORS_URL}">Get Sandbox Access</a>
+          <a class="btn btn-primary" href="operators.html">Operator details</a>
         </div>
       </article>
     </div>
@@ -334,9 +441,292 @@ function buildRootLanding() {
 
   return shell({
     title: 'TiltCheck | The Degen Audit Layer',
-    description: SITE_ONE_LINER,
+    description: SITE_META_DESCRIPTION,
     depth: 'root',
     current: 'home',
+    body: content,
+  });
+}
+
+function buildExtensionPage() {
+  const signals = EXTENSION_SIGNALS.map(
+    (s) => `<article class="public-page-card">
+  <h2 class="public-page-card__title">${escapeHtml(s.title)}</h2>
+  <p class="public-page-card__copy">${escapeHtml(s.body)}</p>
+</article>`,
+  ).join('\n');
+
+  const actions = `
+    <a class="btn btn-primary" href="${EXTENSION_ZIP_URL}">Download the zip</a>
+    <a class="hero-actions__secondary-link" href="${SITE_URL}/extension">Open live setup</a>`;
+
+  const content = `${productHero({
+    eyebrow: 'Browser extension',
+    title: 'TiltCheck lives in the casino tab.',
+    lede: 'This is the main product. A free Chrome extension that watches your live online-casino session — bet pacing, tilt spirals, pressure loops — and enforces the exit rules you set. Read-only. No wallet keys. Sideload beta now; store listing later.',
+    actionsHtml: actions,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell explainer">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Why install</span>
+        <h2 class="public-page-section-heading__title">You already know the spiral.</h2>
+      </div>
+      <p class="explainer__p">Three losses. Bet size climbs. “Im due.” Another deposit. The extension’s job is to notice that pacing while the tab is still open and push the exit you configured when you were still thinking straight.</p>
+      <p class="explainer__p">It does not place bets for you. It does not “beat the house.” It is brakes — the same idea as a seatbelt, except for sessions that feel immortal at 2am.</p>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Install</p>
+        <h2 class="public-page-card__title">Two steps</h2>
+        <ol class="public-page-list">
+          <li>Download the zip, extract to a folder.</li>
+          <li><code>chrome://extensions</code> → Developer mode → Load unpacked → select folder.</li>
+        </ol>
+        <p class="public-page-card__copy">Then open dashboard setup on tiltcheck.me before a live session so your profit/loss lines are set.</p>
+      </article>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Core</span>
+        <h2 class="public-page-section-heading__title">What it does.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--3">${signals}</div>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'Extension | TiltCheck',
+    description: 'Install the TiltCheck Chrome extension — read-only session guardrail that watches tilt and enforces your exit rules.',
+    depth: 'root',
+    current: 'extension',
+    body: content,
+  });
+}
+
+function gradeClass(grade) {
+  const g = String(grade || '').toUpperCase();
+  if (g.startsWith('A')) return 'grade-a';
+  if (g.startsWith('B')) return 'grade-b';
+  if (g.startsWith('C')) return 'grade-c';
+  if (g.startsWith('D')) return 'grade-d';
+  return 'grade-f';
+}
+
+function buildCasinosPage(casinos) {
+  const categories = [...new Set(casinos.map((c) => c.category))].sort();
+  const cards = casinos
+    .map((c) => {
+      const slug = String(c.name)
+        .toLowerCase()
+        .replace(/&/g, ' and ')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const live = `${SITE_URL}/casinos/${slug}`;
+      return `<article class="casino-card" data-name="${escapeHtml(c.name.toLowerCase())}" data-category="${escapeHtml(c.category)}" data-grade="${escapeHtml(c.grade)}">
+  <div class="casino-card__top">
+    <span class="casino-card__grade ${gradeClass(c.grade)}">${escapeHtml(c.grade)}</span>
+    <span class="casino-card__cat">${escapeHtml(c.category)}</span>
+  </div>
+  <h3 class="casino-card__name">${escapeHtml(c.name)}</h3>
+  <p class="casino-card__risk">Risk: ${escapeHtml(c.risk)}</p>
+  <a class="casino-card__link" href="${live}" rel="noopener noreferrer">Full audit on tiltcheck.me →</a>
+</article>`;
+    })
+    .join('\n');
+
+  const filters = ['All', ...categories]
+    .map(
+      (cat, i) =>
+        `<button type="button" class="filter-chip${i === 0 ? ' is-active' : ''}" data-filter="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`,
+    )
+    .join('\n');
+
+  const steps = GRADING_STEPS.map(
+    (s) => `<li><strong>${escapeHtml(s.title)}</strong> — ${escapeHtml(s.body)}</li>`,
+  ).join('\n');
+
+  const script = `<script>
+(function () {
+  var input = document.getElementById('casino-search');
+  var chips = document.querySelectorAll('.filter-chip');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.casino-card'));
+  var count = document.getElementById('casino-count');
+  var activeCat = 'All';
+  function apply() {
+    var q = (input.value || '').trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function (card) {
+      var name = card.getAttribute('data-name') || '';
+      var cat = card.getAttribute('data-category') || '';
+      var okCat = activeCat === 'All' || cat === activeCat;
+      var okQ = !q || name.indexOf(q) !== -1;
+      var show = okCat && okQ;
+      card.hidden = !show;
+      if (show) shown += 1;
+    });
+    if (count) count.textContent = shown + ' operators';
+  }
+  if (input) input.addEventListener('input', apply);
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      chips.forEach(function (c) { c.classList.remove('is-active'); });
+      chip.classList.add('is-active');
+      activeCat = chip.getAttribute('data-filter') || 'All';
+      apply();
+    });
+  });
+  apply();
+})();
+</script>`;
+
+  const content = `${productHero({
+    eyebrow: 'Casino trust',
+    title: 'Look up the operator. Read the proof.',
+    lede: `Before you deposit, check who you are playing. This page lists ${casinos.length} curated operators with letter grades and risk labels (sweeps, crypto, regulated, scam, and more). It is a starting point — not a green light. Full license, domain, and scam proof lanes open on tiltcheck.me.`,
+    actionsHtml: `<a class="btn btn-primary" href="${SITE_URL}/casinos">Open live directory</a>
+    <a class="hero-actions__secondary-link" href="tools.html">Related tools</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="casino-toolbar">
+        <label class="casino-search">
+          <span class="sr-only">Search casinos</span>
+          <input id="casino-search" type="search" placeholder="Search operator name…" autocomplete="off"/>
+        </label>
+        <div class="filter-row" role="group" aria-label="Category filters">${filters}</div>
+        <p class="casino-count" id="casino-count">${casinos.length} operators</p>
+      </div>
+      <div class="casino-grid">${cards}</div>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Methodology</span>
+        <h2 class="public-page-section-heading__title">How letter grades are built.</h2>
+      </div>
+      <ol class="method-list">${steps}</ol>
+    </div>
+  </section>
+</main>
+${script}`;
+
+  return shell({
+    title: 'Casino Trust | TiltCheck',
+    description: 'Curated casino trust grades — static mirror of the TiltCheck directory.',
+    depth: 'root',
+    current: 'casinos',
+    body: content,
+  });
+}
+
+function buildToolsPage() {
+  const install = INSTALL_SURFACES.map(
+    (t) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
+  <a class="feature-card__link" href="${SITE_URL}${t.href}">Open install →</a>
+</article>`,
+  ).join('\n');
+
+  const tools = TOOL_REGISTRY.map(
+    (t) => `<article class="public-page-card tool-card">
+  <div class="tool-card__meta">
+    <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
+    <span class="status-pill status-pill--${escapeHtml(t.status)}">${escapeHtml(t.status)}</span>
+  </div>
+  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
+  <a class="feature-card__link" href="${SITE_URL}${t.href}">Open on tiltcheck.me →</a>
+</article>`,
+  ).join('\n');
+
+  const content = `${productHero({
+    eyebrow: 'TiltCheck Toolkit',
+    title: 'Install first. Tools second.',
+    lede: 'The extension is the session brakes. These tools are the homework: verify a bet from seeds, compare claimed payout vs what you got, check if a domain is sus, look up geo rules, track bonus timers. Interactive versions run on tiltcheck.me — this page tells you what each tool is for.',
+    actionsHtml: `<a class="btn btn-primary" href="extension.html">Install extension</a>
+    <a class="hero-actions__secondary-link" href="${SITE_URL}/tools">Open live tools</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Install surfaces</span>
+        <h2 class="public-page-section-heading__title">AutoVault setups.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--2">${install}</div>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Features</span>
+        <h2 class="public-page-section-heading__title">The toolkit.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--2">${tools}</div>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'Tools | TiltCheck',
+    description: 'TiltCheck toolkit — verifiers, scanners, vault, and accountability tools.',
+    depth: 'root',
+    current: 'tools',
+    body: content,
+  });
+}
+
+function buildOperatorsPage() {
+  const benefits = OPERATOR_BENEFITS.map(
+    (b) => `<article class="public-page-card">
+  <h3 class="public-page-card__title">${escapeHtml(b.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(b.body)}</p>
+</article>`,
+  ).join('\n');
+
+  const content = `${productHero({
+    eyebrow: 'Operators / RGaaS',
+    title: 'Sandbox keys for trust signal — not vibes.',
+    lede: 'Plug RGaaS into onboarding, trust, or review queues. Free sandbox on the live site. This Pages twin is marketing-only — no key form here.',
+    actionsHtml: `<a class="btn btn-primary" href="${SITE_URL}/operators">Request sandbox keys</a>
+    <a class="hero-actions__secondary-link" href="${SITE_URL}/operators/pricing">Pricing</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-grid public-page-grid--3">${benefits}</div>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Pricing snapshot</p>
+        <h2 class="public-page-card__title">Free sandbox. Production by review.</h2>
+        <p class="public-page-card__copy">Sandbox: mocked responses, capped volume. Production: manual review. Request keys on tiltcheck.me — we do not collect partner emails on GitHub Pages.</p>
+        <div style="margin-top:1.25rem">
+          <a class="btn btn-primary" href="${SITE_URL}/operators">Go to live operators</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'Operators | TiltCheck',
+    description: 'TiltCheck RGaaS sandbox — trust scoring API for platforms.',
+    depth: 'root',
+    current: 'operators',
     body: content,
   });
 }
@@ -346,10 +736,16 @@ function run() {
     console.error('Source directory missing:', sourceRoot);
     process.exit(1);
   }
+  if (!fs.existsSync(CASINOS_JSON)) {
+    console.error('Casinos data missing:', CASINOS_JSON);
+    process.exit(1);
+  }
 
   const siteRoot = path.dirname(outRoot);
   fs.mkdirSync(outRoot, { recursive: true });
   fs.mkdirSync(siteRoot, { recursive: true });
+
+  const casinos = JSON.parse(fs.readFileSync(CASINOS_JSON, 'utf-8'));
 
   const files = fs
     .readdirSync(sourceRoot)
@@ -364,16 +760,22 @@ function run() {
     const slug = slugify(file);
     const meta = extractMeta(raw);
     const body = renderMarkdown(raw);
-    const html = buildPage({ title: meta.title, description: meta.description, body });
+    const html = buildDocPage({ title: meta.title, description: meta.description, body });
     fs.writeFileSync(path.join(outRoot, `${slug}.html`), html);
     indexEntries.push({ slug, title: meta.title, description: meta.description });
   }
 
-  fs.writeFileSync(path.join(outRoot, 'index.html'), buildIndexPage(indexEntries));
+  fs.writeFileSync(path.join(outRoot, 'index.html'), buildDocsIndexPage(indexEntries));
   fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding());
+  fs.writeFileSync(path.join(siteRoot, 'extension.html'), buildExtensionPage());
+  fs.writeFileSync(path.join(siteRoot, 'casinos.html'), buildCasinosPage(casinos));
+  fs.writeFileSync(path.join(siteRoot, 'tools.html'), buildToolsPage());
+  fs.writeFileSync(path.join(siteRoot, 'operators.html'), buildOperatorsPage());
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
 
-  console.log(`Converted ${files.length} markdown files to HTML in ${outRoot}`);
+  console.log(
+    `Built Pages site: ${files.length} specs + product pages (home, extension, casinos[${casinos.length}], tools, operators) → ${siteRoot}`,
+  );
 }
 
 run();
