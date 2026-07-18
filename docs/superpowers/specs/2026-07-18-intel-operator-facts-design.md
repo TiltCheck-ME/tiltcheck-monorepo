@@ -2,8 +2,9 @@
 
 # Intel Operator Facts — Design Spec
 
-Status: Approved (design); implementation not started  
+Status: Implemented (v1 code); coverage gate not met — not product-live  
 Owner: founder (solo)  
+Coverage: 0 live facts in `operator-facts.live.json` (gate: ~25–40 priority operators with ≥1 live fact before marketing as live)  
 Surface: `apps/web` `/ask` + floating Intel widget  
 Related: [docs/api/intel-agent.md](../../api/intel-agent.md), [docs/ops/AGENT-COHESION.md](../../ops/AGENT-COHESION.md), Degen Copilot spec (different product — guardrail configure, not operator research)
 

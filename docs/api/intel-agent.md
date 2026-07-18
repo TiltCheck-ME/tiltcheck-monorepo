@@ -90,6 +90,40 @@ Fetch snapshot JSON for client use. Returns 404 when expired or missing.
 | `cta` | `label`, `href` |
 | `login_prompt` | `reason`, optional `handoff` |
 
+## Operator fact intents
+
+Plain-English VIP, redemption, and welcome-bonus questions route to curated operator facts — not freestyle LLM answers.
+
+| Intent | Example message | Tool |
+|--------|-----------------|------|
+| `operator_vip_fact` | "Can you level with gold coins on MetaWin?" | `getOperatorVipFacts` |
+| `operator_redemption_fact` | "How long does Crown Coins redemption take?" | `getOperatorRedemptionFacts` |
+| `operator_welcome_bonus_fact` | "What is the welcome bonus on Stake.us?" | `getOperatorWelcomeBonusFacts` |
+| `operator_fact_lookup` | "What's the VIP deal on Stake?" | `listAvailableFactTypes` |
+
+### Answer shapes
+
+| Outcome | Blocks | Share |
+|---------|--------|-------|
+| **Hit** | Fact text → `Source: {url} · As of {date}` → optional `Stale — verify on source` → CTA to `/casinos/{slug}` | `shareEligible: true` |
+| **Miss** | Refuse text (below) → optional proof-page CTA when operator resolves | `shareEligible: true` |
+| **Ambiguous** | "Multiple sourced matches: …" — user must disambiguate | `shareEligible: false` |
+| **No match** | Refuse text when operator name does not resolve | `shareEligible: false` |
+
+### Refuse copy (verbatim)
+
+When no live sourced record exists, or a VIP `currencyHint` matches no rule:
+
+```
+No sourced record for that. Not guessing VIP/bonus/redemption terms. Check their ToS — or open the proof page when we have one.
+```
+
+Geo-filtered welcome-bonus questions (e.g. Florida) refuse when no geo-tagged live facts match — no unsourced state roundups.
+
+### Unknown fallback
+
+Messages that do not match any intent (including vague operator-fact phrasing without a resolvable name) return guidance text plus a browse-directory CTA. Operator VIP/bonus/redemption questions that **do** match an intent but lack live data get the refuse copy above — not the generic unknown fallback.
+
 ## Tiered access
 
 | Tier | Capabilities |
