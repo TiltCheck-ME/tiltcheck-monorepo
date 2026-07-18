@@ -52,6 +52,7 @@
     "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1",
     "ops:research:run": "node scripts/ops/research-brief.mjs",
     "ops:research:merge-tasks": "node scripts/ops/merge-proposed-tasks.mjs",
+    "ops:facts:promote": "node scripts/ops/promote-operator-facts.mjs",
     "seed:casino-trust": "node scripts/seed-casino-trust-from-scrape.js --include-existing --runtime-output ./data/casino-trust.json",
     "ops:task-ai": "node scripts/daily-task-ai.mjs",
     "trust:build": "pnpm --filter @tiltcheck/trust-engines build",

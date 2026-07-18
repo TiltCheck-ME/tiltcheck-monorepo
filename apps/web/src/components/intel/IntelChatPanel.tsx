@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +11,9 @@ const PROMPT_CHIPS = [
   'List US sweeps casinos',
   'How do trust grades work?',
   'Check domain stake.com',
+  'Can you level with gold coins on MetaWin?',
+  'How long does Crown Coins redemption take?',
+  'What is the welcome bonus on Stake.us?',
 ];
 
 const STORAGE_KEY = 'tc-intel-chat-history';
@@ -192,6 +195,7 @@ export default function IntelChatPanel({
           <div className="space-y-3">
             <p className="text-sm text-gray-400">
               Ask about casino trust, scam flags, or filtered lists. Grades come from the trust engine — not vibes.
+              VIP, bonus, and redemption answers need a sourced live record — no record, no guess.
             </p>
             <div className="flex flex-wrap gap-2">
               {PROMPT_CHIPS.map((chip) => (
