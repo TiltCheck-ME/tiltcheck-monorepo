@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -15,6 +15,11 @@ const createClientMock = vi.hoisted(() => vi.fn(() => mockSupabase));
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: createClientMock,
+}));
+
+// /mod/report is gated by internalServiceAuth; tests cover handler logic, not service auth.
+vi.mock('../../src/middleware/auth.js', () => ({
+  internalServiceAuth: (_req: unknown, _res: unknown, next: (err?: unknown) => void) => next(),
 }));
 
 async function createAppWithModRouter(configureSupabase: boolean) {
