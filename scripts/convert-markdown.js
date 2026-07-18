@@ -3,23 +3,15 @@
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
  *
  * Lightweight Markdown → HTML converter for TiltCheck docs / GitHub Pages.
- * No external deps; supports:
- *  - YAML frontmatter (skipped in body)
- *  - Headings (# .. ######)
- *  - Paragraphs / blank line separation
- *  - Unordered lists (-, *)
- *  - Inline code (`code`)
- *  - Code fences ```lang ... ``` (lang is optional)
- *  - Bold **text** and emphasis *text*
- *  - Links [text](url)
+ * Root `/` is a static product twin of tiltcheck.me. Specs live under `/docs`.
+ *
+ * Project Pages (github.io/<repo>/) require relative asset paths — never "/styles/...".
  *
  * Usage:
  *   node scripts/convert-markdown.js [sourceDir] [outDir]
  * Defaults:
  *   sourceDir = docs/tiltcheck
  *   outDir = out/docs
- *
- * Project Pages (github.io/<repo>/) require relative asset paths — never "/styles/...".
  */
 import fs from 'fs';
 import path from 'path';
@@ -29,11 +21,38 @@ const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
 const SITE_URL = 'https://tiltcheck.me';
+const EXTENSION_URL = `${SITE_URL}/extension`;
+const CASINOS_URL = `${SITE_URL}/casinos`;
+const OPERATORS_URL = `${SITE_URL}/operators`;
 const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
 const KOFI_URL = 'https://ko-fi.com/jmenichole0';
-const SITE_HERO_HEADLINE = 'STOP GIVING WINS BACK.';
+const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
 const SITE_ONE_LINER =
   'Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.';
+
+const CORE_JOBS = [
+  {
+    step: '01',
+    title: 'Kill the Auto-Pilot',
+    description: 'Tracks click-speed and bet pacing. Wakes you up when you play like a bot.',
+  },
+  {
+    step: '02',
+    title: 'Read the Room',
+    description: 'Flags sus pacing and pressure loops while you are still in the session.',
+  },
+  {
+    step: '03',
+    title: 'Enforce the Exit',
+    description: 'Set your line. We enforce it — not passive warnings.',
+  },
+];
+
+const OPERATOR_BULLETS = [
+  'Trust scoring as a service — non-affiliated, evidence-backed.',
+  'RGaaS API for session guardrails without custodial flows.',
+  'Sandbox access for operators who want tilt signals, not affiliate spam.',
+];
 
 const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
@@ -157,7 +176,7 @@ function assetHref(depth, file) {
   return depth === 'root' ? `styles/${file}` : `../styles/${file}`;
 }
 
-/** @param {'root' | 'docs'} depth */
+/** @param {'root' | 'docs'} depth @param {'home' | 'specs'} current */
 function navHtml(depth, current) {
   const home = depth === 'root' ? 'index.html' : '../index.html';
   const specs = depth === 'root' ? 'docs/index.html' : 'index.html';
@@ -166,16 +185,25 @@ function navHtml(depth, current) {
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${home}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="${SITE_URL}">tiltcheck.me</a>
-    <a href="${specs}"${specsCurrent}>Specs</a>
+    <a href="${EXTENSION_URL}">Extension</a>
+    <a href="${CASINOS_URL}">Casinos</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
-    <a href="${KOFI_URL}" rel="noopener noreferrer">Support</a>
+    <a href="${specs}"${specsCurrent}>Specs</a>
   </div>
 </nav>`;
 }
 
-function footerHtml() {
-  return `<footer class="site-footer"><span class="site-footer__tag">${FOOTER}</span>${COPYRIGHT}</footer>`;
+function footerHtml(depth) {
+  const specs = depth === 'root' ? 'docs/index.html' : 'index.html';
+  return `<footer class="site-footer">
+  <span class="site-footer__tag">${FOOTER}</span>
+  <div class="site-footer__links">
+    <a href="${SITE_URL}">tiltcheck.me</a>
+    <a href="${specs}">Specs</a>
+    <a href="${KOFI_URL}" rel="noopener noreferrer">Support</a>
+  </div>
+  ${COPYRIGHT}
+</footer>`;
 }
 
 function shell({ title, description, depth, current, body }) {
@@ -193,7 +221,7 @@ ${FONT_LINKS}
 <body>
 ${navHtml(depth, current)}
 ${body}
-${footerHtml()}
+${footerHtml(depth)}
 </body>
 </html>`;
 }
@@ -226,7 +254,7 @@ function buildIndexPage(entries) {
   const content = `<header class="doc-hero"><div class="doc-hero__inner">
 <p class="doc-hero__crumb">TiltCheck / Specs</p>
 <h1>Ecosystem specs</h1>
-<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. Production product lives at <a href="${SITE_URL}">tiltcheck.me</a>.</p>
+<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. The product lives at <a href="${SITE_URL}">tiltcheck.me</a>.</p>
 </div></header>
 <main class="doc-main">
 <ul class="spec-list">${listHtml}</ul>
@@ -241,44 +269,71 @@ function buildIndexPage(entries) {
   });
 }
 
-function buildRootLanding(entries) {
-  const listHtml = entries
-    .slice(0, 12)
-    .map(
-      (e) =>
-        `<li><a href="docs/${e.slug}.html"><strong>${escapeHtml(e.title)}</strong><span class="spec-list__desc">${escapeHtml(e.description)}</span></a></li>`,
-    )
-    .join('\n');
+function buildRootLanding() {
+  const jobsHtml = CORE_JOBS.map(
+    (job) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step ${escapeHtml(job.step)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(job.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(job.description)}</p>
+</article>`,
+  ).join('\n');
 
-  const moreLink =
-    entries.length > 12
-      ? `<p class="section__lede" style="margin-top:1.25rem"><a href="docs/index.html">See all ${entries.length} specs →</a></p>`
-      : `<p class="section__lede" style="margin-top:1.25rem"><a href="docs/index.html">Browse all specs →</a></p>`;
+  const operatorList = OPERATOR_BULLETS.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
 
-  const content = `<section class="landing-hero" aria-label="TiltCheck">
-  <div class="landing-hero__inner">
-    <p class="brand-wordmark">Tilt<span>Check</span></p>
-    <h1 class="landing-hero__headline">${escapeHtml(SITE_HERO_HEADLINE)}</h1>
-    <p class="landing-hero__lede">${escapeHtml(SITE_ONE_LINER)}</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="${SITE_URL}">Open tiltcheck.me</a>
-      <a class="btn btn-ghost" href="${DISCORD_URL}" rel="noopener noreferrer">Join Discord</a>
-      <a class="btn btn-ghost" href="${KOFI_URL}" rel="noopener noreferrer">Support on Ko-fi</a>
+  const content = `<main class="landing-page">
+  <section class="hero-surface" aria-label="TiltCheck">
+    <div class="landing-shell landing-hero-centered">
+      <p class="brand-wordmark">Tilt<span>Check</span></p>
+      <span class="brand-eyebrow">Built for Degens. By Degens.</span>
+      <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_HERO_HEADLINE)}</h1>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_ONE_LINER)}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="${EXTENSION_URL}">Install the Extension</a>
+        <a class="hero-actions__secondary-link" href="${CASINOS_URL}">Check Casino Trust</a>
+      </div>
     </div>
-  </div>
-</section>
-<section class="section section--specs" id="specs" aria-label="Specs">
-  <div class="section__inner">
-    <span class="section__eyebrow">Docs mirror</span>
-    <h2 class="section__title">Specs without Railway</h2>
-    <p class="section__lede">Same brand chrome. Static HTML from the monorepo — share this link when the app host is down or you just need architecture notes.</p>
-    <ul class="spec-list">${listHtml}</ul>
-    ${moreLink}
-  </div>
-</section>`;
+  </section>
+
+  <section class="public-page-section" aria-label="Three jobs">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Three jobs</span>
+        <h2 class="public-page-section-heading__title">Protect the bankroll.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--3">
+        ${jobsHtml}
+      </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="Operators">
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <span class="brand-eyebrow">For platforms / operators</span>
+        <h2 class="public-page-section-heading__title">Trust scoring as a service. Non-affiliated. RGaaS API.</h2>
+        <ul class="public-page-card__copy public-page-card__copy--list">
+          ${operatorList}
+        </ul>
+        <div style="margin-top:1.5rem">
+          <a class="btn btn-primary" href="${OPERATORS_URL}">Get Sandbox Access</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="Responsible gambling">
+    <div class="landing-shell">
+      <p class="rg-disclaimer">
+        Not a casino, not a bank, not financial advice. Problem gambling help:
+        <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>
+        or <strong>1-800-GAMBLER</strong>.
+      </p>
+    </div>
+  </section>
+</main>`;
 
   return shell({
-    title: 'TiltCheck | Specs Mirror',
+    title: 'TiltCheck | The Degen Audit Layer',
     description: SITE_ONE_LINER,
     depth: 'root',
     current: 'home',
@@ -315,7 +370,7 @@ function run() {
   }
 
   fs.writeFileSync(path.join(outRoot, 'index.html'), buildIndexPage(indexEntries));
-  fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding(indexEntries));
+  fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding());
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
 
   console.log(`Converted ${files.length} markdown files to HTML in ${outRoot}`);
