@@ -2,10 +2,11 @@
 
 # Research + Task Ops Employee — Design Spec
 
-Status: Approved — implementation gated on Open items landing waves  
+Status: Implemented (v1)  
 Owner: founder (solo)  
 Replaces: Polsia-hosted research reports + self-filling task board (roles 1 and 2 only)  
-Coordination: [docs/ops/AGENT-COHESION.md](../../ops/AGENT-COHESION.md)
+Coordination: [docs/ops/AGENT-COHESION.md](../../ops/AGENT-COHESION.md)  
+Plan: [docs/superpowers/plans/2026-07-17-research-ops-employee.md](../plans/2026-07-17-research-ops-employee.md)
 
 ## Problem
 
