@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
 lockfileVersion: '9.0'
 
 settings:
@@ -15,6 +16,7 @@ overrides:
   '@grpc/grpc-js': '>=1.14.4'
   '@mikro-orm/knex': '>=6.6.14'
   fast-xml-builder: '>=1.1.7'
+  adm-zip: '>=0.6.0'
   esbuild@<=0.24.2: '>=0.25.0'
   semver: '>=7.5.2'
   jws@<3.2.3: '>=3.2.3'
@@ -7937,9 +7939,9 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  adm-zip@0.5.18:
-    resolution: {integrity: sha512-ufJnssQGbxzLNS1Ho9bCtX4rQKCCvoVuDLHoJyc3F9dOGDB4BkWs2Ci0kv53lqocAEQ/Cbi+I2XCsNYGqVYqng==}
-    engines: {node: '>=12.0'}
+  adm-zip@0.6.0:
+    resolution: {integrity: sha512-XleryMhbuksdKtofnWZ9Sk+4CUTbms4Mb/EU32SZwToAyZ5RgVos/ki8n+yr0LWHOGKuakbXTuuYNHLQjhddgg==}
+    engines: {node: '>=14.0'}
 
   aes-js@4.0.0-beta.5:
     resolution: {integrity: sha512-G965FqalsNyrPqgEGON7nIx1e/OVENSgiEIzyC63haUMuvNnwIgIjMs52hlTCKhkBny7A2ORNlfY9Zu+jmGk1Q==}
@@ -16729,7 +16731,7 @@ snapshots:
       '@opentelemetry/sdk-metrics': 2.9.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base': 2.9.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-node': 2.9.0(@opentelemetry/api@1.9.0)
-      adm-zip: 0.5.18
+      adm-zip: 0.6.0
       express: 4.22.2
       google-auth-library: 10.9.0
       js-yaml: 4.3.0
@@ -23315,7 +23317,7 @@ snapshots:
 
   acorn@8.17.0: {}
 
-  adm-zip@0.5.18: {}
+  adm-zip@0.6.0: {}
 
   aes-js@4.0.0-beta.5: {}
 
