@@ -1,22 +1,25 @@
 # GitHub Pages Troubleshooting Guide
 
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
 
 ## What GitHub Pages hosts now
 
 Production marketing and docs live on **Railway** at `https://tiltcheck.me` (Next.js `apps/web`, including `/docs`).
 
-GitHub Pages (`gh-pages` branch) is a **static mirror** of `docs/tiltcheck/` specs:
+GitHub Pages (`gh-pages` branch) is a **static product twin** of tiltcheck.me — same obsidian/teal landing composition, no app runtime:
 
 | Path on Pages | Source |
 |---------------|--------|
-| `/` | Redirect to `/docs/index.html` |
-| `/docs/*.html` | `node scripts/convert-markdown.js` output |
+| `/` | Product landing clone (hero: `House always wins? FUCK THAT.`; CTAs → live `tiltcheck.me/extension` + `/casinos`) |
+| `/docs/*.html` | Specs secondary surface from `node scripts/convert-markdown.js` |
+| `/styles/base.css` | `scripts/pages-assets/styles/base.css` |
 | `/docs-md/*.md` | Raw markdown from `docs/tiltcheck/` |
+
+Asset and nav links are **relative** so project Pages at `https://tiltcheck-me.github.io/tiltcheck-monorepo/` resolve correctly (absolute `/styles/...` breaks under the repo base path). Specs are not in the first viewport — product home only.
 
 Default URL: `https://tiltcheck-me.github.io/tiltcheck-monorepo/` (no custom domain on `gh-pages`).
 
-Workflow: `.github/workflows/pages.yml` — triggers on `docs/tiltcheck/**` changes.
+Workflow: `.github/workflows/pages.yml` — triggers on `docs/tiltcheck/**`, `scripts/convert-markdown.js`, `scripts/pages-assets/**`.
 
 Local build: `pnpm docs:pages`
 
