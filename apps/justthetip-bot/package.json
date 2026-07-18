@@ -13,7 +13,7 @@
     "deploy:commands": "tsx src/deploy-commands.ts"
   },
   "dependencies": {
-    "@solana/pay": "^1.0.20",
+    "@solana/pay": "0.2.6",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.98.4",
     "@tiltcheck/config": "workspace:*",
