@@ -67,6 +67,23 @@ To create real Linear issues in the daily script:
 powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1 -SyncLinear -LinearDryRun:$false
 ```
 
+## 6) Research ops employee
+
+Research ops does not freestyle this loop. Run the brief, merge at most 5 new keys, then dry-run or sync Linear:
+
+```bash
+pnpm ops:research:run
+pnpm ops:research:merge-tasks -- --sidecar docs/research/YYYY-MM-DD-competitor-matrix.tasks.json
+pnpm ops:linear:dry
+pnpm ops:linear:sync
+```
+
+Notes:
+
+- `ops:research:merge-tasks` dedupes against `docs/ops/linear-tasks.json` by `key`.
+- Due recurring templates come from `docs/ops/recurring-tasks.json`.
+- `docs/ops/recurring-state.json` only updates `lastQueuedAt` for recurring tasks that were actually queued.
+
 ## Notes
 
 - Keep one active branch and one active milestone slice.

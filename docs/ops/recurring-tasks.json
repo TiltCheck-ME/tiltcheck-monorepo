@@ -1,0 +1,29 @@
+{
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
+  "templates": [
+    {
+      "key": "REC-COMPETITOR-MATRIX",
+      "title": "Refresh competitor feature matrix",
+      "description": "Run pnpm ops:research:run and review Gaps section.",
+      "priority": 3,
+      "labels": ["RECURRING", "RESEARCH"],
+      "cadenceDays": 7
+    },
+    {
+      "key": "REC-DISCORD-MAP",
+      "title": "Map 5 early-adopter degen Discord communities",
+      "description": "Identify Solana Discord servers and Reddit communities for outreach.",
+      "priority": 3,
+      "labels": ["RECURRING", "RESEARCH"],
+      "cadenceDays": 7
+    },
+    {
+      "key": "REC-TRUST-TOP20",
+      "title": "Refresh trust signals for top 20 Solana casinos",
+      "description": "Update trust scoring inputs for top 20 Solana casinos.",
+      "priority": 3,
+      "labels": ["RECURRING", "FEATURE"],
+      "cadenceDays": 14
+    }
+  ]
+}
