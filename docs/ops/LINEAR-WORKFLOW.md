@@ -1,6 +1,10 @@
 # Linear Workflow (Solo Ops)
 
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
+
 This setup gives you one command to keep your migration tasks in Linear without managing tasks manually.
+
+**Agent cohesion:** see [AGENT-COHESION.md](./AGENT-COHESION.md) — Open items owns landing/SEO code PRs; research ops owns research briefs + Linear mirrors (including `linear-tasks-landing-audit.json`).
 
 ## 1) Set environment variables
 
@@ -14,9 +18,11 @@ Reference template values in `.env.example`.
 
 ## 2) Edit your task source
 
-Update:
+Update one of:
 
-- `docs/ops/linear-tasks.json`
+- `docs/ops/linear-tasks.json` — migration / general
+- `docs/ops/linear-tasks-landing-audit.json` — landing/SEO GitHub issue mirror (`LAND-*`)
+- Research briefs later emit sidecars merged via `pnpm ops:research:merge-tasks` (see research-ops plan)
 
 Each task needs:
 

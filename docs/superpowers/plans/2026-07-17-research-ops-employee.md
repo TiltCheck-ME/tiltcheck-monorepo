@@ -10,6 +10,19 @@
 
 **Spec:** [docs/superpowers/specs/2026-07-17-research-ops-employee-design.md](../specs/2026-07-17-research-ops-employee-design.md)
 
+**Cohesion:** [docs/ops/AGENT-COHESION.md](../../ops/AGENT-COHESION.md) — coordinates with Open items agent (landing `#460–#467`, security #611, E2E #609). Research ops does **not** edit `apps/web` until landing waves merge.
+
+## Wave 0 (before Task 1) — absorb landing audit into Linear mirror
+
+**Files:**
+- `docs/ops/AGENT-COHESION.md` (ownership + landing traps)
+- `docs/ops/linear-tasks-landing-audit.json` (`LAND-*` keys → GitHub issues)
+
+- [ ] Confirm Open items owns landing **code**; research ops owns Linear **mirror** only
+- [ ] Optional: `pnpm ops:linear:sync -- --file docs/ops/linear-tasks-landing-audit.json` when secrets exist
+- [ ] Rebase this branch on `main` after #609/#611 land
+- [ ] Then proceed Task 1
+
 ## Global Constraints
 
 - Copyright header on every new/modified file: `© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17`
