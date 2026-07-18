@@ -95,5 +95,5 @@ jobs:
       - name: Run e2e tests
         run: pnpm test:e2e
         env:
-          BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://tiltcheck.me' }}
+          PLAYWRIGHT_WEB_LOCAL: '1'
           PLAYWRIGHT_DEGENS_LOCAL: '1'
