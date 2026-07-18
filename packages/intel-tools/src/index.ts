@@ -33,4 +33,18 @@ export {
   loadOperatorFactsFromMonorepo,
   loadOperatorFactsFromPath,
 } from './load-operator-facts.js';
+export {
+  STALE_AFTER_DAYS,
+  getRedemptionAnswer,
+  getVipCurrencyAnswer,
+  getWelcomeBonusAnswer,
+  isFactStale,
+  listAvailableFactTypesAnswer,
+  resolveOperatorFacts,
+} from './operator-facts.js';
+export type {
+  FactAnswer,
+  OperatorFactType,
+  VipCurrencyAnswer,
+} from './operator-facts.js';
 export { IntelTools, createIntelTools, toCasinoSummary } from './tools.js';
