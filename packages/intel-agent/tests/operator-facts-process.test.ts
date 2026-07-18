@@ -22,6 +22,23 @@ const fixtures = [
 ];
 
 describe('processMessage operator facts', () => {
+  it('refuses VIP answer when currency hint matches no sourced rule', async () => {
+    const tools = createIntelTools({
+      apiBase: 'http://127.0.0.1:9',
+      casinos: [{ name: 'MetaWin', grade: 'B', risk: 'Medium', category: 'Crypto', slug: 'metawin', score: 70 }],
+      operatorFacts: fixtures,
+    });
+    const agent = createIntelAgent({ tools });
+    const result = await agent.processMessage({
+      message: 'Can you level with SC on MetaWin?',
+      context: { isAuthenticated: false },
+    });
+    const text = result.blocks.filter((b) => b.type === 'text').map((b) => (b as { content: string }).content).join('\n');
+    expect(text).toMatch(/No sourced record/i);
+    expect(text).not.toMatch(/Gold Coins do not count/i);
+    expect(text).not.toMatch(/cannot level with Gold Coins/i);
+  });
+
   it('returns cited hit for VIP question', async () => {
     const tools = createIntelTools({
       apiBase: 'http://127.0.0.1:9',

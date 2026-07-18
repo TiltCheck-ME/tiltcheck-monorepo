@@ -36,18 +36,40 @@ function operatorFactResponse(blocks: IntelBlock[], shareEligible: boolean): Int
   };
 }
 
-function matchVipRules(rules: VipCurrencyRule[], currencyHint?: string) {
+const VIP_CURRENCY_ALIASES: Record<string, readonly string[]> = {
+  sc: ['sc', 'sweeps coin', 'sweeps coins'],
+  gc: ['gc', 'gold coin', 'gold coins'],
+  'sweeps coins': ['sc', 'sweeps coin', 'sweeps coins'],
+  'sweeps coin': ['sc', 'sweeps coin', 'sweeps coins'],
+  'gold coins': ['gc', 'gold coin', 'gold coins'],
+  'gold coin': ['gc', 'gold coin', 'gold coins'],
+};
+
+function expandCurrencyHint(currencyHint: string): string[] {
+  const normalized = currencyHint.toLowerCase().trim();
+  const aliases = VIP_CURRENCY_ALIASES[normalized];
+  return aliases ? [...aliases] : [normalized];
+}
+
+function vipRuleMatchesHint(rule: VipCurrencyRule, hintTerms: string[]): boolean {
+  const haystack = `${rule.currencyName} ${rule.notes}`.toLowerCase();
+
+  return hintTerms.some((term) => {
+    if (term.length <= 3) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`\\b${escaped}\\b`, 'i').test(haystack);
+    }
+    return haystack.includes(term);
+  });
+}
+
+function matchVipRules(rules: VipCurrencyRule[], currencyHint?: string): VipCurrencyRule[] {
   if (!currencyHint) {
     return rules;
   }
 
-  const normalizedHint = currencyHint.toLowerCase();
-  const filtered = rules.filter((rule) => {
-    const haystack = `${rule.currencyName} ${rule.notes}`.toLowerCase();
-    return haystack.includes(normalizedHint);
-  });
-
-  return filtered.length > 0 ? filtered : rules;
+  const hintTerms = expandCurrencyHint(currencyHint);
+  return rules.filter((rule) => vipRuleMatchesHint(rule, hintTerms));
 }
 
 function personalLoginBlock(topic: string): IntelBlock[] {
@@ -145,6 +167,12 @@ export function createIntelAgent(options: IntelAgentOptions) {
       const answer = tools.getOperatorVipFacts(intent.name);
       if (answer.kind === 'hit') {
         const rules = matchVipRules(answer.rules, intent.currencyHint);
+        if (intent.currencyHint && rules.length === 0) {
+          return operatorFactResponse(
+            buildOperatorFactMissBlocks(answer.record.name, answer.record.slug),
+            true,
+          );
+        }
         return operatorFactResponse(
           buildOperatorFactHitBlocks(
             rules.map((rule) => ({
