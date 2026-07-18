@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
 
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -183,8 +183,9 @@ describe('triviaManager', () => {
       message: 'Answer accepted.',
     });
 
+    // Flush async revealRound (persist + nested next-round timer) the same way as other suite cases.
     await vi.advanceTimersByTimeAsync(20_000);
-    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.runAllTimersAsync();
 
     const eliminatedState = triviaManager.getLiveState();
     expect(eliminatedState?.players.find((player) => player.userId === 'user-1')?.eliminated).toBe(true);
