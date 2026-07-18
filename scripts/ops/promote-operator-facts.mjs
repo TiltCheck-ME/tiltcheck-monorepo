@@ -229,6 +229,11 @@ export async function runPromoteOperatorFacts(options) {
 
   if (options.action === 'reject') {
     const result = rejectOperator(proposals, String(options.slug ?? ''));
+    if (!result.found) {
+      return {
+        found: false,
+      };
+    }
     await writeJson(proposalsPath, {
       copyright: proposalsDoc?.copyright,
       operators: result.proposals,
@@ -240,6 +245,11 @@ export async function runPromoteOperatorFacts(options) {
   }
 
   const result = promoteOperator(proposals, live, String(options.slug ?? ''));
+  if (!result.found) {
+    return {
+      found: false,
+    };
+  }
 
   await Promise.all([
     writeJson(proposalsPath, {

@@ -32,39 +32,66 @@ function normalizeFactQuery(query: string): string {
     .split('/')[0] ?? '';
 }
 
-function fieldMatchesQuery(field: string, query: string): boolean {
-  const normalizedField = field.toLowerCase();
-  if (normalizedField === query) {
-    return true;
+function domainBase(value: string): string {
+  if (!value.includes('.')) {
+    return value;
   }
-  if (normalizedField.includes(query) || query.includes(normalizedField)) {
-    return true;
+
+  const labels = value.split('.').filter(Boolean);
+  if (labels.length < 2) {
+    return labels[0] ?? value;
   }
-  const fieldStem = normalizedField.split('.')[0] ?? normalizedField;
-  const queryStem = query.split('.')[0] ?? query;
-  return fieldStem === queryStem;
+
+  return labels.at(-2) ?? value;
 }
 
-function recordMatchesQuery(record: OperatorFactRecord, query: string): boolean {
+function fieldMatchRank(field: string | undefined, query: string): 0 | 1 | 2 {
+  const normalizedField = normalizeFactQuery(field ?? '');
+  if (!normalizedField) {
+    return 0;
+  }
+
+  if (normalizedField === query) {
+    return 2;
+  }
+
+  if (normalizedField.includes('.') && domainBase(normalizedField) === domainBase(query)) {
+    return 2;
+  }
+
+  if (query.length >= 4 && normalizedField.startsWith(query)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function recordMatchRank(record: OperatorFactRecord, query: string): 0 | 1 | 2 {
   const normalizedQuery = normalizeFactQuery(query);
   if (!normalizedQuery) {
-    return false;
+    return 0;
   }
 
-  if (fieldMatchesQuery(record.slug, normalizedQuery)) {
-    return true;
-  }
-  if (fieldMatchesQuery(record.name, normalizedQuery)) {
-    return true;
-  }
-  if (record.aliases?.some((alias) => fieldMatchesQuery(alias, normalizedQuery))) {
-    return true;
-  }
-  if (record.domains?.some((domain) => fieldMatchesQuery(domain, normalizedQuery))) {
-    return true;
+  const slugRank = fieldMatchRank(record.slug, normalizedQuery);
+  const nameRank = fieldMatchRank(record.name, normalizedQuery);
+  const aliasRank = Math.max(
+    ...((record.aliases ?? []).map((alias) => fieldMatchRank(alias, normalizedQuery)) as Array<0 | 1 | 2>),
+    0,
+  ) as 0 | 1 | 2;
+  const domainRank = Math.max(
+    ...((record.domains ?? []).map((domain) => fieldMatchRank(domain, normalizedQuery)) as Array<0 | 1 | 2>),
+    0,
+  ) as 0 | 1 | 2;
+
+  if (slugRank === 2 || nameRank === 2 || aliasRank === 2 || domainRank === 2) {
+    return 2;
   }
 
-  return false;
+  if (slugRank === 1 || nameRank === 1 || aliasRank === 1 || domainRank === 1) {
+    return 1;
+  }
+
+  return 0;
 }
 
 export function isFactStale(asOf: string, now: Date = new Date()): boolean {
@@ -81,7 +108,21 @@ export function resolveOperatorFacts(
   records: OperatorFactRecord[],
   query: string,
 ): OperatorFactRecord[] {
-  return records.filter((record) => recordMatchesQuery(record, query));
+  const exactMatches: OperatorFactRecord[] = [];
+  const prefixMatches: OperatorFactRecord[] = [];
+
+  for (const record of records) {
+    const rank = recordMatchRank(record, query);
+    if (rank === 2) {
+      exactMatches.push(record);
+      continue;
+    }
+    if (rank === 1) {
+      prefixMatches.push(record);
+    }
+  }
+
+  return exactMatches.length > 0 ? exactMatches : prefixMatches;
 }
 
 function isRulesStale(rules: VipCurrencyRule[], now?: Date): boolean {
@@ -206,6 +247,22 @@ function availableFactTypesForRecord(record: OperatorFactRecord): OperatorFactTy
   return types;
 }
 
+function availableFactTypesAreStale(record: OperatorFactRecord, now?: Date): boolean {
+  const asOfValues: string[] = [];
+
+  for (const rule of record.vipCurrencyRules ?? []) {
+    asOfValues.push(rule.asOf);
+  }
+  if (record.redemptionTime?.asOf) {
+    asOfValues.push(record.redemptionTime.asOf);
+  }
+  if (record.welcomeBonusSummary?.asOf) {
+    asOfValues.push(record.welcomeBonusSummary.asOf);
+  }
+
+  return asOfValues.some((asOf) => isFactStale(asOf, now));
+}
+
 export function listAvailableFactTypesAnswer(
   records: OperatorFactRecord[],
   query: string,
@@ -227,6 +284,6 @@ export function listAvailableFactTypesAnswer(
     kind: 'hit',
     record: resolved.record,
     payload: types,
-    stale: isFactStale(resolved.record.lastVerifiedAt),
+    stale: availableFactTypesAreStale(resolved.record),
   };
 }

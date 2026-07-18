@@ -76,22 +76,51 @@ describe('resolveOperatorFacts', () => {
     {
       slug: 'metawin',
       name: 'MetaWin',
-      aliases: ['metawin.us'],
+      aliases: ['meta-win'],
+      domains: ['metawin.us'],
       status: 'live' as const,
       lastVerifiedAt: '2026-07-01',
     },
     {
       slug: 'metawin-mirror',
       name: 'MetaWin Mirror',
-      aliases: ['metawin'],
+      aliases: ['mw-mirror'],
       status: 'live' as const,
       lastVerifiedAt: '2026-07-01',
     },
   ];
 
-  it('matches slug and alias for the same query', () => {
+  it('prefers exact normalized matches over broader prefix matches', () => {
     const matches = resolveOperatorFacts(records, 'metawin');
-    expect(matches.map((r) => r.slug).sort()).toEqual(['metawin', 'metawin-mirror']);
+    expect(matches.map((r) => r.slug)).toEqual(['metawin']);
+  });
+
+  it('still supports exact alias matches', () => {
+    const matches = resolveOperatorFacts(records, 'meta-win');
+    expect(matches.map((r) => r.slug)).toEqual(['metawin']);
+  });
+
+  it('does not match short substring queries across multiple brands', () => {
+    const matches = resolveOperatorFacts(
+      [
+        {
+          slug: 'cloudbet',
+          name: 'Cloudbet',
+          domains: ['cloudbet.com'],
+          status: 'live' as const,
+          lastVerifiedAt: '2026-07-01',
+        },
+        {
+          slug: 'sportsbet',
+          name: 'Sportsbet',
+          domains: ['sportsbet.io'],
+          status: 'live' as const,
+          lastVerifiedAt: '2026-07-01',
+        },
+      ],
+      'bet',
+    );
+    expect(matches).toEqual([]);
   });
 
   it('matches record.domains', () => {
@@ -107,6 +136,11 @@ describe('resolveOperatorFacts', () => {
     const matches = resolveOperatorFacts(domainRecords, 'play.fixture-casino.test');
     expect(matches).toHaveLength(1);
     expect(matches[0]?.slug).toBe('fixture-casino');
+  });
+
+  it('matches a query against the domain base', () => {
+    const matches = resolveOperatorFacts(records, 'metawin.us');
+    expect(matches.map((r) => r.slug)).toEqual(['metawin']);
   });
 });
 
@@ -266,6 +300,41 @@ describe('listAvailableFactTypesAnswer', () => {
     expect(answer.kind).toBe('hit');
     if (answer.kind === 'hit') {
       expect(answer.payload.sort()).toEqual(['redemption', 'vip', 'welcome']);
+      expect(answer.stale).toBe(false);
+    }
+  });
+
+  it('marks available fact types stale when any listed fact is stale', () => {
+    const answer = listAvailableFactTypesAnswer(
+      [
+        {
+          slug: 'fixture-casino',
+          name: 'Fixture Casino',
+          status: 'live' as const,
+          lastVerifiedAt: '2026-07-18',
+          vipCurrencyRules: [
+            {
+              currencyName: 'Gold Coins',
+              canLevel: false,
+              notes: 'Older VIP rule.',
+              sourceUrl: 'https://example.com/vip',
+              asOf: '2026-01-01',
+            },
+          ],
+          welcomeBonusSummary: {
+            summary: 'Fresh welcome offer.',
+            sourceUrl: 'https://example.com/welcome',
+            asOf: '2026-07-01',
+          },
+        },
+      ],
+      'fixture-casino',
+    );
+
+    expect(answer.kind).toBe('hit');
+    if (answer.kind === 'hit') {
+      expect(answer.payload.sort()).toEqual(['vip', 'welcome']);
+      expect(answer.stale).toBe(true);
     }
   });
 });

@@ -1,5 +1,5 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -16,6 +16,14 @@ async function makeTempDir() {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'promote-operator-facts-test-'));
   tempDirs.push(dir);
   return dir;
+}
+
+async function snapshotFile(filePath: string) {
+  const [content, stats] = await Promise.all([readFile(filePath, 'utf8'), stat(filePath)]);
+  return {
+    content,
+    mtimeMs: stats.mtimeMs,
+  };
 }
 
 const sampleProposal = {
@@ -261,5 +269,78 @@ describe('runPromoteOperatorFacts', () => {
 
     const proposalsAfterList = JSON.parse(await readFile(proposalsPath, 'utf8'));
     expect(proposalsAfterList.operators).toHaveLength(2);
+  });
+
+  it('does not rewrite proposals or live files when promote or reject misses', async () => {
+    const root = await makeTempDir();
+    const dataDir = path.join(root, 'data', 'trust-engine');
+    await mkdir(dataDir, { recursive: true });
+
+    const proposalsPath = path.join(dataDir, 'operator-facts.proposals.json');
+    const livePath = path.join(dataDir, 'operator-facts.live.json');
+
+    await writeFile(
+      proposalsPath,
+      `${JSON.stringify(
+        {
+          copyright: 'KEEP-PROPOSALS-COPYRIGHT',
+          operators: [sampleProposal],
+        },
+        null,
+        2,
+      )}\n`,
+      'utf8',
+    );
+    await writeFile(
+      livePath,
+      `${JSON.stringify(
+        {
+          copyright: 'KEEP-LIVE-COPYRIGHT',
+          operators: [{ slug: 'existing-live', name: 'Existing Live', status: 'live', lastVerifiedAt: '2026-07-01' }],
+        },
+        null,
+        2,
+      )}\n`,
+      'utf8',
+    );
+
+    const beforePromote = {
+      proposals: await snapshotFile(proposalsPath),
+      live: await snapshotFile(livePath),
+    };
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    const promoteResult = await runPromoteOperatorFacts({
+      proposalsPath,
+      livePath,
+      action: 'promote',
+      slug: 'missing-slug',
+    });
+
+    const afterPromote = {
+      proposals: await snapshotFile(proposalsPath),
+      live: await snapshotFile(livePath),
+    };
+
+    expect(promoteResult.found).toBe(false);
+    expect(afterPromote).toEqual(beforePromote);
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    const rejectResult = await runPromoteOperatorFacts({
+      proposalsPath,
+      livePath,
+      action: 'reject',
+      slug: 'missing-slug',
+    });
+
+    const afterReject = {
+      proposals: await snapshotFile(proposalsPath),
+      live: await snapshotFile(livePath),
+    };
+
+    expect(rejectResult.found).toBe(false);
+    expect(afterReject).toEqual(afterPromote);
   });
 });
