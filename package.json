@@ -1,5 +1,5 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
   "name": "tiltcheck-monorepo",
   "version": "0.1.0",
   "private": true,
@@ -49,6 +49,8 @@
     "ops:linear:dry": "node scripts/linear-sync.mjs --dry-run",
     "ops:linear:sync": "node scripts/linear-sync.mjs",
     "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1",
+    "ops:research:run": "node scripts/ops/research-brief.mjs",
+    "ops:research:merge-tasks": "node scripts/ops/merge-proposed-tasks.mjs",
     "seed:casino-trust": "node scripts/seed-casino-trust-from-scrape.js --include-existing --runtime-output ./data/casino-trust.json",
     "ops:task-ai": "node scripts/daily-task-ai.mjs",
     "trust:build": "pnpm --filter @tiltcheck/trust-engines build",

@@ -1,0 +1,148 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
+name: Research Ops Employee
+
+on:
+  schedule:
+    - cron: '0 14 * * 1,4'
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: Research brief slug
+        required: true
+        default: competitor-matrix
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare run metadata
+        run: |
+          set -euo pipefail
+          slug="${{ github.event.inputs.slug }}"
+          slug="${slug:-competitor-matrix}"
+
+          case "$slug" in
+            ''|*[!a-z0-9-]*)
+              echo "slug must match [a-z0-9-]+" >&2
+              exit 1
+              ;;
+          esac
+
+          date="$(date -u +%F)"
+          echo "RESEARCH_DATE=$date" >> "$GITHUB_ENV"
+          echo "RESEARCH_SLUG=$slug" >> "$GITHUB_ENV"
+          echo "RESEARCH_BRANCH=ops/research-${date}-${slug}" >> "$GITHUB_ENV"
+          echo "RESEARCH_PR_TITLE=ops(research): ${date} ${slug} brief" >> "$GITHUB_ENV"
+
+      - name: Prepare working branch
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "$RESEARCH_BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$RESEARCH_BRANCH"
+            git checkout -B "$RESEARCH_BRANCH" "origin/$RESEARCH_BRANCH"
+            exit 0
+          fi
+
+          git checkout -b "$RESEARCH_BRANCH"
+
+      - name: Run research brief
+        env:
+          RESEARCH_LLM_API_KEY: ${{ secrets.RESEARCH_LLM_API_KEY }}
+          RESEARCH_LLM_BASE_URL: ${{ secrets.RESEARCH_LLM_BASE_URL }}
+          RESEARCH_LLM_MODEL: ${{ secrets.RESEARCH_LLM_MODEL }}
+        run: pnpm run ops:research:run -- --date "$RESEARCH_DATE" --slug "$RESEARCH_SLUG"
+
+      - name: Merge tasks from newest sidecar
+        run: |
+          set -euo pipefail
+          sidecar="$(node --input-type=module -e "import { readdir, stat } from 'node:fs/promises'; import path from 'node:path'; const dir = 'docs/research'; const files = (await readdir(dir)).filter((name) => name.endsWith('.tasks.json')); if (files.length === 0) { throw new Error('No research sidecar files found.'); } const entries = await Promise.all(files.map(async (name) => ({ name, mtimeMs: (await stat(path.join(dir, name))).mtimeMs }))); entries.sort((a, b) => b.mtimeMs - a.mtimeMs); process.stdout.write(path.join(dir, entries[0].name));")"
+          echo "Using sidecar $sidecar"
+          pnpm run ops:research:merge-tasks -- --sidecar "$sidecar"
+
+      - name: Detect Linear credentials
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_TEAM_KEY: ${{ secrets.LINEAR_TEAM_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${LINEAR_API_KEY:-}" ] && [ -n "${LINEAR_TEAM_KEY:-}" ]; then
+            echo "HAS_LINEAR=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          echo "HAS_LINEAR=false" >> "$GITHUB_ENV"
+          echo "::warning::LINEAR_API_KEY or LINEAR_TEAM_KEY missing. Skipping Linear sync."
+
+      - name: Commit research artifacts
+        run: |
+          set -euo pipefail
+          git config user.name "tiltcheck-research-ops"
+          git config user.email "ops@tiltcheck.me"
+          git add docs/research docs/ops/linear-tasks.json docs/ops/recurring-state.json
+
+          if git diff --cached --quiet; then
+            echo "HAS_CHANGES=false" >> "$GITHUB_ENV"
+            echo "::warning::No research ops changes to commit."
+            exit 0
+          fi
+
+          git commit -m "$RESEARCH_PR_TITLE"
+          echo "HAS_CHANGES=true" >> "$GITHUB_ENV"
+
+      - name: Push branch
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        run: git push --set-upstream origin "$RESEARCH_BRANCH"
+
+      - name: Open pull request
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          existing_pr="$(gh pr list --base main --head "$RESEARCH_BRANCH" --json url --jq '.[0].url // empty')"
+          if [ -n "$existing_pr" ]; then
+            echo "::notice::Pull request already exists: $existing_pr"
+            exit 0
+          fi
+
+          gh pr create \
+            --base main \
+            --head "$RESEARCH_BRANCH" \
+            --title "$RESEARCH_PR_TITLE" \
+            --body "Automated research brief, task merge, and recurring queue update. Review the Gaps section before trusting matrix cells."
+
+      - name: Sync Linear (this run only)
+        if: ${{ env.HAS_LINEAR == 'true' }}
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_TEAM_KEY: ${{ secrets.LINEAR_TEAM_KEY }}
+          LINEAR_PROJECT_ID: ${{ secrets.LINEAR_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [ ! -f docs/ops/linear-tasks-last-run.json ]; then
+            echo "::warning::No linear-tasks-last-run.json; skipping Linear sync."
+            exit 0
+          fi
+          # Cap: sync only newly added keys from this run (max 5), not the full backlog.
+          pnpm ops:linear:sync -- --file docs/ops/linear-tasks-last-run.json

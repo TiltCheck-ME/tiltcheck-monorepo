@@ -1,0 +1,47 @@
+{
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
+  "tasks": [
+    {
+      "key": "LAND-460-ONE-LINER",
+      "title": "Unify one-liner across hero, title, and OG (#460)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/460\nOwner: Open items agent (apps/web). Decide punchy vs SEO split; update layout.tsx metadata + OG + opengraph-image.\nVerify with pnpm -C apps/web dev (not full monorepo build).",
+      "priority": 2
+    },
+    {
+      "key": "LAND-462-VALUE-PROP",
+      "title": "Mount ValueProposition on home (#462)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/462\nOwner: Open items agent. Mount operator-facing ValueProposition on landing without cluttering hero budget.",
+      "priority": 2
+    },
+    {
+      "key": "LAND-463-DISCORD-NAV",
+      "title": "Add Discord invite to primary nav (#463)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/463\nOwner: Open items agent. Discord CTA in primary/secondary nav.",
+      "priority": 2
+    },
+    {
+      "key": "LAND-464-BONUSES-TRUST",
+      "title": "Replace TRUST SCORE LOADING on /bonuses (#464)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/464\nOwner: Open items agent. Separate PR from pure landing copy.",
+      "priority": 3
+    },
+    {
+      "key": "LAND-465-SITEMAP-ROUTES",
+      "title": "Sitemap missing routes incl /pay/jackpot (#465)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/465\nOwner: Open items agent. Coordinate with open PR #596 (web-sitemap) before shipping a second sitemap change.",
+      "priority": 3
+    },
+    {
+      "key": "LAND-466-JSON-LD",
+      "title": "Add JSON-LD Organization/SoftwareApplication/FAQ (#466)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/466\nOwner: Open items agent. Structured data on web public pages.",
+      "priority": 3
+    },
+    {
+      "key": "LAND-467-MICROGRANT-COPY",
+      "title": "Reframe microgrant copy for Brand Law (#467)",
+      "description": "GitHub https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/467\nOwner: Open items agent. No apologies; degen tone; Brand Law compliant.",
+      "priority": 3
+    }
+  ]
+}

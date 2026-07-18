@@ -1,4 +1,5 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
+
 # Scripts Quick Guide
 
 This folder has many one-off and historical utilities. If you are working solo, use the small subset below and ignore the rest unless needed.
@@ -17,6 +18,10 @@ This folder has many one-off and historical utilities. If you are working solo, 
   - VPS compose deploy and health checks (Railway exit). See `docs/migration/exit-railway-plan.md`.
 - `scripts/linear-sync.mjs`
   - Syncs `docs/ops/linear-tasks.json` into Linear issues.
+- `scripts/ops/research-brief.mjs` + `scripts/ops/merge-proposed-tasks.mjs`
+  - Runs the research ops brief loop and merges at most 5 new research or recurring tasks into `docs/ops/linear-tasks.json`.
+- `docs/ops/LINEAR-WORKFLOW.md` + `.github/workflows/research-ops.yml`
+  - Canonical local and scheduled PR-delivery path for research ops.
 - `scripts/daily-ops.ps1`
   - Prints your daily run order and can trigger Linear sync.
 
@@ -30,7 +35,10 @@ This folder has many one-off and historical utilities. If you are working solo, 
    - `docs/DEPLOY.md`
 4. Log progress:
    - `powershell -ExecutionPolicy Bypass -File ./scripts/gcp/new-milestone-log.ps1 -MilestoneId "M1-foundation"`
-5. Sync tasks to Linear (dry-run first):
+5. If you are running research ops, generate the brief and merge the newest sidecar first:
+   - `pnpm run ops:research:run --slug competitor-matrix`
+   - `pnpm run ops:research:merge-tasks --sidecar docs/research/YYYY-MM-DD-competitor-matrix.tasks.json`
+6. Sync tasks to Linear (dry-run first):
    - `node scripts/linear-sync.mjs --dry-run`
 
 ## Use With Caution (Specialized / One-off)
@@ -45,3 +53,5 @@ Only run these when you have a specific task and have checked the script first.
 ## Current State
 
 The root `package.json` no longer exposes the removed landing audit and lighthouse helpers that used to point at missing files in this folder.
+
+Made for Degens. By Degens.
