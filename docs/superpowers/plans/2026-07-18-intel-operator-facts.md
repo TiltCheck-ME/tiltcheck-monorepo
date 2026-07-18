@@ -660,7 +660,7 @@ git commit -m "docs(web): Intel operator-fact chips and API notes"
 
 ### Task 8: Verification gate
 
-- [ ] **Step 1: Run targeted tests**
+- [x] **Step 1: Run targeted tests**
 
 ```bash
 pnpm --filter @tiltcheck/intel-tools test
@@ -670,7 +670,7 @@ pnpm exec vitest run tests/ops/promote-operator-facts.test.ts
 
 Expected: all PASS
 
-- [ ] **Step 2: Spec coverage check**
+- [x] **Step 2: Spec coverage check**
 
 | Spec requirement | Task |
 |------------------|------|
@@ -684,9 +684,9 @@ Expected: all PASS
 | No freestyle LLM | all (no LLM path added) |
 | Docs atomic | 5, 7 |
 
-- [ ] **Step 3: Final commit if any fixups**
+- [x] **Step 3: Final commit if any fixups**
 
-- [ ] **Step 4: Push + update PR** — do not claim product “live” until ops promotes ≥25 operators
+- [x] **Step 4: Push + update PR** — do not claim product “live” until ops promotes ≥25 operators
 
 ---
 
