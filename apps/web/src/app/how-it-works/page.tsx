@@ -1,6 +1,8 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
+import JsonLd from "@/components/JsonLd";
+import { faqPageJsonLd } from "@/lib/structured-data";
 
 const workflowSteps = [
   {
@@ -45,6 +47,7 @@ const faqs = [
 export default function HowItWorksPage() {
   return (
     <main className="public-page public-page--tight text-white">
+      <JsonLd data={faqPageJsonLd(faqs)} />
       <PublicPageHero
         compact
         eyebrow="How it works"

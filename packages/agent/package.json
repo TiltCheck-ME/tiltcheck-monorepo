@@ -18,7 +18,7 @@
     "run": "tsc && npx @google/adk-devtools run dist/packages/agent/app/agent.js",
     "test": "vitest run",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc -b --force"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

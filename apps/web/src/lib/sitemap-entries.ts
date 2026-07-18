@@ -67,6 +67,7 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   { path: '/collab', title: 'Collaborate', category: 'Community & docs', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/beta-tester', title: 'Beta tester', category: 'Community & docs', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/microgrant', title: 'Microgrant', category: 'Community & docs', changeFrequency: 'monthly', priority: 0.5 },
+  { path: '/pay/jackpot', title: 'Trivia treasury', category: 'Community & docs', changeFrequency: 'monthly', priority: 0.45 },
   { path: '/operators', title: 'Operators', category: 'Operators', changeFrequency: 'weekly', priority: 0.7 },
   { path: '/operators/keys', title: 'Operator API keys', category: 'Operators', changeFrequency: 'weekly', priority: 0.6 },
   { path: '/operators/pricing', title: 'Operator pricing', category: 'Operators', changeFrequency: 'monthly', priority: 0.6 },

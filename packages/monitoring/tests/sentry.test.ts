@@ -62,7 +62,7 @@ describe('SentryMonitor', () => {
         expect(Sentry.setUser).toHaveBeenCalledWith({ id: 'user-123', role: 'admin' });
 
         SentryMonitor.clearUser();
-        expect(Sentry.configureScope).toHaveBeenCalled();
+        expect(Sentry.setUser).toHaveBeenCalledWith(null);
     });
 
     it('sets arbitrary context', () => {

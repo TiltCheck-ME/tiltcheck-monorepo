@@ -1,0 +1,20 @@
+{
+  "batches": [
+    {
+      "generatedAt": "2026-07-17T23:58:00.535Z",
+      "domain": {
+        "domains": {
+          "abc.xyz": {
+            "totalDelta": -20,
+            "events": 1,
+            "lastSeverity": 5
+          }
+        }
+      },
+      "casino": {
+        "casinos": {},
+        "source": "trust-rollup"
+      }
+    }
+  ]
+}
