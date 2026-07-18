@@ -1,0 +1,45 @@
+{
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
+  "axes": [
+    "ai_link_scan",
+    "trust_scoring",
+    "redeem_vault",
+    "pricing",
+    "community_reach"
+  ],
+  "axisHints": {
+    "ai_link_scan": ["scam link", "link scanner", "phishing", "url check", "ai scan"],
+    "trust_scoring": ["trust score", "safety index", "safety score", "rating methodology"],
+    "redeem_vault": ["vault", "cash out", "redeem", "withdrawal lock", "cooldown"],
+    "pricing": ["pricing", "subscription", "per month", "$/", "plans"],
+    "community_reach": ["monthly visits", "discord", "community", "members", "traffic"]
+  },
+  "competitors": [
+    {
+      "id": "askgamblers",
+      "name": "AskGamblers",
+      "urls": ["https://www.askgamblers.com/", "https://www.askgamblers.com/gambling-news"]
+    },
+    {
+      "id": "casino-guru",
+      "name": "Casino.guru",
+      "urls": ["https://casino.guru/", "https://casino.guru/about"]
+    },
+    {
+      "id": "casino-org",
+      "name": "Casino.org",
+      "urls": ["https://www.casino.org/"]
+    },
+    {
+      "id": "fairgambling",
+      "name": "FairGambling",
+      "urls": ["https://fairgambling.org/"]
+    },
+    {
+      "id": "trustedgamble",
+      "name": "TrustedGamble",
+      "aliases": ["TrustedGamble", "TrusteelGamble", "Trusted Gambler"],
+      "urls": ["https://trustedgamble.com/"]
+    }
+  ]
+}
