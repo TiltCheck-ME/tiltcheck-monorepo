@@ -88,10 +88,7 @@ function matchesVipCurrencyFact(lower: string): boolean {
 }
 
 function matchesRedemptionFact(lower: string): boolean {
-  return (
-    /\b(redemption|redeem|payout|cash\s?out|withdraw(?:al)?)\b/.test(lower) ||
-    (/\bhow long\b/.test(lower) && /\b(take|takes)\b/.test(lower))
-  );
+  return /\b(redemption|redeem|payout|cash\s?out|withdraw(?:al)?)\b/.test(lower);
 }
 
 function matchesWelcomeBonusFact(lower: string): boolean {

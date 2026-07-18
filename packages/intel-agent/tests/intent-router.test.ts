@@ -44,6 +44,11 @@ describe('routeIntelIntent', () => {
     }
   });
 
+  it('does not route generic how-long questions without redemption keywords', () => {
+    const intent = routeIntelIntent('How long does support take on Stake?');
+    expect(intent.kind).not.toBe('operator_redemption_fact');
+  });
+
   it('routes welcome bonus with florida geo', () => {
     const intent = routeIntelIntent('What new player bonuses are available on McLuck in Florida?');
     expect(intent.kind).toBe('operator_welcome_bonus_fact');
