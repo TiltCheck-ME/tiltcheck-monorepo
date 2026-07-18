@@ -3,59 +3,198 @@
 <head>
 <meta charset="UTF-8"/>
 <title>TiltCheck | The Degen Audit Layer</title>
-<meta name="description" content="Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself."/>
+<meta name="description" content="TiltCheck: read-only browser guardrail for online casino play. Spot tilt, check casino trust grades, verify bets, and brake before you rug yourself."/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#06080b"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="styles/base.css"/>
+
 </head>
 <body>
 <nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="index.html" aria-current="page"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="https://tiltcheck.me/extension">Extension</a>
-    <a href="https://tiltcheck.me/casinos">Casinos</a>
-    <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
+    <a href="extension.html">Extension</a>
+    <a href="casinos.html">Casinos</a>
+    <a href="tools.html">Tools</a>
+    <a href="operators.html">Operators</a>
     <a href="docs/index.html">Specs</a>
+    <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>
 <main class="landing-page">
   <section class="hero-surface" aria-label="TiltCheck">
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
-      <span class="brand-eyebrow">Built for Degens. By Degens.</span>
+      <span class="brand-eyebrow">The Degen Audit Layer</span>
       <h1 class="landing-hero-title landing-hero-title--centered">House always wins? FUCK THAT.</h1>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">TiltCheck is a free, read-only browser extension for online casino sessions. It watches how fast you bet, flags tilt and pressure loops, and enforces the exit rules you set — before another deposit cooks you.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="https://tiltcheck.me/extension">Install the Extension</a>
-        <a class="hero-actions__secondary-link" href="https://tiltcheck.me/casinos">Check Casino Trust</a>
+        <a class="btn btn-primary" href="extension.html">Install the Extension</a>
+        <a class="hero-actions__secondary-link" href="#what">What is this?</a>
       </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" id="what" aria-label="What is TiltCheck">
+    <div class="landing-shell explainer">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">What this is</span>
+        <h2 class="public-page-section-heading__title">Brakes for the session. Not another casino.</h2>
+      </div>
+      <p class="explainer__p">Online casinos are built to keep you spinning. TiltCheck sits in your browser tab as a read-only audit layer: it watches pacing and session behavior, pairs that with public trust signals, and pushes you to cash out or stop when your own rules say so.</p>
+<p class="explainer__p">We never ask for wallet keys. We never hold your money. We are not a casino, not an affiliate ranking farm, and not therapy — we are the brakes you install before tilt writes the next chapter.</p>
+      <ul class="explainer__list"><li>Browser extension that watches supported casino tabs in real time</li>
+<li>Public casino trust grades so you can look up an operator before you deposit</li>
+<li>Tools to verify bets, scan shady domains, and check house-edge claims</li>
+<li>Optional vault / profit-lock flows so wins are harder to spin back</li></ul>
+      <div class="hero-actions hero-actions--start" style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="extension.html">Start with the extension</a>
+        <a class="hero-actions__secondary-link" href="casinos.html">Or check a casino first</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="How it works">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">How it works</span>
+        <h2 class="public-page-section-heading__title">Install. Watch. Exit.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--3"><article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step 01</p>
+  <h3 class="public-page-card__title">Install</h3>
+  <p class="public-page-card__copy">Sideload the read-only Chrome extension. No private keys. It lives in the casino tab you already use.</p>
+  <p class="public-page-card__note">One install. Two minutes.</p>
+</article>
+<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step 02</p>
+  <h3 class="public-page-card__title">Watch</h3>
+  <p class="public-page-card__copy">Compares live click-speed, bet pacing, and session events to your guardrails and known pressure patterns.</p>
+  <p class="public-page-card__note">Flags sus spirals while you are still in the session.</p>
+</article>
+<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step 03</p>
+  <h3 class="public-page-card__title">Exit</h3>
+  <p class="public-page-card__copy">When the line is crossed: warning, cash-out push, or hard stop — whatever you configured. Proof over emotion.</p>
+  <p class="public-page-card__note">You set the rules. We enforce them.</p>
+</article></div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="What it catches">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">What you get</span>
+        <h2 class="public-page-section-heading__title">Problems it actually names.</h2>
+      </div>
+      <div class="signal-list"><article class="signal-row">
+  <h3 class="signal-row__title">Tilt detection</h3>
+  <p class="signal-row__body">Know when you hit The Loop — Auto-Pilot patterns before the bankroll pays tuition.</p>
+</article>
+<article class="signal-row">
+  <h3 class="signal-row__title">Casino trust grades</h3>
+  <p class="signal-row__body">Letter grades and risk labels for sweeps, crypto, regulated, and known scam names — community-curated, not casino-sponsored.</p>
+</article>
+<article class="signal-row">
+  <h3 class="signal-row__title">Receipts over vibes</h3>
+  <p class="signal-row__body">Recompute a bet from seeds, check claimed RTP vs what you got, scan domains before you click a “support” link.</p>
+</article>
+<article class="signal-row">
+  <h3 class="signal-row__title">Lock the win</h3>
+  <p class="signal-row__body">Vault / AutoVault flows make profit harder to spin back when the next bonus screen starts whispering.</p>
+</article></div>
     </div>
   </section>
 
   <section class="public-page-section" aria-label="Three jobs">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Three jobs</span>
+        <span class="brand-eyebrow">In-session jobs</span>
         <h2 class="public-page-section-heading__title">Protect the bankroll.</h2>
       </div>
-      <div class="public-page-grid public-page-grid--3">
-        <article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step 01</p>
+      <div class="public-page-grid public-page-grid--3"><article class="public-page-card">
+  <p class="public-page-card__eyebrow">Job 01</p>
   <h3 class="public-page-card__title">Kill the Auto-Pilot</h3>
-  <p class="public-page-card__copy">Tracks click-speed and bet pacing. Wakes you up when you play like a bot.</p>
+  <p class="public-page-card__copy">Rapid clicking, loss chasing, Martingale ladders — the bot mode you slip into after three bad spins. We track pacing and wake you up.</p>
 </article>
 <article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step 02</p>
+  <p class="public-page-card__eyebrow">Job 02</p>
   <h3 class="public-page-card__title">Read the Room</h3>
-  <p class="public-page-card__copy">Flags sus pacing and pressure loops while you are still in the session.</p>
+  <p class="public-page-card__copy">Pressure loops, sus session dynamics, and “im due” energy in real time — while the tab is still open, not in a postmortem.</p>
 </article>
 <article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step 03</p>
+  <p class="public-page-card__eyebrow">Job 03</p>
   <h3 class="public-page-card__title">Enforce the Exit</h3>
-  <p class="public-page-card__copy">Set your line. We enforce it — not passive warnings.</p>
-</article>
+  <p class="public-page-card__copy">Profit targets and loss limits you chose ahead of time. Not a polite toast. A real stop before you give the heater back.</p>
+</article></div>
+    </div>
+  </section>
+
+  <section class="public-page-section" id="features" aria-label="Tools and features">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Open these next</span>
+        <h2 class="public-page-section-heading__title">Pages on this site.</h2>
       </div>
+      <p class="section-lede">Cold start? Extension first. Depositing somewhere new? Casinos. Want math tools? Toolkit. Running a platform? Operators.</p>
+      <div class="public-page-grid public-page-grid--2"><article class="public-page-card feature-card">
+  <p class="public-page-card__eyebrow">Extension</p>
+  <h3 class="public-page-card__title">The actual product</h3>
+  <p class="public-page-card__copy">Chrome extension that watches your live casino session. Install this first if you want the brakes — everything else is support gear.</p>
+  <a class="feature-card__link" href="extension.html">How to install →</a>
+</article>
+<article class="public-page-card feature-card">
+  <p class="public-page-card__eyebrow">Casino trust</p>
+  <h3 class="public-page-card__title">Who are you depositing with?</h3>
+  <p class="public-page-card__copy">Browse curated operator grades (A through F), risk, and category. Open a full proof page on tiltcheck.me when you need license and scam lanes.</p>
+  <a class="feature-card__link" href="casinos.html">Browse casinos →</a>
+</article>
+<article class="public-page-card feature-card">
+  <p class="public-page-card__eyebrow">Toolkit</p>
+  <h3 class="public-page-card__title">Math and scam tools</h3>
+  <p class="public-page-card__copy">Bet verifier, house-edge calculator, geo-laws, phishing shield, shadow-ban log. Interactive runs live on tiltcheck.me — this page is the map.</p>
+  <a class="feature-card__link" href="tools.html">See tools →</a>
+</article>
+<article class="public-page-card feature-card">
+  <p class="public-page-card__eyebrow">Operators</p>
+  <h3 class="public-page-card__title">For platforms</h3>
+  <p class="public-page-card__copy">If you run a casino or RG product: RGaaS sandbox keys for trust signals — non-affiliated, non-custodial. Players skip this.</p>
+  <a class="feature-card__link" href="operators.html">Operator access →</a>
+</article></div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="FAQ">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">FAQ</span>
+        <h2 class="public-page-section-heading__title">Straight answers.</h2>
+      </div>
+      <div class="faq-list"><details class="faq-item">
+  <summary class="faq-item__q">Do you see my wallet key or hold my money?</summary>
+  <p class="faq-item__a">No. Never. The extension is read-only on casino tabs. No custodial wallets. If someone asks for your seed phrase “for TiltCheck,” that is a scam.</p>
+</details>
+<details class="faq-item">
+  <summary class="faq-item__q">Is TiltCheck a casino or a tipster?</summary>
+  <p class="faq-item__a">Neither. We do not take bets, sell picks, or rank casinos for affiliate kickbacks. We are an audit / guardrail layer for people who already play.</p>
+</details>
+<details class="faq-item">
+  <summary class="faq-item__q">What problem does the extension solve?</summary>
+  <p class="faq-item__a">You know the spiral: three losses, bet size climbs, “im due,” deposit again. TiltCheck watches pacing and enforces the exit you set when you were still sober about it.</p>
+</details>
+<details class="faq-item">
+  <summary class="faq-item__q">What is a casino trust grade?</summary>
+  <p class="faq-item__a">A curated letter grade plus risk label for an operator (sweeps, crypto, regulated, scam, etc.). It is a starting point — open the live proof page for license, domain, and issue lanes.</p>
+</details>
+<details class="faq-item">
+  <summary class="faq-item__q">Why does this GitHub Pages site exist?</summary>
+  <p class="faq-item__a">Shareable static twin when the main app host is down or you just need the pitch + directory. Interactive tools and dashboards still live on tiltcheck.me.</p>
+</details>
+<details class="faq-item">
+  <summary class="faq-item__q">Crisis or addiction help?</summary>
+  <p class="faq-item__a">TiltCheck is brakes, not therapy. Call 1-800-GAMBLER or visit ncpg.org.</p>
+</details></div>
     </div>
   </section>
 
@@ -64,13 +203,12 @@
       <article class="public-page-card">
         <span class="brand-eyebrow">For platforms / operators</span>
         <h2 class="public-page-section-heading__title">Trust scoring as a service. Non-affiliated. RGaaS API.</h2>
-        <ul class="public-page-card__copy public-page-card__copy--list">
-          <li>Trust scoring as a service — non-affiliated, evidence-backed.</li>
+        <p class="public-page-card__copy">Players can skip this. If you need API access for trust signals or RG hooks:</p>
+        <ul class="public-page-card__copy public-page-card__copy--list"><li>Trust scoring as a service — non-affiliated, evidence-backed.</li>
 <li>RGaaS API for session guardrails without custodial flows.</li>
-<li>Sandbox access for operators who want tilt signals, not affiliate spam.</li>
-        </ul>
+<li>Sandbox access for operators who want tilt signals, not affiliate spam.</li></ul>
         <div style="margin-top:1.5rem">
-          <a class="btn btn-primary" href="https://tiltcheck.me/operators">Get Sandbox Access</a>
+          <a class="btn btn-primary" href="operators.html">Operator details</a>
         </div>
       </article>
     </div>
@@ -90,6 +228,7 @@
   <span class="site-footer__tag">Made for Degens. By Degens.</span>
   <div class="site-footer__links">
     <a href="https://tiltcheck.me">tiltcheck.me</a>
+    <a href="tools.html">Tools</a>
     <a href="docs/index.html">Specs</a>
     <a href="https://ko-fi.com/jmenichole0" rel="noopener noreferrer">Support</a>
   </div>
