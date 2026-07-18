@@ -76,9 +76,14 @@ export function parseArgs(argv) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(args.date)) {
     throw new Error(`Expected --date in YYYY-MM-DD format, got "${args.date}"`);
   }
-  if (!args.slug.trim()) {
+  const slug = args.slug.trim();
+  if (!slug) {
     throw new Error('Expected non-empty --slug');
   }
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug)) {
+    throw new Error(`Invalid --slug "${slug}". Use letters, numbers, and hyphens only.`);
+  }
+  args.slug = slug.toLowerCase();
 
   return args;
 }

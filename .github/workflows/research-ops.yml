@@ -71,14 +71,14 @@ jobs:
           RESEARCH_LLM_API_KEY: ${{ secrets.RESEARCH_LLM_API_KEY }}
           RESEARCH_LLM_BASE_URL: ${{ secrets.RESEARCH_LLM_BASE_URL }}
           RESEARCH_LLM_MODEL: ${{ secrets.RESEARCH_LLM_MODEL }}
-        run: pnpm run ops:research:run --date "$RESEARCH_DATE" --slug "$RESEARCH_SLUG"
+        run: pnpm run ops:research:run -- --date "$RESEARCH_DATE" --slug "$RESEARCH_SLUG"
 
       - name: Merge tasks from newest sidecar
         run: |
           set -euo pipefail
           sidecar="$(node --input-type=module -e "import { readdir, stat } from 'node:fs/promises'; import path from 'node:path'; const dir = 'docs/research'; const files = (await readdir(dir)).filter((name) => name.endsWith('.tasks.json')); if (files.length === 0) { throw new Error('No research sidecar files found.'); } const entries = await Promise.all(files.map(async (name) => ({ name, mtimeMs: (await stat(path.join(dir, name))).mtimeMs }))); entries.sort((a, b) => b.mtimeMs - a.mtimeMs); process.stdout.write(path.join(dir, entries[0].name));")"
           echo "Using sidecar $sidecar"
-          pnpm run ops:research:merge-tasks --sidecar "$sidecar"
+          pnpm run ops:research:merge-tasks -- --sidecar "$sidecar"
 
       - name: Detect Linear credentials
         env:
@@ -132,10 +132,17 @@ jobs:
             --title "$RESEARCH_PR_TITLE" \
             --body "Automated research brief, task merge, and recurring queue update. Review the Gaps section before trusting matrix cells."
 
-      - name: Sync Linear
+      - name: Sync Linear (this run only)
         if: ${{ env.HAS_LINEAR == 'true' }}
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           LINEAR_TEAM_KEY: ${{ secrets.LINEAR_TEAM_KEY }}
           LINEAR_PROJECT_ID: ${{ secrets.LINEAR_PROJECT_ID }}
-        run: pnpm ops:linear:sync
+        run: |
+          set -euo pipefail
+          if [ ! -f docs/ops/linear-tasks-last-run.json ]; then
+            echo "::warning::No linear-tasks-last-run.json; skipping Linear sync."
+            exit 0
+          fi
+          # Cap: sync only newly added keys from this run (max 5), not the full backlog.
+          pnpm ops:linear:sync -- --file docs/ops/linear-tasks-last-run.json

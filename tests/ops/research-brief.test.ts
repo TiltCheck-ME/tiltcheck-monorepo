@@ -42,6 +42,10 @@ describe('parseArgs', () => {
       help: false,
     });
   });
+
+  it('rejects path-like slugs', () => {
+    expect(() => parseArgs(['--slug', '../evil', '--date', '2026-07-18'])).toThrow(/Invalid --slug/);
+  });
 });
 
 describe('validateModelCellValue', () => {

@@ -21,11 +21,12 @@ const MAX_NEW_KEYS_PER_RUN = 5;
 
 /**
  * @param {string[]} argv
- * @returns {{ sidecar: string, help: boolean }}
+ * @returns {{ sidecar: string, writeAdded: string, help: boolean }}
  */
 export function parseArgs(argv) {
   const args = {
     sidecar: '',
+    writeAdded: 'docs/ops/linear-tasks-last-run.json',
     help: false,
   };
 
@@ -40,6 +41,12 @@ export function parseArgs(argv) {
 
     if (arg === '--sidecar' || arg.startsWith('--sidecar=')) {
       args.sidecar = readArgValue(argv, i, '--sidecar');
+      i += arg.includes('=') ? 1 : 2;
+      continue;
+    }
+
+    if (arg === '--write-added' || arg.startsWith('--write-added=')) {
+      args.writeAdded = readArgValue(argv, i, '--write-added');
       i += arg.includes('=') ? 1 : 2;
       continue;
     }
@@ -87,7 +94,8 @@ Behavior:
   - Merges research gaps first, then due recurring templates
   - Caps new keys at 5 per run
   - Skips keys already present in docs/ops/linear-tasks.json
-  - Updates lastQueuedAt only for recurring items that were actually queued`);
+  - Updates lastQueuedAt only for recurring items that were actually queued
+  - Writes only the newly added tasks to --write-added (default docs/ops/linear-tasks-last-run.json) for Linear sync`);
 }
 
 /**
@@ -265,10 +273,25 @@ export async function runMergeTaskFiles(options) {
     },
   };
 
-  await Promise.all([
+  const writeAddedPath = options.writeAddedPath
+    ? path.resolve(process.cwd(), options.writeAddedPath)
+    : null;
+
+  const writes = [
     writeJson(linearTasksPath, nextLinearTasksDoc),
     writeJson(recurringStatePath, nextRecurringStateDoc),
-  ]);
+  ];
+
+  if (writeAddedPath) {
+    writes.push(
+      writeJson(writeAddedPath, {
+        copyright: linearTasksDoc?.copyright,
+        tasks: mergeResult.added,
+      }),
+    );
+  }
+
+  await Promise.all(writes);
 
   return {
     tasks: mergeResult.tasks,
@@ -276,6 +299,7 @@ export async function runMergeTaskFiles(options) {
     stateUpdates: mergeResult.stateUpdates,
     linearTasksPath,
     recurringStatePath,
+    writeAddedPath,
   };
 }
 
@@ -288,11 +312,15 @@ export async function main(argv = process.argv.slice(2)) {
 
   const result = await runMergeTaskFiles({
     sidecarPath: args.sidecar,
+    writeAddedPath: args.writeAdded,
   });
 
   console.log(`[merge-proposed-tasks] Added ${result.added.length} task(s).`);
   console.log(`[merge-proposed-tasks] Updated ${path.relative(process.cwd(), result.linearTasksPath)}`);
   console.log(`[merge-proposed-tasks] Updated ${path.relative(process.cwd(), result.recurringStatePath)}`);
+  if (result.writeAddedPath) {
+    console.log(`[merge-proposed-tasks] Wrote run queue ${path.relative(process.cwd(), result.writeAddedPath)}`);
+  }
 }
 
 const entryPath = process.argv[1] ? path.resolve(process.argv[1]) : null;
