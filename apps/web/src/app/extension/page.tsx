@@ -2,6 +2,8 @@
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
+import JsonLd from "@/components/JsonLd";
+import { softwareApplicationJsonLd } from "@/lib/structured-data";
 import { getWebLoginRedirect } from "@/lib/dashboard-handoff";
 
 const coreSignals = [
@@ -24,6 +26,7 @@ export default function ExtensionPage() {
 
   return (
     <main className="public-page public-page--tight text-white">
+      <JsonLd data={softwareApplicationJsonLd()} />
       <PublicPageHero
         compact
         eyebrow="Browser extension"

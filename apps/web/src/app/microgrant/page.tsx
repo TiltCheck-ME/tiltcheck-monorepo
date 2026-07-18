@@ -200,7 +200,7 @@ export default function MicrograntPage() {
               {[
                 [
                   "A bankroll refill.",
-                  "That money is gone. We are sorry. Truly. But it is gone.",
+                  "That money is gone. Microgrants don't refill bankrolls. They cover small, structural costs that move someone forward — not back to the table.",
                 ],
                 [
                   "A debt repayment fund.",

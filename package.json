@@ -20,7 +20,7 @@
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
     "test": "pnpm --filter @tiltcheck/database build && vitest --run",
     "test:watch": "vitest",
-    "test:all": "pnpm --recursive test",
+    "test:all": "pnpm --filter './packages/**' --filter './modules/**' build && pnpm --recursive test",
     "coverage": "vitest run --coverage",
     "coverage:ci": "CI=true vitest run --coverage",
     "lint": "eslint .",

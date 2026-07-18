@@ -73,8 +73,10 @@ function BonusCard({ entry }: { entry: BonusEntry }) {
       style={{ minHeight: '260px' }}
     >
       {/* Trust badge placeholder */}
-      <div className="absolute top-4 right-4 text-[10px] font-mono uppercase tracking-widest text-[#17c3b2]/50 border border-[#17c3b2]/20 px-2 py-1">
-        [TRUST SCORE: LOADING]
+      <div className="absolute top-4 right-4 text-[10px] font-mono uppercase tracking-widest text-[#17c3b2]/70 border border-[#17c3b2]/20 px-2 py-1">
+        <a href="/casinos" className="hover:text-[#17c3b2] transition-colors">
+          VIEW TRUST SCORE
+        </a>
       </div>
 
       {/* Content */}

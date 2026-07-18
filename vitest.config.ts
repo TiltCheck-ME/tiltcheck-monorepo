@@ -7,6 +7,11 @@ import { defineConfig } from 'vitest/config';
 const workspaceRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.join(workspaceRoot, 'apps/web/src'),
+    },
+  },
   test: {
     include: [
       'tests/**/*.{test,spec}.{js,jsx,ts,tsx}',

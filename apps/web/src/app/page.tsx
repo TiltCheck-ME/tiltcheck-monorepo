@@ -1,5 +1,7 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
 import Link from "next/link";
+import OperatorBlock from "@/components/OperatorBlock";
+import { SITE_HERO_HEADLINE, SITE_ONE_LINER } from "@/lib/site-copy";
 
 const coreJobs = [
   {
@@ -27,11 +29,11 @@ export default function Home() {
           <span className="brand-eyebrow">Built for Degens. By Degens.</span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
-            STOP GIVING WINS BACK.
+            {SITE_HERO_HEADLINE}
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">
-            Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.
+            {SITE_ONE_LINER}
           </p>
 
           <div className="hero-actions">
@@ -77,6 +79,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <OperatorBlock />
 
       <section className="public-page-section px-4" style={{ paddingBottom: "2rem" }}>
         <div className="landing-shell" style={{ textAlign: "center" }}>

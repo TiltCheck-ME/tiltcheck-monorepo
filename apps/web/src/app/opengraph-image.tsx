@@ -1,9 +1,9 @@
 import { ImageResponse } from 'next/og';
+import { SITE_OG_SUBLINE, SITE_OG_TAGLINE } from '@/lib/site-copy';
 
 export const runtime = 'edge';
 
-// Image metadata
-export const alt = 'TiltCheck — The Degen Audit Layer';
+export const alt = `TiltCheck — ${SITE_OG_TAGLINE}`;
 export const size = {
   width: 1200,
   height: 630,
@@ -79,7 +79,7 @@ export default async function Image() {
             marginBottom: '20px',
           }}
         >
-          The Degen Audit Layer
+          {SITE_OG_TAGLINE}
         </div>
 
         <div
@@ -91,7 +91,7 @@ export default async function Image() {
             lineHeight: 1.4,
           }}
         >
-          The house has an edge. Now you do too.
+          {SITE_OG_SUBLINE}
         </div>
 
         <div
