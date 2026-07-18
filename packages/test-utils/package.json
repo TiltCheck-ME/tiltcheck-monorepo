@@ -14,7 +14,7 @@
   "dependencies": {
     "@tiltcheck/error-factory": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "vitest": "^4.0.0"
+    "vitest": "^4.1.10"
   },
   "devDependencies": {
     "typescript": "^6.0.2"

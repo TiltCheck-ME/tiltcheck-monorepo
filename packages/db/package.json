@@ -15,16 +15,16 @@
     "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "@supabase/supabase-js": "^2.100.1",
+    "@neondatabase/serverless": "^1.1.0",
+    "@supabase/supabase-js": "^2.110.7",
     "@tiltcheck/config": "workspace:*",
-    "pg": "^8.20.0"
+    "pg": "^8.22.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@types/pg": "^8.20.0",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.10"
   },
   "exports": {
     ".": {

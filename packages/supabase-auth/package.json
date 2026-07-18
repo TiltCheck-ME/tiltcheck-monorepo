@@ -12,13 +12,13 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.100.1",
+    "@supabase/supabase-js": "^2.110.7",
     "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.10"
   },
   "exports": {
     ".": {

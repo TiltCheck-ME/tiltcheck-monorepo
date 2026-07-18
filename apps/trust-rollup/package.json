@@ -23,13 +23,13 @@
     "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.1.10"
   }
 }

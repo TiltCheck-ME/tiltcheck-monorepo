@@ -15,12 +15,12 @@
     "clear:names": "tsx src/cleanup-commands.ts"
   },
   "dependencies": {
-    "@elastic/elasticsearch": "^9.3.4",
-    "@supabase/supabase-js": "^2.45.0",
-    "@solana/pay": "^0.2.6",
-    "@solana/spl-token": "^0.4.14",
+    "@elastic/elasticsearch": "^9.4.2",
+    "@supabase/supabase-js": "^2.110.7",
+    "@solana/pay": "^1.0.20",
+    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.98.4",
-    "@discord/embedded-app-sdk": "^2.4.1",
+    "@discord/embedded-app-sdk": "^2.5.0",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/monitoring": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
@@ -38,11 +38,11 @@
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
-    "bignumber.js": "^10.0.2",
-    "discord.js": "^14.25.1",
-    "dotenv": "^17.3.1",
-    "openai": "^6.33.0",
-    "uuid": "^14.0.0"
+    "bignumber.js": "^11.1.5",
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2",
+    "openai": "^6.48.0",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

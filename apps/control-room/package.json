@@ -28,6 +28,6 @@
     "@types/express-session": "^1.18.2",
     "@types/passport": "^1.0.17",
     "vite": "^8.0.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.1.10"
   }
 }

@@ -10,8 +10,8 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@solana/pay": "^0.2.6",
-    "@solana/spl-token": "^0.4.14",
+    "@solana/pay": "^1.0.20",
+    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.98.4",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/config": "workspace:*",
@@ -22,8 +22,8 @@
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
-    "bignumber.js": "^10.0.2",
-    "uuid": "^14.0.0"
+    "bignumber.js": "^11.1.5",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@types/uuid": "^11.0.0",
