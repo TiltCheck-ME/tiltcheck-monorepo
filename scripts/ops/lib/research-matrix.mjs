@@ -11,27 +11,41 @@
  */
 
 /**
- * @param {string[] | Record<string, string[]>} axisHints
- * @returns {string[]}
+ * @param {string[] | { positive?: string[], negative?: string[] } | Record<string, string[]>} axisHints
+ * @returns {{ positive: string[], negative: string[] }}
  */
 function normalizeHints(axisHints) {
   if (Array.isArray(axisHints)) {
-    return axisHints.filter(Boolean).map((hint) => String(hint));
+    return {
+      positive: axisHints.filter(Boolean).map((hint) => String(hint).toLowerCase()),
+      negative: [],
+    };
   }
 
   if (!axisHints || typeof axisHints !== 'object') {
-    return [];
+    return { positive: [], negative: [] };
   }
 
-  return Object.values(axisHints)
-    .flatMap((value) => (Array.isArray(value) ? value : []))
-    .filter(Boolean)
-    .map((hint) => String(hint));
+  if (Array.isArray(axisHints.positive) || Array.isArray(axisHints.negative)) {
+    return {
+      positive: (axisHints.positive || []).filter(Boolean).map((h) => String(h).toLowerCase()),
+      negative: (axisHints.negative || []).filter(Boolean).map((h) => String(h).toLowerCase()),
+    };
+  }
+
+  // Legacy: Record of axis -> hints arrays (single-axis call sites pass one array via buildMatrix)
+  return {
+    positive: Object.values(axisHints)
+      .flatMap((value) => (Array.isArray(value) ? value : []))
+      .filter(Boolean)
+      .map((hint) => String(hint).toLowerCase()),
+    negative: [],
+  };
 }
 
 /**
  * @param {string} html
- * @param {string[] | Record<string, string[]>} axisHints
+ * @param {string[] | { positive?: string[], negative?: string[] } | Record<string, string[]>} axisHints
  * @returns {CellValue}
  */
 export function scorePage(html, axisHints) {
@@ -40,21 +54,26 @@ export function scorePage(html, axisHints) {
     return 'unknown';
   }
 
-  const hints = normalizeHints(axisHints).map((hint) => hint.toLowerCase());
-  if (hints.length === 0) {
+  const { positive, negative } = normalizeHints(axisHints);
+  const posHits = positive.filter((hint) => text.includes(hint)).length;
+  const negHits = negative.filter((hint) => text.includes(hint)).length;
+
+  if (posHits === 0 && negHits === 0) {
     return 'unknown';
   }
-
-  const hits = hints.filter((hint) => text.includes(hint)).length;
-  if (hits === 0) {
-    return 'unknown';
+  if (posHits === 0 && negHits > 0) {
+    return 'no';
   }
-
-  if (hits === hints.length) {
+  if (posHits > 0 && negHits > 0) {
+    return 'partial';
+  }
+  if (positive.length > 0 && posHits === positive.length) {
     return 'yes';
   }
-
-  return 'partial';
+  if (posHits >= 1) {
+    return positive.length === 1 ? 'yes' : 'partial';
+  }
+  return 'unknown';
 }
 
 /**
@@ -128,7 +147,8 @@ function slugPart(value) {
  * @returns {ProposedTask[]}
  */
 export function proposedTasksFromGaps(gaps, date, max = 5) {
-  const limit = Math.max(0, Math.min(5, Number(max) || 5));
+  const parsed = Number(max);
+  const limit = Number.isFinite(parsed) ? Math.max(0, Math.min(5, parsed)) : 5;
 
   return gaps.slice(0, limit).map((gap) => ({
     key: `RES-${date}-${slugPart(gap.competitor)}-${slugPart(gap.axis)}`,

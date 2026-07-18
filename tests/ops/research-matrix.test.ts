@@ -26,6 +26,16 @@ describe('scorePage', () => {
     const html = '<p>Welcome to our blog about sports.</p>';
     expect(scorePage(html, { trust_scoring: ['safety index', 'trust score'] })).toBe('unknown');
   });
+
+  it('returns no when only negative hints match', () => {
+    const html = '<p>Feature unavailable. Coming soon.</p>';
+    expect(
+      scorePage(html, {
+        positive: ['safety index', 'trust score'],
+        negative: ['feature unavailable', 'coming soon'],
+      }),
+    ).toBe('no');
+  });
 });
 
 describe('buildMatrix', () => {
@@ -84,5 +94,17 @@ describe('gapsFromMatrix + proposedTasksFromGaps', () => {
     expect(tasks.length).toBe(5);
     expect(tasks[0].key.startsWith('RES-2026-07-17-')).toBe(true);
     expect(tasks[0].labels).toContain('RESEARCH');
+    expect(proposedTasksFromGaps(gaps, '2026-07-17', 0)).toHaveLength(0);
+  });
+});
+
+describe('buildMatrix fetch failure', () => {
+  it('marks unknown when fetch failed', () => {
+    const matrix = buildMatrix(
+      [{ name: 'AskGamblers', url: 'https://example.com', ok: false, html: '' }],
+      ['trust_scoring'],
+      { trust_scoring: ['safety index'] },
+    );
+    expect(matrix.AskGamblers.trust_scoring.value).toBe('unknown');
   });
 });
