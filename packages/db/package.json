@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
   "name": "@tiltcheck/db",
   "version": "0.1.1",
   "description": "Neon PostgreSQL database client for TiltCheck ecosystem",
@@ -16,7 +17,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
-    "@supabase/supabase-js": "^2.110.7",
+    "@supabase/supabase-js": "2.100.1",
     "@tiltcheck/config": "workspace:*",
     "pg": "^8.22.0"
   },
