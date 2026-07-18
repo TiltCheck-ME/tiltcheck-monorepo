@@ -2,6 +2,11 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-18 - PR #630 CI brand compliance
+
+- **Brand scanner**: Reworded fairness-tool copy so public product language does not trigger the custodial-keyword guard.
+- **Source header**: Moved the required TiltCheck copyright header to the first line of the modified Pages generator.
+
 ## 2026-07-18 - PR #612 CI brand compliance
 
 - **Brand scanner**: Removed false custodial keyword matches from microgrant copy.
