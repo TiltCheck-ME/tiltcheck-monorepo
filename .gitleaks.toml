@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
 
 title = "TiltCheck Gitleaks Overrides"
 
@@ -20,7 +20,7 @@ regexes = [
 description = "Allow planning task keys in Linear export docs"
 condition = "AND"
 paths = [
-  '''^docs/ops/linear-tasks(?:-mvp-cloud-run)?\.json$''',
+  '''^docs/ops/linear-tasks(?:-[A-Za-z0-9_-]+)?\.json$''',
 ]
 regexTarget = "line"
 regexes = [
