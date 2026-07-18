@@ -667,6 +667,114 @@ td {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.section-lede {
+  margin: -0.5rem 0 1.5rem;
+  max-width: 40rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.explainer {
+  max-width: min(100% - 0rem, 48rem);
+}
+
+.explainer__p {
+  margin: 0 0 1rem;
+  color: #b5c1cd;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.explainer__list {
+  margin: 1.25rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.explainer__list li + li {
+  margin-top: 0.45rem;
+}
+
+.public-page-card__note {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.signal-list {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.signal-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) 1fr;
+  gap: 1rem 1.5rem;
+  padding: 1.15rem 0.1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.signal-row__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.signal-row__body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.faq-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.faq-item {
+  border: 1px solid rgba(23, 195, 178, 0.15);
+  border-radius: 1rem;
+  background: rgba(10, 14, 19, 0.45);
+  padding: 0.85rem 1.1rem;
+}
+
+.faq-item__q {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.faq-item__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item__a {
+  margin: 0.75rem 0 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 700px) {
+  .signal-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
 .feature-card__link {
   display: inline-block;
   margin-top: 1rem;

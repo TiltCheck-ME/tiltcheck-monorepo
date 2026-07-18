@@ -10,54 +10,153 @@ export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`
 
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
 export const SITE_ONE_LINER =
-  'Read-only browser guardrail. Watches pacing and tilt in real time — pulls you out before you rug yourself.';
+  'TiltCheck is a free, read-only browser extension for online casino sessions. It watches how fast you bet, flags tilt and pressure loops, and enforces the exit rules you set — before another deposit cooks you.';
+
+export const SITE_META_DESCRIPTION =
+  'TiltCheck: read-only browser guardrail for online casino play. Spot tilt, check casino trust grades, verify bets, and brake before you rug yourself.';
+
+/** Plain-English pitch for cold visitors — sits under the hero. */
+export const WHAT_IT_IS = {
+  eyebrow: 'What this is',
+  title: 'Brakes for the session. Not another casino.',
+  paragraphs: [
+    'Online casinos are built to keep you spinning. TiltCheck sits in your browser tab as a read-only audit layer: it watches pacing and session behavior, pairs that with public trust signals, and pushes you to cash out or stop when your own rules say so.',
+    'We never ask for wallet keys. We never hold your money. We are not a casino, not an affiliate ranking farm, and not therapy — we are the brakes you install before tilt writes the next chapter.',
+  ],
+  bullets: [
+    'Browser extension that watches supported casino tabs in real time',
+    'Public casino trust grades so you can look up an operator before you deposit',
+    'Tools to verify bets, scan shady domains, and check house-edge claims',
+    'Optional vault / profit-lock flows so wins are harder to spin back',
+  ],
+};
+
+export const HOW_IT_WORKS = [
+  {
+    step: '01',
+    title: 'Install',
+    body: 'Sideload the read-only Chrome extension. No private keys. It lives in the casino tab you already use.',
+    note: 'One install. Two minutes.',
+  },
+  {
+    step: '02',
+    title: 'Watch',
+    body: 'Compares live click-speed, bet pacing, and session events to your guardrails and known pressure patterns.',
+    note: 'Flags sus spirals while you are still in the session.',
+  },
+  {
+    step: '03',
+    title: 'Exit',
+    body: 'When the line is crossed: warning, cash-out push, or hard stop — whatever you configured. Proof over emotion.',
+    note: 'You set the rules. We enforce them.',
+  },
+];
 
 export const CORE_JOBS = [
   {
     step: '01',
     title: 'Kill the Auto-Pilot',
-    description: 'Tracks click-speed and bet pacing. Wakes you up when you play like a bot.',
+    description:
+      'Rapid clicking, loss chasing, Martingale ladders — the bot mode you slip into after three bad spins. We track pacing and wake you up.',
   },
   {
     step: '02',
     title: 'Read the Room',
-    description: 'Flags sus pacing and pressure loops while you are still in the session.',
+    description:
+      'Pressure loops, sus session dynamics, and “im due” energy in real time — while the tab is still open, not in a postmortem.',
   },
   {
     step: '03',
     title: 'Enforce the Exit',
-    description: 'Set your line. We enforce it — not passive warnings.',
+    description:
+      'Profit targets and loss limits you chose ahead of time. Not a polite toast. A real stop before you give the heater back.',
+  },
+];
+
+export const PROBLEM_SIGNALS = [
+  {
+    title: 'Tilt detection',
+    body: 'Know when you hit The Loop — Auto-Pilot patterns before the bankroll pays tuition.',
+  },
+  {
+    title: 'Casino trust grades',
+    body: 'Letter grades and risk labels for sweeps, crypto, regulated, and known scam names — community-curated, not casino-sponsored.',
+  },
+  {
+    title: 'Receipts over vibes',
+    body: 'Recompute a bet from seeds, check claimed RTP vs what you got, scan domains before you click a “support” link.',
+  },
+  {
+    title: 'Lock the win',
+    body: 'Vault / AutoVault flows make profit harder to spin back when the next bonus screen starts whispering.',
   },
 ];
 
 export const FEATURE_CARDS = [
   {
     eyebrow: 'Extension',
-    title: 'Lives in the casino tab',
-    description: 'Read-only session guardrail. Sideload the zip — store listing later.',
+    title: 'The actual product',
+    description:
+      'Chrome extension that watches your live casino session. Install this first if you want the brakes — everything else is support gear.',
     href: 'extension.html',
-    cta: 'Install extension',
+    cta: 'How to install',
   },
   {
     eyebrow: 'Casino trust',
-    title: 'Look up the operator',
-    description: 'Curated grades, risk, and category on every card. Proof lanes stay on live.',
+    title: 'Who are you depositing with?',
+    description:
+      'Browse curated operator grades (A through F), risk, and category. Open a full proof page on tiltcheck.me when you need license and scam lanes.',
     href: 'casinos.html',
     cta: 'Browse casinos',
   },
   {
     eyebrow: 'Toolkit',
-    title: 'Install first. Tools second.',
-    description: 'Verifier, delta engine, geo laws, phishing shield — open live for interactive runs.',
+    title: 'Math and scam tools',
+    description:
+      'Bet verifier, house-edge calculator, geo-laws, phishing shield, shadow-ban log. Interactive runs live on tiltcheck.me — this page is the map.',
     href: 'tools.html',
     cta: 'See tools',
   },
   {
     eyebrow: 'Operators',
-    title: 'RGaaS sandbox',
-    description: 'Trust scoring as a service. Non-affiliated. Request keys on the live site.',
+    title: 'For platforms',
+    description:
+      'If you run a casino or RG product: RGaaS sandbox keys for trust signals — non-affiliated, non-custodial. Players skip this.',
     href: 'operators.html',
     cta: 'Operator access',
+  },
+];
+
+export const FAQS = [
+  {
+    question: 'Do you see my wallet key or hold my money?',
+    answer:
+      'No. Never. The extension is read-only on casino tabs. No custodial wallets. If someone asks for your seed phrase “for TiltCheck,” that is a scam.',
+  },
+  {
+    question: 'Is TiltCheck a casino or a tipster?',
+    answer:
+      'Neither. We do not take bets, sell picks, or rank casinos for affiliate kickbacks. We are an audit / guardrail layer for people who already play.',
+  },
+  {
+    question: 'What problem does the extension solve?',
+    answer:
+      'You know the spiral: three losses, bet size climbs, “im due,” deposit again. TiltCheck watches pacing and enforces the exit you set when you were still sober about it.',
+  },
+  {
+    question: 'What is a casino trust grade?',
+    answer:
+      'A curated letter grade plus risk label for an operator (sweeps, crypto, regulated, scam, etc.). It is a starting point — open the live proof page for license, domain, and issue lanes.',
+  },
+  {
+    question: 'Why does this GitHub Pages site exist?',
+    answer:
+      'Shareable static twin when the main app host is down or you just need the pitch + directory. Interactive tools and dashboards still live on tiltcheck.me.',
+  },
+  {
+    question: 'Crisis or addiction help?',
+    answer:
+      'TiltCheck is brakes, not therapy. Call 1-800-GAMBLER or visit ncpg.org.',
   },
 ];
 

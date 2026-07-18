@@ -22,8 +22,13 @@ import {
   EXTENSION_ZIP_URL,
   SITE_HERO_HEADLINE,
   SITE_ONE_LINER,
+  SITE_META_DESCRIPTION,
+  WHAT_IT_IS,
+  HOW_IT_WORKS,
   CORE_JOBS,
+  PROBLEM_SIGNALS,
   FEATURE_CARDS,
+  FAQS,
   EXTENSION_SIGNALS,
   OPERATOR_BULLETS,
   OPERATOR_BENEFITS,
@@ -284,11 +289,30 @@ function buildDocsIndexPage(entries) {
 }
 
 function buildRootLanding() {
+  const whatParas = WHAT_IT_IS.paragraphs.map((p) => `<p class="explainer__p">${escapeHtml(p)}</p>`).join('\n');
+  const whatBullets = WHAT_IT_IS.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
+
+  const flowHtml = HOW_IT_WORKS.map(
+    (step) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step ${escapeHtml(step.step)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(step.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(step.body)}</p>
+  <p class="public-page-card__note">${escapeHtml(step.note)}</p>
+</article>`,
+  ).join('\n');
+
   const jobsHtml = CORE_JOBS.map(
     (job) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step ${escapeHtml(job.step)}</p>
+  <p class="public-page-card__eyebrow">Job ${escapeHtml(job.step)}</p>
   <h3 class="public-page-card__title">${escapeHtml(job.title)}</h3>
   <p class="public-page-card__copy">${escapeHtml(job.description)}</p>
+</article>`,
+  ).join('\n');
+
+  const signalsHtml = PROBLEM_SIGNALS.map(
+    (s) => `<article class="signal-row">
+  <h3 class="signal-row__title">${escapeHtml(s.title)}</h3>
+  <p class="signal-row__body">${escapeHtml(s.body)}</p>
 </article>`,
   ).join('\n');
 
@@ -301,26 +325,68 @@ function buildRootLanding() {
 </article>`,
   ).join('\n');
 
+  const faqHtml = FAQS.map(
+    (faq) => `<details class="faq-item">
+  <summary class="faq-item__q">${escapeHtml(faq.question)}</summary>
+  <p class="faq-item__a">${escapeHtml(faq.answer)}</p>
+</details>`,
+  ).join('\n');
+
   const operatorList = OPERATOR_BULLETS.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
 
   const content = `<main class="landing-page">
   <section class="hero-surface" aria-label="TiltCheck">
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
-      <span class="brand-eyebrow">Built for Degens. By Degens.</span>
+      <span class="brand-eyebrow">The Degen Audit Layer</span>
       <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_HERO_HEADLINE)}</h1>
       <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_ONE_LINER)}</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="extension.html">Install the Extension</a>
-        <a class="hero-actions__secondary-link" href="casinos.html">Check Casino Trust</a>
+        <a class="hero-actions__secondary-link" href="#what">What is this?</a>
       </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" id="what" aria-label="What is TiltCheck">
+    <div class="landing-shell explainer">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">${escapeHtml(WHAT_IT_IS.eyebrow)}</span>
+        <h2 class="public-page-section-heading__title">${escapeHtml(WHAT_IT_IS.title)}</h2>
+      </div>
+      ${whatParas}
+      <ul class="explainer__list">${whatBullets}</ul>
+      <div class="hero-actions hero-actions--start" style="margin-top:1.5rem">
+        <a class="btn btn-primary" href="extension.html">Start with the extension</a>
+        <a class="hero-actions__secondary-link" href="casinos.html">Or check a casino first</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="How it works">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">How it works</span>
+        <h2 class="public-page-section-heading__title">Install. Watch. Exit.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--3">${flowHtml}</div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="What it catches">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">What you get</span>
+        <h2 class="public-page-section-heading__title">Problems it actually names.</h2>
+      </div>
+      <div class="signal-list">${signalsHtml}</div>
     </div>
   </section>
 
   <section class="public-page-section" aria-label="Three jobs">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Three jobs</span>
+        <span class="brand-eyebrow">In-session jobs</span>
         <h2 class="public-page-section-heading__title">Protect the bankroll.</h2>
       </div>
       <div class="public-page-grid public-page-grid--3">${jobsHtml}</div>
@@ -330,10 +396,21 @@ function buildRootLanding() {
   <section class="public-page-section" id="features" aria-label="Tools and features">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Tools / features</span>
-        <h2 class="public-page-section-heading__title">What you can open here.</h2>
+        <span class="brand-eyebrow">Open these next</span>
+        <h2 class="public-page-section-heading__title">Pages on this site.</h2>
       </div>
+      <p class="section-lede">Cold start? Extension first. Depositing somewhere new? Casinos. Want math tools? Toolkit. Running a platform? Operators.</p>
       <div class="public-page-grid public-page-grid--2">${featuresHtml}</div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="FAQ">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">FAQ</span>
+        <h2 class="public-page-section-heading__title">Straight answers.</h2>
+      </div>
+      <div class="faq-list">${faqHtml}</div>
     </div>
   </section>
 
@@ -342,9 +419,10 @@ function buildRootLanding() {
       <article class="public-page-card">
         <span class="brand-eyebrow">For platforms / operators</span>
         <h2 class="public-page-section-heading__title">Trust scoring as a service. Non-affiliated. RGaaS API.</h2>
+        <p class="public-page-card__copy">Players can skip this. If you need API access for trust signals or RG hooks:</p>
         <ul class="public-page-card__copy public-page-card__copy--list">${operatorList}</ul>
         <div style="margin-top:1.5rem">
-          <a class="btn btn-primary" href="operators.html">Get Sandbox Access</a>
+          <a class="btn btn-primary" href="operators.html">Operator details</a>
         </div>
       </article>
     </div>
@@ -363,7 +441,7 @@ function buildRootLanding() {
 
   return shell({
     title: 'TiltCheck | The Degen Audit Layer',
-    description: SITE_ONE_LINER,
+    description: SITE_META_DESCRIPTION,
     depth: 'root',
     current: 'home',
     body: content,
@@ -385,10 +463,20 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: 'Browser extension',
     title: 'TiltCheck lives in the casino tab.',
-    lede: 'Runs inside your active session — blocks pressure loops before they cook your account. Sideload beta now; store listing later.',
+    lede: 'This is the main product. A free Chrome extension that watches your live online-casino session — bet pacing, tilt spirals, pressure loops — and enforces the exit rules you set. Read-only. No wallet keys. Sideload beta now; store listing later.',
     actionsHtml: actions,
   })}
 <main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell explainer">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Why install</span>
+        <h2 class="public-page-section-heading__title">You already know the spiral.</h2>
+      </div>
+      <p class="explainer__p">Three losses. Bet size climbs. “Im due.” Another deposit. The extension’s job is to notice that pacing while the tab is still open and push the exit you configured when you were still thinking straight.</p>
+      <p class="explainer__p">It does not place bets for you. It does not “beat the house.” It is brakes — the same idea as a seatbelt, except for sessions that feel immortal at 2am.</p>
+    </div>
+  </section>
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
@@ -398,7 +486,7 @@ function buildExtensionPage() {
           <li>Download the zip, extract to a folder.</li>
           <li><code>chrome://extensions</code> → Developer mode → Load unpacked → select folder.</li>
         </ol>
-        <p class="public-page-card__copy">Then open dashboard setup on tiltcheck.me before a live session.</p>
+        <p class="public-page-card__copy">Then open dashboard setup on tiltcheck.me before a live session so your profit/loss lines are set.</p>
       </article>
     </div>
   </section>
@@ -415,7 +503,7 @@ function buildExtensionPage() {
 
   return shell({
     title: 'Extension | TiltCheck',
-    description: 'TiltCheck browser extension — read-only session guardrail in the casino tab.',
+    description: 'Install the TiltCheck Chrome extension — read-only session guardrail that watches tilt and enforces your exit rules.',
     depth: 'root',
     current: 'extension',
     body: content,
@@ -501,7 +589,7 @@ function buildCasinosPage(casinos) {
   const content = `${productHero({
     eyebrow: 'Casino trust',
     title: 'Look up the operator. Read the proof.',
-    lede: `Curated grades for ${casinos.length} operators on this static mirror. Full proof lanes and live RGaaS overlays stay on tiltcheck.me.`,
+    lede: `Before you deposit, check who you are playing. This page lists ${casinos.length} curated operators with letter grades and risk labels (sweeps, crypto, regulated, scam, and more). It is a starting point — not a green light. Full license, domain, and scam proof lanes open on tiltcheck.me.`,
     actionsHtml: `<a class="btn btn-primary" href="${SITE_URL}/casinos">Open live directory</a>
     <a class="hero-actions__secondary-link" href="tools.html">Related tools</a>`,
   })}
@@ -565,7 +653,7 @@ function buildToolsPage() {
   const content = `${productHero({
     eyebrow: 'TiltCheck Toolkit',
     title: 'Install first. Tools second.',
-    lede: 'Static catalog of the toolkit. Interactive verifiers and scanners run on tiltcheck.me — this page is the map.',
+    lede: 'The extension is the session brakes. These tools are the homework: verify a bet from seeds, compare claimed payout vs what you got, check if a domain is sus, look up geo rules, track bonus timers. Interactive versions run on tiltcheck.me — this page tells you what each tool is for.',
     actionsHtml: `<a class="btn btn-primary" href="extension.html">Install extension</a>
     <a class="hero-actions__secondary-link" href="${SITE_URL}/tools">Open live tools</a>`,
   })}
