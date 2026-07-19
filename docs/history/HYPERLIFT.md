@@ -1,5 +1,8 @@
 # TiltCheck Deployment with Starlight™ Hyperlift
 
+> **OBSOLETE (2026-07-19):** Paths like `Dockerfile.unified` and `services/landing` no longer exist.
+> Use **[docs/migration/spaceship-hyperlift-cutover.md](../migration/spaceship-hyperlift-cutover.md)** for phase-1 Hyperlift (`apps/web` + `apps/api`).
+
 Deploy TiltCheck containerized apps directly from GitHub with [Starlight™ Hyperlift](https://www.spaceship.com/starlight-cloud/hyperlift/) — no DevOps or infrastructure setup required.
 
 > 📋 **For a complete list of ALL environment variables**, see **[SPACESHIP-DEPLOYMENT-ENV.md](./SPACESHIP-DEPLOYMENT-ENV.md)**
