@@ -2,6 +2,10 @@
 
 # Exit Railway — Full Stack Migration Plan
 
+> **Path B (2026-07-19):** Phase-1 production home is Spaceship Hyperlift
+> (`docs/migration/spaceship-hyperlift-cutover.md`). This VPS+tunnel plan remains valid
+> if Hyperlift is left later; do not treat Railway as live.
+
 Move every containerized TiltCheck service off Railway while keeping **Cloudflare DNS + Tunnel** as the public edge. Domains stay on `tiltcheck.me`; only the compute backend changes.
 
 ## Target architecture
