@@ -50,7 +50,7 @@ Before touching Hyperlift or DNS:
 1. **Spaceship Hyperlift account** — Starlight tier with pay-as-you-go billing active (trial alone may not cut it for monorepo builds).
 2. **GitHub connected** — Hyperlift linked to the TiltCheck monorepo; deploy branch chosen (`main` or release branch).
 3. **Cloudflare zone** — `tiltcheck.me` active; nameservers remain Cloudflare (registrar stays Spaceship).
-4. **Secrets ready offline** — `JWT_SECRET`, Discord OAuth creds if login routes stay on, any DB/API keys the API needs. Store in a password manager or local `.env` scratch file. **Never commit secrets to git or this repo.**
+4. **Secrets ready offline** — API boot requires `JWT_SECRET`, `DISCORD_CLIENT_ID`, and `DISCORD_CLIENT_SECRET` (real Discord OAuth app creds from the developer portal). Add DB/API keys only if routes you enable need them. Store in a password manager or local `.env` scratch file. **Never commit secrets to git or this repo.**
 
 Optional but recommended: note current Cloudflare records (screenshot or export) so rollback has a known-good snapshot.
 
@@ -88,19 +88,22 @@ NEXT_PUBLIC_API_URL=https://api.tiltcheck.me
 
 ### API (runtime)
 
+The API process **fails fast at boot** if any of the three required vars below are missing (`apps/api/src/index.ts`). Set all three in Hyperlift before the first deploy.
+
 ```bash
 NODE_ENV=production
 PORT=8080
 HOST=0.0.0.0
 JWT_SECRET=<generate>
-DISCORD_CLIENT_ID=<if OAuth routes enabled>
-DISCORD_CLIENT_SECRET=<if OAuth routes enabled>
-# Do not enable SKIP_ENV_VALIDATION in real prod unless temporarily unblocking a known gap
+DISCORD_CLIENT_ID=<Discord OAuth app client id>
+DISCORD_CLIENT_SECRET=<Discord OAuth app client secret>
 ```
 
-Generate `JWT_SECRET` with a cryptographically random 32+ byte value (e.g. `openssl rand -hex 32`). Paste into Hyperlift dashboard only.
+Generate `JWT_SECRET` with a cryptographically random 32+ byte value (e.g. `openssl rand -hex 32`). Use the same Discord OAuth application you use for production login (developer portal → OAuth2). Paste values into the Hyperlift dashboard only.
 
-Add other API env vars (database URL, Redis, etc.) only if the routes you enable require them. Phase 1 health and public web flows should work without Discord bots deployed.
+Add other API env vars (database URL, Redis, etc.) only if the routes you enable require them. Phase 1 health and public web flows should work without Discord **bots** deployed — but the API still needs Discord **OAuth** creds to start.
+
+**`SKIP_ENV_VALIDATION`:** Used elsewhere in the monorepo (`packages/config`) for local/dev shortcuts. It does **not** bypass the API gateway's startup required-env check. Do not set it on Hyperlift expecting to omit `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, or `JWT_SECRET` — the API will exit before listening.
 
 ## Cloudflare DNS
 
