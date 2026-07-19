@@ -1,17 +1,9 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19
+# Parked: Railway is not the live host. Manual dispatch only. See docs/migration/spaceship-hyperlift-cutover.md
 name: Deploy Services to Railway
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/**'
-      - 'packages/**'
-      - 'modules/**'
-      - '.dockerignore'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/deploy-railway.yml'
+  # Parked 2026-07-19: Railway is not the live host. Manual only if account restored.
   workflow_dispatch:
 
 permissions:

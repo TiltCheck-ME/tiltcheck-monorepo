@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19
 name: Brand Law Enforcer
 
 on:
@@ -44,6 +44,7 @@ jobs:
 
           EXCLUDE_PATHS=(
             '.env.example'
+            'docs'
             'docs/history'
           )
 
@@ -54,32 +55,55 @@ jobs:
                 return 0
               fi
             done
+            # Markdown often documents env *names* — never treat that as a leaked secret.
+            if [[ "$file" == *.md ]]; then
+              return 0
+            fi
             return 1
           }
 
-          # Check for hardcoded secrets in the PR diff (skip template and archive paths)
+          # Hardcoded secret *values* only (added lines in non-doc paths).
+          # Naming JWT_SECRET / DISCORD_TOKEN in runbooks or DEPLOY.md is not a leak.
           SECRET_HITS=$(
             git diff "${BASE_SHA}..${HEAD_SHA}" -- . \
               ':(exclude).env.example' \
-              ':(exclude)docs/history' \
-            | grep -E "(sk_live_|DISCORD_TOKEN|JWT_SECRET|DATABASE_URL)" \
-            | grep -v renovate \
+              ':(exclude)docs' \
+              ':(exclude)**/*.md' \
+            | grep -E '^\+[^+]' \
+            | grep -E "(sk_live_[A-Za-z0-9]{8,}|sk_test_[A-Za-z0-9]{8,}|xox[baprs]-[A-Za-z0-9-]{10,})" \
+            | grep -viE 'example|placeholder|replace_me|your_|<.*>|REDACTED' \
             || true
           )
-          if [ -n "$SECRET_HITS" ]; then
-            echo "CRITICAL: Hardcoded secrets detected in PR diff"
+          # Also catch long assigned values for common secret env names in code/config (not docs).
+          SECRET_ASSIGN_HITS=$(
+            git diff "${BASE_SHA}..${HEAD_SHA}" -- . \
+              ':(exclude).env.example' \
+              ':(exclude)docs' \
+              ':(exclude)**/*.md' \
+            | grep -E '^\+[^+]' \
+            | grep -E "(DISCORD_TOKEN|JWT_SECRET|DATABASE_URL)[[:space:]]*=[[:space:]]*['\"][^'\"]{16,}['\"]" \
+            | grep -viE 'example|placeholder|replace_me|your_|<.*>|REDACTED|generate' \
+            || true
+          )
+          if [ -n "$SECRET_HITS$SECRET_ASSIGN_HITS" ]; then
+            echo "CRITICAL: Hardcoded secrets detected in PR diff (non-doc added lines)"
             echo "$SECRET_HITS"
+            echo "$SECRET_ASSIGN_HITS"
             CRITICAL=$((CRITICAL + 1))
           fi
 
-          # Check for custodial patterns in changed source files
+          # Custodial patterns in changed source files (not markdown / docs).
+          # Exclude tests and common false positives (seed scripts, mocks).
           for file in ${{ steps.changed.outputs.all_changed_files }}; do
             if should_skip_file "$file"; then
               continue
             fi
             if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [ -f "$file" ]; then
-              if grep -E "privateKey|private_key|seed|mnemonic" "$file" \
-                | grep -vE "node_modules|dist|\.next|test|mock|example|placeholder"; then
+              if [[ "$file" =~ (test|spec|mock|fixture) ]]; then
+                continue
+              fi
+              if grep -E "privateKey|private_key|mnemonic" "$file" \
+                | grep -vE "node_modules|dist|\.next|example|placeholder|process\.env|ENV\."; then
                 echo "CRITICAL: Potential custodial code detected in $file"
                 CRITICAL=$((CRITICAL + 1))
               fi

@@ -1,4 +1,9 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19 -->
+
 # TiltCheck All-In-One Hyperlift Deployment
+
+> **OBSOLETE (2026-07-19):** Paths like `Dockerfile.unified` and `services/landing` no longer exist.
+> Use **[docs/migration/spaceship-hyperlift-cutover.md](../migration/spaceship-hyperlift-cutover.md)** for phase-1 Hyperlift (`apps/web` + `apps/api`).
 
 Deploy the entire TiltCheck ecosystem in **one Hyperlift instance** using `Dockerfile.unified`.
 

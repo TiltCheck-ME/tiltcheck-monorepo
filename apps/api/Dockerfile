@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -38,5 +38,6 @@ COPY --from=build /app/modules ./modules
 COPY --from=build /app/data ./data
 COPY --from=build /app/package.json ./package.json
 
-EXPOSE 3001
+# Hyperlift injects PORT; production default is 8080 when unset (see runtime-config.ts).
+EXPOSE 8080
 CMD ["node", "apps/api/dist/index.js"]

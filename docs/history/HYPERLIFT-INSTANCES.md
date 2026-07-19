@@ -1,4 +1,9 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19 -->
+
 # Separate Starlight™ Hyperlift Instances
+
+> **OBSOLETE (2026-07-19):** Paths like `Dockerfile.unified` and `services/landing` no longer exist.
+> Use **[docs/migration/spaceship-hyperlift-cutover.md](../migration/spaceship-hyperlift-cutover.md)** for phase-1 Hyperlift (`apps/web` + `apps/api`).
 
 This document lists the recommended subdomain and Dockerfile path for deploying separate Hyperlift instances of the TiltCheck ecosystem.
 

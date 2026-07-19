@@ -1,4 +1,10 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19 -->
+
 # TiltCheck Spaceship/Hyperlift Deployment - Environment Variables Guide
+
+> **OBSOLETE (2026-07-19):** Paths like `Dockerfile.unified` and `services/landing` no longer exist.
+> Use **[docs/migration/spaceship-hyperlift-cutover.md](../migration/spaceship-hyperlift-cutover.md)** for phase-1 Hyperlift (`apps/web` + `apps/api`).
+> Env variable *names* below may still hint at what to configure; Dockerfile paths and PORT assumptions in this file are not authoritative.
 
 This document lists **ALL environment variables** you need to configure in the Spaceship/Hyperlift deployment manager to successfully deploy the TiltCheck ecosystem.
 

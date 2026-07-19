@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19 -->
 
 # TiltCheck Agent Directory
 
@@ -43,26 +43,28 @@ Located in .github/agents/ and .github/workflows/
 | TiltCheck Agent | .github/agents/tiltcheck-agent.yaml | General monorepo task orchestrator. |
 | Scribe Agent | .github/agents/scribe-agent.md | Enforces Zero-Drift policy and project laws. |
 
-## 4. Deployment Reality (GHCR -> Railway)
-This repo does not ship an active tracked GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Non-Railway surfaces either deploy through Cloudflare Workers or stay manual/browser-asset paths.
+## 4. Deployment Reality (Hyperlift phase-1)
+This repo does not ship an active tracked GCP deploy workflow. Phase-1 production compute is Spaceship Starlight Hyperlift (`apps/web`, `apps/api`). The Railway GHCR workflow is parked (`workflow_dispatch` only). Non-Hyperlift surfaces either deploy through Cloudflare Workers, VPS compose (path B), or stay manual/browser-asset paths.
 
 | Surface | Delivery | Source of Truth | Verdict |
 | :--- | :--- | :--- | :--- |
-| **api** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Central Gateway. |
-| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
-| **discord-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: primary TiltCheck bot runtime. |
-| **justthetip-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate tipping bot service. |
-| **dad-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate dad bot service. |
-| **trust-rollup** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Trust Engine aggregator. |
-| **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
-| **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
-| **user-dashboard** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
-| **activity** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
-| **cloudflared** | Optional GHCR -> Railway | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Optional tunnel daemon only if Cloudflare Tunnel is the chosen ingress path. |
+| **api** | Spaceship Hyperlift | `docs/migration/spaceship-hyperlift-cutover.md` | Live phase-1 target. |
+| **web** | Spaceship Hyperlift | `docs/migration/spaceship-hyperlift-cutover.md` | Live phase-1 target. |
+| **discord-bot** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Optional / not phase-1. |
+| **justthetip-bot** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Optional / not phase-1. |
+| **dad-bot** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Optional / not phase-1. |
+| **trust-rollup** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Parked / not phase-1. |
+| **control-room** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Parked / not phase-1. |
+| **game-arena** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Parked / not phase-1. |
+| **user-dashboard** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Parked / not phase-1. |
+| **activity** | GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` | Parked / not phase-1. |
+| **cloudflared** | Optional GHCR -> Railway (parked) | `.github/workflows/deploy-railway.yml` + `.github/workflows/configure-tunnel.yml` | Parked / not phase-1; tunnel not required for Hyperlift phase 1. |
 | **hub** | Cloudflare Workers via Wrangler | `.github/workflows/deploy-hub.yml` | Worker deploy for `apps/hub`; public `hub.tiltcheck.me` may map to `user-dashboard` or this Worker depending on live ingress. Confirm routing before assuming either path. |
 | **chrome-extension** | Browser asset | Manual packaging from `apps/chrome-extension` | Functional browser asset pointing at production API. |
 | **degens-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
 | **tiltcheck-activity** | Manual/browser asset | No repo-wired production workflow | Not wired to production in-repo. |
+
+Railway GHCR workflow is parked (`workflow_dispatch` only); Discord bots are optional and not phase-1. VPS compose (`deploy-stack.yml` + `docs/migration/exit-railway-plan.md`) is path B if Hyperlift is left later.
 
 ## 5. Core System Modules
 Functional code located in modules/
@@ -74,7 +76,7 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-05-18
+Last Updated: 2026-07-19
 
 ## 6. GitHub Copilot Custom Agents
 Located in .github/agents/
