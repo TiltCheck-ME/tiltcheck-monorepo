@@ -187,7 +187,7 @@ Explicitly not phase 1. Ship the host first; persistence and bots come later.
 | Promo durability | Supabase or volume-backed store — design after apex is live |
 | Discord bots | Separate Hyperlift apps or VPS compose stack — optional product choice |
 | Remaining subdomains | dashboard, activity, arena, admin, trust-rollup — path B or later Hyperlift apps |
-| `deploy-railway.yml` | Park in repo (later task) — Railway is not prod |
+| `deploy-railway.yml` | Parked in repo (`workflow_dispatch` only) — Railway is not prod |
 
 When promo persistence lands, update this runbook or add a phase-2 doc — do not silently assume Hyperlift volumes behave like a database.
 

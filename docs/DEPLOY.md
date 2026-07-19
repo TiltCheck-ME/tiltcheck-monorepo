@@ -19,7 +19,7 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 
 | Workflow | Required secrets | Notes |
 | :--- | :--- | :--- |
-| `.github/workflows/deploy-railway.yml` | `RAILWAY_TOKEN` | Legacy production redeploy to Railway. Disable after VPS cutover. |
+| `.github/workflows/deploy-railway.yml` | `RAILWAY_TOKEN` | Parked / historical Railway redeploy (`workflow_dispatch` only). Not live production. |
 | `.github/workflows/deploy-stack.yml` | `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, optional `VPS_DEPLOY_PATH` | Manual VPS compose deploy (Railway exit). |
 | `.github/workflows/deploy-hub.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Deploys `apps/hub` with Wrangler to Cloudflare Workers. D1 and KV bindings remain configured in `apps/hub/wrangler.toml`. |
 | `.github/workflows/configure-tunnel.yml` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID` | Optional: reconciles tunnel ingress rules and DNS when Cloudflare Tunnel is the chosen public ingress path. |
@@ -30,7 +30,7 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | Deployable | Source | Delivery | Workflow | GHCR image | Railway service | Required env (minimum confirmed in repo) | Smoke target |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `api` | `apps/api` | Hyperlift Dockerfile deploy | Spaceship dashboard (see `docs/migration/spaceship-hyperlift-cutover.md`) | n/a | n/a | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `JWT_SECRET` | `https://api.tiltcheck.me/health` |
-| `web` | `apps/web` | Hyperlift Dockerfile deploy | Spaceship dashboard | n/a | n/a | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_DASHBOARD_URL` | `https://tiltcheck.me/` |
+| `web` | `apps/web` | Hyperlift Dockerfile deploy | Spaceship dashboard | n/a | n/a | `NEXT_PUBLIC_API_URL` (required); `NEXT_PUBLIC_DASHBOARD_URL` optional for phase-1 marketing shell | `https://tiltcheck.me/` |
 | `discord-bot` | `apps/discord-bot` | GHCR -> Railway (parked / not phase-1) | `.github/workflows/deploy-railway.yml` (`workflow_dispatch` only) | `ghcr.io/tiltcheck-me/tiltcheck-discord-bot` | `discord-bot` | `DISCORD_CLIENT_ID` plus one bot token var (`TILT_DISCORD_BOT_TOKEN`, `DISCORD_TOKEN`, or `DISCORD_BOT_TOKEN`) | Railway private `/health` on port `8080` |
 | `justthetip-bot` | `apps/justthetip-bot` | GHCR -> Railway (parked / not phase-1) | `.github/workflows/deploy-railway.yml` (`workflow_dispatch` only) | `ghcr.io/tiltcheck-me/tiltcheck-justthetip-bot` | `justthetip-bot` | `DISCORD_CLIENT_ID`, `JTT_DISCORD_BOT_TOKEN` or fallback token vars, plus `JUSTTHETIP_BOT_WALLET_PRIVATE_KEY` in prod | Railway private `/health` on port `8082` |
 | `dad-bot` | `apps/dad-bot` | GHCR -> Railway (parked / not phase-1) | `.github/workflows/deploy-railway.yml` (`workflow_dispatch` only) | `ghcr.io/tiltcheck-me/tiltcheck-dad-bot` | `dad-bot` | `DISCORD_CLIENT_ID` plus one dad bot token var (`DAD_DISCORD_BOT_TOKEN`, `DISCORD_TOKEN`, or `DISCORD_BOT_TOKEN`) | Railway private `/health` on service port |
@@ -55,16 +55,22 @@ Packages such as **`@tiltcheck/event-router`** point `exports` at **`dist/*.js`*
 
 ## Public Routing
 
-Public hostnames do not automatically come from the deploy workflow itself. This repo includes an optional Cloudflare Tunnel reconciler at `.github/workflows/configure-tunnel.yml` with `ingress_target`:
+Phase-1 production edge is **Cloudflare DNS → Hyperlift origins** (proxied CNAME/A records to each Hyperlift app URL). No tunnel is required for `tiltcheck.me`, `www`, or `api.tiltcheck.me` while web and api run on Hyperlift.
 
-| Target | Config file | Upstream style |
-|--------|-------------|----------------|
-| `railway` (legacy) | `infra/compose/tunnel-ingress.railway.json` | `*.railway.internal` |
-| `compose` (VPS exit) | `infra/compose/tunnel-ingress.compose.json` | Docker service names (`api:3001`, `web:3000`, …) |
+| Phase | Edge | Upstream |
+|-------|------|----------|
+| **Phase 1 (current)** | Cloudflare DNS → Hyperlift | `apps/web/Dockerfile` on `tiltcheck.me` / `www`; `apps/api/Dockerfile` on `api.tiltcheck.me` |
+| **Path B (optional)** | Cloudflare DNS → Tunnel → VPS compose | See `docs/migration/exit-railway-plan.md` and `infra/compose/tunnel-ingress.compose.json` |
+| **Parked / historical** | Cloudflare Tunnel → Railway internal | `infra/compose/tunnel-ingress.railway.json` — not live production |
 
-Teams may also map custom domains directly in Railway or on the VPS host without the tunnel workflow.
+### Hyperlift ingress (phase 1)
 
-### Compose ingress (VPS target)
+- `tiltcheck.me` and `www.tiltcheck.me` → Hyperlift `tiltcheck-web` app (listens on `PORT`, default `8080`)
+- `api.tiltcheck.me` → Hyperlift `tiltcheck-api` app (listens on `PORT`, default `8080`)
+
+### Compose ingress (path B — VPS + tunnel)
+
+Optional reconciler: `.github/workflows/configure-tunnel.yml` with `ingress_target: compose`.
 
 - `api.tiltcheck.me` -> `api:3001`
 - `tiltcheck.me` and `www.tiltcheck.me` -> `web:3000`
@@ -73,13 +79,13 @@ Teams may also map custom domains directly in Railway or on the VPS host without
 - `arena.tiltcheck.me` / `game-arena.tiltcheck.me` -> `game-arena:8080`
 - `admin.tiltcheck.me` -> `control-room:3001`
 
-### Railway ingress (legacy)
+### Railway ingress (parked / historical)
 
-- Same hostnames via `*.railway.internal` — see `infra/compose/tunnel-ingress.railway.json`
+Same hostnames via `*.railway.internal` — see `infra/compose/tunnel-ingress.railway.json`. Railway is not the live host after Hyperlift phase 1.
 
-## Discord Activity (`apps/activity`) — production checklist
+## Discord Activity (`apps/activity`) — production checklist (parked / not phase-1)
 
-This app is the primary hosted Discord Embedded Activity for TiltCheck. Static assets are served from nginx in Docker; delivery matches the `activity` row in **Deploy Inventory** above.
+This app is the primary hosted Discord Embedded Activity for TiltCheck. Static assets are served from nginx in Docker. **Railway delivery is parked** — not live production after Hyperlift phase 1. The notes below are historical wiring for when the `activity` service is redeployed.
 
 ### Hosting target (locked)
 
@@ -87,18 +93,18 @@ This app is the primary hosted Discord Embedded Activity for TiltCheck. Static a
 | :--- | :--- |
 | Public URL | `https://activity.tiltcheck.me` |
 | Image | `ghcr.io/tiltcheck-me/tiltcheck-activity` |
-| CI/CD | `.github/workflows/deploy-railway.yml` (rebuild on `apps/activity/**`, shared deps, or `workflow_dispatch`) |
-| Railway wiring | Service consumes the SHA-tagged GHCR image; redeploy job uses the same pattern as other monorepo containers |
+| CI/CD | `.github/workflows/deploy-railway.yml` (parked — `workflow_dispatch` only) |
+| Railway wiring | Historical: service consumed SHA-tagged GHCR image when Railway was live |
 
 ### HTTPS verification
 
-- Expect TLS via the public edge (Cloudflare and/or Railway custom domain). From browser DevTools, confirm the document URL is `https://activity.tiltcheck.me/` and the certificate chain is valid.
-- Automated `curl -sSI https://activity.tiltcheck.me/` may return **403** with Cloudflare challenge headers (`cf-mitigated`, `server: cloudflare`). That is not proof the origin is broken; bots and headless clients often fail JS challenges. Prefer a browser check, Railway deploy status, or hitting the container health path from Railway’s internal probe (healthcheck uses `/` per `apps/activity/railway.json`).
+- Expect TLS via the public edge (Cloudflare and/or a parked Railway custom domain). From browser DevTools, confirm the document URL is `https://activity.tiltcheck.me/` and the certificate chain is valid.
+- Automated `curl -sSI https://activity.tiltcheck.me/` may return **403** with Cloudflare challenge headers (`cf-mitigated`, `server: cloudflare`). That is not proof the origin is broken; bots and headless clients often fail JS challenges. Prefer a browser check or origin health when the service is actually deployed.
 - Optional strict TLS inspect (may still hit CF): `echo | openssl s_client -servername activity.tiltcheck.me -connect activity.tiltcheck.me:443 2>/dev/null | openssl x509 -noout -subject -dates`
 
 ### Discord Developer Portal (allowlist / origins)
 
-Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (Railway env for the `activity` service).
+Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (set in the parked Railway env or future host).
 
 1. **Embedded App / Activity URL:** `https://activity.tiltcheck.me/` (keep consistent with what you ship; SPA entry is `index.html`).
 2. **OAuth2 redirects:** include `https://<APPLICATION_ID>.discordsays.com`. The Embedded App SDK `authorize()` flow exchanges codes against this host; `POST /auth/discord/activity/token` on the API defaults to that redirect URI (`apps/api/src/routes/auth.ts`).
@@ -108,20 +114,20 @@ Use the **same Discord application** as `VITE_DISCORD_CLIENT_ID` at build time (
 
 - `isAllowedActivityRedirectUri` allows HTTPS hosts under `*.tiltcheck.me` and `*.discordsays.com`, so production and Discord proxy URIs stay aligned without code edits when the hostname is under `tiltcheck.me`.
 
-### Internal networking (Railway)
+### Internal networking (parked Railway pattern)
 
-- apps/activity/Dockerfile nginx proxies /api/ to the private API service and /socket.io/ to game-arena (both hardcoded to port :3000 in the Dockerfile). Those internal hostnames must resolve inside the same Railway project/environment or bonus feed, auth exchange, and arena realtime features degrade.
-- If optional Cloudflare Tunnel ingress is enabled (`.github/workflows/configure-tunnel.yml`), keep the tunnel upstream port for `activity.railway.internal` aligned with the Railway private port for the `activity` service (image listens on `8080`; Railway may map a different internal port in project settings).
+- apps/activity/Dockerfile nginx proxies /api/ to the private API service and /socket.io/ to game-arena (both hardcoded to port :3000 in the Dockerfile). Those internal hostnames must resolve inside the same Railway project/environment or bonus feed, auth exchange, and arena realtime features degrade — **only when Railway was the live host**.
+- If optional Cloudflare Tunnel ingress is enabled (`.github/workflows/configure-tunnel.yml`), keep the tunnel upstream port for `activity.railway.internal` aligned with the Railway private port for the `activity` service (image listens on `8080`; Railway may map a different internal port in project settings). Historical path B / parked Railway only.
 
 ### How to verify health end-to-end
 
-1. **Pipeline:** After merge to `main`, confirm the workflow built the **`activity`** image (`ghcr.io/tiltcheck-me/tiltcheck-activity`) and Railway deployed the `activity` service.
+1. **Pipeline:** When Railway was live, confirm the workflow built the **`activity`** image (`ghcr.io/tiltcheck-me/tiltcheck-activity`) and Railway deployed the `activity` service.
 2. **Edge:** Open `https://activity.tiltcheck.me/` in a browser; you should get the SPA (not a persistent 5xx). Fetch `https://activity.tiltcheck.me/version.json` after a deploy if you need a coarse build stamp (generated at Vite build).
 3. **Discord:** Join a voice channel, launch the Embedded Activity, and confirm the shell reaches CONNECTED (not permanently DEMO MODE). DEMO MODE usually means SDK or token exchange failed—check API logs for `/auth/discord/activity/token` and Discord OAuth config.
 
-- **Activity-only rollback:** In Railway, roll back the `activity` service to a previous image or redeploy a known-good tag from GHCR.
+- **Activity-only rollback (parked Railway):** If Railway is restored, roll back the `activity` service to a previous image or redeploy a known-good tag from GHCR.
 
-## Degens Activity (`apps/degens-activity`) — second Railway service
+## Degens Activity (`apps/degens-activity`) — second service (parked / not phase-1)
 
 This is the **separate** Discord Embedded App for the Degens lobby (DA&D, trivia, jackpot). It does **not** ship from the `activity` service on `activity.tiltcheck.me`. Run a **second** Railway service so you have two public URLs: **TiltCheck shell** vs **Degens games**.
 
@@ -166,9 +172,10 @@ If you copy the `apps/activity` Dockerfile pattern, proxy **`/socket.io/`** to `
 
 ## Rollback Notes
 
-- Container services: rollback from the Railway dashboard to the prior image, **or** on VPS `export IMAGE_TAG=<previous-sha> && bash scripts/ops/deploy-ghcr-stack.sh`
+- **Hyperlift (phase 1):** revert Cloudflare DNS to prior targets; redeploy prior Hyperlift build from Spaceship dashboard.
+- Container services (parked Railway / path B VPS): rollback from the Railway dashboard to the prior image when Railway is in use, **or** on VPS `export IMAGE_TAG=<previous-sha> && bash scripts/ops/deploy-ghcr-stack.sh`
 - `hub` Worker: rollback from the Cloudflare dashboard or redeploy the previous Worker bundle with Wrangler.
-- Tunnel drift: rerun `.github/workflows/configure-tunnel.yml` with the correct `ingress_target` (`railway` or `compose`).
+- Tunnel drift (path B only): rerun `.github/workflows/configure-tunnel.yml` with `ingress_target: compose`.
 - Browser assets: republish the previous extension or SPA artifact manually.
 
 ## Manual Publish Notes

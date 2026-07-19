@@ -1,6 +1,6 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19
 # TiltCheck Web (Landing Page) - Production Container
-# Built for GitHub Actions -> GHCR -> Railway deploys in the monorepo
+# Built for Spaceship Hyperlift (phase-1); GHCR/Railway path is parked
 
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
@@ -41,6 +41,7 @@ COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build /app/apps/web/public ./apps/web/public
 
-EXPOSE 3000
-ENV PORT=3000
+# Hyperlift injects PORT; listen on 8080 by default.
+EXPOSE 8080
+ENV PORT=8080
 CMD ["node", "apps/web/server.js"]
