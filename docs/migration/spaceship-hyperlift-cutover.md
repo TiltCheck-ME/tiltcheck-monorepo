@@ -190,3 +190,15 @@ Explicitly not phase 1. Ship the host first; persistence and bots come later.
 | `deploy-railway.yml` | Park in repo (later task) — Railway is not prod |
 
 When promo persistence lands, update this runbook or add a phase-2 doc — do not silently assume Hyperlift volumes behave like a database.
+
+## Founder execution checklist
+
+- [ ] Connect GitHub repo to Hyperlift
+- [ ] Create `tiltcheck-api` app (Dockerfile `apps/api/Dockerfile`, context `.`)
+- [ ] Set API env; build; confirm `/health` on Hyperlift URL
+- [ ] Create `tiltcheck-web` app (Dockerfile `apps/web/Dockerfile`, context `.`)
+- [ ] Set web build/runtime env including `NEXT_PUBLIC_API_URL`; build; confirm `/` on Hyperlift URL
+- [ ] Attach custom domains in Hyperlift if required
+- [ ] Cloudflare: point apex/`www`/`api` at Hyperlift; remove tunnel/Railway leftovers
+- [ ] Smoke `https://tiltcheck.me/`, `https://api.tiltcheck.me/health`, `https://tiltcheck.me/bonuses`
+- [ ] Confirm `deploy-railway.yml` is parked on `main`
