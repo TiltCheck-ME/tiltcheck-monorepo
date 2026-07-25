@@ -90,7 +90,7 @@
     "pa11y": "^9.1.1",
     "prettier": "^3.8.1",
     "puppeteer": "^24.40.0",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.0",
     "supertest": "^7.2.2",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.57.2",
