@@ -16,6 +16,25 @@ vi.mock('../../src/lib/live-feed-data.js', () => ({
   })),
 }));
 
+vi.mock('../../src/middleware/auth.js', () => ({
+  internalServiceAuth: (req: any, res: any, next: (err?: unknown) => void) => {
+    const secret = process.env.INTERNAL_API_SECRET?.trim();
+    if (!secret) {
+      res.status(503).json({
+        error: 'Internal service authentication not configured',
+        code: 'SERVICE_AUTH_DISABLED',
+      });
+      return;
+    }
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${secret}`) {
+      res.status(401).json({ error: 'Invalid service token', code: 'UNAUTHORIZED' });
+      return;
+    }
+    next();
+  },
+}));
+
 vi.mock('@tiltcheck/event-router', () => ({
   eventRouter: {
     publish: vi.fn(async () => ({ id: 'evt-1' })),
@@ -74,6 +93,8 @@ const AUTH = {
 describe('Instant Redeem sandbox routes', () => {
   beforeEach(() => {
     process.env.INSTANT_REDEEM_REGISTRY_PATH = `/tmp/tiltcheck-instant-redeem-registry-${process.pid}.json`;
+    process.env.INSTANT_REDEEM_PRODUCTION_PATH = `/tmp/tiltcheck-instant-redeem-production-${process.pid}.json`;
+    delete process.env.INSTANT_REDEEM_LIVE_SETTLEMENT;
     __resetRedeemSandboxStateForTests();
     vi.clearAllMocks();
     vi.mocked(findPartnerByAppId).mockResolvedValue(makePartner() as any);
@@ -477,12 +498,15 @@ describe('Instant Redeem sandbox routes', () => {
     const response = await request(app).get('/v1/redeem/readiness');
     expect([200, 503]).toContain(response.status);
     expect(response.body.product).toBe('instant_redeem');
+    expect(response.body.phase).toBe('phase5_production_scaffolding');
     expect(response.body.talkTrack.oneLiner).toContain('Wen payout');
     expect(response.body.checklist.some((item: { id: string }) => item.id === 'irrevocable')).toBe(true);
+    expect(response.body.checklist.some((item: { id: string }) => item.id === 'phase5_float_contract')).toBe(true);
     expect(response.body.onboarding.readinessPage).toContain('/operators/instant-redeem/readiness');
+    expect(response.body.onboarding.phase5Doc).toContain('PHASE5');
   });
 
-  it('rejects production-mode partners for Instant Redeem', async () => {
+  it('rejects unapproved production-mode partners for Instant Redeem', async () => {
     vi.mocked(findPartnerByAppId).mockResolvedValueOnce(
       makePartner({ mode: 'production', app_id: 'prod_acme', secret_key: 'sk_prod_secret' }) as any,
     );
@@ -502,6 +526,116 @@ describe('Instant Redeem sandbox routes', () => {
       });
 
     expect(response.status).toBe(403);
-    expect(response.body.code).toBe('REDEEM_SANDBOX_ONLY');
+    expect(response.body.code).toBe('REDEEM_PRODUCTION_REQUIRED');
+  });
+
+  it('rejects tiltcheck as float holder on production request', async () => {
+    const response = await request(app)
+      .post('/v1/redeem/production/request')
+      .set(AUTH)
+      .send({
+        partnerType: 'processor',
+        coveredDomains: ['alpha.casino'],
+        float: {
+          holder: 'tiltcheck',
+          currency: 'USD',
+          softCapUsd: 1000,
+          hardCapUsd: 5000,
+        },
+        rails: ['ach'],
+        contractRef: 'loi-test-1',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('REDEEM_PRODUCTION_REQUEST_INVALID');
+  });
+
+  it('requests, approves, and allows production Instant Redeem with processor stub', async () => {
+    const PROD_AUTH = {
+      'X-TiltCheck-App-Id': 'prod_acme',
+      'X-TiltCheck-Secret-Key': 'sk_prod_secret',
+      'X-Requested-With': 'TiltCheckPartner',
+    };
+
+    vi.mocked(findPartnerByAppId).mockResolvedValue(
+      makePartner({
+        id: 'partner-prod-1',
+        mode: 'production',
+        app_id: 'prod_acme',
+        secret_key: 'sk_prod_secret',
+      }) as any,
+    );
+
+    const requestGrant = await request(app)
+      .post('/v1/redeem/production/request')
+      .set(PROD_AUTH)
+      .send({
+        partnerType: 'processor',
+        coveredDomains: ['acme.example', 'beta.casino'],
+        float: {
+          holder: 'processor',
+          currency: 'USD',
+          softCapUsd: 50_000,
+          hardCapUsd: 100_000,
+        },
+        rails: ['ach', 'interac'],
+        feeShareBps: 150,
+        rebuyCooloffHours: 24,
+        contractRef: 'loi-acme-2026',
+      });
+
+    expect(requestGrant.status).toBe(201);
+    expect(requestGrant.body.grant.status).toBe('requested');
+    expect(requestGrant.body.grant.float.holder).toBe('processor');
+
+    process.env.INTERNAL_API_SECRET = 'test-internal-secret';
+    const approve = await request(app)
+      .post('/v1/redeem/production/approve')
+      .set({ Authorization: 'Bearer test-internal-secret' })
+      .send({
+        partnerId: 'partner-prod-1',
+        status: 'approved',
+        reviewedBy: 'ops-test',
+        reviewNote: 'LOI signed. Stub settlement only.',
+      });
+
+    expect(approve.status).toBe(200);
+    expect(approve.body.grant.status).toBe('approved');
+
+    const status = await request(app).get('/v1/redeem/production/status').set(PROD_AUTH);
+    expect(status.status).toBe(200);
+    expect(status.body.redeemAccess).toBe('production_approved');
+    expect(status.body.liveSettlementEnabled).toBe(false);
+
+    const quote = await request(app)
+      .post('/v1/redeem/quote')
+      .set(PROD_AUTH)
+      .send({
+        playerRef: 'player_prod',
+        amount: 100,
+        currency: 'USD',
+        destination: { rail: 'ach', accountRef: 'acct_****9999' },
+      });
+
+    expect(quote.status).toBe(200);
+    expect(quote.headers['x-mode']).toBe('production');
+    expect(quote.body.quoteId).toMatch(/^qr_/);
+
+    const execute = await request(app)
+      .post('/v1/redeem/execute')
+      .set(PROD_AUTH)
+      .send({
+        quoteId: quote.body.quoteId,
+        playerRef: 'player_prod',
+        idempotencyKey: 'idem_prod_1',
+        rebuyCooldownMinutes: 60,
+      });
+
+    expect(execute.status).toBe(201);
+    expect(execute.body.status).toBe('processor_pending');
+    expect(execute.body.settlement.mode).toBe('processor_stub');
+    expect(execute.body.rebuyLock).toBeTruthy();
+    expect(execute.body.irrevocable).toBe(true);
+    expect(execute.body.cancelAllowed).toBe(false);
   });
 });

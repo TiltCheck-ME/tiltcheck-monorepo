@@ -79,6 +79,12 @@ export default function InstantRedeemReadinessPage() {
             >
               Team doc
             </a>
+            <a
+              href="/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION"
+              className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300"
+            >
+              Phase 5
+            </a>
           </div>
         </header>
 
@@ -93,7 +99,11 @@ export default function InstantRedeemReadinessPage() {
             Status · {payload?.phase ?? 'sandbox'}
           </p>
           <p className="mt-2 text-xl font-black uppercase tracking-tight">
-            {error ? 'Readiness unavailable' : marketReady ? 'Market-ready (sandbox)' : 'Not ready'}
+            {error
+              ? 'Readiness unavailable'
+              : marketReady
+                ? 'Market-ready (Phase 5 scaffolding)'
+                : 'Not ready'}
           </p>
           <p className="mt-2 text-sm text-gray-300 leading-relaxed">
             {payload?.talkTrack?.oneLiner ||

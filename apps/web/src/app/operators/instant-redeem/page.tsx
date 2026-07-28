@@ -84,6 +84,12 @@ export default function InstantRedeemPage() {
             >
               Growth architecture
             </a>
+            <a
+              href="/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION"
+              className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white"
+            >
+              Phase 5 production
+            </a>
             <Link
               href="/operators/instant-redeem/readiness"
               className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white"
@@ -142,8 +148,9 @@ export default function InstantRedeemPage() {
         <section className="rounded-2xl border border-[#283347] bg-black/30 p-6 text-sm text-gray-400 leading-relaxed">
           <h2 className="text-lg font-black uppercase tracking-tight text-white">Commercial reality</h2>
           <p className="mt-2">
-            Float, money-transmitter licensing, and PCI stay human-gated. Sandbox proves the flywheel —
-            registry, public badge, processor multi-domain, rebuy cooloff — before real rails. Talk{' '}
+            Phase 5: processor/operator holds the float. TiltCheck orchestrates quote, RG gates,
+            irrevocable settle intent, and rebuy cooloff — not MTL day one. Live rails stay
+            human-gated. Talk{' '}
             <a className="text-[#17c3b2] hover:underline" href="mailto:partners@tiltcheck.me">
               partners@tiltcheck.me
             </a>

@@ -1,10 +1,11 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 /**
  * Instant Redeem Routes - /v1/redeem/*
- * Operator white-label sandbox for quote + execute + deposit gate.
+ * Operator/processor white-label Instant Redeem: quote + execute + deposit gate.
  * Same rail: Instant Redeem out, then rebuy cooloff before deposit back in.
  * Irrevocable: settled Instant Redeems cannot be canceled. No more canceled redeems.
- * No real funds move.
+ * Phase 5: production grants + processor settlement adapters. Processor holds float.
+ * Live money only when INSTANT_REDEEM_LIVE_SETTLEMENT=true and grant approved.
  */
 
 import crypto from 'node:crypto';
@@ -23,7 +24,18 @@ import {
 } from '../lib/instant-redeem-registry.js';
 import { evaluateInstantRedeemCasinoGate } from '../lib/instant-redeem-scam-gate.js';
 import { buildInstantRedeemReadiness } from '../lib/instant-redeem-readiness.js';
+import {
+  getProductionGrantForPartner,
+  partnerHasApprovedProductionRedeem,
+  upsertProductionGrant,
+  __resetInstantRedeemProductionForTests,
+} from '../lib/instant-redeem-production.js';
+import {
+  executeSettlement,
+  type SettlementMode,
+} from '../lib/instant-redeem-settlement.js';
 import { partnerAuthMiddleware, type PartnerRequest } from '../middleware/partner.js';
+import { internalServiceAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -73,6 +85,36 @@ const depositGateSchema = z.object({
   currency: z.string().trim().min(2).max(8).optional(),
 });
 
+const productionRequestSchema = z.object({
+  partnerType: z.enum(['operator', 'processor']).default('processor'),
+  coveredDomains: z.array(z.string().trim().min(3).max(255)).min(1).max(50),
+  float: z.object({
+    holder: z.enum(['processor', 'operator']),
+    currency: z.string().trim().min(2).max(8).default('USD'),
+    softCapUsd: z.number().finite().positive().max(10_000_000),
+    hardCapUsd: z.number().finite().positive().max(50_000_000),
+  }),
+  rails: z.array(z.enum(['ach', 'interac', 'crypto', 'card', 'wallet'])).min(1).max(5),
+  feeShareBps: z.number().int().min(1).max(2000).default(DEFAULT_FEE_BPS),
+  rebuyCooloffHours: z.number().int().min(1).max(168).default(24),
+  contractRef: z.string().trim().min(3).max(128),
+}).superRefine((value, ctx) => {
+  if (value.float.hardCapUsd < value.float.softCapUsd) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'float.hardCapUsd must be >= float.softCapUsd',
+      path: ['float', 'hardCapUsd'],
+    });
+  }
+});
+
+const productionApproveSchema = z.object({
+  partnerId: z.string().trim().min(2).max(128),
+  status: z.enum(['approved', 'rejected', 'suspended']),
+  reviewNote: z.string().trim().max(1000).optional(),
+  reviewedBy: z.string().trim().min(2).max(128).default('ops'),
+});
+
 type RgDecision = {
   allowed: boolean;
   riskBand: 'low' | 'moderate' | 'high' | 'blocked';
@@ -104,7 +146,7 @@ type RedeemRecord = {
   partnerId: string;
   quoteId: string;
   playerRef: string;
-  status: 'settled' | 'pending' | 'blocked' | 'expired';
+  status: 'settled' | 'pending' | 'blocked' | 'expired' | 'processor_pending';
   amountGross: number;
   feeAmount: number;
   amountNet: number;
@@ -114,6 +156,8 @@ type RedeemRecord = {
   createdAt: number;
   settledAt: string | null;
   note: string;
+  settlementMode: SettlementMode | null;
+  processorRef: string | null;
 };
 
 type RebuyLock = {
@@ -352,19 +396,67 @@ async function enforceSandboxQuota(partnerId: string): Promise<
   };
 }
 
-function requireSandboxPartner(req: PartnerRequest, res: import('express').Response): boolean {
+function partnerModeLabel(partner: NonNullable<PartnerRequest['partner']>): string {
+  return partner.mode === 'production' ? 'production' : 'sandbox';
+}
+
+/** Any authenticated sandbox/production partner (used for production grant request/status). */
+function requirePartnerCredential(req: PartnerRequest, res: import('express').Response): boolean {
   if (!req.partner) {
     res.status(401).json({ error: 'Partner authentication required', code: 'PARTNER_UNAUTHORIZED' });
     return false;
   }
-  if (req.partner.mode !== 'sandbox') {
-    res.status(403).json({
-      error: 'Instant Redeem is sandbox-only in this phase. Production stays human-gated.',
-      code: 'REDEEM_SANDBOX_ONLY',
-    });
-    return false;
+  if (req.partner.mode === 'sandbox' || req.partner.mode === 'production') {
+    return true;
   }
-  return true;
+  res.status(403).json({
+    error: 'Instant Redeem credentials must be sandbox or production',
+    code: 'REDEEM_SANDBOX_ONLY',
+  });
+  return false;
+}
+
+/** Quote/execute/deposit: sandbox always; production only with approved Phase 5 grant. */
+function requireRedeemAccess(req: PartnerRequest, res: import('express').Response): boolean {
+  if (!requirePartnerCredential(req, res)) return false;
+  if (req.partner!.mode === 'sandbox') {
+    return true;
+  }
+  if (req.partner!.mode === 'production' && partnerHasApprovedProductionRedeem(req.partner!.id)) {
+    return true;
+  }
+  res.status(403).json({
+    error: 'Production Instant Redeem requires an approved Phase 5 grant',
+    code: 'REDEEM_PRODUCTION_REQUIRED',
+    next: {
+      request: 'POST /v1/redeem/production/request',
+      status: 'GET /v1/redeem/production/status',
+      docs: '/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION',
+    },
+  });
+  return false;
+}
+
+/** @deprecated name kept for tests/docs — prefer requireRedeemAccess */
+function requireSandboxPartner(req: PartnerRequest, res: import('express').Response): boolean {
+  return requireRedeemAccess(req, res);
+}
+
+async function enforcePartnerUsage(partnerId: string, partnerMode: string): Promise<
+  | { ok: true; used: number; limit: number | null; remaining: number | null; windowStartedAt: Date | null; appId: string }
+  | { ok: false; status: number; body: Record<string, unknown> }
+> {
+  if (partnerMode === 'production' && partnerHasApprovedProductionRedeem(partnerId)) {
+    return {
+      ok: true,
+      used: 0,
+      limit: null,
+      remaining: null,
+      windowStartedAt: null,
+      appId: 'production',
+    };
+  }
+  return enforceSandboxQuota(partnerId);
 }
 
 /**
@@ -464,7 +556,7 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const quota = await enforceSandboxQuota(request.partner!.id);
+  const quota = await enforcePartnerUsage(request.partner!.id, request.partner!.mode);
   if (!quota.ok) {
     res.status(quota.status).json(quota.body);
     return;
@@ -474,6 +566,7 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
   const domainResults: Array<Record<string, unknown>> = [];
   const rejectedDomains: Array<Record<string, unknown>> = [];
   const allowedDomains: string[] = [];
+  const mode = partnerModeLabel(request.partner!);
 
   for (const domain of resolved.domains) {
     const gate = await evaluateInstantRedeemCasinoGate(domain);
@@ -492,7 +585,7 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
       casinoName: domain,
       feature: 'instant_redeem',
       partnerAppId: request.partner!.appId,
-      mode: 'sandbox',
+      mode,
       enabledAt: Date.now(),
     });
     await new Promise((resolve) => setTimeout(resolve, 15));
@@ -529,17 +622,17 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
       partnerId: request.partner!.id,
       partnerAppId: request.partner!.appId,
       partnerType: parsed.data.partnerType,
-      mode: 'sandbox',
+      mode,
       enabledAt,
       rebuyCooloffDefaultHours: 24,
       trustBoostApplied: true,
     })),
   );
 
-  res.setHeader('X-Mode', 'sandbox');
+  res.setHeader('X-Mode', mode);
   res.status(200).json({
     success: true,
-    mode: 'sandbox',
+    mode,
     feature: 'instant_redeem',
     partnerType: parsed.data.partnerType,
     domains: allowedDomains,
@@ -581,7 +674,7 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const quota = await enforceSandboxQuota(request.partner!.id);
+  const quota = await enforcePartnerUsage(request.partner!.id, request.partner!.mode);
   if (!quota.ok) {
     res.status(quota.status).json(quota.body);
     return;
@@ -619,6 +712,7 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
   const rg = evaluateRg(playerRef, amount);
   const now = Date.now();
   const quoteId = `qr_${crypto.randomBytes(12).toString('hex')}`;
+  const mode = partnerModeLabel(request.partner!);
 
   const quote: RedeemQuote = {
     quoteId,
@@ -640,10 +734,10 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
   };
   quotes.set(quoteId, quote);
 
-  res.setHeader('X-Mode', 'sandbox');
+  res.setHeader('X-Mode', mode);
   res.status(200).json({
     success: true,
-    mode: 'sandbox',
+    mode,
     quoteId,
     casinoDomain,
     expiresAt: new Date(quote.expiresAt).toISOString(),
@@ -669,13 +763,17 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
       remaining: quota.remaining,
       windowStartedAt: quota.windowStartedAt,
     },
-    note: 'Sandbox quote only. No funds moved. Fee is the cost of not waiting soon™. Scam casinos stay blocked.',
+    note:
+      mode === 'production'
+        ? 'Production quote. Settlement still rides the processor float desk — TiltCheck does not hold funds.'
+        : 'Sandbox quote only. No funds moved. Fee is the cost of not waiting soon™. Scam casinos stay blocked.',
   });
 });
 
 /**
  * POST /v1/redeem/execute
- * Settle a previously quoted Instant Redeem (sandbox mock).
+ * Settle a previously quoted Instant Redeem.
+ * Sandbox settles in-memory. Production uses processor stub/live handoff — TiltCheck does not hold float.
  */
 router.post('/execute', partnerAuthMiddleware, async (req, res) => {
   const request = req as PartnerRequest;
@@ -691,16 +789,17 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
+  const mode = partnerModeLabel(request.partner!);
   const { quoteId, playerRef, idempotencyKey, rebuyCooldownMinutes } = parsed.data;
   const idemKey = `${request.partner!.id}:${idempotencyKey}`;
   const existingRedeemId = idempotencyIndex.get(idemKey);
   if (existingRedeemId) {
     const existing = redeems.get(existingRedeemId);
     if (existing) {
-      res.setHeader('X-Mode', 'sandbox');
+      res.setHeader('X-Mode', mode);
       res.status(200).json({
         success: true,
-        mode: 'sandbox',
+        mode,
         idempotentReplay: true,
         ...serializeRedeem(existing),
       });
@@ -739,25 +838,50 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const quota = await enforceSandboxQuota(request.partner!.id);
+  const quota = await enforcePartnerUsage(request.partner!.id, request.partner!.mode);
   if (!quota.ok) {
     res.status(quota.status).json(quota.body);
     return;
   }
 
   const rg = evaluateRg(playerRef, quote.amountGross);
+  const redeemId = `rd_${crypto.randomBytes(12).toString('hex')}`;
   let status: RedeemRecord['status'] = 'settled';
   let note = 'Sandbox settle only. No funds moved.';
+  let settlementMode: SettlementMode | null = null;
+  let processorRef: string | null = null;
 
   if (!rg.allowed) {
     status = 'blocked';
-    note = 'Sandbox blocked by RG gate. No funds moved.';
+    note = 'Blocked by RG gate. No funds moved.';
   } else if (rg.gates.includes('HIGH_AMOUNT_REVIEW')) {
     status = 'pending';
-    note = 'Sandbox pending manual review for high amount. No funds moved.';
+    note = 'Pending manual review for high amount. No funds moved.';
+  } else {
+    const settlement = await executeSettlement(request.partner!.mode, {
+      redeemId,
+      partnerId: request.partner!.id,
+      partnerAppId: request.partner!.appId,
+      playerRef,
+      casinoDomain: quote.casinoDomain,
+      amountNet: quote.amountNet,
+      currency: quote.currency,
+      rail: quote.destination.rail,
+      accountRef: quote.destination.accountRef,
+    });
+    settlementMode = settlement.mode;
+    processorRef = settlement.processorRef;
+    note = settlement.note;
+    if (settlement.status === 'settled') {
+      status = 'settled';
+    } else if (settlement.status === 'processor_pending') {
+      status = 'processor_pending';
+    } else {
+      status = 'blocked';
+    }
   }
 
-  const redeemId = `rd_${crypto.randomBytes(12).toString('hex')}`;
+  const armsRebuy = status === 'settled' || status === 'processor_pending';
   const record: RedeemRecord = {
     redeemId,
     partnerId: request.partner!.id,
@@ -773,6 +897,8 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
     createdAt: Date.now(),
     settledAt: status === 'settled' ? new Date().toISOString() : null,
     note,
+    settlementMode,
+    processorRef,
   };
 
   redeems.set(redeemId, record);
@@ -780,12 +906,15 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
   quotes.delete(quoteId);
 
   let rebuyLock: RebuyLock | null = null;
-  if (status === 'settled') {
+  if (armsRebuy) {
+    const grant = mode === 'production' ? getProductionGrantForPartner(request.partner!.id) : null;
     const cooldownMs = Math.min(
       MAX_REBUY_COOLDOWN_MS,
       rebuyCooldownMinutes != null
         ? rebuyCooldownMinutes * 60_000
-        : DEFAULT_REBUY_COOLDOWN_MS,
+        : grant?.rebuyCooloffHours
+          ? grant.rebuyCooloffHours * 60 * 60 * 1000
+          : DEFAULT_REBUY_COOLDOWN_MS,
     );
     rebuyLock = setRebuyLock({
       partnerId: request.partner!.id,
@@ -795,15 +924,23 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
       currency: quote.currency,
       cooldownMs,
     });
-    note = 'Sandbox settle only. No funds moved. Rebuy cooloff armed on the same payment rail.';
-    record.note = note;
+    if (status === 'settled' && mode === 'sandbox') {
+      note = 'Sandbox settle only. No funds moved. Rebuy cooloff armed on the same payment rail.';
+      record.note = note;
+    } else if (status === 'processor_pending') {
+      note = `${note} Rebuy cooloff armed on settle intent — same rail, no instant rebuy.`;
+      record.note = note;
+    }
   }
 
-  res.setHeader('X-Mode', 'sandbox');
+  res.setHeader('X-Mode', mode);
   res.status(status === 'blocked' ? 200 : 201).json({
     success: status !== 'blocked',
-    mode: 'sandbox',
+    mode,
     idempotentReplay: false,
+    settlement: settlementMode
+      ? { mode: settlementMode, processorRef, status }
+      : null,
     quota: {
       used: quota.used,
       limit: quota.limit,
@@ -833,7 +970,7 @@ router.post('/deposit-check', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const quota = await enforceSandboxQuota(request.partner!.id);
+  const quota = await enforcePartnerUsage(request.partner!.id, request.partner!.mode);
   if (!quota.ok) {
     res.status(quota.status).json(quota.body);
     return;
@@ -841,11 +978,12 @@ router.post('/deposit-check', partnerAuthMiddleware, async (req, res) => {
 
   const lock = getActiveRebuyLock(request.partner!.id, parsed.data.playerRef);
   const allowed = lock == null;
+  const mode = partnerModeLabel(request.partner!);
 
-  res.setHeader('X-Mode', 'sandbox');
+  res.setHeader('X-Mode', mode);
   res.status(200).json({
     success: true,
-    mode: 'sandbox',
+    mode,
     allowed,
     code: allowed ? 'DEPOSIT_ALLOWED' : 'REBUY_COOLDOWN',
     playerRef: parsed.data.playerRef,
@@ -886,18 +1024,19 @@ router.post('/deposit', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const quota = await enforceSandboxQuota(request.partner!.id);
+  const quota = await enforcePartnerUsage(request.partner!.id, request.partner!.mode);
   if (!quota.ok) {
     res.status(quota.status).json(quota.body);
     return;
   }
 
+  const mode = partnerModeLabel(request.partner!);
   const lock = getActiveRebuyLock(request.partner!.id, parsed.data.playerRef);
   if (lock) {
-    res.setHeader('X-Mode', 'sandbox');
+    res.setHeader('X-Mode', mode);
     res.status(423).json({
       success: false,
-      mode: 'sandbox',
+      mode,
       allowed: false,
       code: 'REBUY_COOLDOWN',
       playerRef: parsed.data.playerRef,
@@ -910,10 +1049,10 @@ router.post('/deposit', partnerAuthMiddleware, async (req, res) => {
   }
 
   const depositId = `dp_${crypto.randomBytes(12).toString('hex')}`;
-  res.setHeader('X-Mode', 'sandbox');
+  res.setHeader('X-Mode', mode);
   res.status(201).json({
     success: true,
-    mode: 'sandbox',
+    mode,
     allowed: true,
     code: 'DEPOSIT_ACCEPTED',
     depositId,
@@ -927,7 +1066,145 @@ router.post('/deposit', partnerAuthMiddleware, async (req, res) => {
       remaining: quota.remaining,
       windowStartedAt: quota.windowStartedAt,
     },
-    note: 'Sandbox deposit accepted. No funds moved.',
+    note: mode === 'production'
+      ? 'Deposit accepted on processor rail. TiltCheck orchestrates the gate only.'
+      : 'Sandbox deposit accepted. No funds moved.',
+  });
+});
+
+/**
+ * POST /v1/redeem/production/request
+ * Partner submits Phase 5 float-desk + rails contract for production Instant Redeem.
+ * Does not move money. float.holder must be processor|operator (never tiltcheck).
+ */
+router.post('/production/request', partnerAuthMiddleware, async (req, res) => {
+  const request = req as PartnerRequest;
+  if (!requirePartnerCredential(request, res)) return;
+
+  const parsed = productionRequestSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid Instant Redeem production request',
+      code: 'REDEEM_PRODUCTION_REQUEST_INVALID',
+      details: parsed.error.flatten(),
+      note: 'float.holder must be processor or operator. TiltCheck does not hold float in Phase 5.',
+    });
+    return;
+  }
+
+  const existing = getProductionGrantForPartner(request.partner!.id);
+  if (existing?.status === 'approved') {
+    res.status(409).json({
+      success: false,
+      error: 'Production Instant Redeem already approved for this partner',
+      code: 'REDEEM_PRODUCTION_ALREADY_APPROVED',
+      grant: existing,
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const grant = upsertProductionGrant({
+    partnerId: request.partner!.id,
+    partnerAppId: request.partner!.appId,
+    partnerType: parsed.data.partnerType,
+    status: 'requested',
+    coveredDomains: parsed.data.coveredDomains,
+    float: {
+      holder: parsed.data.float.holder,
+      currency: parsed.data.float.currency.toUpperCase(),
+      softCapUsd: parsed.data.float.softCapUsd,
+      hardCapUsd: parsed.data.float.hardCapUsd,
+    },
+    rails: parsed.data.rails,
+    feeShareBps: parsed.data.feeShareBps,
+    rebuyCooloffHours: parsed.data.rebuyCooloffHours,
+    contractRef: parsed.data.contractRef,
+    requestedAt: existing?.requestedAt ?? now,
+    reviewedAt: null,
+    reviewedBy: null,
+    reviewNote: null,
+  });
+
+  res.status(201).json({
+    success: true,
+    grant,
+    next: {
+      status: 'GET /v1/redeem/production/status',
+      commercial: 'partners@tiltcheck.me',
+      docs: '/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION',
+    },
+    note: 'Production request recorded. Ops approves after LOI/MSA. Approve != live settlement.',
+  });
+});
+
+/**
+ * GET /v1/redeem/production/status
+ * Partner reads Phase 5 grant + float desk status.
+ */
+router.get('/production/status', partnerAuthMiddleware, async (req, res) => {
+  const request = req as PartnerRequest;
+  if (!requirePartnerCredential(request, res)) return;
+
+  const grant = getProductionGrantForPartner(request.partner!.id);
+  res.status(200).json({
+    success: true,
+    partnerId: request.partner!.id,
+    partnerAppId: request.partner!.appId,
+    partnerMode: request.partner!.mode,
+    grant,
+    liveSettlementEnabled: process.env.INSTANT_REDEEM_LIVE_SETTLEMENT === 'true',
+    redeemAccess:
+      request.partner!.mode === 'sandbox'
+        ? 'sandbox'
+        : partnerHasApprovedProductionRedeem(request.partner!.id)
+          ? 'production_approved'
+          : 'production_gated',
+    note: grant
+      ? 'Grant on file. Live rails still require INSTANT_REDEEM_LIVE_SETTLEMENT=true after approval.'
+      : 'No production grant yet. POST /v1/redeem/production/request with float + rails.',
+  });
+});
+
+/**
+ * POST /v1/redeem/production/approve
+ * Internal ops: approve / reject / suspend a partner Instant Redeem production grant.
+ */
+router.post('/production/approve', internalServiceAuth, async (req, res) => {
+  const parsed = productionApproveSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid Instant Redeem production approve payload',
+      code: 'REDEEM_PRODUCTION_APPROVE_INVALID',
+      details: parsed.error.flatten(),
+    });
+    return;
+  }
+
+  const existing = getProductionGrantForPartner(parsed.data.partnerId);
+  if (!existing) {
+    res.status(404).json({
+      error: 'No production grant found for partner',
+      code: 'REDEEM_PRODUCTION_GRANT_NOT_FOUND',
+    });
+    return;
+  }
+
+  const grant = upsertProductionGrant({
+    ...existing,
+    status: parsed.data.status,
+    reviewedAt: new Date().toISOString(),
+    reviewedBy: parsed.data.reviewedBy,
+    reviewNote: parsed.data.reviewNote ?? null,
+  });
+
+  res.status(200).json({
+    success: true,
+    grant,
+    note:
+      grant.status === 'approved'
+        ? 'Partner production credentials can hit /v1/redeem/* . Live money still gated by INSTANT_REDEEM_LIVE_SETTLEMENT.'
+        : `Grant set to ${grant.status}.`,
   });
 });
 
@@ -987,7 +1264,12 @@ router.get('/:redeemId', partnerAuthMiddleware, async (req, res) => {
 
   const redeemId = String(req.params.redeemId || '');
   // Guard path collisions for reserved words mistakenly hit as ids.
-  if (redeemId === 'cancel' || redeemId === 'readiness' || redeemId === 'capabilities') {
+  if (
+    redeemId === 'cancel' ||
+    redeemId === 'readiness' ||
+    redeemId === 'capabilities' ||
+    redeemId === 'production'
+  ) {
     res.status(404).json({ error: 'Redeem not found', code: 'REDEEM_NOT_FOUND' });
     return;
   }
@@ -998,10 +1280,11 @@ router.get('/:redeemId', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  res.setHeader('X-Mode', 'sandbox');
+  const mode = partnerModeLabel(request.partner!);
+  res.setHeader('X-Mode', mode);
   res.json({
     success: true,
-    mode: 'sandbox',
+    mode,
     rebuyLock: serializeRebuyLock(getActiveRebuyLock(request.partner!.id, record.playerRef)),
     ...serializeRedeem(record),
   });
@@ -1012,7 +1295,11 @@ function serializeRedeem(record: RedeemRecord): Record<string, unknown> {
     redeemId: record.redeemId,
     quoteId: record.quoteId,
     status: record.status,
-    irrevocable: record.status === 'settled' || record.status === 'pending' || record.status === 'blocked',
+    irrevocable:
+      record.status === 'settled' ||
+      record.status === 'pending' ||
+      record.status === 'blocked' ||
+      record.status === 'processor_pending',
     cancelAllowed: false,
     playerRef: record.playerRef,
     amountGross: record.amountGross,
@@ -1023,6 +1310,8 @@ function serializeRedeem(record: RedeemRecord): Record<string, unknown> {
     settledAt: record.settledAt,
     createdAt: new Date(record.createdAt).toISOString(),
     note: record.note,
+    settlementMode: record.settlementMode,
+    processorRef: record.processorRef,
     rebuyLock: serializeRebuyLock(getActiveRebuyLock(record.partnerId, record.playerRef)),
   };
 }
@@ -1034,6 +1323,7 @@ export function __resetRedeemSandboxStateForTests(): void {
   idempotencyIndex.clear();
   rebuyLocks.clear();
   __resetInstantRedeemRegistryForTests();
+  __resetInstantRedeemProductionForTests();
 }
 
 export { router as redeemRouter };

@@ -10,6 +10,8 @@ Instant Redeem is a **white-label, operator-sanctioned liquidity desk** — not 
 
 It is **not** a “hope operators partner” plan. Growth is built as a flywheel: player-visible badges, payment-processor partners covering many domains, trust-score FOMO, then direct operator deals. See [OPERATOR-INSTANT-REDEEM-GROWTH.md](./OPERATOR-INSTANT-REDEEM-GROWTH.md).
 
+**Phase 5 (production scaffolding):** processor holds float; TiltCheck orchestrates. See [OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION.md](./OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION.md).
+
 | Layer | Owner | Job |
 | :--- | :--- | :--- |
 | Cashier UX | Operator | Player taps Instant Redeem inside the licensed brand |

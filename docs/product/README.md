@@ -10,8 +10,10 @@ Internal product narrative and execution checklists. These complement [competiti
 | [TiltCheck positioning memo (one-pager)](./tiltcheck-positioning-memo-one-pager.md) | Copy-ready pillars for web, investor, and partner briefings. |
 | [Monorepo roadmap pillars checklist](./monorepo-roadmap-pillars-checklist.md) | Pillar-by-pillar tasks mapped to `apps/*`, `packages/*`, and `modules/*`. |
 | [Operator Instant Redeem](../OPERATOR-INSTANT-REDEEM.md) | Phase 4 white-label Instant Redeem sandbox API and commercial framing. |
+| [Instant Redeem Phase 5 production](../OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION.md) | Processor float desk, production grants, settlement adapters — no MTL day one. |
 | [Instant Redeem growth architecture](../OPERATOR-INSTANT-REDEEM-GROWTH.md) | Flywheel: player badges, processor multipliers, trust FOMO — not casino-only BD. |
 | [Instant Redeem pitch (one-pager)](./instant-redeem-pitch-one-pager.md) | Marketable talk track for BD, processors, operators. |
+| [Instant Redeem partnership outreach](./instant-redeem-partnership-outreach.md) | Email-first BD templates + when to ask for a meeting. |
 | [Instant Redeem team readiness](../OPERATOR-INSTANT-REDEEM-TEAM-READINESS.md) | Onboard a pod: roles, demo script, checklist, live readiness API. |
 
 Public URL (when web is built from monorepo `docs/`): `/docs/product/<slug>`.

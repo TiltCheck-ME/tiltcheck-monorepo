@@ -73,7 +73,8 @@ Do not lead with casino-only BD. Lead with processors + public badge FOMO.
 1. Sandbox keys: `https://tiltcheck.me/operators`
 2. Product page: `https://tiltcheck.me/operators/instant-redeem`
 3. Team readiness: `https://tiltcheck.me/operators/instant-redeem/readiness`
-4. Commercial: `partners@tiltcheck.me`
+4. Outreach templates: `https://tiltcheck.me/docs/product/instant-redeem-partnership-outreach`
+5. Commercial: `partners@tiltcheck.me`
 
 ---
 

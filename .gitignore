@@ -133,6 +133,8 @@ data/degen-intel-events.jsonl
 apps/api/data/degen-intel-events.jsonl
 data/instant-redeem-capabilities.json
 apps/api/data/instant-redeem-capabilities.json
+data/instant-redeem-production-grants.json
+apps/api/data/instant-redeem-production-grants.json
 tools/channel-watcher/citations.md
 tools/channel-watcher/reports_business.md
 tools/channel-watcher/reports_lore.md

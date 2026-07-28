@@ -5,6 +5,7 @@
 
 import { listInstantRedeemCapabilities } from './instant-redeem-registry.js';
 import { evaluateInstantRedeemCasinoGate } from './instant-redeem-scam-gate.js';
+import { readInstantRedeemProductionStore } from './instant-redeem-production.js';
 
 export type ReadinessStatus = 'pass' | 'warn' | 'fail';
 
@@ -17,7 +18,7 @@ export type ReadinessCheck = {
 
 export type InstantRedeemReadiness = {
   product: 'instant_redeem';
-  phase: 'sandbox';
+  phase: 'phase5_production_scaffolding';
   marketReady: boolean;
   generatedAt: string;
   checklist: ReadinessCheck[];
@@ -29,6 +30,7 @@ export type InstantRedeemReadiness = {
     growthDoc: string;
     teamReadinessDoc: string;
     apiSpecDoc: string;
+    phase5Doc: string;
     commercialEmail: string;
   };
   talkTrack: {
@@ -37,6 +39,8 @@ export type InstantRedeemReadiness = {
   };
   metrics: {
     enabledDomains: number;
+    productionGrants: number;
+    approvedProductionGrants: number;
     suppressedProbe: 'ok' | 'error';
   };
 };
@@ -47,6 +51,8 @@ function siteBase(): string {
 
 export async function buildInstantRedeemReadiness(): Promise<InstantRedeemReadiness> {
   const capabilities = listInstantRedeemCapabilities();
+  const productionStore = readInstantRedeemProductionStore();
+  const approvedGrants = productionStore.grants.filter((grant) => grant.status === 'approved');
   const checklist: ReadinessCheck[] = [];
 
   checklist.push({
@@ -132,7 +138,24 @@ export async function buildInstantRedeemReadiness(): Promise<InstantRedeemReadin
     id: 'production_gate',
     label: 'Production money still gated',
     status: 'pass',
-    detail: 'Non-sandbox partners receive REDEEM_SANDBOX_ONLY. No accidental live rails.',
+    detail:
+      'Unapproved production partners receive REDEEM_PRODUCTION_REQUIRED. Approve != live rails.',
+  });
+
+  checklist.push({
+    id: 'phase5_float_contract',
+    label: 'Phase 5 float desk contract',
+    status: 'pass',
+    detail:
+      'POST /v1/redeem/production/request stores processor|operator float caps. tiltcheck holder rejected.',
+  });
+
+  checklist.push({
+    id: 'phase5_settlement_adapter',
+    label: 'Processor settlement adapter',
+    status: 'pass',
+    detail:
+      'sandbox / processor_stub / processor_live modes. Live flag defaults off. TiltCheck does not hold float.',
   });
 
   checklist.push({
@@ -147,7 +170,7 @@ export async function buildInstantRedeemReadiness(): Promise<InstantRedeemReadin
 
   return {
     product: 'instant_redeem',
-    phase: 'sandbox',
+    phase: 'phase5_production_scaffolding',
     marketReady,
     generatedAt: new Date().toISOString(),
     checklist,
@@ -159,15 +182,18 @@ export async function buildInstantRedeemReadiness(): Promise<InstantRedeemReadin
       growthDoc: `${base}/docs/OPERATOR-INSTANT-REDEEM-GROWTH`,
       teamReadinessDoc: `${base}/docs/OPERATOR-INSTANT-REDEEM-TEAM-READINESS`,
       apiSpecDoc: `${base}/docs/OPERATOR-INSTANT-REDEEM`,
+      phase5Doc: `${base}/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION`,
       commercialEmail: 'partners@tiltcheck.me',
     },
     talkTrack: {
       oneLiner: 'Wen payout? Now. Instant Redeem turns soon™ into a paid exit — without handing scam casinos a cashout rail.',
       thirtySeconds:
-        'Players keep asking wen payout. We sell Instant Redeem — paid exit now, no canceled redeems, cooloff before they degen it back in, and a hard no for scam shops. Processors cover many domains under one rail. Operators who enable it get a trust bump and a public badge. Everyone else still looks like soon™.',
+        'Players keep asking wen payout. We sell Instant Redeem — paid exit now, no canceled redeems, cooloff before they degen it back in, and a hard no for scam shops. Processors hold the float; TiltCheck orchestrates. Operators who enable it get a trust bump and a public badge. Everyone else still looks like soon™.',
     },
     metrics: {
       enabledDomains: capabilities.length,
+      productionGrants: productionStore.grants.length,
+      approvedProductionGrants: approvedGrants.length,
       suppressedProbe,
     },
   };

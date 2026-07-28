@@ -2,6 +2,12 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Instant Redeem Phase 5 production scaffolding (PR #647)
+
+- **Phase 5**: Production grant path (`/v1/redeem/production/*`), processor float-desk contract, settlement adapters (`sandbox` / `processor_stub` / `processor_live`).
+- **Custody**: Processor/operator holds float; TiltCheck orchestrates only. `float.holder=tiltcheck` rejected. Live money still gated by `INSTANT_REDEEM_LIVE_SETTLEMENT`.
+- **Docs**: `OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION.md`, partnership outreach email templates (`instant-redeem-partnership-outreach.md`), readiness checklist Phase 5 items.
+
 ## 2026-07-28 - Instant Redeem sandbox Phase 4 (PR #647)
 
 - **Product**: Operator/processor Instant Redeem sandbox — quote/execute, irrevocable cancel rejection, scam hard-block, same-rail rebuy cooloff, trust boost, public capabilities + `/casinos` badges.
