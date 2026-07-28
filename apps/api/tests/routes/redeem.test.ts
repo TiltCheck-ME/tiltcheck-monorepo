@@ -8,6 +8,14 @@ vi.mock('@tiltcheck/db', () => ({
   incrementPartnerDailyQuotaUsage: vi.fn(),
 }));
 
+vi.mock('../../src/lib/live-feed-data.js', () => ({
+  loadDomainBlacklist: vi.fn(async () => ({
+    availability: 'available',
+    domains: ['known-scam-casino.com', 'stake-free-claim.com'],
+    source: 'domain_blacklist.json',
+  })),
+}));
+
 vi.mock('@tiltcheck/event-router', () => ({
   eventRouter: {
     publish: vi.fn(async () => ({ id: 'evt-1' })),
@@ -125,27 +133,26 @@ describe('Instant Redeem sandbox routes', () => {
   });
 
   it('enables Instant Redeem and publishes casino trust boost', async () => {
+    const baseline = {
+      score: 75,
+      financialPayouts: 75,
+      fairnessTransparency: 75,
+      promotionalHonesty: 75,
+      operationalSupport: 75,
+      communityReputation: 75,
+      history: [],
+      lastUpdated: Date.now(),
+    };
+    const boosted = {
+      ...baseline,
+      score: 77,
+      financialPayouts: 80,
+    };
+    // First call: scam gate. Second: before boost. Rest: after boost.
     vi.mocked(trustEngines.getCasinoBreakdown)
-      .mockReturnValueOnce({
-        score: 75,
-        financialPayouts: 75,
-        fairnessTransparency: 75,
-        promotionalHonesty: 75,
-        operationalSupport: 75,
-        communityReputation: 75,
-        history: [],
-        lastUpdated: Date.now(),
-      } as any)
-      .mockReturnValue({
-        score: 77,
-        financialPayouts: 80,
-        fairnessTransparency: 75,
-        promotionalHonesty: 75,
-        operationalSupport: 75,
-        communityReputation: 75,
-        history: [],
-        lastUpdated: Date.now(),
-      } as any);
+      .mockReturnValueOnce(baseline as any)
+      .mockReturnValueOnce(baseline as any)
+      .mockReturnValue(boosted as any);
 
     const response = await request(app)
       .post('/v1/redeem/enable')
@@ -214,6 +221,50 @@ describe('Instant Redeem sandbox routes', () => {
     const alpha = await request(app).get('/v1/redeem/capabilities/alpha.casino');
     expect(alpha.body.instantRedeemAvailable).toBe(true);
     expect(alpha.body.capability.partnerType).toBe('processor');
+  });
+
+  it('refuses Instant Redeem enable and quote for scam casinos', async () => {
+    const enable = await request(app)
+      .post('/v1/redeem/enable')
+      .set(AUTH)
+      .send({
+        partnerType: 'processor',
+        coveredDomains: ['known-scam-casino.com', 'scam-payouts.example'],
+      });
+
+    // partner casino_domain acme.example is still clear — partial or only clear domains
+    // If only scam domains were requested without acme, all blocked. Include only scams:
+    const enableScamOnly = await request(app)
+      .post('/v1/redeem/enable')
+      .set(AUTH)
+      .send({
+        partnerType: 'processor',
+        casinoName: 'known-scam-casino.com',
+        coveredDomains: ['scam-payouts.example'],
+      });
+
+    expect(enableScamOnly.status).toBe(403);
+    expect(enableScamOnly.body.code).toBe('REDEEM_SCAM_CASINO_BLOCKED');
+
+    // Mixed book: clear + scam — only clear domains enabled
+    expect(enable.status).toBe(200);
+    expect(enable.body.domains).toContain('acme.example');
+    expect(enable.body.domains).not.toContain('known-scam-casino.com');
+    expect(enable.body.rejectedDomains.length).toBeGreaterThan(0);
+
+    const quote = await request(app)
+      .post('/v1/redeem/quote')
+      .set(AUTH)
+      .send({
+        playerRef: 'player_abc',
+        amount: 100,
+        currency: 'USD',
+        casinoDomain: 'known-scam-casino.com',
+        destination: { rail: 'ach', accountRef: 'acct_****1234' },
+      });
+
+    expect(quote.status).toBe(403);
+    expect(quote.body.code).toBe('REDEEM_SCAM_CASINO_BLOCKED');
   });
 
   it('executes a quote to settled and returns the same result on idempotent replay', async () => {

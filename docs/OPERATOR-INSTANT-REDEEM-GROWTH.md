@@ -43,10 +43,11 @@ Player-visible proof creates pressure. Trust score +5 for enablement makes the g
 | :--- | :--- | :--- |
 | **1. Payment processor / aggregator partners** | One contract covers many casino domains | `partnerType: processor` + `coveredDomains[]` on enable |
 | **2. Player demand via trust directory** | No sales call required for awareness | Public `GET /v1/redeem/capabilities` + `/casinos` badge |
-| **3. RGaaS wedge upsell** | Operators already in sandbox for trust APIs | Instant Redeem lives on same keys |
-| **4. Direct operator deals** | Still needed for float + brand UX | `/operators/instant-redeem` + production review |
+| **3. Scam hard-block** | Protects brand + players; Instant Redeem is not a skem rail | Blacklist + trust floor refuse enable/quote/execute |
+| **4. RGaaS wedge upsell** | Operators already in sandbox for trust APIs | Instant Redeem lives on same keys |
+| **5. Direct operator deals** | Still needed for float + brand UX | `/operators/instant-redeem` + production review |
 
-Do not bet the company on channel 4 alone.
+Do not bet the company on channel 5 alone.
 
 ## Durable capability registry
 

@@ -20,6 +20,7 @@ import {
   type InstantRedeemPartnerType,
   __resetInstantRedeemRegistryForTests,
 } from '../lib/instant-redeem-registry.js';
+import { evaluateInstantRedeemCasinoGate } from '../lib/instant-redeem-scam-gate.js';
 import { partnerAuthMiddleware, type PartnerRequest } from '../middleware/partner.js';
 
 const router = Router();
@@ -45,6 +46,8 @@ const quoteSchema = z.object({
   currency: z.string().trim().min(2).max(8).default('USD'),
   destination: destinationSchema,
   jurisdiction: z.string().trim().min(2).max(8).optional(),
+  /** Required for processor partners covering many domains; defaults to partner.casinoDomain. */
+  casinoDomain: z.string().trim().min(3).max(255).optional(),
 });
 
 const executeSchema = z.object({
@@ -79,6 +82,7 @@ type RedeemQuote = {
   quoteId: string;
   partnerId: string;
   playerRef: string;
+  casinoDomain: string;
   amountGross: number;
   currency: string;
   feeBps: number;
@@ -365,22 +369,33 @@ function requireSandboxPartner(req: PartnerRequest, res: import('express').Respo
  * GET /v1/redeem/capabilities
  * Public supply signal — which domains have Instant Redeem enabled (player demand / FOMO).
  */
-router.get('/capabilities', (_req, res) => {
+router.get('/capabilities', async (_req, res) => {
   const capabilities = listInstantRedeemCapabilities();
-  res.json({
-    success: true,
-    updatedAt: capabilities.length
-      ? capabilities.map((entry) => entry.enabledAt).sort().at(-1) ?? null
-      : null,
-    count: capabilities.length,
-    capabilities: capabilities.map((entry) => ({
+  const gated = await Promise.all(
+    capabilities.map(async (entry) => {
+      const gate = await evaluateInstantRedeemCasinoGate(entry.domain);
+      return { entry, gate };
+    }),
+  );
+  const visible = gated
+    .filter(({ gate }) => gate.allowed)
+    .map(({ entry }) => ({
       domain: entry.domain,
       partnerType: entry.partnerType,
       mode: entry.mode,
       enabledAt: entry.enabledAt,
       rebuyCooloffDefaultHours: entry.rebuyCooloffDefaultHours,
       instantRedeemAvailable: true,
-    })),
+    }));
+
+  res.json({
+    success: true,
+    updatedAt: visible.length
+      ? visible.map((entry) => entry.enabledAt).sort().at(-1) ?? null
+      : null,
+    count: visible.length,
+    capabilities: visible,
+    suppressedScamDomains: gated.filter(({ gate }) => !gate.allowed).length,
   });
 });
 
@@ -388,18 +403,20 @@ router.get('/capabilities', (_req, res) => {
  * GET /v1/redeem/capabilities/:domain
  * Public single-domain Instant Redeem availability.
  */
-router.get('/capabilities/:domain', (req, res) => {
+router.get('/capabilities/:domain', async (req, res) => {
   const domain = normalizeCapabilityDomain(String(req.params.domain || ''));
   if (!domain) {
     res.status(400).json({ error: 'domain required', code: 'REDEEM_DOMAIN_REQUIRED' });
     return;
   }
   const capability = getInstantRedeemCapability(domain);
+  const gate = await evaluateInstantRedeemCasinoGate(domain);
+  const available = Boolean(capability) && gate.allowed;
   res.json({
     success: true,
     domain,
-    instantRedeemAvailable: Boolean(capability),
-    capability: capability
+    instantRedeemAvailable: available,
+    capability: available && capability
       ? {
           domain: capability.domain,
           partnerType: capability.partnerType,
@@ -408,6 +425,11 @@ router.get('/capabilities/:domain', (req, res) => {
           rebuyCooloffDefaultHours: capability.rebuyCooloffDefaultHours,
         }
       : null,
+    casinoGate: {
+      allowed: gate.allowed,
+      code: gate.code,
+      note: gate.note,
+    },
   });
 });
 
@@ -448,8 +470,21 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
 
   const enabledAt = new Date().toISOString();
   const domainResults: Array<Record<string, unknown>> = [];
+  const rejectedDomains: Array<Record<string, unknown>> = [];
+  const allowedDomains: string[] = [];
 
   for (const domain of resolved.domains) {
+    const gate = await evaluateInstantRedeemCasinoGate(domain);
+    if (!gate.allowed) {
+      rejectedDomains.push({
+        domain,
+        code: gate.code,
+        reasons: gate.reasons,
+        note: gate.note,
+      });
+      continue;
+    }
+
     const before = trustEngines.getCasinoBreakdown(domain);
     await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
       casinoName: domain,
@@ -461,6 +496,7 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 15));
     const after = trustEngines.getCasinoBreakdown(domain);
     const applied = after.financialPayouts > before.financialPayouts;
+    allowedDomains.push(domain);
     domainResults.push({
       domain,
       trustBoost: {
@@ -474,8 +510,19 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     });
   }
 
+  if (allowedDomains.length === 0) {
+    res.status(403).json({
+      success: false,
+      error: 'Instant Redeem refused — every requested domain failed scam/trust gates',
+      code: 'REDEEM_SCAM_CASINO_BLOCKED',
+      rejectedDomains,
+      note: 'We do not cash out at scam casinos. Clean the book and try again.',
+    });
+    return;
+  }
+
   upsertInstantRedeemCapabilities(
-    resolved.domains.map((domain) => ({
+    allowedDomains.map((domain) => ({
       domain,
       partnerId: request.partner!.id,
       partnerAppId: request.partner!.appId,
@@ -493,15 +540,18 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     mode: 'sandbox',
     feature: 'instant_redeem',
     partnerType: parsed.data.partnerType,
-    domains: resolved.domains,
-    casinoName: resolved.domains[0],
+    domains: allowedDomains,
+    casinoName: allowedDomains[0],
     results: domainResults,
+    rejectedDomains,
     trustBoost: domainResults[0]?.trustBoost ?? null,
     publicCapabilitiesUrl: '/v1/redeem/capabilities',
     note:
-      parsed.data.partnerType === 'processor'
-        ? 'Processor enablement covers multiple domains under one commercial identity. Public badge follows the durable registry.'
-        : 'Operator enablement recorded. Public /casinos badge follows the durable registry.',
+      rejectedDomains.length > 0
+        ? 'Partial enablement. Scam/low-trust domains were refused — Instant Redeem is not a skem payout rail.'
+        : parsed.data.partnerType === 'processor'
+          ? 'Processor enablement covers multiple domains under one commercial identity. Public badge follows the durable registry.'
+          : 'Operator enablement recorded. Public /casinos badge follows the durable registry.',
     quota: {
       used: quota.used,
       limit: quota.limit,
@@ -535,6 +585,32 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
+  const casinoDomain =
+    resolveCasinoName(request.partner!, parsed.data.casinoDomain) ||
+    (request.partner!.casinoDomain
+      ? normalizeCapabilityDomain(request.partner!.casinoDomain)
+      : null);
+
+  if (!casinoDomain) {
+    res.status(400).json({
+      error: 'casinoDomain required for Instant Redeem quote',
+      code: 'REDEEM_CASINO_REQUIRED',
+    });
+    return;
+  }
+
+  const casinoGate = await evaluateInstantRedeemCasinoGate(casinoDomain);
+  if (!casinoGate.allowed) {
+    res.status(403).json({
+      success: false,
+      error: 'Instant Redeem refused for this casino',
+      code: 'REDEEM_SCAM_CASINO_BLOCKED',
+      casinoGate,
+      note: casinoGate.note,
+    });
+    return;
+  }
+
   const { playerRef, amount, currency, destination, jurisdiction } = parsed.data;
   const feeAmount = computeFee(amount);
   const amountNet = roundMoney(Math.max(0, amount - feeAmount));
@@ -546,6 +622,7 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     quoteId,
     partnerId: request.partner!.id,
     playerRef,
+    casinoDomain,
     amountGross: amount,
     currency: currency.toUpperCase(),
     feeBps: DEFAULT_FEE_BPS,
@@ -566,6 +643,7 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     success: true,
     mode: 'sandbox',
     quoteId,
+    casinoDomain,
     expiresAt: new Date(quote.expiresAt).toISOString(),
     amountGross: quote.amountGross,
     currency: quote.currency,
@@ -577,19 +655,19 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     destination: quote.destination,
     jurisdiction: quote.jurisdiction,
     rg: quote.rg,
-    casinoTrustBoost: buildCasinoTrustBoostPayload(
-      request.partner!.casinoDomain
-        ? normalizeCapabilityDomain(request.partner!.casinoDomain)
-        : null,
-      request.partner!.id,
-    ),
+    casinoGate: {
+      allowed: true,
+      code: casinoGate.code,
+      trustScore: casinoGate.trustScore,
+    },
+    casinoTrustBoost: buildCasinoTrustBoostPayload(casinoDomain, request.partner!.id),
     quota: {
       used: quota.used,
       limit: quota.limit,
       remaining: quota.remaining,
       windowStartedAt: quota.windowStartedAt,
     },
-    note: 'Sandbox quote only. No funds moved. Fee is the cost of not waiting soon™.',
+    note: 'Sandbox quote only. No funds moved. Fee is the cost of not waiting soon™. Scam casinos stay blocked.',
   });
 });
 
@@ -644,6 +722,18 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
 
   if (Date.now() > quote.expiresAt) {
     res.status(410).json({ error: 'Quote expired. Request a fresh quote.', code: 'REDEEM_QUOTE_EXPIRED' });
+    return;
+  }
+
+  const casinoGate = await evaluateInstantRedeemCasinoGate(quote.casinoDomain);
+  if (!casinoGate.allowed) {
+    res.status(403).json({
+      success: false,
+      error: 'Instant Redeem refused for this casino',
+      code: 'REDEEM_SCAM_CASINO_BLOCKED',
+      casinoGate,
+      note: casinoGate.note,
+    });
     return;
   }
 

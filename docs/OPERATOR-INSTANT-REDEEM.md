@@ -21,6 +21,23 @@ It is **not** a “hope operators partner” plan. Growth is built as a flywheel
 
 Player tooling elsewhere stays non-custodial. This B2B surface is **operator/processor-contracted liquidity**, sandbox-mocked first.
 
+## Scam casino hard block
+
+Instant Redeem is a payout rail. **Scam shops do not get it.**
+
+| Gate | Code | Behavior |
+| :--- | :--- | :--- |
+| Domain on TiltCheck scam blacklist | `SCAM_DOMAIN_BLOCKED` | Quote / execute / enable refused |
+| Domain matches deny patterns (`scam-`, fakepayout, etc.) | `SCAM_DOMAIN_BLOCKED` | Refused |
+| Casino trust score below 40 with history | `TRUST_SCORE_BLOCKED` | Refused |
+| Processor mixed book | partial enable | Clear domains enable; scam domains land in `rejectedDomains` |
+
+Public `GET /v1/redeem/capabilities` suppresses scam domains even if they were somehow registered earlier.
+
+Copy energy: we do not cash out at skem casinos. No cap.
+
+---
+
 ## Same-rail payment processor + rebuy cooloff
 
 Instant Redeem is strongest when it is also the **deposit rail**. Same processor identity means a settled win redeem can arm a deposit cooloff so players cannot immediately buy back in with the cash they just exited.
@@ -69,6 +86,7 @@ Sandbox activations are tagged in score history. Mock quote/execute alone does *
 - Sandbox `POST /v1/redeem/deposit-check` + `POST /v1/redeem/deposit` (same-rail rebuy cooloff)
 - Durable capability registry + public `GET /v1/redeem/capabilities`
 - Processor multi-domain enable (`partnerType: processor`, `coveredDomains[]`)
+- Scam/high-risk casino hard block on enable, quote, execute, and public capabilities
 - Player-facing Instant Redeem badge on `/casinos`
 - Growth architecture doc
 - Partner auth (`X-TiltCheck-App-Id` / `X-TiltCheck-Secret-Key`)

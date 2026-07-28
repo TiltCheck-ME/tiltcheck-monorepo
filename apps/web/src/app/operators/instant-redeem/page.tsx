@@ -18,6 +18,10 @@ const FLYWHEEL = [
     title: 'Same-rail RG lock',
     body: 'Settled redeem arms deposit cooloff. Instant exit without instant rebuy — the product reason processors care.',
   },
+  {
+    title: 'No scam cashouts',
+    body: 'Blacklisted and critically low-trust domains are hard-blocked. Instant Redeem is not a payout rail for skem shops.',
+  },
 ];
 
 const STEPS = [
