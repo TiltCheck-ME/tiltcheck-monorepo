@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import BrandTagline from '@/components/BrandTagline';
 import { useAuth } from '@/hooks/useAuth';
 import { getDashboardHandoffUrl } from '@/lib/dashboard-handoff';
 import {
@@ -1141,7 +1142,9 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
       </section>
 
       <section className="border-t border-[#283347] px-4 py-8 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Made for Degens. By Degens.</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+          <BrandTagline compact />
+        </p>
       </section>
     </main>
   );

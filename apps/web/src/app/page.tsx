@@ -1,5 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
 import Link from "next/link";
+import BrandTagline from "@/components/BrandTagline";
 import OperatorBlock from "@/components/OperatorBlock";
 import { SITE_HERO_HEADLINE, SITE_ONE_LINER } from "@/lib/site-copy";
 
@@ -27,7 +28,9 @@ export default function Home() {
     <main className="landing-page">
       <section className="hero-surface">
         <div className="landing-shell landing-hero-centered">
-          <span className="brand-eyebrow">Built for Degens. By Degens.</span>
+          <span className="brand-eyebrow">
+            <BrandTagline compact />
+          </span>
 
           <h1 className="landing-hero-title landing-hero-title--centered">
             {SITE_HERO_HEADLINE}
@@ -123,8 +126,8 @@ export default function Home() {
             </a>{" "}
             or <strong style={{ color: "#ffffff" }}>1-800-GAMBLER</strong>.
           </p>
-          <p style={{ marginTop: "0.75rem", fontSize: "0.65rem", fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "#6b7a8d" }}>
-            Made for Degens. By Degens.
+          <p style={{ marginTop: "0.75rem", color: "#6b7a8d" }}>
+            <BrandTagline compact />
           </p>
         </div>
       </section>

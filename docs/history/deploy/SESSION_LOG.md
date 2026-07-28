@@ -6,6 +6,11 @@
 
 - **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.
 
+## 2026-07-28 - Brand tagline always with heart (PR #647)
+
+- **Law**: UI tagline is `Made for Degens. By Degens.` with heart via shared `BrandTagline` (SVG heart, not emoji unicode).
+- Wired on homepage hero/footer strip, site Footer, operators Instant Redeem surfaces, casino proof.
+
 ## 2026-07-28 - Product honesty audit + claim/reality copy fixes (PR #647)
 
 - **Audit**: `docs/product/tiltcheck-product-honesty-audit.md` — shipped vs sandbox vs aspirational.

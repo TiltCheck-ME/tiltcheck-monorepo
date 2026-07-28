@@ -4,6 +4,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { getDashboardHandoffUrl } from "@/lib/dashboard-handoff";
+import BrandTagline from "@/components/BrandTagline";
 
 const QUOTES = [
   "Trust everybody, but cut the cards.",
@@ -128,7 +129,9 @@ const Footer = () => {
               The Source
             </a>
           </div>
-          <p className="footer-tagline">Made for Degens. By Degens.</p>
+          <p className="footer-tagline">
+            <BrandTagline />
+          </p>
           <p className="footer-copyright">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</p>
         </div>
       </div>

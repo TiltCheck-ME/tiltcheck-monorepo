@@ -1,5 +1,6 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import Link from 'next/link';
+import BrandTagline from '@/components/BrandTagline';
 
 const FLYWHEEL = [
   {
@@ -184,8 +185,8 @@ export default function InstantRedeemPage() {
           </p>
         </section>
 
-        <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-          Made for Degens. By Degens.
+        <p className="text-center text-gray-500">
+          <BrandTagline compact />
         </p>
       </div>
     </main>

@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
+import BrandTagline from '@/components/BrandTagline';
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -213,8 +214,8 @@ export default function OperatorsPage() {
             )}
         </section>
 
-        <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-          Made for Degens. By Degens.
+        <p className="text-center text-gray-500">
+          <BrandTagline compact />
         </p>
       </div>
     </main>

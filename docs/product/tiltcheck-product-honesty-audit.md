@@ -15,6 +15,7 @@
 3. **Instant Redeem is B2B orchestration** — partner cashier product; processor/operator holds float; TiltCheck quotes, gates, irrevocable settle intent, cooloff, badge.
 4. **Sandbox mocks money by default** — production grant ≠ live settlement flag.
 5. **Scam / critically low-trust domains stay hard-blocked** on Instant Redeem rails.
+6. **Brand tagline** is always `Made for Degens. By Degens.` with a heart (`BrandTagline` SVG — not emoji spam elsewhere).
 
 ---
 

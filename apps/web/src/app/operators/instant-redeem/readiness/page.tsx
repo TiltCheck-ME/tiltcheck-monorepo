@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BrandTagline from '@/components/BrandTagline';
 
 type ReadinessCheck = {
   id: string;
@@ -150,8 +151,8 @@ export default function InstantRedeemReadinessPage() {
           </p>
         </section>
 
-        <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-          Made for Degens. By Degens.
+        <p className="text-center text-gray-500">
+          <BrandTagline compact />
         </p>
       </div>
     </main>

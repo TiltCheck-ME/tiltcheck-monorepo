@@ -1,5 +1,8 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
 
+/** Canonical brand line — render with <BrandTagline /> for the heart mark in UI. */
+export const SITE_BRAND_TAGLINE = 'Made for Degens. By Degens.';
+
 export const SITE_SEO_TITLE = 'TiltCheck | The Degen Audit Layer';
 
 export const SITE_ONE_LINER =
