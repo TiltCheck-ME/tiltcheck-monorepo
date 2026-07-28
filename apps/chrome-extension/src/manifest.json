@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TiltCheck",
   "version": "1.2.2",
-  "description": "Real-time gambling behavior tracker, tilt detection, and bankroll management tools.",
+  "description": "Core guardrail: watches click pacing on supported casino tabs and fires Touch Grass lockdown when you go autopilot. Read-only. No wallet keys.",
   "privacy_policy_url": "https://tiltcheck.me/privacy",
   "permissions": [
     "storage",

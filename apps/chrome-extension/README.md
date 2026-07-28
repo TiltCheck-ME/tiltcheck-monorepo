@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -10,14 +10,22 @@ Made for Degens. By Degens.
 
 ## Overview
 
-TiltGuard is a Manifest V3 Chrome extension that runs as a content script on casino sites. It:
+Default **Core** install (what players get from the web zip today):
 
-- Tracks betting patterns and session statistics in real time
-- Detects tilt behavior (rage betting, loss chasing, bet escalation)
-- Enforces the user's Session pause list (surgical block) — blocking specific games or categories on this tab only
-- Protects winnings with vault recommendations and stop-loss alerts
-- Verifies casino licensing against known authorities
-- Delivers real-time interventions when tilt is detected
+- Watches **click pacing** on supported casino tabs
+- Fires **Touch Grass** undismissable lockdown when autopilot pacing trips
+- **SusLink** can bounce critically sus casino URLs (API up)
+- Read-only. No wallet keys. No Discord required. No HUD/sidebar until Pro is enabled
+
+Pro monolith (sidebar / extractors / deeper tilt HUD) stays storage-flag gated — do not sell it as the default.
+
+### Package for web download
+
+```bash
+pnpm -C apps/chrome-extension package
+```
+
+Builds `dist/`, then zips it to `apps/web/public/downloads/tiltcheck-extension.zip` (sideload CTA).
 
 ---
 

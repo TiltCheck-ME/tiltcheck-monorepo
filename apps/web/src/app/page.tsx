@@ -8,18 +8,18 @@ const coreJobs = [
   {
     step: "01",
     title: "Kill the Auto-Pilot",
-    description: "Tracks click-speed and bet pacing. Wakes you up when you play like a bot.",
+    description: "Core extension watches click speed on supported casino tabs. Wakes you when you play like a bot.",
   },
   {
     step: "02",
     title: "Read the Room",
-    description: "Flags sus pacing and pressure loops while you are still in the session.",
+    description: "Flags sus pacing while you are still in the session. SusLink can bounce critical sketch URLs.",
   },
   {
     step: "03",
     title: "Enforce the Exit",
     description:
-      "Set your line. Touch Grass lockdown and dashboard rules enforce what you pre-commit to — on supported sites.",
+      "Touch Grass lockdown (~2 min) when pacing goes critical. Durable vault rules need Account → dashboard — optional.",
   },
 ];
 

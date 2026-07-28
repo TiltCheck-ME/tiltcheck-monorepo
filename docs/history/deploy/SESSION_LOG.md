@@ -2,6 +2,13 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Launch Core extension story (PR #647)
+
+- **Package**: Rebuilt `apps/chrome-extension` + `pnpm package` zips current `dist/` to `apps/web/public/downloads/tiltcheck-extension.zip` (replaces stale Dec 2025 popup-only zip).
+- **Manifest**: Description matches Core — click pacing + Touch Grass, read-only, no keys.
+- **/extension**: Hero/copy = what Core does now (pacing, Touch Grass, SusLink) and what it does not (HUD, Discord gate, cashout). Dashboard CTA demoted; trust is secondary.
+- **Home**: Three jobs aligned to Core (click speed → SusLink → Touch Grass; Account optional for vault).
+
 ## 2026-07-28 - Nav cut + Account demotion (PR #647)
 
 - **Top nav**: `Install · Casinos · Tools · Operators` + Discord action. How it works / About / Contact / Ask / Bonuses buried in Tools + footer.

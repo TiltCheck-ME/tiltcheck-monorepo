@@ -139,7 +139,7 @@ Looked at like a first-time player: **Install zip → Core guest → check casin
 
 | Surface | Decision |
 | :--- | :--- |
-| Extension Core (sideload) | **LAUNCH** — primary player story |
+| Extension Core (sideload) | **LAUNCH** — primary player story; zip rebuilt from current `dist/` |
 | Extension Pro HUD | **PLAN** — opt-in, do not default-sell |
 | Casino trust + IR badges | **LAUNCH** — badges may be zero supply |
 | Instant Redeem player cashout on TiltCheck | **TABLE** — not our wallet |
