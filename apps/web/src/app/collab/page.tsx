@@ -1,9 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 "use client";
 
 import React, { useState } from 'react';
 
 const CONTACT_TOPICS = [
+  'Instant Redeem / Processor partnership',
   'Partner / Platform Integration',
   'Collab / Creator / Streamer',
   'General Question',

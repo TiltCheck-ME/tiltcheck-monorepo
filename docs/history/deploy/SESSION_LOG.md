@@ -2,6 +2,12 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Instant Redeem web discovery overhaul (PR #647)
+
+- **Web**: Homepage Instant Redeem strip, OperatorBlock processor-first CTAs, Nav/Footer Operators + Instant Redeem links.
+- **FOMO loop**: `/casinos` Instant Redeem filter + empty state; casino detail badge / "No Instant Redeem" CTA; sitemap entries for Instant Redeem pages.
+- **Commercial**: Pricing Phase 5 custody copy + outreach templates; collab topic for processor partnership.
+
 ## 2026-07-28 - Instant Redeem Phase 5 production scaffolding (PR #647)
 
 - **Phase 5**: Production grant path (`/v1/redeem/production/*`), processor float-desk contract, settlement adapters (`sandbox` / `processor_stub` / `processor_live`).

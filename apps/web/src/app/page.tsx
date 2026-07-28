@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
 import Link from "next/link";
 import OperatorBlock from "@/components/OperatorBlock";
 import { SITE_HERO_HEADLINE, SITE_ONE_LINER } from "@/lib/site-copy";
@@ -59,6 +59,35 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="public-page-section px-4" style={{ paddingTop: "2.5rem", paddingBottom: "0.5rem" }}>
+        <div className="landing-shell" style={{ textAlign: "center" }}>
+          <p className="brand-eyebrow">Wen payout?</p>
+          <p style={{ marginTop: "0.75rem", color: "#9aa8bc", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "36rem", marginLeft: "auto", marginRight: "auto" }}>
+            Instant Redeem marks who pays now — not soon™. See the badges, then demand the exit at the cashier.
+          </p>
+          <div className="hero-actions" style={{ marginTop: "1.25rem", justifyContent: "center" }}>
+            <Link
+              href="/casinos"
+              className="btn btn-primary"
+              data-funnel-event="cta_click"
+              data-funnel-source="web-home-instant-redeem"
+              data-funnel-label="See who pays now"
+            >
+              SEE WHO PAYS NOW
+            </Link>
+            <Link
+              href="/operators/instant-redeem"
+              className="hero-actions__secondary-link"
+              data-funnel-event="cta_click"
+              data-funnel-source="web-home-instant-redeem"
+              data-funnel-label="Ship Instant Redeem"
+            >
+              SHIP INSTANT REDEEM
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-section-heading">
@@ -90,6 +119,9 @@ export default function Home() {
               NCPG.org
             </a>{" "}
             or <strong style={{ color: "#ffffff" }}>1-800-GAMBLER</strong>.
+          </p>
+          <p style={{ marginTop: "0.75rem", fontSize: "0.65rem", fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "#6b7a8d" }}>
+            Made for Degens. By Degens.
           </p>
         </div>
       </section>

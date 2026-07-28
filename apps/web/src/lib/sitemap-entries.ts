@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import type { MetadataRoute } from 'next';
 import { getDashboardHandoffUrl } from '@/lib/dashboard-handoff';
 
@@ -69,6 +69,8 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   { path: '/microgrant', title: 'Microgrant', category: 'Community & docs', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/pay/jackpot', title: 'Trivia treasury', category: 'Community & docs', changeFrequency: 'monthly', priority: 0.45 },
   { path: '/operators', title: 'Operators', category: 'Operators', changeFrequency: 'weekly', priority: 0.7 },
+  { path: '/operators/instant-redeem', title: 'Instant Redeem', category: 'Operators', changeFrequency: 'weekly', priority: 0.75 },
+  { path: '/operators/instant-redeem/readiness', title: 'Instant Redeem readiness', category: 'Operators', changeFrequency: 'weekly', priority: 0.65 },
   { path: '/operators/keys', title: 'Operator API keys', category: 'Operators', changeFrequency: 'weekly', priority: 0.6 },
   { path: '/operators/pricing', title: 'Operator pricing', category: 'Operators', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/operators/verify', title: 'Operator verify', category: 'Operators', changeFrequency: 'monthly', priority: 0.55 },

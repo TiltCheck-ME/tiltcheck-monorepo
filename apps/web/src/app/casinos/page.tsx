@@ -58,6 +58,7 @@ export default function CasinosPage() {
   const [liveScores, setLiveScores] = useState<LiveTrustScore[]>([]);
   const [liveSource, setLiveSource] = useState('unavailable');
   const [instantRedeemDomains, setInstantRedeemDomains] = useState<Set<string>>(new Set());
+  const [instantRedeemOnly, setInstantRedeemOnly] = useState(false);
 
   useEffect(() => {
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
@@ -91,9 +92,10 @@ export default function CasinosPage() {
   const filteredCasinos = useMemo(() => (
     CASINOS.filter((casino) => {
       const matchesCategory = category === 'All' || casino.category === category;
-      return matchesCategory && casinoMatchesQuery(casino, query);
+      const matchesRedeem = !instantRedeemOnly || casinoHasInstantRedeem(casino, instantRedeemDomains);
+      return matchesCategory && matchesRedeem && casinoMatchesQuery(casino, query);
     })
-  ), [category, query]);
+  ), [category, instantRedeemDomains, instantRedeemOnly, query]);
 
   const liveMatchedCount = useMemo(() => (
     CASINOS.reduce((count, casino) => count + (findLiveTrustScore(casino, liveScores) ? 1 : 0), 0)
@@ -106,7 +108,7 @@ export default function CasinosPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [category, query]);
+  }, [category, query, instantRedeemOnly]);
 
   return (
     <main className="public-page public-page--tight text-white">
@@ -146,6 +148,17 @@ export default function CasinosPage() {
               className="flex-1 rounded-2xl border border-[#283347] bg-black/40 px-5 py-4 text-sm text-white outline-none transition-colors focus:border-[#17c3b2]"
             />
             <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setInstantRedeemOnly((value) => !value)}
+                className={`rounded-xl border px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
+                  instantRedeemOnly
+                    ? 'border-[#17c3b2] bg-[#17c3b2]/10 text-[#17c3b2]'
+                    : 'border-[#283347] text-gray-400 hover:border-[#17c3b2]/30 hover:text-white'
+                }`}
+              >
+                Instant Redeem
+              </button>
               {ALL_CATEGORIES.map((entry) => (
                 <button
                   key={entry}
@@ -169,8 +182,22 @@ export default function CasinosPage() {
 
           {pagedCasinos.length === 0 ? (
             <div className="rounded-2xl border border-[#283347] bg-black/30 px-6 py-12 text-center">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">No match</p>
-              <p className="mt-3 text-sm text-gray-400">No casino matched that search. Tighten the spelling or try the domain.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#17c3b2]">
+                {instantRedeemOnly ? 'Nobody pays now yet' : 'No match'}
+              </p>
+              <p className="mt-3 text-sm text-gray-400">
+                {instantRedeemOnly
+                  ? 'Zero Instant Redeem badges in this filter. Everyone still looks like soon™ — processors and operators can fix that.'
+                  : 'No casino matched that search. Tighten the spelling or try the domain.'}
+              </p>
+              {instantRedeemOnly && (
+                <Link
+                  href="/operators/instant-redeem"
+                  className="mt-5 inline-flex items-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]"
+                >
+                  Ship Instant Redeem
+                </Link>
+              )}
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

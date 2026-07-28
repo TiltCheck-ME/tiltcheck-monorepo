@@ -8,6 +8,10 @@ type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 
 const OPERATOR_BENEFITS = [
   {
+    title: 'Instant Redeem',
+    body: 'Paid exits now — irrevocable settle intent, same-rail rebuy cooloff, scam hard-block. Processors first: one contract, many badges.',
+  },
+  {
     title: 'Trust scoring API',
     body: 'Expose casino-grade trust signals, scam flags, and behavioral risk context inside your product without hand-building another brittle scorecard.',
   },
@@ -16,12 +20,8 @@ const OPERATOR_BENEFITS = [
     body: 'Detect loss-chasing velocity, streak pressure, and intervention moments before a session goes fully cooked.',
   },
   {
-    title: 'Instant Redeem sandbox',
-    body: 'Quote and mock-settle paid instant payouts in your cashier. Fee is the cost of not waiting soon™. Production float stays human-gated.',
-  },
-  {
     title: 'Sandbox first',
-    body: 'Get sandbox keys, mocked responses, and a sane quota cap before you ask for production review.',
+    body: 'Get sandbox keys, mocked responses, and a sane quota cap. Production Instant Redeem needs a float-desk grant — processor holds funds.',
   },
 ];
 
@@ -76,18 +76,18 @@ export default function OperatorsPage() {
     <main className="public-page public-page--tight min-h-screen bg-[#0a0c10] px-4 py-16 text-white">
       <div className="mx-auto flex max-w-4xl flex-col gap-10">
         <header>
-          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">Operators / RGaaS</p>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Sandbox keys for trust signal — not vibes.</h1>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">Operators / Instant Redeem + RGaaS</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Sandbox keys. Paid exits. Trust signal — not vibes.</h1>
           <p className="mt-3 max-w-2xl text-sm text-gray-400 leading-relaxed">
-            Plug RGaaS into onboarding, trust surfaces, or review queues. Instant Redeem sandbox quotes
-            paid exits for cashiers who refuse soon™. Free sandbox: mocked responses, 1k req/24h, human gate for production.
+            Processors ship Instant Redeem across many domains under one float desk. Operators get the badge.
+            RGaaS covers tilt signals. Free sandbox: mocked responses, 1k req/24h, Phase 5 production grant-gated.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href="/operators/pricing" className="inline-flex items-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/20">
-              Pricing
-            </Link>
             <Link href="/operators/instant-redeem" className="inline-flex items-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/20">
               Instant Redeem
+            </Link>
+            <Link href="/operators/pricing" className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:border-[#17c3b2]/30">
+              Pricing
             </Link>
             <Link href="/operators/keys" className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:border-[#17c3b2]/30">
               Key portal

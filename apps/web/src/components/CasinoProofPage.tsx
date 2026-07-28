@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -245,6 +245,7 @@ function ProofCard({
 export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoEntry; seedAudit: CasinoSeedAuditSurface }) {
   const { user, loading: authLoading } = useAuth();
   const [proof, setProof] = useState<ProofState>(INITIAL_PROOF_STATE);
+  const [hasInstantRedeem, setHasInstantRedeem] = useState(false);
 
   const primaryDomain = casino.monitoredDomain ?? casino.domainCandidates[0] ?? null;
   const staticScoreColor = getScoreColor(casino.score);
@@ -252,6 +253,35 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
   const apiUrl = useMemo(() => (
     (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '')
   ), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const candidates = [
+      casino.monitoredDomain,
+      ...(casino.domainCandidates ?? []),
+    ]
+      .filter(Boolean)
+      .map((domain) => String(domain).replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase());
+
+    fetch(`${apiUrl}/v1/redeem/capabilities`, { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { capabilities?: Array<{ domain?: string }> } | null) => {
+        if (cancelled) return;
+        const enabled = new Set(
+          (payload?.capabilities ?? [])
+            .map((entry) => String(entry.domain || '').toLowerCase())
+            .filter(Boolean),
+        );
+        setHasInstantRedeem(candidates.some((domain) => enabled.has(domain)));
+      })
+      .catch(() => {
+        if (!cancelled) setHasInstantRedeem(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiUrl, casino.domainCandidates, casino.monitoredDomain]);
 
   useEffect(() => {
     let cancelled = false;
@@ -496,6 +526,22 @@ export default function CasinoProofPage({ casino, seedAudit }: { casino: CasinoE
                 >
                   {liveRisk} risk
                 </span>
+                {hasInstantRedeem ? (
+                  <span
+                    className="border border-[#17c3b2]/50 bg-[#17c3b2]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]"
+                    title="Operator or payment processor enabled Instant Redeem on this domain"
+                  >
+                    Instant Redeem
+                  </span>
+                ) : (
+                  <Link
+                    href="/operators/instant-redeem"
+                    className="border border-[#283347] px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:border-[#17c3b2]/40 hover:text-[#17c3b2]"
+                    title="This brand still looks like soon™ — Instant Redeem not enabled"
+                  >
+                    No Instant Redeem
+                  </Link>
+                )}
                 <span className="border border-[#283347] px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
                   {casino.category}
                 </span>

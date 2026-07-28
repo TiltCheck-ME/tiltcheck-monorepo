@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 "use client";
 
 import Link from "next/link";
@@ -46,6 +46,8 @@ const footerGroups = [
       { href: "/how-it-works", label: "How it Works" },
       { href: "/about", label: "About" },
       { href: "/operators", label: "Operators" },
+      { href: "/operators/instant-redeem", label: "Instant Redeem" },
+      { href: "/operators/pricing", label: "Operator pricing" },
       { href: "/docs", label: "Docs" },
       { href: "/blog", label: "Blog" },
       { href: "/collab", label: "Contact" },

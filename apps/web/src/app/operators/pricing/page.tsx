@@ -33,12 +33,12 @@ const tiers = [
     name: 'Production',
     price: 'Manual review',
     eyebrow: 'Ship after review',
-    summary: 'For operators moving from mocked integration smoke tests to live rollout planning.',
+    summary: 'Phase 5 grant path: float desk terms signed, then production credentials can hit Instant Redeem.',
     bullets: [
-      'Admin-issued production credentials stay separate',
-      'Manual compliance and abuse review before approval',
-      'Instant Redeem float terms scoped per operator contract',
-      'Quota and commercial terms scoped per operator',
+      'POST /v1/redeem/production/request with processor|operator float caps',
+      'Internal approve — grant approved still != live settlement flag',
+      'Processor holds float; TiltCheck orchestrates only (no MTL day one)',
+      'Quota and commercial terms scoped per partner',
       'Support contact through partners@tiltcheck.me',
     ],
   },
@@ -82,15 +82,22 @@ export default function OperatorPricingPage() {
             150 bps (1.5%), $0.50 floor. That fee is the cost of not waiting soon™. Production float and
             fee share stay contract-scoped via partners@tiltcheck.me.
           </p>
+          <p className="mt-3 text-sm text-gray-400 leading-relaxed">
+            Phase 5 custody: processor or operator holds the float. TiltCheck orchestrates quote, RG gates,
+            irrevocable settle intent, and rebuy cooloff — not MTL day one. Approve grant != live money.
+          </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/operators/instant-redeem" className="inline-flex items-center rounded-xl bg-[#17c3b2] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-black hover:bg-[#14a99a]">
-              Instant Redeem docs
+              Instant Redeem
             </Link>
+            <a href="/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">
+              Phase 5 contract
+            </a>
+            <a href="/docs/product/instant-redeem-partnership-outreach" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">
+              Outreach templates
+            </a>
             <Link href="/operators" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">
               Get sandbox keys
-            </Link>
-            <Link href="/operators/keys" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">
-              Key portal
             </Link>
           </div>
         </section>
