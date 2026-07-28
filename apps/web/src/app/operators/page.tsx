@@ -9,7 +9,7 @@ type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 const OPERATOR_BENEFITS = [
   {
     title: 'Instant Redeem',
-    body: 'Paid exits now — irrevocable settle intent, same-rail rebuy cooloff, scam hard-block. Processors first: one contract, many badges.',
+    body: 'Players pay a fee to cash out faster at the cashier. TiltCheck orchestrates gates and settlement; your processor holds the funds. One processor contract can cover many casino domains.',
   },
   {
     title: 'Trust scoring API',

@@ -63,7 +63,7 @@ export default function Home() {
         <div className="landing-shell" style={{ textAlign: "center" }}>
           <p className="brand-eyebrow">Wen payout?</p>
           <p style={{ marginTop: "0.75rem", color: "#9aa8bc", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "36rem", marginLeft: "auto", marginRight: "auto" }}>
-            Instant Redeem marks who pays now — not soon™. See the badges, then demand the exit at the cashier.
+            Instant Redeem is a paid fast cashout at the casino cashier — skip the wait, pay a fee. We badge who offers it so you are not stuck on soon™.
           </p>
           <div className="hero-actions" style={{ marginTop: "1.25rem", justifyContent: "center" }}>
             <Link
@@ -71,18 +71,18 @@ export default function Home() {
               className="btn btn-primary"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-instant-redeem"
-              data-funnel-label="See who pays now"
+              data-funnel-label="See who pays fast"
             >
-              SEE WHO PAYS NOW
+              SEE WHO PAYS FAST
             </Link>
             <Link
               href="/operators/instant-redeem"
               className="hero-actions__secondary-link"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-instant-redeem"
-              data-funnel-label="Ship Instant Redeem"
+              data-funnel-label="Enable Instant Redeem"
             >
-              SHIP INSTANT REDEEM
+              ENABLE INSTANT REDEEM
             </Link>
           </div>
         </div>

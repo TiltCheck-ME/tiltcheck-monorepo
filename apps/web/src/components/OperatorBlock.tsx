@@ -3,10 +3,10 @@
 import Link from 'next/link';
 
 const operatorBullets = [
-  'Instant Redeem: paid exits on the cashier rail — no canceled redeems theater.',
-  'Processors cover many casino domains under one float desk. You hold funds; we orchestrate.',
-  'Scam / critically low-trust shops stay hard-blocked. Public badge + trust bump for who enables.',
-  'Same partner auth as RGaaS. Sandbox free. Production grant-gated — not MTL day one.',
+  'Instant Redeem lets players pay a fee to cash out faster at your casino cashier — skip the standard withdrawal wait.',
+  'Processors: one integration covers many casino domains. You hold the funds; TiltCheck orchestrates quote, gates, and settlement.',
+  'Scam and low-trust domains stay blocked. Casinos that enable get a public badge and a trust score bump.',
+  'Same partner auth as RGaaS. Free sandbox. Production needs a float-desk grant — no MTL on day one.',
 ];
 
 export default function OperatorBlock() {
@@ -16,7 +16,7 @@ export default function OperatorBlock() {
         <div className="vp-column vp-column--platform public-page-card">
           <span className="brand-eyebrow">For processors / operators</span>
           <h2 className="public-page-section-heading__title">
-            Wen payout? Now. Instant Redeem + RGaaS.
+            Instant Redeem — fast player cashouts for processors and operators.
           </h2>
           <ul className="public-page-card__copy" style={{ textAlign: 'left', marginTop: '1rem' }}>
             {operatorBullets.map((bullet) => (
@@ -31,9 +31,9 @@ export default function OperatorBlock() {
               className="btn btn-primary"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-operator-block"
-              data-funnel-label="Instant Redeem"
+              data-funnel-label="Enable Instant Redeem"
             >
-              INSTANT REDEEM
+              ENABLE INSTANT REDEEM
             </Link>
             <Link
               href="/operators"

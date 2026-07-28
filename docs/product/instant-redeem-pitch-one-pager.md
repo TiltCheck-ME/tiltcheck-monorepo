@@ -10,7 +10,7 @@
 
 ## One-line
 
-**Wen payout? Now. Instant Redeem turns soon™ into a paid exit — without handing scam casinos a cashout rail.**
+**Instant Redeem is a paid fast cashout at the casino cashier — player pays a fee to skip the wait. TiltCheck orchestrates; the processor holds funds. Scam shops stay blocked.**
 
 ---
 

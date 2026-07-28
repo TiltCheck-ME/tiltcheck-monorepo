@@ -4,27 +4,27 @@ import Link from 'next/link';
 const FLYWHEEL = [
   {
     title: 'Player-visible badge',
-    body: 'Public capabilities feed powers Instant Redeem marks on /casinos. Players see who pays now — and who still hides behind soon™.',
+    body: 'Casinos that enable Instant Redeem show up on /casinos. Players see who offers fast cashouts — and who still makes them wait.',
   },
   {
     title: 'Processor multiplier',
-    body: 'One payment-processor partner enables many casino domains. Stop selling brand-by-brand when one rail covers the book.',
+    body: 'One payment-processor integration covers many casino domains. Enable the whole book under one contract instead of brand-by-brand deals.',
   },
   {
-    title: 'Trust score gap',
-    body: 'Enablement bumps financialPayouts +5. Operators without the badge look slower. Measurable FOMO, not vibes.',
+    title: 'Trust score incentive',
+    body: 'Enablement bumps financialPayouts +5. Casinos without the badge look slower on trust — measurable, not vibes.',
   },
   {
-    title: 'Same-rail RG lock',
-    body: 'Settled redeem arms deposit cooloff. Instant exit without instant rebuy — the product reason processors care.',
+    title: 'Deposit cooloff after cashout',
+    body: 'After a settled redeem, deposit cooloff kicks in on the same rail. Fast exit without instant reload — the RG hook processors care about.',
   },
   {
     title: 'No scam cashouts',
-    body: 'Blacklisted and critically low-trust domains are hard-blocked. Instant Redeem is not a payout rail for skem shops.',
+    body: 'Blacklisted and critically low-trust domains are hard-blocked. Instant Redeem is not a payout rail for scam shops.',
   },
   {
     title: 'No canceled redeems',
-    body: 'Cancel routes return REDEEM_IRREVOCABLE. Once Instant Redeem executes, the house cannot yank the payout theater-style.',
+    body: 'Cancel attempts return REDEEM_IRREVOCABLE. Once Instant Redeem executes, the payout cannot be pulled back.',
   },
 ];
 
@@ -38,8 +38,8 @@ const STEPS = [
     body: 'POST /v1/redeem/enable. Operators pass one domain. Processors pass coveredDomains[] — one contract, many badges.',
   },
   {
-    title: 'Quote + execute + deposit gate',
-    body: 'Paid exit, RG gates, then rebuy cooloff on the same rail. Sandbox mocks money; production stays human-gated.',
+    title: 'Quote, execute, deposit gate',
+    body: 'Player pays the fee, RG gates run, then rebuy cooloff arms on the same rail. Sandbox mocks money; production stays human-gated.',
   },
 ];
 
@@ -52,12 +52,12 @@ export default function InstantRedeemPage() {
             Operators / Instant Redeem
           </p>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
-            Built to scale. Not to beg.
+            Instant Redeem — paid fast cashouts at the casino cashier.
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-gray-400 leading-relaxed">
-            Instant Redeem does not grow by hoping every casino signs a one-off deal. It grows when
-            players see who pays now, processors cover many domains under one rail, and trust scores
-            punish slow exits. Operators still matter — they are not the only channel.
+            Players pay a fee to skip the standard withdrawal wait. Payment processors enable many
+            casino domains under one integration; operators get the badge and trust bump. TiltCheck
+            orchestrates quote, RG gates, and settlement — your processor or operator holds the funds.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
@@ -74,9 +74,9 @@ export default function InstantRedeemPage() {
               className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:border-[#17c3b2]/30"
               data-funnel-event="cta_click"
               data-funnel-source="operators-instant-redeem"
-              data-funnel-label="See public casino badges"
+              data-funnel-label="See who pays fast"
             >
-              See public badges
+              See who pays fast
             </Link>
             <a
               href="/docs/OPERATOR-INSTANT-REDEEM-GROWTH"
@@ -117,10 +117,12 @@ export default function InstantRedeemPage() {
         <section className="rounded-2xl border border-[#17c3b2]/25 bg-[#17c3b2]/5 p-6">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Pitch</p>
           <p className="mt-2 text-sm text-gray-200 leading-relaxed">
-            Wen payout? Now. Instant Redeem turns soon™ into a paid exit — no canceled redeems, no
-            scam cashouts, cooloff before the reload. Processors cover many domains. Operators get
-            the badge. Fee stays <span className="font-mono text-white">150 bps</span> /{' '}
-            <span className="font-mono text-white">$0.50</span> floor in sandbox.
+            Wen payout? Now. Instant Redeem is a paid fast cashout in the casino cashier — player
+            pays a fee, skips the wait, and the payout cannot be canceled once it settles. Deposit
+            cooloff blocks instant reload. Scam shops stay blocked. Processors cover many domains;
+            operators get the badge. Sandbox fee:{' '}
+            <span className="font-mono text-white">150 bps</span> /{' '}
+            <span className="font-mono text-white">$0.50</span> floor.
           </p>
         </section>
 
@@ -160,8 +162,8 @@ export default function InstantRedeemPage() {
         <section className="rounded-2xl border border-[#283347] bg-black/30 p-6 text-sm text-gray-400 leading-relaxed">
           <h2 className="text-lg font-black uppercase tracking-tight text-white">Commercial reality</h2>
           <p className="mt-2">
-            Phase 5: processor/operator holds the float. TiltCheck orchestrates quote, RG gates,
-            irrevocable settle intent, and rebuy cooloff — not MTL day one. Live rails stay
+            Phase 5: the processor or operator holds the float. TiltCheck orchestrates quote, RG
+            gates, irrevocable settlement, and deposit cooloff — not MTL on day one. Live rails stay
             human-gated. Talk{' '}
             <a className="text-[#17c3b2] hover:underline" href="mailto:partners@tiltcheck.me">
               partners@tiltcheck.me
