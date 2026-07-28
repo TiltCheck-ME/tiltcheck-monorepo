@@ -1,9 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 "use client";
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { getDashboardHandoffUrl } from "@/lib/dashboard-handoff";
+import BrandTagline from "@/components/BrandTagline";
+import { DISCORD_INVITE_URL, KOFI_URL } from "@/lib/site-links";
 
 const QUOTES = [
   "Trust everybody, but cut the cards.",
@@ -46,9 +48,12 @@ const footerGroups = [
       { href: "/how-it-works", label: "How it Works" },
       { href: "/about", label: "About" },
       { href: "/operators", label: "Operators" },
+      { href: "/operators/instant-redeem", label: "Instant Redeem" },
+      { href: "/operators/pricing", label: "Operator pricing" },
       { href: "/docs", label: "Docs" },
       { href: "/blog", label: "Blog" },
       { href: "/collab", label: "Contact" },
+      { href: KOFI_URL, label: "Support on Ko-fi" },
       { href: getDashboardHandoffUrl("/dashboard"), label: "Your Dashboard" },
     ],
   },
@@ -79,12 +84,20 @@ const Footer = () => {
                 Get Early Access
               </Link>
               <a
-                href="https://discord.gg/gdBsEJfCar"
+                href={DISCORD_INVITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="footer-action footer-action--secondary"
               >
                 Join Discord
+              </a>
+              <a
+                href={KOFI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-action footer-action--secondary"
+              >
+                Support on Ko-fi
               </a>
             </div>
 
@@ -126,7 +139,9 @@ const Footer = () => {
               The Source
             </a>
           </div>
-          <p className="footer-tagline">Made for Degens. By Degens.</p>
+          <p className="footer-tagline">
+            <BrandTagline />
+          </p>
           <p className="footer-copyright">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import React from 'react';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -30,12 +30,27 @@ export default async function DocPage({ params }: Props) {
     return acc;
   }, {} as Record<string, typeof allDocs>);
 
-  // Define sensitivity criteria
+  // Public partner Instant Redeem docs must stay ungated (linked from /operators/*).
+  const publicDocAllowlist = [
+    'OPERATOR-INSTANT-REDEEM',
+    'OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION',
+    'OPERATOR-INSTANT-REDEEM-GROWTH',
+    'OPERATOR-INSTANT-REDEEM-TEAM-READINESS',
+    'PARTNER-INTEGRATION',
+    'RGAAS-QUICKSTART',
+    'product/instant-redeem-pitch-one-pager',
+    'product/instant-redeem-partnership-outreach',
+    'product/instant-redeem-outreach-targets',
+  ];
   const sensitiveFolders = ['security', 'ops', 'governance', 'legal'];
   const sensitiveKeywords = ['ARCHITECTURE', 'BLUEPRINT', 'RUNBOOK', 'PRODUCTION', 'SETUP'];
-  
-  const isSensitive = sensitiveFolders.includes(doc.category.toLowerCase()) || 
-                      sensitiveKeywords.some(kw => docSlug.toUpperCase().includes(kw));
+  const isPublicAllowlisted = publicDocAllowlist.some(
+    (entry) => docSlug === entry || docSlug.toUpperCase() === entry.toUpperCase(),
+  );
+  const isSensitive =
+    !isPublicAllowlisted &&
+    (sensitiveFolders.includes(doc.category.toLowerCase()) ||
+      sensitiveKeywords.some((kw) => docSlug.toUpperCase().includes(kw)));
 
   return (
     <div className="flex min-h-screen bg-black/90">

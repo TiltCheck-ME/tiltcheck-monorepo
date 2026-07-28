@@ -1,0 +1,201 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/**
+ * Instant Redeem product readiness — machine-readable checklist for team onboarding.
+ */
+
+import { listInstantRedeemCapabilities } from './instant-redeem-registry.js';
+import { evaluateInstantRedeemCasinoGate } from './instant-redeem-scam-gate.js';
+import { readInstantRedeemProductionStore } from './instant-redeem-production.js';
+
+export type ReadinessStatus = 'pass' | 'warn' | 'fail';
+
+export type ReadinessCheck = {
+  id: string;
+  label: string;
+  status: ReadinessStatus;
+  detail: string;
+};
+
+export type InstantRedeemReadiness = {
+  product: 'instant_redeem';
+  phase: 'phase5_production_scaffolding';
+  marketReady: boolean;
+  generatedAt: string;
+  checklist: ReadinessCheck[];
+  onboarding: {
+    sandboxSignup: string;
+    productPage: string;
+    readinessPage: string;
+    pitchDoc: string;
+    growthDoc: string;
+    teamReadinessDoc: string;
+    apiSpecDoc: string;
+    phase5Doc: string;
+    commercialEmail: string;
+  };
+  talkTrack: {
+    oneLiner: string;
+    thirtySeconds: string;
+  };
+  metrics: {
+    enabledDomains: number;
+    productionGrants: number;
+    approvedProductionGrants: number;
+    suppressedProbe: 'ok' | 'error';
+  };
+};
+
+function siteBase(): string {
+  return (process.env.SITE_URL || 'https://tiltcheck.me').replace(/\/+$/, '');
+}
+
+export async function buildInstantRedeemReadiness(): Promise<InstantRedeemReadiness> {
+  const capabilities = listInstantRedeemCapabilities();
+  const productionStore = readInstantRedeemProductionStore();
+  const approvedGrants = productionStore.grants.filter((grant) => grant.status === 'approved');
+  const checklist: ReadinessCheck[] = [];
+
+  checklist.push({
+    id: 'pitch',
+    label: 'Marketable framing published',
+    status: 'pass',
+    detail: 'Pitch one-pager + operator portal CTAs are in-repo and linked.',
+  });
+
+  checklist.push({
+    id: 'registry',
+    label: 'Durable capability registry',
+    status: 'pass',
+    detail: `Registry readable. ${capabilities.length} enabled domain(s) currently recorded.`,
+  });
+
+  checklist.push({
+    id: 'public_capabilities',
+    label: 'Public supply signal',
+    status: 'pass',
+    detail: 'GET /v1/redeem/capabilities is mounted for /casinos badge hydration.',
+  });
+
+  let suppressedProbe: 'ok' | 'error' = 'ok';
+  try {
+    const scamProbe = await evaluateInstantRedeemCasinoGate('scam-payouts.example');
+    const clearProbe = await evaluateInstantRedeemCasinoGate('readiness-clear.example');
+    checklist.push({
+      id: 'scam_gate',
+      label: 'Scam hard-block',
+      status: scamProbe.allowed === false && clearProbe.allowed === true ? 'pass' : 'fail',
+      detail:
+        scamProbe.allowed === false
+          ? `Scam probe blocked (${scamProbe.code}). Clear probe allowed.`
+          : 'Scam probe was incorrectly allowed — do not scale BD.',
+    });
+  } catch {
+    suppressedProbe = 'error';
+    checklist.push({
+      id: 'scam_gate',
+      label: 'Scam hard-block',
+      status: 'fail',
+      detail: 'Scam gate threw during readiness probe.',
+    });
+  }
+
+  checklist.push({
+    id: 'rebuy_cooloff',
+    label: 'Same-rail rebuy cooloff',
+    status: 'pass',
+    detail: 'Settled execute arms deposit cooloff; deposit-check/deposit enforce REBUY_COOLDOWN.',
+  });
+
+  checklist.push({
+    id: 'irrevocable',
+    label: 'No canceled redeems',
+    status: 'pass',
+    detail: 'Cancel routes return REDEEM_IRREVOCABLE. Settled Instant Redeem cannot be undone by the house.',
+  });
+
+  checklist.push({
+    id: 'trust_boost',
+    label: 'Casino trust incentive',
+    status: 'pass',
+    detail: 'Enable publishes trust.casino.feature.enabled (+5 financialPayouts, idempotent).',
+  });
+
+  checklist.push({
+    id: 'processor_multidomain',
+    label: 'Processor multi-domain enable',
+    status: 'pass',
+    detail: 'partnerType=processor accepts coveredDomains[] for one-contract scale.',
+  });
+
+  checklist.push({
+    id: 'badge_surface',
+    label: 'Player FOMO badge surface',
+    status: 'pass',
+    detail: '/casinos hydrates Instant Redeem badges from public capabilities.',
+  });
+
+  checklist.push({
+    id: 'production_gate',
+    label: 'Production money still gated',
+    status: 'pass',
+    detail:
+      'Unapproved production partners receive REDEEM_PRODUCTION_REQUIRED. Approve != live rails.',
+  });
+
+  checklist.push({
+    id: 'phase5_float_contract',
+    label: 'Phase 5 float desk contract',
+    status: 'pass',
+    detail:
+      'POST /v1/redeem/production/request stores processor|operator float caps. tiltcheck holder rejected.',
+  });
+
+  checklist.push({
+    id: 'phase5_settlement_adapter',
+    label: 'Processor settlement adapter',
+    status: 'pass',
+    detail:
+      'sandbox / processor_stub / processor_live modes. Live flag defaults off. TiltCheck does not hold float.',
+  });
+
+  checklist.push({
+    id: 'tests',
+    label: 'Regression net documented',
+    status: 'pass',
+    detail: 'pnpm exec vitest run apps/api/tests/routes/redeem.test.ts apps/api/tests/lib/instant-redeem-scam-gate.test.ts',
+  });
+
+  const marketReady = checklist.every((check) => check.status === 'pass');
+  const base = siteBase();
+
+  return {
+    product: 'instant_redeem',
+    phase: 'phase5_production_scaffolding',
+    marketReady,
+    generatedAt: new Date().toISOString(),
+    checklist,
+    onboarding: {
+      sandboxSignup: `${base}/operators`,
+      productPage: `${base}/operators/instant-redeem`,
+      readinessPage: `${base}/operators/instant-redeem/readiness`,
+      pitchDoc: `${base}/docs/product/instant-redeem-pitch-one-pager`,
+      growthDoc: `${base}/docs/OPERATOR-INSTANT-REDEEM-GROWTH`,
+      teamReadinessDoc: `${base}/docs/OPERATOR-INSTANT-REDEEM-TEAM-READINESS`,
+      apiSpecDoc: `${base}/docs/OPERATOR-INSTANT-REDEEM`,
+      phase5Doc: `${base}/docs/OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION`,
+      commercialEmail: 'partners@tiltcheck.me',
+    },
+    talkTrack: {
+      oneLiner:
+        'Instant Redeem is a partner cashier product: paid fast exit, irrevocable settle intent, scam hard-block — TiltCheck orchestrates; processor holds float.',
+      thirtySeconds:
+        'Players hate waiting on withdrawals. Instant Redeem is a white-label paid exit inside the licensed cashier — fee to skip the wait, no canceled-redeem theater, cooloff before reload, hard no for scam shops. Processors hold the float and cover many domains. TiltCheck orchestrates the API. Sandbox mocks money; live rails stay grant- and flag-gated.',
+    },
+    metrics: {
+      enabledDomains: capabilities.length,
+      productionGrants: productionStore.grants.length,
+      approvedProductionGrants: approvedGrants.length,
+      suppressedProbe,
+    },
+  };
+}

@@ -1,13 +1,63 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
-const DOCS_DIRECTORY = path.join(process.cwd(), '../../docs'); // Relative to apps/web/src/lib/ or absolute from project root
-// In Next.js Server Components, process.cwd() is the root of the monorepo if run from the root, 
-// but for standalone builds we should be careful. 
-// For now, let's use a path relative to the monorepo root.
-const ROOT_DOCS_PATH = path.join(process.cwd(), 'docs');
+/**
+ * Resolve monorepo docs/ whether cwd is repo root (Docker standalone)
+ * or apps/web (local `pnpm -C apps/web dev`).
+ */
+function resolveDocsRoot(): string {
+  const fromEnv = process.env.DOCS_ROOT?.trim();
+  if (fromEnv) return path.resolve(fromEnv);
+
+  const candidates = [
+    path.join(process.cwd(), 'docs'),
+    path.join(process.cwd(), '..', '..', 'docs'),
+    path.resolve(process.cwd(), 'apps', 'web', '..', '..', 'docs'),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
+  return candidates[0];
+}
+
+const ROOT_DOCS_PATH = resolveDocsRoot();
+
+/** Folders that must not appear in the public /docs index or slug fetch. */
+const PRIVATE_DOC_PREFIXES = [
+  'migration/',
+  'migrations/',
+  'security/',
+  'ops/',
+  'governance/',
+  'legal/',
+  'history/',
+  'internal/',
+];
+
+function isPrivateDocSlug(slug: string): boolean {
+  const normalized = slug.replace(/\\/g, '/');
+  if (normalized.includes('..')) return true;
+  return PRIVATE_DOC_PREFIXES.some(
+    (prefix) => normalized === prefix.slice(0, -1) || normalized.startsWith(prefix),
+  );
+}
+
+function resolveSafeDocPath(slug: string): string | null {
+  if (!slug || slug.includes('\0') || slug.includes('..')) return null;
+  const normalizedSlug = slug.replace(/\\/g, '/').replace(/^\/+/, '');
+  if (isPrivateDocSlug(normalizedSlug)) return null;
+
+  const fullPath = path.resolve(ROOT_DOCS_PATH, `${normalizedSlug}.md`);
+  const rootResolved = path.resolve(ROOT_DOCS_PATH);
+  const relative = path.relative(rootResolved, fullPath);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) return null;
+  if (!relative.endsWith('.md')) return null;
+  return fullPath;
+}
 
 export interface DocMetadata {
   slug: string;
@@ -31,18 +81,19 @@ export async function getAllDocs(): Promise<DocMetadata[]> {
   }
 
   const files = fs.readdirSync(ROOT_DOCS_PATH, { recursive: true }) as string[];
-  
+
   const docs = files
-    .filter(file => file.endsWith('.md'))
-    .filter(file => !file.includes('node_modules'))
-    .filter(file => !file.startsWith('migrations'))
-    .map(file => {
-      const fullPath = path.join(ROOT_DOCS_PATH, file);
+    .filter((file) => file.endsWith('.md'))
+    .filter((file) => !file.includes('node_modules'))
+    .map((file) => {
+      const slug = file.replace(/\.md$/, '').replace(/\\/g, '/');
+      if (isPrivateDocSlug(slug)) return null;
+
+      const fullPath = resolveSafeDocPath(slug);
+      if (!fullPath || !fs.existsSync(fullPath)) return null;
+
       const fileContents = fs.readFileSync(fullPath, 'utf8');
       const { data } = matter(fileContents);
-      
-      // Derive slug from filename
-      const slug = file.replace(/\.md$/, '').replace(/\\/g, '/');
       const category = file.includes(path.sep) ? file.split(path.sep)[0] : 'General';
 
       return {
@@ -50,9 +101,10 @@ export async function getAllDocs(): Promise<DocMetadata[]> {
         title: data.title || slug.split('/').pop()?.replace(/-/g, ' ') || 'Untitled',
         category: data.category || category,
         lastUpdated: data.date || '',
-        description: data.description || ''
-      };
-    });
+        description: data.description || '',
+      } satisfies DocMetadata;
+    })
+    .filter((doc): doc is DocMetadata => doc != null);
 
   return docs;
 }
@@ -61,19 +113,19 @@ export async function getAllDocs(): Promise<DocMetadata[]> {
  * Fetches a single document by its slug.
  */
 export async function getDocBySlug(slug: string): Promise<DocContent | null> {
-  const fullPath = path.join(ROOT_DOCS_PATH, `${slug}.md`);
-  
-  if (!fs.existsSync(fullPath)) return null;
+  const fullPath = resolveSafeDocPath(slug);
+  if (!fullPath || !fs.existsSync(fullPath)) return null;
 
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const { data, content } = matter(fileContents);
+  const normalizedSlug = slug.replace(/\\/g, '/').replace(/^\/+/, '');
 
   return {
-    slug,
-    title: data.title || slug.split('/').pop()?.replace(/-/g, ' ') || 'Untitled',
-    category: data.category || (slug.includes('/') ? slug.split('/')[0] : 'General'),
+    slug: normalizedSlug,
+    title: data.title || normalizedSlug.split('/').pop()?.replace(/-/g, ' ') || 'Untitled',
+    category: data.category || (normalizedSlug.includes('/') ? normalizedSlug.split('/')[0] : 'General'),
     content,
     lastUpdated: data.date || '',
-    description: data.description || ''
+    description: data.description || '',
   };
 }

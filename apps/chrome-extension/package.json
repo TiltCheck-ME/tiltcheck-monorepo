@@ -14,6 +14,8 @@
     "build": "node build.js",
     "build:tsc": "tsc",
     "dev": "node build.js --watch",
+    "zip": "node scripts/package-extension-zip.mjs",
+    "package": "pnpm build && pnpm zip",
     "test": "vitest --run"
   },
   "devDependencies": {

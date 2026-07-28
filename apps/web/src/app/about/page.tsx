@@ -1,6 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import Link from "next/link";
+import BrandTagline from "@/components/BrandTagline";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
+import { KOFI_URL } from "@/lib/site-links";
 
 const philosophyCards = [
   {
@@ -65,6 +67,17 @@ export default function AboutPage() {
                 <p>
                   Chased losses, learned to code, built the tool past-me needed. Full-stack, trust engines, tilt habits.
                 </p>
+                <p className="mt-4">
+                  <a
+                    href={KOFI_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#17c3b2] hover:underline text-sm font-black uppercase tracking-[0.18em]"
+                  >
+                    Support on Ko-fi
+                  </a>
+                  <span className="text-gray-500 text-sm"> — tips keep the audit layer shipping.</span>
+                </p>
               </div>
             </article>
 
@@ -89,7 +102,9 @@ export default function AboutPage() {
               </a>{" "}
               · <strong>1-800-GAMBLER</strong>
             </p>
-            <p className="public-page-cta-band__tagline">Made for Degens. By Degens.</p>
+            <p className="public-page-cta-band__tagline">
+              <BrandTagline />
+            </p>
           </div>
         </div>
       </section>

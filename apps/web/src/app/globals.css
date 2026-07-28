@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -344,6 +344,11 @@ html, body {
 .nav-desktop-link-danger       { color: #9ca3af; }
 .nav-desktop-link-danger:hover { color: #ef4444; }
 .nav-desktop-link-danger::after { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); }
+.nav-sidebar-link-amber       { color: #9ca3af; }
+.nav-sidebar-link-amber:hover { color: var(--tc-accent-2); background: rgba(255, 176, 32, 0.06); border-left-color: rgba(255, 176, 32, 0.42); }
+.nav-desktop-link-amber       { color: #9ca3af; }
+.nav-desktop-link-amber:hover { color: var(--tc-accent-2); }
+.nav-desktop-link-amber::after { background: var(--tc-accent-2); box-shadow: 0 0 6px rgba(255, 176, 32, 0.45); }
 .nav-sidebar-link-purple       { color: #9ca3af; }
 .nav-sidebar-link-purple:hover { color: #a78bfa; background: rgba(167, 139, 250, 0.05); border-left-color: rgba(167, 139, 250, 0.4); }
 .nav-desktop-link-purple       { color: #9ca3af; }
@@ -429,13 +434,24 @@ html, body {
   --font-geist-sans: var(--font-inter), "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: var(--font-jetbrains-mono), "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-mono: var(--font-geist-mono);
-  /* === Premium Audit Palette (Teal / Obsidian / Gold) === */
-  --color-primary: #17c3b2; 
-  --color-primary-dark: #129d8f;
-  --color-primary-light: #48d5c6;
-  --color-secondary: #17c3b2; /* Purple purged */
-  --color-accent: #17c3b2; /* Magenta purged */
-  --color-gold: #ffd700; 
+  /* === TiltCheck theme tokens (teal player / amber partner) === */
+  --tc-accent: #17c3b2;
+  --tc-accent-dark: #129d8f;
+  --tc-accent-light: #48d5c6;
+  --tc-accent-2: #ffb020;
+  --tc-accent-2-dark: #e89a00;
+  --tc-accent-2-light: #ffc857;
+  --tc-ink: #f6fbff;
+  --tc-muted: #9aa8bc;
+  --tc-surface: #06080b;
+  --tc-border: #283347;
+  /* === Legacy aliases (keep existing class hooks working) === */
+  --color-primary: var(--tc-accent);
+  --color-primary-dark: var(--tc-accent-dark);
+  --color-primary-light: var(--tc-accent-light);
+  --color-secondary: var(--tc-accent-2);
+  --color-accent: var(--tc-accent);
+  --color-gold: var(--tc-accent-2); 
   --bg-primary: #06080b; 
   --bg-secondary: #08090e; 
   --bg-tertiary: #0d1017; 
@@ -1092,7 +1108,7 @@ body.degen-background > * {
    BRAND TYPOGRAPHY GUIDELINES
    Reference page: /microgrant
    Font pairing: Satoshi/Inter (display) + JetBrains Mono (data/labels)
-   Palette: #0a0c10 bg | #fff primary | #9ca3af secondary | #17c3b2 teal
+   Palette: #0a0c10 bg | #fff primary | #9ca3af secondary | #17c3b2 teal | #ffb020 amber (partner)
    Red (#ef4444) is reserved for crisis/danger context only.
    =================================================================== */
 
@@ -1104,10 +1120,22 @@ body.degen-background > * {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3em;
-  color: var(--color-primary);
+  color: var(--tc-accent);
   border: 1px solid rgba(23, 195, 178, 0.4);
   padding: 0.25rem 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+.brand-eyebrow--partner {
+  color: var(--tc-accent-2);
+  border-color: rgba(255, 176, 32, 0.42);
+  background: rgba(255, 176, 32, 0.06);
+}
+
+.brand-eyebrow--muted {
+  color: var(--tc-muted);
+  border-color: rgba(154, 168, 188, 0.35);
+  background: rgba(154, 168, 188, 0.04);
 }
 
 /* Page-level h1 — clean bold, no glow */
@@ -1284,7 +1312,7 @@ body.degen-background > * {
   width: 100%;
   max-width: 1280px;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(23,195,178,0.25) 30%, rgba(23,195,178,0.5) 50%, rgba(23,195,178,0.25) 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(23,195,178,0.22) 25%, rgba(255,176,32,0.35) 50%, rgba(23,195,178,0.22) 75%, transparent 100%);
   margin: 0 auto;
 }
 
@@ -1686,7 +1714,7 @@ body.degen-background > * {
 }
 
 .vp-column--platform {
-  border-top: 2px solid var(--color-gold);
+  border-top: 2px solid var(--tc-accent-2);
 }
 
 .vp-column--player:hover {
@@ -1694,7 +1722,7 @@ body.degen-background > * {
 }
 
 .vp-column--platform:hover {
-  border-color: rgba(255, 215, 0, 0.5);
+  border-color: rgba(255, 176, 32, 0.5);
 }
 
 .vp-column-header {
@@ -1721,9 +1749,9 @@ body.degen-background > * {
 }
 
 .vp-column-eyebrow--platform {
-  color: var(--color-gold);
-  border: 1px solid rgba(255, 215, 0, 0.4);
-  background: rgba(255, 215, 0, 0.06);
+  color: var(--tc-accent-2);
+  border: 1px solid rgba(255, 176, 32, 0.42);
+  background: rgba(255, 176, 32, 0.06);
 }
 
 .vp-column-title {
@@ -1774,7 +1802,7 @@ body.degen-background > * {
 }
 
 .vp-benefit-icon--gold {
-  color: var(--color-gold);
+  color: var(--tc-accent-2);
 }
 
 .vp-benefit-label {
@@ -1805,13 +1833,13 @@ body.degen-background > * {
 }
 
 .vp-btn-platform {
-  border-color: rgba(255, 215, 0, 0.3);
-  color: var(--color-gold);
+  border-color: rgba(255, 176, 32, 0.32);
+  color: var(--tc-accent-2);
 }
 
 .vp-btn-platform:hover {
-  border-color: var(--color-gold);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  border-color: var(--tc-accent-2);
+  box-shadow: 0 0 20px rgba(255, 176, 32, 0.28);
 }
 
 @media (max-width: 640px) {
@@ -3179,6 +3207,73 @@ body.degen-background > * {
   background:
     linear-gradient(180deg, rgba(9, 16, 19, 0.95) 0%, rgba(6, 13, 15, 0.9) 100%),
     radial-gradient(circle at top left, rgba(23, 195, 178, 0.13), transparent 55%);
+}
+
+.public-page-card--partner {
+  border-color: rgba(255, 176, 32, 0.28);
+  background:
+    linear-gradient(180deg, rgba(14, 12, 8, 0.95) 0%, rgba(10, 9, 7, 0.9) 100%),
+    radial-gradient(circle at top left, rgba(255, 176, 32, 0.12), transparent 55%);
+}
+
+.public-page-card--partner .public-page-card__eyebrow {
+  color: var(--tc-accent-2);
+}
+
+.public-page-card--report {
+  border-color: rgba(255, 176, 32, 0.22);
+  background:
+    linear-gradient(180deg, rgba(11, 13, 18, 0.95) 0%, rgba(8, 10, 14, 0.88) 100%),
+    radial-gradient(circle at top right, rgba(255, 176, 32, 0.08), transparent 52%);
+}
+
+.public-page-card--report .public-page-card__eyebrow {
+  color: var(--tc-accent-2);
+}
+
+.btn-partner {
+  background-color: var(--tc-accent-2);
+  color: #0a0c10;
+}
+
+.btn-partner:hover {
+  box-shadow:
+    0 0 25px rgba(255, 176, 32, 0.38),
+    0 0 5px rgba(255, 176, 32, 0.18);
+}
+
+.btn-outline-partner {
+  background: transparent;
+  border: 1px solid rgba(255, 176, 32, 0.38);
+  color: var(--tc-accent-2);
+}
+
+.btn-outline-partner:hover {
+  border-color: var(--tc-accent-2);
+  box-shadow: 0 0 20px rgba(255, 176, 32, 0.22);
+}
+
+.tools-dash-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-geist-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tools-dash-section-label--player {
+  color: var(--tc-accent);
+}
+
+.tools-dash-section-label--reports {
+  color: var(--tc-accent-2);
+}
+
+.tools-dash-section-label--partner {
+  color: var(--tc-muted);
 }
 
 .public-page-card--danger {
