@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
 
 # Cloud Agent Environment Setup (Node 20 + pnpm 10.29.1)
 
@@ -39,6 +39,18 @@ bash scripts/cloud-agent-env-setup.sh
   - `pnpm --filter @tiltcheck/api exec vitest run tests/routes/partner.test.ts`
   - `pnpm --filter web exec tsc --noEmit`
   - `pnpm trust:start`
+
+## jsdom / undici pin (CI Node 20)
+
+Root `pnpm.overrides` keep a security floor of `undici: ">=7.28.0"` (resolves to undici 8.x). undici 8.0.3+ calls `worker_threads.markAsUncloneable` without a fallback, which Node 20 CI does not provide, so jsdom 29 test collection blows up with `webidl.util.markAsUncloneable is not a function`.
+
+Scoped override keeps the floor for app code and pins only the test dependency tree:
+
+```json
+"jsdom>undici": ">=7.28.0 <8"
+```
+
+That keeps jsdom on undici 7.28+ (fallback intact) while production undici stays on 8.x. Chrome-extension `@vitest-environment jsdom` suites need this on Node 20.
 
 ## What this does not magically fix
 
