@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import Link from 'next/link';
 
 const tiers = [
@@ -6,11 +6,12 @@ const tiers = [
     name: 'Sandbox',
     price: 'Free',
     eyebrow: 'Build and validate',
-    summary: 'For operators integrating RGaaS without waiting on manual key issuance.',
+    summary: 'For operators integrating RGaaS and Instant Redeem without waiting on manual key issuance.',
     bullets: [
       'Email-verified sandbox app ID and secret key',
       '1,000 requests per rolling 24 hours',
       'Mock responses only, tagged with X-Mode: sandbox',
+      'Instant Redeem quote + execute stubs under /v1/redeem',
       'No trust-rollup writes while you are still testing',
     ],
   },
@@ -22,6 +23,7 @@ const tiers = [
     bullets: [
       'Admin-issued production credentials stay separate',
       'Manual compliance and abuse review before approval',
+      'Instant Redeem float terms scoped per operator contract',
       'Quota and commercial terms scoped per operator',
       'Support contact through partners@tiltcheck.me',
     ],
@@ -35,7 +37,9 @@ export default function OperatorPricingPage() {
         <header>
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">RGaaS pricing</p>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Free sandbox. Production by review.</h1>
-          <p className="mt-3 text-sm text-gray-400">Validate integration without ops wait — then earn production access.</p>
+          <p className="mt-3 text-sm text-gray-400">
+            Validate trust signals and Instant Redeem without ops wait — then earn production access.
+          </p>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -59,12 +63,16 @@ export default function OperatorPricingPage() {
         </section>
 
         <section className="rounded-2xl border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-6">
-          <h2 className="text-lg font-black uppercase tracking-tight">Production = human review</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight">Instant Redeem fee (sandbox default)</h2>
           <p className="mt-2 text-sm text-gray-300">
-            Request from the keys portal after sandbox smoke tests. partners@tiltcheck.me for commercial terms.
+            150 bps (1.5%), $0.50 floor. That fee is the cost of not waiting soon™. Production float and
+            fee share stay contract-scoped via partners@tiltcheck.me.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/operators" className="inline-flex items-center rounded-xl bg-[#17c3b2] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-black hover:bg-[#14a99a]">
+            <Link href="/operators/instant-redeem" className="inline-flex items-center rounded-xl bg-[#17c3b2] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-black hover:bg-[#14a99a]">
+              Instant Redeem docs
+            </Link>
+            <Link href="/operators" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">
               Get sandbox keys
             </Link>
             <Link href="/operators/keys" className="inline-flex items-center rounded-xl border border-[#17c3b2]/30 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/10">

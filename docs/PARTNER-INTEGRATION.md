@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
+
 # Partner Integration Guide
 
 Welcome to the TiltCheck Ecosystem. This guide provides technical instructions for developers and partners looking to integrate with TiltCheck's Responsible Gaming (RG) intelligence and Trust Engine.
@@ -83,5 +85,29 @@ Requests from these regions will receive a `403 Forbidden` with the code `GEO_RE
 
 ---
 
-## 5. Support & Sandbox
-For sandbox access or technical support, contact the TiltCheck engineering team at `dev@tiltcheck.me`.
+## 5. Instant Redeem (sandbox)
+
+Operator white-label Instant Redeem lives at `/v1/redeem` (partner auth). Quote, execute, and status stubs mock settlement only — no real funds move in this phase.
+
+Full contract: [OPERATOR-INSTANT-REDEEM.md](./OPERATOR-INSTANT-REDEEM.md)
+
+```bash
+curl -X POST "https://api.tiltcheck.me/v1/redeem/quote" \
+  -H "Content-Type: application/json" \
+  -H "X-Requested-With: TiltCheckPartner" \
+  -H "X-TiltCheck-App-Id: sandbox_your_app" \
+  -H "X-TiltCheck-Secret-Key: sk_sandbox_..." \
+  --data '{
+    "playerRef": "player_abc",
+    "amount": 100,
+    "currency": "USD",
+    "destination": { "rail": "ach", "accountRef": "acct_****1234" }
+  }'
+```
+
+Sandbox default fee: 150 bps (1.5%), $0.50 floor — the cost of not waiting soon™.
+
+---
+
+## 6. Support & Sandbox
+For sandbox access or technical support, contact the TiltCheck engineering team at `dev@tiltcheck.me` or commercial Instant Redeem terms at `partners@tiltcheck.me`.

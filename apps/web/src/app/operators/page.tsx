@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 "use client";
 
 import Link from 'next/link';
@@ -14,6 +14,10 @@ const OPERATOR_BENEFITS = [
   {
     title: 'Breathalyzer and RG signals',
     body: 'Detect loss-chasing velocity, streak pressure, and intervention moments before a session goes fully cooked.',
+  },
+  {
+    title: 'Instant Redeem sandbox',
+    body: 'Quote and mock-settle paid instant payouts in your cashier. Fee is the cost of not waiting soon™. Production float stays human-gated.',
   },
   {
     title: 'Sandbox first',
@@ -75,11 +79,15 @@ export default function OperatorsPage() {
           <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#17c3b2]">Operators / RGaaS</p>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Sandbox keys for trust signal — not vibes.</h1>
           <p className="mt-3 max-w-2xl text-sm text-gray-400 leading-relaxed">
-            Plug RGaaS into onboarding, trust surfaces, or review queues. Free sandbox: mocked responses, 1k req/24h, human gate for production.
+            Plug RGaaS into onboarding, trust surfaces, or review queues. Instant Redeem sandbox quotes
+            paid exits for cashiers who refuse soon™. Free sandbox: mocked responses, 1k req/24h, human gate for production.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/operators/pricing" className="inline-flex items-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/20">
               Pricing
+            </Link>
+            <Link href="/operators/instant-redeem" className="inline-flex items-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] hover:bg-[#17c3b2]/20">
+              Instant Redeem
             </Link>
             <Link href="/operators/keys" className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:border-[#17c3b2]/30">
               Key portal
@@ -90,7 +98,7 @@ export default function OperatorsPage() {
           </div>
         </header>
 
-        <ul className="grid gap-3 sm:grid-cols-3 text-sm">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
           {OPERATOR_BENEFITS.map((item) => (
             <li key={item.title} className="rounded-xl border border-[#283347] bg-black/30 p-4">
               <p className="text-xs font-black uppercase tracking-wide text-white">{item.title}</p>
@@ -204,6 +212,10 @@ export default function OperatorsPage() {
               </form>
             )}
         </section>
+
+        <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+          Made for Degens. By Degens.
+        </p>
       </div>
     </main>
   );
