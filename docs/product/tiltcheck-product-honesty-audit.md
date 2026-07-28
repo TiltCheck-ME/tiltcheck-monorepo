@@ -104,4 +104,51 @@
 
 ---
 
+## User-surface decisions (build / bury / plan / table / launch)
+
+Looked at like a first-time player: **Install zip → Core guest → check casinos.** Discord Account is optional later.
+
+### Login — what it actually is
+
+| Question | Answer |
+| :--- | :--- |
+| Required to browse / install / trust / Touch Grass? | **No** |
+| What it does | Discord OAuth → `dashboard.tiltcheck.me` account plane |
+| Unlocks | Vault rules, cloud sync, buddies, durable prefs, higher Ask rate limit, bonus personalization |
+| Extension Core | Works guest/local without Discord |
+
+**Decision: BURY as a product gate. LAUNCH as "Account"** (secondary nav action). Do not sell Login as step 1.
+
+### Top nav
+
+| Item | Decision | Why |
+| :--- | :--- | :--- |
+| Install | **LAUNCH** | Core product door |
+| Casinos | **LAUNCH** | Trust directory — job 2 |
+| Tools | **LAUNCH** | Bucket for secondary intel |
+| Operators | **LAUNCH** (amber) | Partner BD door — separate lane |
+| Discord | **LAUNCH** as action | Community, not a product tab |
+| Account (was Login) | **BURY** prominence | Optional sync — label Account |
+| How it works | **BURY** to footer/home | Explainer, not a peer product |
+| About | **BURY** to footer | Company |
+| Contact | **BURY** to footer | Form |
+| Ask Intel | **BURY** under Tools | Real, not top-nav peer |
+| Bonuses | **BURY** under Tools/footer | Feed-dependent secondary |
+
+### Broader product calls
+
+| Surface | Decision |
+| :--- | :--- |
+| Extension Core (sideload) | **LAUNCH** — primary player story |
+| Extension Pro HUD | **PLAN** — opt-in, do not default-sell |
+| Casino trust + IR badges | **LAUNCH** — badges may be zero supply |
+| Instant Redeem player cashout on TiltCheck | **TABLE** — not our wallet |
+| Instant Redeem partner API / BD | **LAUNCH** sandbox; live money grant-gated |
+| Dashboard vault / buddies | **LAUNCH** behind Account when they want durable rules |
+| Ask Intel LLM chat vibe | **TABLE** — keep rules lookup honesty |
+| AutoVault Android / niche tools | **PLAN** — keep under Tools, do not top-nav |
+| More top-nav product tabs | **TABLE** — resist |
+
+---
+
 Made for Degens. By Degens.

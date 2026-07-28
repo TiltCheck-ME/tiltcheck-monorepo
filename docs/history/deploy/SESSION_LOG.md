@@ -2,6 +2,12 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Nav cut + Account demotion (PR #647)
+
+- **Top nav**: `Install · Casinos · Tools · Operators` + Discord action. How it works / About / Contact / Ask / Bonuses buried in Tools + footer.
+- **Login**: Relabeled **Account** — Discord OAuth → dashboard handoff only. Not required for install, trust, or Core guest.
+- **Decisions**: build/bury/plan/table/launch matrix added to `tiltcheck-product-honesty-audit.md`.
+
 ## 2026-07-28 - Front-facing pages audit NOW fixes (PR #647)
 
 - **Audit**: Scorecard added to `tiltcheck-product-honesty-audit.md` (pass/warn/fail by route).

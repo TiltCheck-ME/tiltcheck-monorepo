@@ -13,21 +13,15 @@ const LOGIN_URL = getWebLoginRedirect('/dashboard');
 
 type NavLink = { href: string; label: string; accent?: string };
 
-const NAV_LINKS_PRIMARY: NavLink[] = [
-  { href: '/how-it-works', label: 'How it works' },
-  { href: '/tools',        label: 'Tools' },
-  { href: '/casinos',      label: 'Casinos' },
-  { href: '/ask',          label: 'Ask Intel' },
-  { href: '/about',        label: 'About' },
-];
-
-const NAV_LINKS_SECONDARY: NavLink[] = [
+/**
+ * Player-first top nav. Explainer / About / Contact / Ask / Bonuses live in Tools + footer.
+ * Login is Account (dashboard handoff) — not required to install or browse trust.
+ */
+const NAV_LINKS: NavLink[] = [
+  { href: '/casinos', label: 'Casinos' },
+  { href: '/tools', label: 'Tools' },
   { href: '/operators', label: 'Operators', accent: 'amber' },
-  { href: '/bonuses',   label: 'Bonuses' },
-  { href: '/collab',    label: 'Contact' },
 ];
-
-const ALL_LINKS = [...NAV_LINKS_PRIMARY, ...NAV_LINKS_SECONDARY];
 
 const STACKED_ACCENT_CLASS: Record<string, string> = {
   danger: 'nav-sidebar-link-danger',
@@ -56,7 +50,6 @@ const Nav = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -73,8 +66,9 @@ const Nav = () => {
           data-funnel-event="dashboard_handoff_click"
           data-funnel-source={compact ? 'web-nav-compact-auth' : 'web-nav-auth'}
           data-funnel-label="Open dashboard controls"
+          title="Open your dashboard"
         >
-          {user.discordUsername || user.username}
+          {compact ? 'Account' : (user.discordUsername || user.username || 'Account')}
         </a>
       );
     }
@@ -83,23 +77,15 @@ const Nav = () => {
         href={LOGIN_URL}
         onClick={close}
         className={compact ? 'nav-auth-compact nav-auth-discord' : 'nav-auth-full nav-auth-discord'}
+        title="Account — vault rules, sync, buddies. Not required to install."
       >
-        {compact ? 'Login' : 'Login with Discord'}
+        Account
       </Link>
     );
   };
 
   const DesktopLinks = () => (
     <>
-      {ALL_LINKS.map(({ href, label, accent }) => (
-        <Link
-          key={href}
-          href={href}
-          className={`nav-desktop-link${accent ? ` ${DESKTOP_ACCENT_CLASS[accent]}` : ''}`}
-        >
-          {label}
-        </Link>
-      ))}
       <Link
         href="/extension"
         className="nav-desktop-link nav-desktop-beta"
@@ -109,21 +95,20 @@ const Nav = () => {
       >
         Install
       </Link>
+      {NAV_LINKS.map(({ href, label, accent }) => (
+        <Link
+          key={href}
+          href={href}
+          className={`nav-desktop-link${accent ? ` ${DESKTOP_ACCENT_CLASS[accent]}` : ''}`}
+        >
+          {label}
+        </Link>
+      ))}
     </>
   );
 
   const MobileLinks = () => (
     <>
-      {ALL_LINKS.map(({ href, label, accent }) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={close}
-          className={`nav-sidebar-link${accent ? ` ${STACKED_ACCENT_CLASS[accent]}` : ''}`}
-        >
-          {label}
-        </Link>
-      ))}
       <Link
         href="/extension"
         onClick={close}
@@ -134,6 +119,16 @@ const Nav = () => {
       >
         Install the Extension
       </Link>
+      {NAV_LINKS.map(({ href, label, accent }) => (
+        <Link
+          key={href}
+          href={href}
+          onClick={close}
+          className={`nav-sidebar-link${accent ? ` ${STACKED_ACCENT_CLASS[accent]}` : ''}`}
+        >
+          {label}
+        </Link>
+      ))}
       <a
         href={DISCORD_INVITE_URL}
         target="_blank"
@@ -150,7 +145,6 @@ const Nav = () => {
   return (
     <>
       <div className={`nav-topbar${scrolled ? ' nav-topbar--scrolled' : ''}`}>
-        {/* Logo */}
         <Link href="/" className="nav-logo" aria-label="TiltCheck home">
           <span className="nav-logo-icon">
             <img src="/icon.png" alt="" width={24} height={24} style={{ objectFit: 'contain' }} aria-hidden="true" />
@@ -158,12 +152,10 @@ const Nav = () => {
           <span className="nav-logo-text">TILTCHECK</span>
         </Link>
 
-        {/* Desktop nav links */}
         <nav className="nav-desktop-links" aria-label="Primary navigation">
           <DesktopLinks />
         </nav>
 
-        {/* Desktop right actions */}
         <div className="nav-desktop-actions">
           <a
             href={DISCORD_INVITE_URL}
@@ -177,7 +169,6 @@ const Nav = () => {
           <AuthButton />
         </div>
 
-        {/* Mobile right cluster */}
         <div className="nav-topbar-right">
           <AuthButton compact />
           <button
@@ -193,12 +184,10 @@ const Nav = () => {
         </div>
       </div>
 
-      {/* Mobile menu overlay */}
       {isOpen && (
         <div className="nav-overlay" onClick={close} aria-hidden="true" />
       )}
 
-      {/* Mobile menu panel */}
       {isOpen && (
         <div
           id="site-mobile-nav"

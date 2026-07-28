@@ -212,6 +212,9 @@ export default function ToolsIndexPage() {
               <Link href="/ask" className="btn btn-secondary">
                 Ask intel
               </Link>
+              <Link href="/bonuses" className="btn btn-secondary">
+                Bonuses
+              </Link>
             </div>
             <p className="public-page-cta-band__tagline">
               <BrandTagline />
