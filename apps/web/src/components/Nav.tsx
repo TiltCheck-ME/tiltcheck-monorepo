@@ -22,7 +22,7 @@ const NAV_LINKS_PRIMARY: NavLink[] = [
 ];
 
 const NAV_LINKS_SECONDARY: NavLink[] = [
-  { href: '/operators', label: 'Operators', accent: 'purple' },
+  { href: '/operators', label: 'Operators', accent: 'amber' },
   { href: '/bonuses',   label: 'Bonuses' },
   { href: '/collab',    label: 'Contact' },
 ];
@@ -31,11 +31,13 @@ const ALL_LINKS = [...NAV_LINKS_PRIMARY, ...NAV_LINKS_SECONDARY];
 
 const STACKED_ACCENT_CLASS: Record<string, string> = {
   danger: 'nav-sidebar-link-danger',
+  amber: 'nav-sidebar-link-amber',
   purple: 'nav-sidebar-link-purple',
 };
 
 const DESKTOP_ACCENT_CLASS: Record<string, string> = {
   danger: 'nav-desktop-link-danger',
+  amber: 'nav-desktop-link-amber',
   purple: 'nav-desktop-link-purple',
 };
 

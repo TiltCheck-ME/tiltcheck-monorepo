@@ -2,6 +2,12 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Theme dual-accent + tools dash index (cursor/operator-instant-redeem-a81d)
+
+- **Theme**: Added `--tc-accent` (teal `#17c3b2`), `--tc-accent-2` (warm amber `#ffb020`), `--tc-ink`, `--tc-muted` tokens in `globals.css`. Partner surfaces, nav Operators link, and report cards use amber; player CTAs stay teal.
+- **Homepage**: Player-first hero unchanged; Instant Redeem strip + OperatorBlock use amber partner accent; honesty copy preserved (no player cashout claims).
+- **Tools dash**: Upgraded `/tools` to a sectioned index — DM install, live/beta tools, automation report feeds (`REPORT_REGISTRY`), and partner links (`PARTNER_LINKS`) clearly separated.
+
 ## 2026-07-28 - Brand Law custodial grep false-positive fix (PR #647)
 
 - **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.

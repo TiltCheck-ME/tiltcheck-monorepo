@@ -60,13 +60,26 @@ export default function Home() {
               CHECK CASINO TRUST
             </Link>
           </div>
+
+          <p style={{ marginTop: "1.25rem", fontSize: "0.82rem", color: "var(--tc-muted)", maxWidth: "34rem" }}>
+            Read-only guardrail. No wallet. No deposit routing.{" "}
+            <Link href="/tools" className="text-[color:var(--tc-accent)] hover:underline">
+              Browse the tools dash
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
+      <div className="section-divider" aria-hidden="true" />
+
       <section className="public-page-section px-4" style={{ paddingTop: "2.5rem", paddingBottom: "0.5rem" }}>
         <div className="landing-shell" style={{ textAlign: "center" }}>
-          <p className="brand-eyebrow">Who pays fast?</p>
-          <p style={{ marginTop: "0.75rem", color: "#9aa8bc", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "38rem", marginLeft: "auto", marginRight: "auto" }}>
+          <p className="brand-eyebrow brand-eyebrow--partner">Player intel // Instant Redeem</p>
+          <h2 className="public-page-section-heading__title" style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", marginBottom: "0.75rem" }}>
+            Who pays fast?
+          </h2>
+          <p style={{ marginTop: "0.75rem", color: "var(--tc-muted)", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "38rem", marginLeft: "auto", marginRight: "auto" }}>
             Instant Redeem is a partner cashier product: players pay a fee to skip the standard
             withdrawal wait at participating casinos. TiltCheck badges who enables it — we do not
             cash you out. Supply is still building; the directory may show zero badges today.
@@ -83,7 +96,7 @@ export default function Home() {
             </Link>
             <Link
               href="/operators/instant-redeem"
-              className="hero-actions__secondary-link"
+              className="btn btn-outline-partner"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-instant-redeem"
               data-funnel-label="Partner Instant Redeem"
@@ -121,7 +134,7 @@ export default function Home() {
         <div className="landing-shell" style={{ textAlign: "center" }}>
           <p style={{ fontSize: "0.75rem", color: "#6b7a8d", lineHeight: 1.6 }}>
             Not a casino, not a bank, not financial advice. Problem gambling help:{" "}
-            <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" style={{ color: "#17c3b2" }}>
+            <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" style={{ color: "var(--tc-accent)" }}>
               NCPG.org
             </a>{" "}
             or <strong style={{ color: "#ffffff" }}>1-800-GAMBLER</strong>.
