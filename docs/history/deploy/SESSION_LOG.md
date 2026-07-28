@@ -2,6 +2,14 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Front-facing pages audit NOW fixes (PR #647)
+
+- **Audit**: Scorecard added to `tiltcheck-product-honesty-audit.md` (pass/warn/fail by route).
+- **/docs**: Docs root resolves monorepo `docs/` from apps/web cwd or Docker `/app/docs`; runner image COPY docs; footer no longer claims "DIA v2.0 verified".
+- **/collab**: Success Discord CTA uses `DISCORD_INVITE_URL` (`discord.gg/gdBsEJfCar`), not dead `discord.gg/tiltcheck`.
+- **/operators**: Skip-mode recaptcha is a hidden field — partners never see `dev-recaptcha-pass` in the form.
+- **/extension**: Hero + Core section state zip install = Core click pacing; Pro HUD is opt-in.
+
 ## 2026-07-28 - Theme dual-accent + tools dash index (cursor/operator-instant-redeem-a81d)
 
 - **Theme**: Added `--tc-accent` (teal `#17c3b2`), `--tc-accent-2` (warm amber `#ffb020`), `--tc-ink`, `--tc-muted` tokens in `globals.css`. Partner surfaces, nav Operators link, and report cards use amber; player CTAs stay teal.

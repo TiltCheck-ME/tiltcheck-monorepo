@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 const CONTACT_TOPICS = [
   'Instant Redeem / Processor partnership',
@@ -77,7 +78,7 @@ export default function ContactPage() {
             Deals and conversations happen faster on Discord than cold forms.
           </p>
           <a
-            href="https://discord.gg/tiltcheck"
+            href={DISCORD_INVITE_URL}
             className="inline-block mt-8 px-8 py-3 bg-[#17c3b2] text-black font-black uppercase tracking-wider text-sm hover:bg-[#14a99a] transition-colors"
           >
             Join Discord

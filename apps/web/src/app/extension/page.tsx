@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -33,7 +33,8 @@ export default function ExtensionPage() {
         title="TiltCheck lives in the casino tab."
         description={
           <p>
-            Runs inside your active session — blocks pressure loops before they cook your account. Sideload beta now; store listing later.
+            Sideload installs Core by default: click-pacing flags and Touch Grass exits. Full bet-tilt HUD needs Pro enabled.
+            Lives in your casino tab. Store listing later.
           </p>
         }
         actions={
@@ -73,6 +74,9 @@ export default function ExtensionPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <PublicPageSectionHeader compact eyebrow="Core" title="What it does." />
+          <p className="mb-6 max-w-2xl text-sm text-gray-400 leading-relaxed">
+            No cap: zip install = Core guardrails (fast-click / risk heuristics). Deeper session tilt HUD is Pro — enable it in dashboard setup, do not expect it out of the box.
+          </p>
           <div className="public-page-grid public-page-grid--3">
             {coreSignals.map(({ title, body }) => (
               <article key={title} className="public-page-card">

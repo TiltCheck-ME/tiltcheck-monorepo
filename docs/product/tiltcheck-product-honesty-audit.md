@@ -78,4 +78,30 @@
 
 ---
 
+## Front-facing pages scorecard (2026-07-28)
+
+| Route | Verdict | Notes |
+| :--- | :--- | :--- |
+| `/` | Pass | Guardrails-first; IR honesty bar |
+| `/casinos` | Pass | IR filter + empty state honest |
+| `/tools` | Pass | Dash zones (install / live / reports / partner) |
+| `/how-it-works` | Pass | Core vs Pro explicit |
+| `/about` | Pass | Builder + Ko-fi |
+| Instant Redeem product pages | Pass | B2B orchestration, not cashout wallet |
+| `/extension` | Fixed | Core default + Pro gated copy |
+| `/operators` | Fixed | Hidden recaptcha skip; no `dev-recaptcha-pass` in UI |
+| `/operators/pricing` | Warn | Still teal-heavy; amber pass later |
+| `/docs` | Fixed | Docs root resolves monorepo + Docker COPY; footer not "DIA verified" |
+| `/collab` | Fixed | Discord → `DISCORD_INVITE_URL` |
+| Readiness / internal jargon | Warn | Keep partner-ready scaffolding language |
+
+### NOW fixes shipped this pass
+
+1. `apps/web/src/lib/docs.ts` multi-cwd docs root + Dockerfile `COPY docs`
+2. `/collab` Discord invite alignment
+3. `/operators` hide skip-mode recaptcha token
+4. `/extension` Core vs Pro honesty
+
+---
+
 Made for Degens. By Degens.

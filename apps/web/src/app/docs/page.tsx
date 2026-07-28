@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import React from 'react';
 import Link from 'next/link';
 import { getAllDocs } from '@/lib/docs';
@@ -66,7 +66,7 @@ export default async function DocsIndexPage() {
 
       <footer className="mt-12 py-8 border-t border-[#283347] text-center">
          <p className="text-xs text-gray-600 uppercase tracking-widest">
-            Audit Status: ALL DOCUMENTATION VERIFIED BY DIA v2.0 // LAST GLOBAL SYNC: {new Date().toLocaleDateString()}
+            Docs index from monorepo markdown. Not a live audit seal — read the file, trust the date.
          </p>
       </footer>
     </div>

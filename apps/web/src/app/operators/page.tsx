@@ -164,26 +164,31 @@ export default function OperatorsPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-400">Casino domain</label>
-                    <input
-                      name="casinoDomain"
-                      required
-                      placeholder="casino.example.com"
-                      className="w-full rounded-xl border border-[#283347] bg-black/50 px-4 py-4 text-sm text-white focus:border-[#17c3b2] focus:outline-none"
-                    />
-                  </div>
+                <div>
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-400">Casino domain</label>
+                  <input
+                    name="casinoDomain"
+                    required
+                    placeholder="casino.example.com"
+                    className="w-full rounded-xl border border-[#283347] bg-black/50 px-4 py-4 text-sm text-white focus:border-[#17c3b2] focus:outline-none"
+                  />
+                </div>
+
+                {/* Dev skip: hidden pass token. Prod: partner paste / widget token — never show "dev-recaptcha-pass" in the UI. */}
+                {process.env.NEXT_PUBLIC_SKIP_RECAPTCHA === 'true' ? (
+                  <input type="hidden" name="recaptchaToken" value="dev-recaptcha-pass" />
+                ) : (
                   <div>
                     <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-400">reCAPTCHA token</label>
                     <input
                       name="recaptchaToken"
                       required
-                      defaultValue="dev-recaptcha-pass"
+                      autoComplete="off"
+                      placeholder="Complete captcha, paste token"
                       className="w-full rounded-xl border border-[#283347] bg-black/50 px-4 py-4 text-sm text-white focus:border-[#17c3b2] focus:outline-none"
                     />
                   </div>
-                </div>
+                )}
 
                 <div>
                   <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-400">Intended use case</label>
