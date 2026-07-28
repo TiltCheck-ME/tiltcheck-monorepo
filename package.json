@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@google-cloud/secret-manager": "^6.1.1",
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.61.1",
     "@types/jsdom": "^28.0.1",
     "@types/node": "^22.0.0",
     "@types/supertest": "^7.2.0",
