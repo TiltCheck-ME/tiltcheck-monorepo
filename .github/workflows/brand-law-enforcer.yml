@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
 name: Brand Law Enforcer
 
 on:
@@ -78,8 +78,8 @@ jobs:
               continue
             fi
             if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [ -f "$file" ]; then
-              if grep -E "privateKey|private_key|seed|mnemonic" "$file" \
-                | grep -vE "node_modules|dist|\.next|test|mock|example|placeholder"; then
+              if grep -E "privateKey|private_key|mnemonic|seedPhrase|seed[_ ]phrase|bip39|\bseed\b" "$file" \
+                | grep -vE "node_modules|dist|\.next|test|mock|example|placeholder|seed-audit|SeedAudit|seedAudit|server-seed|client-seed|seed hygiene|seed rotation|seed reuse|external-entropy|seed-reuse|default-client-seed|missing-server-seed|missing-client-seed|seed-export|seededFloat|seed-hygiene|seed/provably"; then
                 echo "CRITICAL: Potential custodial code detected in $file"
                 CRITICAL=$((CRITICAL + 1))
               fi

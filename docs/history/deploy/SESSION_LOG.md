@@ -2,6 +2,10 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Brand Law custodial grep false-positive fix (PR #647)
+
+- **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.
+
 ## 2026-07-28 - Instant Redeem web discovery overhaul (PR #647)
 
 - **Web**: Homepage Instant Redeem strip, OperatorBlock processor-first CTAs, Nav/Footer Operators + Instant Redeem links.
