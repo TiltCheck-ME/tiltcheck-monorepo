@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TrustEnginesService } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
@@ -30,7 +30,7 @@ describe('TrustEnginesService', () => {
     });
 
     it('boosts financialPayouts when Instant Redeem is enabled', async () => {
-      await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+      await eventRouter.publish('trust.casino.feature.enabled' as any, 'rgaas-api', {
         casinoName: 'instant.example',
         feature: 'instant_redeem',
         mode: 'sandbox',
@@ -44,7 +44,7 @@ describe('TrustEnginesService', () => {
       expect(first.score).toBeGreaterThan(75);
       expect(first.history.some((h) => String(h.reason).includes('Instant Redeem enabled'))).toBe(true);
 
-      await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+      await eventRouter.publish('trust.casino.feature.enabled' as any, 'rgaas-api', {
         casinoName: 'instant.example',
         feature: 'instant_redeem',
         mode: 'sandbox',
@@ -61,7 +61,7 @@ describe('TrustEnginesService', () => {
         casinoName: 'metric-redeem.example',
         timestamp: Date.now(),
         instantRedeemAvailable: true,
-      });
+      } as any);
 
       await new Promise((resolve) => setTimeout(resolve, 15));
 

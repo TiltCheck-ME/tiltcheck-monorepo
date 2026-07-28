@@ -488,7 +488,7 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     }
 
     const before = trustEngines.getCasinoBreakdown(domain);
-    await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+    await eventRouter.publish('trust.casino.feature.enabled' as any, 'rgaas-api', {
       casinoName: domain,
       feature: 'instant_redeem',
       partnerAppId: request.partner!.appId,

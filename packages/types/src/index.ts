@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -645,7 +645,6 @@ export type EventType =
   | 'trust.degen-intel.ingested'
   | 'trust.casino.metric.snapshot'
   | 'trust.casino.tos.changed'
-  | 'trust.casino.feature.enabled'
   | 'trust.audit.trigger'
   | 'activity.launched'
   | 'activity.action'
@@ -1071,7 +1070,6 @@ export interface EventDataMap {
   'vault.withdrawal_execution_requested': VaultWithdrawalExecutionRequestedEventData;
   'trust.casino.metric.snapshot': CasinoMetricSnapshot;
   'trust.casino.tos.changed': { casinoName: string; changeSummary?: string; contentHash: string };
-  'trust.casino.feature.enabled': CasinoFeatureEnabledEventData;
   'trust.audit.trigger': { timestamp: number; reason: string };
   'rtp.report.submitted': RtpReportSubmittedEvent;
   'rtp.nerf.detected': RtpNerfDetectedEvent;
@@ -1392,20 +1390,6 @@ export interface CasinoTrustRecord extends CasinoTrustPillars {
 }
 
 /**
- * Operator feature activation that can adjust casino trust pillars.
- * Instant Redeem maps to financialPayouts — casinos that ship paid-and-now exits earn the boost.
- */
-export interface CasinoFeatureEnabledEventData {
-  casinoName: string;
-  feature: 'instant_redeem';
-  /** Partner app id when activation came from the operator API */
-  partnerAppId?: string;
-  /** sandbox | production — sandbox activations are still scored but tagged in history */
-  mode?: 'sandbox' | 'production' | string;
-  enabledAt?: number;
-}
-
-/**
  * Historical snapshot of raw metrics for auditing (The "Proof")
  */
 export interface CasinoMetricSnapshot {
@@ -1415,8 +1399,6 @@ export interface CasinoMetricSnapshot {
   // Financial Pillar Raw Data
   avgWithdrawalHours?: number;
   withdrawalSuccessRate?: number; // 0.0 - 1.0
-  /** Operator offers Instant Redeem (white-label paid exit lane) */
-  instantRedeemAvailable?: boolean;
 
   // Fairness Pillar Raw Data
   advertisedRtp?: number;

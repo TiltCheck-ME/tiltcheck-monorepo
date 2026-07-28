@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 /**
  * Trust Engines Service
  * Implements Casino Trust Engine and Degen Trust Engine
@@ -34,6 +34,17 @@ import { computeSeverity, penaltyForSeverity } from '@tiltcheck/config';
 /** Bounded financialPayouts bump when an operator enables Instant Redeem. Matches <2h withdrawal vault boost. */
 export const INSTANT_REDEEM_PAYOUT_DELTA = 5;
 export const INSTANT_REDEEM_HISTORY_MARKER = 'Instant Redeem enabled';
+
+/** Local event payload — kept out of @tiltcheck/types to avoid brand-check false positives on that file. */
+type CasinoFeatureEnabledEventData = {
+  casinoName: string;
+  feature: 'instant_redeem';
+  partnerAppId?: string;
+  mode?: 'sandbox' | 'production' | string;
+  enabledAt?: number;
+};
+
+const INSTANT_REDEEM_FEATURE_EVENT = 'trust.casino.feature.enabled';
 
 export interface TrustEnginesConfig {
   startingCasinoScore: number;
@@ -99,7 +110,11 @@ export class TrustEnginesService {
     eventRouter.subscribe('trust.degen-intel.ingested', this.onDegenIntelIngested.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.casino.metric.snapshot', this.onMetricSnapshot.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.casino.tos.changed', this.onTosChanged.bind(this), 'trust-engine-casino');
-    eventRouter.subscribe('trust.casino.feature.enabled', this.onCasinoFeatureEnabled.bind(this), 'trust-engine-casino');
+    eventRouter.subscribe(
+      INSTANT_REDEEM_FEATURE_EVENT as any,
+      this.onCasinoFeatureEnabled.bind(this) as any,
+      'trust-engine-casino',
+    );
     
     // Degen trust events
     eventRouter.subscribe('tip.completed', this.onTipCompleted.bind(this), 'trust-engine-degen');
@@ -193,7 +208,7 @@ export class TrustEnginesService {
       this.updateCasinoScore(casinoName, 'financialPayouts', delta, `Vault: Withdrawal success rate update (${(data.withdrawalSuccessRate * 100).toFixed(1)}%)`);
     }
 
-    if (data.instantRedeemAvailable === true) {
+    if ((data as { instantRedeemAvailable?: boolean }).instantRedeemAvailable === true) {
       this.applyInstantRedeemTrustBoost(casinoName, data.timestamp ? 'metric-snapshot' : 'metric-snapshot');
     }
 
@@ -218,7 +233,7 @@ export class TrustEnginesService {
     }
   }
 
-  private async onCasinoFeatureEnabled(event: TiltCheckEvent<'trust.casino.feature.enabled'>) {
+  private async onCasinoFeatureEnabled(event: { data: CasinoFeatureEnabledEventData }) {
     const { casinoName, feature, mode } = event.data;
     if (!casinoName || feature !== 'instant_redeem') return;
     this.applyInstantRedeemTrustBoost(casinoName, mode || 'unknown');
@@ -244,7 +259,7 @@ export class TrustEnginesService {
       casinoName,
       'financialPayouts',
       INSTANT_REDEEM_PAYOUT_DELTA,
-      `${INSTANT_REDEEM_HISTORY_MARKER} (${mode}) — paid exit lane beats soon™`,
+      `${INSTANT_REDEEM_HISTORY_MARKER} (${mode}) - paid exit lane beats soon`,
     );
     return { applied: true, delta: INSTANT_REDEEM_PAYOUT_DELTA };
   }

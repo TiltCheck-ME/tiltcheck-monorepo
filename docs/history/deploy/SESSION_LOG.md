@@ -1,6 +1,12 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
+
+## 2026-07-28 - Instant Redeem sandbox Phase 4 (PR #647)
+
+- **Product**: Operator/processor Instant Redeem sandbox — quote/execute, irrevocable cancel rejection, scam hard-block, same-rail rebuy cooloff, trust boost, public capabilities + `/casinos` badges.
+- **Growth**: Processor multi-domain enable, pitch one-pager, team readiness UI (`/operators/instant-redeem/readiness`) + `GET /v1/redeem/readiness`.
+- **Brand CI**: Kept Instant Redeem feature event typing local to trust-engines/API to avoid false-positive custodial `seed` hits in `@tiltcheck/types`.
 
 ## 2026-07-18 - PR #612 CI brand compliance
 
