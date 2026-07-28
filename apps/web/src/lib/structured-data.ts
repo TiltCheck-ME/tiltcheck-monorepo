@@ -11,7 +11,7 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/icon.png`,
     description: SITE_ONE_LINER,
-    sameAs: [DISCORD_INVITE_URL, GITHUB_ORG_URL],
+    sameAs: [DISCORD_INVITE_URL, GITHUB_ORG_URL, KOFI_URL],
   };
 }
 
