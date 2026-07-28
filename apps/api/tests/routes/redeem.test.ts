@@ -292,6 +292,8 @@ describe('Instant Redeem sandbox routes', () => {
     expect(execute.body.redeemId).toMatch(/^rd_/);
     expect(execute.body.feeAmount).toBe(0.75);
     expect(execute.body.amountNet).toBe(49.25);
+    expect(execute.body.cancelAllowed).toBe(false);
+    expect(execute.body.irrevocable).toBe(true);
 
     const replay = await request(app)
       .post('/v1/redeem/execute')
@@ -451,6 +453,33 @@ describe('Instant Redeem sandbox routes', () => {
 
     expect(check.body.allowed).toBe(true);
     expect(check.body.code).toBe('DEPOSIT_ALLOWED');
+  });
+
+  it('rejects cancel attempts — Instant Redeem is irrevocable', async () => {
+    const cancel = await request(app)
+      .post('/v1/redeem/cancel')
+      .set(AUTH)
+      .send({ redeemId: 'rd_anything' });
+
+    expect(cancel.status).toBe(409);
+    expect(cancel.body.code).toBe('REDEEM_IRREVOCABLE');
+    expect(cancel.body.cancelAllowed).toBeUndefined();
+
+    const byId = await request(app)
+      .delete('/v1/redeem/rd_fake/cancel')
+      .set(AUTH);
+
+    expect(byId.status).toBe(409);
+    expect(byId.body.code).toBe('REDEEM_IRREVOCABLE');
+  });
+
+  it('exposes public readiness for team onboarding', async () => {
+    const response = await request(app).get('/v1/redeem/readiness');
+    expect([200, 503]).toContain(response.status);
+    expect(response.body.product).toBe('instant_redeem');
+    expect(response.body.talkTrack.oneLiner).toContain('Wen payout');
+    expect(response.body.checklist.some((item: { id: string }) => item.id === 'irrevocable')).toBe(true);
+    expect(response.body.onboarding.readinessPage).toContain('/operators/instant-redeem/readiness');
   });
 
   it('rejects production-mode partners for Instant Redeem', async () => {

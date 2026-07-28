@@ -3,6 +3,7 @@
  * Instant Redeem Routes - /v1/redeem/*
  * Operator white-label sandbox for quote + execute + deposit gate.
  * Same rail: Instant Redeem out, then rebuy cooloff before deposit back in.
+ * Irrevocable: settled Instant Redeems cannot be canceled. No more canceled redeems.
  * No real funds move.
  */
 
@@ -21,6 +22,7 @@ import {
   __resetInstantRedeemRegistryForTests,
 } from '../lib/instant-redeem-registry.js';
 import { evaluateInstantRedeemCasinoGate } from '../lib/instant-redeem-scam-gate.js';
+import { buildInstantRedeemReadiness } from '../lib/instant-redeem-readiness.js';
 import { partnerAuthMiddleware, type PartnerRequest } from '../middleware/partner.js';
 
 const router = Router();
@@ -930,6 +932,52 @@ router.post('/deposit', partnerAuthMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /v1/redeem/readiness
+ * Team onboarding + marketable readiness checklist (public).
+ */
+router.get('/readiness', async (_req, res) => {
+  const readiness = await buildInstantRedeemReadiness();
+  res.status(readiness.marketReady ? 200 : 503).json({
+    success: readiness.marketReady,
+    ...readiness,
+  });
+});
+
+/**
+ * Reject cancel attempts — Instant Redeem is irrevocable once executed.
+ * No more canceled redeems. That is the product.
+ */
+function rejectRedeemCancel(res: import('express').Response): void {
+  res.status(409).json({
+    success: false,
+    error: 'Instant Redeem cannot be canceled',
+    code: 'REDEEM_IRREVOCABLE',
+    irrevocable: true,
+    note: 'No more canceled redeems. Settled Instant Redeem stays settled — that is the point of wen payout now.',
+  });
+}
+
+router.post('/cancel', partnerAuthMiddleware, async (req, res) => {
+  if (!requireSandboxPartner(req as PartnerRequest, res)) return;
+  rejectRedeemCancel(res);
+});
+
+router.delete('/cancel', partnerAuthMiddleware, async (req, res) => {
+  if (!requireSandboxPartner(req as PartnerRequest, res)) return;
+  rejectRedeemCancel(res);
+});
+
+router.post('/:redeemId/cancel', partnerAuthMiddleware, async (req, res) => {
+  if (!requireSandboxPartner(req as PartnerRequest, res)) return;
+  rejectRedeemCancel(res);
+});
+
+router.delete('/:redeemId/cancel', partnerAuthMiddleware, async (req, res) => {
+  if (!requireSandboxPartner(req as PartnerRequest, res)) return;
+  rejectRedeemCancel(res);
+});
+
+/**
  * GET /v1/redeem/:redeemId
  * Fetch a sandbox Instant Redeem record owned by the partner.
  */
@@ -938,6 +986,12 @@ router.get('/:redeemId', partnerAuthMiddleware, async (req, res) => {
   if (!requireSandboxPartner(request, res)) return;
 
   const redeemId = String(req.params.redeemId || '');
+  // Guard path collisions for reserved words mistakenly hit as ids.
+  if (redeemId === 'cancel' || redeemId === 'readiness' || redeemId === 'capabilities') {
+    res.status(404).json({ error: 'Redeem not found', code: 'REDEEM_NOT_FOUND' });
+    return;
+  }
+
   const record = redeems.get(redeemId);
   if (!record || record.partnerId !== request.partner!.id) {
     res.status(404).json({ error: 'Redeem not found', code: 'REDEEM_NOT_FOUND' });
@@ -958,6 +1012,8 @@ function serializeRedeem(record: RedeemRecord): Record<string, unknown> {
     redeemId: record.redeemId,
     quoteId: record.quoteId,
     status: record.status,
+    irrevocable: record.status === 'settled' || record.status === 'pending' || record.status === 'blocked',
+    cancelAllowed: false,
     playerRef: record.playerRef,
     amountGross: record.amountGross,
     feeAmount: record.feeAmount,

@@ -21,6 +21,21 @@ It is **not** a “hope operators partner” plan. Growth is built as a flywheel
 
 Player tooling elsewhere stays non-custodial. This B2B surface is **operator/processor-contracted liquidity**, sandbox-mocked first.
 
+## Irrevocable Instant Redeem
+
+**No more canceled redeems.**
+
+| Attempt | Result |
+| :--- | :--- |
+| `POST /v1/redeem/cancel` | `409 REDEEM_IRREVOCABLE` |
+| `DELETE /v1/redeem/cancel` | `409 REDEEM_IRREVOCABLE` |
+| `POST /v1/redeem/:id/cancel` | `409 REDEEM_IRREVOCABLE` |
+| `DELETE /v1/redeem/:id/cancel` | `409 REDEEM_IRREVOCABLE` |
+
+Settled / pending / blocked records expose `cancelAllowed: false` and `irrevocable: true`. Quotes can still expire unused. Executed Instant Redeems do not get a house cancel button — that is the product difference vs classic withdrawal theater.
+
+---
+
 ## Scam casino hard block
 
 Instant Redeem is a payout rail. **Scam shops do not get it.**

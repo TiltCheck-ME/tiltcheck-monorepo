@@ -22,6 +22,10 @@ const FLYWHEEL = [
     title: 'No scam cashouts',
     body: 'Blacklisted and critically low-trust domains are hard-blocked. Instant Redeem is not a payout rail for skem shops.',
   },
+  {
+    title: 'No canceled redeems',
+    body: 'Cancel routes return REDEEM_IRREVOCABLE. Once Instant Redeem executes, the house cannot yank the payout theater-style.',
+  },
 ];
 
 const STEPS = [
@@ -80,17 +84,25 @@ export default function InstantRedeemPage() {
             >
               Growth architecture
             </a>
+            <Link
+              href="/operators/instant-redeem/readiness"
+              className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white"
+              data-funnel-event="cta_click"
+              data-funnel-source="operators-instant-redeem"
+              data-funnel-label="Team readiness"
+            >
+              Team readiness
+            </Link>
           </div>
         </header>
 
         <section className="rounded-2xl border border-[#17c3b2]/25 bg-[#17c3b2]/5 p-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Growth thesis</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Pitch</p>
           <p className="mt-2 text-sm text-gray-200 leading-relaxed">
-            Channel priority: <span className="text-white">processors first</span>, player demand via
-            trust directory second, RGaaS upsell third, direct operator BD last. Fee stays{' '}
-            <span className="font-mono text-white">150 bps</span> /{' '}
-            <span className="font-mono text-white">$0.50</span> floor in sandbox. Rebuy cooloff default:{' '}
-            <span className="font-mono text-white">24h</span>.
+            Wen payout? Now. Instant Redeem turns soon™ into a paid exit — no canceled redeems, no
+            scam cashouts, cooloff before the reload. Processors cover many domains. Operators get
+            the badge. Fee stays <span className="font-mono text-white">150 bps</span> /{' '}
+            <span className="font-mono text-white">$0.50</span> floor in sandbox.
           </p>
         </section>
 
