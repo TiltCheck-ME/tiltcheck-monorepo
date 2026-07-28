@@ -6,6 +6,8 @@
 
 **Who to email first:** payment processors / cashout rails (one contract, many brands). Direct casino BD second, after badge FOMO exists.
 
+**Named target list + contacts:** [instant-redeem-outreach-targets.md](./instant-redeem-outreach-targets.md) — ranked Wave 1–3 with public emails/forms. Start with Gigadat → Paramount → MuchBetter.
+
 ---
 
 ## When email vs meeting

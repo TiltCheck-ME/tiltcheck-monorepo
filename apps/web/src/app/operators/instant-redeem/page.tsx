@@ -91,6 +91,12 @@ export default function InstantRedeemPage() {
               Phase 5 production
             </a>
             <a
+              href="/docs/product/instant-redeem-outreach-targets"
+              className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white"
+            >
+              Target list
+            </a>
+            <a
               href="/docs/product/instant-redeem-partnership-outreach"
               className="inline-flex items-center rounded-xl border border-[#283347] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white"
             >

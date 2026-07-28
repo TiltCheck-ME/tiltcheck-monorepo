@@ -6,6 +6,11 @@
 
 - **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.
 
+## 2026-07-28 - Instant Redeem outreach target research (PR #647)
+
+- **BD list**: Ranked processor targets with public contact channels (`instant-redeem-outreach-targets.md`) — Gigadat / Paramount / Paybilt / MuchBetter first.
+- **Hygiene**: Confidence tags on contacts; no invented personal emails; Wave 1 capped at 3 sends.
+
 ## 2026-07-28 - Instant Redeem web discovery overhaul (PR #647)
 
 - **Web**: Homepage Instant Redeem strip, OperatorBlock processor-first CTAs, Nav/Footer Operators + Instant Redeem links.

@@ -14,6 +14,7 @@ Internal product narrative and execution checklists. These complement [competiti
 | [Instant Redeem growth architecture](../OPERATOR-INSTANT-REDEEM-GROWTH.md) | Flywheel: player badges, processor multipliers, trust FOMO — not casino-only BD. |
 | [Instant Redeem pitch (one-pager)](./instant-redeem-pitch-one-pager.md) | Marketable talk track for BD, processors, operators. |
 | [Instant Redeem partnership outreach](./instant-redeem-partnership-outreach.md) | Email-first BD templates + when to ask for a meeting. |
+| [Instant Redeem outreach targets](./instant-redeem-outreach-targets.md) | Ranked processor contacts (Gigadat, Paramount, MuchBetter, …) with public channels. |
 | [Instant Redeem team readiness](../OPERATOR-INSTANT-REDEEM-TEAM-READINESS.md) | Onboard a pod: roles, demo script, checklist, live readiness API. |
 
 Public URL (when web is built from monorepo `docs/`): `/docs/product/<slug>`.
