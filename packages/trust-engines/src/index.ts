@@ -208,9 +208,8 @@ export class TrustEnginesService {
       this.updateCasinoScore(casinoName, 'financialPayouts', delta, `Vault: Withdrawal success rate update (${(data.withdrawalSuccessRate * 100).toFixed(1)}%)`);
     }
 
-    if ((data as { instantRedeemAvailable?: boolean }).instantRedeemAvailable === true) {
-      this.applyInstantRedeemTrustBoost(casinoName, data.timestamp ? 'metric-snapshot' : 'metric-snapshot');
-    }
+    // instantRedeemAvailable on metric snapshots is display-only.
+    // Trust boosts apply solely via gated trust.casino.feature.enabled (/v1/redeem/enable).
 
     // Pillar 2: Fairness & Transparency
     if (data.rtpDelta !== undefined) {

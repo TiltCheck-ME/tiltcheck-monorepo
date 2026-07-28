@@ -39,7 +39,13 @@ export function getInstantRedeemRegistryPath(): string {
 }
 
 export function normalizeCapabilityDomain(value: string): string {
-  return value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const withoutProtocol = trimmed.replace(/^https?:\/\//i, '');
+  const host = withoutProtocol.split('/')[0] ?? '';
+  // Drop userinfo and port noise; keep hostname only.
+  const hostname = host.includes('@') ? host.split('@').pop()! : host;
+  return hostname.split(':')[0]!.toLowerCase();
 }
 
 export function readInstantRedeemRegistry(): InstantRedeemRegistry {

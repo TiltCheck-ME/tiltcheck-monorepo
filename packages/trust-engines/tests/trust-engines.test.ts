@@ -56,7 +56,7 @@ describe('TrustEnginesService', () => {
       expect(second.financialPayouts).toBe(80);
     });
 
-    it('boosts financialPayouts from metric snapshots with instantRedeemAvailable', async () => {
+    it('does not boost trust from metric snapshots claiming instantRedeemAvailable', async () => {
       await eventRouter.publish('trust.casino.metric.snapshot', 'trust-rollup', {
         casinoName: 'metric-redeem.example',
         timestamp: Date.now(),
@@ -66,7 +66,7 @@ describe('TrustEnginesService', () => {
       await new Promise((resolve) => setTimeout(resolve, 15));
 
       const breakdown = service.getCasinoBreakdown('metric-redeem.example');
-      expect(breakdown.financialPayouts).toBe(80);
+      expect(breakdown.financialPayouts).toBe(75);
     });
 
     it('adjusts bonus score on bonus nerf', async () => {

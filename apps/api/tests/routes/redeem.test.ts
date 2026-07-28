@@ -499,7 +499,7 @@ describe('Instant Redeem sandbox routes', () => {
     expect([200, 503]).toContain(response.status);
     expect(response.body.product).toBe('instant_redeem');
     expect(response.body.phase).toBe('phase5_production_scaffolding');
-    expect(response.body.talkTrack.oneLiner).toContain('Wen payout');
+    expect(response.body.talkTrack.oneLiner).toContain('partner cashier product');
     expect(response.body.checklist.some((item: { id: string }) => item.id === 'irrevocable')).toBe(true);
     expect(response.body.checklist.some((item: { id: string }) => item.id === 'phase5_float_contract')).toBe(true);
     expect(response.body.onboarding.readinessPage).toContain('/operators/instant-redeem/readiness');
@@ -634,8 +634,62 @@ describe('Instant Redeem sandbox routes', () => {
     expect(execute.status).toBe(201);
     expect(execute.body.status).toBe('processor_pending');
     expect(execute.body.settlement.mode).toBe('processor_stub');
-    expect(execute.body.rebuyLock).toBeTruthy();
+    // Cooloff arms only on settled; processor_pending waits for final settle.
+    expect(execute.body.rebuyLock).toBeNull();
     expect(execute.body.irrevocable).toBe(true);
     expect(execute.body.cancelAllowed).toBe(false);
+
+    // Grant scope: domain outside coveredDomains is denied.
+    const deniedDomain = await request(app)
+      .post('/v1/redeem/quote')
+      .set(PROD_AUTH)
+      .send({
+        playerRef: 'player_prod',
+        amount: 25,
+        currency: 'USD',
+        casinoDomain: 'not-on-grant.example',
+        destination: { rail: 'ach', accountRef: 'acct_****1111' },
+      });
+    expect(deniedDomain.status).toBe(403);
+    expect(deniedDomain.body.code).toBe('REDEEM_GRANT_DOMAIN_DENIED');
+
+    // Production ignores sandbox rebuyCooldownMinutes override (no lock until settled).
+    expect(execute.body.rebuyLock).toBeNull();
+  });
+
+  it('refuses enable hijack of a domain owned by another partner', async () => {
+    await request(app).post('/v1/redeem/enable').set(AUTH).send({});
+
+    vi.mocked(findPartnerByAppId).mockResolvedValue(
+      makePartner({
+        id: 'partner-2',
+        app_id: 'sandbox_other',
+        secret_key: 'sk_sandbox_other',
+        casino_domain: 'acme.example',
+      }) as any,
+    );
+
+    const hijack = await request(app)
+      .post('/v1/redeem/enable')
+      .set({
+        'X-TiltCheck-App-Id': 'sandbox_other',
+        'X-TiltCheck-Secret-Key': 'sk_sandbox_other',
+        'X-Requested-With': 'TiltCheckPartner',
+      })
+      .send({});
+
+    expect(hijack.status).toBe(403);
+    expect(hijack.body.code).toBe('REDEEM_DOMAIN_OWNED');
+    expect(hijack.body.rejectedDomains?.[0]?.code).toBe('REDEEM_DOMAIN_OWNED');
+  });
+
+  it('refuses operator enable for a foreign casinoName', async () => {
+    const response = await request(app)
+      .post('/v1/redeem/enable')
+      .set(AUTH)
+      .send({ casinoName: 'other-casino.example' });
+
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe('REDEEM_DOMAIN_OWNERSHIP');
   });
 });

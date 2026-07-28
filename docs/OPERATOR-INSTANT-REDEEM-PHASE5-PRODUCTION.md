@@ -52,6 +52,9 @@ Hard rules:
 - Scam gate still applies per domain
 - Cancel still returns `REDEEM_IRREVOCABLE`
 - Live settlement requires `INSTANT_REDEEM_LIVE_SETTLEMENT=true` **and** approved grant
+- Approved grants are **enforced** on quote/execute: `coveredDomains`, `rails`, and `float.hardCapUsd` (in-process volume until DB-backed float accounting ships)
+- Production cooloff uses grant `rebuyCooloffHours` only — `rebuyCooldownMinutes` is sandbox-only
+- Cooloff arms only on final `settled` status (`processor_pending` waits)
 
 ## Settlement adapter
 
@@ -76,7 +79,10 @@ Interface lives in `apps/api/src/lib/instant-redeem-settlement.ts`:
 | :--- | :--- |
 | Accidental live money | Live settlement flag off by default; approve != live |
 | TiltCheck custody creep | Phase 5 rejects `float.holder=tiltcheck` |
-| Scam processor book | Per-domain scam gate still blocks |
+| Scam processor book | Per-domain scam gate still blocks; blacklist fail-closed |
+| Grant scope bypass | Quote/execute check domain + rail + hard cap |
+| Domain / badge hijack | Enable refuses overwrite when another partner owns the domain |
+| Cooloff defeat in production | Ignore `rebuyCooldownMinutes`; grant hours only |
 | Cancel theater | Irrevocable policy unchanged |
 | Cap breach | Soft/hard float caps recorded on grant; live adapter must enforce |
 

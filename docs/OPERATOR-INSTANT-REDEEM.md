@@ -61,11 +61,11 @@ Instant Redeem is strongest when it is also the **deposit rail**. Same processor
 
 | Step | Behavior |
 | :--- | :--- |
-| `POST /execute` settles | Arms `rebuyLock` for `playerRef` (default **24h**, sandbox override via `rebuyCooldownMinutes`) |
+| `POST /execute` reaches `settled` | Arms `rebuyLock` for `playerRef` (default **24h**; sandbox-only override via `rebuyCooldownMinutes`; production uses grant `rebuyCooloffHours`) |
 | `POST /deposit-check` | Returns `allowed: false` + `REBUY_COOLDOWN` while lock is active |
 | `POST /deposit` | Mock deposit: `423` while locked, `201` when clear |
 
-Blocked / pending redeems do **not** arm the cooloff. Only settled Instant Redeems do.
+Blocked / pending / `processor_pending` redeems do **not** arm the cooloff. Only final `settled` Instant Redeems do. Production ignores `rebuyCooldownMinutes`.
 
 This is operator-contracted RG tooling — not a pirate middle wallet. Real money transmitter / PCI / licensing work stays out of sandbox.
 
@@ -86,7 +86,7 @@ curl -X POST "https://api.tiltcheck.me/v1/redeem/enable" \
   --data '{}'
 ```
 
-Uses `partner.casino_domain` by default (or pass `casinoName`). Publishes `trust.casino.feature.enabled`. Idempotent per casino — no double-dipping the heater.
+Operators may only enable their own `partner.casino_domain` (`casinoName` must match when passed). Processors may pass `coveredDomains[]`, but cannot overwrite a domain already owned by another partner (`REDEEM_DOMAIN_OWNED`). Publishes `trust.casino.feature.enabled`. Idempotent per casino — no double-dipping the heater.
 
 Sandbox activations are tagged in score history. Mock quote/execute alone does **not** write trust; enablement does.
 

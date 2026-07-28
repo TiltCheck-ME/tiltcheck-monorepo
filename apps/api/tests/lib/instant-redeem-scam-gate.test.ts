@@ -72,4 +72,24 @@ describe('Instant Redeem scam casino gate', () => {
     expect(result.allowed).toBe(true);
     expect(result.code).toBe('CASINO_CLEAR');
   });
+
+  it('fails closed when scam blacklist is unavailable', async () => {
+    vi.mocked(loadDomainBlacklist).mockResolvedValue({
+      availability: 'unavailable',
+      domains: [],
+      source: null,
+    });
+
+    const result = await evaluateInstantRedeemCasinoGate('acme.example');
+    expect(result.allowed).toBe(false);
+    expect(result.code).toBe('SCAM_BLACKLIST_UNAVAILABLE');
+  });
+
+  it('fails closed when scam blacklist load throws', async () => {
+    vi.mocked(loadDomainBlacklist).mockRejectedValue(new Error('boom'));
+
+    const result = await evaluateInstantRedeemCasinoGate('acme.example');
+    expect(result.allowed).toBe(false);
+    expect(result.code).toBe('SCAM_BLACKLIST_UNAVAILABLE');
+  });
 });

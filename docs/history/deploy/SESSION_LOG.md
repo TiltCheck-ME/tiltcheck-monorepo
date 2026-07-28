@@ -2,6 +2,16 @@
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
 
+## 2026-07-28 - Instant Redeem review bugfixes (PR #647)
+
+- **Enable ownership**: Operators bound to `casino_domain`; enable refuses domain hijacks (`REDEEM_DOMAIN_OWNED`).
+- **Grant scope**: Production quote/execute enforce coveredDomains, rails, hardCapUsd; fee uses grant `feeShareBps`.
+- **Cooloff**: `rebuyCooldownMinutes` sandbox-only; arms only on `settled` (not `processor_pending`).
+- **Execute race**: Quote claimed sync before awaits (`REDEEM_QUOTE_CLAIMED`).
+- **Scam gate**: Fail closed when blacklist unavailable.
+- **Trust**: Metric-snapshot `instantRedeemAvailable` no longer applies +5 boost (enable path only).
+- **Docs runtime**: `.dockerignore` allows `docs/`; path traversal blocked; Phase 5 public docs ungated.
+
 ## 2026-07-28 - Launch Core extension story (PR #647)
 
 - **Package**: Rebuilt `apps/chrome-extension` + `pnpm package` zips current `dist/` to `apps/web/public/downloads/tiltcheck-extension.zip` (replaces stale Dec 2025 popup-only zip).

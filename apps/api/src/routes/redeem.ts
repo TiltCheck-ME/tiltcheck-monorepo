@@ -25,9 +25,12 @@ import {
 import { evaluateInstantRedeemCasinoGate } from '../lib/instant-redeem-scam-gate.js';
 import { buildInstantRedeemReadiness } from '../lib/instant-redeem-readiness.js';
 import {
+  evaluateProductionGrantScope,
+  getApprovedProductionGrant,
   getProductionGrantForPartner,
   partnerHasApprovedProductionRedeem,
   upsertProductionGrant,
+  type SettlementRail,
   __resetInstantRedeemProductionForTests,
 } from '../lib/instant-redeem-production.js';
 import {
@@ -176,6 +179,8 @@ const redeems = new Map<string, RedeemRecord>();
 const idempotencyIndex = new Map<string, string>();
 /** Post-redeem deposit cooloffs keyed by partnerId:playerRef. Same rail = same lock namespace. */
 const rebuyLocks = new Map<string, RebuyLock>();
+/** In-process settled/pending production volume against grant hard caps (USD). */
+const productionSettledVolumeUsd = new Map<string, number>();
 
 function rebuyLockKey(partnerId: string, playerRef: string): string {
   return `${partnerId}:${playerRef}`;
@@ -231,13 +236,71 @@ function serializeRebuyLock(lock: RebuyLock | null): Record<string, unknown> | n
 }
 
 function normalizeCasinoName(value: string): string {
-  return value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
+  return normalizeCapabilityDomain(value);
 }
 
 function resolveCasinoName(partner: NonNullable<PartnerRequest['partner']>, override?: string): string | null {
   const raw = override?.trim() || partner.casinoDomain?.trim() || '';
   if (!raw) return null;
   return normalizeCasinoName(raw);
+}
+
+function getProductionSettledVolume(partnerId: string): number {
+  return productionSettledVolumeUsd.get(partnerId) ?? 0;
+}
+
+function recordProductionSettledVolume(partnerId: string, amountUsd: number): void {
+  productionSettledVolumeUsd.set(partnerId, getProductionSettledVolume(partnerId) + amountUsd);
+}
+
+/**
+ * Claim a quote for exclusive execute. Sync-only — call before any await so
+ * concurrent executes cannot double-settle the same quoteId.
+ */
+function claimQuoteForExecute(
+  quoteId: string,
+  partnerId: string,
+  playerRef: string,
+):
+  | { ok: true; quote: RedeemQuote }
+  | { ok: false; status: number; body: Record<string, unknown> } {
+  const quote = quotes.get(quoteId);
+  if (!quote || quote.partnerId !== partnerId) {
+    return {
+      ok: false,
+      status: 404,
+      body: { error: 'Quote not found for this partner', code: 'REDEEM_QUOTE_NOT_FOUND' },
+    };
+  }
+  if (quote.playerRef !== playerRef) {
+    return {
+      ok: false,
+      status: 409,
+      body: {
+        error: 'playerRef does not match the quoted player',
+        code: 'REDEEM_PLAYER_MISMATCH',
+      },
+    };
+  }
+  if (Date.now() > quote.expiresAt) {
+    quotes.delete(quoteId);
+    return {
+      ok: false,
+      status: 410,
+      body: { error: 'Quote expired. Request a fresh quote.', code: 'REDEEM_QUOTE_EXPIRED' },
+    };
+  }
+  if (!quotes.delete(quoteId)) {
+    return {
+      ok: false,
+      status: 409,
+      body: {
+        error: 'Quote already claimed by another execute',
+        code: 'REDEEM_QUOTE_CLAIMED',
+      },
+    };
+  }
+  return { ok: true, quote };
 }
 
 function buildCasinoTrustBoostPayload(casinoName: string | null, partnerId: string) {
@@ -273,15 +336,18 @@ function resolveEnableDomains(
     coveredDomains?: string[];
   },
 ): { domains: string[]; error?: { status: number; body: Record<string, unknown> } } {
+  const ownedDomain = partner.casinoDomain
+    ? normalizeCapabilityDomain(partner.casinoDomain)
+    : null;
+
   if (input.partnerType === 'processor') {
     const covered = (input.coveredDomains ?? [])
       .map((domain) => normalizeCapabilityDomain(domain))
       .filter(Boolean);
+    // Prefer explicit casinoName; else partner casino_domain. Hijacks blocked at enable upsert.
     const primary = input.casinoName
       ? normalizeCapabilityDomain(input.casinoName)
-      : partner.casinoDomain
-        ? normalizeCapabilityDomain(partner.casinoDomain)
-        : null;
+      : ownedDomain;
     const domains = [...new Set([...(primary ? [primary] : []), ...covered])];
     if (domains.length === 0) {
       return {
@@ -298,20 +364,36 @@ function resolveEnableDomains(
     return { domains };
   }
 
-  const single = resolveCasinoName(partner, input.casinoName);
-  if (!single) {
+  if (!ownedDomain) {
     return {
       domains: [],
       error: {
         status: 400,
         body: {
-          error: 'casinoName required when partner has no casino_domain on file',
+          error: 'Operator Instant Redeem requires casino_domain on the partner record',
           code: 'REDEEM_CASINO_REQUIRED',
         },
       },
     };
   }
-  return { domains: [single] };
+
+  if (input.casinoName) {
+    const requested = normalizeCapabilityDomain(input.casinoName);
+    if (requested !== ownedDomain) {
+      return {
+        domains: [],
+        error: {
+          status: 403,
+          body: {
+            error: 'Operators may only enable their own casino_domain',
+            code: 'REDEEM_DOMAIN_OWNERSHIP',
+          },
+        },
+      };
+    }
+  }
+
+  return { domains: [ownedDomain] };
 }
 
 function roundMoney(value: number): number {
@@ -569,6 +651,17 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
   const mode = partnerModeLabel(request.partner!);
 
   for (const domain of resolved.domains) {
+    const existing = getInstantRedeemCapability(domain);
+    if (existing && existing.partnerId !== request.partner!.id) {
+      rejectedDomains.push({
+        domain,
+        code: 'REDEEM_DOMAIN_OWNED',
+        reasons: ['Domain Instant Redeem capability is owned by another partner'],
+        note: 'No domain hijacks. Ask ops to transfer ownership if this is your book.',
+      });
+      continue;
+    }
+
     const gate = await evaluateInstantRedeemCasinoGate(domain);
     if (!gate.allowed) {
       rejectedDomains.push({
@@ -606,12 +699,19 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
   }
 
   if (allowedDomains.length === 0) {
+    const ownershipBlocked = rejectedDomains.every(
+      (entry) => entry.code === 'REDEEM_DOMAIN_OWNED',
+    );
     res.status(403).json({
       success: false,
-      error: 'Instant Redeem refused — every requested domain failed scam/trust gates',
-      code: 'REDEEM_SCAM_CASINO_BLOCKED',
+      error: ownershipBlocked
+        ? 'Instant Redeem refused — requested domains are owned by another partner'
+        : 'Instant Redeem refused — every requested domain failed scam/trust gates',
+      code: ownershipBlocked ? 'REDEEM_DOMAIN_OWNED' : 'REDEEM_SCAM_CASINO_BLOCKED',
       rejectedDomains,
-      note: 'We do not cash out at scam casinos. Clean the book and try again.',
+      note: ownershipBlocked
+        ? 'No domain hijacks. Ask ops to transfer ownership if this is your book.'
+        : 'We do not cash out at scam casinos. Clean the book and try again.',
     });
     return;
   }
@@ -680,11 +780,7 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const casinoDomain =
-    resolveCasinoName(request.partner!, parsed.data.casinoDomain) ||
-    (request.partner!.casinoDomain
-      ? normalizeCapabilityDomain(request.partner!.casinoDomain)
-      : null);
+  const casinoDomain = resolveCasinoName(request.partner!, parsed.data.casinoDomain);
 
   if (!casinoDomain) {
     res.status(400).json({
@@ -707,12 +803,44 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
   }
 
   const { playerRef, amount, currency, destination, jurisdiction } = parsed.data;
-  const feeAmount = computeFee(amount);
-  const amountNet = roundMoney(Math.max(0, amount - feeAmount));
+  const mode = partnerModeLabel(request.partner!);
+  const productionGrant =
+    mode === 'production' ? getApprovedProductionGrant(request.partner!.id) : null;
+
+  if (mode === 'production') {
+    const scope = evaluateProductionGrantScope({
+      partnerId: request.partner!.id,
+      domain: casinoDomain,
+      rail: destination.rail as SettlementRail,
+      amountUsd: amount,
+      settledVolumeUsd: getProductionSettledVolume(request.partner!.id),
+    });
+    if (!scope.ok) {
+      res.status(403).json({
+        success: false,
+        error: scope.error,
+        code: scope.code,
+      });
+      return;
+    }
+  }
+
+  const feeBps = productionGrant?.feeShareBps ?? DEFAULT_FEE_BPS;
+  const feeAmount = computeFee(amount, feeBps);
+  const amountNet = roundMoney(amount - feeAmount);
+  if (amountNet <= 0 || amount <= FEE_FLOOR) {
+    res.status(400).json({
+      error: 'Amount must exceed Instant Redeem fee floor',
+      code: 'REDEEM_AMOUNT_BELOW_FEE',
+      feeFloor: FEE_FLOOR,
+      feeAmount,
+    });
+    return;
+  }
+
   const rg = evaluateRg(playerRef, amount);
   const now = Date.now();
   const quoteId = `qr_${crypto.randomBytes(12).toString('hex')}`;
-  const mode = partnerModeLabel(request.partner!);
 
   const quote: RedeemQuote = {
     quoteId,
@@ -721,7 +849,7 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     casinoDomain,
     amountGross: amount,
     currency: currency.toUpperCase(),
-    feeBps: DEFAULT_FEE_BPS,
+    feeBps,
     feeFloor: FEE_FLOOR,
     feeAmount,
     amountNet,
@@ -807,23 +935,30 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
     }
   }
 
-  const quote = quotes.get(quoteId);
-  if (!quote || quote.partnerId !== request.partner!.id) {
-    res.status(404).json({ error: 'Quote not found for this partner', code: 'REDEEM_QUOTE_NOT_FOUND' });
+  // Claim before any await so concurrent executes cannot double-settle one quote.
+  const claimed = claimQuoteForExecute(quoteId, request.partner!.id, playerRef);
+  if (!claimed.ok) {
+    res.status(claimed.status).json(claimed.body);
     return;
   }
+  const quote = claimed.quote;
 
-  if (quote.playerRef !== playerRef) {
-    res.status(409).json({
-      error: 'playerRef does not match the quoted player',
-      code: 'REDEEM_PLAYER_MISMATCH',
+  if (mode === 'production') {
+    const scope = evaluateProductionGrantScope({
+      partnerId: request.partner!.id,
+      domain: quote.casinoDomain,
+      rail: quote.destination.rail as SettlementRail,
+      amountUsd: quote.amountGross,
+      settledVolumeUsd: getProductionSettledVolume(request.partner!.id),
     });
-    return;
-  }
-
-  if (Date.now() > quote.expiresAt) {
-    res.status(410).json({ error: 'Quote expired. Request a fresh quote.', code: 'REDEEM_QUOTE_EXPIRED' });
-    return;
+    if (!scope.ok) {
+      res.status(403).json({
+        success: false,
+        error: scope.error,
+        code: scope.code,
+      });
+      return;
+    }
   }
 
   const casinoGate = await evaluateInstantRedeemCasinoGate(quote.casinoDomain);
@@ -846,8 +981,8 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
 
   const rg = evaluateRg(playerRef, quote.amountGross);
   const redeemId = `rd_${crypto.randomBytes(12).toString('hex')}`;
-  let status: RedeemRecord['status'] = 'settled';
-  let note = 'Sandbox settle only. No funds moved.';
+  let status: RedeemRecord['status'];
+  let note: string;
   let settlementMode: SettlementMode | null = null;
   let processorRef: string | null = null;
 
@@ -881,7 +1016,8 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
     }
   }
 
-  const armsRebuy = status === 'settled' || status === 'processor_pending';
+  // Only final settled redeems arm cooloff (docs + RG contract). processor_pending waits.
+  const armsRebuy = status === 'settled';
   const record: RedeemRecord = {
     redeemId,
     partnerId: request.partner!.id,
@@ -903,18 +1039,25 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
 
   redeems.set(redeemId, record);
   idempotencyIndex.set(idemKey, redeemId);
-  quotes.delete(quoteId);
+
+  if (mode === 'production' && (status === 'settled' || status === 'processor_pending')) {
+    recordProductionSettledVolume(request.partner!.id, quote.amountGross);
+  }
 
   let rebuyLock: RebuyLock | null = null;
   if (armsRebuy) {
-    const grant = mode === 'production' ? getProductionGrantForPartner(request.partner!.id) : null;
+    const grant = mode === 'production' ? getApprovedProductionGrant(request.partner!.id) : null;
+    // Sandbox-only override. Production always uses grant hours (or default 24h).
+    const sandboxOverrideMs =
+      mode === 'sandbox' && rebuyCooldownMinutes != null
+        ? rebuyCooldownMinutes * 60_000
+        : null;
+    const grantMs = grant?.rebuyCooloffHours
+      ? grant.rebuyCooloffHours * 60 * 60 * 1000
+      : null;
     const cooldownMs = Math.min(
       MAX_REBUY_COOLDOWN_MS,
-      rebuyCooldownMinutes != null
-        ? rebuyCooldownMinutes * 60_000
-        : grant?.rebuyCooloffHours
-          ? grant.rebuyCooloffHours * 60 * 60 * 1000
-          : DEFAULT_REBUY_COOLDOWN_MS,
+      sandboxOverrideMs ?? grantMs ?? DEFAULT_REBUY_COOLDOWN_MS,
     );
     rebuyLock = setRebuyLock({
       partnerId: request.partner!.id,
@@ -924,11 +1067,8 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
       currency: quote.currency,
       cooldownMs,
     });
-    if (status === 'settled' && mode === 'sandbox') {
+    if (mode === 'sandbox') {
       note = 'Sandbox settle only. No funds moved. Rebuy cooloff armed on the same payment rail.';
-      record.note = note;
-    } else if (status === 'processor_pending') {
-      note = `${note} Rebuy cooloff armed on settle intent — same rail, no instant rebuy.`;
       record.note = note;
     }
   }
@@ -1322,6 +1462,7 @@ export function __resetRedeemSandboxStateForTests(): void {
   redeems.clear();
   idempotencyIndex.clear();
   rebuyLocks.clear();
+  productionSettledVolumeUsd.clear();
   __resetInstantRedeemRegistryForTests();
   __resetInstantRedeemProductionForTests();
 }

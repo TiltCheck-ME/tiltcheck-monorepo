@@ -43,11 +43,13 @@ tests/
 test/
 __tests__/
 
-# Documentation
-docs/
+# Documentation — keep root README/CHANGELOG out of image context, but allow
+# docs/ so apps/web runner can COPY public markdown for /docs at runtime.
 README.md
 CHANGELOG.md
 *.md
+!docs/
+!docs/**/*.md
 
 # Misc
 .railwayignore

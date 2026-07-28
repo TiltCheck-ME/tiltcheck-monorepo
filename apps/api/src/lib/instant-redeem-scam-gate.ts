@@ -2,6 +2,7 @@
 /**
  * Instant Redeem casino eligibility gate.
  * No Instant Redeem at scam / critically low-trust shops. Period.
+ * Fail closed when the scam blacklist cannot be loaded.
  */
 
 import { trustEngines } from '@tiltcheck/trust-engines';
@@ -25,6 +26,7 @@ export type InstantRedeemCasinoGateCode =
   | 'CASINO_CLEAR'
   | 'SCAM_DOMAIN_BLOCKED'
   | 'TRUST_SCORE_BLOCKED'
+  | 'SCAM_BLACKLIST_UNAVAILABLE'
   | 'DOMAIN_REQUIRED';
 
 export type InstantRedeemCasinoGateResult = {
@@ -51,7 +53,8 @@ function isBlacklistMatch(domain: string, blacklist: string[]): boolean {
 
 /**
  * Evaluate whether Instant Redeem is allowed for a casino domain.
- * Fail closed on known scam blacklist / deny patterns / critically low trust.
+ * Fail closed on known scam blacklist / deny patterns / critically low trust /
+ * blacklist load failure.
  */
 export async function evaluateInstantRedeemCasinoGate(
   rawDomain: string | null | undefined,
@@ -83,10 +86,17 @@ export async function evaluateInstantRedeemCasinoGate(
 
   try {
     const blacklist = await loadDomainBlacklist();
-    if (
-      (blacklist.availability === 'available' || blacklist.availability === 'empty') &&
-      isBlacklistMatch(domain, blacklist.domains)
-    ) {
+    if (blacklist.availability === 'unavailable') {
+      return {
+        allowed: false,
+        code: 'SCAM_BLACKLIST_UNAVAILABLE',
+        domain,
+        reasons: ['Scam domain blacklist unavailable — Instant Redeem fails closed'],
+        trustScore: null,
+        note: 'Instant Redeem denied until the scam blacklist is available. No fail-open for skem shops.',
+      };
+    }
+    if (isBlacklistMatch(domain, blacklist.domains)) {
       return {
         allowed: false,
         code: 'SCAM_DOMAIN_BLOCKED',
@@ -97,8 +107,14 @@ export async function evaluateInstantRedeemCasinoGate(
       };
     }
   } catch {
-    // Blacklist load failure should not silently allow obvious deny patterns (already checked).
-    reasons.push('Scam blacklist unavailable; other gates still apply');
+    return {
+      allowed: false,
+      code: 'SCAM_BLACKLIST_UNAVAILABLE',
+      domain,
+      reasons: ['Scam domain blacklist load failed — Instant Redeem fails closed'],
+      trustScore: null,
+      note: 'Instant Redeem denied until the scam blacklist is available. No fail-open for skem shops.',
+    };
   }
 
   const breakdown = trustEngines.getCasinoBreakdown(domain);

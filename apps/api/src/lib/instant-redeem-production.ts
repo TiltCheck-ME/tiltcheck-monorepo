@@ -91,6 +91,58 @@ export function partnerHasApprovedProductionRedeem(partnerId: string): boolean {
   return grant?.status === 'approved';
 }
 
+export function getApprovedProductionGrant(partnerId: string): InstantRedeemProductionGrant | null {
+  const grant = getProductionGrantForPartner(partnerId);
+  return grant?.status === 'approved' ? grant : null;
+}
+
+/** Enforce Phase 5 grant scope on quote/execute. Returns null when in scope. */
+export function evaluateProductionGrantScope(input: {
+  partnerId: string;
+  domain: string;
+  rail: SettlementRail;
+  amountUsd: number;
+  settledVolumeUsd: number;
+}): { ok: true; grant: InstantRedeemProductionGrant } | { ok: false; code: string; error: string } {
+  const grant = getApprovedProductionGrant(input.partnerId);
+  if (!grant) {
+    return {
+      ok: false,
+      code: 'REDEEM_PRODUCTION_REQUIRED',
+      error: 'Production Instant Redeem requires an approved Phase 5 grant',
+    };
+  }
+
+  const domain = normalizeCapabilityDomain(input.domain);
+  const covered = new Set(grant.coveredDomains.map((entry) => normalizeCapabilityDomain(entry)));
+  if (!covered.has(domain)) {
+    return {
+      ok: false,
+      code: 'REDEEM_GRANT_DOMAIN_DENIED',
+      error: `Domain ${domain} is outside the approved Instant Redeem grant`,
+    };
+  }
+
+  if (!grant.rails.includes(input.rail)) {
+    return {
+      ok: false,
+      code: 'REDEEM_GRANT_RAIL_DENIED',
+      error: `Rail ${input.rail} is outside the approved Instant Redeem grant`,
+    };
+  }
+
+  const nextVolume = input.settledVolumeUsd + input.amountUsd;
+  if (nextVolume > grant.float.hardCapUsd) {
+    return {
+      ok: false,
+      code: 'REDEEM_GRANT_FLOAT_CAP',
+      error: `Instant Redeem would exceed grant hard cap ($${grant.float.hardCapUsd})`,
+    };
+  }
+
+  return { ok: true, grant };
+}
+
 export function upsertProductionGrant(grant: InstantRedeemProductionGrant): InstantRedeemProductionGrant {
   const store = readInstantRedeemProductionStore();
   const nextGrants = store.grants.filter((entry) => entry.partnerId !== grant.partnerId);
