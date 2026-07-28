@@ -3,10 +3,10 @@
 import Link from 'next/link';
 
 const operatorBullets = [
-  'Instant Redeem lets players pay a fee to cash out faster at your casino cashier — skip the standard withdrawal wait.',
-  'Processors: one integration covers many casino domains. You hold the funds; TiltCheck orchestrates quote, gates, and settlement.',
-  'Scam and low-trust domains stay blocked. Casinos that enable get a public badge and a trust score bump.',
-  'Same partner auth as RGaaS. Free sandbox. Production needs a float-desk grant — no MTL on day one.',
+  'B2B Instant Redeem API: quote, RG gates, irrevocable settle intent, same-rail deposit cooloff.',
+  'Processors: one integration covers many casino domains. You hold the float; TiltCheck orchestrates.',
+  'Sandbox mocks money. Production needs a Phase 5 float-desk grant. Live settlement stays flag-gated off.',
+  'Scam and critically low-trust domains stay hard-blocked. Enablement can earn a public badge + trust bump.',
 ];
 
 export default function OperatorBlock() {
@@ -14,9 +14,9 @@ export default function OperatorBlock() {
     <section className="public-page-section px-4 vp-section">
       <div className="landing-shell">
         <div className="vp-column vp-column--platform public-page-card">
-          <span className="brand-eyebrow">For processors / operators</span>
+          <span className="brand-eyebrow">For processors / operators — sandbox API</span>
           <h2 className="public-page-section-heading__title">
-            Instant Redeem — fast player cashouts for processors and operators.
+            Instant Redeem orchestration — not a TiltCheck payout wallet.
           </h2>
           <ul className="public-page-card__copy" style={{ textAlign: 'left', marginTop: '1rem' }}>
             {operatorBullets.map((bullet) => (
@@ -31,9 +31,9 @@ export default function OperatorBlock() {
               className="btn btn-primary"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-operator-block"
-              data-funnel-label="Enable Instant Redeem"
+              data-funnel-label="Instant Redeem partner page"
             >
-              ENABLE INSTANT REDEEM
+              PARTNER DOCS
             </Link>
             <Link
               href="/operators"

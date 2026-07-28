@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import JsonLd from "@/components/JsonLd";
@@ -8,19 +8,19 @@ const workflowSteps = [
   {
     step: "01",
     title: "Install",
-    body: "Read-only extension watches gameplay pacing and session events. No wallet keys.",
+    body: "Read-only extension watches click pacing and session events. No wallet keys. Sideload beta — not Chrome Web Store yet.",
     note: "One install. Lives in your browser tab.",
   },
   {
     step: "02",
     title: "Watch",
-    body: "Compares live behavior to trust signals, payout expectations, and your guardrails.",
+    body: "Core mode flags fast-click / risk heuristics. Full bet-tilt HUD and deeper session cues need Pro features enabled.",
     note: "Flags sus pacing before tilt takes over.",
   },
   {
     step: "03",
     title: "Exit",
-    body: "When evidence is clear, enforce the line — warning, cash-out push, or hard stop.",
+    body: "Touch Grass lockdown and dashboard rules enforce what you pre-commit to — warning, cash-out nudge, or timed hard stop on supported sites.",
     note: "Proof over emotion.",
   },
 ];
@@ -32,7 +32,13 @@ const faqs = [
   },
   {
     question: "What is payout drift?",
-    answer: "Same slot, lower RTP than advertised. TiltCheck runs session math to catch quiet nerfs.",
+    answer:
+      "Same slot, quieter returns than advertised. When sample size supports it, TiltCheck surfaces forensic cues — not lab-grade RTP claims from one weird spin.",
+  },
+  {
+    question: "Is Instant Redeem a TiltCheck cashout?",
+    answer:
+      "No. Instant Redeem is a partner cashier product. We badge who enables it and orchestrate the API. The processor or operator holds funds. Sandbox mocks money by default.",
   },
   {
     question: "When do I get evidence?",

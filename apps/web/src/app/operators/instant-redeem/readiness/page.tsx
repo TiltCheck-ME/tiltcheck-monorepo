@@ -102,12 +102,12 @@ export default function InstantRedeemReadinessPage() {
             {error
               ? 'Readiness unavailable'
               : marketReady
-                ? 'Market-ready (Phase 5 scaffolding)'
+                ? 'Partner-ready (API scaffolding — no live money default)'
                 : 'Not ready'}
           </p>
           <p className="mt-2 text-sm text-gray-300 leading-relaxed">
             {payload?.talkTrack?.oneLiner ||
-              'Wen payout? Now. Instant Redeem turns soon™ into a paid exit — without handing scam casinos a cashout rail.'}
+              'Instant Redeem is a partner cashier product: paid fast exit, irrevocable settle intent, scam hard-block — TiltCheck orchestrates; processor holds float.'}
           </p>
           {typeof payload?.metrics?.enabledDomains === 'number' && (
             <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-gray-500">

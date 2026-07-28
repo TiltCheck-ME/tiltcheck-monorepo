@@ -4,7 +4,30 @@
 
 **Audience:** BD, processors, operators, investors.  
 **Use:** Talk track + landing copy. Pair with legal/RG counsel for production.  
-**Do not:** Promise real-money settlement before float + licensing are signed.
+**Do not:** Promise real-money settlement before float + licensing are signed.  
+**Do not:** Tell players Instant Redeem is a TiltCheck cashout button.
+
+---
+
+## Honesty bar (say this out loud)
+
+| Layer | True today |
+| :--- | :--- |
+| **Sandbox API** | Quote / execute / deposit cooloff mock — no funds moved |
+| **Production grant** | Partner credentials can hit Instant Redeem routes after ops approve |
+| **Live settlement** | Off by default (`INSTANT_REDEEM_LIVE_SETTLEMENT`) until processor smoke passes |
+| **Public badge** | Means a partner enabled Instant Redeem — not that TiltCheck pays the player |
+
+---
+
+## Player vs Operator vs Processor
+
+| Role | What they do |
+| :--- | :--- |
+| **Player** | Sees badges on `/casinos`; cashes out in the **casino cashier** if the brand offers Instant Redeem |
+| **Operator** | Enables Instant Redeem for their domain; owns cashier UX |
+| **Processor** | Holds float; covers many domains; settles rails |
+| **TiltCheck** | Orchestrates API, scam gate, irrevocable policy, rebuy cooloff, trust badge |
 
 ---
 
@@ -64,7 +87,7 @@ Do not lead with casino-only BD. Lead with processors + public badge FOMO.
 
 ## Talk track (30 seconds)
 
-> Players keep asking wen payout. We sell Instant Redeem — paid exit now, no canceled redeems, cooloff before they degen it back in, and a hard no for scam shops. Processors cover many domains under one rail. Operators who enable it get a trust bump and a public badge. Everyone else still looks like soon™.
+> Players hate waiting on withdrawals. Instant Redeem is a paid fast exit inside the licensed cashier — fee to skip the wait, no canceled-redeem theater, cooloff before reload, hard no for scam shops. Processors hold the float and cover many domains. TiltCheck orchestrates the API. Sandbox mocks money; live rails stay grant- and flag-gated. Operators who enable get a trust bump and a public badge.
 
 ---
 

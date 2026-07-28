@@ -55,9 +55,10 @@ export default function InstantRedeemPage() {
             Instant Redeem — paid fast cashouts at the casino cashier.
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-gray-400 leading-relaxed">
-            Players pay a fee to skip the standard withdrawal wait. Payment processors enable many
-            casino domains under one integration; operators get the badge and trust bump. TiltCheck
-            orchestrates quote, RG gates, and settlement — your processor or operator holds the funds.
+            Partner orchestration API for paid fast cashouts inside the licensed casino cashier.
+            Players never cash out through TiltCheck. Processors enable many domains under one
+            float desk; operators get the badge. Sandbox mocks money today — production is
+            grant-gated; live settlement stays off by default.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
@@ -114,13 +115,24 @@ export default function InstantRedeemPage() {
           </div>
         </header>
 
+        <section className="rounded-2xl border border-[#f59e0b]/35 bg-[#f59e0b]/5 p-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#f59e0b]">
+            Honesty bar
+          </p>
+          <p className="mt-2 text-sm text-gray-300 leading-relaxed">
+            Sandbox = mocked settle. Production grant = credentials can hit the API. Live money =
+            only with approved float desk + <span className="font-mono text-white">INSTANT_REDEEM_LIVE_SETTLEMENT=true</span>.
+            Badge on /casinos means a partner enabled Instant Redeem — not that TiltCheck pays the player.
+          </p>
+        </section>
+
         <section className="rounded-2xl border border-[#17c3b2]/25 bg-[#17c3b2]/5 p-6">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Pitch</p>
           <p className="mt-2 text-sm text-gray-200 leading-relaxed">
-            Wen payout? Now. Instant Redeem is a paid fast cashout in the casino cashier — player
-            pays a fee, skips the wait, and the payout cannot be canceled once it settles. Deposit
-            cooloff blocks instant reload. Scam shops stay blocked. Processors cover many domains;
-            operators get the badge. Sandbox fee:{' '}
+            Instant Redeem is a paid fast cashout in the casino cashier — player pays a fee, skips
+            the wait, and the settle intent cannot be canceled once it executes. Deposit cooloff
+            blocks instant reload. Scam shops stay blocked. Processors cover many domains; operators
+            get the badge. Sandbox fee:{' '}
             <span className="font-mono text-white">150 bps</span> /{' '}
             <span className="font-mono text-white">$0.50</span> floor.
           </p>

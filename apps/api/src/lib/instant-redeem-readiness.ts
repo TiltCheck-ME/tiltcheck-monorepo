@@ -186,9 +186,10 @@ export async function buildInstantRedeemReadiness(): Promise<InstantRedeemReadin
       commercialEmail: 'partners@tiltcheck.me',
     },
     talkTrack: {
-      oneLiner: 'Wen payout? Now. Instant Redeem turns soon™ into a paid exit — without handing scam casinos a cashout rail.',
+      oneLiner:
+        'Instant Redeem is a partner cashier product: paid fast exit, irrevocable settle intent, scam hard-block — TiltCheck orchestrates; processor holds float.',
       thirtySeconds:
-        'Players keep asking wen payout. We sell Instant Redeem — paid exit now, no canceled redeems, cooloff before they degen it back in, and a hard no for scam shops. Processors hold the float; TiltCheck orchestrates. Operators who enable it get a trust bump and a public badge. Everyone else still looks like soon™.',
+        'Players hate waiting on withdrawals. Instant Redeem is a white-label paid exit inside the licensed cashier — fee to skip the wait, no canceled-redeem theater, cooloff before reload, hard no for scam shops. Processors hold the float and cover many domains. TiltCheck orchestrates the API. Sandbox mocks money; live rails stay grant- and flag-gated.',
     },
     metrics: {
       enabledDomains: capabilities.length,

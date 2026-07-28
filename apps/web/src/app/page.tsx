@@ -17,7 +17,8 @@ const coreJobs = [
   {
     step: "03",
     title: "Enforce the Exit",
-    description: "Set your line. We enforce it — not passive warnings.",
+    description:
+      "Set your line. Touch Grass lockdown and dashboard rules enforce what you pre-commit to — on supported sites.",
   },
 ];
 
@@ -61,9 +62,11 @@ export default function Home() {
 
       <section className="public-page-section px-4" style={{ paddingTop: "2.5rem", paddingBottom: "0.5rem" }}>
         <div className="landing-shell" style={{ textAlign: "center" }}>
-          <p className="brand-eyebrow">Wen payout?</p>
-          <p style={{ marginTop: "0.75rem", color: "#9aa8bc", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "36rem", marginLeft: "auto", marginRight: "auto" }}>
-            Instant Redeem is a paid fast cashout at the casino cashier — skip the wait, pay a fee. We badge who offers it so you are not stuck on soon™.
+          <p className="brand-eyebrow">Who pays fast?</p>
+          <p style={{ marginTop: "0.75rem", color: "#9aa8bc", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: "38rem", marginLeft: "auto", marginRight: "auto" }}>
+            Instant Redeem is a partner cashier product: players pay a fee to skip the standard
+            withdrawal wait at participating casinos. TiltCheck badges who enables it — we do not
+            cash you out. Supply is still building; the directory may show zero badges today.
           </p>
           <div className="hero-actions" style={{ marginTop: "1.25rem", justifyContent: "center" }}>
             <Link
@@ -71,18 +74,18 @@ export default function Home() {
               className="btn btn-primary"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-instant-redeem"
-              data-funnel-label="See who pays fast"
+              data-funnel-label="See Instant Redeem badges"
             >
-              SEE WHO PAYS FAST
+              SEE INSTANT REDEEM BADGES
             </Link>
             <Link
               href="/operators/instant-redeem"
               className="hero-actions__secondary-link"
               data-funnel-event="cta_click"
               data-funnel-source="web-home-instant-redeem"
-              data-funnel-label="Enable Instant Redeem"
+              data-funnel-label="Partner Instant Redeem"
             >
-              ENABLE INSTANT REDEEM
+              FOR PROCESSORS / OPERATORS
             </Link>
           </div>
         </div>

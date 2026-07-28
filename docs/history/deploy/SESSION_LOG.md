@@ -6,6 +6,11 @@
 
 - **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.
 
+## 2026-07-28 - Product honesty audit + claim/reality copy fixes (PR #647)
+
+- **Audit**: `docs/product/tiltcheck-product-honesty-audit.md` — shipped vs sandbox vs aspirational.
+- **Copy**: Homepage / OperatorBlock / Instant Redeem / readiness / how-it-works / site-copy aligned to Core extension + B2B Instant Redeem (no live player cashout claims).
+
 ## 2026-07-28 - Instant Redeem outreach target research (PR #647)
 
 - **BD list**: Ranked processor targets with public contact channels (`instant-redeem-outreach-targets.md`) — Gigadat / Paramount / Paybilt / MuchBetter first.
