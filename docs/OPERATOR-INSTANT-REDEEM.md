@@ -8,15 +8,18 @@ Wen payout? Now. Operators sell the exit lane. Players stop waiting on soon™.
 
 Instant Redeem is a **white-label, operator-sanctioned liquidity desk** — not a pirate middle wallet and not a consumer bypass of casino ToS.
 
+It is **not** a “hope operators partner” plan. Growth is built as a flywheel: player-visible badges, payment-processor partners covering many domains, trust-score FOMO, then direct operator deals. See [OPERATOR-INSTANT-REDEEM-GROWTH.md](./OPERATOR-INSTANT-REDEEM-GROWTH.md).
+
 | Layer | Owner | Job |
 | :--- | :--- | :--- |
 | Cashier UX | Operator | Player taps Instant Redeem inside the licensed brand |
 | Quote + fee | TiltCheck API | Price the cost of not waiting the standard redeem window |
-| Float / settlement | Operator contract | Operator-funded or co-funded desk; TiltCheck orchestrates |
-| RG gates | RGaaS | Velocity, tilt, jurisdiction, and self-exclusion checks before money moves |
+| Float / settlement | Operator **or processor** contract | Funded desk; TiltCheck orchestrates |
+| RG gates | RGaaS | Velocity, tilt, jurisdiction, self-exclusion, **post-redeem rebuy cooloff** |
+| Public supply signal | Capabilities registry | `/casinos` badge + `GET /v1/redeem/capabilities` |
 | Billing | Partner commercial | Fee share on successful instant redeems |
 
-Player tooling elsewhere stays non-custodial. This B2B surface is **operator-contracted liquidity**, sandbox-mocked first.
+Player tooling elsewhere stays non-custodial. This B2B surface is **operator/processor-contracted liquidity**, sandbox-mocked first.
 
 ## Same-rail payment processor + rebuy cooloff
 
@@ -64,6 +67,10 @@ Sandbox activations are tagged in score history. Mock quote/execute alone does *
 - Sandbox `GET /v1/redeem/:redeemId`
 - Sandbox `POST /v1/redeem/enable` (casino trust boost)
 - Sandbox `POST /v1/redeem/deposit-check` + `POST /v1/redeem/deposit` (same-rail rebuy cooloff)
+- Durable capability registry + public `GET /v1/redeem/capabilities`
+- Processor multi-domain enable (`partnerType: processor`, `coveredDomains[]`)
+- Player-facing Instant Redeem badge on `/casinos`
+- Growth architecture doc
 - Partner auth (`X-TiltCheck-App-Id` / `X-TiltCheck-Secret-Key`)
 - Mock RG gate decisions
 - Operator portal + docs pointers

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -41,12 +41,23 @@ function PillarBar({ label, score, color }: { label: string; score: number; colo
   );
 }
 
+function casinoHasInstantRedeem(casino: (typeof CASINOS)[number], enabledDomains: Set<string>): boolean {
+  const candidates = [
+    casino.monitoredDomain,
+    ...(casino.domainCandidates ?? []),
+  ]
+    .filter(Boolean)
+    .map((domain) => String(domain).replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase());
+  return candidates.some((domain) => enabledDomains.has(domain));
+}
+
 export default function CasinosPage() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [page, setPage] = useState(1);
   const [liveScores, setLiveScores] = useState<LiveTrustScore[]>([]);
   const [liveSource, setLiveSource] = useState('unavailable');
+  const [instantRedeemDomains, setInstantRedeemDomains] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
@@ -60,6 +71,20 @@ export default function CasinosPage() {
       .catch(() => {
         setLiveScores([]);
         setLiveSource('unavailable');
+      });
+
+    fetch(`${apiUrl}/v1/redeem/capabilities`, { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { capabilities?: Array<{ domain?: string }> } | null) => {
+        const domains = new Set(
+          (payload?.capabilities ?? [])
+            .map((entry) => String(entry.domain || '').toLowerCase())
+            .filter(Boolean),
+        );
+        setInstantRedeemDomains(domains);
+      })
+      .catch(() => {
+        setInstantRedeemDomains(new Set());
       });
   }, []);
 
@@ -91,9 +116,14 @@ export default function CasinosPage() {
         title="Look up the operator. Read the proof."
         description={
           <p>
-            Grades, pillars, license basis, and known issues on every card.{' '}
+            Grades, pillars, license basis, and known issues on every card. Instant Redeem badges
+            mark operators (or their payment processors) who ship paid-and-now exits.{' '}
             <Link href="#grading-methodology" className="text-[#17c3b2] hover:underline">
               How grades are built
+            </Link>
+            {' · '}
+            <Link href="/operators/instant-redeem" className="text-[#17c3b2] hover:underline">
+              Operator Instant Redeem
             </Link>
             .
           </p>
@@ -105,7 +135,7 @@ export default function CasinosPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <p className="mb-4 text-[11px] font-mono uppercase tracking-[0.16em] text-gray-500">
-            {CASINOS.length} tracked · {liveMatchedCount} live matches · feed: {liveFeedLabel}
+            {CASINOS.length} tracked · {liveMatchedCount} live matches · {instantRedeemDomains.size} Instant Redeem · feed: {liveFeedLabel}
           </p>
           <div className="mb-8 flex flex-col gap-4 lg:flex-row">
             <input
@@ -152,6 +182,7 @@ export default function CasinosPage() {
                 const riskStyle = getRiskBadgeStyle(displayRisk);
                 const scoreColor = getScoreColor(displayScore);
                 const violationCount = casino.meta.violations?.length ?? 0;
+                const hasInstantRedeem = casinoHasInstantRedeem(casino, instantRedeemDomains);
 
                 const violations = casino.meta.violations ?? [];
                 const previewViolations = violations.slice(0, 2);
@@ -186,6 +217,14 @@ export default function CasinosPage() {
                       {live && (
                         <span className="border border-[#17c3b2]/30 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">
                           {live.events24h} events / 24h
+                        </span>
+                      )}
+                      {hasInstantRedeem && (
+                        <span
+                          className="border border-[#17c3b2]/50 bg-[#17c3b2]/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]"
+                          title="Operator or payment processor enabled Instant Redeem on this domain"
+                        >
+                          Instant Redeem
                         </span>
                       )}
                       {violationCount > 0 && (

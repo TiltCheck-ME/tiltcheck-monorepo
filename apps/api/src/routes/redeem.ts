@@ -12,6 +12,14 @@ import { z } from 'zod';
 import { incrementPartnerDailyQuotaUsage } from '@tiltcheck/db';
 import { eventRouter } from '@tiltcheck/event-router';
 import { INSTANT_REDEEM_PAYOUT_DELTA, trustEngines } from '@tiltcheck/trust-engines';
+import {
+  getInstantRedeemCapability,
+  listInstantRedeemCapabilities,
+  normalizeCapabilityDomain,
+  upsertInstantRedeemCapabilities,
+  type InstantRedeemPartnerType,
+  __resetInstantRedeemRegistryForTests,
+} from '../lib/instant-redeem-registry.js';
 import { partnerAuthMiddleware, type PartnerRequest } from '../middleware/partner.js';
 
 const router = Router();
@@ -49,6 +57,9 @@ const executeSchema = z.object({
 
 const enableSchema = z.object({
   casinoName: z.string().trim().min(3).max(255).optional(),
+  /** operator = single brand; processor = one commercial identity covering many domains */
+  partnerType: z.enum(['operator', 'processor']).default('operator'),
+  coveredDomains: z.array(z.string().trim().min(3).max(255)).max(50).optional(),
 });
 
 const depositGateSchema = z.object({
@@ -113,8 +124,6 @@ type RebuyLock = {
 const quotes = new Map<string, RedeemQuote>();
 const redeems = new Map<string, RedeemRecord>();
 const idempotencyIndex = new Map<string, string>();
-/** Partners that declared Instant Redeem for a casino domain (in-memory sandbox registry). */
-const enabledByPartner = new Map<string, { casinoName: string; enabledAt: number; mode: string }>();
 /** Post-redeem deposit cooloffs keyed by partnerId:playerRef. Same rail = same lock namespace. */
 const rebuyLocks = new Map<string, RebuyLock>();
 
@@ -182,25 +191,77 @@ function resolveCasinoName(partner: NonNullable<PartnerRequest['partner']>, over
 }
 
 function buildCasinoTrustBoostPayload(casinoName: string | null, partnerId: string) {
-  const enabled = enabledByPartner.get(partnerId);
+  const fromDomain = casinoName ? getInstantRedeemCapability(casinoName) : null;
+  const fromPartner = listInstantRedeemCapabilities().find((entry) => entry.partnerId === partnerId) ?? null;
+  const enabled = fromDomain || fromPartner;
   if (!enabled) {
     return {
       enabled: false,
       pillar: 'financialPayouts' as const,
       delta: INSTANT_REDEEM_PAYOUT_DELTA,
-      note: 'Enable Instant Redeem via POST /v1/redeem/enable to claim the casino trust boost.',
+      note: 'Enable Instant Redeem via POST /v1/redeem/enable to claim the casino trust boost and public badge.',
     };
   }
-  const score = trustEngines.getCasinoBreakdown(casinoName || enabled.casinoName);
+  const score = trustEngines.getCasinoBreakdown(casinoName || enabled.domain);
   return {
     enabled: true,
-    casinoName: enabled.casinoName,
+    casinoName: enabled.domain,
+    partnerType: enabled.partnerType,
     pillar: 'financialPayouts' as const,
     delta: INSTANT_REDEEM_PAYOUT_DELTA,
     overallScore: score.score,
     financialPayouts: score.financialPayouts,
-    note: 'Casino trusts get a financialPayouts bump for shipping Instant Redeem. No cap — players notice wen payout becomes now.',
+    note: 'Casino trusts get a financialPayouts bump for shipping Instant Redeem. Public /casinos badge follows the durable registry.',
   };
+}
+
+function resolveEnableDomains(
+  partner: NonNullable<PartnerRequest['partner']>,
+  input: {
+    casinoName?: string;
+    partnerType: InstantRedeemPartnerType;
+    coveredDomains?: string[];
+  },
+): { domains: string[]; error?: { status: number; body: Record<string, unknown> } } {
+  if (input.partnerType === 'processor') {
+    const covered = (input.coveredDomains ?? [])
+      .map((domain) => normalizeCapabilityDomain(domain))
+      .filter(Boolean);
+    const primary = input.casinoName
+      ? normalizeCapabilityDomain(input.casinoName)
+      : partner.casinoDomain
+        ? normalizeCapabilityDomain(partner.casinoDomain)
+        : null;
+    const domains = [...new Set([...(primary ? [primary] : []), ...covered])];
+    if (domains.length === 0) {
+      return {
+        domains: [],
+        error: {
+          status: 400,
+          body: {
+            error: 'Processor partners must pass coveredDomains (and/or casinoName)',
+            code: 'REDEEM_PROCESSOR_DOMAINS_REQUIRED',
+          },
+        },
+      };
+    }
+    return { domains };
+  }
+
+  const single = resolveCasinoName(partner, input.casinoName);
+  if (!single) {
+    return {
+      domains: [],
+      error: {
+        status: 400,
+        body: {
+          error: 'casinoName required when partner has no casino_domain on file',
+          code: 'REDEEM_CASINO_REQUIRED',
+        },
+      },
+    };
+  }
+  return { domains: [single] };
 }
 
 function roundMoney(value: number): number {
@@ -301,8 +362,59 @@ function requireSandboxPartner(req: PartnerRequest, res: import('express').Respo
 }
 
 /**
+ * GET /v1/redeem/capabilities
+ * Public supply signal — which domains have Instant Redeem enabled (player demand / FOMO).
+ */
+router.get('/capabilities', (_req, res) => {
+  const capabilities = listInstantRedeemCapabilities();
+  res.json({
+    success: true,
+    updatedAt: capabilities.length
+      ? capabilities.map((entry) => entry.enabledAt).sort().at(-1) ?? null
+      : null,
+    count: capabilities.length,
+    capabilities: capabilities.map((entry) => ({
+      domain: entry.domain,
+      partnerType: entry.partnerType,
+      mode: entry.mode,
+      enabledAt: entry.enabledAt,
+      rebuyCooloffDefaultHours: entry.rebuyCooloffDefaultHours,
+      instantRedeemAvailable: true,
+    })),
+  });
+});
+
+/**
+ * GET /v1/redeem/capabilities/:domain
+ * Public single-domain Instant Redeem availability.
+ */
+router.get('/capabilities/:domain', (req, res) => {
+  const domain = normalizeCapabilityDomain(String(req.params.domain || ''));
+  if (!domain) {
+    res.status(400).json({ error: 'domain required', code: 'REDEEM_DOMAIN_REQUIRED' });
+    return;
+  }
+  const capability = getInstantRedeemCapability(domain);
+  res.json({
+    success: true,
+    domain,
+    instantRedeemAvailable: Boolean(capability),
+    capability: capability
+      ? {
+          domain: capability.domain,
+          partnerType: capability.partnerType,
+          mode: capability.mode,
+          enabledAt: capability.enabledAt,
+          rebuyCooloffDefaultHours: capability.rebuyCooloffDefaultHours,
+        }
+      : null,
+  });
+});
+
+/**
  * POST /v1/redeem/enable
- * Declare Instant Redeem for the operator casino domain and apply the trust boost.
+ * Declare Instant Redeem for one operator domain or many processor-covered domains.
+ * Persists durable registry + applies trust boost per domain.
  */
 router.post('/enable', partnerAuthMiddleware, async (req, res) => {
   const request = req as PartnerRequest;
@@ -318,12 +430,13 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const casinoName = resolveCasinoName(request.partner!, parsed.data.casinoName);
-  if (!casinoName) {
-    res.status(400).json({
-      error: 'casinoName required when partner has no casino_domain on file',
-      code: 'REDEEM_CASINO_REQUIRED',
-    });
+  const resolved = resolveEnableDomains(request.partner!, {
+    casinoName: parsed.data.casinoName,
+    partnerType: parsed.data.partnerType,
+    coveredDomains: parsed.data.coveredDomains,
+  });
+  if (resolved.error) {
+    res.status(resolved.error.status).json(resolved.error.body);
     return;
   }
 
@@ -333,43 +446,62 @@ router.post('/enable', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const before = trustEngines.getCasinoBreakdown(casinoName);
-  await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
-    casinoName,
-    feature: 'instant_redeem',
-    partnerAppId: request.partner!.appId,
-    mode: 'sandbox',
-    enabledAt: Date.now(),
-  });
+  const enabledAt = new Date().toISOString();
+  const domainResults: Array<Record<string, unknown>> = [];
 
-  // Event handlers are async; give the trust engine a beat, then read.
-  await new Promise((resolve) => setTimeout(resolve, 25));
-  const after = trustEngines.getCasinoBreakdown(casinoName);
-  const applied = after.financialPayouts > before.financialPayouts;
+  for (const domain of resolved.domains) {
+    const before = trustEngines.getCasinoBreakdown(domain);
+    await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+      casinoName: domain,
+      feature: 'instant_redeem',
+      partnerAppId: request.partner!.appId,
+      mode: 'sandbox',
+      enabledAt: Date.now(),
+    });
+    await new Promise((resolve) => setTimeout(resolve, 15));
+    const after = trustEngines.getCasinoBreakdown(domain);
+    const applied = after.financialPayouts > before.financialPayouts;
+    domainResults.push({
+      domain,
+      trustBoost: {
+        pillar: 'financialPayouts',
+        delta: INSTANT_REDEEM_PAYOUT_DELTA,
+        applied,
+        previousOverallScore: before.score,
+        overallScore: after.score,
+        financialPayouts: after.financialPayouts,
+      },
+    });
+  }
 
-  enabledByPartner.set(request.partner!.id, {
-    casinoName,
-    enabledAt: Date.now(),
-    mode: 'sandbox',
-  });
+  upsertInstantRedeemCapabilities(
+    resolved.domains.map((domain) => ({
+      domain,
+      partnerId: request.partner!.id,
+      partnerAppId: request.partner!.appId,
+      partnerType: parsed.data.partnerType,
+      mode: 'sandbox',
+      enabledAt,
+      rebuyCooloffDefaultHours: 24,
+      trustBoostApplied: true,
+    })),
+  );
 
   res.setHeader('X-Mode', 'sandbox');
   res.status(200).json({
     success: true,
     mode: 'sandbox',
-    casinoName,
     feature: 'instant_redeem',
-    trustBoost: {
-      pillar: 'financialPayouts',
-      delta: INSTANT_REDEEM_PAYOUT_DELTA,
-      applied,
-      previousOverallScore: before.score,
-      overallScore: after.score,
-      financialPayouts: after.financialPayouts,
-      note: applied
-        ? 'Casino trust bumped — Instant Redeem is on the board.'
-        : 'Boost already applied for this casino (idempotent). Still enabled.',
-    },
+    partnerType: parsed.data.partnerType,
+    domains: resolved.domains,
+    casinoName: resolved.domains[0],
+    results: domainResults,
+    trustBoost: domainResults[0]?.trustBoost ?? null,
+    publicCapabilitiesUrl: '/v1/redeem/capabilities',
+    note:
+      parsed.data.partnerType === 'processor'
+        ? 'Processor enablement covers multiple domains under one commercial identity. Public badge follows the durable registry.'
+        : 'Operator enablement recorded. Public /casinos badge follows the durable registry.',
     quota: {
       used: quota.used,
       limit: quota.limit,
@@ -446,7 +578,9 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     jurisdiction: quote.jurisdiction,
     rg: quote.rg,
     casinoTrustBoost: buildCasinoTrustBoostPayload(
-      enabledByPartner.get(request.partner!.id)?.casinoName ?? null,
+      request.partner!.casinoDomain
+        ? normalizeCapabilityDomain(request.partner!.casinoDomain)
+        : null,
       request.partner!.id,
     ),
     quota: {
@@ -752,8 +886,8 @@ export function __resetRedeemSandboxStateForTests(): void {
   quotes.clear();
   redeems.clear();
   idempotencyIndex.clear();
-  enabledByPartner.clear();
   rebuyLocks.clear();
+  __resetInstantRedeemRegistryForTests();
 }
 
 export { router as redeemRouter };

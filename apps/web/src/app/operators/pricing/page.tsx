@@ -6,13 +6,27 @@ const tiers = [
     name: 'Sandbox',
     price: 'Free',
     eyebrow: 'Build and validate',
-    summary: 'For operators integrating RGaaS and Instant Redeem without waiting on manual key issuance.',
+    summary: 'For operators and processors integrating RGaaS and Instant Redeem without waiting on manual key issuance.',
     bullets: [
       'Email-verified sandbox app ID and secret key',
       '1,000 requests per rolling 24 hours',
       'Mock responses only, tagged with X-Mode: sandbox',
-      'Instant Redeem quote + execute stubs under /v1/redeem',
-      'No trust-rollup writes while you are still testing',
+      'Instant Redeem quote + execute + deposit cooloff stubs',
+      'Public capability registry + /casinos badge after enable',
+      'No trust-rollup writes from mock settle alone',
+    ],
+  },
+  {
+    name: 'Processor',
+    price: 'Multi-domain',
+    eyebrow: 'Scale channel',
+    summary: 'One commercial identity covers many casino domains — the growth path that does not require brand-by-brand BD.',
+    bullets: [
+      'partnerType: processor with coveredDomains[]',
+      'One enable call → many Instant Redeem badges',
+      'Same-rail rebuy cooloff across covered merchants',
+      'Fee share and float terms scoped per processor book',
+      'Primary GTM path before direct casino sales',
     ],
   },
   {
@@ -42,7 +56,7 @@ export default function OperatorPricingPage() {
           </p>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-6 lg:grid-cols-3">
           {tiers.map((tier) => (
             <article key={tier.name} className="rounded-3xl border border-[#283347] bg-black/30 p-8">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">{tier.eyebrow}</p>

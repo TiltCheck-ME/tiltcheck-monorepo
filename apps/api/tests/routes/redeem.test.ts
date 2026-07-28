@@ -65,6 +65,7 @@ const AUTH = {
 
 describe('Instant Redeem sandbox routes', () => {
   beforeEach(() => {
+    process.env.INSTANT_REDEEM_REGISTRY_PATH = `/tmp/tiltcheck-instant-redeem-registry-${process.pid}.json`;
     __resetRedeemSandboxStateForTests();
     vi.clearAllMocks();
     vi.mocked(findPartnerByAppId).mockResolvedValue(makePartner() as any);
@@ -165,6 +166,12 @@ describe('Instant Redeem sandbox routes', () => {
       }),
     );
 
+    const capabilities = await request(app).get('/v1/redeem/capabilities');
+    expect(capabilities.status).toBe(200);
+    expect(capabilities.body.count).toBe(1);
+    expect(capabilities.body.capabilities[0].domain).toBe('acme.example');
+    expect(capabilities.body.capabilities[0].instantRedeemAvailable).toBe(true);
+
     const quote = await request(app)
       .post('/v1/redeem/quote')
       .set(AUTH)
@@ -177,6 +184,36 @@ describe('Instant Redeem sandbox routes', () => {
 
     expect(quote.body.casinoTrustBoost.enabled).toBe(true);
     expect(quote.body.casinoTrustBoost.delta).toBe(5);
+  });
+
+  it('lets a processor partner enable many casino domains in one shot', async () => {
+    vi.mocked(trustEngines.getCasinoBreakdown).mockReturnValue({
+      score: 77,
+      financialPayouts: 80,
+      fairnessTransparency: 75,
+      promotionalHonesty: 75,
+      operationalSupport: 75,
+      communityReputation: 75,
+      history: [],
+      lastUpdated: Date.now(),
+    } as any);
+
+    const response = await request(app)
+      .post('/v1/redeem/enable')
+      .set(AUTH)
+      .send({
+        partnerType: 'processor',
+        coveredDomains: ['alpha.casino', 'https://beta.casino/cashier'],
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.partnerType).toBe('processor');
+    expect(response.body.domains).toEqual(expect.arrayContaining(['acme.example', 'alpha.casino', 'beta.casino']));
+    expect(response.body.domains).toHaveLength(3);
+
+    const alpha = await request(app).get('/v1/redeem/capabilities/alpha.casino');
+    expect(alpha.body.instantRedeemAvailable).toBe(true);
+    expect(alpha.body.capability.partnerType).toBe('processor');
   });
 
   it('executes a quote to settled and returns the same result on idempotent replay', async () => {

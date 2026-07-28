@@ -131,6 +131,8 @@ id_ecdsa*
 # Trust ingest local data
 data/degen-intel-events.jsonl
 apps/api/data/degen-intel-events.jsonl
+data/instant-redeem-capabilities.json
+apps/api/data/instant-redeem-capabilities.json
 tools/channel-watcher/citations.md
 tools/channel-watcher/reports_business.md
 tools/channel-watcher/reports_lore.md

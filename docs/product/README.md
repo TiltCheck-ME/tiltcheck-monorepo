@@ -10,5 +10,6 @@ Internal product narrative and execution checklists. These complement [competiti
 | [TiltCheck positioning memo (one-pager)](./tiltcheck-positioning-memo-one-pager.md) | Copy-ready pillars for web, investor, and partner briefings. |
 | [Monorepo roadmap pillars checklist](./monorepo-roadmap-pillars-checklist.md) | Pillar-by-pillar tasks mapped to `apps/*`, `packages/*`, and `modules/*`. |
 | [Operator Instant Redeem](../OPERATOR-INSTANT-REDEEM.md) | Phase 4 white-label Instant Redeem sandbox API and commercial framing. |
+| [Instant Redeem growth architecture](../OPERATOR-INSTANT-REDEEM-GROWTH.md) | Flywheel: player badges, processor multipliers, trust FOMO — not casino-only BD. |
 
 Public URL (when web is built from monorepo `docs/`): `/docs/product/<slug>`.
