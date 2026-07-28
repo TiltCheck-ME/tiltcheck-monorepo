@@ -8,7 +8,22 @@ vi.mock('@tiltcheck/db', () => ({
   incrementPartnerDailyQuotaUsage: vi.fn(),
 }));
 
+vi.mock('@tiltcheck/event-router', () => ({
+  eventRouter: {
+    publish: vi.fn(async () => ({ id: 'evt-1' })),
+  },
+}));
+
+vi.mock('@tiltcheck/trust-engines', () => ({
+  INSTANT_REDEEM_PAYOUT_DELTA: 5,
+  trustEngines: {
+    getCasinoBreakdown: vi.fn(),
+  },
+}));
+
 import { findPartnerByAppId, incrementPartnerDailyQuotaUsage } from '@tiltcheck/db';
+import { eventRouter } from '@tiltcheck/event-router';
+import { trustEngines } from '@tiltcheck/trust-engines';
 import { redeemRouter, __resetRedeemSandboxStateForTests } from '../../src/routes/redeem.js';
 
 const app = express();
@@ -59,6 +74,16 @@ describe('Instant Redeem sandbox routes', () => {
         quota_window_started_at: new Date('2026-07-28T00:00:00.000Z'),
       }) as any,
     );
+    vi.mocked(trustEngines.getCasinoBreakdown).mockReturnValue({
+      score: 75,
+      financialPayouts: 75,
+      fairnessTransparency: 75,
+      promotionalHonesty: 75,
+      operationalSupport: 75,
+      communityReputation: 75,
+      history: [],
+      lastUpdated: Date.now(),
+    } as any);
   });
 
   it('quotes an Instant Redeem with fee and RG gate metadata', async () => {
@@ -80,6 +105,7 @@ describe('Instant Redeem sandbox routes', () => {
     expect(response.body.feeAmount).toBe(1.5);
     expect(response.body.amountNet).toBe(98.5);
     expect(response.body.rg.allowed).toBe(true);
+    expect(response.body.casinoTrustBoost.enabled).toBe(false);
     expect(response.body.note).toContain('soon™');
   });
 
@@ -95,6 +121,62 @@ describe('Instant Redeem sandbox routes', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('REDEEM_QUOTE_INVALID');
+  });
+
+  it('enables Instant Redeem and publishes casino trust boost', async () => {
+    vi.mocked(trustEngines.getCasinoBreakdown)
+      .mockReturnValueOnce({
+        score: 75,
+        financialPayouts: 75,
+        fairnessTransparency: 75,
+        promotionalHonesty: 75,
+        operationalSupport: 75,
+        communityReputation: 75,
+        history: [],
+        lastUpdated: Date.now(),
+      } as any)
+      .mockReturnValue({
+        score: 77,
+        financialPayouts: 80,
+        fairnessTransparency: 75,
+        promotionalHonesty: 75,
+        operationalSupport: 75,
+        communityReputation: 75,
+        history: [],
+        lastUpdated: Date.now(),
+      } as any);
+
+    const response = await request(app)
+      .post('/v1/redeem/enable')
+      .set(AUTH)
+      .send({});
+
+    expect(response.status).toBe(200);
+    expect(response.body.casinoName).toBe('acme.example');
+    expect(response.body.trustBoost.delta).toBe(5);
+    expect(response.body.trustBoost.pillar).toBe('financialPayouts');
+    expect(response.body.trustBoost.applied).toBe(true);
+    expect(vi.mocked(eventRouter.publish)).toHaveBeenCalledWith(
+      'trust.casino.feature.enabled',
+      'rgaas-api',
+      expect.objectContaining({
+        casinoName: 'acme.example',
+        feature: 'instant_redeem',
+      }),
+    );
+
+    const quote = await request(app)
+      .post('/v1/redeem/quote')
+      .set(AUTH)
+      .send({
+        playerRef: 'player_abc',
+        amount: 40,
+        currency: 'USD',
+        destination: { rail: 'ach', accountRef: 'acct_****1234' },
+      });
+
+    expect(quote.body.casinoTrustBoost.enabled).toBe(true);
+    expect(quote.body.casinoTrustBoost.delta).toBe(5);
   });
 
   it('executes a quote to settled and returns the same result on idempotent replay', async () => {

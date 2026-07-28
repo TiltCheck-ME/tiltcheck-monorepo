@@ -14,6 +14,10 @@ const STEPS = [
     title: 'Execute with RG gates',
     body: 'POST /v1/redeem/execute with quoteId + idempotencyKey. Tilt / self-exclusion markers block. High amounts pend review.',
   },
+  {
+    title: 'Claim the trust boost',
+    body: 'POST /v1/redeem/enable. Casino financialPayouts +5 for shipping Instant Redeem. Idempotent — no double heater.',
+  },
 ];
 
 export default function InstantRedeemPage() {
@@ -59,11 +63,12 @@ export default function InstantRedeemPage() {
           <p className="mt-2 text-sm text-gray-200 leading-relaxed">
             Fee: <span className="font-mono text-white">150 bps</span> (1.5%), floor{' '}
             <span className="font-mono text-white">$0.50</span>. ETA mock: ~60s. Standard redeem stays
-            free-and-slow. Instant Redeem is paid-and-now.
+            free-and-slow. Instant Redeem is paid-and-now. Enabling it also bumps casino{' '}
+            <span className="font-mono text-white">financialPayouts</span> trust (+5, idempotent).
           </p>
         </section>
 
-        <ul className="grid gap-3 sm:grid-cols-3 text-sm">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
           {STEPS.map((step) => (
             <li key={step.title} className="rounded-xl border border-[#283347] bg-black/30 p-4">
               <p className="text-xs font-black uppercase tracking-wide text-white">{step.title}</p>

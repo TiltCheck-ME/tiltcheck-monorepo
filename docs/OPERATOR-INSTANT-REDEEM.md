@@ -18,6 +18,27 @@ Instant Redeem is a **white-label, operator-sanctioned liquidity desk** — not 
 
 Player tooling elsewhere stays non-custodial. This B2B surface is **operator-contracted liquidity**, sandbox-mocked first.
 
+## Casino trust boost
+
+Operators that enable Instant Redeem earn a **+5 `financialPayouts`** bump (same magnitude as the `<2h` withdrawal vault boost). Overall score reweights with the Five Pillars (40% financial).
+
+Enable via:
+
+```bash
+curl -X POST "https://api.tiltcheck.me/v1/redeem/enable" \
+  -H "Content-Type: application/json" \
+  -H "X-Requested-With: TiltCheckPartner" \
+  -H "X-TiltCheck-App-Id: sandbox_your_app" \
+  -H "X-TiltCheck-Secret-Key: sk_sandbox_..." \
+  --data '{}'
+```
+
+Uses `partner.casino_domain` by default (or pass `casinoName`). Publishes `trust.casino.feature.enabled`. Idempotent per casino — no double-dipping the heater.
+
+Sandbox activations are tagged in score history. Mock quote/execute alone does **not** write trust; enablement does.
+
+---
+
 ## Scope of this ship
 
 **In:**
@@ -25,6 +46,7 @@ Player tooling elsewhere stays non-custodial. This B2B surface is **operator-con
 - Product / API contract
 - Sandbox `POST /v1/redeem/quote` and `POST /v1/redeem/execute`
 - Sandbox `GET /v1/redeem/:redeemId`
+- Sandbox `POST /v1/redeem/enable` (casino trust boost)
 - Partner auth (`X-TiltCheck-App-Id` / `X-TiltCheck-Secret-Key`)
 - Mock RG gate decisions
 - Operator portal + docs pointers

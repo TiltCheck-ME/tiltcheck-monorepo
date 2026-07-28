@@ -107,6 +107,17 @@ curl -X POST "https://api.tiltcheck.me/v1/redeem/quote" \
 
 Sandbox default fee: 150 bps (1.5%), $0.50 floor — the cost of not waiting soon™.
 
+Enable Instant Redeem on the casino domain to claim the **+5 financialPayouts** trust boost:
+
+```bash
+curl -X POST "https://api.tiltcheck.me/v1/redeem/enable" \
+  -H "Content-Type: application/json" \
+  -H "X-Requested-With: TiltCheckPartner" \
+  -H "X-TiltCheck-App-Id: sandbox_your_app" \
+  -H "X-TiltCheck-Secret-Key: sk_sandbox_..." \
+  --data '{}'
+```
+
 ---
 
 ## 6. Support & Sandbox

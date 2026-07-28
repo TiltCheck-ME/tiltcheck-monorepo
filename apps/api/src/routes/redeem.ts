@@ -8,6 +8,8 @@ import crypto from 'node:crypto';
 import { Router } from 'express';
 import { z } from 'zod';
 import { incrementPartnerDailyQuotaUsage } from '@tiltcheck/db';
+import { eventRouter } from '@tiltcheck/event-router';
+import { INSTANT_REDEEM_PAYOUT_DELTA, trustEngines } from '@tiltcheck/trust-engines';
 import { partnerAuthMiddleware, type PartnerRequest } from '../middleware/partner.js';
 
 const router = Router();
@@ -36,6 +38,10 @@ const executeSchema = z.object({
   quoteId: z.string().trim().min(8).max(64),
   playerRef: z.string().trim().min(2).max(128),
   idempotencyKey: z.string().trim().min(8).max(128),
+});
+
+const enableSchema = z.object({
+  casinoName: z.string().trim().min(3).max(255).optional(),
 });
 
 type RgDecision = {
@@ -83,6 +89,40 @@ type RedeemRecord = {
 const quotes = new Map<string, RedeemQuote>();
 const redeems = new Map<string, RedeemRecord>();
 const idempotencyIndex = new Map<string, string>();
+/** Partners that declared Instant Redeem for a casino domain (in-memory sandbox registry). */
+const enabledByPartner = new Map<string, { casinoName: string; enabledAt: number; mode: string }>();
+
+function normalizeCasinoName(value: string): string {
+  return value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
+}
+
+function resolveCasinoName(partner: NonNullable<PartnerRequest['partner']>, override?: string): string | null {
+  const raw = override?.trim() || partner.casinoDomain?.trim() || '';
+  if (!raw) return null;
+  return normalizeCasinoName(raw);
+}
+
+function buildCasinoTrustBoostPayload(casinoName: string | null, partnerId: string) {
+  const enabled = enabledByPartner.get(partnerId);
+  if (!enabled) {
+    return {
+      enabled: false,
+      pillar: 'financialPayouts' as const,
+      delta: INSTANT_REDEEM_PAYOUT_DELTA,
+      note: 'Enable Instant Redeem via POST /v1/redeem/enable to claim the casino trust boost.',
+    };
+  }
+  const score = trustEngines.getCasinoBreakdown(casinoName || enabled.casinoName);
+  return {
+    enabled: true,
+    casinoName: enabled.casinoName,
+    pillar: 'financialPayouts' as const,
+    delta: INSTANT_REDEEM_PAYOUT_DELTA,
+    overallScore: score.score,
+    financialPayouts: score.financialPayouts,
+    note: 'Casino trusts get a financialPayouts bump for shipping Instant Redeem. No cap — players notice wen payout becomes now.',
+  };
+}
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
@@ -182,6 +222,85 @@ function requireSandboxPartner(req: PartnerRequest, res: import('express').Respo
 }
 
 /**
+ * POST /v1/redeem/enable
+ * Declare Instant Redeem for the operator casino domain and apply the trust boost.
+ */
+router.post('/enable', partnerAuthMiddleware, async (req, res) => {
+  const request = req as PartnerRequest;
+  if (!requireSandboxPartner(request, res)) return;
+
+  const parsed = enableSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid Instant Redeem enable payload',
+      code: 'REDEEM_ENABLE_INVALID',
+      details: parsed.error.flatten(),
+    });
+    return;
+  }
+
+  const casinoName = resolveCasinoName(request.partner!, parsed.data.casinoName);
+  if (!casinoName) {
+    res.status(400).json({
+      error: 'casinoName required when partner has no casino_domain on file',
+      code: 'REDEEM_CASINO_REQUIRED',
+    });
+    return;
+  }
+
+  const quota = await enforceSandboxQuota(request.partner!.id);
+  if (!quota.ok) {
+    res.status(quota.status).json(quota.body);
+    return;
+  }
+
+  const before = trustEngines.getCasinoBreakdown(casinoName);
+  await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+    casinoName,
+    feature: 'instant_redeem',
+    partnerAppId: request.partner!.appId,
+    mode: 'sandbox',
+    enabledAt: Date.now(),
+  });
+
+  // Event handlers are async; give the trust engine a beat, then read.
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  const after = trustEngines.getCasinoBreakdown(casinoName);
+  const applied = after.financialPayouts > before.financialPayouts;
+
+  enabledByPartner.set(request.partner!.id, {
+    casinoName,
+    enabledAt: Date.now(),
+    mode: 'sandbox',
+  });
+
+  res.setHeader('X-Mode', 'sandbox');
+  res.status(200).json({
+    success: true,
+    mode: 'sandbox',
+    casinoName,
+    feature: 'instant_redeem',
+    trustBoost: {
+      pillar: 'financialPayouts',
+      delta: INSTANT_REDEEM_PAYOUT_DELTA,
+      applied,
+      previousOverallScore: before.score,
+      overallScore: after.score,
+      financialPayouts: after.financialPayouts,
+      note: applied
+        ? 'Casino trust bumped — Instant Redeem is on the board.'
+        : 'Boost already applied for this casino (idempotent). Still enabled.',
+    },
+    quota: {
+      used: quota.used,
+      limit: quota.limit,
+      remaining: quota.remaining,
+      windowStartedAt: quota.windowStartedAt,
+    },
+  });
+});
+
+/**
  * POST /v1/redeem/quote
  * Price an Instant Redeem. Fee = cost of not waiting soon™.
  */
@@ -247,6 +366,10 @@ router.post('/quote', partnerAuthMiddleware, async (req, res) => {
     destination: quote.destination,
     jurisdiction: quote.jurisdiction,
     rg: quote.rg,
+    casinoTrustBoost: buildCasinoTrustBoostPayload(
+      enabledByPartner.get(request.partner!.id)?.casinoName ?? null,
+      request.partner!.id,
+    ),
     quota: {
       used: quota.used,
       limit: quota.limit,
@@ -411,6 +534,7 @@ export function __resetRedeemSandboxStateForTests(): void {
   quotes.clear();
   redeems.clear();
   idempotencyIndex.clear();
+  enabledByPartner.clear();
 }
 
 export { router as redeemRouter };

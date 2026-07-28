@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. Last Updated: 2026-07-28 */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TrustEnginesService } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
@@ -29,6 +29,46 @@ describe('TrustEnginesService', () => {
       expect(last.data.delta).toBeLessThan(0);
     });
 
+    it('boosts financialPayouts when Instant Redeem is enabled', async () => {
+      await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+        casinoName: 'instant.example',
+        feature: 'instant_redeem',
+        mode: 'sandbox',
+        enabledAt: Date.now(),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 15));
+
+      const first = service.getCasinoBreakdown('instant.example');
+      expect(first.financialPayouts).toBe(80);
+      expect(first.score).toBeGreaterThan(75);
+      expect(first.history.some((h) => String(h.reason).includes('Instant Redeem enabled'))).toBe(true);
+
+      await eventRouter.publish('trust.casino.feature.enabled', 'rgaas-api', {
+        casinoName: 'instant.example',
+        feature: 'instant_redeem',
+        mode: 'sandbox',
+        enabledAt: Date.now(),
+      });
+      await new Promise((resolve) => setTimeout(resolve, 15));
+
+      const second = service.getCasinoBreakdown('instant.example');
+      expect(second.financialPayouts).toBe(80);
+    });
+
+    it('boosts financialPayouts from metric snapshots with instantRedeemAvailable', async () => {
+      await eventRouter.publish('trust.casino.metric.snapshot', 'trust-rollup', {
+        casinoName: 'metric-redeem.example',
+        timestamp: Date.now(),
+        instantRedeemAvailable: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 15));
+
+      const breakdown = service.getCasinoBreakdown('metric-redeem.example');
+      expect(breakdown.financialPayouts).toBe(80);
+    });
+
     it('adjusts bonus score on bonus nerf', async () => {
       await eventRouter.publish('bonus.nerf.detected', 'collectclock', {
         casinoName: 'stake.com',
@@ -40,7 +80,7 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const breakdown = service.getCasinoBreakdown('stake.com');
-      expect(breakdown.bonusScore).toBeLessThan(75);
+      expect(breakdown.promotionalHonesty).toBeLessThan(75);
       expect(breakdown.history.length).toBeGreaterThan(0);
     });
 
@@ -60,7 +100,7 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const breakdown = service.getCasinoBreakdown('rollup-casino.com');
-      expect(breakdown.bonusScore).toBeLessThan(75);
+      expect(breakdown.promotionalHonesty).toBeLessThan(75);
     });
 
     it('processes domain rollup events', async () => {
@@ -79,20 +119,18 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const breakdown = service.getCasinoBreakdown('bad-domain.xyz');
-      expect(breakdown.complianceScore).toBeLessThan(75);
+      expect(breakdown.operationalSupport).toBeLessThan(75);
     });
 
     it('calculates weighted total score correctly', () => {
       const breakdown = service.getCasinoBreakdown('test.com');
       
       const expectedScore = Math.round(
-        breakdown.fairnessScore * 0.30 +
-        breakdown.payoutScore * 0.20 +
-        breakdown.bonusScore * 0.15 +
-        breakdown.userReportScore * 0.15 +
-        breakdown.freespinScore * 0.10 +
-        breakdown.complianceScore * 0.05 +
-        breakdown.supportScore * 0.05
+        breakdown.financialPayouts * 0.40 +
+        breakdown.fairnessTransparency * 0.25 +
+        breakdown.promotionalHonesty * 0.15 +
+        breakdown.operationalSupport * 0.10 +
+        breakdown.communityReputation * 0.10
       );
 
       expect(breakdown.score).toBe(expectedScore);

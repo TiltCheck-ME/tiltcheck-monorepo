@@ -1,16 +1,14 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. Last Updated: 2026-07-28 */
 /**
  * Trust Engines Service
  * Implements Casino Trust Engine and Degen Trust Engine
  * 
- * Casino Trust Scoring (0-100):
- * - 30% Fairness consistency
- * - 20% Payout reliability
- * - 15% Bonus stability
- * - 15% User weighted reports
- * - 10% FreeSpinScan validation
- * - 5% Regulatory compliance
- * - 5% Support quality
+ * Casino Trust Scoring (0-100) — Five Pillars:
+ * - 40% Financial Integrity / Payouts (incl. Instant Redeem operator boost)
+ * - 25% Fairness & Transparency
+ * - 15% Promotional Honesty
+ * - 10% Operational Support
+ * - 10% Community Reputation
  * 
  * Degen Trust Scoring (0-100):
  * - Very High: 95-100
@@ -32,6 +30,10 @@ import {
 import fs from 'fs';
 import path from 'path';
 import { computeSeverity, penaltyForSeverity } from '@tiltcheck/config';
+
+/** Bounded financialPayouts bump when an operator enables Instant Redeem. Matches <2h withdrawal vault boost. */
+export const INSTANT_REDEEM_PAYOUT_DELTA = 5;
+export const INSTANT_REDEEM_HISTORY_MARKER = 'Instant Redeem enabled';
 
 export interface TrustEnginesConfig {
   startingCasinoScore: number;
@@ -97,6 +99,7 @@ export class TrustEnginesService {
     eventRouter.subscribe('trust.degen-intel.ingested', this.onDegenIntelIngested.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.casino.metric.snapshot', this.onMetricSnapshot.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.casino.tos.changed', this.onTosChanged.bind(this), 'trust-engine-casino');
+    eventRouter.subscribe('trust.casino.feature.enabled', this.onCasinoFeatureEnabled.bind(this), 'trust-engine-casino');
     
     // Degen trust events
     eventRouter.subscribe('tip.completed', this.onTipCompleted.bind(this), 'trust-engine-degen');
@@ -190,6 +193,10 @@ export class TrustEnginesService {
       this.updateCasinoScore(casinoName, 'financialPayouts', delta, `Vault: Withdrawal success rate update (${(data.withdrawalSuccessRate * 100).toFixed(1)}%)`);
     }
 
+    if (data.instantRedeemAvailable === true) {
+      this.applyInstantRedeemTrustBoost(casinoName, data.timestamp ? 'metric-snapshot' : 'metric-snapshot');
+    }
+
     // Pillar 2: Fairness & Transparency
     if (data.rtpDelta !== undefined) {
       // Any delta < -5% is a significant penalty, but we need 10,000+ rounds to meaningfully verify a high-RTP (e.g. 99%) claim
@@ -209,6 +216,37 @@ export class TrustEnginesService {
     if (data.providerReputationTier === 'shady') {
       this.updateCasinoScore(casinoName, 'fairnessTransparency', -20, 'Audit: Shady game provider detected on platform');
     }
+  }
+
+  private async onCasinoFeatureEnabled(event: TiltCheckEvent<'trust.casino.feature.enabled'>) {
+    const { casinoName, feature, mode } = event.data;
+    if (!casinoName || feature !== 'instant_redeem') return;
+    this.applyInstantRedeemTrustBoost(casinoName, mode || 'unknown');
+  }
+
+  /**
+   * Casinos that ship Instant Redeem earn a bounded financialPayouts boost.
+   * Idempotent: one boost per casino while the feature remains enabled in history.
+   */
+  private applyInstantRedeemTrustBoost(casinoName: string, mode: string): { applied: boolean; delta: number } {
+    const record = this.getCasinoRecord(casinoName);
+    const alreadyApplied = record.history.some(
+      (entry) =>
+        entry.category === 'financialPayouts' &&
+        typeof entry.reason === 'string' &&
+        entry.reason.includes(INSTANT_REDEEM_HISTORY_MARKER),
+    );
+    if (alreadyApplied) {
+      return { applied: false, delta: 0 };
+    }
+
+    this.updateCasinoScore(
+      casinoName,
+      'financialPayouts',
+      INSTANT_REDEEM_PAYOUT_DELTA,
+      `${INSTANT_REDEEM_HISTORY_MARKER} (${mode}) — paid exit lane beats soon™`,
+    );
+    return { applied: true, delta: INSTANT_REDEEM_PAYOUT_DELTA };
   }
 
   private async onTosChanged(event: TiltCheckEvent<'trust.casino.tos.changed'>) {
