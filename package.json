@@ -86,7 +86,7 @@
     "knip": "^6.1.0",
     "lighthouse": "^13.0.3",
     "lunr": "^2.3.9",
-    "mailparser": "^3.9.8",
+    "mailparser": "^3.9.14",
     "pa11y": "^9.1.1",
     "prettier": "^3.8.1",
     "puppeteer": "^24.40.0",
