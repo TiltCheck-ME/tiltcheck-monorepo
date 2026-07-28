@@ -1,5 +1,7 @@
 # TiltCheck — Full Ecosystem Training Manual
 
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
+
 © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 
 ---
@@ -1073,6 +1075,7 @@ Every source file must start with:
 ### CI "frozen-lockfile" error
 - Dep changed but lockfile not committed
 - Fix: `pnpm install --no-frozen-lockfile` locally, commit lockfile
+- `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` means root `package.json` `pnpm.overrides` drifted from the lockfile `overrides` block (common after Dependabot bumps an overridden package). Sync the override string in `package.json` to match `pnpm-lock.yaml`, then re-run `pnpm install --frozen-lockfile` to confirm.
 
 ### Socket events not reaching Activity
 1. Check game-arena logs for eventRouter subscriptions
