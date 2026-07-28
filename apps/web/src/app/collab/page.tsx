@@ -119,6 +119,17 @@ export default function ContactPage() {
           <p className="brand-lead mt-8">
             General questions, partnership pitches, press inquiries, bug reports — this form handles it.
             Pick a topic and tell us what you need. Vague messages get archived.
+            {' '}
+            Just want to tip the build?{' '}
+            <a
+              href="https://ko-fi.com/jmenichole0"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#17c3b2] hover:underline"
+            >
+              Support on Ko-fi
+            </a>
+            .
           </p>
         </div>
       </section>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { getDashboardHandoffUrl } from "@/lib/dashboard-handoff";
 import BrandTagline from "@/components/BrandTagline";
+import { DISCORD_INVITE_URL, KOFI_URL } from "@/lib/site-links";
 
 const QUOTES = [
   "Trust everybody, but cut the cards.",
@@ -52,6 +53,7 @@ const footerGroups = [
       { href: "/docs", label: "Docs" },
       { href: "/blog", label: "Blog" },
       { href: "/collab", label: "Contact" },
+      { href: KOFI_URL, label: "Support on Ko-fi" },
       { href: getDashboardHandoffUrl("/dashboard"), label: "Your Dashboard" },
     ],
   },
@@ -82,12 +84,20 @@ const Footer = () => {
                 Get Early Access
               </Link>
               <a
-                href="https://discord.gg/gdBsEJfCar"
+                href={DISCORD_INVITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="footer-action footer-action--secondary"
               >
                 Join Discord
+              </a>
+              <a
+                href={KOFI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-action footer-action--secondary"
+              >
+                Support on Ko-fi
               </a>
             </div>
 

@@ -6,6 +6,11 @@
 
 - **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.
 
+## 2026-07-28 - Ko-fi support link where it fits (PR #647)
+
+- Added `KOFI_URL` (`https://ko-fi.com/jmenichole0`) to site-links.
+- Placed on site Footer (action + Company nav), About (builder card), Contact hero tip line, org JSON-LD `sameAs`.
+
 ## 2026-07-28 - Brand tagline always with heart (PR #647)
 
 - **Law**: UI tagline is `Made for Degens. By Degens.` with heart via shared `BrandTagline` (SVG heart, not emoji unicode).
