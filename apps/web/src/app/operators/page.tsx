@@ -34,6 +34,9 @@ export default function OperatorsPage() {
     () => (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/$/, ''),
     [],
   );
+  // Never paint "dev-recaptcha-pass" in the partner UI. Local/dev + explicit skip use a hidden token.
+  const skipRecaptcha =
+    process.env.NEXT_PUBLIC_SKIP_RECAPTCHA === 'true' || process.env.NODE_ENV !== 'production';
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,6 +45,9 @@ export default function OperatorsPage() {
 
     const data = new FormData(event.currentTarget);
     const email = String(data.get('email') || '').trim();
+    const recaptchaToken = skipRecaptcha
+      ? 'dev-recaptcha-pass'
+      : String(data.get('recaptchaToken') || '').trim();
 
     try {
       const response = await fetch(`${apiBase}/partner/register-sandbox`, {
@@ -55,7 +61,7 @@ export default function OperatorsPage() {
           companyName: String(data.get('companyName') || ''),
           casinoDomain: String(data.get('casinoDomain') || ''),
           intendedUseCase: String(data.get('intendedUseCase') || ''),
-          recaptchaToken: String(data.get('recaptchaToken') || 'dev-recaptcha-pass'),
+          recaptchaToken,
           honeypot: String(data.get('honeypot') || ''),
         }),
       });
@@ -175,7 +181,7 @@ export default function OperatorsPage() {
                 </div>
 
                 {/* Dev skip: hidden pass token. Prod: partner paste / widget token — never show "dev-recaptcha-pass" in the UI. */}
-                {process.env.NEXT_PUBLIC_SKIP_RECAPTCHA === 'true' ? (
+                {skipRecaptcha ? (
                   <input type="hidden" name="recaptchaToken" value="dev-recaptcha-pass" />
                 ) : (
                   <div>
