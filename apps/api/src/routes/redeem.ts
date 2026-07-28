@@ -1,7 +1,9 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 /**
  * Instant Redeem Routes - /v1/redeem/*
- * Operator white-label sandbox for quote + execute. No real funds move.
+ * Operator white-label sandbox for quote + execute + deposit gate.
+ * Same rail: Instant Redeem out, then rebuy cooloff before deposit back in.
+ * No real funds move.
  */
 
 import crypto from 'node:crypto';
@@ -20,6 +22,9 @@ const DEFAULT_FEE_BPS = 150;
 const FEE_FLOOR = 0.5;
 const MAX_AMOUNT = 100_000;
 const HIGH_AMOUNT_REVIEW = 5_000;
+/** Default post-redeem deposit cooloff — same rail, no instant rebuy of the win. */
+const DEFAULT_REBUY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const MAX_REBUY_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
 const destinationSchema = z.object({
   rail: z.enum(['ach', 'interac', 'crypto', 'card', 'wallet']),
@@ -38,10 +43,18 @@ const executeSchema = z.object({
   quoteId: z.string().trim().min(8).max(64),
   playerRef: z.string().trim().min(2).max(128),
   idempotencyKey: z.string().trim().min(8).max(128),
+  /** Sandbox override for post-redeem rebuy cooloff (minutes). Default 24h. */
+  rebuyCooldownMinutes: z.number().int().min(1).max(10_080).optional(),
 });
 
 const enableSchema = z.object({
   casinoName: z.string().trim().min(3).max(255).optional(),
+});
+
+const depositGateSchema = z.object({
+  playerRef: z.string().trim().min(2).max(128),
+  amount: z.number().finite().positive().max(MAX_AMOUNT).optional(),
+  currency: z.string().trim().min(2).max(8).optional(),
 });
 
 type RgDecision = {
@@ -86,11 +99,77 @@ type RedeemRecord = {
   note: string;
 };
 
+type RebuyLock = {
+  partnerId: string;
+  playerRef: string;
+  redeemId: string;
+  amountNet: number;
+  currency: string;
+  lockedAt: number;
+  lockedUntil: number;
+  reason: 'post_instant_redeem';
+};
+
 const quotes = new Map<string, RedeemQuote>();
 const redeems = new Map<string, RedeemRecord>();
 const idempotencyIndex = new Map<string, string>();
 /** Partners that declared Instant Redeem for a casino domain (in-memory sandbox registry). */
 const enabledByPartner = new Map<string, { casinoName: string; enabledAt: number; mode: string }>();
+/** Post-redeem deposit cooloffs keyed by partnerId:playerRef. Same rail = same lock namespace. */
+const rebuyLocks = new Map<string, RebuyLock>();
+
+function rebuyLockKey(partnerId: string, playerRef: string): string {
+  return `${partnerId}:${playerRef}`;
+}
+
+function getActiveRebuyLock(partnerId: string, playerRef: string): RebuyLock | null {
+  const key = rebuyLockKey(partnerId, playerRef);
+  const lock = rebuyLocks.get(key);
+  if (!lock) return null;
+  if (Date.now() >= lock.lockedUntil) {
+    rebuyLocks.delete(key);
+    return null;
+  }
+  return lock;
+}
+
+function setRebuyLock(input: {
+  partnerId: string;
+  playerRef: string;
+  redeemId: string;
+  amountNet: number;
+  currency: string;
+  cooldownMs: number;
+}): RebuyLock {
+  const now = Date.now();
+  const lock: RebuyLock = {
+    partnerId: input.partnerId,
+    playerRef: input.playerRef,
+    redeemId: input.redeemId,
+    amountNet: input.amountNet,
+    currency: input.currency,
+    lockedAt: now,
+    lockedUntil: now + input.cooldownMs,
+    reason: 'post_instant_redeem',
+  };
+  rebuyLocks.set(rebuyLockKey(input.partnerId, input.playerRef), lock);
+  return lock;
+}
+
+function serializeRebuyLock(lock: RebuyLock | null): Record<string, unknown> | null {
+  if (!lock) return null;
+  return {
+    redeemId: lock.redeemId,
+    playerRef: lock.playerRef,
+    amountNet: lock.amountNet,
+    currency: lock.currency,
+    reason: lock.reason,
+    lockedAt: new Date(lock.lockedAt).toISOString(),
+    lockedUntil: new Date(lock.lockedUntil).toISOString(),
+    remainingMs: Math.max(0, lock.lockedUntil - Date.now()),
+    note: 'Same payment rail. Redeem a win, cool off before you degen it back in.',
+  };
+}
 
 function normalizeCasinoName(value: string): string {
   return value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
@@ -398,7 +477,7 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
     return;
   }
 
-  const { quoteId, playerRef, idempotencyKey } = parsed.data;
+  const { quoteId, playerRef, idempotencyKey, rebuyCooldownMinutes } = parsed.data;
   const idemKey = `${request.partner!.id}:${idempotencyKey}`;
   const existingRedeemId = idempotencyIndex.get(idemKey);
   if (existingRedeemId) {
@@ -474,6 +553,26 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
   idempotencyIndex.set(idemKey, redeemId);
   quotes.delete(quoteId);
 
+  let rebuyLock: RebuyLock | null = null;
+  if (status === 'settled') {
+    const cooldownMs = Math.min(
+      MAX_REBUY_COOLDOWN_MS,
+      rebuyCooldownMinutes != null
+        ? rebuyCooldownMinutes * 60_000
+        : DEFAULT_REBUY_COOLDOWN_MS,
+    );
+    rebuyLock = setRebuyLock({
+      partnerId: request.partner!.id,
+      playerRef,
+      redeemId,
+      amountNet: quote.amountNet,
+      currency: quote.currency,
+      cooldownMs,
+    });
+    note = 'Sandbox settle only. No funds moved. Rebuy cooloff armed on the same payment rail.';
+    record.note = note;
+  }
+
   res.setHeader('X-Mode', 'sandbox');
   res.status(status === 'blocked' ? 200 : 201).json({
     success: status !== 'blocked',
@@ -485,7 +584,124 @@ router.post('/execute', partnerAuthMiddleware, async (req, res) => {
       remaining: quota.remaining,
       windowStartedAt: quota.windowStartedAt,
     },
+    rebuyLock: serializeRebuyLock(rebuyLock),
     ...serializeRedeem(record),
+  });
+});
+
+/**
+ * POST /v1/redeem/deposit-check
+ * Payment-processor gate: deny deposits while post-redeem rebuy cooloff is active.
+ */
+router.post('/deposit-check', partnerAuthMiddleware, async (req, res) => {
+  const request = req as PartnerRequest;
+  if (!requireSandboxPartner(request, res)) return;
+
+  const parsed = depositGateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid deposit-check payload',
+      code: 'REDEEM_DEPOSIT_CHECK_INVALID',
+      details: parsed.error.flatten(),
+    });
+    return;
+  }
+
+  const quota = await enforceSandboxQuota(request.partner!.id);
+  if (!quota.ok) {
+    res.status(quota.status).json(quota.body);
+    return;
+  }
+
+  const lock = getActiveRebuyLock(request.partner!.id, parsed.data.playerRef);
+  const allowed = lock == null;
+
+  res.setHeader('X-Mode', 'sandbox');
+  res.status(200).json({
+    success: true,
+    mode: 'sandbox',
+    allowed,
+    code: allowed ? 'DEPOSIT_ALLOWED' : 'REBUY_COOLDOWN',
+    playerRef: parsed.data.playerRef,
+    amount: parsed.data.amount ?? null,
+    currency: parsed.data.currency?.toUpperCase() ?? null,
+    rebuyLock: serializeRebuyLock(lock),
+    quota: {
+      used: quota.used,
+      limit: quota.limit,
+      remaining: quota.remaining,
+      windowStartedAt: quota.windowStartedAt,
+    },
+    note: allowed
+      ? 'Deposit gate clear. Same rail, no active post-redeem cooloff.'
+      : 'Deposit blocked. You just Instant Redeemed a win — cool off before rebuying. No cap needed on the lecture.',
+  });
+});
+
+/**
+ * POST /v1/redeem/deposit
+ * Sandbox mock deposit attempt through the Instant Redeem payment rail.
+ */
+router.post('/deposit', partnerAuthMiddleware, async (req, res) => {
+  const request = req as PartnerRequest;
+  if (!requireSandboxPartner(request, res)) return;
+
+  const parsed = depositGateSchema.extend({
+    amount: z.number().finite().positive().max(MAX_AMOUNT),
+    currency: z.string().trim().min(2).max(8).default('USD'),
+  }).safeParse(req.body ?? {});
+
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid deposit payload',
+      code: 'REDEEM_DEPOSIT_INVALID',
+      details: parsed.error.flatten(),
+    });
+    return;
+  }
+
+  const quota = await enforceSandboxQuota(request.partner!.id);
+  if (!quota.ok) {
+    res.status(quota.status).json(quota.body);
+    return;
+  }
+
+  const lock = getActiveRebuyLock(request.partner!.id, parsed.data.playerRef);
+  if (lock) {
+    res.setHeader('X-Mode', 'sandbox');
+    res.status(423).json({
+      success: false,
+      mode: 'sandbox',
+      allowed: false,
+      code: 'REBUY_COOLDOWN',
+      playerRef: parsed.data.playerRef,
+      amount: parsed.data.amount,
+      currency: parsed.data.currency.toUpperCase(),
+      rebuyLock: serializeRebuyLock(lock),
+      note: 'Deposit rejected. Instant Redeem and deposits share this rail — rebuy cooloff still active.',
+    });
+    return;
+  }
+
+  const depositId = `dp_${crypto.randomBytes(12).toString('hex')}`;
+  res.setHeader('X-Mode', 'sandbox');
+  res.status(201).json({
+    success: true,
+    mode: 'sandbox',
+    allowed: true,
+    code: 'DEPOSIT_ACCEPTED',
+    depositId,
+    playerRef: parsed.data.playerRef,
+    amount: parsed.data.amount,
+    currency: parsed.data.currency.toUpperCase(),
+    rebuyLock: null,
+    quota: {
+      used: quota.used,
+      limit: quota.limit,
+      remaining: quota.remaining,
+      windowStartedAt: quota.windowStartedAt,
+    },
+    note: 'Sandbox deposit accepted. No funds moved.',
   });
 });
 
@@ -508,6 +724,7 @@ router.get('/:redeemId', partnerAuthMiddleware, async (req, res) => {
   res.json({
     success: true,
     mode: 'sandbox',
+    rebuyLock: serializeRebuyLock(getActiveRebuyLock(request.partner!.id, record.playerRef)),
     ...serializeRedeem(record),
   });
 });
@@ -526,6 +743,7 @@ function serializeRedeem(record: RedeemRecord): Record<string, unknown> {
     settledAt: record.settledAt,
     createdAt: new Date(record.createdAt).toISOString(),
     note: record.note,
+    rebuyLock: serializeRebuyLock(getActiveRebuyLock(record.partnerId, record.playerRef)),
   };
 }
 
@@ -535,6 +753,7 @@ export function __resetRedeemSandboxStateForTests(): void {
   redeems.clear();
   idempotencyIndex.clear();
   enabledByPartner.clear();
+  rebuyLocks.clear();
 }
 
 export { router as redeemRouter };

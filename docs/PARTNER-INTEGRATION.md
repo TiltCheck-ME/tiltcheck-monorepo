@@ -118,6 +118,8 @@ curl -X POST "https://api.tiltcheck.me/v1/redeem/enable" \
   --data '{}'
 ```
 
+Same-rail rebuy cooloff: after a settled Instant Redeem, `POST /v1/redeem/deposit-check` and `POST /v1/redeem/deposit` block deposits until the cooloff ends (default 24h).
+
 ---
 
 ## 6. Support & Sandbox

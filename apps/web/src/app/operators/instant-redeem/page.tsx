@@ -18,6 +18,10 @@ const STEPS = [
     title: 'Claim the trust boost',
     body: 'POST /v1/redeem/enable. Casino financialPayouts +5 for shipping Instant Redeem. Idempotent — no double heater.',
   },
+  {
+    title: 'Same rail, no instant rebuy',
+    body: 'Settled redeem arms a deposit cooloff. POST /deposit-check before reload — cashing a win then degening it back in gets blocked.',
+  },
 ];
 
 export default function InstantRedeemPage() {
@@ -65,10 +69,12 @@ export default function InstantRedeemPage() {
             <span className="font-mono text-white">$0.50</span>. ETA mock: ~60s. Standard redeem stays
             free-and-slow. Instant Redeem is paid-and-now. Enabling it also bumps casino{' '}
             <span className="font-mono text-white">financialPayouts</span> trust (+5, idempotent).
+            Same rail for deposits: settled redeem arms a <span className="font-mono text-white">24h</span>{' '}
+            rebuy cooloff so the win does not bounce straight back into the cashier.
           </p>
         </section>
 
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           {STEPS.map((step) => (
             <li key={step.title} className="rounded-xl border border-[#283347] bg-black/30 p-4">
               <p className="text-xs font-black uppercase tracking-wide text-white">{step.title}</p>

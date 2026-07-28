@@ -18,6 +18,22 @@ Instant Redeem is a **white-label, operator-sanctioned liquidity desk** — not 
 
 Player tooling elsewhere stays non-custodial. This B2B surface is **operator-contracted liquidity**, sandbox-mocked first.
 
+## Same-rail payment processor + rebuy cooloff
+
+Instant Redeem is strongest when it is also the **deposit rail**. Same processor identity means a settled win redeem can arm a deposit cooloff so players cannot immediately buy back in with the cash they just exited.
+
+| Step | Behavior |
+| :--- | :--- |
+| `POST /execute` settles | Arms `rebuyLock` for `playerRef` (default **24h**, sandbox override via `rebuyCooldownMinutes`) |
+| `POST /deposit-check` | Returns `allowed: false` + `REBUY_COOLDOWN` while lock is active |
+| `POST /deposit` | Mock deposit: `423` while locked, `201` when clear |
+
+Blocked / pending redeems do **not** arm the cooloff. Only settled Instant Redeems do.
+
+This is operator-contracted RG tooling — not a pirate middle wallet. Real money transmitter / PCI / licensing work stays out of sandbox.
+
+---
+
 ## Casino trust boost
 
 Operators that enable Instant Redeem earn a **+5 `financialPayouts`** bump (same magnitude as the `<2h` withdrawal vault boost). Overall score reweights with the Five Pillars (40% financial).
@@ -47,6 +63,7 @@ Sandbox activations are tagged in score history. Mock quote/execute alone does *
 - Sandbox `POST /v1/redeem/quote` and `POST /v1/redeem/execute`
 - Sandbox `GET /v1/redeem/:redeemId`
 - Sandbox `POST /v1/redeem/enable` (casino trust boost)
+- Sandbox `POST /v1/redeem/deposit-check` + `POST /v1/redeem/deposit` (same-rail rebuy cooloff)
 - Partner auth (`X-TiltCheck-App-Id` / `X-TiltCheck-Secret-Key`)
 - Mock RG gate decisions
 - Operator portal + docs pointers

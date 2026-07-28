@@ -157,8 +157,9 @@ After you have verified sandbox keys, Instant Redeem is available under `/v1/red
 
 1. `POST /v1/redeem/enable` — declare Instant Redeem on the casino domain (+5 financialPayouts trust, idempotent)
 2. `POST /v1/redeem/quote` — price the paid exit (150 bps default, $0.50 floor)
-3. `POST /v1/redeem/execute` — mock-settle with idempotency + RG gates
-4. `GET /v1/redeem/:redeemId` — fetch status
+3. `POST /v1/redeem/execute` — mock-settle with idempotency + RG gates; arms 24h rebuy cooloff on settle
+4. `POST /v1/redeem/deposit-check` / `POST /v1/redeem/deposit` — same-rail deposit gate (blocks rapid rebuy)
+5. `GET /v1/redeem/:redeemId` — fetch status
 
 Operator product page: `https://tiltcheck.me/operators/instant-redeem`
 

@@ -280,6 +280,91 @@ describe('Instant Redeem sandbox routes', () => {
     expect(execute.body.status).toBe('pending');
   });
 
+  it('arms a post-redeem rebuy cooloff and blocks deposits on the same rail', async () => {
+    const quote = await request(app)
+      .post('/v1/redeem/quote')
+      .set(AUTH)
+      .send({
+        playerRef: 'player_heater',
+        amount: 200,
+        currency: 'USD',
+        destination: { rail: 'ach', accountRef: 'acct_****2222' },
+      });
+
+    const execute = await request(app)
+      .post('/v1/redeem/execute')
+      .set(AUTH)
+      .send({
+        quoteId: quote.body.quoteId,
+        playerRef: 'player_heater',
+        idempotencyKey: 'idem_rebuy_001',
+        rebuyCooldownMinutes: 60,
+      });
+
+    expect(execute.status).toBe(201);
+    expect(execute.body.status).toBe('settled');
+    expect(execute.body.rebuyLock).toBeTruthy();
+    expect(execute.body.rebuyLock.reason).toBe('post_instant_redeem');
+    expect(execute.body.rebuyLock.remainingMs).toBeGreaterThan(0);
+
+    const check = await request(app)
+      .post('/v1/redeem/deposit-check')
+      .set(AUTH)
+      .send({ playerRef: 'player_heater', amount: 50, currency: 'USD' });
+
+    expect(check.status).toBe(200);
+    expect(check.body.allowed).toBe(false);
+    expect(check.body.code).toBe('REBUY_COOLDOWN');
+
+    const deposit = await request(app)
+      .post('/v1/redeem/deposit')
+      .set(AUTH)
+      .send({ playerRef: 'player_heater', amount: 50, currency: 'USD' });
+
+    expect(deposit.status).toBe(423);
+    expect(deposit.body.code).toBe('REBUY_COOLDOWN');
+  });
+
+  it('allows deposits when no post-redeem cooloff is active', async () => {
+    const deposit = await request(app)
+      .post('/v1/redeem/deposit')
+      .set(AUTH)
+      .send({ playerRef: 'player_fresh', amount: 25, currency: 'USD' });
+
+    expect(deposit.status).toBe(201);
+    expect(deposit.body.code).toBe('DEPOSIT_ACCEPTED');
+    expect(deposit.body.depositId).toMatch(/^dp_/);
+  });
+
+  it('does not arm a rebuy cooloff when Instant Redeem is RG-blocked', async () => {
+    const quote = await request(app)
+      .post('/v1/redeem/quote')
+      .set(AUTH)
+      .send({
+        playerRef: 'player_tilt_hot',
+        amount: 80,
+        currency: 'USD',
+        destination: { rail: 'card', accountRef: 'card_****9999' },
+      });
+
+    await request(app)
+      .post('/v1/redeem/execute')
+      .set(AUTH)
+      .send({
+        quoteId: quote.body.quoteId,
+        playerRef: 'player_tilt_hot',
+        idempotencyKey: 'idem_block_rebuy_001',
+      });
+
+    const check = await request(app)
+      .post('/v1/redeem/deposit-check')
+      .set(AUTH)
+      .send({ playerRef: 'player_tilt_hot', amount: 10 });
+
+    expect(check.body.allowed).toBe(true);
+    expect(check.body.code).toBe('DEPOSIT_ALLOWED');
+  });
+
   it('rejects production-mode partners for Instant Redeem', async () => {
     vi.mocked(findPartnerByAppId).mockResolvedValueOnce(
       makePartner({ mode: 'production', app_id: 'prod_acme', secret_key: 'sk_prod_secret' }) as any,
