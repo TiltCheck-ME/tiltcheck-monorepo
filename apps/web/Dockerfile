@@ -1,6 +1,6 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19
 # TiltCheck Web (Landing Page) - Production Container
-# Built for GitHub Actions -> GHCR -> Railway deploys in the monorepo
+# Built with repository-root context for GHCR/Railway and Hyperlift deploys
 
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
@@ -23,6 +23,8 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @tiltcheck/shared build
 RUN pnpm --filter @tiltcheck/intel-agent... build
 # Next.js Build requires NODE_ENV=production to optimize bundles
+ARG NEXT_PUBLIC_API_URL=https://api.tiltcheck.me
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NODE_ENV=production
 RUN pnpm --filter web build
 

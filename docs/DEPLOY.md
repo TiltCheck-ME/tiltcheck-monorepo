@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-19 -->
 
 # TiltCheck Deployment Inventory
 
@@ -43,6 +43,43 @@ This file is the canonical deploy map for the current repo. If a workflow, image
 | `chrome-extension` | `apps/chrome-extension` | Browser asset; manual ZIP or Chrome Web Store publish | none | n/a | n/a | Build/runtime config in `apps/chrome-extension/src/config.ts` | Manual smoke: `pnpm -C apps/chrome-extension build`, load built extension, and verify API calls against `https://api.tiltcheck.me` |
 | `degens-activity` | `apps/degens-activity` | **Recommended:** GHCR → Railway second service (static nginx SPA, mirror `apps/activity` Dockerfile pattern). **Alternative:** manual static CDN. Workflow/image names are placeholders until wired in `.github/workflows/deploy-railway.yml`. | `.github/workflows/deploy-railway.yml` (extend when Dockerfile exists) | `ghcr.io/tiltcheck-me/tiltcheck-degens-activity` *(suggested)* | `degens-activity` *(suggested)* | **`VITE_DISCORD_CLIENT_ID`**, **`VITE_TOKEN_ENDPOINT`**, **`VITE_ARENA_URL=https://game-arena.tiltcheck.me`** (realtime ingress; do not omit in prod builds) | **`https://degens.activity.tiltcheck.me/`** *(example hostname — set Railway Custom Domain + Discord Embedded URL to the same canonical URL)* |
 | `tiltcheck-activity` | `apps/tiltcheck-activity` | Static Discord activity asset; manual publish OR optional future Railway row | none | n/a | n/a | `VITE_DISCORD_CLIENT_ID`, `VITE_TOKEN_ENDPOINT`, `VITE_HUB_URL` | Manual smoke: `pnpm --filter @tiltcheck/tiltcheck-activity build` and verify in Discord |
+
+## Hyperlift Web Target
+
+TIL-137 adds Hyperlift as a web deployment target. This does not replace the current production route until the Hyperlift URL passes the smoke check and DNS is deliberately cut over.
+
+| Setting | Value |
+| :--- | :--- |
+| Application | `tiltcheck-web` |
+| Repository | `TiltCheck-ME/tiltcheck-monorepo` |
+| Branch | `main` |
+| Dockerfile | `apps/web/Dockerfile` |
+| Build context | Repository root (`.`) |
+| Build-time API URL | `NEXT_PUBLIC_API_URL=https://api.tiltcheck.me` |
+| Runtime environment | `PORT=8080`, `NODE_ENV=production` |
+| Smoke target | Hyperlift application URL at `/` |
+
+`NEXT_PUBLIC_API_URL` must exist when `next build` runs because Next.js freezes public variables into the browser bundle. The Dockerfile declares an overridable build argument and defaults it to `https://api.tiltcheck.me`, so Hyperlift gets the production API without relying on runtime injection. If API DNS is not ready, build with the temporary HTTPS API URL and rebuild after the cutover:
+
+```bash
+docker build \
+  --file apps/web/Dockerfile \
+  --build-arg NEXT_PUBLIC_API_URL=https://api.tiltcheck.me \
+  --tag tiltcheck-web:hyperlift \
+  .
+```
+
+Create the Hyperlift application with manual builds first. Use the smallest service tier that can complete the Next.js startup smoke, then enable automatic builds only after `/` is healthy. Hyperlift defaults to port `8080`; the standalone Next.js server respects the injected `PORT`.
+
+### Hyperlift Web Verification
+
+1. Confirm the provider build uses repository context `.` and `apps/web/Dockerfile`.
+2. Confirm build logs reach the `pnpm --filter web build` step with the intended public API URL.
+3. Open the assigned Hyperlift URL at `/` and verify the product home loads without a persistent 4xx or 5xx.
+4. Check browser network requests use the intended HTTPS API origin.
+5. Keep existing production routing unchanged until all checks pass.
+
+No credentials belong in Docker build arguments. `NEXT_PUBLIC_API_URL` is intentionally public. If the deployment regresses, roll Hyperlift back to the previous successful build and leave DNS on the existing production target.
 
 ### Workspace packages with `dist/` (Docker images)
 
