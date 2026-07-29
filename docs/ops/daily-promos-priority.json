@@ -1,0 +1,25 @@
+{
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
+  "coverageNote": "v1 Sweeps-only allowlist derived from operator-facts-priority.json",
+  "operators": [
+    { "slug": "chumba-casino", "name": "Chumba Casino", "promoUrl": "https://www.chumbacasino.com/" },
+    { "slug": "global-poker", "name": "Global Poker", "promoUrl": "https://www.globalpoker.com/" },
+    { "slug": "luckyland-slots", "name": "LuckyLand Slots", "promoUrl": "https://www.luckylandslots.com/" },
+    { "slug": "pulsz", "name": "Pulsz", "promoUrl": "https://www.pulsz.com/" },
+    { "slug": "wow-vegas", "name": "WOW Vegas", "promoUrl": "https://www.wowvegas.com/" },
+    { "slug": "high-5-casino", "name": "High 5 Casino", "promoUrl": "https://www.high5casino.com/" },
+    { "slug": "stake-us", "name": "Stake.us", "promoUrl": "https://stake.us/" },
+    { "slug": "mcluck", "name": "McLuck", "promoUrl": "https://www.mcluck.com/" },
+    { "slug": "fortune-coins", "name": "Fortune Coins", "promoUrl": "https://www.fortunecoins.com/" },
+    { "slug": "hello-millions", "name": "Hello Millions", "promoUrl": "https://hellomillions.com/" },
+    { "slug": "modo-casino", "name": "Modo Casino", "promoUrl": "https://modo.us/" },
+    { "slug": "myprize-us", "name": "MyPrize US", "promoUrl": "https://myprize.com/" },
+    { "slug": "crown-coins-casino", "name": "Crown Coins Casino", "promoUrl": "https://crowncoinscasino.com/" },
+    { "slug": "funrize", "name": "Funrize", "promoUrl": "https://funrize.com/" },
+    { "slug": "zula-casino", "name": "Zula Casino", "promoUrl": "https://zulacasino.com/" },
+    { "slug": "real-prize", "name": "Real Prize", "promoUrl": "https://realprize.com/" },
+    { "slug": "jackpota", "name": "Jackpota", "promoUrl": "https://www.jackpota.com/" },
+    { "slug": "nolimitcoins", "name": "NoLimitCoins", "promoUrl": "https://nolimitcoins.com/" },
+    { "slug": "rolla", "name": "Rolla", "promoUrl": "https://rolla.com/" }
+  ]
+}

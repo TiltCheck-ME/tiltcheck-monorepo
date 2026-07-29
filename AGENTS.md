@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
 
 # TiltCheck Agent Directory
 
@@ -23,6 +23,7 @@ Located in .cursor/agents/
 | Brand Law Enforcer | .cursor/agents/brand-law-enforcer.md | **NEW:** Enforces "The Degen Laws" on PRs — brand tone, copyright headers, no secrets, atomic docs. |
 | Frontend & Marketing Suggestions | .cursor/agents/frontend-marketing-suggestions.md | **NEW:** Weekly code update suggestions for web, dashboard, and extension UX/UI improvements. |
 | Casino Scraper | .cursor/agents/casino-public-data-scraper.md | Scrapes public casino data for the Trust Engine. |
+| Promo Gather | .cursor/agents/promo-gather.md | Daily free-spins / promos gatherer for `/bonuses` (email + Discord auto-live, public-page proposals). |
 | Daily Issue Finder | .cursor/agents/daily-issue-finder.md | (Merged) Reviews code changes and performs smoke tests on new features. |
 | Regulatory Scout | .cursor/agents/regulatory-scout.md | Functional: Monitors commission filings via SusLink integration. |
 | Verifier | .cursor/agents/verifier.md | Validates completed work. Skeptically confirms implementations are functional after tasks are marked done. |
