@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  */
@@ -8,12 +8,49 @@ export const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
 export const KOFI_URL = 'https://ko-fi.com/jmenichole0';
 export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`;
 
+export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
+export const SITE_KICKER = [
+  "The math isn't rigged. Your dopamine is.",
+  'The house banks on your tilt.',
+];
+export const SITE_LEDE =
+  'Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.';
 export const SITE_ONE_LINER =
-  'TiltCheck is a free, read-only browser extension for online casino sessions. It watches how fast you bet, flags tilt and pressure loops, and enforces the exit rules you set — before another deposit cooks you.';
-
-export const SITE_META_DESCRIPTION =
-  'TiltCheck: read-only browser guardrail for online casino play. Spot tilt, check casino trust grades, verify bets, and brake before you rug yourself.';
+  'Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic.';
+export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
+export const SITE_PRIVACY =
+  'Does not read your wallet or your password. No account needed. You install the zip yourself.';
+export const INSTALL_STEPS = [
+  'Download the zip. Extract it to a folder.',
+  'Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.',
+  'Open a supported casino and play. If the clicking gets frantic, the tab gets covered for about two minutes.',
+];
+export const INSTALL_NOTE = 'It works without an account. Discord is only for saving rules later.';
+export const LAUNCH_CARDS = [
+  {
+    step: '01',
+    title: 'Counts your clicks',
+    body: 'On a supported casino tab, it counts every click. It is looking for clicking that has gotten too fast to be a deliberate bet.',
+  },
+  {
+    step: '02',
+    title: 'Covers the tab',
+    body: 'Frantic clicking puts a full-screen pause over the game for about two minutes. That pause is called Touch Grass. You cannot close it early.',
+  },
+  {
+    step: '03',
+    title: 'Gives the site back',
+    body: 'When the timer ends, the casino comes back. You can keep playing, or close the tab. The pause is there so a win does not get clicked away.',
+  },
+];
+export const LAUNCH_HONESTY = [
+  'Works with no account.',
+  'Does not read your password. Does not move money.',
+  'Not in the Chrome Web Store. You load the zip yourself.',
+  'Runs on Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
+  'Some casino links get checked before they open. If the check flags one as a serious scam, that tab goes to a warning page instead. If the check is down, the link opens normally.',
+];
 
 /** Plain-English pitch for cold visitors — sits under the hero. */
 export const WHAT_IT_IS = {
