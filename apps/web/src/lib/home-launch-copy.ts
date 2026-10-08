@@ -1,7 +1,7 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
 
 export const HOME_LAUNCH = {
-  h1: ['STOP GIVING', 'WINS BACK.'],
+  h1: ['House always wins?', 'FUCK THAT.'],
   kicker: ["The math isn't rigged. Your dopamine is.", 'The house banks on your tilt.'],
   lede:
     'Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.',

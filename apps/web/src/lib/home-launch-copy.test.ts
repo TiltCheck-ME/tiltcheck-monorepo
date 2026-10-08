@@ -1,11 +1,11 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
 import { describe, expect, it } from 'vitest';
 import { HOME_LAUNCH } from './home-launch-copy';
 import { SITE_ONE_LINER, SITE_SEO_TITLE } from './site-copy';
 
 describe('HOME_LAUNCH', () => {
   it('uses the locked headline, kicker, and zip button', () => {
-    expect(HOME_LAUNCH.h1).toEqual(['STOP GIVING', 'WINS BACK.']);
+    expect(HOME_LAUNCH.h1).toEqual(['House always wins?', 'FUCK THAT.']);
     expect(HOME_LAUNCH.kicker).toEqual([
       "The math isn't rigged. Your dopamine is.",
       'The house banks on your tilt.',
@@ -28,7 +28,7 @@ describe('HOME_LAUNCH', () => {
   });
 
   it('sets the share title and a short meta description', () => {
-    expect(SITE_SEO_TITLE).toBe('TiltCheck | Stop Giving Wins Back');
+    expect(SITE_SEO_TITLE).toBe('TiltCheck | House always wins? FUCK THAT.');
     expect(SITE_ONE_LINER).toBe(
       'Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic.',
     );
