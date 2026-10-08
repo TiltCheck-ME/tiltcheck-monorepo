@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07 -->
 
 # Single-page launch — design spec
 
@@ -61,7 +61,7 @@ Logo, **Download** (in-page link to `#install`), Discord (`DISCORD_INVITE_URL`),
 
 ### Hero
 
-- H1, two forced lines: `STOP GIVING` / `WINS BACK.`
+- H1, two forced lines: `House always wins?` / `FUCK THAT.`
 - Kicker line 1: `The math isn't rigged. Your dopamine is.`
 - Kicker line 2: `The house banks on your tilt.`
 - Lede: Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.
@@ -117,8 +117,8 @@ Remove the quote rotator, tool groups, intel groups, operator links, Ko-fi, beta
 
 `apps/web/src/lib/site-copy.ts` feeds the layout title and description. Update it so shares match this page.
 
-- `SITE_SEO_TITLE`: `TiltCheck | Stop Giving Wins Back`
-- The homepage H1 does not print `SITE_HERO_HEADLINE` as one line. It renders two forced lines: `STOP GIVING` and `WINS BACK.`
+- `SITE_SEO_TITLE`: `TiltCheck | House always wins? FUCK THAT.`
+- The homepage H1 does not print `SITE_HERO_HEADLINE` as one line. It renders two forced lines: `House always wins?` and `FUCK THAT.`
 - `SITE_ONE_LINER` becomes the meta description, not the full on-page lede: `Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic.`
 - On-page kicker and lede live in the homepage, copied from this spec.
 

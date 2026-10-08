@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Public marketing page is `/` only. Headline lines are `STOP GIVING` and `WINS BACK.`
+- Public marketing page is `/` only. Headline lines are `House always wins?` and `FUCK THAT.`
 - Kicker lines are `The math isn't rigged. Your dopamine is.` and `The house banks on your tilt.`
 - The zip button label is `DOWNLOAD THE ZIP` and the href is `/downloads/tiltcheck-extension.zip`.
 - Core promise is click counting plus a cover of about two minutes (Touch Grass), plus the scam-link honesty line. Pro stays off the page. Do not set `tiltcheck_pro_monolith_enabled`.
@@ -318,7 +318,7 @@ import { SITE_ONE_LINER, SITE_SEO_TITLE } from './site-copy';
 
 describe('HOME_LAUNCH', () => {
   it('uses the locked headline, kicker, and zip button', () => {
-    expect(HOME_LAUNCH.h1).toEqual(['STOP GIVING', 'WINS BACK.']);
+    expect(HOME_LAUNCH.h1).toEqual(['House always wins?', 'FUCK THAT.']);
     expect(HOME_LAUNCH.kicker).toEqual([
       "The math isn't rigged. Your dopamine is.",
       'The house banks on your tilt.',
@@ -341,7 +341,7 @@ describe('HOME_LAUNCH', () => {
   });
 
   it('sets the share title and a short meta description', () => {
-    expect(SITE_SEO_TITLE).toBe('TiltCheck | Stop Giving Wins Back');
+    expect(SITE_SEO_TITLE).toBe('TiltCheck | House always wins? FUCK THAT.');
     expect(SITE_ONE_LINER).toBe(
       'Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic.',
     );
@@ -363,7 +363,7 @@ Create `apps/web/src/lib/home-launch-copy.ts`:
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
 
 export const HOME_LAUNCH = {
-  h1: ['STOP GIVING', 'WINS BACK.'],
+  h1: ['House always wins?', 'FUCK THAT.'],
   kicker: ["The math isn't rigged. Your dopamine is.", 'The house banks on your tilt.'],
   lede:
     'Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.',
@@ -414,12 +414,12 @@ export const HOME_LAUNCH = {
 Replace the title and one-liner in `apps/web/src/lib/site-copy.ts`. Leave `SITE_BRAND_TAGLINE`. Set:
 
 ```ts
-export const SITE_SEO_TITLE = 'TiltCheck | Stop Giving Wins Back';
+export const SITE_SEO_TITLE = 'TiltCheck | House always wins? FUCK THAT.';
 
 export const SITE_ONE_LINER =
   'Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic.';
 
-export const SITE_HERO_HEADLINE = 'STOP GIVING WINS BACK.';
+export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
 ```
 
 Update that file's copyright line to `Last Updated: 2026-10-04`.
