@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -6,34 +6,11 @@ import { Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
 import DiscordIcon from './DiscordIcon';
+import { PUBLIC_NAV } from '@/lib/public-nav';
 import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 const DASHBOARD_URL = getDashboardHandoffUrl('/dashboard');
 const LOGIN_URL = getWebLoginRedirect('/dashboard');
-
-type NavLink = { href: string; label: string; accent?: string };
-
-/**
- * Player-first top nav. Explainer / About / Contact / Ask / Bonuses live in Tools + footer.
- * Login is Account (dashboard handoff) — not required to install or browse trust.
- */
-const NAV_LINKS: NavLink[] = [
-  { href: '/casinos', label: 'Casinos' },
-  { href: '/tools', label: 'Tools' },
-  { href: '/operators', label: 'Operators', accent: 'amber' },
-];
-
-const STACKED_ACCENT_CLASS: Record<string, string> = {
-  danger: 'nav-sidebar-link-danger',
-  amber: 'nav-sidebar-link-amber',
-  purple: 'nav-sidebar-link-purple',
-};
-
-const DESKTOP_ACCENT_CLASS: Record<string, string> = {
-  danger: 'nav-desktop-link-danger',
-  amber: 'nav-desktop-link-amber',
-  purple: 'nav-desktop-link-purple',
-};
 
 const Nav = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +45,7 @@ const Nav = () => {
           data-funnel-label="Open dashboard controls"
           title="Open your dashboard"
         >
-          {compact ? 'Account' : (user.discordUsername || user.username || 'Account')}
+          {compact ? PUBLIC_NAV.accountLabel : (user.discordUsername || user.username || PUBLIC_NAV.accountLabel)}
         </a>
       );
     }
@@ -79,56 +56,35 @@ const Nav = () => {
         className={compact ? 'nav-auth-compact nav-auth-discord' : 'nav-auth-full nav-auth-discord'}
         title="Account — vault rules, sync, buddies. Not required to install."
       >
-        Account
+        {PUBLIC_NAV.accountLabel}
       </Link>
     );
   };
 
   const DesktopLinks = () => (
-    <>
-      <Link
-        href="/extension"
-        className="nav-desktop-link nav-desktop-beta"
-        data-funnel-event="nav_install_click"
-        data-funnel-source="web-nav-desktop"
-        data-funnel-label="Install"
-      >
-        Install
-      </Link>
-      {NAV_LINKS.map(({ href, label, accent }) => (
-        <Link
-          key={href}
-          href={href}
-          className={`nav-desktop-link${accent ? ` ${DESKTOP_ACCENT_CLASS[accent]}` : ''}`}
-        >
-          {label}
-        </Link>
-      ))}
-    </>
+    <Link
+      href={PUBLIC_NAV.downloadHref}
+      className="nav-desktop-link nav-desktop-beta"
+      data-funnel-event="nav_install_click"
+      data-funnel-source="web-nav-desktop"
+      data-funnel-label={PUBLIC_NAV.downloadLabel}
+    >
+      {PUBLIC_NAV.downloadLabel}
+    </Link>
   );
 
   const MobileLinks = () => (
     <>
       <Link
-        href="/extension"
+        href={PUBLIC_NAV.downloadHref}
         onClick={close}
         className="nav-sidebar-link nav-sidebar-beta"
         data-funnel-event="nav_install_click"
         data-funnel-source="web-nav-mobile"
-        data-funnel-label="Install the Extension"
+        data-funnel-label={PUBLIC_NAV.downloadLabel}
       >
-        Install the Extension
+        {PUBLIC_NAV.downloadLabel}
       </Link>
-      {NAV_LINKS.map(({ href, label, accent }) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={close}
-          className={`nav-sidebar-link${accent ? ` ${STACKED_ACCENT_CLASS[accent]}` : ''}`}
-        >
-          {label}
-        </Link>
-      ))}
       <a
         href={DISCORD_INVITE_URL}
         target="_blank"
@@ -137,7 +93,7 @@ const Nav = () => {
         className="nav-sidebar-link nav-discord-link"
       >
         <DiscordIcon size={16} />
-        Join Discord
+        {PUBLIC_NAV.discordLabel}
       </a>
     </>
   );
@@ -164,7 +120,7 @@ const Nav = () => {
             className="nav-desktop-link nav-discord-link"
           >
             <DiscordIcon size={16} />
-            JOIN DISCORD
+            {PUBLIC_NAV.discordLabel}
           </a>
           <AuthButton />
         </div>

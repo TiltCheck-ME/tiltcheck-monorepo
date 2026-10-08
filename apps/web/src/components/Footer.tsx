@@ -1,143 +1,36 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
-"use client";
-
-import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { getDashboardHandoffUrl } from "@/lib/dashboard-handoff";
-import BrandTagline from "@/components/BrandTagline";
-import { DISCORD_INVITE_URL, KOFI_URL } from "@/lib/site-links";
-
-const QUOTES = [
-  "Trust everybody, but cut the cards.",
-  "Casinos don't win because they're lucky. They win because they're open 24/7 and the math is always in their favor.",
-  "The house always wins, unless you're the architect.",
-  "Risk is the price you pay for the chance to be right.",
-  "Fortune favors the prepared.",
-  "Zero drift. Zero mercy.",
-  "Math doesn't care about your gut feeling.",
-  "The machine has a memory. You have a prayer.",
-  "The best way to double your money is to fold it in half and put it back in your pocket.",
-  "Don't worry about the noise. Worry about the signal.",
-];
-
-const footerGroups = [
-  {
-    title: "Tools",
-    links: [
-      { href: "/tools", label: "All tools" },
-      { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Profit Guardrails" },
-      { href: "/tools/verify", label: "Bet Verifier" },
-      { href: "/tools/session-stats", label: "RTP Drift Watch" },
-      { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
-    ],
-  },
-  {
-    title: "Intel",
-    links: [
-      { href: "/ask", label: "Ask Intel" },
-      { href: "/casinos", label: "Casino Trust Scores" },
-      { href: "/bonuses", label: "Daily Bonus Tracker" },
-      { href: "/intel/rtp", label: "RTP Intel" },
-      { href: "/intel/scams", label: "Scam Registry" },
-      { href: "/extension", label: "Browser Extension" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { href: "/how-it-works", label: "How it Works" },
-      { href: "/about", label: "About" },
-      { href: "/operators", label: "Operators" },
-      { href: "/operators/instant-redeem", label: "Instant Redeem" },
-      { href: "/operators/pricing", label: "Operator pricing" },
-      { href: "/docs", label: "Docs" },
-      { href: "/blog", label: "Blog" },
-      { href: "/collab", label: "Contact" },
-      { href: KOFI_URL, label: "Support on Ko-fi" },
-      { href: getDashboardHandoffUrl("/dashboard"), label: "Your Dashboard" },
-    ],
-  },
-];
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+import Link from 'next/link';
+import BrandTagline from '@/components/BrandTagline';
+import { HOME_LAUNCH } from '@/lib/home-launch-copy';
+import { PUBLIC_FOOTER_LINKS } from '@/lib/public-footer';
 
 const Footer = () => {
-  const [quote, setQuote] = useState("");
-
-  useEffect(() => {
-    setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-  }, []);
+  const hotlineParts = HOME_LAUNCH.footerDisclaimer.split('1-800-GAMBLER');
+  const beforeHotline = hotlineParts[0] ?? '';
+  const afterHotline = hotlineParts[1] ?? '';
+  const ncpgParts = afterHotline.split('NCPG.org');
+  const beforeNcpg = ncpgParts[0] ?? '';
+  const afterNcpg = ncpgParts[1] ?? '';
 
   return (
     <footer className="site-footer" aria-label="Site footer">
       <div className="footer-shell">
-        <div className="footer-top">
-          <div className="footer-brand">
-            <span className="brand-eyebrow footer-eyebrow">TiltCheck</span>
-            <h2 className="footer-title">See the session. Brake before you regret.</h2>
-            <p className="footer-copy">
-              TiltCheck is a read-only browser extension and public trust layer. It watches live play for tilt patterns,
-              manipulative pressure, and session drift, then pairs that with trust signals and receipts when the math
-              looks off. The point is simple: catch the spiral before another breathless deposit cooks you.
-            </p>
-
-            <div className="footer-actions">
-              <Link href="/beta-tester" className="footer-action footer-action--primary">
-                Get Early Access
-              </Link>
-              <a
-                href={DISCORD_INVITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-action footer-action--secondary"
-              >
-                Join Discord
-              </a>
-              <a
-                href={KOFI_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-action footer-action--secondary"
-              >
-                Support on Ko-fi
-              </a>
-            </div>
-
-            {quote && <p className="footer-quote">"{quote}"</p>}
-          </div>
-
-          <div className="footer-nav-groups">
-            {footerGroups.map((group) => (
-              <div key={group.title} className="footer-nav-group">
-                <h3>{group.title}</h3>
-                  <ul>
-                    {group.links.map((link) => (
-                      <li key={link.href}>
-                        {link.href.startsWith("http") ? (
-                          <a href={link.href}>{link.label}</a>
-                        ) : (
-                          <Link href={link.href}>{link.label}</Link>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div className="footer-bottom">
-          <div className="footer-bottom-links">
-            <Link href="/touch-grass">Touch Grass Protocol</Link>
-            <Link href="/terms">Terms of Service</Link>
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/operators/pricing">Operator Pricing</Link>
-            <Link href="/legal/limit">Asset Risk Limits</Link>
-            <a
-              href="https://github.com/jmenichole/tiltcheck-monorepo"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              The Source
+          <p className="footer-copy">
+            {beforeHotline}
+            <strong>1-800-GAMBLER</strong>
+            {beforeNcpg}
+            <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">
+              NCPG.org
             </a>
+            {afterNcpg}
+          </p>
+          <div className="footer-bottom-links">
+            {PUBLIC_FOOTER_LINKS.map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.label}
+              </Link>
+            ))}
           </div>
           <p className="footer-tagline">
             <BrandTagline />
