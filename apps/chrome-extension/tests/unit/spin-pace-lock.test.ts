@@ -163,6 +163,20 @@ describe('installSpinPaceLock', () => {
     handle.stop();
   });
 
+  it('re-enables a spin button that its own click listener disabled during the lock', async () => {
+    const button = spinButton();
+    button.addEventListener('click', () => {
+      button.disabled = true;
+    });
+    const handle = installSpinPaceLock();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await flush();
+    expect(button.disabled).toBe(true);
+    vi.advanceTimersByTime(PACE_LOCK_MS);
+    expect(button.disabled).toBe(false);
+    handle.stop();
+  });
+
   it('does not re-enable a spin button that was already disabled before the lock', async () => {
     const disabledSpin = spinButton('Disabled');
     disabledSpin.disabled = true;

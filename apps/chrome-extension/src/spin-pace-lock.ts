@@ -151,6 +151,9 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
       swallow(event);
       return;
     }
+    if (spin instanceof HTMLButtonElement && !priorDisabled.has(spin)) {
+      priorDisabled.set(spin, spin.disabled);
+    }
     queueMicrotask(() => {
       if (stopped) return;
       startLock(spin);
