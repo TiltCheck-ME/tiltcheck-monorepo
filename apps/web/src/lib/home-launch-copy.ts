@@ -1,40 +1,40 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
   kicker: ["The math isn't rigged. Your dopamine is.", 'The house banks on your tilt.'],
   lede:
-    'Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.',
+    'Download the zip and load it in Chrome. Open a casino you already use. Every spin locks the spin button for two seconds. The countdown sits on the button. Click it early and the click does not go through.',
   ctaLabel: 'DOWNLOAD THE ZIP',
   ctaHref: '/downloads/tiltcheck-extension.zip',
   privacy: 'Does not read your wallet or your password. No account needed. You install the zip yourself.',
   installSteps: [
     'Download the zip. Extract it to a folder.',
     'Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.',
-    'Open a supported casino and play. If the clicking gets frantic, the tab gets covered for about two minutes.',
+    'Open a supported casino and play. Every spin locks the button for two seconds.',
   ],
   installNote: 'It works without an account. Discord is only for saving rules later.',
   cards: [
     {
       step: '01',
-      title: 'Counts your clicks',
-      body: 'On a supported casino tab, it counts every click. It is looking for clicking that has gotten too fast to be a deliberate bet.',
+      title: 'Locks the spin',
+      body: 'Every spin goes through, then the spin button locks for two seconds. Other clicks on the page do not start the lock.',
     },
     {
       step: '02',
-      title: 'Covers the tab',
-      body: 'Frantic clicking puts a full-screen pause over the game for about two minutes. That pause is called Touch Grass. You cannot close it early.',
+      title: 'Swallows the mash',
+      body: 'A click while the button is locked does not spin and does not add time. The line is: No cap, the balance is still catching that last spin.',
     },
     {
       step: '03',
-      title: 'Gives the site back',
-      body: 'When the timer ends, the casino comes back. You can keep playing, or close the tab. The pause is there so a win does not get clicked away.',
+      title: 'Gives the button back',
+      body: 'At zero the button works again. The next spin starts a fresh two seconds.',
     },
   ],
   mock: {
-    status: 'Counting clicks',
-    signal: 'Clicking too fast',
-    footer: 'Tab covered · about 2 min',
+    status: 'Button locked',
+    signal: '2s',
+    footer: 'Balance still catching up',
     chip: 'Does not touch your wallet',
   },
   honesty: [
