@@ -2,7 +2,7 @@
 
 # Touch Grass side panel — design spec
 
-Status: Approved (design)
+Status: Superseded. Do not build. The pace lock in `docs/superpowers/specs/2026-10-09-spin-pace-lock-design.md` replaces this design.
 Owner: founder (solo)
 Surface: Chrome extension Touch Grass overlay (`apps/chrome-extension/src/touch-grass-timeout.ts`)
 Date: 2026-10-09
