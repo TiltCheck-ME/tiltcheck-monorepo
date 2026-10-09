@@ -162,4 +162,47 @@ describe('installSpinPaceLock', () => {
     expect(document.body.querySelector(':scope > style')).toBeNull();
     handle.stop();
   });
+
+  it('does not re-enable a spin button that was already disabled before the lock', async () => {
+    const disabledSpin = spinButton('Disabled');
+    disabledSpin.disabled = true;
+    const enabledSpin = spinButton('Enabled');
+    const handle = installSpinPaceLock();
+    enabledSpin.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await flush();
+    expect(disabledSpin.disabled).toBe(true);
+    expect(enabledSpin.disabled).toBe(true);
+    vi.advanceTimersByTime(PACE_LOCK_MS);
+    expect(disabledSpin.disabled).toBe(true);
+    expect(enabledSpin.disabled).toBe(false);
+    handle.stop();
+  });
+
+  it('starts lock when clicked spin is replaced before the microtask runs', async () => {
+    const oldButton = spinButton('Old');
+    const handle = installSpinPaceLock();
+    oldButton.addEventListener('click', () => {
+      oldButton.remove();
+      spinButton('New');
+    });
+    oldButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await flush();
+    expect(handle.lockUntil()).toBe(Date.now() + PACE_LOCK_MS);
+    const newButton = document.querySelector('.spin-button') as HTMLButtonElement;
+    expect(newButton.textContent).toBe('New');
+    vi.advanceTimersByTime(250);
+    expect(newButton.disabled).toBe(true);
+    handle.stop();
+  });
+
+  it('does not start a lock after stop() before the microtask flush', async () => {
+    const button = spinButton();
+    const handle = installSpinPaceLock();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    handle.stop();
+    await flush();
+    expect(document.getElementById(PACE_HOST_ID)).toBeNull();
+    expect(handle.lockUntil()).toBe(0);
+    expect(button.disabled).toBe(false);
+  });
 });

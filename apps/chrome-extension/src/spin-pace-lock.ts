@@ -21,7 +21,8 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
   let lockUntil = 0;
   let anchor: Element | null = null;
   let tickId: ReturnType<typeof setInterval> | null = null;
-  const disabledByLock = new Set<HTMLButtonElement>();
+  let stopped = false;
+  const priorDisabled = new Map<HTMLButtonElement, boolean>();
 
   const host = doc.createElement('div');
   host.id = PACE_HOST_ID;
@@ -88,10 +89,10 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
       clearInterval(tickId);
       tickId = null;
     }
-    for (const button of disabledByLock) {
-      button.disabled = false;
+    for (const [button, wasDisabled] of priorDisabled) {
+      button.disabled = wasDisabled;
     }
-    disabledByLock.clear();
+    priorDisabled.clear();
     chip.style.display = 'none';
     hideToast();
     anchor = null;
@@ -108,8 +109,10 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
     const current = matches();
     for (const el of current) {
       if (el instanceof HTMLButtonElement) {
+        if (!priorDisabled.has(el)) {
+          priorDisabled.set(el, el.disabled);
+        }
         el.disabled = true;
-        disabledByLock.add(el);
       }
     }
     const liveAnchor = anchor && anchor.isConnected ? anchor : (current[0] ?? null);
@@ -123,7 +126,8 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
 
   const startLock = (spin: Element): void => {
     lockUntil = Date.now() + PACE_LOCK_MS;
-    anchor = spin;
+    const connected = matches();
+    anchor = spin.isConnected ? spin : (connected[0] ?? null);
     hideToast();
     applyLockVisuals();
     if (tickId !== null) {
@@ -148,7 +152,7 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
       return;
     }
     queueMicrotask(() => {
-      if (!spin.isConnected) return;
+      if (stopped) return;
       startLock(spin);
     });
   };
@@ -162,6 +166,7 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
   doc.addEventListener('click', onDocumentClick, true);
 
   const stop = (): void => {
+    stopped = true;
     doc.removeEventListener('click', onDocumentClick, true);
     release();
     host.remove();
