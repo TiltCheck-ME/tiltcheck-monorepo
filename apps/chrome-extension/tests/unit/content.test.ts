@@ -1,7 +1,7 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
 /**
  * @vitest-environment jsdom
- * Core content script — TiltDetector + Touch Grass path when Pro monolith is off.
+ * Core content script — pace lock when enforcement is on, cover stays out.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -100,5 +100,27 @@ describe('core content script contracts', () => {
     const handled = listeners[0]!({ type: 'unknown_message' }, null, response);
     expect(handled).toBe(false);
     expect(response).not.toHaveBeenCalled();
+  });
+
+  it('does not call the full-screen cover from Core', async () => {
+    const nodeUrl = await import('node:url');
+    const source = await import('node:fs/promises').then((fs) =>
+      fs.readFile(new nodeUrl.URL('../../src/content.ts', import.meta.url), 'utf8')
+    );
+    expect(source).not.toContain('triggerTouchGrassTimeout');
+  });
+
+  it('does not install the pace lock when enforcement is off', async () => {
+    createChromeMock({ tiltcheck_touch_grass_opt_in: false });
+    await import('../../src/content.ts');
+    await flush();
+    const button = document.createElement('button');
+    button.className = 'spin-button';
+    button.textContent = 'Spin';
+    document.body.appendChild(button);
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await flush();
+    expect(document.getElementById('tiltcheck-pace-host')).toBeNull();
+    expect(button.disabled).toBe(false);
   });
 });

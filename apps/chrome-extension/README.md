@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -12,8 +12,8 @@ Made for Degens. By Degens.
 
 Default **Core** install (what players get from the web zip today):
 
-- Watches **click pacing** on supported casino tabs
-- Fires **Touch Grass** undismissable lockdown when autopilot pacing trips
+- Locks the spin button for two seconds after every spin
+- A click during that lock does not spin. One line tells you the balance is still catching up
 - **SusLink** can bounce critically sus casino URLs (API up)
 - Read-only. No wallet keys. No Discord required. No HUD/sidebar until Pro is enabled
 
