@@ -1,17 +1,14 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import {
   addCustomSlug,
-  clampDurationMs,
   clampRisk,
-  formatDurationLabel,
   loadGameBlockUiState,
   loadTouchGrassUiState,
   riskLabel,
   saveBlockedGames,
   saveGameBlockOptIn,
   saveRiskThreshold,
-  saveTouchGrassDurationMs,
   saveTouchGrassOptIn,
   toggleSlugInList,
 } from './popup-settings.js';
@@ -439,13 +436,6 @@ function syncRiskSliderUi(value: number): void {
   $('risk-threshold-label').textContent = `${clamped} — ${riskLabel(clamped)}`;
 }
 
-function syncDurationSliderUi(ms: number): void {
-  const clamped = clampDurationMs(ms);
-  const sec = Math.round(clamped / 1000);
-  $<HTMLInputElement>('duration-slider').value = String(sec);
-  $('duration-label').textContent = formatDurationLabel(clamped);
-}
-
 function renderSlugRegistry(): void {
   const registry = $('slug-registry');
   if (guardSlugs.length === 0) {
@@ -470,7 +460,6 @@ async function refreshGuardSettingsUi(): Promise<void> {
   $<HTMLInputElement>('opt-in-checkbox').checked = touch.optIn;
   setTouchGrassControlsEnabled(touch.optIn);
   syncRiskSliderUi(touch.riskThreshold);
-  syncDurationSliderUi(touch.durationMs);
 
   const game = await loadGameBlockUiState();
   $<HTMLInputElement>('game-block-master-toggle').checked = game.optIn;
@@ -493,13 +482,6 @@ function initGuardSettingsPanel(): void {
     const value = Number((e.target as HTMLInputElement).value);
     syncRiskSliderUi(value);
     await saveRiskThreshold(value);
-  });
-
-  $<HTMLInputElement>('duration-slider').addEventListener('input', async (e) => {
-    const sec = Number((e.target as HTMLInputElement).value);
-    const ms = clampDurationMs(sec * 1000);
-    syncDurationSliderUi(ms);
-    await saveTouchGrassDurationMs(ms);
   });
 
   $<HTMLInputElement>('game-block-master-toggle').addEventListener('change', async (e) => {

@@ -27,7 +27,7 @@
 - One shared `lockUntil` for every match. A redrawn control is disabled on the 250ms tick.
 - Toast and chip live in one open shadow root on `#tiltcheck-pace-host`. The stylesheet stays inside that root.
 - The host is `pointer-events: none`. The chip is `pointer-events: auto` so a click on a disabled button still reaches the toast.
-- The allowed spin's own listener runs. The lock starts in a microtask after that click finishes. Disabling during capture would eat the spin.
+- The allowed spin's own listener runs. The lock starts in a setTimeout of 0 after the click, because a microtask runs before the casino handler finishes. Disabling during capture would eat the spin.
 - When `enforcementEnabled` is false, the pace lock is not installed. Default stays on.
 - Do not edit `tilt-detector.ts`, `touch-grass-timeout.ts`, `pro-monolith-bootstrap.ts`, or `apps/web/src/app/touch-grass/page.tsx`.
 - Do not build `docs/superpowers/specs/2026-10-09-touch-grass-side-panel-design.md`.

@@ -64,7 +64,7 @@ When `enforcementEnabled` is false, the pace lock is not installed. The default 
 
 ## Homepage
 
-Edit only `apps/web/src/lib/home-launch-copy.ts`.
+Homepage copy lives in `apps/web/src/lib/home-launch-copy.ts`. `SITE_ONE_LINER` in `apps/web/src/lib/site-copy.ts` is the homepage meta description and was updated with the homepage.
 
 Lede:
 

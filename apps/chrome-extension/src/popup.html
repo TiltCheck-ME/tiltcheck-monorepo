@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -787,14 +787,14 @@
 <div id="panel-block" class="panel">
 
   <section class="guard-panel" id="touch-grass-panel">
-    <h3>Touch Grass Timeout</h3>
+    <h3>Spin lock</h3>
     <p class="guard-policy">
-      When click velocity or tilt risk crosses your line, this tab locks for the full countdown.
-      You cannot dismiss it early. Not a suggestion — the timer must hit zero.
+      Every spin locks the spin button for two seconds. A click during the lock does not spin.
+      There is no full-screen cover.
     </p>
     <label class="guard-opt-row" for="opt-in-checkbox">
       <input type="checkbox" id="opt-in-checkbox" />
-      <span>I accept enforced session lockouts on this device. I understand the tab cannot be unlocked until the timer ends.</span>
+      <span>Enforcement on. Every spin locks the spin button for two seconds.</span>
     </label>
     <fieldset id="slider-controls" class="guard-controls" disabled>
       <legend>Thresholds (enabled after opt-in)</legend>
@@ -804,13 +804,6 @@
           <span class="slider-value" id="risk-threshold-label">85 — Balanced</span>
         </div>
         <input type="range" id="risk-threshold-slider" class="guard-range" min="50" max="100" step="1" value="85" />
-      </div>
-      <div class="slider-row">
-        <div class="slider-meta">
-          <span>Lockout duration</span>
-          <span class="slider-value" id="duration-label">2m 0s</span>
-        </div>
-        <input type="range" id="duration-slider" class="guard-range" min="30" max="300" step="15" value="120" />
       </div>
     </fieldset>
     <p class="guard-note">Core circuit breaker runs locally. No server required to fire.</p>
