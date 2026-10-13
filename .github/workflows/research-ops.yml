@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   research:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '22'
           cache: pnpm
 
       - name: Install dependencies
@@ -66,7 +66,20 @@ jobs:
 
           git checkout -b "$RESEARCH_BRANCH"
 
+      - name: Check LLM credentials
+        run: |
+          set -euo pipefail
+          if [ -z "${RESEARCH_LLM_API_KEY:-}" ]; then
+            echo "::warning::RESEARCH_LLM_API_KEY is not set. Skipping research run."
+            echo "HAS_LLM=false" >> "$GITHUB_ENV"
+          else
+            echo "HAS_LLM=true" >> "$GITHUB_ENV"
+          fi
+        env:
+          RESEARCH_LLM_API_KEY: ${{ secrets.RESEARCH_LLM_API_KEY }}
+
       - name: Run research brief
+        if: ${{ env.HAS_LLM == 'true' }}
         env:
           RESEARCH_LLM_API_KEY: ${{ secrets.RESEARCH_LLM_API_KEY }}
           RESEARCH_LLM_BASE_URL: ${{ secrets.RESEARCH_LLM_BASE_URL }}
@@ -74,6 +87,7 @@ jobs:
         run: pnpm run ops:research:run -- --date "$RESEARCH_DATE" --slug "$RESEARCH_SLUG"
 
       - name: Merge tasks from newest sidecar
+        if: ${{ env.HAS_LLM == 'true' }}
         run: |
           set -euo pipefail
           sidecar="$(node --input-type=module -e "import { readdir, stat } from 'node:fs/promises'; import path from 'node:path'; const dir = 'docs/research'; const files = (await readdir(dir)).filter((name) => name.endsWith('.tasks.json')); if (files.length === 0) { throw new Error('No research sidecar files found.'); } const entries = await Promise.all(files.map(async (name) => ({ name, mtimeMs: (await stat(path.join(dir, name))).mtimeMs }))); entries.sort((a, b) => b.mtimeMs - a.mtimeMs); process.stdout.write(path.join(dir, entries[0].name));")"
@@ -146,3 +160,5 @@ jobs:
           fi
           # Cap: sync only newly added keys from this run (max 5), not the full backlog.
           pnpm ops:linear:sync -- --file docs/ops/linear-tasks-last-run.json
+
+

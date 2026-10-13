@@ -8,7 +8,7 @@ on:
 
 jobs:
   e2e-live:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: E2E Tests (Live Staging)
 
     steps:
@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -34,3 +34,5 @@ jobs:
         run: pnpm test:e2e
         env:
           BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://tiltcheck.me' }}
+
+

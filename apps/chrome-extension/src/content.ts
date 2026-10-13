@@ -1,10 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
 
 
 
 /**
 
- * Core content script — always-on TiltDetector + Touch Grass circuit breaker.
+ * Core content script — pace-locks spins when enforcement is on.
 
  * Pro monolith (sidebar, extractor, strategic filters) lazy-loads when
 
@@ -54,8 +54,6 @@ if (isExcludedDomain) {
 
 
 
-import { TiltDetector } from './tilt-detector.js';
-
 import {
 
   CORE_CIRCUIT_BREAKER_STORAGE_KEYS,
@@ -66,7 +64,7 @@ import {
 
 } from './core-options.js';
 
-import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
+import { installSpinPaceLock, type PaceLockHandle } from './spin-pace-lock.js';
 
 
 
@@ -74,7 +72,7 @@ import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
 
-/** Pro dispatches bet rounds so Core tilt scoring includes loss-streak signals. */
+/** Pro still dispatches this. Core ignores it. */
 export const TILTCHECK_CORE_RECORD_BET_EVENT = 'tiltcheck-core-record-bet';
 
 
@@ -93,13 +91,7 @@ type TiltCheckWindow = Window & { __tiltcheckCoreShieldActive?: boolean };
 
 
 
-let tiltDetector: TiltDetector | null = null;
-
-let corePoll: ReturnType<typeof setInterval> | null = null;
-
-let coreClickListener: (() => void) | null = null;
-
-let touchGrassCooldownUntil = 0;
+let paceLock: PaceLockHandle | null = null;
 
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 
@@ -213,8 +205,6 @@ async function refreshCoreOptions(): Promise<CoreCircuitBreakerOptions> {
 
   coreOptions = await loadCoreCircuitBreakerOptions();
 
-  tiltDetector?.setRiskProfile(coreOptions.riskProfile);
-
   return coreOptions;
 
 }
@@ -245,7 +235,11 @@ function installCoreOptionsListener(): void {
 
       if (coreKeyTouched) {
 
-        void refreshCoreOptions();
+        void refreshCoreOptions().then((opts) => {
+
+          syncPaceLock(opts.enforcementEnabled);
+
+        });
 
       }
 
@@ -261,83 +255,39 @@ function installCoreOptionsListener(): void {
 
 
 
+function syncPaceLock(enabled: boolean): void {
+
+  if (enabled && !paceLock) {
+
+    paceLock = installSpinPaceLock();
+
+    return;
+
+  }
+
+  if (!enabled && paceLock) {
+
+    paceLock.stop();
+
+    paceLock = null;
+
+  }
+
+}
+
+
+
 async function startCoreCircuitBreaker(): Promise<void> {
 
   await waitForDocumentEnd();
 
-  await refreshCoreOptions();
+  const opts = await refreshCoreOptions();
 
   installCoreOptionsListener();
 
-
-
   (window as TiltCheckWindow).__tiltcheckCoreShieldActive = true;
 
-  tiltDetector = new TiltDetector(null, coreOptions.riskProfile);
-
-
-
-  coreClickListener = () => {
-
-    tiltDetector?.recordClick();
-
-  };
-
-  document.addEventListener('click', coreClickListener, true);
-
-  window.addEventListener(TILTCHECK_CORE_RECORD_BET_EVENT, (event) => {
-    const detail = (event as CustomEvent<{ bet?: number; payout?: number }>).detail;
-    const bet = Number(detail?.bet);
-    const payout = Number(detail?.payout);
-    if (!tiltDetector || !Number.isFinite(bet)) return;
-    tiltDetector.recordBet(bet, Number.isFinite(payout) ? payout : 0);
-  });
-
-  corePoll = window.setInterval(() => {
-
-    const opts = coreOptions;
-
-    if (!tiltDetector || !opts || Date.now() < touchGrassCooldownUntil) {
-
-      return;
-
-    }
-
-
-
-    if (!opts.enforcementEnabled) {
-
-      return;
-
-    }
-
-
-
-    const fast = tiltDetector.detectFastClicks();
-
-    if (fast && (fast.severity === 'high' || fast.severity === 'critical')) {
-
-      touchGrassCooldownUntil = Date.now() + opts.touchGrassCooldownMs;
-
-      triggerTouchGrassTimeout(fast.description, opts.touchGrassDurationMs);
-
-      return;
-
-    }
-
-
-
-    const risk = tiltDetector.getTiltRiskScore();
-
-    if (risk >= opts.riskThreshold) {
-
-      touchGrassCooldownUntil = Date.now() + opts.touchGrassCooldownMs;
-
-      triggerTouchGrassTimeout('Pacing looks off — take a break.', opts.touchGrassDurationMs);
-
-    }
-
-  }, 2000);
+  syncPaceLock(opts.enforcementEnabled);
 
 }
 

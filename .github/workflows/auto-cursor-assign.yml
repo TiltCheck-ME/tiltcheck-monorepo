@@ -31,7 +31,7 @@ permissions:
 jobs:
   delegate:
     if: contains(github.event.issue.labels.*.name, 'cursor:assign')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Skip if already kicked
         id: check
@@ -91,3 +91,5 @@ jobs:
             echo "Closes #${ISSUE_NUMBER}."
           } > "$body_file"
           gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body-file "$body_file"
+
+

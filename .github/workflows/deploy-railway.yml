@@ -37,7 +37,7 @@ jobs:
   # Detect which services have changed. Used by downstream jobs to skip unchanged services.
   changes:
     name: Detect Changed Services
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
@@ -100,7 +100,7 @@ jobs:
 
   build-and-push:
     name: Build ${{ matrix.service }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: changes
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
     strategy:
@@ -190,7 +190,7 @@ jobs:
 
   deploy:
     name: Deploy ${{ matrix.service }} to Railway
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [changes, build-and-push]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
     strategy:
@@ -270,3 +270,5 @@ jobs:
           done
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+

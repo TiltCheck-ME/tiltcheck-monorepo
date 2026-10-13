@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   generate-suggestions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Generate Weekly Frontend Suggestions
     steps:
       - uses: actions/checkout@v4
@@ -243,7 +243,7 @@ jobs:
             core.notice('Weekly frontend suggestions generated. See job summary for details.');
 
   validate-implementations:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Validate Previous Suggestions
     steps:
       - uses: actions/checkout@v4
@@ -259,3 +259,5 @@ jobs:
       - name: Update metrics
         run: |
           echo "TODO: Track implementation rate and impact metrics"
+
+

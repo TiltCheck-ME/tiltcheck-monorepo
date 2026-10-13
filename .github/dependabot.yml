@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 version: 2
 updates:
   - package-ecosystem: npm
@@ -9,10 +9,15 @@ updates:
       time: "06:00"
     open-pull-requests-limit: 10
     groups:
+      npm-dev:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
       npm-production:
         dependency-type: production
-        patterns:
-          - "*"
+        update-types:
+          - patch
     labels:
       - dependencies
       - javascript

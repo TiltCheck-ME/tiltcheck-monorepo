@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 /**
  * @tiltcheck/justthetip
  * Centrally managed tipping logic for the TiltCheck ecosystem.
@@ -9,6 +9,8 @@ export * from './core.js';
 export * from './credits.js';
 export * from './solana.js';
 export * from './rain.js';
+export * from './tip-log.js';
+export * from './tilt-hint.js';
 
 import * as core from './core.js';
 import { CreditService } from './credits.js';

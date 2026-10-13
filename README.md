@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 
 <p align="center">
   <picture>
@@ -149,6 +149,7 @@ TiltCheck includes comprehensive automation for security, reliability, and maint
 ```
 tiltcheck-monorepo/
 ├── apps/                    # User-facing applications (bot, web, dashboard)
+├── programs/cooldown/       # Solana self-exclusion registry (no custody)
 ├── services/                # Backend infrastructure and core services
 ├── modules/                 # Business logic modules (suslink, justthetip, etc.)
 ├── packages/                # Shared libraries and utilities
@@ -207,6 +208,60 @@ Shared wallet notifications and "phone-a-friend" tilt intervention.
 - **Degen Trust Engine** — Scores users based on behavior patterns, tilt signals, and community actions.
 
 ---
+
+## Cooldown
+
+Cooldown is the on-chain safety layer for TiltCheck. A person locks their own wallet out of gambling. Any casino, tip bot, wallet, or sweepstakes site can check that lock. The program stores lock records only: wallet public keys, timestamps, and sha256 hashes of game ids. It does not hold tokens, custody funds, or personal data.
+
+A lock can only get stronger until it expires or a delayed cancel finishes. Stronger means a later end time, a wider scope, or more listed operators and games. Scope `0` excludes all gambling. Scope `1` excludes listed operators. Scope `2` excludes listed game hashes. Moving from operators or games to all-gambling is allowed. Going the other way, shrinking the end time, or dropping an entry is rejected. That is deliberate: a self-exclusion you can undo in the moment of tilt does not work.
+
+Getting out takes time. `request_cancel` starts a 7-day clock (`CANCEL_DELAY_SECS = 604800`) and the lock stays fully active during it. `finalize_cancel` closes the account only after those 7 days and returns the rent to the authority. Extending the lock clears a pending cancel, so the 7 days start over if you ask again. `close_expired` closes the account only once `now > until`.
+
+The devnet program id is `7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2`.
+
+### SDK
+
+`@tiltcheck/cooldown-sdk` checks a wallet and builds the transactions. No lock, or `now > endTime`, means not locked.
+
+```ts
+import { isLocked, setLock, hashTarget, zeroTarget, SCOPE_ALL, SCOPE_GAME } from '@tiltcheck/cooldown-sdk';
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+
+const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+const wallet = new PublicKey('...');
+
+// Check lock status (priority: All > Category > Game)
+const status = await isLocked(connection, wallet, {
+  game: 'pragmatic:plinko',   // optional, hashed internally
+  category: 'crash',          // optional
+});
+// { locked: boolean; scope: 'all'|'category'|'game'|null; endTime: number | null }
+
+// Build a set_lock instruction (30-day all-scope lock)
+const endTime = Math.floor(Date.now() / 1000) + 30 * 86_400;
+const ix = setLock(wallet, SCOPE_ALL, zeroTarget(), endTime);
+const tx = new Transaction().add(ix);
+```
+
+Also exports: `extendLock`, `hashTarget`, `zeroTarget`, `SCOPE_ALL`, `SCOPE_GAME`.
+
+### API
+
+Sweepstakes sites can check a wallet without a Solana client. The route is read-only, CORS-open, and caches for 30 seconds.
+
+```
+GET /cooldown/check?wallet=<pubkey>&game=<str>&category=<str>
+```
+
+```json
+{ "locked": true, "scope": "game", "endTime": 1832400000 }
+```
+
+Set `COOLDOWN_PROGRAM_ID` and `COOLDOWN_RPC_URL` (defaults to devnet).
+
+### License
+
+The Cooldown program (`programs/cooldown`) and `@tiltcheck/cooldown-sdk` are MIT licensed. See `programs/cooldown/LICENSE`. The rest of this repository keeps its own license.
 
 ## Getting Started
 
@@ -344,6 +399,81 @@ TiltCheck is intentionally:
 - **degen-friendly** (practical, not preachy)
 
 It's built by someone who understands the problems firsthand.
+
+---
+
+## Cooldown
+
+Cooldown is a portable, non-custodial self-exclusion registry on Solana.
+A user locks their wallet out of a specific game, category, or everything for a chosen duration.
+Any casino, tip bot, or wallet can query the lock via the API or on-chain — no Solana client required.
+
+**Program ID (devnet):** `7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2`
+
+### Lock scopes
+
+| Scope | Value | Meaning |
+|-------|-------|---------|
+| All | `0` | Blocks every gambling check for this wallet |
+| Category | `1` | Blocks a named category (crash, plinko, slots-high-vol, live-dealer) |
+| Game | `2` | Blocks a specific game, identified by sha256 of `"provider:game_slug"` |
+
+Each (scope, target_id) pair is a separate PDA: `["lock", owner, scope_u8, target_id]`.
+A wallet can have many concurrent locks. Game IDs are hashed — raw strings never hit the chain.
+
+### Why a lock can only get stronger
+
+`set_lock` is an upsert: it creates the lock PDA on first call; on subsequent calls it only accepts a `new_end_time > current_end_time`. `extend_lock` enforces the same rule. There is no instruction that shortens or closes an active lock. The account expires naturally when `now > end_time`. This means no mid-tilt cancel is possible — the user cannot rug themselves out of their own commitment window.
+
+### SDK usage
+
+```ts
+import { isLocked, setLock, hashTarget, zeroTarget, SCOPE_ALL, SCOPE_GAME } from '@tiltcheck/cooldown-sdk';
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+
+const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+const wallet = new PublicKey('...');
+
+// Check if a wallet is locked (priority: All > Category > Game)
+const status = await isLocked(connection, wallet, {
+  game: 'pragmatic:plinko',   // optional, hashed internally
+  category: 'crash',          // optional
+});
+// { locked: boolean; scope: 'all'|'category'|'game'|null; endTime: number | null }
+
+// Build a set_lock instruction (30-day all-scope lock)
+const endTime = Math.floor(Date.now() / 1000) + 30 * 86_400;
+const ix = setLock(wallet, SCOPE_ALL, zeroTarget(), endTime);
+const tx = new Transaction().add(ix);
+```
+
+### API usage
+
+```
+GET https://api.tiltcheck.me/cooldown/check?wallet=<pubkey>&game=<str>&category=<str>
+```
+
+Returns `{ locked, scope, endTime }`. CORS open. 30-second cache. No Solana client needed.
+
+```json
+{ "locked": true, "scope": "game", "endTime": 1832400000 }
+```
+
+### Lock page and demo casino
+
+- Lock page: `/cooldown` — connect wallet, pick scope/target/duration, sign transaction
+- Demo casino: `/cooldown/casino-demo` — game grid that calls `isLocked` before each bet
+
+### JustTheTip integration
+
+Tips and Rain sent to or from a wallet with an active all-scope lock are blocked with a clear message.
+If tip velocity in the last 60 minutes is 3x or more the 7-day hourly average, the bot replies with a "Want to bench `<game>`?" tilt hint and a prefilled lock-page URL.
+
+Tip totals (by day and by game): `GET /tips/log?wallet=<pubkey>`
+
+### License
+
+The Cooldown program and SDK are MIT-licensed. See `programs/cooldown/LICENSE`.
 
 ---
 

@@ -22,6 +22,15 @@ interface LockStatus {
   endTime: number | null;
 }
 
+/** Pairs an API response with the original target key used to check it,
+ *  so the Extend handler can derive the correct on-chain PDA. */
+interface ActiveLock {
+  status: LockStatus;
+  /** Raw target key passed to hashTarget() when the lock was set.
+   *  Empty string for all-scope (uses zeroTarget() instead). */
+  targetKey: string;
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const CATEGORIES: { label: string; slug: CategorySlug }[] = [
@@ -105,7 +114,7 @@ export default function CooldownPage() {
   const [selectedGame, setSelectedGame] = useState<string>(GAMES[0]!.key);
   const [durationSecs, setDurationSecs] = useState(86_400);
   const [customDays, setCustomDays] = useState('');
-  const [activeLocks, setActiveLocks] = useState<LockStatus[]>([]);
+  const [activeLocks, setActiveLocks] = useState<ActiveLock[]>([]);
   const [txStatus, setTxStatus] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -131,15 +140,19 @@ export default function CooldownPage() {
   // ── Load active locks ───────────────────────────────────────────────────────
 
   const loadLocks = useCallback(async (w: string) => {
-    const checks: Promise<LockStatus>[] = [
-      fetchLockStatus(w),                          // all-scope
-      ...CATEGORIES.map((c) => fetchLockStatus(w, undefined, c.slug)),
-      ...GAMES.map((g) => fetchLockStatus(w, g.key)),
+    // Pair each check promise with the targetKey used to build the PDA.
+    const checksWithKeys: { promise: Promise<LockStatus>; targetKey: string }[] = [
+      { promise: fetchLockStatus(w), targetKey: '' },                          // all-scope
+      ...CATEGORIES.map((c) => ({ promise: fetchLockStatus(w, undefined, c.slug), targetKey: `category:${c.slug}` })),
+      ...GAMES.map((g) => ({ promise: fetchLockStatus(w, g.key), targetKey: g.key })),
     ];
-    const results = await Promise.allSettled(checks);
-    const active = results
-      .filter((r): r is PromiseFulfilledResult<LockStatus> => r.status === 'fulfilled' && r.value.locked)
-      .map((r) => r.value);
+    const results = await Promise.allSettled(checksWithKeys.map((c) => c.promise));
+    const active: ActiveLock[] = [];
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled' && r.value.locked) {
+        active.push({ status: r.value, targetKey: checksWithKeys[i]!.targetKey });
+      }
+    });
     setActiveLocks(active);
   }, []);
 
@@ -177,7 +190,7 @@ export default function CooldownPage() {
 
   // ── Extend ─────────────────────────────────────────────────────────────────
 
-  const handleExtend = async (lock: LockStatus) => {
+  const handleExtend = async ({ status: lock, targetKey }: ActiveLock) => {
     if (!wallet || !lock.endTime) return;
     setLoading(true);
     setTxStatus('');
@@ -192,7 +205,8 @@ export default function CooldownPage() {
       if (!w.solana?.publicKey) throw new Error('Wallet not connected');
 
       const scopeNum = lock.scope === 'all' ? 0 : lock.scope === 'category' ? 1 : 2;
-      const target = scopeNum === SA ? zeroTarget() : hashTarget(''); // simplified for demo
+      // Use the stored targetKey to derive the same PDA the lock was originally created with.
+      const target = scopeNum === SA ? zeroTarget() : hashTarget(targetKey);
       const newEndTime = lock.endTime + 7 * 86_400;
       const ownerKey = new PublicKey(wallet);
       const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
@@ -243,18 +257,18 @@ export default function CooldownPage() {
           {activeLocks.length > 0 && (
             <section style={{ marginBottom: '2rem' }}>
               <h2 style={sectionHead}>Active Locks</h2>
-              {activeLocks.map((lock, i) => (
+              {activeLocks.map((activeLock, i) => (
                 <div key={i} style={lockCard}>
                   <div>
-                    <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{lock.scope}</span>
-                    {lock.endTime && (
+                    <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{activeLock.status.scope}</span>
+                    {activeLock.status.endTime && (
                       <span style={{ color: '#94a3b8', fontSize: '0.8rem', marginLeft: '0.75rem' }}>
-                        until {fmtDate(lock.endTime)}
+                        until {fmtDate(activeLock.status.endTime)}
                       </span>
                     )}
                   </div>
-                  {/* Extend only — no shorten button. */}
-                  <button onClick={() => handleExtend(lock)} disabled={loading} style={btnStyle('#1e293b', true)}>
+                  {/* Extend only — no shorten button. Lock can only get stronger. */}
+                  <button onClick={() => handleExtend(activeLock)} disabled={loading} style={btnStyle('#1e293b', true)}>
                     Extend +7d
                   </button>
                 </div>

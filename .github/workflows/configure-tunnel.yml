@@ -28,7 +28,7 @@ permissions:
 jobs:
   configure-tunnel:
     name: Set Tunnel Ingress Rules
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -182,3 +182,5 @@ jobs:
           fi
 
           echo "DNS verification complete."
+
+

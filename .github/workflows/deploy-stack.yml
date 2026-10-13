@@ -20,7 +20,7 @@ permissions:
 jobs:
   deploy-vps:
     name: Pull and restart on VPS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Deploy via SSH
         env:
@@ -53,3 +53,5 @@ jobs:
           bash scripts/ops/deploy-ghcr-stack.sh
           VERIFY_PUBLIC=1 bash scripts/ops/verify-stack-health.sh || true
           EOF
+
+
