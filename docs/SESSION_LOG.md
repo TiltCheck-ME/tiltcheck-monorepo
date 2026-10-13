@@ -2,6 +2,10 @@
 
 # Session Log
 
+## 2026-10-13 — guard: AutoClaimer never ships in the player build
+
+CI walker `scripts/guard-no-autoclaimer.mjs` fails Brand Law if AutoClaimer identifiers return under apps/ or packages/. Closes #545. No product UI. No runtime kill switch.
+
 ## 2026-10-13 — feat(cooldown): on-chain self-exclusion registry v2
 
 ### Summary

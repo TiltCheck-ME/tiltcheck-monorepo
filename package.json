@@ -1,5 +1,5 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13",
   "name": "tiltcheck-monorepo",
   "version": "0.1.0",
   "private": true,
@@ -45,6 +45,7 @@
     "knip": "knip",
     "knip:report": "knip --reporter github-actions --no-progress --no-exit-code",
     "knip:ci": "knip --no-progress --production --include unresolved --include binaries",
+    "guard:no-autoclaimer": "node scripts/guard-no-autoclaimer.mjs",
     "deadcode": "pnpm knip",
     "ci:deploy:scripts": "node scripts/check-deploy-scripts.mjs",
     "ops:linear:dry": "node scripts/linear-sync.mjs --dry-run",

@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 name: Brand Law Enforcer
 
 on:
@@ -19,6 +19,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Forbid AutoClaimer in player surfaces
+        run: node scripts/guard-no-autoclaimer.mjs
 
       - name: Get changed files
         id: changed
