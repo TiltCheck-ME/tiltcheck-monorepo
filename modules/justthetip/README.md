@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 -->
 # JustTheTip Module
 
 **Solana P2P tipping system for Discord communities.**
@@ -5,6 +6,12 @@
 Migrated from [github.com/jmenichole/Justthetip](https://github.com/jmenichole/Justthetip)
 
 ## Features
+
+### Cooldown guard (`guardTipForWallet`)
+
+Call before `/tip/send` and `/tip/claim`. Reads `GET /cooldown/check` — no keys, no funds. Active `scope=all` locks block credit tips.
+
+RPC failure **fail-open** unless `COOLDOWN_GUARD_FAIL_CLOSED=true` (set that in prod if self-exclusion must survive a Solana outage).
 
 ### Direct tips (non-custodial)
 

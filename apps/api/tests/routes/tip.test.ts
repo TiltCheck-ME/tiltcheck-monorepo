@@ -1,16 +1,20 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express, { Request, Response, NextFunction } from 'express';
 import { tipRouter } from '../../src/routes/tip.js';
-import { justthetip } from '@tiltcheck/justthetip';
+import { justthetip, guardTipForWallet } from '@tiltcheck/justthetip';
 
 let mockAuthUser: {
   userId: string;
   discordId: string;
   walletAddress: string;
 } | null = null;
+
+vi.mock('express-rate-limit', () => ({
+  default: () => (_req: Request, _res: Response, next: NextFunction) => next(),
+}));
 
 vi.mock('@tiltcheck/auth/middleware/express', () => ({
   sessionAuth: vi.fn((_jwtConfig?: unknown, options?: { required?: boolean }) => (
@@ -32,13 +36,27 @@ vi.mock('@tiltcheck/auth/middleware/express', () => ({
   }),
 }));
 
+vi.mock('@tiltcheck/db', () => ({
+  findUserByDiscordId: vi.fn().mockResolvedValue({ id: 'u1', discord_username: 'alice' }),
+}));
+
+vi.mock('@tiltcheck/event-router', () => ({
+  eventRouter: { publish: vi.fn().mockResolvedValue(undefined) },
+}));
+
 vi.mock('@tiltcheck/justthetip', () => ({
   FLAT_FEE_LAMPORTS: 0,
+  guardTipForWallet: vi.fn().mockResolvedValue({ allowed: true }),
   justthetip: {
     verifyTipRequest: vi.fn(),
     createNewTip: vi.fn(),
     completeTipTransaction: vi.fn(),
     getTipDetails: vi.fn(),
+    credits: {
+      deductForAirdrop: vi.fn().mockResolvedValue(undefined),
+      createPendingTip: vi.fn().mockResolvedValue(undefined),
+      deposit: vi.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -237,6 +255,27 @@ describe('Tip Routes', () => {
         .post('/tip/send')
         .send({ toUsername: 'peer', amountSol: 1, channelId: 'ch-1' });
       expect(response.status).toBe(401);
+    });
+
+    it('blocks send when the wallet has an active Cooldown lock', async () => {
+      vi.mocked(guardTipForWallet).mockResolvedValueOnce({
+        allowed: false,
+        reason: "It's giving cooldown energy. This wallet is self-excluded until an unknown date. Tips and Rain are blocked.",
+      });
+      const response = await request(app)
+        .post('/tip/send')
+        .send({ toUsername: 'peer', amountSol: 1, channelId: 'ch-1' });
+      expect(response.status).toBe(403);
+      expect(response.body.error).toMatch(/cooldown/i);
+    });
+
+    it('allows send when Cooldown reports unlocked', async () => {
+      vi.mocked(guardTipForWallet).mockResolvedValueOnce({ allowed: true });
+      const response = await request(app)
+        .post('/tip/send')
+        .send({ toUsername: 'peer', amountSol: 0.01, channelId: 'ch-1' });
+      expect(response.status).not.toBe(403);
+      expect(guardTipForWallet).toHaveBeenCalledWith('wallet-1');
     });
   });
 

@@ -1,11 +1,17 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 /**
  * Tilt hint engine for JustTheTip.
  *
  * - If tips sent in the last 60 minutes are >= 3x the wallet's 7-day hourly average,
  *   return a hint string and a prefilled Cooldown lock-page URL.
  * - If the wallet has an active SCOPE_ALL Cooldown lock, block tips with a clear message.
- *   The block is advisory — the actual gate is on-chain.
+ *
+ * Threat / fail policy:
+ * Credit tips (`/tip/send`, `/tip/claim`) never hit the chain. This HTTP check is the
+ * only enforcement layer for those routes. RPC/API failure defaults FAIL-OPEN so a
+ * Solana outage does not freeze every tip. Set COOLDOWN_GUARD_FAIL_CLOSED=true in
+ * production if self-exclusion must not be bypassable during an outage.
+ * Rollback: unset the env var or skip the guard call in the route.
  */
 
 import { getRecentSentTips } from './tip-log.js';
@@ -25,14 +31,21 @@ interface LockStatus {
   endTime: number | null;
 }
 
-async function fetchLockStatus(wallet: string): Promise<LockStatus> {
-  try {
-    const res = await fetch(`${COOLDOWN_API}?wallet=${encodeURIComponent(wallet)}`);
-    if (!res.ok) return { locked: false, scope: null, endTime: null };
-    return (await res.json()) as LockStatus;
-  } catch {
-    return { locked: false, scope: null, endTime: null };
+function failClosed(): boolean {
+  return process.env.COOLDOWN_GUARD_FAIL_CLOSED === 'true';
+}
+
+class CooldownRpcError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CooldownRpcError';
   }
+}
+
+async function fetchLockStatus(wallet: string): Promise<LockStatus> {
+  const res = await fetch(`${COOLDOWN_API}?wallet=${encodeURIComponent(wallet)}`);
+  if (!res.ok) throw new CooldownRpcError(`cooldown check HTTP ${res.status}`);
+  return (await res.json()) as LockStatus;
 }
 
 // ── Tilt detection ────────────────────────────────────────────────────────────
@@ -82,14 +95,27 @@ export interface TipGuardResult {
  * If the wallet has an active all-scope Cooldown lock, block the action.
  */
 export async function guardTipForWallet(wallet: string): Promise<TipGuardResult> {
-  const status = await fetchLockStatus(wallet);
+  let status: LockStatus;
+  try {
+    status = await fetchLockStatus(wallet);
+  } catch (err) {
+    if (failClosed()) {
+      console.warn('[CooldownGuard] RPC failed, fail-closed — tip blocked', err);
+      return {
+        allowed: false,
+        reason: 'Cooldown check failed. Fail-closed is on. Tips stay blocked until the RPC recovers. No cap, the lock comes first.',
+      };
+    }
+    console.warn('[CooldownGuard] RPC failed, fail-open — tip allowed', err);
+    return { allowed: true };
+  }
   if (status.locked && status.scope === 'all') {
     const until = status.endTime
       ? new Date(status.endTime * 1000).toLocaleDateString()
       : 'an unknown date';
     return {
       allowed: false,
-      reason: `This wallet has an active self-exclusion lock until ${until}. Tips and Rain are blocked while the Cooldown lock is active.`,
+      reason: `It's giving cooldown energy. This wallet is self-excluded until ${until}. Tips and Rain are blocked.`,
     };
   }
   return { allowed: true };
