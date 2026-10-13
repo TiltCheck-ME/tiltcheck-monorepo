@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import JsonLd from '@/components/JsonLd';
@@ -44,7 +44,7 @@ export default function Home() {
               <Link
                 key={cta.href}
                 href={cta.href}
-                className="btn btn-secondary"
+                className={cta.href === '/cooldown' ? 'btn btn-primary' : 'btn btn-secondary'}
                 data-funnel-event="landing_secondary_click"
                 data-funnel-source="web-home-hero"
                 data-funnel-label={cta.label}

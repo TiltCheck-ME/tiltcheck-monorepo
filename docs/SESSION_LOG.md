@@ -2,6 +2,10 @@
 
 # Session Log
 
+## 2026-10-13 — copy: honest Core vs Pro + Cooldown discoverability
+
+Public copy now says Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup. Guest popup opens on Guards. No enforcement default changes.
+
 ## 2026-10-13 — guard: AutoClaimer never ships in the player build
 
 CI walker `scripts/guard-no-autoclaimer.mjs` fails Brand Law if AutoClaimer identifiers return under apps/ or packages/. Closes #545. No product UI. No runtime kill switch.

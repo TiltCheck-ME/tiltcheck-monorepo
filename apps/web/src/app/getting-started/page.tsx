@@ -1,12 +1,19 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import Link from 'next/link';
 import PublicPageHero, { PublicPageSectionHeader } from '@/components/PublicPageHero';
 
 const paths = [
   {
+    tag: 'Lock',
+    title: 'On-chain Cooldown',
+    body: 'Sign a Solana devnet lock. No cancel in v1. Wallet-level, not a casino settings toggle.',
+    href: '/cooldown',
+    label: 'Open Cooldown',
+  },
+  {
     tag: 'Install',
     title: 'Extension or AutoVault',
-    body: 'Chrome extension for in-tab guards. /nuts or /stake for mobile AutoVault — DM links only.',
+    body: 'Chrome Core is a 2s spin lock on supported tabs. /nuts or /stake for mobile AutoVault — DM links only.',
     href: '/extension',
     label: 'Extension guide',
   },
@@ -29,7 +36,7 @@ const paths = [
 
 const steps = [
   { n: '1', title: 'Install', body: 'Extension zip or mobile userscript from /tools install links.' },
-  { n: '2', title: 'Set rules', body: 'Profit target, loss cap, cooldown — dashboard or script panel.' },
+  { n: '2', title: 'Set rules', body: 'On-chain Cooldown at /cooldown. Dashboard shields and vault rules after Discord.' },
   { n: '3', title: 'Play once', body: 'Open a supported session. TiltCheck reads the tab, not your keys.' },
 ];
 
@@ -45,7 +52,7 @@ export default function GettingStartedPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <div className="public-page-grid public-page-grid--3">
+          <div className="public-page-grid public-page-grid--2">
             {paths.map((path) => (
               <article
                 key={path.title}

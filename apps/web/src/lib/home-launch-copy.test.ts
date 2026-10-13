@@ -1,7 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import { describe, expect, it } from 'vitest';
 import { HOME_LAUNCH } from './home-launch-copy';
 import { SITE_ONE_LINER, SITE_SEO_TITLE } from './site-copy';
+import { TOOL_REGISTRY } from './tool-registry';
 
 describe('HOME_LAUNCH', () => {
   it('keeps the headline and primary zip CTA', () => {
@@ -28,5 +29,20 @@ describe('HOME_LAUNCH', () => {
     expect(SITE_SEO_TITLE).toContain('Cooldown');
     expect(SITE_ONE_LINER).toContain('trust scores');
     expect(SITE_ONE_LINER).toContain('Non-custodial');
+  });
+
+  it('does not sell Core as a two-minute fullscreen lock', () => {
+    expect(HOME_LAUNCH.lede).toContain('two-second');
+    expect(HOME_LAUNCH.lede).toContain('Pro only');
+    expect(HOME_LAUNCH.installSteps.join(' ')).toContain('two seconds');
+    expect(HOME_LAUNCH.installSteps.join(' ')).not.toMatch(/two minutes/i);
+    expect(HOME_LAUNCH.cards[1]?.body).toContain('two seconds');
+    expect(HOME_LAUNCH.cards[1]?.body).toContain('Pro monolith');
+    expect(HOME_LAUNCH.honesty.join(' ')).toContain('2s spin lock');
+  });
+
+  it('lists Cooldown first in the public tool registry', () => {
+    expect(TOOL_REGISTRY[0]?.href).toBe('/cooldown');
+    expect(TOOL_REGISTRY[0]?.status).toBe('live');
   });
 });

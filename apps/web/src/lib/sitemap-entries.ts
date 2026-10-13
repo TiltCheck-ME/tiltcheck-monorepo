@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import type { MetadataRoute } from 'next';
 
 export type SitemapCategory =
@@ -42,7 +42,7 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   {
     path: '/extension',
     title: 'Chrome extension',
-    description: 'Session monitoring, click pacing, and Touch Grass lockouts.',
+    description: 'Session monitoring, click pacing, and a two-second Core spin lock.',
     category: 'Core',
     changeFrequency: 'weekly',
     priority: 0.9,
