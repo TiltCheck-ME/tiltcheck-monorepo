@@ -1,10 +1,31 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 import { describe, expect, it } from 'vitest';
 import { decidePublicRoute } from './public-route-gate';
 
 describe('decidePublicRoute', () => {
-  it('keeps the launch pages and the zip', () => {
-    for (const path of ['/', '/privacy', '/terms', '/legal', '/login', '/dashboard', '/touch-grass', '/sitemap.xml', '/robots.txt', '/downloads/tiltcheck-extension.zip']) {
+  it('keeps launch pages, live marketing routes, and the zip', () => {
+    for (const path of [
+      '/',
+      '/privacy',
+      '/terms',
+      '/legal',
+      '/login',
+      '/dashboard',
+      '/touch-grass',
+      '/extension',
+      '/bonuses',
+      '/cooldown',
+      '/cooldown/casino-demo',
+      '/intel/rtp',
+      '/blog',
+      '/blog/hello',
+      '/microgrant',
+      '/casinos',
+      '/casinos/stake',
+      '/sitemap.xml',
+      '/robots.txt',
+      '/downloads/tiltcheck-extension.zip',
+    ]) {
       expect(decidePublicRoute(path)).toEqual({ action: 'next' });
     }
   });
@@ -16,7 +37,7 @@ describe('decidePublicRoute', () => {
   });
 
   it('sends retired marketing paths home with a temporary redirect', () => {
-    for (const path of ['/casinos', '/casinos/stake', '/tools', '/tools/auto-vault', '/operators', '/operators/instant-redeem', '/extension', '/blog', '/blog/hello', '/docs', '/legal/limit', '/ask', '/site-map']) {
+    for (const path of ['/tools', '/tools/auto-vault', '/operators', '/operators/instant-redeem', '/docs', '/legal/limit', '/ask', '/site-map']) {
       expect(decidePublicRoute(path)).toEqual({ action: 'redirect', status: 307, destination: '/' });
     }
   });

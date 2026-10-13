@@ -1,0 +1,417 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12 */
+'use client';
+
+/**
+ * Cooldown Lock Page
+ * Connect wallet, pick scope, pick duration, sign a set_lock transaction.
+ * Reads active locks from the API. No custody, no funds held.
+ */
+
+import React, { useCallback, useEffect, useState } from 'react';
+import BrandTagline from '@/components/BrandTagline';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type ScopeId = 'all' | 'category' | 'game';
+type CategorySlug = 'crash' | 'plinko' | 'slots-high-vol' | 'live-dealer';
+type GameEntry = { label: string; key: string };
+
+interface LockStatus {
+  locked: boolean;
+  scope: string | null;
+  endTime: number | null;
+}
+
+// ── Constants ──────────────────────────────────────────────────────────────────
+
+const CATEGORIES: { label: string; slug: CategorySlug }[] = [
+  { label: 'Crash', slug: 'crash' },
+  { label: 'Plinko', slug: 'plinko' },
+  { label: 'High-vol Slots', slug: 'slots-high-vol' },
+  { label: 'Live Dealer', slug: 'live-dealer' },
+];
+
+const GAMES: GameEntry[] = [
+  { label: 'Plinko (Pragmatic)', key: 'pragmatic:plinko' },
+  { label: 'Dice (Relax)', key: 'relax:dice' },
+  { label: 'Crash (Spribe)', key: 'spribe:crash' },
+  { label: 'Le Vampire (Push)', key: 'push:le-vampire' },
+];
+
+const DURATIONS: { label: string; seconds: number }[] = [
+  { label: '24 hours', seconds: 86_400 },
+  { label: '7 days', seconds: 7 * 86_400 },
+  { label: '30 days', seconds: 30 * 86_400 },
+];
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+const LOCK_PAGE_URL = typeof window !== 'undefined' ? window.location.origin + '/cooldown' : 'https://tiltcheck.me/cooldown';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmtDate(unix: number): string {
+  return new Date(unix * 1000).toLocaleString();
+}
+
+async function fetchLockStatus(wallet: string, game?: string, category?: string): Promise<LockStatus> {
+  const params = new URLSearchParams({ wallet });
+  if (game) params.set('game', game);
+  if (category) params.set('category', category);
+  const res = await fetch(`${API_BASE}/cooldown/check?${params}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<LockStatus>;
+}
+
+// Build and sign a set_lock transaction via the injected Solana wallet.
+// The SDK instruction builder is imported lazily to avoid SSR issues.
+async function signAndSendLock(
+  wallet: string,
+  scope: number,
+  targetKey: string,
+  endTime: number,
+): Promise<string> {
+  // Dynamic import to avoid SSR errors.
+  const [{ setLock, hashTarget, zeroTarget, SCOPE_ALL }, { Connection, PublicKey, Transaction }] =
+    await Promise.all([
+      import('@tiltcheck/cooldown-sdk'),
+      import('@solana/web3.js'),
+    ]);
+
+  const w = window as unknown as { solana?: { publicKey: { toString(): string }; signAndSendTransaction(tx: unknown): Promise<{ signature: string }> } };
+  if (!w.solana?.publicKey) throw new Error('Wallet not connected');
+
+  const ownerKey = new PublicKey(wallet);
+  const target = scope === SCOPE_ALL ? zeroTarget() : hashTarget(targetKey);
+  const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+
+  const ix = setLock(ownerKey, scope, target, endTime);
+  const tx = new Transaction().add(ix);
+  const { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = ownerKey;
+
+  const { signature } = await w.solana.signAndSendTransaction(tx);
+  await connection.confirmTransaction(signature, 'confirmed');
+  return signature;
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
+
+export default function CooldownPage() {
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [scope, setScope] = useState<ScopeId>('all');
+  const [selectedCategory, setSelectedCategory] = useState<CategorySlug>('crash');
+  const [selectedGame, setSelectedGame] = useState<string>(GAMES[0]!.key);
+  const [durationSecs, setDurationSecs] = useState(86_400);
+  const [customDays, setCustomDays] = useState('');
+  const [activeLocks, setActiveLocks] = useState<LockStatus[]>([]);
+  const [txStatus, setTxStatus] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
+  // ── Connect wallet ──────────────────────────────────────────────────────────
+
+  const connectWallet = useCallback(async () => {
+    const w = window as unknown as { solana?: { connect(): Promise<{ publicKey: { toString(): string } }> } };
+    if (!w.solana) {
+      setTxStatus('No Solana wallet detected. Install Phantom and try again.');
+      return;
+    }
+    setConnecting(true);
+    try {
+      const resp = await w.solana.connect();
+      setWallet(resp.publicKey.toString());
+    } catch {
+      setTxStatus('Wallet connection rejected.');
+    } finally {
+      setConnecting(false);
+    }
+  }, []);
+
+  // ── Load active locks ───────────────────────────────────────────────────────
+
+  const loadLocks = useCallback(async (w: string) => {
+    const checks: Promise<LockStatus>[] = [
+      fetchLockStatus(w),                          // all-scope
+      ...CATEGORIES.map((c) => fetchLockStatus(w, undefined, c.slug)),
+      ...GAMES.map((g) => fetchLockStatus(w, g.key)),
+    ];
+    const results = await Promise.allSettled(checks);
+    const active = results
+      .filter((r): r is PromiseFulfilledResult<LockStatus> => r.status === 'fulfilled' && r.value.locked)
+      .map((r) => r.value);
+    setActiveLocks(active);
+  }, []);
+
+  useEffect(() => {
+    if (wallet) { void loadLocks(wallet); }
+  }, [wallet, loadLocks]);
+
+  // ── Submit lock ─────────────────────────────────────────────────────────────
+
+  const handleLock = async () => {
+    if (!wallet) return;
+    setLoading(true);
+    setTxStatus('');
+    try {
+      const effectiveDuration = customDays
+        ? parseFloat(customDays) * 86_400
+        : durationSecs;
+      const endTime = Math.floor(Date.now() / 1000) + Math.floor(effectiveDuration);
+
+      const scopeNum = scope === 'all' ? 0 : scope === 'category' ? 1 : 2;
+      const targetKey =
+        scope === 'all' ? '' :
+        scope === 'category' ? `category:${selectedCategory}` :
+        selectedGame;
+
+      const sig = await signAndSendLock(wallet, scopeNum, targetKey, endTime);
+      setTxStatus(`Lock set. Tx: ${sig.slice(0, 20)}...`);
+      await loadLocks(wallet);
+    } catch (err: unknown) {
+      setTxStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Extend ─────────────────────────────────────────────────────────────────
+
+  const handleExtend = async (lock: LockStatus) => {
+    if (!wallet || !lock.endTime) return;
+    setLoading(true);
+    setTxStatus('');
+    try {
+      const [{ extendLock, hashTarget, zeroTarget, SCOPE_ALL: SA }, { Connection, PublicKey, Transaction }] =
+        await Promise.all([
+          import('@tiltcheck/cooldown-sdk'),
+          import('@solana/web3.js'),
+        ]);
+
+      const w = window as unknown as { solana?: { publicKey: { toString(): string }; signAndSendTransaction(tx: unknown): Promise<{ signature: string }> } };
+      if (!w.solana?.publicKey) throw new Error('Wallet not connected');
+
+      const scopeNum = lock.scope === 'all' ? 0 : lock.scope === 'category' ? 1 : 2;
+      const target = scopeNum === SA ? zeroTarget() : hashTarget(''); // simplified for demo
+      const newEndTime = lock.endTime + 7 * 86_400;
+      const ownerKey = new PublicKey(wallet);
+      const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+      const ix = extendLock(ownerKey, scopeNum, target, newEndTime);
+      const tx = new Transaction().add(ix);
+      const { blockhash } = await connection.getLatestBlockhash();
+      tx.recentBlockhash = blockhash;
+      tx.feePayer = ownerKey;
+      const { signature } = await w.solana.signAndSendTransaction(tx);
+      await connection.confirmTransaction(signature, 'confirmed');
+      setTxStatus(`Extended +7d. Tx: ${signature.slice(0, 20)}...`);
+      await loadLocks(wallet);
+    } catch (err: unknown) {
+      setTxStatus(`Extend failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <main style={{ maxWidth: 640, margin: '0 auto', padding: '2rem 1rem', fontFamily: 'var(--font-inter, sans-serif)', color: '#e2e8f0' }}>
+      <h1 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.25rem' }}>Cooldown</h1>
+      <p style={{ color: '#94a3b8', marginBottom: '2rem', fontSize: '0.9rem' }}>
+        On-chain self-exclusion. Lock your wallet out of a game, category, or everything.
+        The lock can only get stronger until it expires naturally.
+      </p>
+
+      {/* ── Connect wallet ── */}
+      {!wallet ? (
+        <button
+          onClick={connectWallet}
+          disabled={connecting}
+          style={btnStyle('#3b82f6')}
+        >
+          {connecting ? 'Connecting...' : 'Connect Wallet (Phantom)'}
+        </button>
+      ) : (
+        <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.5rem' }}>
+          Connected: <code style={{ color: '#94a3b8' }}>{wallet.slice(0, 8)}...{wallet.slice(-6)}</code>
+        </p>
+      )}
+
+      {wallet && (
+        <>
+          {/* ── Active locks ── */}
+          {activeLocks.length > 0 && (
+            <section style={{ marginBottom: '2rem' }}>
+              <h2 style={sectionHead}>Active Locks</h2>
+              {activeLocks.map((lock, i) => (
+                <div key={i} style={lockCard}>
+                  <div>
+                    <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{lock.scope}</span>
+                    {lock.endTime && (
+                      <span style={{ color: '#94a3b8', fontSize: '0.8rem', marginLeft: '0.75rem' }}>
+                        until {fmtDate(lock.endTime)}
+                      </span>
+                    )}
+                  </div>
+                  {/* Extend only — no shorten button. */}
+                  <button onClick={() => handleExtend(lock)} disabled={loading} style={btnStyle('#1e293b', true)}>
+                    Extend +7d
+                  </button>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {/* ── Set a new lock ── */}
+          <section>
+            <h2 style={sectionHead}>Set a Lock</h2>
+
+            {/* Scope picker */}
+            <label style={labelStyle}>Scope</label>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              {(['all', 'category', 'game'] as ScopeId[]).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setScope(s)}
+                  style={tabBtn(scope === s)}
+                >
+                  {s === 'all' ? 'Whole site' : s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {scope === 'category' && (
+              <>
+                <label style={labelStyle}>Category</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value as CategorySlug)}
+                  style={selectStyle}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.slug} value={c.slug}>{c.label}</option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {scope === 'game' && (
+              <>
+                <label style={labelStyle}>Game</label>
+                <select
+                  value={selectedGame}
+                  onChange={(e) => setSelectedGame(e.target.value)}
+                  style={selectStyle}
+                >
+                  {GAMES.map((g) => (
+                    <option key={g.key} value={g.key}>{g.label}</option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {/* Duration picker */}
+            <label style={labelStyle}>Duration</label>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+              {DURATIONS.map((d) => (
+                <button
+                  key={d.seconds}
+                  onClick={() => { setDurationSecs(d.seconds); setCustomDays(''); }}
+                  style={tabBtn(durationSecs === d.seconds && !customDays)}
+                >
+                  {d.label}
+                </button>
+              ))}
+              <button onClick={() => setCustomDays('1')} style={tabBtn(!!customDays)}>Custom</button>
+            </div>
+
+            {customDays !== '' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <input
+                  type="number"
+                  min="1"
+                  max="1825"
+                  value={customDays}
+                  onChange={(e) => setCustomDays(e.target.value)}
+                  placeholder="Days"
+                  style={{ ...selectStyle, width: 120 }}
+                />
+                <span style={{ color: '#64748b', marginLeft: '0.5rem', fontSize: '0.85rem' }}>days</span>
+              </div>
+            )}
+
+            <button
+              onClick={handleLock}
+              disabled={loading || !wallet}
+              style={btnStyle('#dc2626')}
+            >
+              {loading ? 'Signing...' : 'Sign and Lock'}
+            </button>
+
+            {txStatus && (
+              <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: txStatus.startsWith('Error') ? '#f87171' : '#4ade80' }}>
+                {txStatus}
+              </p>
+            )}
+          </section>
+
+          <p style={{ marginTop: '2rem', fontSize: '0.75rem', color: '#334155' }}>
+            Devnet only. Locks are on-chain at program{' '}
+            <code style={{ color: '#475569' }}>7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2</code>.
+          </p>
+        </>
+      )}
+
+      <footer style={{ marginTop: '3rem', borderTop: '1px solid #1e293b', paddingTop: '1rem' }}>
+        <BrandTagline compact />
+      </footer>
+    </main>
+  );
+}
+
+// ── Inline style helpers ───────────────────────────────────────────────────────
+
+const sectionHead: React.CSSProperties = { fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: '#cbd5e1' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' };
+const selectStyle: React.CSSProperties = { width: '100%', padding: '0.5rem 0.75rem', background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: 6, fontSize: '0.875rem', marginBottom: '1rem' };
+
+function btnStyle(bg: string, small = false): React.CSSProperties {
+  return {
+    padding: small ? '0.3rem 0.75rem' : '0.6rem 1.25rem',
+    background: bg,
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    fontWeight: 700,
+    fontSize: small ? '0.75rem' : '0.875rem',
+    cursor: 'pointer',
+    marginBottom: small ? 0 : '1.5rem',
+  };
+}
+
+function tabBtn(active: boolean): React.CSSProperties {
+  return {
+    padding: '0.4rem 0.9rem',
+    background: active ? '#1d4ed8' : '#1e293b',
+    color: active ? '#fff' : '#94a3b8',
+    border: `1px solid ${active ? '#3b82f6' : '#334155'}`,
+    borderRadius: 6,
+    fontWeight: 600,
+    fontSize: '0.8rem',
+    cursor: 'pointer',
+  };
+}
+
+const lockCard: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '0.75rem 1rem',
+  background: '#0f172a',
+  border: '1px solid #1e293b',
+  borderRadius: 8,
+  marginBottom: '0.5rem',
+};
+
+// Prefill URL helper (exported for JustTheTip tilt hint)
+export { LOCK_PAGE_URL };

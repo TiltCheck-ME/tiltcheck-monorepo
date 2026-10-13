@@ -1,15 +1,16 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12 */
 import React from 'react';
 import type { Metadata } from 'next';
 import BonusGrid, { BonusEntry } from '@/components/BonusGrid';
 import PublicPageHero from '@/components/PublicPageHero';
+import type { LiveTrustScore } from '@/lib/casino-trust';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Daily Bonus Tracker | TiltCheck',
   description:
-    'Sweepstakes and social casino bonuses sourced from CollectClock and TiltCheck inbox intel.',
+    'Sweepstakes and social casino bonuses with trust cross-links — CollectClock plus TiltCheck inbox intel.',
   openGraph: {
     title: 'Daily Bonus Tracker | TiltCheck',
     description:
@@ -87,6 +88,20 @@ async function fetchCollectClockBonuses(): Promise<BonusFeedResult> {
   }
 }
 
+async function fetchLiveTrustScores(): Promise<LiveTrustScore[]> {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://api.tiltcheck.me';
+  try {
+    const res = await fetch(`${apiBase.replace(/\/$/, '')}/rgaas/casino-scores`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const payload = (await res.json()) as { casinos?: LiveTrustScore[] };
+    return Array.isArray(payload.casinos) ? payload.casinos : [];
+  } catch {
+    return [];
+  }
+}
+
 async function fetchInboxBonuses(): Promise<BonusFeedResult> {
   if (!EMAIL_FEED_API_URL) {
     return { bonuses: [], available: false, updatedAt: null };
@@ -116,9 +131,10 @@ async function fetchInboxBonuses(): Promise<BonusFeedResult> {
 }
 
 export default async function BonusesPage() {
-  const [collectClockFeed, inboxFeed] = await Promise.all([
+  const [collectClockFeed, inboxFeed, liveTrustScores] = await Promise.all([
     fetchCollectClockBonuses(),
     fetchInboxBonuses(),
+    fetchLiveTrustScores(),
   ]);
   const bonuses = mergeBonuses(inboxFeed.bonuses, collectClockFeed.bonuses);
   const hasAnyFeed = bonuses.length > 0;
@@ -180,7 +196,7 @@ export default async function BonusesPage() {
               </p>
             </div>
           ) : (
-            <BonusGrid bonuses={bonuses} />
+            <BonusGrid bonuses={bonuses} liveTrustScores={liveTrustScores} />
           )}
         </div>
       </section>

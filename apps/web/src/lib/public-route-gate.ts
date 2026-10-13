@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 
 export type PublicRouteDecision =
   | { action: 'next' }
@@ -14,7 +14,14 @@ const STAY_EXACT = new Set([
   '/touch-grass',
   '/sitemap.xml',
   '/robots.txt',
+  '/extension',
+  '/bonuses',
+  '/microgrant',
+  '/blog',
 ]);
+
+/** Prefixes for nested public marketing routes (cooldown demo, blog posts, intel). */
+const STAY_PREFIXES = ['/cooldown', '/intel', '/blog', '/casinos'];
 
 export function normalizePublicPath(pathname: string): string {
   const withoutSuffix = pathname.split('?')[0]?.split('#')[0] ?? '/';
@@ -28,9 +35,14 @@ function hasFileExtension(pathname: string): boolean {
   return last.includes('.');
 }
 
+function matchesPublicPrefix(path: string): boolean {
+  return STAY_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
 export function decidePublicRoute(pathname: string): PublicRouteDecision {
   const path = normalizePublicPath(pathname);
   if (STAY_EXACT.has(path)) return { action: 'next' };
+  if (matchesPublicPrefix(path)) return { action: 'next' };
   if (path === '/api' || path.startsWith('/api/')) return { action: 'next' };
   if (path === '/ask/v' || path.startsWith('/ask/v/')) return { action: 'next' };
   if (path === '/downloads' || path.startsWith('/downloads/')) return { action: 'next' };

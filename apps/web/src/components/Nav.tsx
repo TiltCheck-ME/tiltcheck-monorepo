@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -62,19 +62,31 @@ const Nav = () => {
   };
 
   const DesktopLinks = () => (
-    <Link
-      href={PUBLIC_NAV.downloadHref}
-      className="nav-desktop-link nav-desktop-beta"
-      data-funnel-event="nav_install_click"
-      data-funnel-source="web-nav-desktop"
-      data-funnel-label={PUBLIC_NAV.downloadLabel}
-    >
-      {PUBLIC_NAV.downloadLabel}
-    </Link>
+    <>
+      {PUBLIC_NAV.links.map((link) => (
+        <Link key={link.href} href={link.href} className="nav-desktop-link">
+          {link.label}
+        </Link>
+      ))}
+      <Link
+        href={PUBLIC_NAV.downloadHref}
+        className="nav-desktop-link nav-desktop-beta"
+        data-funnel-event="nav_install_click"
+        data-funnel-source="web-nav-desktop"
+        data-funnel-label={PUBLIC_NAV.downloadLabel}
+      >
+        {PUBLIC_NAV.downloadLabel}
+      </Link>
+    </>
   );
 
   const MobileLinks = () => (
     <>
+      {PUBLIC_NAV.links.map((link) => (
+        <Link key={link.href} href={link.href} onClick={close} className="nav-sidebar-link">
+          {link.label}
+        </Link>
+      ))}
       <Link
         href={PUBLIC_NAV.downloadHref}
         onClick={close}
