@@ -25,7 +25,7 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.7.0",
     "magic-sdk": "^33.6.3",
-    "next": "16.2.6",
+    "next": "16.3.8",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-markdown": "^10.1.0",
@@ -35,13 +35,13 @@
     "wagmi": "^3.6.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "10.1.0",
-    "eslint-config-next": "16.2.1",
-    "postcss": "^8.5.30",
+    "eslint-config-next": "16.2.10",
+    "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.4.5"
   }
