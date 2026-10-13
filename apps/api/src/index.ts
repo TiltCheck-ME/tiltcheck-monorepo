@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -65,6 +65,7 @@ import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
 import { collabRouter } from './routes/collab.js';
 import { partnerRouter } from './routes/partner.js';
+import { redeemRouter } from './routes/redeem.js';
 import { statsRouter } from './routes/stats.js';
 import { blogRouter } from './routes/blog.js';
 import { telemetryRouter } from './routes/telemetry.js';
@@ -252,6 +253,7 @@ app.use('/beta', betaRouter);
 app.use('/collab', collabRouter);
 app.use('/stats', statsRouter);
 app.use('/partner', partnerRouter);
+app.use('/v1/redeem', redeemRouter);
 app.use('/blog', blogRouter);
 app.use('/v1/telemetry', telemetryRouter);
 app.use('/telemetry', telemetryRouter);
