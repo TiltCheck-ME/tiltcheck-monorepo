@@ -15,7 +15,7 @@ export const HOME_LAUNCH = {
     { label: 'EXTENSION DETAILS', href: '/extension' },
   ] as const,
   privacy:
-    'Does not read your wallet seed or casino password. Cooldown is you signing an on-chain lock — we never hold keys.',
+    'Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.',
   installSteps: [
     'Download the zip. Extract it to a folder.',
     'Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.',

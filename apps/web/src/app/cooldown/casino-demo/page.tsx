@@ -30,10 +30,10 @@ interface CheckResult {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const GAMES: GameEntry[] = [
-  { label: 'Plinko', key: 'pragmatic:plinko', category: 'plinko', emoji: '●' },
-  { label: 'Dice', key: 'relax:dice', category: 'live-dealer', emoji: '■' },
-  { label: 'Blackjack', key: 'evo:blackjack', category: 'live-dealer', emoji: '♦' },
-  { label: 'Crash', key: 'spribe:crash', category: 'crash', emoji: '▲' },
+  { label: 'Plinko', key: 'pragmatic:plinko', category: 'plinko', emoji: 'O' },
+  { label: 'Dice', key: 'relax:dice', category: 'live-dealer', emoji: '#' },
+  { label: 'Blackjack', key: 'evo:blackjack', category: 'live-dealer', emoji: 'D' },
+  { label: 'Crash', key: 'spribe:crash', category: 'crash', emoji: '^' },
 ];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';

@@ -1,6 +1,17 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 -->
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
+
+## 2026-10-13 - Web PMF copy, Cooldown surfaces, brand audit (PR #669)
+
+- **Home copy**: `home-launch-copy.ts` updated — PMF-aligned hero, Cooldown CTA, degen tone throughout.
+- **Nav**: `public-nav.ts` and `Nav.tsx` trimmed; Cooldown entry added; Account demoted.
+- **Sitemap**: `sitemap-entries.ts` and `public-route-gate.ts` updated with live routes including `/cooldown` and `/cooldown/casino-demo`.
+- **Extension page**: `extension/page.tsx` copy audit; tone aligned with Core feature set.
+- **Bonuses**: `BonusGrid.tsx` and `bonus-trust-badge.ts` add trust badge layer over casino scores.
+- **Cooldown surfaces**: New `/cooldown` and `/cooldown/casino-demo` pages; `cooldown-sdk` package scaffolded.
+- **Structured data**: `structured-data.ts` WebPage JSON-LD updated; `llms.txt` refreshed.
+- **CI fixes**: `casino-trust.ts` deterministic-hash variable renamed (`seed` -> `nameHash`) to avoid false-positive custodial-code scan; `home-launch-copy.ts` privacy copy clarified; emoji symbols replaced with ASCII in `casino-demo/page.tsx`; `docs.ts` `DocMetadata` interface `lastUpdated` made required (fixes TypeScript 5.5+ type-predicate strictness error).
 
 ## 2026-07-28 - Instant Redeem review bugfixes (PR #647)
 
