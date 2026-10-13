@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   enforce-brand:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Check Brand Compliance
 
     steps:
@@ -231,3 +231,5 @@ jobs:
           steps.violations.outputs.CRITICAL == 0
         run: |
           echo "Medium-priority brand compliance issues detected. Review requested."
+
+

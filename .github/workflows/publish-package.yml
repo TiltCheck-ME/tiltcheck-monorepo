@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Build and Publish Package
 
     steps:
@@ -59,3 +59,4 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git commit -am "chore(release): publish ${{ inputs.package_name }}@$(pnpm --filter ${{ inputs.package_name }} exec node -p "require('./package.json').version")"
           git push
+

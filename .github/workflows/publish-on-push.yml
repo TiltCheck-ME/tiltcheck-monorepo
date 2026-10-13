@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   publish-changed:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Detect, Version, and Publish Changed Packages
 
     steps:
@@ -66,3 +66,4 @@ jobs:
           else
             echo "No version changes to commit."
           fi
+
