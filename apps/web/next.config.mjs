@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -57,12 +57,12 @@ const nextConfig = {
       },
       {
         source: '/tools/auto-vault/install',
-        destination: '/tools/auto-vault/android',
+        destination: '/',
         permanent: false,
       },
       {
         source: '/casinos.html',
-        destination: '/casinos',
+        destination: '/',
         permanent: true,
       },
       {
