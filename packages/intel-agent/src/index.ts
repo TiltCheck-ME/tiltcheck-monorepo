@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
 export type {
   Citation,
@@ -13,6 +13,11 @@ export { routeIntelIntent } from './intent-router.js';
 export {
   buildListBlocks,
   buildLookupBlocks,
+  buildOperatorFactAmbiguousBlocks,
+  buildOperatorFactHitBlocks,
+  buildOperatorFactMissBlocks,
+  buildOperatorFactNoneBlocks,
+  buildOperatorFactTypeBlocks,
   resolveDataSource,
   summarizeCasinoVerdict,
 } from './block-builder.js';

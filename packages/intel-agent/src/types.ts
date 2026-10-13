@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
 import type { CasinoSummary, DataSource, ListFilters } from '@tiltcheck/intel-tools';
 
@@ -35,6 +35,10 @@ export type RoutedIntent =
   | { kind: 'domain'; domain: string }
   | { kind: 'methodology' }
   | { kind: 'personal'; topic: 'bonus' | 'session' | 'vault' }
+  | { kind: 'operator_vip_fact'; name: string; currencyHint?: string }
+  | { kind: 'operator_redemption_fact'; name: string }
+  | { kind: 'operator_welcome_bonus_fact'; name: string; geoTag?: string }
+  | { kind: 'operator_fact_lookup'; name: string }
   | { kind: 'unknown' };
 
 export interface ProcessIntelMessageInput {

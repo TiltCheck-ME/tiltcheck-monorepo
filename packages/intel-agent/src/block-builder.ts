@@ -1,7 +1,40 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
-import type { CasinoSummary, DataSource, ListFilters } from '@tiltcheck/intel-tools';
+import type { CasinoSummary, DataSource, ListFilters, OperatorFactRecord, OperatorFactType } from '@tiltcheck/intel-tools';
 import type { IntelBlock } from './types.js';
+
+const OPERATOR_FACT_REFUSE_TEXT =
+  'No sourced record for that. Not guessing VIP/bonus/redemption terms. Check their ToS — or open the proof page when we have one.';
+
+function buildProofPageCta(slug?: string): IntelBlock[] {
+  if (!slug) {
+    return [];
+  }
+
+  return [
+    {
+      type: 'cta',
+      label: 'Open proof page',
+      href: `/casinos/${slug}`,
+    },
+  ];
+}
+
+function formatFactTypeLabel(type: OperatorFactType): string {
+  if (type === 'vip') {
+    return 'VIP terms';
+  }
+  if (type === 'redemption') {
+    return 'redemption timing';
+  }
+  return 'welcome bonus';
+}
+
+export interface OperatorFactHitBlockEntry {
+  content: string;
+  sourceUrl: string;
+  asOf: string;
+}
 
 export function summarizeCasinoVerdict(casino: CasinoSummary, checkScam: boolean): string {
   const gradeLine = `Grade ${casino.grade} (${casino.risk} risk). Data source: ${casino.dataSource}.`;
@@ -67,6 +100,66 @@ export function buildLookupBlocks(
   }
 
   return blocks;
+}
+
+export function buildOperatorFactHitBlocks(
+  entries: OperatorFactHitBlockEntry[],
+  slug?: string,
+  stale = false,
+): IntelBlock[] {
+  const blocks: IntelBlock[] = [];
+
+  for (const entry of entries) {
+    blocks.push({ type: 'text', content: entry.content });
+    blocks.push({
+      type: 'text',
+      content: `Source: ${entry.sourceUrl} · As of ${entry.asOf}`,
+      citations: [{ label: 'Source', href: entry.sourceUrl, source: 'snapshot' }],
+    });
+  }
+
+  if (stale) {
+    blocks.push({ type: 'text', content: 'Stale — verify on source' });
+  }
+
+  return [...blocks, ...buildProofPageCta(slug)];
+}
+
+export function buildOperatorFactMissBlocks(_name: string, slug?: string): IntelBlock[] {
+  return [{ type: 'text', content: OPERATOR_FACT_REFUSE_TEXT }, ...buildProofPageCta(slug)];
+}
+
+export function buildOperatorFactAmbiguousBlocks(matches: OperatorFactRecord[]): IntelBlock[] {
+  return [
+    {
+      type: 'text',
+      content: `Multiple sourced matches: ${matches.map((match) => match.name).join(', ')}. Use the exact operator name or domain.`,
+    },
+  ];
+}
+
+export function buildOperatorFactNoneBlocks(_query: string): IntelBlock[] {
+  return [{ type: 'text', content: OPERATOR_FACT_REFUSE_TEXT }];
+}
+
+export function buildOperatorFactTypeBlocks(
+  name: string,
+  types: OperatorFactType[],
+  slug?: string,
+  stale = false,
+): IntelBlock[] {
+  const blocks: IntelBlock[] = [
+    {
+      type: 'text',
+      content: `Available sourced facts for ${name}: ${types.map(formatFactTypeLabel).join(', ')}.`,
+    },
+  ];
+
+  if (stale) {
+    blocks.push({ type: 'text', content: 'Stale — verify on source' });
+  }
+
+  return [...blocks, ...buildProofPageCta(slug)];
 }
 
 export function buildListBlocks(

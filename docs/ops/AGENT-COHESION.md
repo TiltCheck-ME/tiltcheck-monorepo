@@ -30,6 +30,7 @@ Do not invent a third status doc that duplicates both. Operator notes go in:
 | Competitor research briefs | Research ops | Spec + plan on #610 |
 | Recurring ops templates | Research ops | `docs/ops/recurring-tasks.json` |
 | `docs/DEPLOY.md` / Railway exit | Already merged (#607) | Touch only if cutover status changes |
+| Operator facts (VIP / redemption / welcome bonus) | Intel `/ask` + `@tiltcheck/intel-agent` | Answers from `operator-facts.live.json` only; casino-public-data-scraper fills proposals; research-ops may queue verify/promote tasks via Linear |
 
 ## Landing page problem (what Open items is about to hit)
 

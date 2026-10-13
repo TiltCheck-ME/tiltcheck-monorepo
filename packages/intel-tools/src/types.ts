@@ -1,4 +1,6 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+
+import type { OperatorFactRecord } from './operator-facts-types.js';
 
 export interface CasinoRecord {
   name: string;
@@ -42,6 +44,7 @@ export interface DomainScanResult {
 export interface IntelToolsConfig {
   apiBase: string;
   casinos: CasinoRecord[];
+  operatorFacts?: OperatorFactRecord[];
 }
 
 export type DataSource = 'live' | 'snapshot' | 'mixed';

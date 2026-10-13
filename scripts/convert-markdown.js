@@ -1,31 +1,56 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
  *
- * Lightweight Markdown → HTML converter for TiltCheck docs.
- * No external deps; supports:
- *  - YAML frontmatter (skipped in body)
- *  - Headings (# .. ######)
- *  - Paragraphs / blank line separation
- *  - Unordered lists (-, *)
- *  - Inline code (`code`)
- *  - Code fences ```lang ... ``` (lang is optional)
- *  - Bold **text** and emphasis *text*
- *  - Links [text](url)
+ * GitHub Pages site builder for TiltCheck.
+ * - `/` is the single-page zip pitch
+ * - old product html files redirect home
+ * - `/docs/*` specs from markdown
+ *
+ * Project Pages require relative asset paths — never "/styles/...".
  *
  * Usage:
  *   node scripts/convert-markdown.js [sourceDir] [outDir]
- * Defaults:
- *   sourceDir = docs/tiltcheck
- *   outDir = out/docs
  */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import {
+  SITE_URL,
+  DISCORD_URL,
+  KOFI_URL,
+  EXTENSION_ZIP_URL,
+  SITE_HERO_HEADLINE,
+  SITE_H1_LINES,
+  SITE_KICKER,
+  SITE_LEDE,
+  SITE_ONE_LINER,
+  SITE_META_DESCRIPTION,
+  SITE_PRIVACY,
+  INSTALL_STEPS,
+  INSTALL_NOTE,
+  LAUNCH_CARDS,
+  LAUNCH_HONESTY,
+  WHAT_IT_IS,
+  HOW_IT_WORKS,
+  CORE_JOBS,
+  PROBLEM_SIGNALS,
+  FEATURE_CARDS,
+  FAQS,
+  EXTENSION_SIGNALS,
+  GRADING_STEPS,
+  TOOL_REGISTRY,
+  INSTALL_SURFACES,
+} from './pages-product-data.mjs';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, '..');
 const sourceRoot = path.resolve(process.argv[2] || 'docs/tiltcheck');
 const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
+
+const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
 function slugify(name) {
   return name
@@ -37,7 +62,7 @@ function slugify(name) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function stripFrontmatter(md) {
@@ -117,8 +142,19 @@ function extractMeta(md) {
   const body = stripFrontmatter(md);
   const heading = body.match(/^#\s+(.+)$/m);
   if (heading) title = heading[1].trim();
-  const para = body.replace(/```[\s\S]*?```/g, '').match(/(^|\n)([^#\n][^\n]+)\n/);
-  if (para) description = para[2].trim();
+  const plain = body.replace(/```[\s\S]*?```/g, '');
+  for (const line of plain.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('<!--')) continue;
+    if (/^©|^Copyright\b|^All Rights Reserved/i.test(trimmed)) continue;
+    if (/^Last Updated:/i.test(trimmed)) continue;
+    description = trimmed
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1$2')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    break;
+  }
   return { title: title || 'Untitled', description: description.slice(0, 180) };
 }
 
@@ -131,20 +167,437 @@ function sortKey(file) {
   return `9999-${base.toLowerCase()}`;
 }
 
-function buildPage({ title, description, body }) {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>${escapeHtml(title)} - TiltCheck</title><meta name="description" content="${escapeHtml(description)}"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><header class="page-hero"><div class="breadcrumb">Specs / ${escapeHtml(title)}</div><h1>${escapeHtml(title)}</h1><p class="lede">${escapeHtml(description)}</p></header><main id="content">${body}</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">${FOOTER} // ${COPYRIGHT}</footer></body></html>`;
+/** @param {'root' | 'docs'} depth */
+function assetHref(depth, file) {
+  return depth === 'root' ? `styles/${file}` : `../styles/${file}`;
 }
 
-function buildIndexPage(entries) {
+/** @param {'root' | 'docs'} depth */
+function href(depth, file) {
+  return depth === 'root' ? file : `../${file}`;
+}
+
+/** @param {'root' | 'docs'} depth @param {string} current */
+function navHtml(depth, current) {
+  const downloadHref = depth === 'root' ? '#install' : '../index.html#install';
+  const homeHref = href(depth, 'index.html');
+  const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
+
+  return `<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="${downloadHref}">Download</a>
+    <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
+  </div>
+</nav>`;
+}
+
+function footerHtml() {
+  return `<footer class="site-footer">
+  <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
+  <span class="site-footer__tag">${FOOTER}</span>
+  ${COPYRIGHT}
+</footer>`;
+}
+
+function shell({ title, description, depth, current, body, extraHead = '' }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+${FONT_LINKS}
+<link rel="stylesheet" href="${assetHref(depth, 'base.css')}"/>
+${extraHead}
+</head>
+<body>
+${navHtml(depth, current)}
+${body}
+${footerHtml()}
+</body>
+</html>`;
+}
+
+function productHero({ eyebrow, title, lede, actionsHtml }) {
+  return `<header class="product-hero">
+  <div class="landing-shell">
+    <span class="brand-eyebrow">${escapeHtml(eyebrow)}</span>
+    <h1 class="product-hero__title">${escapeHtml(title)}</h1>
+    <p class="product-hero__lede">${escapeHtml(lede)}</p>
+    ${actionsHtml ? `<div class="hero-actions hero-actions--start">${actionsHtml}</div>` : ''}
+  </div>
+</header>`;
+}
+
+function buildDocPage({ title, description, body }) {
+  const content = `<header class="doc-hero"><div class="doc-hero__inner">
+<p class="doc-hero__crumb">Specs / ${escapeHtml(title)}</p>
+<h1>${escapeHtml(title)}</h1>
+<p class="lede">${escapeHtml(description)}</p>
+</div></header>
+<main class="doc-main" id="content">${body}</main>`;
+
+  return shell({
+    title: `${title} - TiltCheck`,
+    description,
+    depth: 'docs',
+    current: 'specs',
+    body: content,
+  });
+}
+
+function buildDocsIndexPage(entries) {
   const listHtml = entries
-    .map((e) => `<li><a href="${e.slug}.html"><strong>${escapeHtml(e.title)}</strong></a><br/><span style="color:#888;font-size:.75rem">${escapeHtml(e.description)}</span></li>`)
+    .map(
+      (e) =>
+        `<li><a href="${e.slug}.html"><strong>${escapeHtml(e.title)}</strong><span class="spec-list__desc">${escapeHtml(e.description)}</span></a></li>`,
+    )
     .join('\n');
 
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>TiltCheck Specs - GitHub Pages</title><meta name="description" content="TiltCheck ecosystem specifications and architecture docs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0}main{max-width:900px;margin:0 auto;padding:44px 20px;line-height:1.6}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}h1{font-size:2.4rem;margin:0 0 22px;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}ul{list-style:disc;padding-left:22px}nav{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current='page']{color:#00d4aa;font-weight:600}</style></head><body><nav><a href="https://tiltcheck.me">tiltcheck.me</a><a href="/docs/index.html" aria-current="page">Specs</a><a href="https://tiltcheck.me/docs">Live Docs</a></nav><main><h1>TiltCheck Specs</h1><p style="color:#aaa;font-size:1.05rem;max-width:760px">Ecosystem specifications mirrored from <code>docs/tiltcheck/</code>. Production docs live at <a href="https://tiltcheck.me/docs">tiltcheck.me/docs</a>.</p><ul>${listHtml}</ul></main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">${FOOTER} // ${COPYRIGHT}</footer></body></html>`;
+  const content = `<header class="doc-hero"><div class="doc-hero__inner">
+<p class="doc-hero__crumb">TiltCheck / Specs</p>
+<h1>Ecosystem specs</h1>
+<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. The public site is the homepage.</p>
+</div></header>
+<main class="doc-main">
+<ul class="spec-list">${listHtml}</ul>
+</main>`;
+
+  return shell({
+    title: 'TiltCheck Specs',
+    description: 'TiltCheck ecosystem specifications and architecture docs',
+    depth: 'docs',
+    current: 'specs',
+    body: content,
+  });
 }
 
-function buildRootRedirect() {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta http-equiv="refresh" content="0;url=/docs/index.html"/><title>TiltCheck Specs</title><meta name="viewport" content="width=device-width, initial-scale=1"/></head><body style="background:#0a0a0a;color:#e0e0e0;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh"><p>Redirecting to <a href="/docs/index.html" style="color:#00d4aa">TiltCheck specs</a>...</p></body></html>`;
+function buildRootLanding() {
+  const steps = INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n');
+  const cards = LAUNCH_CARDS.map(
+    (card) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step ${escapeHtml(card.step)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(card.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(card.body)}</p>
+</article>`,
+  ).join('\n');
+  const honesty = LAUNCH_HONESTY.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
+
+  const content = `<main class="landing-page">
+  <section class="hero-surface" aria-label="TiltCheck">
+    <div class="landing-shell landing-hero-centered">
+      <p class="brand-wordmark">Tilt<span>Check</span></p>
+      <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_H1_LINES[0])}<br/>${escapeHtml(SITE_H1_LINES[1])}</h1>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_KICKER[0])}</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_KICKER[1])}</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_LEDE)}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP</a>
+      </div>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_PRIVACY)}</p>
+    </div>
+  </section>
+
+  <section class="public-page-section" id="install" aria-label="Install">
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Install</p>
+        <h2 class="public-page-card__title">Three steps</h2>
+        <ol class="public-page-list">${steps}</ol>
+        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="What it does">
+    <div class="landing-shell">
+      <div class="public-page-grid public-page-grid--3">${cards}</div>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="What the lock looks like">
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Counting clicks</p>
+        <h2 class="public-page-card__title">Clicking too fast</h2>
+        <p class="public-page-card__copy">Tab covered · about 2 min</p>
+        <p class="public-page-card__copy">Does not touch your wallet</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="public-page-section" aria-label="Honesty">
+    <div class="landing-shell">
+      <ul class="public-page-list">${honesty}</ul>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'TiltCheck | House always wins? FUCK THAT.',
+    description: SITE_META_DESCRIPTION,
+    depth: 'root',
+    current: 'home',
+    body: content,
+  });
+}
+
+function buildHomeRedirect(fileName) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=./"/>
+<link rel="canonical" href="${SITE_URL}/"/>
+<title>TiltCheck</title>
+</head>
+<body>
+<p><a href="./">TiltCheck</a></p>
+<!-- ${fileName} retired. Public site is the homepage. -->
+</body>
+</html>`;
+}
+
+function buildExtensionPage() {
+  const signals = EXTENSION_SIGNALS.map(
+    (s) => `<article class="public-page-card">
+  <h2 class="public-page-card__title">${escapeHtml(s.title)}</h2>
+  <p class="public-page-card__copy">${escapeHtml(s.body)}</p>
+</article>`,
+  ).join('\n');
+
+  const actions = `
+    <a class="btn btn-primary" href="${EXTENSION_ZIP_URL}">Download the zip</a>
+    <a class="hero-actions__secondary-link" href="${SITE_URL}/extension">Open live setup</a>`;
+
+  const content = `${productHero({
+    eyebrow: 'Browser extension',
+    title: 'TiltCheck lives in the casino tab.',
+    lede: 'This is the main product. A free Chrome extension that watches your live online-casino session — bet pacing, tilt spirals, pressure loops — and enforces the exit rules you set. Read-only. No wallet keys. Sideload beta now; store listing later.',
+    actionsHtml: actions,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell explainer">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Why install</span>
+        <h2 class="public-page-section-heading__title">You already know the spiral.</h2>
+      </div>
+      <p class="explainer__p">Three losses. Bet size climbs. “Im due.” Another deposit. The extension’s job is to notice that pacing while the tab is still open and push the exit you configured when you were still thinking straight.</p>
+      <p class="explainer__p">It does not place bets for you. It does not “beat the house.” It is brakes — the same idea as a seatbelt, except for sessions that feel immortal at 2am.</p>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Install</p>
+        <h2 class="public-page-card__title">Two steps</h2>
+        <ol class="public-page-list">
+          <li>Download the zip, extract to a folder.</li>
+          <li><code>chrome://extensions</code> → Developer mode → Load unpacked → select folder.</li>
+        </ol>
+        <p class="public-page-card__copy">Then open dashboard setup on tiltcheck.me before a live session so your profit/loss lines are set.</p>
+      </article>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Core</span>
+        <h2 class="public-page-section-heading__title">What it does.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--3">${signals}</div>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'Extension | TiltCheck',
+    description: 'Install the TiltCheck Chrome extension — read-only session guardrail that watches tilt and enforces your exit rules.',
+    depth: 'root',
+    current: 'extension',
+    body: content,
+  });
+}
+
+function gradeClass(grade) {
+  const g = String(grade || '').toUpperCase();
+  if (g.startsWith('A')) return 'grade-a';
+  if (g.startsWith('B')) return 'grade-b';
+  if (g.startsWith('C')) return 'grade-c';
+  if (g.startsWith('D')) return 'grade-d';
+  return 'grade-f';
+}
+
+function buildCasinosPage(casinos) {
+  const categories = [...new Set(casinos.map((c) => c.category))].sort();
+  const cards = casinos
+    .map((c) => {
+      const slug = String(c.name)
+        .toLowerCase()
+        .replace(/&/g, ' and ')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const live = `${SITE_URL}/casinos/${slug}`;
+      return `<article class="casino-card" data-name="${escapeHtml(c.name.toLowerCase())}" data-category="${escapeHtml(c.category)}" data-grade="${escapeHtml(c.grade)}">
+  <div class="casino-card__top">
+    <span class="casino-card__grade ${gradeClass(c.grade)}">${escapeHtml(c.grade)}</span>
+    <span class="casino-card__cat">${escapeHtml(c.category)}</span>
+  </div>
+  <h3 class="casino-card__name">${escapeHtml(c.name)}</h3>
+  <p class="casino-card__risk">Risk: ${escapeHtml(c.risk)}</p>
+  <a class="casino-card__link" href="${live}" rel="noopener noreferrer">Full audit on tiltcheck.me →</a>
+</article>`;
+    })
+    .join('\n');
+
+  const filters = ['All', ...categories]
+    .map(
+      (cat, i) =>
+        `<button type="button" class="filter-chip${i === 0 ? ' is-active' : ''}" data-filter="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`,
+    )
+    .join('\n');
+
+  const steps = GRADING_STEPS.map(
+    (s) => `<li><strong>${escapeHtml(s.title)}</strong> — ${escapeHtml(s.body)}</li>`,
+  ).join('\n');
+
+  const script = `<script>
+(function () {
+  var input = document.getElementById('casino-search');
+  var chips = document.querySelectorAll('.filter-chip');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.casino-card'));
+  var count = document.getElementById('casino-count');
+  var activeCat = 'All';
+  function apply() {
+    var q = (input.value || '').trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function (card) {
+      var name = card.getAttribute('data-name') || '';
+      var cat = card.getAttribute('data-category') || '';
+      var okCat = activeCat === 'All' || cat === activeCat;
+      var okQ = !q || name.indexOf(q) !== -1;
+      var show = okCat && okQ;
+      card.hidden = !show;
+      if (show) shown += 1;
+    });
+    if (count) count.textContent = shown + ' operators';
+  }
+  if (input) input.addEventListener('input', apply);
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      chips.forEach(function (c) { c.classList.remove('is-active'); });
+      chip.classList.add('is-active');
+      activeCat = chip.getAttribute('data-filter') || 'All';
+      apply();
+    });
+  });
+  apply();
+})();
+</script>`;
+
+  const content = `${productHero({
+    eyebrow: 'Casino trust',
+    title: 'Look up the operator. Read the proof.',
+    lede: `Before you deposit, check who you are playing. This page lists ${casinos.length} curated operators with letter grades and risk labels (sweeps, crypto, regulated, scam, and more). It is a starting point — not a green light. Full license, domain, and scam proof lanes open on tiltcheck.me.`,
+    actionsHtml: `<a class="btn btn-primary" href="${SITE_URL}/casinos">Open live directory</a>
+    <a class="hero-actions__secondary-link" href="tools.html">Related tools</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="casino-toolbar">
+        <label class="casino-search">
+          <span class="sr-only">Search casinos</span>
+          <input id="casino-search" type="search" placeholder="Search operator name…" autocomplete="off"/>
+        </label>
+        <div class="filter-row" role="group" aria-label="Category filters">${filters}</div>
+        <p class="casino-count" id="casino-count">${casinos.length} operators</p>
+      </div>
+      <div class="casino-grid">${cards}</div>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Methodology</span>
+        <h2 class="public-page-section-heading__title">How letter grades are built.</h2>
+      </div>
+      <ol class="method-list">${steps}</ol>
+    </div>
+  </section>
+</main>
+${script}`;
+
+  return shell({
+    title: 'Casino Trust | TiltCheck',
+    description: 'Curated casino trust grades — static mirror of the TiltCheck directory.',
+    depth: 'root',
+    current: 'casinos',
+    body: content,
+  });
+}
+
+function buildToolsPage() {
+  const install = INSTALL_SURFACES.map(
+    (t) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
+  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
+  <a class="feature-card__link" href="${SITE_URL}${t.href}">Open install →</a>
+</article>`,
+  ).join('\n');
+
+  const tools = TOOL_REGISTRY.map(
+    (t) => `<article class="public-page-card tool-card">
+  <div class="tool-card__meta">
+    <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
+    <span class="status-pill status-pill--${escapeHtml(t.status)}">${escapeHtml(t.status)}</span>
+  </div>
+  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
+  <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
+  <a class="feature-card__link" href="${SITE_URL}${t.href}">Open on tiltcheck.me →</a>
+</article>`,
+  ).join('\n');
+
+  const content = `${productHero({
+    eyebrow: 'TiltCheck Toolkit',
+    title: 'Install first. Tools second.',
+    lede: 'The extension is the session brakes. These tools are the homework: verify a bet from seeds, compare claimed payout vs what you got, check if a domain is sus, look up geo rules, track bonus timers. Interactive versions run on tiltcheck.me — this page tells you what each tool is for.',
+    actionsHtml: `<a class="btn btn-primary" href="extension.html">Install extension</a>
+    <a class="hero-actions__secondary-link" href="${SITE_URL}/tools">Open live tools</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Install surfaces</span>
+        <h2 class="public-page-section-heading__title">AutoVault setups.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--2">${install}</div>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Features</span>
+        <h2 class="public-page-section-heading__title">The toolkit.</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--2">${tools}</div>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'Tools | TiltCheck',
+    description: 'TiltCheck toolkit — verifiers, scanners, vault, and accountability tools.',
+    depth: 'root',
+    current: 'tools',
+    body: content,
+  });
 }
 
 function run() {
@@ -170,16 +623,26 @@ function run() {
     const slug = slugify(file);
     const meta = extractMeta(raw);
     const body = renderMarkdown(raw);
-    const html = buildPage({ title: meta.title, description: meta.description, body });
+    const html = buildDocPage({ title: meta.title, description: meta.description, body });
     fs.writeFileSync(path.join(outRoot, `${slug}.html`), html);
     indexEntries.push({ slug, title: meta.title, description: meta.description });
   }
 
-  fs.writeFileSync(path.join(outRoot, 'index.html'), buildIndexPage(indexEntries));
-  fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootRedirect());
-  fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
+  fs.writeFileSync(path.join(outRoot, 'index.html'), buildDocsIndexPage(indexEntries));
+  fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding());
+  for (const retired of ['extension.html', 'casinos.html', 'tools.html']) {
+    fs.writeFileSync(path.join(siteRoot, retired), buildHomeRedirect(retired));
+  }
 
-  console.log(`Converted ${files.length} markdown files to HTML in ${outRoot}`);
+  const zipSource = path.join(repoRoot, 'apps/web/public/downloads/tiltcheck-extension.zip');
+  const zipDestDir = path.join(siteRoot, 'downloads');
+  fs.mkdirSync(zipDestDir, { recursive: true });
+  fs.copyFileSync(zipSource, path.join(zipDestDir, 'tiltcheck-extension.zip'));
+
+  fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
+  fs.writeFileSync(path.join(siteRoot, 'CNAME'), 'tiltcheck.me\n');
+
+  console.log(`Built Pages site: ${files.length} specs + single-page home → ${siteRoot}`);
 }
 
 run();

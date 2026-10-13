@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 /**
  * Partner Authentication Middleware
  *
@@ -14,6 +14,7 @@ export interface PartnerRequest extends Request {
     name: string;
     appId: string;
     contactEmail: string | null;
+    casinoDomain: string | null;
     mode: string;
     dailyQuotaLimit: number | null;
     dailyQuotaUsed: number | null;
@@ -77,6 +78,7 @@ export async function partnerAuthMiddleware(
       name: partner.name,
       appId: partner.app_id,
       contactEmail: partner.contact_email,
+      casinoDomain: partner.casino_domain ?? null,
       mode: partner.mode || 'production',
       dailyQuotaLimit: partner.daily_quota_limit ?? null,
       dailyQuotaUsed: partner.daily_quota_used ?? null,

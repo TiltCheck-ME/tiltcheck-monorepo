@@ -1,22 +1,29 @@
 # GitHub Pages Troubleshooting Guide
 
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
+<!-- Product pages: extension, casinos, tools, operators + home tools/features section -->
 
 ## What GitHub Pages hosts now
 
 Production marketing and docs live on **Railway** at `https://tiltcheck.me` (Next.js `apps/web`, including `/docs`).
 
-GitHub Pages (`gh-pages` branch) is a **static mirror** of `docs/tiltcheck/` specs:
+GitHub Pages (`gh-pages` branch) is a **static product twin** of tiltcheck.me — same obsidian/teal landing composition, no app runtime:
 
 | Path on Pages | Source |
 |---------------|--------|
-| `/` | Redirect to `/docs/index.html` |
-| `/docs/*.html` | `node scripts/convert-markdown.js` output |
+| `/` | Product landing (hero + what-it-is + how it works + tools/features + FAQ) |
+| `/extension.html` | Extension install twin |
+| `/casinos.html` | Curated casino directory from `apps/web/src/data/casinos.json` (search/filter) |
+| `/tools.html` | Toolkit catalog (links to live interactive tools) |
+| `/docs/*.html` | Specs secondary surface |
+| `/styles/base.css` | `scripts/pages-assets/styles/base.css` |
 | `/docs-md/*.md` | Raw markdown from `docs/tiltcheck/` |
+
+Asset and nav links are **relative** so project Pages at `https://tiltcheck-me.github.io/tiltcheck-monorepo/` resolve correctly (absolute `/styles/...` breaks under the repo base path). Specs are not in the first viewport — product home only.
 
 Default URL: `https://tiltcheck-me.github.io/tiltcheck-monorepo/` (no custom domain on `gh-pages`).
 
-Workflow: `.github/workflows/pages.yml` — triggers on `docs/tiltcheck/**` changes.
+Workflow: `.github/workflows/pages.yml` — triggers on `docs/tiltcheck/**`, `scripts/convert-markdown.js`, `scripts/pages-assets/**`.
 
 Local build: `pnpm docs:pages`
 
@@ -45,14 +52,24 @@ git show origin/gh-pages:docs/index.html | head -10
 
 **Expected**: Recent commit with specs index HTML visible
 
-### 3. Verify Repository Settings
+### 3. Verify Repository Settings (common live-stale cause)
 
-1. Go to Repository Settings
-2. Navigate to Pages section
-3. Check:
-   - **Source**: Deploy from branch → gh-pages
-   - **Branch**: gh-pages, / (root)
-   - **Custom domain**: empty (production is Railway, not Pages)
+Workflow publishes to the **`gh-pages`** branch. If Pages is pointed at **`main` / (root)** instead, the share URL stays on an old/errored build and will not show the product landing.
+
+1. Go to Repository Settings → Pages
+2. Set:
+   - **Source**: Deploy from a branch
+   - **Branch**: `gh-pages` / `(root)` → Save
+   - **Custom domain**: empty (production hostname is not Pages)
+3. Wait ~1 minute, hard-refresh `https://tiltcheck-me.github.io/tiltcheck-monorepo/`
+4. Confirm hero text: `House always wins? FUCK THAT.`
+
+Check via API (read-only):
+
+```bash
+gh api repos/TiltCheck-ME/tiltcheck-monorepo/pages --jq '"branch=\(.source.branch) path=\(.source.path) status=\(.status)"'
+# expect: branch=gh-pages path=/ status=built|building
+```
 
 ### 4. Production site (tiltcheck.me) issues
 

@@ -1,6 +1,14 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
 import { applyListFilters, findCasinoByName } from './filters.js';
+import { filterLiveOperatorFacts } from './load-operator-facts.js';
+import {
+  getRedemptionAnswer,
+  getVipCurrencyAnswer,
+  getWelcomeBonusAnswer,
+  listAvailableFactTypesAnswer,
+} from './operator-facts.js';
+import type { OperatorFactRecord } from './operator-facts-types.js';
 import type {
   CasinoRecord,
   CasinoSummary,
@@ -50,10 +58,28 @@ export function toCasinoSummary(
 export class IntelTools {
   private readonly apiBase: string;
   private readonly casinos: CasinoRecord[];
+  private readonly operatorFacts: OperatorFactRecord[];
 
   constructor(config: IntelToolsConfig) {
     this.apiBase = config.apiBase.replace(/\/$/, '');
     this.casinos = config.casinos;
+    this.operatorFacts = filterLiveOperatorFacts(config.operatorFacts ?? []);
+  }
+
+  getOperatorVipFacts(query: string) {
+    return getVipCurrencyAnswer(this.operatorFacts, query);
+  }
+
+  getOperatorRedemptionFacts(query: string) {
+    return getRedemptionAnswer(this.operatorFacts, query);
+  }
+
+  getOperatorWelcomeBonusFacts(query: string, geoTag?: string) {
+    return getWelcomeBonusAnswer(this.operatorFacts, query, geoTag);
+  }
+
+  listAvailableFactTypes(query: string) {
+    return listAvailableFactTypesAnswer(this.operatorFacts, query);
   }
 
   async fetchLiveScores(): Promise<{ scores: LiveTrustScore[]; source: string }> {
