@@ -1,6 +1,85 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
 
 # SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
+
+## 2026-07-28 - Instant Redeem review bugfixes (PR #647)
+
+- **Enable ownership**: Operators bound to `casino_domain`; enable refuses domain hijacks (`REDEEM_DOMAIN_OWNED`).
+- **Grant scope**: Production quote/execute enforce coveredDomains, rails, hardCapUsd; fee uses grant `feeShareBps`.
+- **Cooloff**: `rebuyCooldownMinutes` sandbox-only; arms only on `settled` (not `processor_pending`).
+- **Execute race**: Quote claimed sync before awaits (`REDEEM_QUOTE_CLAIMED`).
+- **Scam gate**: Fail closed when blacklist unavailable.
+- **Trust**: Metric-snapshot `instantRedeemAvailable` no longer applies +5 boost (enable path only).
+- **Docs runtime**: `.dockerignore` allows `docs/`; path traversal blocked; Phase 5 public docs ungated.
+
+## 2026-07-28 - Launch Core extension story (PR #647)
+
+- **Package**: Rebuilt `apps/chrome-extension` + `pnpm package` zips current `dist/` to `apps/web/public/downloads/tiltcheck-extension.zip` (replaces stale Dec 2025 popup-only zip).
+- **Manifest**: Description matches Core — click pacing + Touch Grass, read-only, no keys.
+- **/extension**: Hero/copy = what Core does now (pacing, Touch Grass, SusLink) and what it does not (HUD, Discord gate, cashout). Dashboard CTA demoted; trust is secondary.
+- **Home**: Three jobs aligned to Core (click speed → SusLink → Touch Grass; Account optional for vault).
+
+## 2026-07-28 - Nav cut + Account demotion (PR #647)
+
+- **Top nav**: `Install · Casinos · Tools · Operators` + Discord action. How it works / About / Contact / Ask / Bonuses buried in Tools + footer.
+- **Login**: Relabeled **Account** — Discord OAuth → dashboard handoff only. Not required for install, trust, or Core guest.
+- **Decisions**: build/bury/plan/table/launch matrix added to `tiltcheck-product-honesty-audit.md`.
+
+## 2026-07-28 - Front-facing pages audit NOW fixes (PR #647)
+
+- **Audit**: Scorecard added to `tiltcheck-product-honesty-audit.md` (pass/warn/fail by route).
+- **/docs**: Docs root resolves monorepo `docs/` from apps/web cwd or Docker `/app/docs`; runner image COPY docs; footer no longer claims "DIA v2.0 verified".
+- **/collab**: Success Discord CTA uses `DISCORD_INVITE_URL` (`discord.gg/gdBsEJfCar`), not dead `discord.gg/tiltcheck`.
+- **/operators**: Skip-mode recaptcha is a hidden field — partners never see `dev-recaptcha-pass` in the form.
+- **/extension**: Hero + Core section state zip install = Core click pacing; Pro HUD is opt-in.
+
+## 2026-07-28 - Theme dual-accent + tools dash index (cursor/operator-instant-redeem-a81d)
+
+- **Theme**: Added `--tc-accent` (teal `#17c3b2`), `--tc-accent-2` (warm amber `#ffb020`), `--tc-ink`, `--tc-muted` tokens in `globals.css`. Partner surfaces, nav Operators link, and report cards use amber; player CTAs stay teal.
+- **Homepage**: Player-first hero unchanged; Instant Redeem strip + OperatorBlock use amber partner accent; honesty copy preserved (no player cashout claims).
+- **Tools dash**: Upgraded `/tools` to a sectioned index — DM install, live/beta tools, automation report feeds (`REPORT_REGISTRY`), and partner links (`PARTNER_LINKS`) clearly separated.
+
+## 2026-07-28 - Brand Law custodial grep false-positive fix (PR #647)
+
+- **Brand CI**: Tightened custodial keyword scan — word-boundary `seed`, explicit seed-phrase patterns, provably-fair allowlist (`seedAudit`, `seed-audit`, server/client-seed). Real wallet/seed-phrase detection unchanged.
+
+## 2026-07-28 - Ko-fi support link where it fits (PR #647)
+
+- Added `KOFI_URL` (`https://ko-fi.com/jmenichole0`) to site-links.
+- Placed on site Footer (action + Company nav), About (builder card), Contact hero tip line, org JSON-LD `sameAs`.
+
+## 2026-07-28 - Brand tagline always with heart (PR #647)
+
+- **Law**: UI tagline is `Made for Degens. By Degens.` with heart via shared `BrandTagline` (SVG heart, not emoji unicode).
+- Wired on homepage hero/footer strip, site Footer, operators Instant Redeem surfaces, casino proof.
+
+## 2026-07-28 - Product honesty audit + claim/reality copy fixes (PR #647)
+
+- **Audit**: `docs/product/tiltcheck-product-honesty-audit.md` — shipped vs sandbox vs aspirational.
+- **Copy**: Homepage / OperatorBlock / Instant Redeem / readiness / how-it-works / site-copy aligned to Core extension + B2B Instant Redeem (no live player cashout claims).
+
+## 2026-07-28 - Instant Redeem outreach target research (PR #647)
+
+- **BD list**: Ranked processor targets with public contact channels (`instant-redeem-outreach-targets.md`) — Gigadat / Paramount / Paybilt / MuchBetter first.
+- **Hygiene**: Confidence tags on contacts; no invented personal emails; Wave 1 capped at 3 sends.
+
+## 2026-07-28 - Instant Redeem web discovery overhaul (PR #647)
+
+- **Web**: Homepage Instant Redeem strip, OperatorBlock processor-first CTAs, Nav/Footer Operators + Instant Redeem links.
+- **FOMO loop**: `/casinos` Instant Redeem filter + empty state; casino detail badge / "No Instant Redeem" CTA; sitemap entries for Instant Redeem pages.
+- **Commercial**: Pricing Phase 5 custody copy + outreach templates; collab topic for processor partnership.
+
+## 2026-07-28 - Instant Redeem Phase 5 production scaffolding (PR #647)
+
+- **Phase 5**: Production grant path (`/v1/redeem/production/*`), processor float-desk contract, settlement adapters (`sandbox` / `processor_stub` / `processor_live`).
+- **Custody**: Processor/operator holds float; TiltCheck orchestrates only. `float.holder=tiltcheck` rejected. Live money still gated by `INSTANT_REDEEM_LIVE_SETTLEMENT`.
+- **Docs**: `OPERATOR-INSTANT-REDEEM-PHASE5-PRODUCTION.md`, partnership outreach email templates (`instant-redeem-partnership-outreach.md`), readiness checklist Phase 5 items.
+
+## 2026-07-28 - Instant Redeem sandbox Phase 4 (PR #647)
+
+- **Product**: Operator/processor Instant Redeem sandbox — quote/execute, irrevocable cancel rejection, scam hard-block, same-rail rebuy cooloff, trust boost, public capabilities + `/casinos` badges.
+- **Growth**: Processor multi-domain enable, pitch one-pager, team readiness UI (`/operators/instant-redeem/readiness`) + `GET /v1/redeem/readiness`.
+- **Brand CI**: Kept Instant Redeem feature event typing local to trust-engines/API to avoid false-positive custodial `seed` hits in `@tiltcheck/types`.
 
 ## 2026-07-18 - PR #612 CI brand compliance
 

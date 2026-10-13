@@ -1,9 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 "use client";
 
 import React, { useState } from 'react';
+import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 const CONTACT_TOPICS = [
+  'Instant Redeem / Processor partnership',
   'Partner / Platform Integration',
   'Collab / Creator / Streamer',
   'General Question',
@@ -76,7 +78,7 @@ export default function ContactPage() {
             Deals and conversations happen faster on Discord than cold forms.
           </p>
           <a
-            href="https://discord.gg/tiltcheck"
+            href={DISCORD_INVITE_URL}
             className="inline-block mt-8 px-8 py-3 bg-[#17c3b2] text-black font-black uppercase tracking-wider text-sm hover:bg-[#14a99a] transition-colors"
           >
             Join Discord
@@ -118,6 +120,17 @@ export default function ContactPage() {
           <p className="brand-lead mt-8">
             General questions, partnership pitches, press inquiries, bug reports — this form handles it.
             Pick a topic and tell us what you need. Vague messages get archived.
+            {' '}
+            Just want to tip the build?{' '}
+            <a
+              href="https://ko-fi.com/jmenichole0"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#17c3b2] hover:underline"
+            >
+              Support on Ko-fi
+            </a>
+            .
           </p>
         </div>
       </section>
