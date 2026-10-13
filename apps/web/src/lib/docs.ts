@@ -64,7 +64,7 @@ export interface DocMetadata {
   title: string;
   category: string;
   lastUpdated: string;
-  description?: string;
+  description: string;
 }
 
 export interface DocContent extends DocMetadata {
