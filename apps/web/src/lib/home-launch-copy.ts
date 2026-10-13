@@ -1,48 +1,59 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
-  kicker: ["The math isn't rigged. Your dopamine is.", 'The house banks on your tilt.'],
+  kicker: [
+    'Non-custodial intelligence for degens who hate nanny tools.',
+    'New: Cooldown — on-chain self-exclusion on Solana devnet. Your wallet, your lock.',
+  ],
   lede:
-    'Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.',
+    'TiltCheck tracks tilt signals, session behavior, and sketch casino math — then gives you brakes you actually control. Cooldown is on-chain self-exclusion: lock your wallet from games, categories, or everything. The Chrome extension watches live sessions and fires Touch Grass when clicking turns into autopilot. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.',
   ctaLabel: 'DOWNLOAD THE ZIP',
   ctaHref: '/downloads/tiltcheck-extension.zip',
-  privacy: 'Does not read your wallet or your password. No account needed. You install the zip yourself.',
+  secondaryCtas: [
+    { label: 'SET A COOLDOWN LOCK', href: '/cooldown' },
+    { label: 'EXTENSION DETAILS', href: '/extension' },
+  ] as const,
+  privacy:
+    'Does not read your wallet seed or casino password. Cooldown is you signing an on-chain lock — we never hold keys.',
   installSteps: [
     'Download the zip. Extract it to a folder.',
     'Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.',
-    'Open a supported casino and play. If the clicking gets frantic, the tab gets covered for about two minutes.',
+    'Open a supported casino and play. Frantic clicking triggers Touch Grass — full tab lock for about two minutes.',
   ],
-  installNote: 'It works without an account. Discord is only for saving rules later.',
+  installNote:
+    'Core extension runs guest. Link Discord later for dashboard vault rules, buddies, and sync.',
   cards: [
     {
       step: '01',
-      title: 'Counts your clicks',
-      body: 'On a supported casino tab, it counts every click. It is looking for clicking that has gotten too fast to be a deliberate bet.',
+      title: 'Cooldown (on-chain)',
+      body: 'Self-exclusion that cannot be weaseled off in a settings menu. Lock all play, a category, or one game. Stronger locks only — expires on-chain when the timer hits. Solana devnet today.',
     },
     {
       step: '02',
-      title: 'Covers the tab',
-      body: 'Frantic clicking puts a full-screen pause over the game for about two minutes. That pause is called Touch Grass. You cannot close it early.',
+      title: 'Session intel',
+      body: 'Chrome extension monitors click pacing and tilt patterns on supported casino tabs. Touch Grass covers the game when you start mashing like you are rinsed.',
     },
     {
       step: '03',
-      title: 'Gives the site back',
-      body: 'When the timer ends, the casino comes back. You can keep playing, or close the tab. The pause is there so a win does not get clicked away.',
+      title: 'Trust receipts',
+      body: 'Trust Engine grades operators from public data — RTP drift, compliance filings, payout evidence, scam reports. Bonus tracker and intel tools link back to those scores.',
     },
   ],
   mock: {
-    status: 'Counting clicks',
-    signal: 'Clicking too fast',
-    footer: 'Tab covered · about 2 min',
-    chip: 'Does not touch your wallet',
+    status: 'Live stack',
+    signal: 'Cooldown + extension + trust intel',
+    footer: 'Self-sovereign brakes — not a casino nanny hotline.',
+    chip: 'Non-custodial. You sign locks. We read public data.',
   },
   honesty: [
-    'Works with no account.',
-    'Does not read your password. Does not move money.',
-    'Not in the Chrome Web Store. You load the zip yourself.',
-    'Runs on Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
-    'Some casino links get checked before they open. If the check flags one as a serious scam, that tab goes to a warning page instead. If the check is down, the link opens normally.',
+    'Cooldown ships on Solana devnet — not mainnet custody theater.',
+    'Extension: no Chrome Web Store listing yet. Sideload the zip.',
+    'Trust scores blend live rollup feeds with curated baselines when the API is down.',
+    'JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.',
+    'Discord bot exposes tilt checks and tip commands for server-side degens.',
+    'Supported extension tabs include Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
+    'SusLink can bounce critical scam URLs to a warning page when the API is up.',
   ],
   footerDisclaimer:
     'TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call 1-800-GAMBLER or visit NCPG.org.',

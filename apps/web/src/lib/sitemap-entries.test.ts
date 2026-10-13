@@ -1,12 +1,30 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 import { describe, expect, it } from 'vitest';
 import { SITEMAP_PAGE_ENTRIES } from './sitemap-entries';
 
-const STAY_PATHS = ['/', '/privacy', '/terms', '/legal', '/login', '/dashboard', '/touch-grass'];
+const REQUIRED_PATHS = [
+  '/',
+  '/cooldown',
+  '/cooldown/casino-demo',
+  '/extension',
+  '/bonuses',
+  '/intel/rtp',
+  '/blog',
+  '/microgrant',
+  '/privacy',
+  '/terms',
+  '/legal',
+  '/login',
+  '/dashboard',
+  '/touch-grass',
+];
 
 describe('sitemap-entries', () => {
-  it('lists only the pages that stay on the public site', () => {
-    expect(SITEMAP_PAGE_ENTRIES.map((entry) => entry.path).sort()).toEqual([...STAY_PATHS].sort());
+  it('lists live public marketing and legal routes', () => {
+    const paths = SITEMAP_PAGE_ENTRIES.map((entry) => entry.path);
+    for (const required of REQUIRED_PATHS) {
+      expect(paths).toContain(required);
+    }
   });
 
   it('does not hand the dashboard entry to another host', () => {

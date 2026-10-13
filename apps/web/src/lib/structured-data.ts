@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 
 import { DISCORD_INVITE_URL, GITHUB_ORG_URL, KOFI_URL, SITE_URL } from '@/lib/site-links';
 import { SITE_OG_TAGLINE, SITE_ONE_LINER, SITE_SEO_TITLE } from '@/lib/site-copy';

@@ -1,8 +1,8 @@
 # TiltCheck
 
-> Responsible gaming audit layer for degens. Real-time RTP drift detection, casino trust scoring, provably fair verification, and session-based profit protection tools. Built for the US sweepstakes and crypto casino community.
+> Non-custodial responsible gambling intelligence for degens. On-chain Cooldown self-exclusion, Chrome session monitoring, Trust Engine casino scores, JustTheTip (USDC on Solana), and Discord tilt tooling.
 
-TiltCheck is a non-custodial responsible gaming platform. It does not operate a casino, take bets, or hold user funds. It audits casino behavior, scores operator trustworthiness, and gives players tools to protect their winnings and manage their sessions.
+TiltCheck is not a casino and does not custody funds or wallet keys. It tracks tilt signals, scores operators from public data, and ships self-sovereign brakes (Cooldown locks, Touch Grass extension lockouts, dashboard guardrails).
 
 ## What TiltCheck Does
 
@@ -11,6 +11,7 @@ TiltCheck is a non-custodial responsible gaming platform. It does not operate a 
 - **Domain Verifier** — Checks any casino domain against TiltCheck's license registry and SusLink threat database. Flags unregulated, expired, or known-scam domains.
 - **Shadow-Ban Tracker** — Community-reported withdrawal delays, silent ToS changes, and account restrictions. Updated from Discord reports and trust engine signals.
 - **Email Intel Pipeline** — Ingests casino marketing emails to extract bonus signals, urgency flags, and domain trust data. Fed into the trust engine as behavioral signals.
+- **Cooldown** — On-chain self-exclusion on Solana devnet. Wallet-signed locks for all play, categories, or specific games. Stronger-only, expires on-chain.
 - **LockVault (Auto-Vault)** — Non-custodial profit-locking tool. Works with the Chrome extension to automatically move winnings out of reach when a user hits a profit trigger.
 - **JustTheTip** — Micro-tipping tool for Solana. Non-custodial. No private keys stored.
 - **Degen Trivia Arena** — Skill-based trivia game for cooling down between sessions. No house edge.
@@ -36,7 +37,9 @@ The house has the math. TiltCheck is the audit layer that gives players the same
 
 ## Key Pages
 
-- `/` — Home / landing page
+- `/` — Home / landing page (Cooldown + extension + trust intel positioning)
+- `/cooldown` — On-chain self-exclusion lock UI (Solana devnet)
+- `/cooldown/casino-demo` — Demo game grid that respects Cooldown checks
 - `/casinos` — Casino Trust Engine. Full list of rated operators. Default filter: Sweeps. Live trust scores overlaid when trust-rollup service is online.
 - `/ask` — Intel chat agent. Natural-language casino trust lookups, filtered lists (e.g. US crypto casinos), and domain scans. Tool-backed grades — not LLM hallucination.
 - `/ask/v/{token}` — Shared intel view (read-only list/card snapshot, 7-day TTL).

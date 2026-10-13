@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -8,16 +8,16 @@ import BrandTagline from "@/components/BrandTagline";
 
 const coreSignals = [
   {
-    title: "Click pacing",
-    body: "Watches how hard you mash on supported casino tabs. Autopilot trance is the tell.",
+    title: "Session monitoring",
+    body: "Read-only signals on supported casino tabs — click pacing, loss-chase heuristics, and tilt patterns before your bankroll pays tuition.",
   },
   {
     title: "Touch Grass",
-    body: "Critical pacing → undismissable fullscreen lockout (~2 min). Breathe. Then play — or don't.",
+    body: "Critical tilt pacing triggers an undismissable fullscreen lockout (~2 min). Not a suggestion. A hard pause.",
   },
   {
     title: "SusLink bounce",
-    body: "Critical sus casino URLs can get redirected to a warning page when the API is up.",
+    body: "Critical sus casino URLs can get redirected to a warning page when the API is up. Pair with Cooldown for on-chain locks.",
   },
 ];
 
@@ -35,11 +35,15 @@ export default function ExtensionPage() {
       <PublicPageHero
         compact
         eyebrow="Browser extension // Core"
-        title="Click babysitter. Touch Grass lockdown."
+        title="Session intel in the tab. Touch Grass when you spiral."
         description={
           <p>
-            Default install interrupts the trance on Stake, Roobet, BC.Game, and other supported tabs.
-            Sideload the zip. Store listing later. Account sync is optional — Core runs guest.
+            Monitors live session behavior on Stake, Roobet, BC.Game, and other supported tabs — tilt detection from click pacing, not wallet custody.
+            Sideload the zip. Store listing later. Account sync is optional; Core runs guest. For wallet-level locks, use{' '}
+            <Link href="/cooldown" className="text-[#17c3b2] underline-offset-2 hover:underline">
+              Cooldown
+            </Link>
+            .
           </p>
         }
         actions={
