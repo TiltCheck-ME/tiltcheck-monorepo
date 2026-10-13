@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04 */
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import PublicPageHero from '@/components/PublicPageHero';
+import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 export const metadata: Metadata = {
   title: '404 — Page not found',
@@ -11,10 +12,8 @@ export const metadata: Metadata = {
 
 const RECOVERY_LINKS = [
   { href: '/', label: 'Home', primary: true },
-  { href: '/site-map', label: 'Site map', primary: false },
-  { href: '/casinos', label: 'Casino trust', primary: false },
-  { href: '/bonuses', label: 'Daily bonuses', primary: false },
   { href: '/touch-grass', label: 'Touch Grass', primary: false },
+  { href: '/downloads/tiltcheck-extension.zip', label: 'Download the zip', primary: false },
 ] as const;
 
 export default function NotFound() {
@@ -61,7 +60,7 @@ export default function NotFound() {
 
           <p className="mt-10 text-center">
             <Link
-              href="https://discord.gg/gdBsEJfCar"
+              href={DISCORD_INVITE_URL}
               className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-600 hover:text-red-400 transition-colors"
             >
               Still sus? Harass the dev on Discord
