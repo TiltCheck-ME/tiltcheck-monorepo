@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import {
   COMMUNITY_DEFAULT_CASINOS,
   getCommunityDefaultCasinoPriority,
@@ -164,19 +164,19 @@ function hashStr(value: string): number {
   return Math.abs(hash);
 }
 
-function seededFloat(seed: number, salt: number): number {
-  const value = Math.sin(seed * 127.1 + salt * 311.7) * 43758.5453;
+function seededFloat(n: number, salt: number): number {
+  const value = Math.sin(n * 127.1 + salt * 311.7) * 43758.5453;
   return value - Math.floor(value);
 }
 
-function derivePillars(base: number, category: string, seed: number) {
+function derivePillars(base: number, category: string, nameHash: number) {
   const modifier = CATEGORY_FLAGS[category] ?? { fin: 0, fair: 0, promo: 0, ops: 0, rep: 0 };
   return {
-    financialPayouts: clamp(base + modifier.fin + Math.round((seededFloat(seed, 1) - 0.5) * 6)),
-    fairnessTransparency: clamp(base + modifier.fair + Math.round((seededFloat(seed, 2) - 0.5) * 6)),
-    promotionalHonesty: clamp(base + modifier.promo + Math.round((seededFloat(seed, 3) - 0.5) * 6)),
-    operationalSupport: clamp(base + modifier.ops + Math.round((seededFloat(seed, 4) - 0.5) * 6)),
-    communityReputation: clamp(base + modifier.rep + Math.round((seededFloat(seed, 5) - 0.5) * 6)),
+    financialPayouts: clamp(base + modifier.fin + Math.round((seededFloat(nameHash, 1) - 0.5) * 6)),
+    fairnessTransparency: clamp(base + modifier.fair + Math.round((seededFloat(nameHash, 2) - 0.5) * 6)),
+    promotionalHonesty: clamp(base + modifier.promo + Math.round((seededFloat(nameHash, 3) - 0.5) * 6)),
+    operationalSupport: clamp(base + modifier.ops + Math.round((seededFloat(nameHash, 4) - 0.5) * 6)),
+    communityReputation: clamp(base + modifier.rep + Math.round((seededFloat(nameHash, 5) - 0.5) * 6)),
   };
 }
 
@@ -401,7 +401,7 @@ export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
 
 export const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map((casino) => {
   const base = GRADE_SCORE[casino.grade] ?? 40;
-  const seed = hashStr(casino.name);
+  const nameHash = hashStr(casino.name);
   const collectClockLink = COLLECTCLOCK_LINKS[casino.name];
   const monitoredDomain = COMMUNITY_DOMAIN_BY_NAME.get(normalizeCasinoName(casino.name)) ?? extractHostname(collectClockLink?.url);
 
@@ -416,7 +416,7 @@ export const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map((casino) 
     promoCode: collectClockLink?.code ?? null,
     monitoredDomain,
     domainCandidates: uniqueDomains([monitoredDomain, extractHostname(collectClockLink?.url)]),
-    ...derivePillars(base, casino.category, seed),
+    ...derivePillars(base, casino.category, nameHash),
   };
 }).sort(
   (left, right) =>
@@ -435,6 +435,12 @@ const CASINO_BY_SLUG = new Map(CASINOS.map((casino) => [casino.slug, casino]));
 
 export function getCasinoBySlug(slug: string): CasinoEntry | null {
   return CASINO_BY_SLUG.get(slug) ?? null;
+}
+
+export function findCasinoByBrandName(brand: string): CasinoEntry | null {
+  const key = normalizeCasinoName(brand);
+  if (!key) return null;
+  return CASINOS.find((casino) => normalizeCasinoName(casino.name) === key) ?? null;
 }
 
 export function casinoMatchesQuery(casino: CasinoEntry, query: string): boolean {

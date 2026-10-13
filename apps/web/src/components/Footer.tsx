@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import { HOME_LAUNCH } from '@/lib/home-launch-copy';

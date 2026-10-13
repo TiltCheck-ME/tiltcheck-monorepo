@@ -1,10 +1,17 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
+import JsonLd from '@/components/JsonLd';
 import { HOME_LAUNCH } from '@/lib/home-launch-copy';
+import { webPageJsonLd } from '@/lib/structured-data';
+import { SITE_ONE_LINER, SITE_SEO_TITLE } from '@/lib/site-copy';
 
 export default function Home() {
   return (
     <main className="landing-page">
+      <JsonLd
+        data={webPageJsonLd(SITE_SEO_TITLE, SITE_ONE_LINER, '/')}
+      />
       <section className="hero-surface">
         <div className="landing-shell landing-hero-centered">
           <span className="brand-eyebrow">
@@ -33,6 +40,18 @@ export default function Home() {
             >
               {HOME_LAUNCH.ctaLabel}
             </a>
+            {HOME_LAUNCH.secondaryCtas.map((cta) => (
+              <Link
+                key={cta.href}
+                href={cta.href}
+                className="btn btn-secondary"
+                data-funnel-event="landing_secondary_click"
+                data-funnel-source="web-home-hero"
+                data-funnel-label={cta.label}
+              >
+                {cta.label}
+              </Link>
+            ))}
           </div>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.privacy}</p>
