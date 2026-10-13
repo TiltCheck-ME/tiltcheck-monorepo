@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12 */
 import {
   COMMUNITY_DEFAULT_CASINOS,
   getCommunityDefaultCasinoPriority,
@@ -435,6 +435,12 @@ const CASINO_BY_SLUG = new Map(CASINOS.map((casino) => [casino.slug, casino]));
 
 export function getCasinoBySlug(slug: string): CasinoEntry | null {
   return CASINO_BY_SLUG.get(slug) ?? null;
+}
+
+export function findCasinoByBrandName(brand: string): CasinoEntry | null {
+  const key = normalizeCasinoName(brand);
+  if (!key) return null;
+  return CASINOS.find((casino) => normalizeCasinoName(casino.name) === key) ?? null;
 }
 
 export function casinoMatchesQuery(casino: CasinoEntry, query: string): boolean {

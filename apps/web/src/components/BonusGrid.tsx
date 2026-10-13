@@ -1,8 +1,11 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 'use client';
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { resolveBonusTrustBadge } from '@/lib/bonus-trust-badge';
+import type { LiveTrustScore } from '@/lib/casino-trust';
 
 export interface BonusEntry {
   brand: string;
@@ -14,6 +17,7 @@ export interface BonusEntry {
 
 interface BonusGridProps {
   bonuses: BonusEntry[];
+  liveTrustScores?: LiveTrustScore[];
 }
 
 interface BonusFeedResponse {
@@ -48,8 +52,9 @@ function mergeBonuses(...sources: BonusEntry[][]): BonusEntry[] {
   );
 }
 
-function BonusCard({ entry }: { entry: BonusEntry }) {
+function BonusCard({ entry, liveTrustScores }: { entry: BonusEntry; liveTrustScores: LiveTrustScore[] }) {
   const [copied, setCopied] = useState(false);
+  const trustBadge = resolveBonusTrustBadge(entry.brand, liveTrustScores);
 
   const handleCopy = useCallback(() => {
     if (!entry.code) return;
@@ -72,11 +77,14 @@ function BonusCard({ entry }: { entry: BonusEntry }) {
       className="group relative flex flex-col justify-between p-6 border border-[#283347] bg-gradient-to-br from-[#0E0E0F] to-[#0a0c10] transition-all duration-300 hover:border-[#17c3b2] hover:shadow-[0_0_20px_rgba(23,195,178,0.15)]"
       style={{ minHeight: '260px' }}
     >
-      {/* Trust badge placeholder */}
-      <div className="absolute top-4 right-4 text-[10px] font-mono uppercase tracking-widest text-[#17c3b2]/70 border border-[#17c3b2]/20 px-2 py-1">
-        <a href="/casinos" className="hover:text-[#17c3b2] transition-colors">
-          VIEW TRUST SCORE
-        </a>
+      <div className="absolute top-4 right-4 max-w-[11rem] text-right text-[10px] font-mono uppercase tracking-widest text-[#17c3b2]/80 border border-[#17c3b2]/20 px-2 py-1">
+        {trustBadge.slug ? (
+          <Link href={`/casinos/${trustBadge.slug}`} className="hover:text-[#17c3b2] transition-colors">
+            {trustBadge.label}
+          </Link>
+        ) : (
+          <span title="No curated casino record matched this brand name">{trustBadge.label}</span>
+        )}
       </div>
 
       {/* Content */}
@@ -147,7 +155,7 @@ function BonusCard({ entry }: { entry: BonusEntry }) {
   );
 }
 
-export default function BonusGrid({ bonuses }: BonusGridProps) {
+export default function BonusGrid({ bonuses, liveTrustScores = [] }: BonusGridProps) {
   const { user, loading } = useAuth();
   const [query, setQuery] = useState('');
   const [visibleBonuses, setVisibleBonuses] = useState(bonuses);
@@ -257,7 +265,11 @@ export default function BonusGrid({ bonuses }: BonusGridProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((entry) => (
-            <BonusCard key={`${entry.brand}-${entry.url}-${entry.verified}`} entry={entry} />
+            <BonusCard
+              key={`${entry.brand}-${entry.url}-${entry.verified}`}
+              entry={entry}
+              liveTrustScores={liveTrustScores}
+            />
           ))}
         </div>
       )}
