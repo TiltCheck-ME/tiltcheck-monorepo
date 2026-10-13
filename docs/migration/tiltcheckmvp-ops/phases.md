@@ -1,5 +1,7 @@
 # TiltCheck greenfield — combined phase plan
 
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+
 **Source of truth** for what ships when. Acquisition (marketing + trust) and the protected session loop are merged so Phase 1 can go to production for marketing while Phase 2 must pass staging before DNS cutover.
 
 ## Cutover rule
@@ -20,16 +22,16 @@ Do not point production DNS at the new stack until Phase 2 staging gate is green
 
 | Area | Deliverables |
 |------|----------------|
-| **Web** | `/`, `/extension`, `/casinos`, `/casinos/[slug]`, legal (`/privacy`, `/terms`, `/legal`) |
+| **Web** | `/`, legal (`/privacy`, `/terms`, `/legal`). Other marketing paths 307 to `/` via `apps/web/src/lib/public-route-gate.ts`. Casino grades are not a public route. |
 | **packages/trust** | Casino catalog + score helpers; trust-only data migration from v1 |
 | **API (minimal)** | `GET /health`, `GET /rgaas/casino-scores` |
 | **Extension** | Old extension in Chrome Web Store still OK; **new** extension not required for Phase 1 |
 
 **Ship gate (production):**
 
-- Marketing site live with hero + extension CTAs
-- Casino directory and slug pages work (static + API fallback)
-- CTAs point users to install the **existing** store extension
+- Marketing site live with the zip download on `/`
+- Retired marketing URLs 307 to `/`
+- `/privacy`, `/terms`, `/legal`, `/login`, `/dashboard`, and `/touch-grass` still load
 
 ---
 
@@ -204,7 +206,8 @@ _Last updated: execution plan implementation (docs + trust API + vault + extensi
 
 | Item | Status |
 |------|--------|
-| Web routes (`/`, `/extension`, `/casinos`, `/casinos/[slug]`, legal) | **Done** |
+| Web routes (`/`, legal, login, dashboard, touch-grass; other marketing paths 307 home) | **Done** |
+| Casino directory on the public nav | **Held** — pages remain in the repo behind the 307 gate |
 | `packages/trust` + `casinos.json` | **Done** — v1 catalog ported |
 | `GET /health` | **Done** |
 | `GET /rgaas/casino-scores` | **Done** — DB merge + static fallback; v1 JSON shape |

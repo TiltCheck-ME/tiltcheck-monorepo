@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
 
 /** Honest public tool status — install = DM-ready mobile setup pages. */
 export type ToolStatus = 'install' | 'live' | 'beta' | 'soon';
@@ -16,6 +16,21 @@ export type ToolEntry = {
   title: string;
   description: string;
   status: ToolStatus;
+};
+
+export type ReportEntry = {
+  href: string;
+  label: string;
+  title: string;
+  description: string;
+  cadence: string;
+};
+
+export type PartnerLink = {
+  href: string;
+  label: string;
+  title: string;
+  description: string;
 };
 
 /** DM / mobile install links — same Share Edition script, casino-specific steps. */
@@ -118,6 +133,74 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     title: 'Trivia Drop Arena',
     description: 'Discord-native trivia — not a mobile install.',
     status: 'beta',
+  },
+];
+
+/** Automated intel feeds and public report surfaces — not interactive tools. */
+export const REPORT_REGISTRY: ReportEntry[] = [
+  {
+    href: '/casinos',
+    label: 'TRUST DIRECTORY',
+    title: 'Casino Trust Scores',
+    description: 'Public proof pages, license checks, Instant Redeem badges where enabled.',
+    cadence: 'Live',
+  },
+  {
+    href: '/intel/rtp',
+    label: 'RTP DRIFT',
+    title: 'RTP Intel Feed',
+    description: 'Community-reported payout drift and certified tier spreads.',
+    cadence: 'Daily',
+  },
+  {
+    href: '/intel/scams',
+    label: 'SCAM REGISTRY',
+    title: 'Blacklist + Phishing Log',
+    description: 'Domains and promos flagged before you deposit.',
+    cadence: 'Daily',
+  },
+  {
+    href: '/intel/scanner',
+    label: 'BONUS SCANNER',
+    title: 'Bonus Drop Scanner',
+    description: 'Automated bonus-code and promo surface checks.',
+    cadence: 'Weekly',
+  },
+  {
+    href: '/bonuses',
+    label: 'DAILY DROPS',
+    title: 'Bonus Tracker',
+    description: 'Cooldown timers and claim windows across tracked casinos.',
+    cadence: 'Daily',
+  },
+  {
+    href: '/blog',
+    label: 'INTEL FEED',
+    title: 'Degen Intel Blog',
+    description: 'Automated variance and RTP anomaly writeups — public record pending full launch.',
+    cadence: '72h',
+  },
+];
+
+/** B2B / operator surfaces — clearly separated from player tools on the dash. */
+export const PARTNER_LINKS: PartnerLink[] = [
+  {
+    href: '/operators/instant-redeem',
+    label: 'INSTANT REDEEM',
+    title: 'Partner Cashier API',
+    description: 'Sandbox quote/settle orchestration. Processor holds float — TiltCheck does not cash players out.',
+  },
+  {
+    href: '/operators',
+    label: 'SANDBOX',
+    title: 'Operator Keys + RGaaS',
+    description: 'Request sandbox credentials and readiness checklist.',
+  },
+  {
+    href: '/operators/pricing',
+    label: 'PRICING',
+    title: 'RGaaS + Instant Redeem Tiers',
+    description: 'Commercial tiers for processors and casino groups.',
   },
 ];
 
