@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 'use client';
 
 import React from 'react';
@@ -114,9 +114,13 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
             </div>
 
             <div className="mt-8">
-                <button disabled className="text-[10px] font-black uppercase text-gray-600 bg-gray-800/30 border border-gray-700/30 px-3 py-1 cursor-not-allowed" title="Wen dashboard export — soon">
-                    Generate Proof of Degen — Soon
-                </button>
+                <a
+                    href="/user-dashboard"
+                    className="inline-block text-[10px] font-black uppercase text-[#ffd700] bg-gray-800/30 border border-[#ffd700]/30 px-3 py-1 hover:bg-[#ffd700]/10 transition-colors"
+                    title="Open dashboard to export your proof of degen"
+                >
+                    Generate Proof of Degen
+                </a>
             </div>
         </div>
       </div>
