@@ -25,7 +25,7 @@
     "@tiltcheck/types": "workspace:*",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.7.0",
-    "magic-sdk": "^33.6.3",
+    "magic-sdk": "^33.13.0",
     "next": "16.3.8",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
