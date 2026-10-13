@@ -9,6 +9,8 @@ export * from './core.js';
 export * from './credits.js';
 export * from './solana.js';
 export * from './rain.js';
+export * from './tip-log.js';
+export * from './tilt-hint.js';
 
 import * as core from './core.js';
 import { CreditService } from './credits.js';

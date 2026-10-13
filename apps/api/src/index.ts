@@ -70,6 +70,8 @@ import { statsRouter } from './routes/stats.js';
 import { blogRouter } from './routes/blog.js';
 import { telemetryRouter } from './routes/telemetry.js';
 import { triviaRouter } from './routes/trivia.js';
+import { cooldownRouter } from './routes/cooldown.js';
+import { tipsRouter } from './routes/tips.js';
 import { startBlogGenerator } from './services/blog-generator.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -110,8 +112,10 @@ app.use(helmet({
   contentSecurityPolicy: false, // Handled by individual services
 }));
 
-// CORS configuration for subdomain cookies
-app.use(cors({
+// CORS configuration for subdomain cookies.
+// Cooldown is a public read for any casino or sweepstakes site, so that path
+// allows every origin. Other routes keep the production allow-list.
+const appCors = cors({
   origin: (origin, callback) => {
     // Allow requests from provisioned production domains and Chrome Extension
     const allowedOrigins = [
@@ -151,7 +155,22 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+});
+
+const cooldownCors = cors({
+  origin: '*',
+  credentials: false,
+  methods: ['GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept'],
+  maxAge: 30,
+});
+
+app.use((req, res, next) => {
+  if (req.path === '/cooldown' || req.path.startsWith('/cooldown/')) {
+    return cooldownCors(req, res, next);
+  }
+  return appCors(req, res, next);
+});
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -229,6 +248,12 @@ app.use('/rgaas', geoComplianceMiddleware, rgaasRouter);
 
 // Safety routes
 app.use('/safety', safetyRouter);
+
+// Public self-exclusion reads (no auth, no custody)
+app.use('/cooldown', cooldownRouter);
+
+// Tip log read (wallet-scoped, no auth in dev — gate before prod)
+app.use('/tips', tipsRouter);
 
 // Affiliate trust routes
 app.use('/affiliate', affiliateRouter);
