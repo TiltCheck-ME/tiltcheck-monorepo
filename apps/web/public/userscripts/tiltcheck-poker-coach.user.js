@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-09-22
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 // ==UserScript==
 // @name         TiltCheck Poker Coach
 // @namespace    https://tiltcheck.me/userscripts
@@ -33,6 +33,42 @@
     const SUITS = 'shdc';
     const SUIT_GLYPH = { s: '♠', h: '♥', d: '♦', c: '♣' };
     const SUIT_COLOR = { s: '#8aa4c7', h: '#ef4444', d: '#38bdf8', c: '#22c55e' };
+
+    /**
+     * DOM XSS fix (CodeQL): never assign untrusted strings to innerHTML.
+     * Session/odds values can come from the host page or user input.
+     * Build elements; put strings in textContent / attributes only.
+     */
+    function h(tag, attrs, children) {
+        const n = document.createElement(tag);
+        if (attrs) {
+            Object.keys(attrs).forEach((k) => {
+                const v = attrs[k];
+                if (v == null || v === false) return;
+                if (k === 'className') n.className = v;
+                else if (k === 'style' && typeof v === 'object') Object.assign(n.style, v);
+                else if (k === 'text') n.textContent = String(v);
+                else n.setAttribute(k, String(v));
+            });
+        }
+        if (children) {
+            children.forEach((c) => {
+                if (c == null) return;
+                n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+            });
+        }
+        return n;
+    }
+
+    function statBox(label, value, valueClass) {
+        const b = h('b', valueClass ? { className: valueClass, text: value } : { text: value });
+        return h('div', { className: 'stat' }, [h('label', { text: label }), b]);
+    }
+
+    function field(label, id, attrs) {
+        const input = h('input', Object.assign({ id: id, type: 'number' }, attrs || {}));
+        return h('div', null, [h('label', { text: label }), input]);
+    }
     function defaults() {
         return {
             buyIn: 0,
@@ -406,20 +442,23 @@
             el.style.top = state.y + 'px';
             el.style.right = 'auto';
         }
-        el.innerHTML = `
-            <div class="hd" data-drag>
-                <div class="mark">TC</div>
-                <div><div class="ttl">Poker Coach</div><div class="sub">Bink.bet · v${VERSION}</div></div>
-                <div class="sp"></div>
-                <button class="icon" data-min title="Minimize">–</button>
-            </div>
-            <div class="tabs">
-                <button class="tab" data-tab="session">Session</button>
-                <button class="tab" data-tab="odds">Odds</button>
-            </div>
-            <div class="body" id="tc-coach-body"></div>
-            <div class="foot">Advisory only. Local math. Does not click Fold/Call/Raise.</div>
-        `;
+        el.replaceChildren(
+            h('div', { className: 'hd', 'data-drag': '' }, [
+                h('div', { className: 'mark', text: 'TC' }),
+                h('div', null, [
+                    h('div', { className: 'ttl', text: 'Poker Coach' }),
+                    h('div', { className: 'sub', text: 'Bink.bet · v' + VERSION }),
+                ]),
+                h('div', { className: 'sp' }),
+                h('button', { className: 'icon', 'data-min': '', title: 'Minimize', text: '-' }),
+            ]),
+            h('div', { className: 'tabs' }, [
+                h('button', { className: 'tab', 'data-tab': 'session', text: 'Session' }),
+                h('button', { className: 'tab', 'data-tab': 'odds', text: 'Odds' }),
+            ]),
+            h('div', { className: 'body', id: 'tc-coach-body' }),
+            h('div', { className: 'foot', text: 'Advisory only. Local math. Does not click Fold/Call/Raise.' }),
+        );
         document.body.appendChild(el);
         wire(el);
         render();
@@ -476,29 +515,31 @@
         const tilt = tiltLevel();
         const barClass = tilt >= 70 ? 'hot' : tilt >= 40 ? 'warn' : '';
         const netCls = session.net > 0 ? 'up' : session.net < 0 ? 'down' : '';
-        body.innerHTML = `
-            <div class="row">
-                <div class="stat"><label>Time</label><b>${fmtClock(elapsed)}</b></div>
-                <div class="stat"><label>Hands</label><b>${session.hands}</b></div>
-                <div class="stat"><label>Net</label><b class="${netCls}">${fmtMoney(session.net)}</b></div>
-            </div>
-            <label>Tilt</label>
-            <div class="bar ${barClass}"><i style="width:${tilt}%"></i></div>
-            <div class="row">
-                <div><label>Buy-in</label><input id="tc-buy" type="number" min="0" step="0.01" value="${state.buyIn || ''}"></div>
-                <div><label>Stop-loss $</label><input id="tc-sl" type="number" min="0" step="1" value="${state.stopLoss || ''}"></div>
-            </div>
-            <div class="row">
-                <div><label>Take-profit $</label><input id="tc-tp" type="number" min="0" step="1" value="${state.takeProfit || ''}"></div>
-                <div><label>Max minutes</label><input id="tc-mm" type="number" min="10" step="5" value="${state.maxMinutes || ''}"></div>
-            </div>
-            <div class="actions">
-                <button class="btn good" data-res="win">+ Win</button>
-                <button class="btn" data-res="even">Even</button>
-                <button class="btn bad" data-res="lose">− Loss</button>
-            </div>
-            <div class="hint" style="margin-top:8px">${coachLine()}</div>
-        `;
+        const barInner = h('i');
+        barInner.style.width = String(tilt) + '%';
+        body.replaceChildren(
+            h('div', { className: 'row' }, [
+                statBox('Time', fmtClock(elapsed)),
+                statBox('Hands', String(session.hands)),
+                statBox('Net', fmtMoney(session.net), netCls || undefined),
+            ]),
+            h('label', { text: 'Tilt' }),
+            h('div', { className: 'bar' + (barClass ? ' ' + barClass : '') }, [barInner]),
+            h('div', { className: 'row' }, [
+                field('Buy-in', 'tc-buy', { min: '0', step: '0.01', value: state.buyIn || '' }),
+                field('Stop-loss $', 'tc-sl', { min: '0', step: '1', value: state.stopLoss || '' }),
+            ]),
+            h('div', { className: 'row' }, [
+                field('Take-profit $', 'tc-tp', { min: '0', step: '1', value: state.takeProfit || '' }),
+                field('Max minutes', 'tc-mm', { min: '10', step: '5', value: state.maxMinutes || '' }),
+            ]),
+            h('div', { className: 'actions' }, [
+                h('button', { className: 'btn good', 'data-res': 'win', text: '+ Win' }),
+                h('button', { className: 'btn', 'data-res': 'even', text: 'Even' }),
+                h('button', { className: 'btn bad', 'data-res': 'lose', text: '- Loss' }),
+            ]),
+            h('div', { className: 'hint', style: { marginTop: '8px' }, text: coachLine() }),
+        );
         bindNum(body, '#tc-buy', 'buyIn');
         bindNum(body, '#tc-sl', 'stopLoss');
         bindNum(body, '#tc-tp', 'takeProfit');
@@ -514,30 +555,31 @@
         const eq = holeOk ? monteCarlo(state.hole, state.board.filter(Boolean), Math.max(1, Number(state.opponents) || 1), 1200) : null;
         const need = odds ? Math.round(odds.pct * 100) : null;
         const have = eq ? Math.round(eq.equity * 100) : null;
-        body.innerHTML = `
-            <div class="row">
-                <div class="stat"><label>Felt pot</label><b>${scan.pot == null ? '—' : fmtMoney(scan.pot)}</b></div>
-                <div class="stat"><label>To call</label><b>${scan.toCall == null ? '—' : fmtMoney(scan.toCall)}</b></div>
-                <div class="stat"><label>Street</label><b>${scan.street}</b></div>
-            </div>
-            <div class="row">
-                <div><label>Pot $</label><input id="tc-pot" type="number" min="0" step="0.01" value="${state.pot}"></div>
-                <div><label>To call $</label><input id="tc-call" type="number" min="0" step="0.01" value="${state.toCall}"></div>
-            </div>
-            <div class="row">
-                <div class="stat"><label>Need</label><b>${need == null ? '—' : need + '%'}</b></div>
-                <div class="stat"><label>Equity</label><b class="${have != null && need != null ? (have >= need ? 'up' : 'down') : ''}">${have == null ? '—' : have + '%'}</b></div>
-                <div><label>Villains</label><input id="tc-ops" type="number" min="1" max="8" step="1" value="${state.opponents}"></div>
-            </div>
-            <label>Hole</label>
-            <div class="cards" id="tc-hole">${state.hole.map((c, i) => cardBtn(c, 'h' + i)).join('')}</div>
-            <label style="margin-top:8px">Board</label>
-            <div class="cards" id="tc-board">${state.board.map((c, i) => cardBtn(c, 'b' + i)).join('')}</div>
-            <div class="actions">
-                <button class="btn" id="tc-clear">Clear cards</button>
-            </div>
-            <div class="hint" style="margin-top:8px">${coachLine()}</div>
-        `;
+        const eqClass = have != null && need != null ? (have >= need ? 'up' : 'down') : '';
+        body.replaceChildren(
+            h('div', { className: 'row' }, [
+                statBox('Felt pot', scan.pot == null ? '-' : fmtMoney(scan.pot)),
+                statBox('To call', scan.toCall == null ? '-' : fmtMoney(scan.toCall)),
+                statBox('Street', String(scan.street || '-')),
+            ]),
+            h('div', { className: 'row' }, [
+                field('Pot $', 'tc-pot', { min: '0', step: '0.01', value: state.pot }),
+                field('To call $', 'tc-call', { min: '0', step: '0.01', value: state.toCall }),
+            ]),
+            h('div', { className: 'row' }, [
+                statBox('Need', need == null ? '-' : need + '%'),
+                statBox('Equity', have == null ? '-' : have + '%', eqClass || undefined),
+                field('Villains', 'tc-ops', { min: '1', max: '8', step: '1', value: state.opponents }),
+            ]),
+            h('label', { text: 'Hole' }),
+            h('div', { className: 'cards', id: 'tc-hole' }, state.hole.map((c, i) => cardBtn(c, 'h' + i))),
+            h('label', { text: 'Board', style: { marginTop: '8px' } }),
+            h('div', { className: 'cards', id: 'tc-board' }, state.board.map((c, i) => cardBtn(c, 'b' + i))),
+            h('div', { className: 'actions' }, [
+                h('button', { className: 'btn', id: 'tc-clear', text: 'Clear cards' }),
+            ]),
+            h('div', { className: 'hint', style: { marginTop: '8px' }, text: coachLine() }),
+        );
         body.querySelector('#tc-pot').addEventListener('input', (e) => { state.pot = e.target.value; state.potLocked = true; save(); render(); });
         body.querySelector('#tc-call').addEventListener('input', (e) => { state.toCall = e.target.value; state.callLocked = true; save(); render(); });
         bindNum(body, '#tc-ops', 'opponents');
@@ -553,7 +595,12 @@
 
     function cardBtn(code, slot) {
         const col = code ? SUIT_COLOR[code[1]] || '#fff' : '#8a97a8';
-        return `<button class="card ${code ? 'on' : ''}" data-slot="${slot}" style="color:${col}">${cardLabel(code)}</button>`;
+        return h('button', {
+            className: 'card' + (code ? ' on' : ''),
+            'data-slot': slot,
+            style: { color: col },
+            text: cardLabel(code),
+        });
     }
 
     function openPicker(slot) {
@@ -564,10 +611,20 @@
     function drawPicker(body) {
         const box = document.createElement('div');
         box.className = 'picker';
-        box.innerHTML = `
-            <div class="suits">${SUITS.map((s) => `<button class="mini" data-suit="${s}" style="color:${SUIT_COLOR[s]}">${SUIT_GLYPH[s]}</button>`).join('')}</div>
-            <div class="cards">${RANKS.split('').map((r) => `<button class="card" data-pick="${r}${pickerSuit}" style="color:${SUIT_COLOR[pickerSuit]}">${r}${SUIT_GLYPH[pickerSuit]}</button>`).join('')}</div>
-        `;
+        box.replaceChildren(
+            h('div', { className: 'suits' }, SUITS.split('').map((s) => h('button', {
+                className: 'mini',
+                'data-suit': s,
+                style: { color: SUIT_COLOR[s] },
+                text: SUIT_GLYPH[s],
+            }))),
+            h('div', { className: 'cards' }, RANKS.split('').map((r) => h('button', {
+                className: 'card',
+                'data-pick': r + pickerSuit,
+                style: { color: SUIT_COLOR[pickerSuit] },
+                text: r + SUIT_GLYPH[pickerSuit],
+            }))),
+        );
         body.appendChild(box);
         box.querySelectorAll('[data-suit]').forEach((b) => {
             b.addEventListener('click', () => { pickerSuit = b.getAttribute('data-suit'); render(); });
