@@ -2,6 +2,10 @@
 
 # Session Log
 
+## 2026-10-13 — ci: patch HIGH CVEs + stop PR e2e from hitting GitHub Pages
+
+PR e2e now boots local Next.js on 127.0.0.1:3001 (`PLAYWRIGHT_WEB_LOCAL=1`) so `/login` is the real app, not a Pages 404. GH Pages builder emits `/login/index.html` for the live twin. `pnpm audit:deps` overrides take published HIGH patches; advisories with no patched release warn instead of fail.
+
 ## 2026-10-13 — copy: honest Core vs Pro + Cooldown discoverability
 
 Public copy now says Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup. Guest popup opens on Guards. No enforcement default changes.
