@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
@@ -63,8 +63,8 @@ export interface DocMetadata {
   slug: string;
   title: string;
   category: string;
-  lastUpdated?: string;
-  description?: string;
+  lastUpdated: string;
+  description: string;
 }
 
 export interface DocContent extends DocMetadata {
