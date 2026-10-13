@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
  *
  * GitHub Pages site builder for TiltCheck.
- * - `/` product landing twin
- * - `/extension|casinos|tools.html` product pages
+ * - `/` is the single-page zip pitch
+ * - old product html files redirect home
  * - `/docs/*` specs from markdown
  *
  * Project Pages require relative asset paths — never "/styles/...".
@@ -21,8 +21,16 @@ import {
   KOFI_URL,
   EXTENSION_ZIP_URL,
   SITE_HERO_HEADLINE,
+  SITE_H1_LINES,
+  SITE_KICKER,
+  SITE_LEDE,
   SITE_ONE_LINER,
   SITE_META_DESCRIPTION,
+  SITE_PRIVACY,
+  INSTALL_STEPS,
+  INSTALL_NOTE,
+  LAUNCH_CARDS,
+  LAUNCH_HONESTY,
   WHAT_IT_IS,
   HOW_IT_WORKS,
   CORE_JOBS,
@@ -41,7 +49,6 @@ const sourceRoot = path.resolve(process.argv[2] || 'docs/tiltcheck');
 const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
-const CASINOS_JSON = path.join(repoRoot, 'apps/web/src/data/casinos.json');
 
 const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
@@ -172,40 +179,23 @@ function href(depth, file) {
 
 /** @param {'root' | 'docs'} depth @param {string} current */
 function navHtml(depth, current) {
-  const links = [
-    { id: 'extension', file: 'extension.html', label: 'Extension' },
-    { id: 'casinos', file: 'casinos.html', label: 'Casinos' },
-    { id: 'tools', file: 'tools.html', label: 'Tools' },
-    { id: 'specs', file: null, label: 'Specs' },
-  ];
-
-  const linkHtml = links
-    .map((l) => {
-      const resolved =
-        l.id === 'specs' ? (depth === 'root' ? 'docs/index.html' : 'index.html') : href(depth, l.file);
-      const cur = current === l.id ? ' aria-current="page"' : '';
-      return `<a href="${resolved}"${cur}>${l.label}</a>`;
-    })
-    .join('\n    ');
+  const downloadHref = depth === 'root' ? '#install' : '../index.html#install';
+  const homeHref = href(depth, 'index.html');
+  const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
 
   return `<nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="${href(depth, 'index.html')}"${current === 'home' ? ' aria-current="page"' : ''}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    ${linkHtml}
+    <a href="${downloadHref}">Download</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>`;
 }
 
-function footerHtml(depth) {
+function footerHtml() {
   return `<footer class="site-footer">
+  <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
   <span class="site-footer__tag">${FOOTER}</span>
-  <div class="site-footer__links">
-    <a href="${SITE_URL}">tiltcheck.me</a>
-    <a href="${href(depth, 'tools.html')}">Tools</a>
-    <a href="${depth === 'root' ? 'docs/index.html' : 'index.html'}">Specs</a>
-    <a href="${KOFI_URL}" rel="noopener noreferrer">Support</a>
-  </div>
   ${COPYRIGHT}
 </footer>`;
 }
@@ -226,7 +216,7 @@ ${extraHead}
 <body>
 ${navHtml(depth, current)}
 ${body}
-${footerHtml(depth)}
+${footerHtml()}
 </body>
 </html>`;
 }
@@ -270,7 +260,7 @@ function buildDocsIndexPage(entries) {
   const content = `<header class="doc-hero"><div class="doc-hero__inner">
 <p class="doc-hero__crumb">TiltCheck / Specs</p>
 <h1>Ecosystem specs</h1>
-<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. Product pages live on this same Pages site.</p>
+<p class="lede">Static mirror of <code>docs/tiltcheck/</code>. The public site is the homepage.</p>
 </div></header>
 <main class="doc-main">
 <ul class="spec-list">${listHtml}</ul>
@@ -286,147 +276,89 @@ function buildDocsIndexPage(entries) {
 }
 
 function buildRootLanding() {
-  const whatParas = WHAT_IT_IS.paragraphs.map((p) => `<p class="explainer__p">${escapeHtml(p)}</p>`).join('\n');
-  const whatBullets = WHAT_IT_IS.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n');
-
-  const flowHtml = HOW_IT_WORKS.map(
-    (step) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step ${escapeHtml(step.step)}</p>
-  <h3 class="public-page-card__title">${escapeHtml(step.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(step.body)}</p>
-  <p class="public-page-card__note">${escapeHtml(step.note)}</p>
-</article>`,
-  ).join('\n');
-
-  const jobsHtml = CORE_JOBS.map(
-    (job) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Job ${escapeHtml(job.step)}</p>
-  <h3 class="public-page-card__title">${escapeHtml(job.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(job.description)}</p>
-</article>`,
-  ).join('\n');
-
-  const signalsHtml = PROBLEM_SIGNALS.map(
-    (s) => `<article class="signal-row">
-  <h3 class="signal-row__title">${escapeHtml(s.title)}</h3>
-  <p class="signal-row__body">${escapeHtml(s.body)}</p>
-</article>`,
-  ).join('\n');
-
-  const featuresHtml = FEATURE_CARDS.map(
-    (card) => `<article class="public-page-card feature-card">
-  <p class="public-page-card__eyebrow">${escapeHtml(card.eyebrow)}</p>
+  const steps = INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n');
+  const cards = LAUNCH_CARDS.map(
+    (card) => `<article class="public-page-card">
+  <p class="public-page-card__eyebrow">Step ${escapeHtml(card.step)}</p>
   <h3 class="public-page-card__title">${escapeHtml(card.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(card.description)}</p>
-  <a class="feature-card__link" href="${escapeHtml(card.href)}">${escapeHtml(card.cta)} →</a>
+  <p class="public-page-card__copy">${escapeHtml(card.body)}</p>
 </article>`,
   ).join('\n');
-
-  const faqHtml = FAQS.map(
-    (faq) => `<details class="faq-item">
-  <summary class="faq-item__q">${escapeHtml(faq.question)}</summary>
-  <p class="faq-item__a">${escapeHtml(faq.answer)}</p>
-</details>`,
-  ).join('\n');
+  const honesty = LAUNCH_HONESTY.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
 
   const content = `<main class="landing-page">
   <section class="hero-surface" aria-label="TiltCheck">
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
-      <span class="brand-eyebrow">The Degen Audit Layer</span>
-      <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_HERO_HEADLINE)}</h1>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_ONE_LINER)}</p>
+      <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_H1_LINES[0])}<br/>${escapeHtml(SITE_H1_LINES[1])}</h1>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_KICKER[0])}</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_KICKER[1])}</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_LEDE)}</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="extension.html">Install the Extension</a>
-        <a class="hero-actions__secondary-link" href="#what">What is this?</a>
+        <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP</a>
       </div>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_PRIVACY)}</p>
     </div>
   </section>
 
-  <section class="public-page-section" id="what" aria-label="What is TiltCheck">
-    <div class="landing-shell explainer">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">${escapeHtml(WHAT_IT_IS.eyebrow)}</span>
-        <h2 class="public-page-section-heading__title">${escapeHtml(WHAT_IT_IS.title)}</h2>
-      </div>
-      ${whatParas}
-      <ul class="explainer__list">${whatBullets}</ul>
-      <div class="hero-actions hero-actions--start" style="margin-top:1.5rem">
-        <a class="btn btn-primary" href="extension.html">Start with the extension</a>
-        <a class="hero-actions__secondary-link" href="casinos.html">Or check a casino first</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="How it works">
+  <section class="public-page-section" id="install" aria-label="Install">
     <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">How it works</span>
-        <h2 class="public-page-section-heading__title">Install. Watch. Exit.</h2>
-      </div>
-      <div class="public-page-grid public-page-grid--3">${flowHtml}</div>
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Install</p>
+        <h2 class="public-page-card__title">Three steps</h2>
+        <ol class="public-page-list">${steps}</ol>
+        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
+      </article>
     </div>
   </section>
 
-  <section class="public-page-section" aria-label="What it catches">
+  <section class="public-page-section" aria-label="What it does">
     <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">What you get</span>
-        <h2 class="public-page-section-heading__title">Problems it actually names.</h2>
-      </div>
-      <div class="signal-list">${signalsHtml}</div>
+      <div class="public-page-grid public-page-grid--3">${cards}</div>
     </div>
   </section>
 
-  <section class="public-page-section" aria-label="Three jobs">
+  <section class="public-page-section" aria-label="What the lock looks like">
     <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">In-session jobs</span>
-        <h2 class="public-page-section-heading__title">Protect the bankroll.</h2>
-      </div>
-      <div class="public-page-grid public-page-grid--3">${jobsHtml}</div>
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">Counting clicks</p>
+        <h2 class="public-page-card__title">Clicking too fast</h2>
+        <p class="public-page-card__copy">Tab covered · about 2 min</p>
+        <p class="public-page-card__copy">Does not touch your wallet</p>
+      </article>
     </div>
   </section>
 
-  <section class="public-page-section" id="features" aria-label="Tools and features">
+  <section class="public-page-section" aria-label="Honesty">
     <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Open these next</span>
-        <h2 class="public-page-section-heading__title">Pages on this site.</h2>
-      </div>
-      <p class="section-lede">Cold start? Extension first. Depositing somewhere new? Casinos. Want math tools? Toolkit.</p>
-      <div class="public-page-grid public-page-grid--2">${featuresHtml}</div>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="FAQ">
-    <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">FAQ</span>
-        <h2 class="public-page-section-heading__title">Straight answers.</h2>
-      </div>
-      <div class="faq-list">${faqHtml}</div>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="Responsible gambling">
-    <div class="landing-shell">
-      <p class="rg-disclaimer">
-        Not a casino, not a bank, not financial advice. Problem gambling help:
-        <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>
-        or <strong>1-800-GAMBLER</strong>.
-      </p>
+      <ul class="public-page-list">${honesty}</ul>
     </div>
   </section>
 </main>`;
 
   return shell({
-    title: 'TiltCheck | The Degen Audit Layer',
+    title: 'TiltCheck | House always wins? FUCK THAT.',
     description: SITE_META_DESCRIPTION,
     depth: 'root',
     current: 'home',
     body: content,
   });
+}
+
+function buildHomeRedirect(fileName) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=./"/>
+<link rel="canonical" href="${SITE_URL}/"/>
+<title>TiltCheck</title>
+</head>
+<body>
+<p><a href="./">TiltCheck</a></p>
+<!-- ${fileName} retired. Public site is the homepage. -->
+</body>
+</html>`;
 }
 
 function buildExtensionPage() {
@@ -673,16 +605,10 @@ function run() {
     console.error('Source directory missing:', sourceRoot);
     process.exit(1);
   }
-  if (!fs.existsSync(CASINOS_JSON)) {
-    console.error('Casinos data missing:', CASINOS_JSON);
-    process.exit(1);
-  }
 
   const siteRoot = path.dirname(outRoot);
   fs.mkdirSync(outRoot, { recursive: true });
   fs.mkdirSync(siteRoot, { recursive: true });
-
-  const casinos = JSON.parse(fs.readFileSync(CASINOS_JSON, 'utf-8'));
 
   const files = fs
     .readdirSync(sourceRoot)
@@ -704,14 +630,19 @@ function run() {
 
   fs.writeFileSync(path.join(outRoot, 'index.html'), buildDocsIndexPage(indexEntries));
   fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding());
-  fs.writeFileSync(path.join(siteRoot, 'extension.html'), buildExtensionPage());
-  fs.writeFileSync(path.join(siteRoot, 'casinos.html'), buildCasinosPage(casinos));
-  fs.writeFileSync(path.join(siteRoot, 'tools.html'), buildToolsPage());
-  fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
+  for (const retired of ['extension.html', 'casinos.html', 'tools.html']) {
+    fs.writeFileSync(path.join(siteRoot, retired), buildHomeRedirect(retired));
+  }
 
-  console.log(
-    `Built Pages site: ${files.length} specs + product pages (home, extension, casinos[${casinos.length}], tools) → ${siteRoot}`,
-  );
+  const zipSource = path.join(repoRoot, 'apps/web/public/downloads/tiltcheck-extension.zip');
+  const zipDestDir = path.join(siteRoot, 'downloads');
+  fs.mkdirSync(zipDestDir, { recursive: true });
+  fs.copyFileSync(zipSource, path.join(zipDestDir, 'tiltcheck-extension.zip'));
+
+  fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
+  fs.writeFileSync(path.join(siteRoot, 'CNAME'), 'tiltcheck.me\n');
+
+  console.log(`Built Pages site: ${files.length} specs + single-page home → ${siteRoot}`);
 }
 
 run();
