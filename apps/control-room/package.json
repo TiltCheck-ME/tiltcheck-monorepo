@@ -12,7 +12,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.98.4",
+    "@solana/web3.js": "1.98.4",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/prize-payout": "workspace:*",
     "@tiltcheck/types": "workspace:*",
