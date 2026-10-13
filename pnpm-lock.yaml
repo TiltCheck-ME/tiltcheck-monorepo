@@ -1319,10 +1319,10 @@ importers:
     dependencies:
       '@google-cloud/vertexai':
         specifier: ^1.10.4
-        version: 1.10.4(@modelcontextprotocol/sdk@1.31.0(zod@4.3.6))(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
+        version: 1.10.4(@modelcontextprotocol/sdk@1.32.0(zod@4.3.6))(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
       '@google/genai':
         specifier: ^1.47.0
-        version: 1.47.0(@modelcontextprotocol/sdk@1.31.0(zod@4.3.6))(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 1.47.0(@modelcontextprotocol/sdk@1.32.0(zod@4.3.6))(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       '@tiltcheck/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1651,8 +1651,8 @@ importers:
   packages/mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.31.0
-        version: 1.31.0(zod@4.3.6)
+        specifier: ^1.32.0
+        version: 1.32.0(zod@4.3.6)
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -4376,8 +4376,8 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@modelcontextprotocol/sdk@1.31.0':
-    resolution: {integrity: sha512-UvTMgnNlnIBO/22ob2RcVGDlcvOslQs8T59+FTGdA0L27a39fdGF/EDETNtDVK4DZGpwomlsYpRdA8UXcVL/pw==}
+  '@modelcontextprotocol/sdk@1.32.0':
+    resolution: {integrity: sha512-8BviX/hK4Gd2eL1KdTwm0gfl4d3wdoErW0Jd00h6nomUAtk6IJk5vwQJc6kfWtJTzN5OEV/lgIiJKI8fiDGAlA==}
     engines: {node: '>=18'}
     peerDependencies:
       '@cfworker/json-schema': ^4.1.1
@@ -17804,9 +17804,9 @@ snapshots:
       - encoding
       - supports-color
 
-  '@google-cloud/vertexai@1.10.4(@modelcontextprotocol/sdk@1.31.0(zod@4.3.6))(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)':
+  '@google-cloud/vertexai@1.10.4(@modelcontextprotocol/sdk@1.32.0(zod@4.3.6))(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)':
     dependencies:
-      '@google/genai': 1.47.0(@modelcontextprotocol/sdk@1.31.0(zod@4.3.6))(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      '@google/genai': 1.47.0(@modelcontextprotocol/sdk@1.32.0(zod@4.3.6))(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       google-auth-library: 9.15.1(encoding@0.1.13)
     transitivePeerDependencies:
       - '@modelcontextprotocol/sdk'
@@ -17925,14 +17925,14 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@google/genai@1.47.0(@modelcontextprotocol/sdk@1.31.0(zod@4.3.6))(bufferutil@4.1.0)(utf-8-validate@6.0.6)':
+  '@google/genai@1.47.0(@modelcontextprotocol/sdk@1.32.0(zod@4.3.6))(bufferutil@4.1.0)(utf-8-validate@6.0.6)':
     dependencies:
       google-auth-library: 10.6.2
       p-retry: 4.6.2
       protobufjs: 8.7.1
       ws: 8.21.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     optionalDependencies:
-      '@modelcontextprotocol/sdk': 1.31.0(zod@4.3.6)
+      '@modelcontextprotocol/sdk': 1.32.0(zod@4.3.6)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -18579,7 +18579,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@modelcontextprotocol/sdk@1.31.0(zod@4.3.6)':
+  '@modelcontextprotocol/sdk@1.32.0(zod@4.3.6)':
     dependencies:
       '@hono/node-server': 2.1.4(hono@4.13.13)
       ajv: 8.20.0
