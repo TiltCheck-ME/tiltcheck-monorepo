@@ -1,14 +1,27 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 /**
- * GET /tips/log?wallet=<pubkey>
- * Returns tip totals by day and by game for the given wallet.
- * Read-only, no auth required for demo. Add auth guard before prod.
+ * GET /tips/log
+ *
+ * Threat: unauthenticated reads leaked any wallet's tip history (volume, game
+ * context, counterparties). Auth is required. The wallet in the query must match
+ * the session's linked pubkey — no cross-wallet recon.
+ * Rollback: revert this file; the old demo route had no auth.
  */
 
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
+import { sessionAuth } from '@tiltcheck/auth/middleware/express';
 import type { Request, Response } from 'express';
 
 const router = Router();
+
+const logLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Slow down. Tip log is 10 req/min.', code: 'RATE_LIMIT_EXCEEDED' },
+});
 
 function one(v: unknown): string | undefined {
   if (typeof v === 'string') return v;
@@ -16,15 +29,22 @@ function one(v: unknown): string | undefined {
   return undefined;
 }
 
-router.get('/log', async (req: Request, res: Response) => {
-  const wallet = one(req.query.wallet);
-  if (!wallet) {
-    res.status(400).json({ error: 'wallet query param required' });
+router.get('/log', logLimiter, sessionAuth(undefined, { required: true }), async (req: Request, res: Response) => {
+  const auth = req.auth;
+  if (!auth?.walletAddress) {
+    res.status(403).json({ error: 'No wallet linked. Link a wallet before reading tip history.' });
     return;
   }
 
+  const requested = one(req.query.wallet);
+  if (requested && requested !== auth.walletAddress) {
+    res.status(403).json({ error: 'No cap, you cannot query another wallet.' });
+    return;
+  }
+
+  const wallet = auth.walletAddress;
+
   try {
-    // Lazy-load to avoid module-level side effects at startup.
     const { getTipTotals, getTipsForWallet } = await import('@tiltcheck/justthetip');
     const entries = getTipsForWallet(wallet);
     const totals = getTipTotals(wallet);

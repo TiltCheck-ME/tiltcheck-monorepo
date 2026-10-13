@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-16
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 /**
  * Tip Routes - /tip/* (also mounted at /justthetip/*)
  * JustTheTip tipping endpoints — direct tips, room rains, claim, history.
@@ -7,10 +7,27 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { sessionAuth } from '@tiltcheck/auth/middleware/express';
-import { justthetip, FLAT_FEE_LAMPORTS } from '@tiltcheck/justthetip';
+import { justthetip, FLAT_FEE_LAMPORTS, guardTipForWallet } from '@tiltcheck/justthetip';
 import { findUserByDiscordId } from '@tiltcheck/db';
 import { eventRouter } from '@tiltcheck/event-router';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
+
+/**
+ * Threat: credit tips never hit the chain. This read of GET /cooldown/check is the
+ * enforcement layer for /tip/send and /tip/claim. No keys, no funds held.
+ * RPC failure: fail-open unless COOLDOWN_GUARD_FAIL_CLOSED=true (see tilt-hint.ts).
+ * Rollback: remove the await below; tips resume without a Cooldown check.
+ * Gap: sessions with no linked wallet skip the check (cannot derive a PDA).
+ */
+async function assertCooldownAllowsTip(wallet: string | undefined, res: Response): Promise<boolean> {
+  if (!wallet) return true;
+  const guard = await guardTipForWallet(wallet);
+  if (!guard.allowed) {
+    res.status(403).json({ error: guard.reason ?? "It's giving cooldown energy. Tips are locked." });
+    return false;
+  }
+  return true;
+}
 
 const router = Router();
 
@@ -279,6 +296,8 @@ router.post('/send', tipLimiter, sessionAuth(undefined, { required: true }), asy
       return;
     }
 
+    if (!(await assertCooldownAllowsTip(auth.walletAddress, res))) return;
+
     const amountLamports = Math.round(parseFloat(amountSol) * LAMPORTS_PER_SOL);
     const feeLamports = FLAT_FEE_LAMPORTS;
     const feeSavedSol = 0; // populated for Elite users below
@@ -410,6 +429,8 @@ router.post('/claim', tipLimiter, sessionAuth(undefined, { required: true }), as
       res.status(400).json({ error: 'Missing required fields: rainId, channelId' });
       return;
     }
+
+    if (!(await assertCooldownAllowsTip(auth.walletAddress, res))) return;
 
     const rain = roomRains.get(rainId);
     if (!rain) {

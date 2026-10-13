@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -252,7 +252,7 @@ app.use('/safety', safetyRouter);
 // Public self-exclusion reads (no auth, no custody)
 app.use('/cooldown', cooldownRouter);
 
-// Tip log read (wallet-scoped, no auth in dev — gate before prod)
+// Tip log read (session-auth, wallet-bound, 10 req/min)
 app.use('/tips', tipsRouter);
 
 // Affiliate trust routes
