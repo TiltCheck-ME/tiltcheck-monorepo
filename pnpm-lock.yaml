@@ -640,11 +640,11 @@ importers:
   apps/hub:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20260329.1
-        version: 4.20260329.1
+        specifier: ^5.20260719.1
+        version: 5.20261013.1
       wrangler:
         specifier: ^4.78.0
-        version: 4.78.0(@cloudflare/workers-types@4.20260329.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 4.78.0(@cloudflare/workers-types@5.20261013.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6)
 
   apps/justthetip-bot:
     dependencies:
@@ -1369,8 +1369,8 @@ importers:
         version: 4.3.6
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20260329.1
-        version: 4.20260329.1
+        specifier: ^5.20260719.1
+        version: 5.20261013.1
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
@@ -1379,7 +1379,7 @@ importers:
         version: 4.1.2(@opentelemetry/api@1.9.1)(@types/node@25.9.9)(jsdom@29.0.1(@noble/hashes@2.0.1))(vite@8.1.5(@types/node@25.9.9)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1))
       wrangler:
         specifier: ^4.78.0
-        version: 4.78.0(@cloudflare/workers-types@4.20260329.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 4.78.0(@cloudflare/workers-types@5.20261013.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6)
 
   packages/config:
     dependencies:
@@ -2717,8 +2717,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cloudflare/workers-types@4.20260329.1':
-    resolution: {integrity: sha512-LxBHrYYI/AZ6OCbUzRqRgg6Rt1qev2KxN2NNd3saye41AO2g52cYvHV+ohts5oPnrIUD7YRjbgN/J3NU7e7m5A==}
+  '@cloudflare/workers-types@5.20261013.1':
+    resolution: {integrity: sha512-0SfkM/MA+oSIAzFFmjr0wZLH54oeCtugaOn8GpJDBnerQiML+rOPq2W6j6bBGE51o+N4DOd0tvMruLmkAQzlpw==}
 
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
@@ -16381,7 +16381,7 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20260317.1':
     optional: true
 
-  '@cloudflare/workers-types@4.20260329.1': {}
+  '@cloudflare/workers-types@5.20261013.1': {}
 
   '@colors/colors@1.6.0': {}
 
@@ -18163,7 +18163,7 @@ snapshots:
   '@mikro-orm/mariadb@6.6.10(@mikro-orm/core@6.6.10)(pg@8.19.0)':
     dependencies:
       '@mikro-orm/core': 6.6.10
-      '@mikro-orm/knex': 6.6.14(@mikro-orm/core@6.6.10)(mariadb@3.4.5)(pg@8.19.0)(sqlite3@5.1.7)
+      '@mikro-orm/knex': 6.6.14(@mikro-orm/core@6.6.10)(mariadb@3.4.5)(mysql2@3.19.0(@types/node@25.5.0))(pg@8.19.0)
       mariadb: 3.4.5
     transitivePeerDependencies:
       - better-sqlite3
@@ -18217,7 +18217,7 @@ snapshots:
   '@mikro-orm/postgresql@6.6.10(@mikro-orm/core@6.6.10)(mariadb@3.4.5)':
     dependencies:
       '@mikro-orm/core': 6.6.10
-      '@mikro-orm/knex': 6.6.14(@mikro-orm/core@6.6.10)(mariadb@3.4.5)(pg@8.19.0)(sqlite3@5.1.7)
+      '@mikro-orm/knex': 6.6.14(@mikro-orm/core@6.6.10)(mariadb@3.4.5)(mysql2@3.19.0(@types/node@25.5.0))(pg@8.19.0)
       pg: 8.19.0
       postgres-array: 3.0.4
       postgres-date: 2.1.0
@@ -32938,7 +32938,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20260317.1
       '@cloudflare/workerd-windows-64': 1.20260317.1
 
-  wrangler@4.78.0(@cloudflare/workers-types@4.20260329.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6):
+  wrangler@4.78.0(@cloudflare/workers-types@5.20261013.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.2
       '@cloudflare/unenv-preset': 2.16.0(unenv@2.0.0-rc.24)(workerd@1.20260317.1)
@@ -32949,7 +32949,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       workerd: 1.20260317.1
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20260329.1
+      '@cloudflare/workers-types': 5.20261013.1
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil
