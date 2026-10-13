@@ -166,7 +166,7 @@ importers:
         specifier: ^2.8.2
         version: 2.8.2(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@supabase/supabase-js':
         specifier: ^2.100.1
@@ -351,7 +351,7 @@ importers:
   apps/control-room:
     dependencies:
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.3)(utf-8-validate@6.0.6)
       '@tiltcheck/event-router':
         specifier: workspace:*
@@ -403,7 +403,7 @@ importers:
         specifier: ^1.7.0
         version: 1.9.0
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@tiltcheck/config':
         specifier: workspace:*
@@ -480,13 +480,13 @@ importers:
         specifier: ^9.3.4
         version: 9.3.4
       '@solana/pay':
-        specifier: ^0.2.6
+        specifier: 0.2.6
         version: 0.2.6(bufferutil@4.1.0)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@solana/spl-token':
         specifier: ^0.4.14
         version: 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6))(bufferutil@4.1.0)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@supabase/supabase-js':
         specifier: ^2.45.0
@@ -656,13 +656,13 @@ importers:
   apps/justthetip-bot:
     dependencies:
       '@solana/pay':
-        specifier: ^0.2.6
+        specifier: 0.2.6
         version: 0.2.6(bufferutil@4.1.0)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@solana/spl-token':
         specifier: ^0.4.14
         version: 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6))(bufferutil@4.1.0)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@tiltcheck/config':
         specifier: workspace:*
@@ -801,7 +801,7 @@ importers:
         specifier: ^2.8.2
         version: 2.8.2(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.3)(utf-8-validate@6.0.6)
       '@tiltcheck/agent':
         specifier: workspace:*
@@ -910,7 +910,7 @@ importers:
         specifier: ^0.19.32
         version: 0.19.37(@azure/identity@4.13.1)(@babel/runtime@7.29.2)(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.3(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6)))(@solana/sysvars@5.5.1(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@solana/web3.js@1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(encoding@0.1.13)(expo-constants@55.0.16(expo@55.0.23)(react-native@0.85.3(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6)))(fastestsmallesttextencoderdecoder@1.0.22)(ioredis@5.10.1)(react-dom@19.2.6(react@19.2.6))(react-native@0.85.3(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))(react@19.2.6)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@6.0.6)(ws@8.21.1(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.3.6)
       '@solana/web3.js':
-        specifier: ^1.98.0
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@tanstack/react-query':
         specifier: ^5.95.2
@@ -1040,13 +1040,13 @@ importers:
   modules/justthetip:
     dependencies:
       '@solana/pay':
-        specifier: ^0.2.6
+        specifier: 0.2.6
         version: 0.2.6(bufferutil@4.1.0)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@solana/spl-token':
         specifier: ^0.4.14
         version: 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6))(bufferutil@4.1.0)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@tiltcheck/auth':
         specifier: workspace:*
@@ -1104,7 +1104,7 @@ importers:
   modules/lockvault:
     dependencies:
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@tiltcheck/database':
         specifier: workspace:*
@@ -1407,7 +1407,7 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.3)(utf-8-validate@6.0.6)
     devDependencies:
       '@types/node':
@@ -1870,7 +1870,7 @@ importers:
   packages/utils:
     dependencies:
       '@solana/web3.js':
-        specifier: ^1.98.4
+        specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@tiltcheck/types':
         specifier: workspace:*
@@ -24926,7 +24926,7 @@ snapshots:
       resolve-from: 5.0.0
     optionalDependencies:
       '@babel/runtime': 7.29.2
-      expo: 55.0.23(@babel/core@7.29.0)(@expo/dom-webview@55.0.6)(bufferutil@4.1.0)(react-dom@19.2.6(react@19.2.0))(react-native-webview@13.16.1(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))(react@19.2.0)(typescript@6.0.3)(utf-8-validate@6.0.6)
+      expo: 55.0.23(@babel/core@7.29.0)(@expo/dom-webview@55.0.6)(bufferutil@4.1.0)(react-dom@19.2.6(react@19.2.6))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))(react@19.2.6))(react-native@0.85.3(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))(react@19.2.6)(typescript@5.9.3)(utf-8-validate@6.0.6)
     transitivePeerDependencies:
       - '@babel/core'
       - supports-color
@@ -31416,7 +31416,7 @@ snapshots:
 
   rpc-websockets@9.3.7:
     dependencies:
-      '@swc/helpers': 0.5.21
+      '@swc/helpers': 0.5.23
       '@types/uuid': 10.0.0
       '@types/ws': 8.18.1
       buffer: 6.0.3
