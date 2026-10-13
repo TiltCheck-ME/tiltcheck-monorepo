@@ -33,9 +33,6 @@
     const SUITS = 'shdc';
     const SUIT_GLYPH = { s: '♠', h: '♥', d: '♦', c: '♣' };
     const SUIT_COLOR = { s: '#8aa4c7', h: '#ef4444', d: '#38bdf8', c: '#22c55e' };
-    const RANK_NAME = { A: 'ace', K: 'king', Q: 'queen', J: 'jack', T: '10', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9' };
-    const SUIT_NAME = { s: 'spade', h: 'heart', d: 'diamond', c: 'club' };
-
     function defaults() {
         return {
             buyIn: 0,
@@ -119,33 +116,6 @@
         const sec = s % 60;
         if (h) return h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
         return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-    }
-
-    function normalizeCard(raw) {
-        if (!raw) return '';
-        let t = String(raw).trim().toLowerCase().replace(/\s+/g, '');
-        t = t.replace(/10/g, 't').replace(/♠/g, 's').replace(/♥/g, 'h').replace(/♦/g, 'd').replace(/♣/g, 'c');
-        t = t.replace(/spades?/, 's').replace(/hearts?/, 'h').replace(/diamonds?/, 'd').replace(/clubs?/, 'c');
-        const rankWord = t.match(/ace|king|queen|jack|10|[2-9tjqka]/);
-        const suitWord = t.match(/[shdc]/);
-        if (!rankWord || !suitWord) {
-            const compact = t.replace(/[^2-9tjqkahsdc]/g, '');
-            if (compact.length >= 2) {
-                const r = compact[0] === '1' && compact[1] === '0' ? 't' : compact[0];
-                const s = compact[compact.length - 1];
-                if (RANKS.toLowerCase().includes(r) && SUITS.includes(s)) return (r === 't' ? 'T' : r.toUpperCase()) + s;
-            }
-            return '';
-        }
-        let r = rankWord[0];
-        if (r === 'ace') r = 'a';
-        if (r === 'king') r = 'k';
-        if (r === 'queen') r = 'q';
-        if (r === 'jack') r = 'j';
-        if (r === '10') r = 't';
-        const s = suitWord[0];
-        if (!RANKS.toLowerCase().includes(r) || !SUITS.includes(s)) return '';
-        return (r === 't' ? 'T' : r.toUpperCase()) + s;
     }
 
     function cardLabel(code) {

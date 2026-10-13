@@ -221,39 +221,40 @@ The devnet program id is `7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2`.
 
 ### SDK
 
-`@tiltcheck/cooldown-sdk` checks a wallet and builds the transactions. It resolves a linked wallet first, then the lock. No lock, or `now > until`, means not excluded. A pending cancel still counts as excluded.
+`@tiltcheck/cooldown-sdk` checks a wallet and builds the transactions. No lock, or `now > endTime`, means not locked.
 
 ```ts
-import { Connection, PublicKey } from '@solana/web3.js';
-import { createLock, isExcluded } from '@tiltcheck/cooldown-sdk';
+import { isLocked, setLock, hashTarget, zeroTarget, SCOPE_ALL, SCOPE_GAME } from '@tiltcheck/cooldown-sdk';
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 
 const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
 const wallet = new PublicKey('...');
 
-const status = await isExcluded(connection, wallet, {
-  operator: new PublicKey('...'),
-  gameId: 'crash',
+// Check lock status (priority: All > Category > Game)
+const status = await isLocked(connection, wallet, {
+  game: 'pragmatic:plinko',   // optional, hashed internally
+  category: 'crash',          // optional
 });
-// { excluded, until, scope: 'all' | 'operators' | 'games' | null, cancelPending }
+// { locked: boolean; scope: 'all'|'category'|'game'|null; endTime: number | null }
 
-const createIx = createLock(wallet, {
-  durationSecs: 86_400,
-  scope: 0,
-});
+// Build a set_lock instruction (30-day all-scope lock)
+const endTime = Math.floor(Date.now() / 1000) + 30 * 86_400;
+const ix = setLock(wallet, SCOPE_ALL, zeroTarget(), endTime);
+const tx = new Transaction().add(ix);
 ```
 
-The SDK also exports `extendLock`, `requestCancel`, `finalizeCancel`, `closeExpired`, and `linkWallet`. `linkWallet` needs both the authority and the secondary wallet to sign.
+Also exports: `extendLock`, `hashTarget`, `zeroTarget`, `SCOPE_ALL`, `SCOPE_GAME`.
 
 ### API
 
-Sweepstakes sites can check a wallet without talking to Solana. The route is read-only, allows any origin, and caches for 30 seconds.
+Sweepstakes sites can check a wallet without a Solana client. The route is read-only, CORS-open, and caches for 30 seconds.
 
 ```
-GET /cooldown/<wallet>?operator=<pubkey>&game=<id>
+GET /cooldown/check?wallet=<pubkey>&game=<str>&category=<str>
 ```
 
 ```json
-{ "excluded": true, "until": 1790000000, "scope": "all", "cancelPending": false }
+{ "locked": true, "scope": "game", "endTime": 1832400000 }
 ```
 
 Set `COOLDOWN_PROGRAM_ID` and `COOLDOWN_RPC_URL` (defaults to devnet).
