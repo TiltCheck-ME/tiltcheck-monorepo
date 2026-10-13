@@ -1,0 +1,106 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
+
+# Instant Redeem pitch (one-pager)
+
+**Audience:** BD, processors, operators, investors.  
+**Use:** Talk track + landing copy. Pair with legal/RG counsel for production.  
+**Do not:** Promise real-money settlement before float + licensing are signed.  
+**Do not:** Tell players Instant Redeem is a TiltCheck cashout button.
+
+---
+
+## Honesty bar (say this out loud)
+
+| Layer | True today |
+| :--- | :--- |
+| **Sandbox API** | Quote / execute / deposit cooloff mock — no funds moved |
+| **Production grant** | Partner credentials can hit Instant Redeem routes after ops approve |
+| **Live settlement** | Off by default (`INSTANT_REDEEM_LIVE_SETTLEMENT`) until processor smoke passes |
+| **Public badge** | Means a partner enabled Instant Redeem — not that TiltCheck pays the player |
+
+---
+
+## Player vs Operator vs Processor
+
+| Role | What they do |
+| :--- | :--- |
+| **Player** | Sees badges on `/casinos`; cashes out in the **casino cashier** if the brand offers Instant Redeem |
+| **Operator** | Enables Instant Redeem for their domain; owns cashier UX |
+| **Processor** | Holds float; covers many domains; settles rails |
+| **TiltCheck** | Orchestrates API, scam gate, irrevocable policy, rebuy cooloff, trust badge |
+
+---
+
+## One-line
+
+**Instant Redeem is a paid fast cashout at the casino cashier — player pays a fee to skip the wait. TiltCheck orchestrates; the processor holds funds. Scam shops stay blocked.**
+
+---
+
+## The market gap
+
+Players hate waiting on withdrawals. Operators hate chargebacks and tilt-driven reloads. Processors hate being a dumb pipe. Everyone still ships **slow free redeem** or **fast payout with zero RG teeth**.
+
+Instant Redeem is the lane in the middle:
+
+- Paid-and-now exit (fee = cost of not waiting soon™)
+- **No canceled redeems** — once Instant Redeem executes, the house cannot yank it
+- Same-rail deposit cooloff after a win redeem (no instant rebuy)
+- Hard block at scam / critically low-trust shops
+- Public trust badge so players can see who actually pays
+
+---
+
+## Who buys (in order)
+
+| Buyer | Why they care | Ask |
+| :--- | :--- | :--- |
+| **Payment processors** | One contract → many casino domains; RG differentiation vs commodity payout APIs | `partnerType: processor` + coveredDomains |
+| **Operators** | Trust score bump + Instant Redeem badge + fee share on exits | Sandbox enable → production float review |
+| **RGaaS customers** | Upsell on keys they already have | Same `X-TiltCheck-*` headers |
+
+Do not lead with casino-only BD. Lead with processors + public badge FOMO.
+
+---
+
+## Proof points (marketable)
+
+1. **Paid exit, not vapor** — Quote → execute → status. Sandbox today; production human-gated.
+2. **No canceled redeems** — Cancel attempts return `REDEEM_IRREVOCABLE`. Wen payout means it sticks.
+3. **Anti-rebuy by design** — Settled redeem arms deposit cooloff on the same rail.
+4. **No scam cashouts** — Blacklist + trust floor refuse the rail. Skem shops stay blocked.
+5. **Visible supply** — `/casinos` badge + public capabilities feed. Players notice.
+6. **Trust incentive** — Enablement bumps `financialPayouts` (+5, idempotent).
+
+---
+
+## Objection handling
+
+| Objection | Answer |
+| :--- | :--- |
+| "Operators will never partner" | We do not depend on that. Processors + player badges pull demand. |
+| "Is this custodial?" | Operator/processor-contracted desk. Player tooling elsewhere stays non-custodial. Float is contracted, not a pirate middle wallet. |
+| "Can scam casinos use it?" | No. Hard-blocked. Full stop. |
+| "When is real money live?" | After production review, float terms, and licensing. Sandbox proves the loop first. |
+
+---
+
+## Talk track (30 seconds)
+
+> Players hate waiting on withdrawals. Instant Redeem is a paid fast exit inside the licensed cashier — fee to skip the wait, no canceled-redeem theater, cooloff before reload, hard no for scam shops. Processors hold the float and cover many domains. TiltCheck orchestrates the API. Sandbox mocks money; live rails stay grant- and flag-gated. Operators who enable get a trust bump and a public badge.
+
+---
+
+## CTA
+
+1. Sandbox keys: `https://tiltcheck.me/operators`
+2. Product page: `https://tiltcheck.me/operators/instant-redeem`
+3. Team readiness: `https://tiltcheck.me/operators/instant-redeem/readiness`
+4. Outreach templates: `https://tiltcheck.me/docs/product/instant-redeem-partnership-outreach`
+5. Commercial: `partners@tiltcheck.me`
+
+---
+
+## Brand line
+
+Made for Degens. By Degens.

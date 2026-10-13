@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -6,37 +6,11 @@ import { Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
 import DiscordIcon from './DiscordIcon';
+import { PUBLIC_NAV } from '@/lib/public-nav';
 import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 const DASHBOARD_URL = getDashboardHandoffUrl('/dashboard');
 const LOGIN_URL = getWebLoginRedirect('/dashboard');
-
-type NavLink = { href: string; label: string; accent?: string };
-
-const NAV_LINKS_PRIMARY: NavLink[] = [
-  { href: '/how-it-works', label: 'How it works' },
-  { href: '/tools',        label: 'Tools' },
-  { href: '/casinos',      label: 'Casinos' },
-  { href: '/ask',          label: 'Ask Intel' },
-  { href: '/about',        label: 'About' },
-];
-
-const NAV_LINKS_SECONDARY: NavLink[] = [
-  { href: '/bonuses',   label: 'Bonuses' },
-  { href: '/collab',    label: 'Contact', accent: 'purple' },
-];
-
-const ALL_LINKS = [...NAV_LINKS_PRIMARY, ...NAV_LINKS_SECONDARY];
-
-const STACKED_ACCENT_CLASS: Record<string, string> = {
-  danger: 'nav-sidebar-link-danger',
-  purple: 'nav-sidebar-link-purple',
-};
-
-const DESKTOP_ACCENT_CLASS: Record<string, string> = {
-  danger: 'nav-desktop-link-danger',
-  purple: 'nav-desktop-link-purple',
-};
 
 const Nav = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +27,6 @@ const Nav = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -70,8 +43,9 @@ const Nav = () => {
           data-funnel-event="dashboard_handoff_click"
           data-funnel-source={compact ? 'web-nav-compact-auth' : 'web-nav-auth'}
           data-funnel-label="Open dashboard controls"
+          title="Open your dashboard"
         >
-          {user.discordUsername || user.username}
+          {compact ? PUBLIC_NAV.accountLabel : (user.discordUsername || user.username || PUBLIC_NAV.accountLabel)}
         </a>
       );
     }
@@ -80,56 +54,36 @@ const Nav = () => {
         href={LOGIN_URL}
         onClick={close}
         className={compact ? 'nav-auth-compact nav-auth-discord' : 'nav-auth-full nav-auth-discord'}
+        title="Account — vault rules, sync, buddies. Not required to install."
       >
-        {compact ? 'Login' : 'Login with Discord'}
+        {PUBLIC_NAV.accountLabel}
       </Link>
     );
   };
 
   const DesktopLinks = () => (
-    <>
-      {ALL_LINKS.map(({ href, label, accent }) => (
-        <Link
-          key={href}
-          href={href}
-          className={`nav-desktop-link${accent ? ` ${DESKTOP_ACCENT_CLASS[accent]}` : ''}`}
-        >
-          {label}
-        </Link>
-      ))}
-      <Link
-        href="/extension"
-        className="nav-desktop-link nav-desktop-beta"
-        data-funnel-event="nav_install_click"
-        data-funnel-source="web-nav-desktop"
-        data-funnel-label="Install"
-      >
-        Install
-      </Link>
-    </>
+    <Link
+      href={PUBLIC_NAV.downloadHref}
+      className="nav-desktop-link nav-desktop-beta"
+      data-funnel-event="nav_install_click"
+      data-funnel-source="web-nav-desktop"
+      data-funnel-label={PUBLIC_NAV.downloadLabel}
+    >
+      {PUBLIC_NAV.downloadLabel}
+    </Link>
   );
 
   const MobileLinks = () => (
     <>
-      {ALL_LINKS.map(({ href, label, accent }) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={close}
-          className={`nav-sidebar-link${accent ? ` ${STACKED_ACCENT_CLASS[accent]}` : ''}`}
-        >
-          {label}
-        </Link>
-      ))}
       <Link
-        href="/extension"
+        href={PUBLIC_NAV.downloadHref}
         onClick={close}
         className="nav-sidebar-link nav-sidebar-beta"
         data-funnel-event="nav_install_click"
         data-funnel-source="web-nav-mobile"
-        data-funnel-label="Install the Extension"
+        data-funnel-label={PUBLIC_NAV.downloadLabel}
       >
-        Install the Extension
+        {PUBLIC_NAV.downloadLabel}
       </Link>
       <a
         href={DISCORD_INVITE_URL}
@@ -139,7 +93,7 @@ const Nav = () => {
         className="nav-sidebar-link nav-discord-link"
       >
         <DiscordIcon size={16} />
-        Join Discord
+        {PUBLIC_NAV.discordLabel}
       </a>
     </>
   );
@@ -147,7 +101,6 @@ const Nav = () => {
   return (
     <>
       <div className={`nav-topbar${scrolled ? ' nav-topbar--scrolled' : ''}`}>
-        {/* Logo */}
         <Link href="/" className="nav-logo" aria-label="TiltCheck home">
           <span className="nav-logo-icon">
             <img src="/icon.png" alt="" width={24} height={24} style={{ objectFit: 'contain' }} aria-hidden="true" />
@@ -155,12 +108,10 @@ const Nav = () => {
           <span className="nav-logo-text">TILTCHECK</span>
         </Link>
 
-        {/* Desktop nav links */}
         <nav className="nav-desktop-links" aria-label="Primary navigation">
           <DesktopLinks />
         </nav>
 
-        {/* Desktop right actions */}
         <div className="nav-desktop-actions">
           <a
             href={DISCORD_INVITE_URL}
@@ -169,12 +120,11 @@ const Nav = () => {
             className="nav-desktop-link nav-discord-link"
           >
             <DiscordIcon size={16} />
-            JOIN DISCORD
+            {PUBLIC_NAV.discordLabel}
           </a>
           <AuthButton />
         </div>
 
-        {/* Mobile right cluster */}
         <div className="nav-topbar-right">
           <AuthButton compact />
           <button
@@ -190,12 +140,10 @@ const Nav = () => {
         </div>
       </div>
 
-      {/* Mobile menu overlay */}
       {isOpen && (
         <div className="nav-overlay" onClick={close} aria-hidden="true" />
       )}
 
-      {/* Mobile menu panel */}
       {isOpen && (
         <div
           id="site-mobile-nav"

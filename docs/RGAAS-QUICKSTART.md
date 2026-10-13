@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 -->
 
 # RGaaS Sandbox Quickstart
 
@@ -151,13 +151,53 @@ Production keys still stay behind manual review. The operator portal exposes a b
 - Requires `X-TiltCheck-Secret-Key`
 - Returns sandbox-only mocked data
 
+## Instant Redeem sandbox (Phase 4)
+
+After you have verified sandbox keys, Instant Redeem is available under `/v1/redeem`:
+
+1. `POST /v1/redeem/enable` — declare Instant Redeem (`partnerType: operator|processor`, optional `coveredDomains[]`)
+2. `GET /v1/redeem/capabilities` — public supply signal for `/casinos` badges
+3. `POST /v1/redeem/quote` — price the paid exit (150 bps default, $0.50 floor)
+4. `POST /v1/redeem/execute` — mock-settle with idempotency + RG gates; arms 24h rebuy cooloff on settle
+5. `POST /v1/redeem/deposit-check` / `POST /v1/redeem/deposit` — same-rail deposit gate (blocks rapid rebuy)
+6. `GET /v1/redeem/:redeemId` — fetch status
+
+Growth architecture: [OPERATOR-INSTANT-REDEEM-GROWTH.md](./OPERATOR-INSTANT-REDEEM-GROWTH.md)
+
+Operator product page: `https://tiltcheck.me/operators/instant-redeem`
+
+Full contract: [OPERATOR-INSTANT-REDEEM.md](./OPERATOR-INSTANT-REDEEM.md)
+
+```bash
+curl -X POST "http://localhost:8080/v1/redeem/quote" \
+  -H "Content-Type: application/json" \
+  -H "X-Requested-With: TiltCheckPartner" \
+  -H "X-TiltCheck-App-Id: sandbox_acme-casino_deadbeef" \
+  -H "X-TiltCheck-Secret-Key: sk_sandbox_replace_me" \
+  --data '{
+    "playerRef": "player_abc",
+    "amount": 100,
+    "currency": "USD",
+    "destination": { "rail": "ach", "accountRef": "acct_****1234" },
+    "jurisdiction": "CA"
+  }'
+```
+
+Sandbox RG markers for integration tests:
+
+- `playerRef` containing `tilt` or `selfex` → blocked
+- `amount` >= `5000` → execute returns `pending`
+
 ## Threat / validation notes
 
 - User input is validated server-side with Zod before partner provisioning
 - Secret keys are generated server-side and are never logged by the API route
 - Verification tokens are signed and single-use via persisted `verification_token_jti` state
 - Sandbox access stays isolated from production registration; `POST /partner/register` remains admin-only
+- Instant Redeem sandbox never calls real bank or crypto rails
 
 ## Rollback note
 
 If the new operator flow regresses, disable traffic to the public signup page and keep using the admin-only `POST /partner/register` path for production partner issuance while rolling back the partner table column additions.
+
+If Instant Redeem regresses, unmount `/v1/redeem` independently — RGaaS `/partner/*` stays unaffected.
