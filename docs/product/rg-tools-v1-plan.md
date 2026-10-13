@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 -->
 
 # RG Tools v1 Plan
 
@@ -63,6 +63,41 @@ Use this checklist before closing RG v1 surface-routing work:
 - Fairness and trust: web explains definitions; extension shows only concise verdicts and links out for deeper control.
 - Discord: help copy points users to dashboard or web explainers when the task needs review or configuration.
 - Legal tone: no guarantee, treatment, diagnosis, endorsement, or custodial-control language.
+
+## GitHub issue map
+
+These issues were blocked on this file. The section they cite is the source of truth for DoD, not a promise that the code has shipped.
+
+| Issue | Title | Plan section | Status |
+| :--- | :--- | :--- | :--- |
+| [#555](https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/555) | Session brake / cash-out intent | Cross-surface discovery + Cooldown shipped note below | Extension brake exists. Dashboard durable cooldown still partial. |
+| [#556](https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/556) | Solana timelock vault | Section A (solo vault) + Cooldown shipped note | Cooldown program is live on **devnet**. Amount-locking vault is not Cooldown. |
+| [#558](https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/558) | Tilt detection + interventions | Section E | Extension live signals exist. Sensitivity/snooze/privacy DoD is incomplete. |
+
+Issue #556 cites "Section B" in the GitHub body. That was a stale pointer. Section B is buddy notifications. The timelock vault DoD lives in Section A. Section C is the 2-of-3 design that must not start until counsel and security sign off.
+
+## Shipped vs v1 (2026-10-13)
+
+What exists in the repo today vs what v1 still owes. Blunt inventory. No "soon".
+
+| Tool | Surface | Shipped? | v1 done when |
+| :--- | :--- | :--- | :--- |
+| Cooldown on-chain self-exclusion | Solana program `programs/cooldown`, SDK `packages/cooldown-sdk`, web `/cooldown`, API `GET /cooldown/check` | **Devnet live.** Program ID `7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2`. Scopes: all / category / game. Extend only. No cancel in v1. | Mainnet decision, tip routes honor `guardTipForWallet`, fail-closed policy documented for prod. |
+| Chrome session brake | Extension Core `content.js` spin pace lock + Touch Grass side panel | **Shipped in extension.** Two-second spin lock, chase warning, side panel countdown. | Kill switch also stops Core injection (#541). Read-only mode that disables AutoVault. |
+| Trust Engine scores | trust-rollup, web casino pages, extension license strip | **Partial.** Public RTP/compliance/payout evidence. Source + stale-date rules in Section F. | Stale-state always visible. No "safe casino" copy. |
+| Tilt signals | Extension sidebar, JustTheTip `detectTiltHint` | **Partial.** Live UI + tip-velocity hint. | User-set sensitivity, snooze, privacy stance (Section E). |
+| Solo / buddy vault | Dashboard LockVault | **Not shipped on-chain.** Design only (Sections A–C). | Counsel + security + devnet proof. |
+| AutoClaimer | None | **Out of scope.** Must never ship in the player build (#545). | CI/bundle guard that fails if the module returns. |
+
+### Non-custodial boundary (hard)
+
+TiltCheck does **not**:
+
+- Hold user funds, keys, or seed phrases.
+- Sign transactions on behalf of a user.
+- Enforce a casino-side self-exclusion. Cooldown is a lock record the user signed. Casinos do not read it unless they choose to.
+- Diagnose gambling disorder or claim medical outcomes.
+- Guarantee a user will stop. Tools reduce friction to stop. They do not replace a human decision.
 
 ## Section A: Solo Vault v1
 
@@ -332,6 +367,38 @@ Not allowed:
 - "Proves fraud."
 - "Live drift confirmed" when the API is unavailable, stale, or running demo data.
 
+## Section E: Tilt Detection And Interventions
+
+Tracks [#558](https://github.com/TiltCheck-ME/tiltcheck-monorepo/issues/558). Session signals and tiered interventions. No medical or diagnostic claims. If copy starts sounding like a clinician, delete it.
+
+### What v1 detects
+
+- Session length vs user-set max minutes.
+- Stake climb after a loss (chase warning in the extension).
+- Tip velocity vs the wallet's 7-day hourly baseline (`detectTiltHint` in JustTheTip).
+- Spin-button mash (Core pace lock).
+
+### Intervention ladder
+
+| Tier | Action | Owner |
+| :--- | :--- | :--- |
+| 0 | Silent local score. No popup. | Extension |
+| 1 | In-tab copy. "It's giving tilt energy. Lock it in." | Extension |
+| 2 | Session brake / two-second spin lock / Touch Grass panel. | Extension |
+| 3 | Optional buddy ping if the user opted in. | Discord delivery, dashboard consent |
+| 4 | Offer Cooldown lock URL. User signs or they do not. | Web `/cooldown` |
+
+No tier auto-moves funds. No tier writes a casino exclusion. No tier claims the user is "addicted".
+
+### DoD
+
+- User-set sensitivity and snooze live in the dashboard safety lane, not hard-coded in the extension.
+- Privacy stance is written: what stays local, what hits the API, what is never stored (see #542).
+- False-positive copy exists: the tool can be wrong, and the user can snooze it.
+- Degraded mode: if the casino DOM breaks, the extension says so instead of going silent.
+
+Out of scope for v1: clinical screening, mandatory reporting, operator-forced cooloffs.
+
 ## Section F: License And Trust Surfacing
 
 Scope: surface license and trust signals in the browser extension and public casino proof pages without implying legal clearance, casino safety, or regulator endorsement.
@@ -410,7 +477,7 @@ Short pointers for parallel engineering tracks; detail lives in issues.
 
 - **Session brake / cash-out intent (TIL-122):** Extension owns the live brake; dashboard owns sensitivity, snooze, cooldown, history.
 - **Solana timelock vault (TIL-124):** Dashboard owns pre-lock review until program policy ships.
-- **Tilt detection + interventions (TIL-125):** Extension live UI; dashboard durable controls; avoid medical framing.
+- **Tilt detection + interventions (TIL-125 / #558):** Extension live UI; dashboard durable controls; avoid medical framing; see Section E.
 - **License / trust surfacing (TIL-126):** Extension strip; web evidence pages; source + stale-date visible; see Section F.
 - **Buddy 2-of-3 design (TIL-127):** Aligned with Section C above.
 - **Fairness toolkit (TIL-123):** Web owns education; extension compact affordances; define RTP/drift data source; see Section D.
