@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -12,8 +12,8 @@ const coreSignals = [
     body: "Read-only signals on supported casino tabs — click pacing, loss-chase heuristics, and tilt patterns before your bankroll pays tuition.",
   },
   {
-    title: "Touch Grass",
-    body: "Critical tilt pacing triggers an undismissable fullscreen lockout (~2 min). Not a suggestion. A hard pause.",
+    title: "Spin lock (Core)",
+    body: "Every spin locks the spin button for two seconds. A click during the lock does not spin. Fullscreen Touch Grass (~2 min) is Pro monolith only — not the sideloaded zip.",
   },
   {
     title: "SusLink bounce",
@@ -35,7 +35,7 @@ export default function ExtensionPage() {
       <PublicPageHero
         compact
         eyebrow="Browser extension // Core"
-        title="Session intel in the tab. Touch Grass when you spiral."
+        title="Session intel in the tab. Two-second spin lock. No nanny overlay."
         description={
           <p>
             Monitors live session behavior on Stake, Roobet, BC.Game, and other supported tabs — tilt detection from click pacing, not wallet custody.
@@ -74,7 +74,7 @@ export default function ExtensionPage() {
             <ol className="public-page-list">
               <li>Download the zip. Extract to a folder.</li>
               <li>chrome://extensions → Developer mode → Load unpacked → select that folder.</li>
-              <li>Open a supported casino tab. Play. If you start mashing like you are rinsed, Touch Grass fires.</li>
+              <li>Open a supported casino tab. Play. Core locks the spin button for two seconds after each spin.</li>
             </ol>
             <p className="public-page-card__copy">
               No Account needed for Core. Link Discord later if you want dashboard vault rules and sync.

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import React from "react";
 import Link from "next/link";
 import BrandTagline from "@/components/BrandTagline";
@@ -55,13 +55,16 @@ export default function ToolsIndexPage() {
         title="Tools + intel. One index."
         description={
           <p>
-            Extension first — that is the guardrail. Everything here is optional: live web tools,
-            automated report feeds, and DM install links for AutoVault.
+            Wallet lock is Cooldown. Session lock is the zip. Everything else here is optional:
+            live web tools, automated report feeds, and DM install links for AutoVault.
           </p>
         }
         actions={
           <div className="public-page-hero__actions">
-            <Link href="/extension" className="btn btn-primary">
+            <Link href="/cooldown" className="btn btn-primary">
+              Set a Cooldown lock
+            </Link>
+            <Link href="/extension" className="btn btn-secondary">
               Install extension
             </Link>
             <Link href="/casinos" className="btn btn-outline-partner">
@@ -203,10 +206,13 @@ export default function ToolsIndexPage() {
         <div className="landing-shell">
           <div className="public-page-cta-band">
             <p className="public-page-cta-band__copy">
-              No cap — if you only do one thing, install the extension. Everything on this dash is backup armor.
+              No cap — if you only do one thing, set a Cooldown lock. The zip is the 2s spin lock. Everything else is backup armor.
             </p>
             <div className="public-page-cta-band__actions">
-              <Link href="/extension" className="btn btn-primary">
+              <Link href="/cooldown" className="btn btn-primary">
+                Set a Cooldown lock
+              </Link>
+              <Link href="/extension" className="btn btn-secondary">
                 Install extension
               </Link>
               <Link href="/ask" className="btn btn-secondary">

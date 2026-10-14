@@ -1,6 +1,28 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 -->
+
 # TiltCheck — Changelog
 
 All notable changes to this repository will be documented here.
+
+Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the current branch / next cut. Older entries stay as historical snapshots.
+
+## [Unreleased] — 2026-10-13
+
+### Changed
+
+- Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
+- Guest Chrome extension popup opens on Guards. Core runs without Discord. Sidebar is no longer sold as the primary interface.
+- PR Playwright (`Validate Changed Packages (PR) / E2E Tests`) boots local Next.js on `127.0.0.1:3001` via `PLAYWRIGHT_WEB_LOCAL=1` instead of hitting live `tiltcheck.me` GitHub Pages.
+- GitHub Pages builder emits `/login/index.html` so the live twin has a Discord login route instead of a Pages 404.
+
+### Security
+
+- Root `pnpm.overrides` take published HIGH advisory patches (axios, undici, brace-expansion, js-yaml, xmldom, engine.io, and related transitives). `@solana/pay` stays on 0.2.6.
+- `pnpm audit:deps` fails only on high/critical findings that have a patched release. Advisories with no patch (`braces`, `extract-zip`, `node-forge`, `http-cache-semantics`) warn and do not fail the job.
+
+### Fixed
+
+- Discord login e2e no longer 404s in PR CI because `/login` is served from the PR's Next.js app, not GitHub Pages.
 
 ## [0.2.0] — 2026 Production Hardening & Audit Readiness
 

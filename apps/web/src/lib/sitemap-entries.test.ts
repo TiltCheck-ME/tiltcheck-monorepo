@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import { describe, expect, it } from 'vitest';
 import { SITEMAP_PAGE_ENTRIES } from './sitemap-entries';
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import {
   addCustomSlug,
@@ -613,7 +613,7 @@ async function init() {
             chrome.tabs.sendMessage(tabs[0].id, { type: 'open_sidebar' }).catch(() => {});
           }
         });
-        toast('Open the sidebar on your casino tab to finish Discord sign-in.', true);
+        toast('Could not open Discord login. Retry, or use email below. Sidebar HUD is Pro, not this zip.', true);
       } else {
         toast('Discord sign-in tab opened. Complete login there, then this popup updates automatically.');
       }
@@ -711,6 +711,9 @@ async function init() {
   // Vault listeners
   initVaultListeners();
   loadFeed();
+
+  // Guests land on Guards (2s spin lock). Signed-in users get Status.
+  activateTab(userId ? 'status' : 'block');
 }
 
 document.addEventListener('DOMContentLoaded', init);
