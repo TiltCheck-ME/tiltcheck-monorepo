@@ -1,4 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CTA_GATED_HINT,
@@ -41,5 +43,26 @@ describe('GitHub Pages launch copy', () => {
     expect(LAUNCH_HONESTY).toHaveLength(3);
     expect(LAUNCH_HONESTY.join(' ')).not.toContain('JustTheTip');
     expect(LAUNCH_HONESTY.join(' ')).not.toContain('SusLink');
+  });
+});
+
+describe('GitHub Pages home HTML source', () => {
+  const source = readFileSync(path.join(process.cwd(), 'scripts/convert-markdown.js'), 'utf8').replace(/\r\n/g, '\n');
+
+  it('orders Cooldown primary ahead of the gated zip and has no live-stack card', () => {
+    expect(source).toContain('landing-hero-wen');
+    expect(source).toContain('landing-hero-privacy');
+    expect(source).toContain('Wen zip');
+    expect(source).not.toContain('Live stack');
+    expect(source).not.toContain('LAUNCH_MOCK');
+    const cooldownBtn = source.indexOf('SET A COOLDOWN LOCK');
+    const zipFn = source.indexOf('zipCtaHtml()');
+    expect(cooldownBtn).toBeGreaterThan(-1);
+    expect(zipFn).toBeGreaterThan(-1);
+    expect(source).toContain(`<div class="hero-actions">
+  <a class="btn btn-primary" href="/cooldown">SET A COOLDOWN LOCK</a>
+  \${zipCtaHtml()}
+  <a class="btn btn-secondary" href="/extension">EXTENSION DETAILS</a>
+</div>`);
   });
 });

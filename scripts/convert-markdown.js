@@ -21,7 +21,6 @@ import {
   KOFI_URL,
   SITE_H1_LINES,
   SITE_KICKER,
-  SITE_LEDE,
   SITE_ONE_LINER,
   SITE_META_DESCRIPTION,
   SITE_PRIVACY,
@@ -29,11 +28,8 @@ import {
   CTA_LABEL,
   CTA_GATED_LABEL,
   CTA_GATED_HINT,
-  SECONDARY_CTAS,
   INSTALL_STEPS,
-  INSTALL_NOTE,
   LAUNCH_CARDS,
-  LAUNCH_MOCK,
   LAUNCH_HONESTY,
   WHAT_IT_IS,
   HOW_IT_WORKS,
@@ -183,14 +179,18 @@ function href(depth, file) {
 
 /** @param {'root' | 'docs'} depth @param {string} current */
 function navHtml(depth, current) {
-  const downloadHref = depth === 'root' ? '#install' : '../index.html#install';
+  const installHref = depth === 'root' ? '#install' : '../index.html#install';
   const homeHref = href(depth, 'index.html');
+  const cooldownHref = depth === 'root' ? '/cooldown' : '../cooldown/';
+  const extensionHref = depth === 'root' ? '/extension' : '../extension/';
   const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
 
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="${downloadHref}">${CTA_READY ? 'Download' : 'Zip soon™'}</a>
+    <a href="${cooldownHref}">Cooldown</a>
+    <a href="${extensionHref}">Extension</a>
+    <a href="${installHref}">${CTA_READY ? 'Download' : 'Zip soon™'}</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>`;
@@ -286,21 +286,9 @@ function zipCtaHtml() {
   return `<span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
 }
 
-function secondaryCtaHtml() {
-  return SECONDARY_CTAS.map(
-    (cta) =>
-      `<a class="${cta.primary ? 'btn btn-primary' : 'btn btn-secondary'}" href="${escapeHtml(cta.href)}">${escapeHtml(cta.label)}</a>`,
-  ).join('\n        ');
-}
-
 function kickerHtml() {
-  return SITE_KICKER.map((line, index) => {
-    const className =
-      index === 1
-        ? 'landing-hero-retort landing-hero-subtitle--centered'
-        : 'landing-hero-subtitle landing-hero-subtitle--centered';
-    return `<p class="${className}">${escapeHtml(line)}</p>`;
-  }).join('\n      ');
+  const classes = ['landing-hero-subtitle', 'landing-hero-retort', 'landing-hero-wen'];
+  return SITE_KICKER.map((line, index) => `<p class="${classes[index]}">${escapeHtml(line)}</p>`).join('\n        ');
 }
 
 function buildRootLanding() {
@@ -319,13 +307,15 @@ function buildRootLanding() {
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
       <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_H1_LINES[0])}<br/>${escapeHtml(SITE_H1_LINES[1])}</h1>
-      ${kickerHtml()}
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_LEDE)}</p>
-      <div class="hero-actions">
-        ${zipCtaHtml()}
-        ${secondaryCtaHtml()}
-      </div>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_PRIVACY)}</p>
+<div class="landing-hero-stack">
+  ${kickerHtml()}
+</div>
+<div class="hero-actions">
+  <a class="btn btn-primary" href="/cooldown">SET A COOLDOWN LOCK</a>
+  ${zipCtaHtml()}
+  <a class="btn btn-secondary" href="/extension">EXTENSION DETAILS</a>
+</div>
+<p class="landing-hero-privacy">${escapeHtml(SITE_PRIVACY)}</p>
     </div>
   </section>
 
@@ -335,7 +325,6 @@ function buildRootLanding() {
         <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
         <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
         <ol class="public-page-list">${steps}</ol>
-        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
     </div>
   </section>
@@ -343,17 +332,6 @@ function buildRootLanding() {
   <section class="public-page-section" aria-label="What it does">
     <div class="landing-shell">
       <div class="public-page-grid public-page-grid--3">${cards}</div>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="Live stack">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${escapeHtml(LAUNCH_MOCK.status)}</p>
-        <h2 class="public-page-card__title">${escapeHtml(LAUNCH_MOCK.signal)}</h2>
-        <p class="public-page-card__copy">${escapeHtml(LAUNCH_MOCK.footer)}</p>
-        <p class="public-page-card__copy">${escapeHtml(LAUNCH_MOCK.chip)}</p>
-      </article>
     </div>
   </section>
 
@@ -424,7 +402,6 @@ function buildExtensionPage() {
         <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
         <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
         <ol class="public-page-list">${INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n')}</ol>
-        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
     </div>
   </section>
