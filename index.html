@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <title>TiltCheck | House always wins? FUCK THAT.</title>
-<meta name="description" content="Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic."/>
+<meta name="description" content="Non-custodial brakes for degens: on-chain Cooldown locks, Chrome session monitoring, casino trust scores, and tilt-aware tooling."/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#06080b"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
@@ -14,7 +14,7 @@
 <nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="index.html" aria-current="page"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="#install">Download</a>
+    <a href="#install">Zip soon™</a>
     <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>
@@ -23,25 +23,28 @@
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
       <h1 class="landing-hero-title landing-hero-title--centered">House always wins?<br/>FUCK THAT.</h1>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">The math isn&#39;t rigged. Your dopamine is.</p>
       <p class="landing-hero-subtitle landing-hero-subtitle--centered">The house banks on your tilt.</p>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.</p>
+      <p class="landing-hero-retort landing-hero-subtitle--centered">Harm reduction made for degens, by degens. Tested tools that actually work — not a lecture from your mom.</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Cooldown v2: sign a Solana devnet lock. No cancel. No keys held. Wen mainnet? soon.</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Cooldown is on-chain self-exclusion — you sign, we never hold keys. Chrome Core (zip not public yet) is a two-second spin lock on supported casino tabs. Fullscreen Touch Grass (~2 min) is Pro only. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP</a>
+        <span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">ZIP DROPS SOON™</button><span id="gated-zip-why" class="gated-zip-cta__why">Disabled because the zip is not public yet. No half-baked sideload. Cooldown is the lock that ships today.</span></span>
+        <a class="btn btn-primary" href="https://tiltcheck.me/cooldown">SET A COOLDOWN LOCK</a>
+        <a class="btn btn-secondary" href="extension.html">EXTENSION DETAILS</a>
       </div>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Does not read your wallet or your password. No account needed. You install the zip yourself.</p>
+      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.</p>
     </div>
   </section>
 
   <section class="public-page-section" id="install" aria-label="Install">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Install</p>
-        <h2 class="public-page-card__title">Three steps</h2>
-        <ol class="public-page-list"><li>Download the zip. Extract it to a folder.</li>
-<li>Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.</li>
-<li>Open a supported casino and play. If the clicking gets frantic, the tab gets covered for about two minutes.</li></ol>
-        <p class="public-page-card__copy">It works without an account. Discord is only for saving rules later.</p>
+        <p class="public-page-card__eyebrow">Install — gated</p>
+        <h2 class="public-page-card__title">Wen zip</h2>
+        <ol class="public-page-list"><li>Zip is not public yet. soon™ — do not hunt a half-baked sideload.</li>
+<li>When it drops: chrome://extensions → Developer mode → Load unpacked.</li>
+<li>Core will lock the spin button for two seconds on supported tabs. Fullscreen Touch Grass stays Pro.</li></ol>
+        <p class="public-page-card__copy">Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.</p>
       </article>
     </div>
   </section>
@@ -50,40 +53,42 @@
     <div class="landing-shell">
       <div class="public-page-grid public-page-grid--3"><article class="public-page-card">
   <p class="public-page-card__eyebrow">Step 01</p>
-  <h3 class="public-page-card__title">Counts your clicks</h3>
-  <p class="public-page-card__copy">On a supported casino tab, it counts every click. It is looking for clicking that has gotten too fast to be a deliberate bet.</p>
+  <h3 class="public-page-card__title">Cooldown (on-chain)</h3>
+  <p class="public-page-card__copy">Self-exclusion that cannot be weaseled off in a settings menu. Lock all play, a category, or one game. Stronger locks only — expires on-chain when the timer hits. Solana devnet today.</p>
 </article>
 <article class="public-page-card">
   <p class="public-page-card__eyebrow">Step 02</p>
-  <h3 class="public-page-card__title">Covers the tab</h3>
-  <p class="public-page-card__copy">Frantic clicking puts a full-screen pause over the game for about two minutes. That pause is called Touch Grass. You cannot close it early.</p>
+  <h3 class="public-page-card__title">Session intel</h3>
+  <p class="public-page-card__copy">Chrome Core will lock the spin button for two seconds on supported tabs once the zip is public. Fullscreen Touch Grass (~2 min cover) is Pro monolith only.</p>
 </article>
 <article class="public-page-card">
   <p class="public-page-card__eyebrow">Step 03</p>
-  <h3 class="public-page-card__title">Gives the site back</h3>
-  <p class="public-page-card__copy">When the timer ends, the casino comes back. You can keep playing, or close the tab. The pause is there so a win does not get clicked away.</p>
+  <h3 class="public-page-card__title">Trust receipts</h3>
+  <p class="public-page-card__copy">Trust Engine grades operators from public data — RTP drift, compliance filings, payout evidence, scam reports. Bonus tracker and intel tools link back to those scores.</p>
 </article></div>
     </div>
   </section>
 
-  <section class="public-page-section" aria-label="What the lock looks like">
+  <section class="public-page-section" aria-label="Live stack">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Counting clicks</p>
-        <h2 class="public-page-card__title">Clicking too fast</h2>
-        <p class="public-page-card__copy">Tab covered · about 2 min</p>
-        <p class="public-page-card__copy">Does not touch your wallet</p>
+        <p class="public-page-card__eyebrow">Live stack</p>
+        <h2 class="public-page-card__title">Cooldown + extension + trust intel</h2>
+        <p class="public-page-card__copy">Self-sovereign brakes — not a casino nanny hotline.</p>
+        <p class="public-page-card__copy">Non-custodial. You sign locks. We read public data.</p>
       </article>
     </div>
   </section>
 
   <section class="public-page-section" aria-label="Honesty">
     <div class="landing-shell">
-      <ul class="public-page-list"><li>Works with no account.</li>
-<li>Does not read your password. Does not move money.</li>
-<li>Not in the Chrome Web Store. You load the zip yourself.</li>
-<li>Runs on Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.</li>
-<li>Some casino links get checked before they open. If the check flags one as a serious scam, that tab goes to a warning page instead. If the check is down, the link opens normally.</li></ul>
+      <ul class="public-page-list"><li>Cooldown ships on Solana devnet — not mainnet custody theater.</li>
+<li>Extension zip is not public yet. Core is a 2s spin lock when it drops. Fullscreen Touch Grass is Pro only. No Chrome Web Store.</li>
+<li>Trust scores blend live rollup feeds with curated baselines when the API is down.</li>
+<li>JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.</li>
+<li>Discord bot exposes tilt checks and tip commands for server-side degens.</li>
+<li>Supported extension tabs include Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.</li>
+<li>SusLink can bounce critical scam URLs to a warning page when the API is up.</li></ul>
     </div>
   </section>
 </main>

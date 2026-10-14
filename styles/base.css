@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 */
 /*
  * GitHub Pages shell — static twin of tiltcheck.me landing tokens/layout.
  * Absolute /paths break on project Pages; HTML uses relative asset hrefs.
@@ -254,6 +254,46 @@ a:hover {
   text-align: center;
   margin-left: auto;
   margin-right: auto;
+}
+
+.landing-hero-retort {
+  max-width: 36rem;
+  margin: 0.45rem auto 0;
+  font-size: clamp(0.95rem, 0.95rem + 0.2vw, 1.08rem);
+  line-height: 1.6;
+  color: #17c3b2;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f3f6f8;
+}
+
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.gated-zip-cta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  max-width: 18rem;
+}
+
+.gated-zip-cta__why {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: #8b95a3;
+  text-align: left;
 }
 
 .hero-actions {
