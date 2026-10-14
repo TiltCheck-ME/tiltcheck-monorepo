@@ -7,10 +7,11 @@ import { describe, expect, it } from 'vitest';
 describe('not-found source', () => {
   const source = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'not-found.tsx'), 'utf8');
 
-  it('recovers through home, touch grass, and the zip', () => {
+  it('recovers through home, touch grass, and Cooldown', () => {
     expect(source).toContain("href: '/'");
     expect(source).toContain("href: '/touch-grass'");
-    expect(source).toContain("href: '/downloads/tiltcheck-extension.zip'");
+    expect(source).toContain("href: '/cooldown'");
+    expect(source).not.toContain("href: '/downloads/tiltcheck-extension.zip'");
     expect(source).toContain('DISCORD_INVITE_URL');
     expect(source).not.toContain("href: '/site-map'");
     expect(source).not.toContain("href: '/casinos'");

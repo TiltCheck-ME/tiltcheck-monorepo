@@ -10,9 +10,9 @@ describe('homepage source', () => {
   it('renders HOME_LAUNCH, install anchor, and hero funnel events', () => {
     expect(source).toContain('HOME_LAUNCH');
     expect(source).toContain('id="install"');
-    expect(source).toContain('data-funnel-event="landing_install_click"');
-    expect(source).toContain('data-funnel-source="web-home-hero"');
-    expect(source).toContain('data-funnel-label="Download the zip"');
+    expect(source).toContain('GatedZipCta');
+    expect(source).toContain('funnelEvent="landing_install_click"');
+    expect(source).toContain('funnelSource="web-home-hero"');
     expect(source).toContain('secondaryCtas');
     expect(source).toContain('cta.href');
   });

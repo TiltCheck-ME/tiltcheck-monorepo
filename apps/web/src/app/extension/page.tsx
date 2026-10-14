@@ -1,10 +1,12 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import JsonLd from "@/components/JsonLd";
 import { softwareApplicationJsonLd } from "@/lib/structured-data";
 import BrandTagline from "@/components/BrandTagline";
+import GatedZipCta from "@/components/GatedZipCta";
+import { HOME_LAUNCH } from "@/lib/home-launch-copy";
 
 const coreSignals = [
   {
@@ -25,7 +27,7 @@ const notThis = [
   "No HUD or sidebar out of the box (that is Pro).",
   "No Discord login required for Core.",
   "No wallet keys. No payments. No Instant Redeem cashout.",
-  "Not on the Chrome Web Store yet — sideload only.",
+  "Not on the Chrome Web Store. Zip is not public yet — soon™.",
 ];
 
 export default function ExtensionPage() {
@@ -39,7 +41,7 @@ export default function ExtensionPage() {
         description={
           <p>
             Monitors live session behavior on Stake, Roobet, BC.Game, and other supported tabs — tilt detection from click pacing, not wallet custody.
-            Sideload the zip. Store listing later. Account sync is optional; Core runs guest. For wallet-level locks, use{' '}
+            Zip is not public yet. Store listing later. Account sync is optional; Core will run guest. For wallet-level locks, use{' '}
             <Link href="/cooldown" className="text-[#17c3b2] underline-offset-2 hover:underline">
               Cooldown
             </Link>
@@ -48,17 +50,7 @@ export default function ExtensionPage() {
         }
         actions={
           <>
-            <a
-              href="/downloads/tiltcheck-extension.zip"
-              download
-              className="btn btn-primary"
-              data-text="DOWNLOAD THE ZIP"
-              data-funnel-event="extension_download_click"
-              data-funnel-source="web-extension-hero"
-              data-funnel-label="Download the zip"
-            >
-              DOWNLOAD THE ZIP
-            </a>
+            <GatedZipCta funnelEvent="extension_download_click" funnelSource="web-extension-hero" />
             <Link href="/casinos" className="btn btn-secondary" data-text="CHECK CASINO TRUST">
               CHECK CASINO TRUST
             </Link>
@@ -69,16 +61,14 @@ export default function ExtensionPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-card public-page-card--accent">
-            <p className="public-page-card__eyebrow">Install</p>
-            <h2 className="public-page-card__title">Three steps</h2>
+            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Install — gated'}</p>
+            <h2 className="public-page-card__title">{HOME_LAUNCH.ctaReady ? 'Three steps' : 'Wen zip'}</h2>
             <ol className="public-page-list">
-              <li>Download the zip. Extract to a folder.</li>
-              <li>chrome://extensions → Developer mode → Load unpacked → select that folder.</li>
-              <li>Open a supported casino tab. Play. Core locks the spin button for two seconds after each spin.</li>
+              {HOME_LAUNCH.installSteps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
             </ol>
-            <p className="public-page-card__copy">
-              No Account needed for Core. Link Discord later if you want dashboard vault rules and sync.
-            </p>
+            <p className="public-page-card__copy">{HOME_LAUNCH.installNote}</p>
           </div>
         </div>
       </section>

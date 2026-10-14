@@ -1,17 +1,23 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
 import { describe, expect, it } from 'vitest';
 import { HOME_LAUNCH } from './home-launch-copy';
 import { SITE_ONE_LINER, SITE_SEO_TITLE } from './site-copy';
 import { TOOL_REGISTRY } from './tool-registry';
 
 describe('HOME_LAUNCH', () => {
-  it('keeps the headline and primary zip CTA', () => {
+  it('keeps the headline and gates the zip CTA until the sideload is public', () => {
     expect(HOME_LAUNCH.h1).toEqual(['House always wins?', 'FUCK THAT.']);
+    expect(HOME_LAUNCH.ctaReady).toBe(false);
     expect(HOME_LAUNCH.ctaLabel).toBe('DOWNLOAD THE ZIP');
+    expect(HOME_LAUNCH.ctaGatedLabel).toBe('ZIP DROPS SOON™');
+    expect(HOME_LAUNCH.ctaGatedHint).toMatch(/Disabled because the zip is not public yet/i);
     expect(HOME_LAUNCH.ctaHref).toBe('/downloads/tiltcheck-extension.zip');
   });
 
   it('surfaces Cooldown as the flagship wedge', () => {
+    expect(HOME_LAUNCH.kicker[0]).toBe('The house banks on your tilt.');
+    expect(HOME_LAUNCH.kicker[1]).toMatch(/Harm reduction made for degens, by degens/i);
+    expect(HOME_LAUNCH.kicker[1]).toMatch(/not a lecture from your mom/i);
     expect(HOME_LAUNCH.kicker.join(' ')).toContain('Cooldown');
     expect(HOME_LAUNCH.lede).toContain('on-chain');
     expect(HOME_LAUNCH.cards[0]?.title).toContain('Cooldown');

@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 -->
 
 # TiltCheck — Changelog
 
@@ -6,7 +6,7 @@ All notable changes to this repository will be documented here.
 
 Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the current branch / next cut. Older entries stay as historical snapshots.
 
-## [Unreleased] — 2026-10-13
+## [Unreleased] — 2026-10-14
 
 ### Added
 
@@ -15,6 +15,7 @@ Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the
 ### Changed
 
 - Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
+- Home hero retort is harm reduction made for degens, by degens — tested tools, not a mom lecture. Chrome zip CTA is gated (`ZIP DROPS SOON™`) with a visible reason until the sideload is public.
 - Guest Chrome extension popup opens on Guards. Core runs without Discord. Sidebar is no longer sold as the primary interface.
 - PR Playwright (`Validate Changed Packages (PR) / E2E Tests`) boots local Next.js on `127.0.0.1:3001` via `PLAYWRIGHT_WEB_LOCAL=1` instead of hitting live `tiltcheck.me` GitHub Pages.
 - GitHub Pages builder emits `/login/index.html` so the live twin has a Discord login route instead of a Pages 404.
