@@ -283,7 +283,7 @@ function buildDocsIndexPage(entries) {
 
 function zipCtaHtml() {
   if (CTA_READY) {
-    return `<a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>${escapeHtml(CTA_LABEL)}</a>`;
+    return `<a class="btn btn-primary" href="/downloads/tiltcheck-extension.zip" download>${escapeHtml(CTA_LABEL)}</a>`;
   }
   return `<span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
 }

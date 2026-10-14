@@ -79,4 +79,9 @@ describe('GitHub Pages builder source', () => {
     expect(source).toContain('COOLDOWN_PAGE');
     expect(source).toContain('COOLDOWN_PAGE.title');
   });
+
+  it('uses root-absolute zip href so /extension can download', () => {
+    expect(source).toContain('href="/downloads/tiltcheck-extension.zip"');
+    expect(source).not.toContain('href="downloads/tiltcheck-extension.zip"');
+  });
 });
