@@ -8,6 +8,10 @@ Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the
 
 ## [Unreleased] — 2026-10-13
 
+### Added
+
+- `/touch-grass` is the games hub (Live Trivia + Degens Against Decency). Crisis copy lives on the footer/legal only. Pro overlay iframes `?mode=pause` during the cover.
+
 ### Changed
 
 - Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
