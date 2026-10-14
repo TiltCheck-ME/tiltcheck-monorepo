@@ -285,7 +285,7 @@ function zipCtaHtml() {
   if (CTA_READY) {
     return `<a class="btn btn-primary" href="/downloads/tiltcheck-extension.zip" download>${escapeHtml(CTA_LABEL)}</a>`;
   }
-  return `<span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
+  return `<span class="gated-zip-cta"><button type="button" class="btn btn-secondary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
 }
 
 function kickerHtml() {
@@ -416,7 +416,7 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: EXTENSION_PAGE.eyebrow,
     title: EXTENSION_PAGE.title,
-    lede: `${EXTENSION_PAGE.beats[1].body} ${EXTENSION_PAGE.honesty[1]}`,
+    lede: EXTENSION_PAGE.beats[0].body,
     actionsHtml: actions,
   })}
 <main class="product-main">

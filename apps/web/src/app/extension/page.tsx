@@ -17,7 +17,7 @@ export default function ExtensionPage() {
         title={EXTENSION_PAGE.title}
         description={
           <p>
-            {EXTENSION_PAGE.beats[1].body} {EXTENSION_PAGE.honesty[1]}
+            {EXTENSION_PAGE.beats[0].body}
           </p>
         }
         actions={

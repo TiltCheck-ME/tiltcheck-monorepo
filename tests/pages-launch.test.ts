@@ -84,4 +84,14 @@ describe('GitHub Pages builder source', () => {
     expect(source).toContain('href="/downloads/tiltcheck-extension.zip"');
     expect(source).not.toContain('href="downloads/tiltcheck-extension.zip"');
   });
+
+  it('styles the gated zipCtaHtml return as secondary so Cooldown stays the filled primary', () => {
+    const start = source.indexOf('function zipCtaHtml()');
+    const end = source.indexOf('function kickerHtml()');
+    const fn = source.slice(start, end);
+    const gatedReturn = fn.slice(fn.lastIndexOf('return `'));
+    expect(gatedReturn).toContain('btn btn-secondary btn-disabled');
+    expect(gatedReturn).not.toContain('btn-primary');
+    expect(fn).toContain('class="btn btn-primary"');
+  });
 });
