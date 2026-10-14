@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
 name: Deploy Services to Railway
 
 on:
@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'apps/**'
+      - '!apps/web/**'
       - 'packages/**'
       - 'modules/**'
       - '.dockerignore'
@@ -23,6 +24,7 @@ permissions:
 # dashboard to use "Docker Image" source pointing to the GHCR image for each
 # service (ghcr.io/tiltcheck-me/tiltcheck-<service>:latest). Once configured,
 # the redeploy step below triggers Railway to pull the new image and deploy.
+# Public tiltcheck.me is GitHub Pages (pages.yml), not the web Railway service.
 #
 # DO NOT use "railway up" here — it triggers Railway's own builder which uses
 # the service subdirectory as build context and cannot find root-level monorepo
@@ -40,7 +42,6 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       api: ${{ steps.filter.outputs.api }}
-      web: ${{ steps.filter.outputs.web }}
       discord-bot: ${{ steps.filter.outputs.discord-bot }}
       justthetip-bot: ${{ steps.filter.outputs.justthetip-bot }}
       dad-bot: ${{ steps.filter.outputs.dad-bot }}
@@ -67,9 +68,6 @@ jobs:
             api:
               - *shared
               - 'apps/api/**'
-            web:
-              - *shared
-              - 'apps/web/**'
             discord-bot:
               - *shared
               - 'apps/discord-bot/**'
@@ -102,15 +100,13 @@ jobs:
     name: Build ${{ matrix.service }}
     runs-on: ubuntu-24.04
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
     strategy:
       fail-fast: false
       matrix:
         include:
           - service: api
             changed: ${{ needs.changes.outputs.api }}
-          - service: web
-            changed: ${{ needs.changes.outputs.web }}
           - service: discord-bot
             changed: ${{ needs.changes.outputs['discord-bot'] }}
           - service: justthetip-bot
@@ -192,7 +188,7 @@ jobs:
     name: Deploy ${{ matrix.service }} to Railway
     runs-on: ubuntu-24.04
     needs: [changes, build-and-push]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -200,9 +196,6 @@ jobs:
           - service: api
             railway_service_id: "d36d7de5-160c-42e3-9cfc-95e3cc37b9d8"
             changed: ${{ needs.changes.outputs.api }}
-          - service: web
-            railway_service_id: "08e9b7f6-ad09-4808-9e69-047eb5ab0cb2"
-            changed: ${{ needs.changes.outputs.web }}
           - service: discord-bot
             railway_service_id: "91b91e98-fc19-4006-8edd-f7c2a1e45865"
             changed: ${{ needs.changes.outputs['discord-bot'] }}

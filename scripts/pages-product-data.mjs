@@ -1,6 +1,7 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
+ * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
  */
 
 export const SITE_URL = 'https://tiltcheck.me';
@@ -11,45 +12,64 @@ export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`
 export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
 export const SITE_KICKER = [
-  "The math isn't rigged. Your dopamine is.",
   'The house banks on your tilt.',
+  'Harm reduction made for degens, by degens. Tested tools that actually work — not a lecture from your mom.',
+  'Cooldown v2: sign a Solana devnet lock. No cancel. No keys held. Wen mainnet? soon.',
 ];
 export const SITE_LEDE =
-  'Download the zip and load it in Chrome. Open a casino you already use. TiltCheck counts clicks on that tab. When the clicking gets frantic, it covers the whole tab for about two minutes so you cannot keep betting. That pause is called Touch Grass. When the timer ends, the site comes back.';
+  'Cooldown is on-chain self-exclusion — you sign, we never hold keys. Chrome Core (zip not public yet) is a two-second spin lock on supported casino tabs. Fullscreen Touch Grass (~2 min) is Pro only. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.';
 export const SITE_ONE_LINER =
-  'Chrome add-on that counts clicks on casino tabs and covers the tab for about two minutes when clicking gets frantic.';
+  'Non-custodial brakes for degens: on-chain Cooldown locks, Chrome session monitoring, casino trust scores, and tilt-aware tooling.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
-  'Does not read your wallet or your password. No account needed. You install the zip yourself.';
-export const INSTALL_STEPS = [
-  'Download the zip. Extract it to a folder.',
-  'Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.',
-  'Open a supported casino and play. If the clicking gets frantic, the tab gets covered for about two minutes.',
+  'Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.';
+export const CTA_READY = false;
+export const CTA_LABEL = 'DOWNLOAD THE ZIP';
+export const CTA_GATED_LABEL = 'ZIP DROPS SOON™';
+export const CTA_GATED_HINT =
+  'Disabled because the zip is not public yet. No half-baked sideload. Cooldown is the lock that ships today.';
+export const SECONDARY_CTAS = [
+  { label: 'SET A COOLDOWN LOCK', href: `${SITE_URL}/cooldown`, primary: true },
+  { label: 'EXTENSION DETAILS', href: 'extension.html', primary: false },
 ];
-export const INSTALL_NOTE = 'It works without an account. Discord is only for saving rules later.';
+export const INSTALL_STEPS = [
+  'Zip is not public yet. soon™ — do not hunt a half-baked sideload.',
+  'When it drops: chrome://extensions → Developer mode → Load unpacked.',
+  'Core will lock the spin button for two seconds on supported tabs. Fullscreen Touch Grass stays Pro.',
+];
+export const INSTALL_NOTE =
+  'Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.';
 export const LAUNCH_CARDS = [
   {
     step: '01',
-    title: 'Counts your clicks',
-    body: 'On a supported casino tab, it counts every click. It is looking for clicking that has gotten too fast to be a deliberate bet.',
+    title: 'Cooldown (on-chain)',
+    body: 'Self-exclusion that cannot be weaseled off in a settings menu. Lock all play, a category, or one game. Stronger locks only — expires on-chain when the timer hits. Solana devnet today.',
   },
   {
     step: '02',
-    title: 'Covers the tab',
-    body: 'Frantic clicking puts a full-screen pause over the game for about two minutes. That pause is called Touch Grass. You cannot close it early.',
+    title: 'Session intel',
+    body: 'Chrome Core will lock the spin button for two seconds on supported tabs once the zip is public. Fullscreen Touch Grass (~2 min cover) is Pro monolith only.',
   },
   {
     step: '03',
-    title: 'Gives the site back',
-    body: 'When the timer ends, the casino comes back. You can keep playing, or close the tab. The pause is there so a win does not get clicked away.',
+    title: 'Trust receipts',
+    body: 'Trust Engine grades operators from public data — RTP drift, compliance filings, payout evidence, scam reports. Bonus tracker and intel tools link back to those scores.',
   },
 ];
+export const LAUNCH_MOCK = {
+  status: 'Live stack',
+  signal: 'Cooldown + extension + trust intel',
+  footer: 'Self-sovereign brakes — not a casino nanny hotline.',
+  chip: 'Non-custodial. You sign locks. We read public data.',
+};
 export const LAUNCH_HONESTY = [
-  'Works with no account.',
-  'Does not read your password. Does not move money.',
-  'Not in the Chrome Web Store. You load the zip yourself.',
-  'Runs on Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
-  'Some casino links get checked before they open. If the check flags one as a serious scam, that tab goes to a warning page instead. If the check is down, the link opens normally.',
+  'Cooldown ships on Solana devnet — not mainnet custody theater.',
+  'Extension zip is not public yet. Core is a 2s spin lock when it drops. Fullscreen Touch Grass is Pro only. No Chrome Web Store.',
+  'Trust scores blend live rollup feeds with curated baselines when the API is down.',
+  'JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.',
+  'Discord bot exposes tilt checks and tip commands for server-side degens.',
+  'Supported extension tabs include Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
+  'SusLink can bounce critical scam URLs to a warning page when the API is up.',
 ];
 
 /** Plain-English pitch for cold visitors — sits under the hero. */
