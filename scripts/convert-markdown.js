@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the single-page zip pitch
@@ -19,17 +19,21 @@ import {
   SITE_URL,
   DISCORD_URL,
   KOFI_URL,
-  EXTENSION_ZIP_URL,
-  SITE_HERO_HEADLINE,
   SITE_H1_LINES,
   SITE_KICKER,
   SITE_LEDE,
   SITE_ONE_LINER,
   SITE_META_DESCRIPTION,
   SITE_PRIVACY,
+  CTA_READY,
+  CTA_LABEL,
+  CTA_GATED_LABEL,
+  CTA_GATED_HINT,
+  SECONDARY_CTAS,
   INSTALL_STEPS,
   INSTALL_NOTE,
   LAUNCH_CARDS,
+  LAUNCH_MOCK,
   LAUNCH_HONESTY,
   WHAT_IT_IS,
   HOW_IT_WORKS,
@@ -186,7 +190,7 @@ function navHtml(depth, current) {
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="${downloadHref}">Download</a>
+    <a href="${downloadHref}">${CTA_READY ? 'Download' : 'Zip soon™'}</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>`;
@@ -275,6 +279,30 @@ function buildDocsIndexPage(entries) {
   });
 }
 
+function zipCtaHtml() {
+  if (CTA_READY) {
+    return `<a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>${escapeHtml(CTA_LABEL)}</a>`;
+  }
+  return `<span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
+}
+
+function secondaryCtaHtml() {
+  return SECONDARY_CTAS.map(
+    (cta) =>
+      `<a class="${cta.primary ? 'btn btn-primary' : 'btn btn-secondary'}" href="${escapeHtml(cta.href)}">${escapeHtml(cta.label)}</a>`,
+  ).join('\n        ');
+}
+
+function kickerHtml() {
+  return SITE_KICKER.map((line, index) => {
+    const className =
+      index === 1
+        ? 'landing-hero-retort landing-hero-subtitle--centered'
+        : 'landing-hero-subtitle landing-hero-subtitle--centered';
+    return `<p class="${className}">${escapeHtml(line)}</p>`;
+  }).join('\n      ');
+}
+
 function buildRootLanding() {
   const steps = INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n');
   const cards = LAUNCH_CARDS.map(
@@ -291,11 +319,11 @@ function buildRootLanding() {
     <div class="landing-shell landing-hero-centered">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
       <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_H1_LINES[0])}<br/>${escapeHtml(SITE_H1_LINES[1])}</h1>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_KICKER[0])}</p>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_KICKER[1])}</p>
+      ${kickerHtml()}
       <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_LEDE)}</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP</a>
+        ${zipCtaHtml()}
+        ${secondaryCtaHtml()}
       </div>
       <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_PRIVACY)}</p>
     </div>
@@ -304,8 +332,8 @@ function buildRootLanding() {
   <section class="public-page-section" id="install" aria-label="Install">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Install</p>
-        <h2 class="public-page-card__title">Three steps</h2>
+        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
+        <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
         <ol class="public-page-list">${steps}</ol>
         <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
@@ -318,13 +346,13 @@ function buildRootLanding() {
     </div>
   </section>
 
-  <section class="public-page-section" aria-label="What the lock looks like">
+  <section class="public-page-section" aria-label="Live stack">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Counting clicks</p>
-        <h2 class="public-page-card__title">Clicking too fast</h2>
-        <p class="public-page-card__copy">Tab covered · about 2 min</p>
-        <p class="public-page-card__copy">Does not touch your wallet</p>
+        <p class="public-page-card__eyebrow">${escapeHtml(LAUNCH_MOCK.status)}</p>
+        <h2 class="public-page-card__title">${escapeHtml(LAUNCH_MOCK.signal)}</h2>
+        <p class="public-page-card__copy">${escapeHtml(LAUNCH_MOCK.footer)}</p>
+        <p class="public-page-card__copy">${escapeHtml(LAUNCH_MOCK.chip)}</p>
       </article>
     </div>
   </section>
@@ -370,8 +398,8 @@ function buildExtensionPage() {
   ).join('\n');
 
   const actions = `
-    <a class="btn btn-primary" href="${EXTENSION_ZIP_URL}">Download the zip</a>
-    <a class="hero-actions__secondary-link" href="${SITE_URL}/extension">Open live setup</a>`;
+    ${zipCtaHtml()}
+    <a class="hero-actions__secondary-link" href="${SITE_URL}/cooldown">Set a Cooldown lock</a>`;
 
   const content = `${productHero({
     eyebrow: 'Browser extension',
@@ -393,13 +421,10 @@ function buildExtensionPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Install</p>
-        <h2 class="public-page-card__title">Two steps</h2>
-        <ol class="public-page-list">
-          <li>Download the zip, extract to a folder.</li>
-          <li><code>chrome://extensions</code> → Developer mode → Load unpacked → select folder.</li>
-        </ol>
-        <p class="public-page-card__copy">Then open dashboard setup on tiltcheck.me before a live session so your profit/loss lines are set.</p>
+        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
+        <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
+        <ol class="public-page-list">${INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n')}</ol>
+        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
     </div>
   </section>
