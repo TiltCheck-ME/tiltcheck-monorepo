@@ -1,8 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 'use client';
 
-import type { ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { Suspense, type ReactNode } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import IntelChatWidget from '@/components/intel/IntelChatWidget';
@@ -17,9 +17,19 @@ function isMinimalChromePath(pathname: string): boolean {
   );
 }
 
-export default function SiteChrome({ children }: { children: ReactNode }) {
+function isTouchGrassEmbedPath(pathname: string, mode: string | null): boolean {
+  if (pathname === '/touch-grass/trivia' || pathname === '/touch-grass/dad') return true;
+  if (pathname === '/touch-grass' && mode === 'pause') return true;
+  return false;
+}
+
+function SiteChromeBody({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const minimal = pathname ? isMinimalChromePath(pathname) : false;
+  const searchParams = useSearchParams();
+  const mode = searchParams.get('mode');
+  const minimal = Boolean(
+    pathname && (isMinimalChromePath(pathname) || isTouchGrassEmbedPath(pathname, mode))
+  );
 
   if (minimal) {
     return (
@@ -40,5 +50,44 @@ export default function SiteChrome({ children }: { children: ReactNode }) {
       </div>
       <IntelChatWidget />
     </>
+  );
+}
+
+function SiteChromeFallback({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const minimal = Boolean(
+    pathname &&
+      (isMinimalChromePath(pathname) ||
+        pathname === '/touch-grass/trivia' ||
+        pathname === '/touch-grass/dad')
+  );
+
+  if (minimal) {
+    return (
+      <main id="main-content" className="min-h-screen bg-[#0a0c10] text-white">
+        {children}
+      </main>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      <main id="main-content" className="nav-main-content">
+        <PublicPageFrame>{children}</PublicPageFrame>
+      </main>
+      <div className="nav-main-content">
+        <Footer />
+      </div>
+      <IntelChatWidget />
+    </>
+  );
+}
+
+export default function SiteChrome({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={<SiteChromeFallback>{children}</SiteChromeFallback>}>
+      <SiteChromeBody>{children}</SiteChromeBody>
+    </Suspense>
   );
 }
