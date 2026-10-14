@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-07
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the single-page zip pitch
@@ -600,6 +600,41 @@ function buildToolsPage() {
   });
 }
 
+function buildLoginPage() {
+  const discordHref = `https://api.tiltcheck.me/auth/discord/login?source=web&redirect=${encodeURIComponent(`${SITE_URL}/dashboard`)}`;
+  const content = `${productHero({
+    eyebrow: 'Access Portal',
+    title: 'Log in without the scavenger hunt',
+    lede: 'Web still owns login. Discord is the founder lane. After auth lands, the canonical dashboard is the control surface.',
+    actionsHtml: `<a class="btn btn-primary" href="${discordHref}" data-provider="discord">Login with Discord</a>
+    <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <p id="login-error" class="error" role="alert" hidden>Discord login failed. Try again or use email login.</p>
+      <p class="public-page-card__copy">If you have not linked Discord yet, this is the button you wanted to find in the first place.</p>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.get('error')) return;
+  var el = document.getElementById('login-error');
+  if (el) el.hidden = false;
+})();
+</script>`;
+
+  return shell({
+    title: 'Log in | TiltCheck',
+    description: 'Log in with Discord. Non-custodial. Web owns login; dashboard is after auth lands.',
+    depth: 'docs',
+    current: 'login',
+    body: content,
+  });
+}
+
 function run() {
   if (!fs.existsSync(sourceRoot)) {
     console.error('Source directory missing:', sourceRoot);
@@ -630,6 +665,9 @@ function run() {
 
   fs.writeFileSync(path.join(outRoot, 'index.html'), buildDocsIndexPage(indexEntries));
   fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding());
+  const loginDir = path.join(siteRoot, 'login');
+  fs.mkdirSync(loginDir, { recursive: true });
+  fs.writeFileSync(path.join(loginDir, 'index.html'), buildLoginPage());
   for (const retired of ['extension.html', 'casinos.html', 'tools.html']) {
     fs.writeFileSync(path.join(siteRoot, retired), buildHomeRedirect(retired));
   }

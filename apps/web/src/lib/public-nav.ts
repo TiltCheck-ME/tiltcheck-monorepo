@@ -1,8 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
 
 export const PUBLIC_NAV = {
   downloadHref: '/#install',
-  downloadLabel: 'Download',
+  downloadLabel: 'Zip soon™',
   discordLabel: 'Discord',
   accountLabel: 'Account',
   links: [

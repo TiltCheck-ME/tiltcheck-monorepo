@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 
 /** Honest public tool status — install = DM-ready mobile setup pages. */
 export type ToolStatus = 'install' | 'live' | 'beta' | 'soon';
@@ -50,6 +50,13 @@ export const INSTALL_SURFACES: InstallSurface[] = [
 ];
 
 export const TOOL_REGISTRY: ToolEntry[] = [
+  {
+    href: '/cooldown',
+    label: 'COOLDOWN',
+    title: 'On-chain self-exclusion',
+    description: 'Lock your wallet from games, a category, or everything. You sign. Devnet. No cancel in v1.',
+    status: 'live',
+  },
   {
     href: '/tools/verify',
     label: 'THE RECEIPT',
@@ -128,10 +135,10 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     status: 'beta',
   },
   {
-    href: '/tools/degens-arena',
+    href: '/touch-grass/trivia',
     label: 'DEGENS ARENA',
     title: 'Trivia Drop Arena',
-    description: 'Discord-native trivia — not a mobile install.',
+    description: 'Skill-only trivia on the Touch Grass hub.',
     status: 'beta',
   },
 ];

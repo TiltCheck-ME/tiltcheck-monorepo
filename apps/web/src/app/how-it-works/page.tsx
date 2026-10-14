@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import JsonLd from "@/components/JsonLd";
@@ -20,7 +20,7 @@ const workflowSteps = [
   {
     step: "03",
     title: "Exit",
-    body: "Touch Grass lockdown and dashboard rules enforce what you pre-commit to — warning, cash-out nudge, or timed hard stop on supported sites.",
+    body: "Core locks the spin button for two seconds. Fullscreen Touch Grass (~2 min) is Pro only. Dashboard shields and on-chain Cooldown are the wallet-level brakes you pre-commit to.",
     note: "Proof over emotion.",
   },
 ];

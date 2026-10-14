@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import type { MetadataRoute } from 'next';
 
 export type SitemapCategory =
@@ -42,7 +42,7 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   {
     path: '/extension',
     title: 'Chrome extension',
-    description: 'Session monitoring, click pacing, and Touch Grass lockouts.',
+    description: 'Session monitoring, click pacing, and a two-second Core spin lock.',
     category: 'Core',
     changeFrequency: 'weekly',
     priority: 0.9,
@@ -79,7 +79,14 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   },
   { path: '/login', title: 'Account', category: 'Core', changeFrequency: 'monthly', priority: 0.4 },
   { path: '/dashboard', title: 'Dashboard', category: 'Core', changeFrequency: 'weekly', priority: 0.6 },
-  { path: '/touch-grass', title: 'Touch Grass', category: 'Core', changeFrequency: 'monthly', priority: 0.4 },
+  {
+    path: '/touch-grass',
+    title: 'Touch Grass',
+    description: 'Off-ramp games hub — Live Trivia and Degens Against Decency.',
+    category: 'Core',
+    changeFrequency: 'monthly',
+    priority: 0.4,
+  },
   { path: '/terms', title: 'Terms of service', category: 'Legal & RG', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/privacy', title: 'Privacy policy', category: 'Legal & RG', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/legal', title: 'Legal hub', category: 'Legal & RG', changeFrequency: 'yearly', priority: 0.3 },

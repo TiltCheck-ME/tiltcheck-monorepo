@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 name: Validate Changed Packages (PR)
 
 on:
@@ -95,7 +95,11 @@ jobs:
       - name: Run e2e tests
         run: pnpm test:e2e
         env:
-          BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://tiltcheck.me' }}
+          # Validate this PR's Next.js app, not live GitHub Pages.
+          BASE_URL: http://127.0.0.1:3001
+          PLAYWRIGHT_WEB_LOCAL: '1'
           PLAYWRIGHT_DEGENS_LOCAL: '1'
+          SKIP_ENV_VALIDATION: 'true'
+          SKIP_DISCORD_LOGIN: 'true'
 
 

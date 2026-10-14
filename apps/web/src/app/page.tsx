@@ -1,7 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import JsonLd from '@/components/JsonLd';
+import GatedZipCta from '@/components/GatedZipCta';
 import { HOME_LAUNCH } from '@/lib/home-launch-copy';
 import { webPageJsonLd } from '@/lib/structured-data';
 import { SITE_ONE_LINER, SITE_SEO_TITLE } from '@/lib/site-copy';
@@ -25,26 +26,18 @@ export default function Home() {
           </h1>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[0]}</p>
-          <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[1]}</p>
+          <p className="landing-hero-retort landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[1]}</p>
+          <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[2]}</p>
 
           <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.lede}</p>
 
           <div className="hero-actions">
-            <a
-              href={HOME_LAUNCH.ctaHref}
-              download
-              className="btn btn-primary"
-              data-funnel-event="landing_install_click"
-              data-funnel-source="web-home-hero"
-              data-funnel-label="Download the zip"
-            >
-              {HOME_LAUNCH.ctaLabel}
-            </a>
+            <GatedZipCta funnelEvent="landing_install_click" funnelSource="web-home-hero" />
             {HOME_LAUNCH.secondaryCtas.map((cta) => (
               <Link
                 key={cta.href}
                 href={cta.href}
-                className="btn btn-secondary"
+                className={cta.href === '/cooldown' ? 'btn btn-primary' : 'btn btn-secondary'}
                 data-funnel-event="landing_secondary_click"
                 data-funnel-source="web-home-hero"
                 data-funnel-label={cta.label}
@@ -61,8 +54,8 @@ export default function Home() {
       <section id="install" className="public-page-section px-4">
         <div className="landing-shell">
           <article className="public-page-card">
-            <p className="public-page-card__eyebrow">Install</p>
-            <h2 className="public-page-card__title">Three steps</h2>
+            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Install — gated'}</p>
+            <h2 className="public-page-card__title">{HOME_LAUNCH.ctaReady ? 'Three steps' : 'Wen zip'}</h2>
             <ol className="public-page-list">
               {HOME_LAUNCH.installSteps.map((step) => (
                 <li key={step}>{step}</li>

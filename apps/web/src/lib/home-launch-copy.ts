@@ -1,15 +1,20 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
   kicker: [
-    'Non-custodial intelligence for degens who hate nanny tools.',
-    'New: Cooldown — on-chain self-exclusion on Solana devnet. Your wallet, your lock.',
+    'The house banks on your tilt.',
+    'Harm reduction made for degens, by degens. Tested tools that actually work — not a lecture from your mom.',
+    'Cooldown v2: sign a Solana devnet lock. No cancel. No keys held. Wen mainnet? soon.',
   ],
   lede:
-    'TiltCheck tracks tilt signals, session behavior, and sketch casino math — then gives you brakes you actually control. Cooldown is on-chain self-exclusion: lock your wallet from games, categories, or everything. The Chrome extension watches live sessions and fires Touch Grass when clicking turns into autopilot. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.',
+    'Cooldown is on-chain self-exclusion — you sign, we never hold keys. Chrome Core (zip not public yet) is a two-second spin lock on supported casino tabs. Fullscreen Touch Grass (~2 min) is Pro only. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.',
+  ctaReady: false,
   ctaLabel: 'DOWNLOAD THE ZIP',
+  ctaGatedLabel: 'ZIP DROPS SOON™',
   ctaHref: '/downloads/tiltcheck-extension.zip',
+  ctaGatedHint:
+    'Disabled because the zip is not public yet. No half-baked sideload. Cooldown is the lock that ships today.',
   secondaryCtas: [
     { label: 'SET A COOLDOWN LOCK', href: '/cooldown' },
     { label: 'EXTENSION DETAILS', href: '/extension' },
@@ -17,12 +22,12 @@ export const HOME_LAUNCH = {
   privacy:
     'Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.',
   installSteps: [
-    'Download the zip. Extract it to a folder.',
-    'Open chrome://extensions. Turn on Developer mode. Click Load unpacked. Select that folder.',
-    'Open a supported casino and play. Frantic clicking triggers Touch Grass — full tab lock for about two minutes.',
+    'Zip is not public yet. soon™ — do not hunt a half-baked sideload.',
+    'When it drops: chrome://extensions → Developer mode → Load unpacked.',
+    'Core will lock the spin button for two seconds on supported tabs. Fullscreen Touch Grass stays Pro.',
   ],
   installNote:
-    'Core extension runs guest. Link Discord later for dashboard vault rules, buddies, and sync.',
+    'Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.',
   cards: [
     {
       step: '01',
@@ -32,7 +37,7 @@ export const HOME_LAUNCH = {
     {
       step: '02',
       title: 'Session intel',
-      body: 'Chrome extension monitors click pacing and tilt patterns on supported casino tabs. Touch Grass covers the game when you start mashing like you are rinsed.',
+      body: 'Chrome Core will lock the spin button for two seconds on supported tabs once the zip is public. Fullscreen Touch Grass (~2 min cover) is Pro monolith only.',
     },
     {
       step: '03',
@@ -48,7 +53,7 @@ export const HOME_LAUNCH = {
   },
   honesty: [
     'Cooldown ships on Solana devnet — not mainnet custody theater.',
-    'Extension: no Chrome Web Store listing yet. Sideload the zip.',
+    'Extension zip is not public yet. Core is a 2s spin lock when it drops. Fullscreen Touch Grass is Pro only. No Chrome Web Store.',
     'Trust scores blend live rollup feeds with curated baselines when the API is down.',
     'JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.',
     'Discord bot exposes tilt checks and tip commands for server-side degens.',

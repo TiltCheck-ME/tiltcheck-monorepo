@@ -1,14 +1,53 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 
 /**
  * Touch Grass Timeout — fullscreen, non-dismissible pause until duration elapses.
- * 8s breathing pacer, 20s forensic/mindfulness rotation, local-only (no network).
+ * 8s breathing pacer, 20s forensic/mindfulness rotation, pause-hub iframe with CSP fallback.
  *
  * Risk: undismissable by design — future popup settings must require explicit opt-in
  * for duration and policy (accessibility + platform ToS posture).
+ * Hub iframe is same-origin or tiltcheck.me only. No casino DOM, cookies, balances, or
+ * postMessage payloads are forwarded. Iframe `load` is not success — the hub must
+ * origin-check-ping `{ source: 'TILTCHECK_TOUCH_GRASS', ready: true }` within 4s.
  */
 
 export const TOUCH_GRASS_DURATION_MS = 120_000;
+
+export const TOUCH_GRASS_HUB_ORIGIN = 'https://tiltcheck.me';
+export const TOUCH_GRASS_HUB_PAUSE_PATH = '/touch-grass?mode=pause';
+export const TOUCH_GRASS_HUB_READY_SOURCE = 'TILTCHECK_TOUCH_GRASS';
+export const HUB_IFRAME_ID = 'tiltcheck-lockdown-hub';
+const HUB_IFRAME_LOAD_TIMEOUT_MS = 4_000;
+
+export const CSP_FALLBACK_PROMPTS: readonly string[] = [
+  'Stand up. Two minutes of legs, not spins.',
+  'Get water. The reel will still be there.',
+  'Text a person who does not have a referral code.',
+];
+
+export function resolveTouchGrassHubUrl(origin: string = TOUCH_GRASS_HUB_ORIGIN): string {
+  return `${origin}${TOUCH_GRASS_HUB_PAUSE_PATH}`;
+}
+
+export function resolveTouchGrassHubOrigin(): string {
+  const hostname = globalThis.location?.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return globalThis.location.origin;
+  }
+  return TOUCH_GRASS_HUB_ORIGIN;
+}
+
+function isTouchGrassHubReadyPing(event: MessageEvent, expectedOrigin: string): boolean {
+  if (event.origin !== expectedOrigin) {
+    return false;
+  }
+  const data = event.data;
+  if (data == null || typeof data !== 'object') {
+    return false;
+  }
+  const payload = data as { source?: unknown; ready?: unknown };
+  return payload.source === TOUCH_GRASS_HUB_READY_SOURCE && payload.ready === true;
+}
 
 /** Forensic / mindfulness ticker cadence (ms). */
 export const MESSAGE_ROTATE_MS = 20_000;
@@ -32,6 +71,16 @@ const MESSAGE_EL_ID = 'tiltcheck-lockdown-message';
 const TIMER_ID = 'lockdown-timer';
 
 let overlayActive = false;
+let overlayHubMessageListener: ((event: MessageEvent) => void) | null = null;
+
+/** Test-only: release the overlay latch after jsdom teardown. Does not change live dismiss rules. */
+export function resetTouchGrassTimeoutForTests(): void {
+  overlayActive = false;
+  if (overlayHubMessageListener !== null) {
+    window.removeEventListener('message', overlayHubMessageListener);
+    overlayHubMessageListener = null;
+  }
+}
 
 export function blockBettingUI(block: boolean): void {
   const betButtons = document.querySelectorAll<HTMLElement>(
@@ -197,6 +246,26 @@ function injectLockdownStyles(root: HTMLElement): void {
       transition: opacity 0.45s ease;
     }
 
+    #${HUB_IFRAME_ID} {
+      width: 100%;
+      max-width: 32rem;
+      height: 18rem;
+      margin: 0.75rem 0 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #111318;
+      pointer-events: auto;
+    }
+
+    #${LOCKDOWN_ROOT_ID} .tiltcheck-csp-fallback {
+      align-self: stretch;
+      text-align: left;
+      margin: 0 0 1rem;
+      padding: 0 0 0 1.1rem;
+      color: rgba(245, 245, 245, 0.94);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
     #${LOCKDOWN_ROOT_ID} .tiltcheck-lockdown-foot {
       font-size: 0.6875rem;
       line-height: 1.45;
@@ -285,6 +354,23 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
   foot.textContent =
     'This tab stays locked until the counter hits zero. No dismiss. Future settings: explicit opt-in for duration and policy.';
 
+  const hubOrigin = resolveTouchGrassHubOrigin();
+  const iframe = document.createElement('iframe');
+  iframe.id = HUB_IFRAME_ID;
+  iframe.title = 'Touch Grass games hub';
+  iframe.src = resolveTouchGrassHubUrl(hubOrigin);
+  iframe.referrerPolicy = 'no-referrer';
+
+  const fallbackList = document.createElement('ul');
+  fallbackList.className = 'tiltcheck-csp-fallback';
+  fallbackList.hidden = true;
+  fallbackList.setAttribute('aria-label', 'Local pause prompts');
+  for (const prompt of CSP_FALLBACK_PROMPTS) {
+    const item = document.createElement('li');
+    item.textContent = prompt;
+    fallbackList.appendChild(item);
+  }
+
   stage.appendChild(breathRing);
   stage.appendChild(timerWrap);
   stage.appendChild(breathHint);
@@ -293,6 +379,8 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
   inner.appendChild(headline);
   inner.appendChild(reasonEl);
   inner.appendChild(stage);
+  inner.appendChild(iframe);
+  inner.appendChild(fallbackList);
   messageRegion.appendChild(messageEl);
   inner.appendChild(signalLabel);
   inner.appendChild(messageRegion);
@@ -301,6 +389,9 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
   document.body.appendChild(root);
 
   const stopBlocking = (e: Event) => {
+    if (e.target === iframe) {
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
   };
@@ -312,6 +403,51 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
   root.addEventListener('keydown', stopBlocking, captureOpts);
   root.addEventListener('touchstart', stopBlocking, captureOpts);
   document.addEventListener('keydown', stopBlocking, captureOpts);
+
+  let hubSettled = false;
+  let hubLoadTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const showCspFallback = (force = false) => {
+    if (hubSettled && !force) {
+      return;
+    }
+    hubSettled = true;
+    if (hubLoadTimeoutId !== null) {
+      clearTimeout(hubLoadTimeoutId);
+      hubLoadTimeoutId = null;
+    }
+    iframe.hidden = true;
+    iframe.setAttribute('aria-hidden', 'true');
+    fallbackList.hidden = false;
+  };
+
+  const onHubMessage = (event: MessageEvent) => {
+    if (hubSettled) {
+      return;
+    }
+    if (!isTouchGrassHubReadyPing(event, hubOrigin)) {
+      return;
+    }
+    hubSettled = true;
+    if (hubLoadTimeoutId !== null) {
+      clearTimeout(hubLoadTimeoutId);
+      hubLoadTimeoutId = null;
+    }
+  };
+
+  overlayHubMessageListener = onHubMessage;
+  window.addEventListener('message', onHubMessage);
+
+  iframe.addEventListener('error', () => {
+    showCspFallback(true);
+  });
+
+  hubLoadTimeoutId = window.setTimeout(() => {
+    hubLoadTimeoutId = null;
+    if (!hubSettled) {
+      showCspFallback();
+    }
+  }, HUB_IFRAME_LOAD_TIMEOUT_MS);
 
   let messageIndex = 0;
   let pendingFadeTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -347,6 +483,12 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
       clearInterval(countdownIntervalId);
       countdownIntervalId = null;
     }
+    if (hubLoadTimeoutId !== null) {
+      clearTimeout(hubLoadTimeoutId);
+      hubLoadTimeoutId = null;
+    }
+    window.removeEventListener('message', onHubMessage);
+    overlayHubMessageListener = null;
     clearInterval(messageRotateIntervalId);
     clearPendingFade();
     root.remove();

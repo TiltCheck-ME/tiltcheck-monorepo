@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
@@ -128,7 +128,7 @@ export default async function JackpotFundingPage({
             {COMMUNITY_JACKPOT_WALLET}
           </code>
           <div className="mt-6 flex flex-wrap gap-4 text-sm">
-            <Link href="/tools/degens-arena" className="text-[#17c3b2] hover:underline">
+            <Link href="/touch-grass/trivia" className="text-[#17c3b2] hover:underline">
               Back to live trivia
             </Link>
             <span className="text-gray-600">|</span>

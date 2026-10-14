@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 /**
  * /touchgrass — 24-hour emergency session lockout
  * User-triggered break-glass button. Locks all TiltCheck interactions for 24hrs.
@@ -64,7 +64,7 @@ export const touchgrass: Command = {
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const resourcesBtn = new ButtonBuilder()
-      .setLabel('Responsible Gambling Resources')
+      .setLabel('Touch Grass games hub')
       .setStyle(ButtonStyle.Link)
       .setURL('https://tiltcheck.me/touch-grass');
 

@@ -1,12 +1,14 @@
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * audit-deps.ts
  *
  * Runs `pnpm audit` and `pnpm outdated` across the entire workspace and
  * prints a formatted summary. Exits with code 1 if any critical or high
- * vulnerabilities are found.
+ * vulnerabilities have a published patched release we have not taken.
+ * Advisories with no patched release (`<0.0.0` / none) are reported as
+ * WARN and do not fail the job — there is nothing to bump.
  *
  * Usage:
  *   npx tsx scripts/audit-deps.ts
@@ -20,15 +22,16 @@ import { fileURLToPath } from 'node:url';
 // Types
 // ---------------------------------------------------------------------------
 
-type Severity = 'critical' | 'high' | 'moderate' | 'low' | 'info';
+export type Severity = 'critical' | 'high' | 'moderate' | 'low' | 'info';
 
-interface Advisory {
+export interface Advisory {
   module_name: string;
   severity: Severity;
   vulnerable_versions: string;
   patched_versions: string;
   url: string;
   title: string;
+  github_advisory_id?: string;
 }
 
 interface AuditResult {
@@ -64,6 +67,23 @@ const DIM   = '\x1b[2m';
 // Helpers
 // ---------------------------------------------------------------------------
 
+export function hasPatchedRelease(patchedVersions: string | undefined): boolean {
+  const patched = (patchedVersions ?? '').trim();
+  if (!patched) return false;
+  if (patched === '<0.0.0') return false;
+  if (/^none$/i.test(patched)) return false;
+  return true;
+}
+
+export function isBlockingAdvisory(
+  advisory: Pick<Advisory, 'severity' | 'patched_versions'>,
+): boolean {
+  if (advisory.severity !== 'critical' && advisory.severity !== 'high') {
+    return false;
+  }
+  return hasPatchedRelease(advisory.patched_versions);
+}
+
 function colorize(severity: Severity, text: string): string {
   return `${SEVERITY_COLOR[severity]}${text}${RESET}`;
 }
@@ -90,6 +110,14 @@ function padEnd(str: string, len: number): string {
 
 function printDivider(char = '─', width = 90): void {
   console.log(DIM + char.repeat(width) + RESET);
+}
+
+function isDirectRun(): boolean {
+  try {
+    return path.normalize(fileURLToPath(import.meta.url)) === path.normalize(process.argv[1] ?? '');
+  } catch {
+    return false;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -135,17 +163,25 @@ function runVulnerabilityAudit(): boolean {
   );
   printDivider();
 
-  let hasHighOrCritical = false;
+  let hasBlockingHighOrCritical = false;
+  let unpatchableHighOrCritical = 0;
 
   for (const sev of SEVERITY_ORDER) {
     const entries = grouped.get(sev) ?? [];
     for (const adv of entries) {
-      if (sev === 'critical' || sev === 'high') hasHighOrCritical = true;
+      const blocking = isBlockingAdvisory(adv);
+      if (blocking) hasBlockingHighOrCritical = true;
+      if ((sev === 'critical' || sev === 'high') && !blocking) {
+        unpatchableHighOrCritical += 1;
+      }
+      const patchedLabel = hasPatchedRelease(adv.patched_versions)
+        ? adv.patched_versions
+        : 'none';
       console.log(
         padEnd(adv.module_name, 28) +
         colorize(sev, padEnd(sev.toUpperCase(), 10)) +
         padEnd(adv.vulnerable_versions || 'unknown', 18) +
-        padEnd(adv.patched_versions || 'none', 14) +
+        padEnd(patchedLabel, 14) +
         DIM + adv.url + RESET,
       );
     }
@@ -161,8 +197,13 @@ function runVulnerabilityAudit(): boolean {
       console.log(`  ${colorize(sev, sev.toUpperCase())}: ${count}`);
     }
   }
+  if (unpatchableHighOrCritical > 0) {
+    console.log(
+      `\n  ${BOLD}WARN:${RESET} ${unpatchableHighOrCritical} high/critical advisory(ies) have no patched release. Reported, not failing.`,
+    );
+  }
 
-  return hasHighOrCritical;
+  return hasBlockingHighOrCritical;
 }
 
 // ---------------------------------------------------------------------------
@@ -216,13 +257,15 @@ function runOutdatedCheck(): void {
 // Main
 // ---------------------------------------------------------------------------
 
-const hasHighOrCritical = runVulnerabilityAudit();
-runOutdatedCheck();
-console.log('');
+if (isDirectRun()) {
+  const hasBlockingHighOrCritical = runVulnerabilityAudit();
+  runOutdatedCheck();
+  console.log('');
 
-if (hasHighOrCritical) {
-  console.error(`${BOLD}\x1b[31mFAIL: Critical or high vulnerabilities detected. Resolve before deploying.\x1b[0m${RESET}\n`);
-  process.exit(1);
+  if (hasBlockingHighOrCritical) {
+    console.error(`${BOLD}\x1b[31mFAIL: Critical or high vulnerabilities with a patched release. Resolve before deploying.\x1b[0m${RESET}\n`);
+    process.exit(1);
+  }
+
+  console.log(`${BOLD}\x1b[32mPASS: No patchable critical or high vulnerabilities found.\x1b[0m${RESET}\n`);
 }
-
-console.log(`${BOLD}\x1b[32mPASS: No critical or high vulnerabilities found.\x1b[0m${RESET}\n`);

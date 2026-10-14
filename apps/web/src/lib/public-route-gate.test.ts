@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import { describe, expect, it } from 'vitest';
 import { decidePublicRoute } from './public-route-gate';
 
@@ -12,6 +12,9 @@ describe('decidePublicRoute', () => {
       '/login',
       '/dashboard',
       '/touch-grass',
+      '/touch-grass/trivia',
+      '/touch-grass/dad',
+      '/touch-grass/trivia/',
       '/extension',
       '/bonuses',
       '/cooldown',

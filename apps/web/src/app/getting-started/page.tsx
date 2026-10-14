@@ -1,12 +1,19 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 import Link from 'next/link';
 import PublicPageHero, { PublicPageSectionHeader } from '@/components/PublicPageHero';
 
 const paths = [
   {
+    tag: 'Lock',
+    title: 'On-chain Cooldown',
+    body: 'Sign a Solana devnet lock. No cancel in v1. Wallet-level, not a casino settings toggle.',
+    href: '/cooldown',
+    label: 'Open Cooldown',
+  },
+  {
     tag: 'Install',
     title: 'Extension or AutoVault',
-    body: 'Chrome extension for in-tab guards. /nuts or /stake for mobile AutoVault — DM links only.',
+    body: 'Chrome Core is a 2s spin lock on supported tabs. /nuts or /stake for mobile AutoVault — DM links only.',
     href: '/extension',
     label: 'Extension guide',
   },
@@ -18,18 +25,17 @@ const paths = [
     label: 'Read the flow',
   },
   {
-    tag: 'Help',
-    title: 'Crisis resources',
-    body: 'TiltCheck is brakes, not therapy. Real help exists.',
+    tag: 'Play',
+    title: 'Touch Grass games hub',
+    body: 'Off-ramp tables when the casino tab needs to die. Trivia and DA&D. Not therapy.',
     href: '/touch-grass',
-    label: 'Get help',
-    danger: true,
+    label: 'Open the hub',
   },
 ];
 
 const steps = [
   { n: '1', title: 'Install', body: 'Extension zip or mobile userscript from /tools install links.' },
-  { n: '2', title: 'Set rules', body: 'Profit target, loss cap, cooldown — dashboard or script panel.' },
+  { n: '2', title: 'Set rules', body: 'On-chain Cooldown at /cooldown. Dashboard shields and vault rules after Discord.' },
   { n: '3', title: 'Play once', body: 'Open a supported session. TiltCheck reads the tab, not your keys.' },
 ];
 
@@ -45,18 +51,15 @@ export default function GettingStartedPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <div className="public-page-grid public-page-grid--3">
+          <div className="public-page-grid public-page-grid--2">
             {paths.map((path) => (
-              <article
-                key={path.title}
-                className={`public-page-card h-full ${path.danger ? 'border-[#ef4444]/30 bg-[#ef4444]/5' : ''}`}
-              >
-                <p className={`public-page-card__eyebrow ${path.danger ? 'text-[#ef4444]' : ''}`}>{path.tag}</p>
+              <article key={path.title} className="public-page-card h-full">
+                <p className="public-page-card__eyebrow">{path.tag}</p>
                 <h2 className="public-page-card__title">{path.title}</h2>
                 <p className="public-page-card__copy">{path.body}</p>
                 <Link
                   href={path.href}
-                  className={`mt-4 inline-block text-[11px] font-black uppercase tracking-wider hover:underline ${path.danger ? 'text-[#ef4444]' : 'text-[#17c3b2]'}`}
+                  className="mt-4 inline-block text-[11px] font-black uppercase tracking-wider text-[#17c3b2] hover:underline"
                 >
                   {path.label}
                 </Link>

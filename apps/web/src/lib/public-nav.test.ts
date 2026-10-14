@@ -14,6 +14,7 @@ describe('PUBLIC_NAV', () => {
       '/intel/rtp',
     ]);
     expect(PUBLIC_NAV.downloadHref).toBe('/#install');
+    expect(PUBLIC_NAV.downloadLabel).toBe('Zip soon™');
   });
 
   it('renders product links from PUBLIC_NAV in the nav component', () => {

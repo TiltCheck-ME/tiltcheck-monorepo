@@ -595,6 +595,31 @@ body::before {
   pointer-events: none;
 }
 
+.gated-zip-cta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  max-width: 18rem;
+}
+
+.gated-zip-cta__why {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: #8b95a3;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .hero-actions .gated-zip-cta {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 /* Icon in button */
 .btn-icon {
   width: 20px;
@@ -1220,6 +1245,15 @@ body.degen-background > * {
   line-height: 1.72;
   color: #b5c1cd;
   letter-spacing: -0.012em;
+}
+
+.landing-hero-retort {
+  max-width: 36rem;
+  margin: 0.45rem auto 0;
+  font-size: clamp(0.95rem, 0.95rem + 0.2vw, 1.08rem);
+  line-height: 1.6;
+  color: #17c3b2;
+  letter-spacing: -0.01em;
 }
 
 .hero-content {
