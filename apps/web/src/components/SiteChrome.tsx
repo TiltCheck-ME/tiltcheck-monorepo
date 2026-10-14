@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import IntelChatWidget from '@/components/intel/IntelChatWidget';
 import PublicPageFrame from '@/components/PublicPageFrame';
+import { isTouchGrassEmbedPath } from '@/lib/touch-grass/is-touch-grass-embed-path';
 
 /** DM install pages — no site nav, no footer clutter. */
 const MINIMAL_CHROME_PREFIXES = ['/nuts', '/stake'];
@@ -15,12 +16,6 @@ function isMinimalChromePath(pathname: string): boolean {
   return MINIMAL_CHROME_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
-}
-
-function isTouchGrassEmbedPath(pathname: string, mode: string | null): boolean {
-  if (pathname === '/touch-grass/trivia' || pathname === '/touch-grass/dad') return true;
-  if (pathname === '/touch-grass' && mode === 'pause') return true;
-  return false;
 }
 
 function SiteChromeBody({ children }: { children: ReactNode }) {
@@ -56,10 +51,7 @@ function SiteChromeBody({ children }: { children: ReactNode }) {
 function SiteChromeFallback({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const minimal = Boolean(
-    pathname &&
-      (isMinimalChromePath(pathname) ||
-        pathname === '/touch-grass/trivia' ||
-        pathname === '/touch-grass/dad')
+    pathname && (isMinimalChromePath(pathname) || isTouchGrassEmbedPath(pathname))
   );
 
   if (minimal) {

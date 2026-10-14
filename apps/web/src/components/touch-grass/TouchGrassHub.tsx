@@ -96,7 +96,9 @@ export default function TouchGrassHub({ mode }: { mode: TouchGrassMode }) {
             </div>
           ) : (
             <p className="font-mono text-sm text-gray-500">
-              {status?.kind === 'idle' ? TOUCH_GRASS_HUB.idleSoon : status?.label ?? ''}
+              {status?.kind === 'idle' || (mode === 'pause' && status?.kind === 'live')
+                ? TOUCH_GRASS_HUB.idleSoon
+                : status?.label ?? ''}
             </p>
           )}
         </div>

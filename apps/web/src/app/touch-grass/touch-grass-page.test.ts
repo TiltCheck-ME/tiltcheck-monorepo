@@ -32,4 +32,10 @@ describe('touch-grass hub source', () => {
     expect(hub).not.toContain('cookie');
     expect(hub).not.toContain('balance');
   });
+
+  it('does not print LIVE DROP in pause even when status is live', () => {
+    expect(hub).not.toContain('LIVE DROP');
+    expect(hub).toContain("mode === 'pause' && status?.kind === 'live'");
+    expect(hub).toContain('TOUCH_GRASS_HUB.idleSoon');
+  });
 });
