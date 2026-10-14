@@ -4,7 +4,8 @@
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the single-page zip pitch
- * - old product html files redirect home
+ * - `/cooldown` and `/extension` are static product pages
+ * - casinos.html and tools.html redirect home
  * - `/docs/*` specs from markdown
  *
  * Project Pages require relative asset paths — never "/styles/...".
@@ -29,6 +30,8 @@ import {
   CTA_GATED_LABEL,
   CTA_GATED_HINT,
   INSTALL_STEPS,
+  COOLDOWN_PAGE,
+  EXTENSION_PAGE,
   LAUNCH_CARDS,
   LAUNCH_HONESTY,
   WHAT_IT_IS,
@@ -37,7 +40,6 @@ import {
   PROBLEM_SIGNALS,
   FEATURE_CARDS,
   FAQS,
-  EXTENSION_SIGNALS,
   GRADING_STEPS,
   TOOL_REGISTRY,
   INSTALL_SURFACES,
@@ -367,62 +369,101 @@ function buildHomeRedirect(fileName) {
 </html>`;
 }
 
-function buildExtensionPage() {
-  const signals = EXTENSION_SIGNALS.map(
-    (s) => `<article class="public-page-card">
-  <h2 class="public-page-card__title">${escapeHtml(s.title)}</h2>
-  <p class="public-page-card__copy">${escapeHtml(s.body)}</p>
-</article>`,
-  ).join('\n');
-
+function buildCooldownPage() {
+  const notThis = COOLDOWN_PAGE.notThis.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
   const actions = `
-    ${zipCtaHtml()}
-    <a class="hero-actions__secondary-link" href="${SITE_URL}/cooldown">Set a Cooldown lock</a>`;
-
+    <a class="btn btn-primary" href="${DISCORD_URL}" rel="noopener noreferrer">JOIN DISCORD</a>
+    <a class="btn btn-secondary" href="/">HOME</a>
+    <a class="hero-actions__secondary-link" href="/extension">Extension details</a>`;
   const content = `${productHero({
-    eyebrow: 'Browser extension',
-    title: 'TiltCheck lives in the casino tab.',
-    lede: 'This is the main product. A free Chrome extension that watches your live online-casino session — bet pacing, tilt spirals, pressure loops — and enforces the exit rules you set. Read-only. No wallet keys. Sideload beta now; store listing later.',
+    eyebrow: COOLDOWN_PAGE.eyebrow,
+    title: COOLDOWN_PAGE.title,
+    lede: COOLDOWN_PAGE.lede,
     actionsHtml: actions,
   })}
 <main class="product-main">
   <section class="public-page-section">
-    <div class="landing-shell explainer">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Why install</span>
-        <h2 class="public-page-section-heading__title">You already know the spiral.</h2>
-      </div>
-      <p class="explainer__p">Three losses. Bet size climbs. “Im due.” Another deposit. The extension’s job is to notice that pacing while the tab is still open and push the exit you configured when you were still thinking straight.</p>
-      <p class="explainer__p">It does not place bets for you. It does not “beat the house.” It is brakes — the same idea as a seatbelt, except for sessions that feel immortal at 2am.</p>
+    <div class="landing-shell">
+      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">What you can lock</p>
+        <p class="public-page-card__copy">${escapeHtml(COOLDOWN_PAGE.canLock)}</p>
+      </article>
+      <ul class="public-page-list">${notThis}</ul>
     </div>
   </section>
+</main>`;
+  return shell({
+    title: 'Cooldown | TiltCheck',
+    description: COOLDOWN_PAGE.lede,
+    depth: 'docs',
+    current: 'cooldown',
+    body: content,
+  });
+}
+
+function buildExtensionPage() {
+  const beats = EXTENSION_PAGE.beats.map(
+    (beat) => `<article class="public-page-card">
+  <h2 class="public-page-card__title">${escapeHtml(beat.title)}</h2>
+  <p class="public-page-card__copy">${escapeHtml(beat.body)}</p>
+</article>`,
+  ).join('\n');
+  const honesty = EXTENSION_PAGE.honesty.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
+  const steps = INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n');
+  const actions = `
+    ${zipCtaHtml()}
+    <a class="hero-actions__secondary-link" href="/cooldown">Set a Cooldown lock</a>`;
+  const content = `${productHero({
+    eyebrow: EXTENSION_PAGE.eyebrow,
+    title: EXTENSION_PAGE.title,
+    lede: `${EXTENSION_PAGE.beats[1].body} ${EXTENSION_PAGE.honesty[1]}`,
+    actionsHtml: actions,
+  })}
+<main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
         <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
         <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
-        <ol class="public-page-list">${INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n')}</ol>
+        <ol class="public-page-list">${steps}</ol>
       </article>
     </div>
   </section>
   <section class="public-page-section">
     <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Core</span>
-        <h2 class="public-page-section-heading__title">What it does.</h2>
-      </div>
-      <div class="public-page-grid public-page-grid--3">${signals}</div>
+      <div class="public-page-grid public-page-grid--3">${beats}</div>
+    </div>
+  </section>
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <ul class="public-page-list">${honesty}</ul>
     </div>
   </section>
 </main>`;
 
   return shell({
     title: 'Extension | TiltCheck',
-    description: 'Install the TiltCheck Chrome extension — read-only session guardrail that watches tilt and enforces your exit rules.',
-    depth: 'root',
+    description: EXTENSION_PAGE.title,
+    depth: 'docs',
     current: 'extension',
     body: content,
   });
+}
+
+function buildExtensionAliasRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=/extension/"/>
+<link rel="canonical" href="${SITE_URL}/extension/"/>
+<title>Extension | TiltCheck</title>
+</head>
+<body>
+<p><a href="/extension/">TiltCheck Extension</a></p>
+<!-- extension.html moved to /extension/. -->
+</body>
+</html>`;
 }
 
 function gradeClass(grade) {
@@ -670,9 +711,19 @@ function run() {
   const loginDir = path.join(siteRoot, 'login');
   fs.mkdirSync(loginDir, { recursive: true });
   fs.writeFileSync(path.join(loginDir, 'index.html'), buildLoginPage());
-  for (const retired of ['extension.html', 'casinos.html', 'tools.html']) {
+
+  const cooldownDir = path.join(siteRoot, 'cooldown');
+  fs.mkdirSync(cooldownDir, { recursive: true });
+  fs.writeFileSync(path.join(cooldownDir, 'index.html'), buildCooldownPage());
+
+  const extensionDir = path.join(siteRoot, 'extension');
+  fs.mkdirSync(extensionDir, { recursive: true });
+  fs.writeFileSync(path.join(extensionDir, 'index.html'), buildExtensionPage());
+
+  for (const retired of ['casinos.html', 'tools.html']) {
     fs.writeFileSync(path.join(siteRoot, retired), buildHomeRedirect(retired));
   }
+  fs.writeFileSync(path.join(siteRoot, 'extension.html'), buildExtensionAliasRedirect());
 
   const zipSource = path.join(repoRoot, 'apps/web/public/downloads/tiltcheck-extension.zip');
   const zipDestDir = path.join(siteRoot, 'downloads');

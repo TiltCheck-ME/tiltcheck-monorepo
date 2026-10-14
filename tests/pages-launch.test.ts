@@ -66,3 +66,17 @@ describe('GitHub Pages home HTML source', () => {
 </div>`);
   });
 });
+
+describe('GitHub Pages builder source', () => {
+  const source = readFileSync(path.join(process.cwd(), 'scripts/convert-markdown.js'), 'utf8');
+
+  it('writes cooldown and extension index pages and does not retire extension home', () => {
+    expect(source).toContain("path.join(siteRoot, 'cooldown')");
+    expect(source).toContain("path.join(siteRoot, 'extension')");
+    expect(source).toContain('buildCooldownPage()');
+    expect(source).toContain('buildExtensionPage()');
+    expect(source).toContain("retired of ['casinos.html', 'tools.html']");
+    expect(source).toContain('COOLDOWN_PAGE');
+    expect(source).toContain('COOLDOWN_PAGE.title');
+  });
+});
