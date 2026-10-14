@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Log in | TiltCheck</title>
+<meta name="description" content="Log in with Discord. Non-custodial. Web owns login; dashboard is after auth lands."/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles/base.css"/>
+
+</head>
+<body>
+<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="../index.html"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="../index.html#install">Download</a>
+    <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
+  </div>
+</nav>
+<header class="product-hero">
+  <div class="landing-shell">
+    <span class="brand-eyebrow">Access Portal</span>
+    <h1 class="product-hero__title">Log in without the scavenger hunt</h1>
+    <p class="product-hero__lede">Web still owns login. Discord is the founder lane. After auth lands, the canonical dashboard is the control surface.</p>
+    <div class="hero-actions hero-actions--start"><a class="btn btn-primary" href="https://api.tiltcheck.me/auth/discord/login?source=web&redirect=https%3A%2F%2Ftiltcheck.me%2Fdashboard" data-provider="discord">Login with Discord</a>
+    <a class="hero-actions__secondary-link" href="../index.html">Back home</a></div>
+  </div>
+</header>
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <p id="login-error" class="error" role="alert" hidden>Discord login failed. Try again or use email login.</p>
+      <p class="public-page-card__copy">If you have not linked Discord yet, this is the button you wanted to find in the first place.</p>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.get('error')) return;
+  var el = document.getElementById('login-error');
+  if (el) el.hidden = false;
+})();
+</script>
+<footer class="site-footer">
+  <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
+  <span class="site-footer__tag">Made for Degens. By Degens.</span>
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+</footer>
+</body>
+</html>
