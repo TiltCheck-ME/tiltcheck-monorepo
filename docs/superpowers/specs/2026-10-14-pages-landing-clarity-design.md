@@ -2,7 +2,7 @@
 
 # Pages landing clarity — design spec
 
-Status: Draft (awaiting founder review of this file)
+Status: Approved (founder 2026-10-14)
 Owner: founder (solo)
 Surface: GitHub Pages (`tiltcheck.me`) via `scripts/convert-markdown.js` + `scripts/pages-product-data.mjs`. Next.js `apps/web` stays a local twin only. Not Railway.
 Date: 2026-10-14
