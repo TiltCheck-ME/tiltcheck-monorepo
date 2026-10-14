@@ -135,10 +135,10 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     status: 'beta',
   },
   {
-    href: '/tools/degens-arena',
+    href: '/touch-grass/trivia',
     label: 'DEGENS ARENA',
     title: 'Trivia Drop Arena',
-    description: 'Discord-native trivia — not a mobile install.',
+    description: 'Skill-only trivia on the Touch Grass hub.',
     status: 'beta',
   },
 ];

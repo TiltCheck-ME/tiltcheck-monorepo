@@ -31,4 +31,10 @@ describe('sitemap-entries', () => {
     const dashboard = SITEMAP_PAGE_ENTRIES.find((entry) => entry.path === '/dashboard');
     expect(dashboard?.href).toBeUndefined();
   });
+
+  it('describes /touch-grass as an off-ramp games hub', () => {
+    const entry = SITEMAP_PAGE_ENTRIES.find((item) => item.path === '/touch-grass');
+    expect(entry?.description).toBe('Off-ramp games hub — Live Trivia and Degens Against Decency.');
+    expect(entry?.description).not.toMatch(/crisis|hotline|1-800/i);
+  });
 });

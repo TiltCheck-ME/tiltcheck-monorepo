@@ -25,12 +25,11 @@ const paths = [
     label: 'Read the flow',
   },
   {
-    tag: 'Help',
-    title: 'Crisis resources',
-    body: 'TiltCheck is brakes, not therapy. Real help exists.',
+    tag: 'Play',
+    title: 'Touch Grass games hub',
+    body: 'Off-ramp tables when the casino tab needs to die. Trivia and DA&D. Not therapy.',
     href: '/touch-grass',
-    label: 'Get help',
-    danger: true,
+    label: 'Open the hub',
   },
 ];
 
@@ -54,16 +53,13 @@ export default function GettingStartedPage() {
         <div className="landing-shell">
           <div className="public-page-grid public-page-grid--2">
             {paths.map((path) => (
-              <article
-                key={path.title}
-                className={`public-page-card h-full ${path.danger ? 'border-[#ef4444]/30 bg-[#ef4444]/5' : ''}`}
-              >
-                <p className={`public-page-card__eyebrow ${path.danger ? 'text-[#ef4444]' : ''}`}>{path.tag}</p>
+              <article key={path.title} className="public-page-card h-full">
+                <p className="public-page-card__eyebrow">{path.tag}</p>
                 <h2 className="public-page-card__title">{path.title}</h2>
                 <p className="public-page-card__copy">{path.body}</p>
                 <Link
                   href={path.href}
-                  className={`mt-4 inline-block text-[11px] font-black uppercase tracking-wider hover:underline ${path.danger ? 'text-[#ef4444]' : 'text-[#17c3b2]'}`}
+                  className="mt-4 inline-block text-[11px] font-black uppercase tracking-wider text-[#17c3b2] hover:underline"
                 >
                   {path.label}
                 </Link>

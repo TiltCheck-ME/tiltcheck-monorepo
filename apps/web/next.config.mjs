@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -69,6 +69,11 @@ const nextConfig = {
         source: '/hub.html',
         destination: '/dashboard',
         permanent: true,
+      },
+      {
+        source: '/tools/degens-arena',
+        destination: '/touch-grass/trivia',
+        permanent: false,
       },
     ];
   },

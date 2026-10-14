@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -175,7 +175,8 @@ export default function LimitPage() {
           <p className="text-gray-400 font-bold uppercase tracking-widest">How this works right now</p>
           <p>Limits are stored locally in your browser. The Chrome extension reads them during sessions and fires alerts when thresholds are crossed.</p>
           <p>These are not enforced by the casino. The casino does not care. This is a self-imposed constraint — the only kind that actually works.</p>
-          <p>For immediate support: <a href="tel:1-800-426-2537" className="text-[#17c3b2] hover:underline">1-800-GAMBLER</a> or the <a href="/touch-grass" className="text-[#17c3b2] hover:underline">Touch Grass Protocol</a>.</p>
+          <p>For immediate support: <a href="tel:1-800-426-2537" className="text-[#17c3b2] hover:underline">1-800-GAMBLER</a>.</p>
+          <p>Off-ramp tables: <a href="/touch-grass" className="text-[#17c3b2] hover:underline">Touch Grass games hub</a>.</p>
         </div>
 
         <Link href="/" className="text-xs font-mono text-gray-500 hover:text-[#17c3b2] uppercase tracking-[0.3em] transition-colors text-center">
