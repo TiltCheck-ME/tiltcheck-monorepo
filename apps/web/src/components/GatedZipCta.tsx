@@ -29,7 +29,7 @@ export default function GatedZipCta({ funnelEvent, funnelSource }: GatedZipCtaPr
       <button
         type="button"
         disabled
-        className="btn btn-primary btn-disabled"
+        className="btn btn-secondary btn-disabled"
         aria-disabled="true"
         aria-describedby={whyId}
         data-funnel-event={`${funnelEvent}_gated`}
