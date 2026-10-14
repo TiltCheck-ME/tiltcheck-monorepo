@@ -16,7 +16,7 @@ Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the
 
 - Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
 - Home hero retort is harm reduction made for degens, by degens — tested tools, not a mom lecture. Chrome zip CTA is gated (`ZIP DROPS SOON™`) with a visible reason until the sideload is public.
-- GitHub Pages twin (`scripts/pages-product-data.mjs` + `convert-markdown.js`) now ships the same gated zip / hero copy as Next.js. Web Docker builds `@tiltcheck/cooldown-sdk` so Railway can actually publish the Next.js app.
+- Public `tiltcheck.me` is GitHub Pages, not Railway. Pages twin (`scripts/pages-product-data.mjs` + `convert-markdown.js`) ships the gated zip / hero copy. Railway no longer builds or deploys the `web` image.
 - Guest Chrome extension popup opens on Guards. Core runs without Discord. Sidebar is no longer sold as the primary interface.
 - PR Playwright (`Validate Changed Packages (PR) / E2E Tests`) boots local Next.js on `127.0.0.1:3001` via `PLAYWRIGHT_WEB_LOCAL=1` instead of hitting live `tiltcheck.me` GitHub Pages.
 - GitHub Pages builder emits `/login/index.html` so the live twin has a Discord login route instead of a Pages 404.

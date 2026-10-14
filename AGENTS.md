@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 -->
 
 # TiltCheck Agent Directory
 
@@ -49,7 +49,7 @@ This repo does not ship an active tracked GCP deploy workflow. Container service
 | Surface | Delivery | Source of Truth | Verdict |
 | :--- | :--- | :--- | :--- |
 | **api** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Central Gateway. |
-| **web** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
+| **web** (`tiltcheck.me`) | GitHub Pages | `.github/workflows/pages.yml` + `scripts/convert-markdown.js` | Live public site. Not Railway. |
 | **discord-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: primary TiltCheck bot runtime. |
 | **justthetip-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate tipping bot service. |
 | **dad-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate dad bot service. |
@@ -74,7 +74,7 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-05-18
+Last Updated: 2026-10-14
 
 ## 6. GitHub Copilot Custom Agents
 Located in .github/agents/
@@ -139,7 +139,7 @@ Standard commands are in root `package.json` scripts; see the README "Getting St
 
 | Service | Command | Default port |
 | :--- | :--- | :--- |
-| **web** (Next.js landing) | `pnpm -C apps/web dev` | 3001 |
+| **web** (Next.js local only; live `tiltcheck.me` is GitHub Pages) | `pnpm -C apps/web dev` | 3001 |
 | **api** (Express gateway) | `pnpm --filter @tiltcheck/api dev` | 8080 |
 | **discord-bot** | `pnpm --filter @tiltcheck/discord-bot dev` | 8080 (health) |
 | **user-dashboard** | `pnpm --filter @tiltcheck/user-dashboard dev` | 6001 |
