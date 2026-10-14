@@ -7,13 +7,15 @@
  * Risk: undismissable by design — future popup settings must require explicit opt-in
  * for duration and policy (accessibility + platform ToS posture).
  * Hub iframe is same-origin or tiltcheck.me only. No casino DOM, cookies, balances, or
- * postMessage payloads are forwarded.
+ * postMessage payloads are forwarded. Iframe `load` is not success — the hub must
+ * origin-check-ping `{ source: 'TILTCHECK_TOUCH_GRASS', ready: true }` within 4s.
  */
 
 export const TOUCH_GRASS_DURATION_MS = 120_000;
 
 export const TOUCH_GRASS_HUB_ORIGIN = 'https://tiltcheck.me';
 export const TOUCH_GRASS_HUB_PAUSE_PATH = '/touch-grass?mode=pause';
+export const TOUCH_GRASS_HUB_READY_SOURCE = 'TILTCHECK_TOUCH_GRASS';
 export const HUB_IFRAME_ID = 'tiltcheck-lockdown-hub';
 const HUB_IFRAME_LOAD_TIMEOUT_MS = 4_000;
 
@@ -27,12 +29,24 @@ export function resolveTouchGrassHubUrl(origin: string = TOUCH_GRASS_HUB_ORIGIN)
   return `${origin}${TOUCH_GRASS_HUB_PAUSE_PATH}`;
 }
 
-function resolveTouchGrassHubOrigin(): string {
+export function resolveTouchGrassHubOrigin(): string {
   const hostname = globalThis.location?.hostname;
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return globalThis.location.origin;
   }
   return TOUCH_GRASS_HUB_ORIGIN;
+}
+
+function isTouchGrassHubReadyPing(event: MessageEvent, expectedOrigin: string): boolean {
+  if (event.origin !== expectedOrigin) {
+    return false;
+  }
+  const data = event.data;
+  if (data == null || typeof data !== 'object') {
+    return false;
+  }
+  const payload = data as { source?: unknown; ready?: unknown };
+  return payload.source === TOUCH_GRASS_HUB_READY_SOURCE && payload.ready === true;
 }
 
 /** Forensic / mindfulness ticker cadence (ms). */
@@ -57,10 +71,15 @@ const MESSAGE_EL_ID = 'tiltcheck-lockdown-message';
 const TIMER_ID = 'lockdown-timer';
 
 let overlayActive = false;
+let overlayHubMessageListener: ((event: MessageEvent) => void) | null = null;
 
 /** Test-only: release the overlay latch after jsdom teardown. Does not change live dismiss rules. */
 export function resetTouchGrassTimeoutForTests(): void {
   overlayActive = false;
+  if (overlayHubMessageListener !== null) {
+    window.removeEventListener('message', overlayHubMessageListener);
+    overlayHubMessageListener = null;
+  }
 }
 
 export function blockBettingUI(block: boolean): void {
@@ -335,10 +354,11 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
   foot.textContent =
     'This tab stays locked until the counter hits zero. No dismiss. Future settings: explicit opt-in for duration and policy.';
 
+  const hubOrigin = resolveTouchGrassHubOrigin();
   const iframe = document.createElement('iframe');
   iframe.id = HUB_IFRAME_ID;
   iframe.title = 'Touch Grass games hub';
-  iframe.src = resolveTouchGrassHubUrl(resolveTouchGrassHubOrigin());
+  iframe.src = resolveTouchGrassHubUrl(hubOrigin);
   iframe.referrerPolicy = 'no-referrer';
 
   const fallbackList = document.createElement('ul');
@@ -401,11 +421,11 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
     fallbackList.hidden = false;
   };
 
-  iframe.addEventListener('load', () => {
+  const onHubMessage = (event: MessageEvent) => {
     if (hubSettled) {
       return;
     }
-    if (!iframe.src.includes(TOUCH_GRASS_HUB_PAUSE_PATH)) {
+    if (!isTouchGrassHubReadyPing(event, hubOrigin)) {
       return;
     }
     hubSettled = true;
@@ -413,7 +433,10 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
       clearTimeout(hubLoadTimeoutId);
       hubLoadTimeoutId = null;
     }
-  });
+  };
+
+  overlayHubMessageListener = onHubMessage;
+  window.addEventListener('message', onHubMessage);
 
   iframe.addEventListener('error', () => {
     showCspFallback(true);
@@ -464,6 +487,8 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
       clearTimeout(hubLoadTimeoutId);
       hubLoadTimeoutId = null;
     }
+    window.removeEventListener('message', onHubMessage);
+    overlayHubMessageListener = null;
     clearInterval(messageRotateIntervalId);
     clearPendingFade();
     root.remove();

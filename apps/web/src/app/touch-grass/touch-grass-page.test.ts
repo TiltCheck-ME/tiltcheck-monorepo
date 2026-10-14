@@ -24,4 +24,12 @@ describe('touch-grass hub source', () => {
     expect(hub).toContain('/touch-grass/dad');
     expect(hub).toContain('/arena/trivia/status');
   });
+
+  it('posts an origin-agnostic overlay ready ping after mount', () => {
+    expect(hub).toContain("window.parent.postMessage");
+    expect(hub).toContain("source: 'TILTCHECK_TOUCH_GRASS'");
+    expect(hub).toContain('ready: true');
+    expect(hub).not.toContain('cookie');
+    expect(hub).not.toContain('balance');
+  });
 });

@@ -56,6 +56,10 @@ export default function TouchGrassHub({ mode }: { mode: TouchGrassMode }) {
   const showLiveJoin = status?.kind === 'live' && shouldShowMoneyCta(mode) && status.drop !== null;
 
   useEffect(() => {
+    window.parent.postMessage({ source: 'TILTCHECK_TOUCH_GRASS', ready: true }, '*');
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     loadTriviaStatus().then((next) => {
       if (!cancelled) {
