@@ -25,43 +25,36 @@ export default function Home() {
             {HOME_LAUNCH.h1[1]}
           </h1>
 
-          <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[0]}</p>
-          <p className="landing-hero-retort landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[1]}</p>
-          <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.kicker[2]}</p>
-
-          <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.lede}</p>
-
-          <div className="hero-actions">
-            <GatedZipCta funnelEvent="landing_install_click" funnelSource="web-home-hero" />
-            {HOME_LAUNCH.secondaryCtas.map((cta) => (
-              <Link
-                key={cta.href}
-                href={cta.href}
-                className={cta.href === '/cooldown' ? 'btn btn-primary' : 'btn btn-secondary'}
-                data-funnel-event="landing_secondary_click"
-                data-funnel-source="web-home-hero"
-                data-funnel-label={cta.label}
-              >
-                {cta.label}
-              </Link>
-            ))}
+          <div className="landing-hero-stack">
+            <p className="landing-hero-subtitle">{HOME_LAUNCH.kicker[0]}</p>
+            <p className="landing-hero-retort">{HOME_LAUNCH.kicker[1]}</p>
+            <p className="landing-hero-wen">{HOME_LAUNCH.kicker[2]}</p>
           </div>
-
-          <p className="landing-hero-subtitle landing-hero-subtitle--centered">{HOME_LAUNCH.privacy}</p>
+          <div className="hero-actions">
+            <Link href="/cooldown" className="btn btn-primary" data-funnel-event="landing_secondary_click" data-funnel-source="web-home-hero" data-funnel-label="SET A COOLDOWN LOCK">
+              SET A COOLDOWN LOCK
+            </Link>
+            <Link href="/extension" className="btn btn-secondary" data-funnel-event="landing_secondary_click" data-funnel-source="web-home-hero" data-funnel-label="EXTENSION DETAILS">
+              EXTENSION DETAILS
+            </Link>
+          </div>
+          <p className="landing-hero-privacy">{HOME_LAUNCH.privacy}</p>
         </div>
       </section>
 
       <section id="install" className="public-page-section px-4">
         <div className="landing-shell">
           <article className="public-page-card">
-            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Install — gated'}</p>
+            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Phase 2 — coming soon'}</p>
             <h2 className="public-page-card__title">{HOME_LAUNCH.ctaReady ? 'Three steps' : 'Wen zip'}</h2>
             <ol className="public-page-list">
               {HOME_LAUNCH.installSteps.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
-            <p className="public-page-card__copy">{HOME_LAUNCH.installNote}</p>
+            {HOME_LAUNCH.ctaReady ? null : (
+              <GatedZipCta funnelEvent="landing_install_click" funnelSource="web-home-install" />
+            )}
           </article>
         </div>
       </section>
@@ -71,23 +64,12 @@ export default function Home() {
           <div className="public-page-grid public-page-grid--3">
             {HOME_LAUNCH.cards.map((card) => (
               <article key={card.step} className="public-page-card">
-                <p className="public-page-card__eyebrow">Step {card.step}</p>
+                <p className="public-page-card__eyebrow">{card.step}</p>
                 <h3 className="public-page-card__title">{card.title}</h3>
                 <p className="public-page-card__copy">{card.body}</p>
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="public-page-section px-4">
-        <div className="landing-shell">
-          <article className="public-page-card">
-            <p className="public-page-card__eyebrow">{HOME_LAUNCH.mock.status}</p>
-            <h2 className="public-page-card__title">{HOME_LAUNCH.mock.signal}</h2>
-            <p className="public-page-card__copy">{HOME_LAUNCH.mock.footer}</p>
-            <p className="public-page-card__copy">{HOME_LAUNCH.mock.chip}</p>
-          </article>
         </div>
       </section>
 

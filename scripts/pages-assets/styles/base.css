@@ -266,6 +266,44 @@ a:hover {
   text-align: center;
 }
 
+.landing-hero-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: 34rem;
+  margin: 1.75rem auto 0;
+}
+
+.landing-hero-stack .landing-hero-subtitle,
+.landing-hero-stack .landing-hero-retort {
+  margin: 0;
+  text-align: center;
+}
+
+.landing-hero-wen {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: #17c3b2;
+  text-align: center;
+}
+
+.landing-hero-privacy {
+  margin: 1.1rem auto 0;
+  max-width: 28rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #5a6472;
+  text-align: center;
+}
+
+.public-page-section {
+  padding: 2.75rem 1.25rem 0;
+}
+
 .btn-secondary {
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -362,10 +400,6 @@ a:hover {
 }
 
 /* --- Sections --- */
-.public-page-section {
-  padding: 0 1.25rem;
-}
-
 .public-page-section-heading {
   margin-bottom: 1.5rem;
 }

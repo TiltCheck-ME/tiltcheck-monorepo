@@ -13,64 +13,64 @@ export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
 export const SITE_KICKER = [
   'The house banks on your tilt.',
-  'Harm reduction made for degens, by degens. Tested tools that actually work — not a lecture from your mom.',
-  'Cooldown v2: sign a Solana devnet lock. No cancel. No keys held. Wen mainnet? soon.',
+  'Non-custodial brakes for casino sessions. Made for degens, by degens — not a lecture from your mom.',
+  'You sign a Cooldown lock this wallet cannot cancel. Our tools honor it. Casino tabs do not. Wen zip + mainnet? soon.',
 ];
-export const SITE_LEDE =
-  'Cooldown is on-chain self-exclusion — you sign, we never hold keys. Chrome Core (zip not public yet) is a two-second spin lock on supported casino tabs. Fullscreen Touch Grass (~2 min) is Pro only. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.';
 export const SITE_ONE_LINER =
   'Non-custodial brakes for degens: on-chain Cooldown locks, Chrome session monitoring, casino trust scores, and tilt-aware tooling.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
-export const SITE_PRIVACY =
-  'Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.';
+export const SITE_PRIVACY = 'No wallet keys. No casino passwords.';
 export const CTA_READY = false;
 export const CTA_LABEL = 'DOWNLOAD THE ZIP';
 export const CTA_GATED_LABEL = 'ZIP DROPS SOON™';
-export const CTA_GATED_HINT =
-  'Disabled because the zip is not public yet. No half-baked sideload. Cooldown is the lock that ships today.';
+export const CTA_GATED_HINT = 'Phase 2. Zip is not public. Cooldown is the live lock.';
 export const SECONDARY_CTAS = [
-  { label: 'SET A COOLDOWN LOCK', href: `${SITE_URL}/cooldown`, primary: true },
-  { label: 'EXTENSION DETAILS', href: 'extension.html', primary: false },
+  { label: 'SET A COOLDOWN LOCK', href: '/cooldown', primary: true },
+  { label: 'EXTENSION DETAILS', href: '/extension', primary: false },
 ];
 export const INSTALL_STEPS = [
-  'Zip is not public yet. soon™ — do not hunt a half-baked sideload.',
-  'When it drops: chrome://extensions → Developer mode → Load unpacked.',
-  'Core will lock the spin button for two seconds on supported tabs. Fullscreen Touch Grass stays Pro.',
+  'Zip is not public. soon™. Do not hunt a sideload.',
+  'When it drops: Load unpacked in chrome://extensions.',
+  'Core is a 2s spin lock. Touch Grass is Pro.',
 ];
 export const INSTALL_NOTE =
   'Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.';
 export const LAUNCH_CARDS = [
-  {
-    step: '01',
-    title: 'Cooldown (on-chain)',
-    body: 'Self-exclusion that cannot be weaseled off in a settings menu. Lock all play, a category, or one game. Stronger locks only — expires on-chain when the timer hits. Solana devnet today.',
-  },
-  {
-    step: '02',
-    title: 'Session intel',
-    body: 'Chrome Core will lock the spin button for two seconds on supported tabs once the zip is public. Fullscreen Touch Grass (~2 min cover) is Pro monolith only.',
-  },
-  {
-    step: '03',
-    title: 'Trust receipts',
-    body: 'Trust Engine grades operators from public data — RTP drift, compliance filings, payout evidence, scam reports. Bonus tracker and intel tools link back to those scores.',
-  },
+  { step: 'Now', title: 'Cooldown', body: 'Sign a lock. No cancel in v1. Tips and our check API honor it. Devnet. Not a casino-tab lock.' },
+  { step: 'Next', title: 'Chrome Core', body: '2s spin lock on supported tabs when the zip drops. Touch Grass is Pro.' },
+  { step: 'Also', title: 'Trust receipts', body: 'Public RTP, filings, payout evidence. Not a casino-sponsored grade.' },
 ];
-export const LAUNCH_MOCK = {
-  status: 'Live stack',
-  signal: 'Cooldown + extension + trust intel',
-  footer: 'Self-sovereign brakes — not a casino nanny hotline.',
-  chip: 'Non-custodial. You sign locks. We read public data.',
-};
 export const LAUNCH_HONESTY = [
-  'Cooldown ships on Solana devnet — not mainnet custody theater.',
-  'Extension zip is not public yet. Core is a 2s spin lock when it drops. Fullscreen Touch Grass is Pro only. No Chrome Web Store.',
-  'Trust scores blend live rollup feeds with curated baselines when the API is down.',
-  'JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.',
-  'Discord bot exposes tilt checks and tip commands for server-side degens.',
-  'Supported extension tabs include Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
-  'SusLink can bounce critical scam URLs to a warning page when the API is up.',
+  'Devnet lock: you sign, no cancel. Tips and our API honor it. It does not lock Stake or Roobet. Wen mainnet? soon.',
+  'Zip is Phase 2. Not public. Core is 2s. Touch Grass is Pro. No Chrome Web Store.',
+  'Trust scores use live feeds when the API is up. Curated baselines when it is not.',
 ];
+export const COOLDOWN_PAGE = {
+  eyebrow: 'Cooldown',
+  title: 'On-chain lock. You sign. We never hold keys.',
+  lede: 'You sign a lock this wallet cannot cancel. Our tips and check API honor it. It does not lock casino tabs. That is the zip. Devnet. Wen mainnet? soon.',
+  today: 'A signed lock is an on-chain receipt. v1 has no cancel. Tips and /cooldown/check honor it. Stake, Roobet, and the rest do not freeze. This page is the explainer — not a signing form.',
+  canLock: 'Lock everything, a category, or one game. Stronger only.',
+  notThis: [
+    'Not a form on this page.',
+    'Not custody. We never hold keys.',
+    'Not a casino RG checkbox.',
+  ],
+};
+export const EXTENSION_PAGE = {
+  eyebrow: 'Browser extension // Core',
+  title: 'Session intel in the tab. Two-second spin lock.',
+  beats: [
+    { title: 'Watches the tab', body: 'Read-only signals on supported casino tabs. Click pacing, not wallet keys.' },
+    { title: '2s spin lock', body: 'Core locks the spin button for two seconds. A click during the lock does not spin.' },
+    { title: 'Not the Pro HUD', body: 'Fullscreen Touch Grass is Pro. This zip does not turn that on.' },
+  ],
+  honesty: [
+    'Not on the Chrome Web Store.',
+    'Zip is not public yet — soon™.',
+    'No wallet keys. No casino passwords.',
+  ],
+};
 
 /** Plain-English pitch for cold visitors — sits under the hero. */
 export const WHAT_IT_IS = {

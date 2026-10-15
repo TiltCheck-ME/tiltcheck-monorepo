@@ -20,6 +20,8 @@ Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the
 - Guest Chrome extension popup opens on Guards. Core runs without Discord. Sidebar is no longer sold as the primary interface.
 - PR Playwright (`Validate Changed Packages (PR) / E2E Tests`) boots local Next.js on `127.0.0.1:3001` via `PLAYWRIGHT_WEB_LOCAL=1` instead of hitting live `tiltcheck.me` GitHub Pages.
 - GitHub Pages builder emits `/login/index.html` so the live twin has a Discord login route instead of a Pages 404.
+- Pages landing is punch + three cards + three honesty bullets. Wen stays. `/cooldown` is a static explainer. `/extension` is a real page, not a home redirect.
+- Home hero leads with Cooldown only. Zip sits in a Phase 2 box. Copy says a devnet lock is honored by our tools, not casino tabs.
 
 ### Security
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,9 +12,13 @@ describe('homepage source', () => {
     expect(source).toContain('id="install"');
     expect(source).toContain('GatedZipCta');
     expect(source).toContain('funnelEvent="landing_install_click"');
-    expect(source).toContain('funnelSource="web-home-hero"');
-    expect(source).toContain('secondaryCtas');
-    expect(source).toContain('cta.href');
+    expect(source).toContain('funnelSource="web-home-install"');
+    expect(source.indexOf('SET A COOLDOWN LOCK')).toBeLessThan(source.indexOf('EXTENSION DETAILS'));
+    expect(source.indexOf('EXTENSION DETAILS')).toBeLessThan(source.indexOf('<GatedZipCta'));
+    expect(source).toContain('Phase 2 — coming soon');
+    expect(source).not.toContain('lede');
+    expect(source).not.toContain('installNote');
+    expect(source).not.toContain('HOME_LAUNCH.mock');
   });
 
   it('does not sell the retired products', () => {
