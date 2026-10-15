@@ -296,9 +296,9 @@ function kickerHtml() {
 function buildRootLanding() {
   const steps = INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n');
   const cards = LAUNCH_CARDS.map(
-    (card) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step ${escapeHtml(card.step)}</p>
-  <h3 class="public-page-card__title">${escapeHtml(card.title)}</h3>
+    (card) => `      <article class="public-page-card">
+        <p class="public-page-card__eyebrow">${escapeHtml(card.step)}</p>
+        <h3 class="public-page-card__title">${escapeHtml(card.title)}</h3>
   <p class="public-page-card__copy">${escapeHtml(card.body)}</p>
 </article>`,
   ).join('\n');
@@ -314,7 +314,6 @@ function buildRootLanding() {
 </div>
 <div class="hero-actions">
   <a class="btn btn-primary" href="/cooldown">SET A COOLDOWN LOCK</a>
-  ${zipCtaHtml()}
   <a class="btn btn-secondary" href="/extension">EXTENSION DETAILS</a>
 </div>
 <p class="landing-hero-privacy">${escapeHtml(SITE_PRIVACY)}</p>
@@ -324,9 +323,10 @@ function buildRootLanding() {
   <section class="public-page-section" id="install" aria-label="Install">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
+        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Phase 2 — coming soon'}</p>
         <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
         <ol class="public-page-list">${steps}</ol>
+        ${CTA_READY ? '' : zipCtaHtml()}
       </article>
     </div>
   </section>
@@ -385,6 +385,10 @@ function buildCooldownPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
+        <p class="public-page-card__eyebrow">What it does today</p>
+        <p class="public-page-card__copy">${escapeHtml(COOLDOWN_PAGE.today)}</p>
+      </article>
+      <article class="public-page-card">
         <p class="public-page-card__eyebrow">What you can lock</p>
         <p class="public-page-card__copy">${escapeHtml(COOLDOWN_PAGE.canLock)}</p>
       </article>
@@ -423,7 +427,7 @@ function buildExtensionPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
+        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Phase 2 — coming soon'}</p>
         <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
         <ol class="public-page-list">${steps}</ol>
       </article>

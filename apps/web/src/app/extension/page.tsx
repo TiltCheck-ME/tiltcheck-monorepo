@@ -33,7 +33,7 @@ export default function ExtensionPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <article className="public-page-card">
-            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? "Install" : "Install — gated"}</p>
+            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? "Install" : "Phase 2 — coming soon"}</p>
             <h2 className="public-page-card__title">{HOME_LAUNCH.ctaReady ? "Three steps" : "Wen zip"}</h2>
             <ol className="public-page-list">
               {HOME_LAUNCH.installSteps.map((step) => (

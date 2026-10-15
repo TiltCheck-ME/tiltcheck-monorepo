@@ -10,13 +10,13 @@ describe('HOME_LAUNCH', () => {
     expect(HOME_LAUNCH.ctaReady).toBe(false);
     expect(HOME_LAUNCH.ctaLabel).toBe('DOWNLOAD THE ZIP');
     expect(HOME_LAUNCH.ctaGatedLabel).toBe('ZIP DROPS SOON™');
-    expect(HOME_LAUNCH.ctaGatedHint).toBe('Zip is not public yet. Cooldown is the lock that ships today.');
+    expect(HOME_LAUNCH.ctaGatedHint).toBe('Phase 2. Zip is not public. Cooldown is the live lock.');
     expect(HOME_LAUNCH.ctaHref).toBe('/downloads/tiltcheck-extension.zip');
   });
 
   it('surfaces Cooldown as the flagship wedge', () => {
     expect(HOME_LAUNCH.kicker[0]).toBe('The house banks on your tilt.');
-    expect(HOME_LAUNCH.kicker[1]).toMatch(/Harm reduction made for degens, by degens/i);
+    expect(HOME_LAUNCH.kicker[1]).toMatch(/Non-custodial brakes/i);
     expect(HOME_LAUNCH.kicker[1]).toMatch(/not a lecture from your mom/i);
     expect(HOME_LAUNCH.kicker.join(' ')).toContain('Cooldown');
     expect(HOME_LAUNCH.cards[0]?.title).toContain('Cooldown');
@@ -24,7 +24,7 @@ describe('HOME_LAUNCH', () => {
   });
 
   it('describes the full stack honestly', () => {
-    expect(HOME_LAUNCH.honesty.join(' ')).toContain('devnet');
+    expect(HOME_LAUNCH.honesty.join(' ')).toMatch(/devnet/i);
     expect(HOME_LAUNCH.honesty.join(' ')).toContain('Trust scores');
     expect(HOME_LAUNCH.honesty.join(' ')).not.toContain('Approved');
     expect(HOME_LAUNCH.honesty.join(' ')).not.toContain('Instant Redeem');
@@ -51,7 +51,8 @@ describe('HOME_LAUNCH', () => {
   });
 
   it('matches the Pages punch and does not restack product facts in a lede', () => {
-    expect(HOME_LAUNCH.kicker[2]).toContain('Wen mainnet');
+    expect(HOME_LAUNCH.kicker[2]).toContain('Wen zip + mainnet');
+    expect(HOME_LAUNCH.kicker[2]).toMatch(/Casino tabs do not/);
     expect(HOME_LAUNCH.privacy).toBe('No wallet keys. No casino passwords.');
     expect(HOME_LAUNCH.honesty).toHaveLength(3);
     expect(HOME_LAUNCH.secondaryCtas[0]).toEqual({ label: 'SET A COOLDOWN LOCK', href: '/cooldown' });

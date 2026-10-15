@@ -13,8 +13,8 @@ export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
 export const SITE_KICKER = [
   'The house banks on your tilt.',
-  'Harm reduction made for degens, by degens. Tested tools — not a lecture from your mom.',
-  'Cooldown v2: you sign. No keys. Wen mainnet? soon.',
+  'Non-custodial brakes for casino sessions. Made for degens, by degens — not a lecture from your mom.',
+  'You sign a Cooldown lock this wallet cannot cancel. Our tools honor it. Casino tabs do not. Wen zip + mainnet? soon.',
 ];
 export const SITE_ONE_LINER =
   'Non-custodial brakes for degens: on-chain Cooldown locks, Chrome session monitoring, casino trust scores, and tilt-aware tooling.';
@@ -23,7 +23,7 @@ export const SITE_PRIVACY = 'No wallet keys. No casino passwords.';
 export const CTA_READY = false;
 export const CTA_LABEL = 'DOWNLOAD THE ZIP';
 export const CTA_GATED_LABEL = 'ZIP DROPS SOON™';
-export const CTA_GATED_HINT = 'Zip is not public yet. Cooldown is the lock that ships today.';
+export const CTA_GATED_HINT = 'Phase 2. Zip is not public. Cooldown is the live lock.';
 export const SECONDARY_CTAS = [
   { label: 'SET A COOLDOWN LOCK', href: '/cooldown', primary: true },
   { label: 'EXTENSION DETAILS', href: '/extension', primary: false },
@@ -36,19 +36,20 @@ export const INSTALL_STEPS = [
 export const INSTALL_NOTE =
   'Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.';
 export const LAUNCH_CARDS = [
-  { step: '01', title: 'Cooldown', body: 'On-chain lock you sign. No cancel in v1. Devnet.' },
-  { step: '02', title: 'Session intel', body: '2s spin lock on supported tabs when the zip drops. Touch Grass is Pro.' },
-  { step: '03', title: 'Trust receipts', body: 'Public RTP, filings, payout evidence. Not a casino-sponsored grade.' },
+  { step: 'Now', title: 'Cooldown', body: 'Sign a lock. No cancel in v1. Tips and our check API honor it. Devnet. Not a casino-tab lock.' },
+  { step: 'Next', title: 'Chrome Core', body: '2s spin lock on supported tabs when the zip drops. Touch Grass is Pro.' },
+  { step: 'Also', title: 'Trust receipts', body: 'Public RTP, filings, payout evidence. Not a casino-sponsored grade.' },
 ];
 export const LAUNCH_HONESTY = [
-  'Cooldown is Solana devnet. Not mainnet.',
-  'Zip is not public. Core is 2s. Touch Grass is Pro. No Chrome Web Store.',
+  'Devnet lock: you sign, no cancel. Tips and our API honor it. It does not lock Stake or Roobet. Wen mainnet? soon.',
+  'Zip is Phase 2. Not public. Core is 2s. Touch Grass is Pro. No Chrome Web Store.',
   'Trust scores use live feeds when the API is up. Curated baselines when it is not.',
 ];
 export const COOLDOWN_PAGE = {
   eyebrow: 'Cooldown',
   title: 'On-chain lock. You sign. We never hold keys.',
-  lede: 'Self-exclusion you cannot weasel off in a settings menu. v1 has no cancel. Devnet. Wen mainnet? soon.',
+  lede: 'You sign a lock this wallet cannot cancel. Our tips and check API honor it. It does not lock casino tabs. That is the zip. Devnet. Wen mainnet? soon.',
+  today: 'A signed lock is an on-chain receipt. v1 has no cancel. Tips and /cooldown/check honor it. Stake, Roobet, and the rest do not freeze. This page is the explainer — not a signing form.',
   canLock: 'Lock everything, a category, or one game. Stronger only.',
   notThis: [
     'Not a form on this page.',

@@ -4,14 +4,14 @@ export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
   kicker: [
     'The house banks on your tilt.',
-    'Harm reduction made for degens, by degens. Tested tools — not a lecture from your mom.',
-    'Cooldown v2: you sign. No keys. Wen mainnet? soon.',
+    'Non-custodial brakes for casino sessions. Made for degens, by degens — not a lecture from your mom.',
+    'You sign a Cooldown lock this wallet cannot cancel. Our tools honor it. Casino tabs do not. Wen zip + mainnet? soon.',
   ],
   ctaReady: false,
   ctaLabel: 'DOWNLOAD THE ZIP',
   ctaGatedLabel: 'ZIP DROPS SOON™',
   ctaHref: '/downloads/tiltcheck-extension.zip',
-  ctaGatedHint: 'Zip is not public yet. Cooldown is the lock that ships today.',
+  ctaGatedHint: 'Phase 2. Zip is not public. Cooldown is the live lock.',
   secondaryCtas: [
     { label: 'SET A COOLDOWN LOCK', href: '/cooldown' },
     { label: 'EXTENSION DETAILS', href: '/extension' },
@@ -23,13 +23,13 @@ export const HOME_LAUNCH = {
     'Core is a 2s spin lock. Touch Grass is Pro.',
   ],
   cards: [
-    { step: '01', title: 'Cooldown', body: 'On-chain lock you sign. No cancel in v1. Devnet.' },
-    { step: '02', title: 'Session intel', body: '2s spin lock on supported tabs when the zip drops. Touch Grass is Pro.' },
-    { step: '03', title: 'Trust receipts', body: 'Public RTP, filings, payout evidence. Not a casino-sponsored grade.' },
+    { step: 'Now', title: 'Cooldown', body: 'Sign a lock. No cancel in v1. Tips and our check API honor it. Devnet. Not a casino-tab lock.' },
+    { step: 'Next', title: 'Chrome Core', body: '2s spin lock on supported tabs when the zip drops. Touch Grass is Pro.' },
+    { step: 'Also', title: 'Trust receipts', body: 'Public RTP, filings, payout evidence. Not a casino-sponsored grade.' },
   ],
   honesty: [
-    'Cooldown is Solana devnet. Not mainnet.',
-    'Zip is not public. Core is 2s. Touch Grass is Pro. No Chrome Web Store.',
+    'Devnet lock: you sign, no cancel. Tips and our API honor it. It does not lock Stake or Roobet. Wen mainnet? soon.',
+    'Zip is Phase 2. Not public. Core is 2s. Touch Grass is Pro. No Chrome Web Store.',
     'Trust scores use live feeds when the API is up. Curated baselines when it is not.',
   ],
   footerDisclaimer:

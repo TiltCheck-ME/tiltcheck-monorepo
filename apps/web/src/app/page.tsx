@@ -34,7 +34,6 @@ export default function Home() {
             <Link href="/cooldown" className="btn btn-primary" data-funnel-event="landing_secondary_click" data-funnel-source="web-home-hero" data-funnel-label="SET A COOLDOWN LOCK">
               SET A COOLDOWN LOCK
             </Link>
-            <GatedZipCta funnelEvent="landing_install_click" funnelSource="web-home-hero" />
             <Link href="/extension" className="btn btn-secondary" data-funnel-event="landing_secondary_click" data-funnel-source="web-home-hero" data-funnel-label="EXTENSION DETAILS">
               EXTENSION DETAILS
             </Link>
@@ -46,13 +45,16 @@ export default function Home() {
       <section id="install" className="public-page-section px-4">
         <div className="landing-shell">
           <article className="public-page-card">
-            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Install — gated'}</p>
+            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Phase 2 — coming soon'}</p>
             <h2 className="public-page-card__title">{HOME_LAUNCH.ctaReady ? 'Three steps' : 'Wen zip'}</h2>
             <ol className="public-page-list">
               {HOME_LAUNCH.installSteps.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
+            {HOME_LAUNCH.ctaReady ? null : (
+              <GatedZipCta funnelEvent="landing_install_click" funnelSource="web-home-install" />
+            )}
           </article>
         </div>
       </section>
@@ -62,7 +64,7 @@ export default function Home() {
           <div className="public-page-grid public-page-grid--3">
             {HOME_LAUNCH.cards.map((card) => (
               <article key={card.step} className="public-page-card">
-                <p className="public-page-card__eyebrow">Step {card.step}</p>
+                <p className="public-page-card__eyebrow">{card.step}</p>
                 <h3 className="public-page-card__title">{card.title}</h3>
                 <p className="public-page-card__copy">{card.body}</p>
               </article>

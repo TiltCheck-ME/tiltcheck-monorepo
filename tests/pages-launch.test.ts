@@ -16,12 +16,12 @@ describe('GitHub Pages launch copy', () => {
   it('keeps the hero punch and wen, without a lede blob', () => {
     expect(SITE_KICKER).toEqual([
       'The house banks on your tilt.',
-      'Harm reduction made for degens, by degens. Tested tools — not a lecture from your mom.',
-      'Cooldown v2: you sign. No keys. Wen mainnet? soon.',
+      'Non-custodial brakes for casino sessions. Made for degens, by degens — not a lecture from your mom.',
+      'You sign a Cooldown lock this wallet cannot cancel. Our tools honor it. Casino tabs do not. Wen zip + mainnet? soon.',
     ]);
     expect(SITE_PRIVACY).toBe('No wallet keys. No casino passwords.');
     expect(CTA_READY).toBe(false);
-    expect(CTA_GATED_HINT).toBe('Zip is not public yet. Cooldown is the lock that ships today.');
+    expect(CTA_GATED_HINT).toBe('Phase 2. Zip is not public. Cooldown is the live lock.');
   });
 
   it('makes Cooldown the real primary and Extension a same-origin page', () => {
@@ -39,8 +39,13 @@ describe('GitHub Pages launch copy', () => {
 
   it('puts product facts in three short cards and three honesty bullets', () => {
     expect(LAUNCH_CARDS).toHaveLength(3);
+    expect(LAUNCH_CARDS[0]?.title).toBe('Cooldown');
+    expect(LAUNCH_CARDS[0]?.step).toBe('Now');
+    expect(LAUNCH_CARDS[1]?.step).toBe('Next');
     expect(LAUNCH_CARDS[0]?.body).toMatch(/No cancel in v1/);
+    expect(LAUNCH_CARDS[0]?.body).toMatch(/Not a casino-tab lock/);
     expect(LAUNCH_HONESTY).toHaveLength(3);
+    expect(LAUNCH_HONESTY[0]).toMatch(/does not lock Stake/);
     expect(LAUNCH_HONESTY.join(' ')).not.toContain('JustTheTip');
     expect(LAUNCH_HONESTY.join(' ')).not.toContain('SusLink');
   });
@@ -49,21 +54,20 @@ describe('GitHub Pages launch copy', () => {
 describe('GitHub Pages home HTML source', () => {
   const source = readFileSync(path.join(process.cwd(), 'scripts/convert-markdown.js'), 'utf8').replace(/\r\n/g, '\n');
 
-  it('orders Cooldown primary ahead of the gated zip and has no live-stack card', () => {
+  it('puts Cooldown in the hero and parks the gated zip in Phase 2', () => {
     expect(source).toContain('landing-hero-wen');
     expect(source).toContain('landing-hero-privacy');
     expect(source).toContain('Wen zip');
+    expect(source).toContain('Phase 2 — coming soon');
     expect(source).not.toContain('Live stack');
     expect(source).not.toContain('LAUNCH_MOCK');
-    const cooldownBtn = source.indexOf('SET A COOLDOWN LOCK');
-    const zipFn = source.indexOf('zipCtaHtml()');
-    expect(cooldownBtn).toBeGreaterThan(-1);
-    expect(zipFn).toBeGreaterThan(-1);
     expect(source).toContain(`<div class="hero-actions">
   <a class="btn btn-primary" href="/cooldown">SET A COOLDOWN LOCK</a>
-  \${zipCtaHtml()}
   <a class="btn btn-secondary" href="/extension">EXTENSION DETAILS</a>
 </div>`);
+    const hero = source.slice(source.indexOf('function buildRootLanding()'), source.indexOf('function buildHomeRedirect'));
+    expect(hero.indexOf('SET A COOLDOWN LOCK')).toBeGreaterThan(-1);
+    expect(hero.indexOf('zipCtaHtml()')).toBeGreaterThan(hero.indexOf('id="install"'));
   });
 });
 
