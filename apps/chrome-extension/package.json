@@ -19,7 +19,7 @@
     "test": "vitest --run"
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.38",
+    "@types/chrome": "^0.3.5",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "esbuild-plugin-polyfill-node": "^0.3.0",
