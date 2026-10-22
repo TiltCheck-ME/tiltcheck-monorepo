@@ -29,7 +29,7 @@
     "@types/bcryptjs": "^3.0.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
-    "vite": "^8.0.0",
+    "vite": "^8.1.6",
     "vitest": "^4.0.0"
   }
 }
