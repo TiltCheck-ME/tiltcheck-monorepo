@@ -12,7 +12,7 @@
     "test": "vitest --run tests"
   },
   "dependencies": {
-    "@magic-sdk/admin": "^2.8.2",
+    "@magic-sdk/admin": "^2.8.4",
     "@supabase/supabase-js": "^2.100.1",
     "@tiltcheck/ai-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
