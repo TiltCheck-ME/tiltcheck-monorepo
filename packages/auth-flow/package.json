@@ -19,7 +19,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "jose": "^6.2.2"
+    "jose": "^6.2.13"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

@@ -11,7 +11,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@magic-sdk/admin": "^2.8.2",
+    "@magic-sdk/admin": "^2.8.4",
     "@solana/web3.js": "1.98.4",
     "@tiltcheck/agent": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
