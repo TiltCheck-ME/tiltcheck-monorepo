@@ -83,6 +83,11 @@ export interface ClientToServerEvents {
   'request-shield': (data: { gameId: string; questionId: string }) => void;
   'schedule-trivia-game': (data: { category?: string; theme?: string; totalRounds?: number }) => void;
   'reset-trivia-game': () => void;
+  'join-lounge': (data: { userId: string; username: string; gameTitle?: string | null; status?: 'online' | 'away' | 'idle'; awayMessage?: string | null }) => void;
+  'lounge-message': (data: { userId: string; username: string; text: string }) => void;
+  'lounge-report': (data: { reporterId: string; targetId: string; reason: string }) => void;
+  'lounge-mute': (data: { moderatorId: string; targetId: string }) => void;
+  'lounge-presence-update': (data: { userId: string; status?: 'online' | 'away' | 'idle'; awayMessage?: string | null; gameTitle?: string | null }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -107,6 +112,10 @@ export interface ServerToClientEvents {
   'tip.rain.claimed': (data: { rainId: string; userId: string; success: boolean }) => void;
   'tip.sent': (data: { id: string; fromUsername: string; toUsername: string; amountSol: number; message: string; timestamp: number; claimed: boolean }) => void;
   'tip.claimed': (data: { rainId: string; claimerId: string }) => void;
+  'lounge-snapshot': (data: { tagline: string; messages: Array<{ id: string; userId: string; username: string; text: string; timestamp: number }>; presence: Array<{ userId: string; username: string; status: string; awayMessage: string | null; gameTitle: string | null; lastActive: number }> }) => void;
+  'lounge-message': (data: { id: string; userId: string; username: string; text: string; timestamp: number }) => void;
+  'lounge-presence': (data: Array<{ userId: string; username: string; status: string; awayMessage: string | null; gameTitle: string | null; lastActive: number }>) => void;
+  'lounge-error': (reason: string) => void;
 }
 
 export interface TriviaLivePlayerState {

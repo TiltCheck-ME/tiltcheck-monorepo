@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28
 
 <p align="center">
   <picture>
@@ -500,6 +500,60 @@ The Cooldown program and SDK are MIT-licensed. See `programs/cooldown/LICENSE`.
 - NFT identity manager
 
 See `15-future-roadmap.md` for full details.
+
+---
+
+## Degen Lounge
+
+Neutral hangout for people who gamble. No casino owns it. Brand line: **Show receipts or touch grass.** AIM-chatroom energy.
+
+### Hard rules
+
+- Non-custodial. We never hold, pool, forward, or escrow user funds. No forwarding wallets.
+- No casino games, paid placement, paid scores, affiliate links, or sweepstakes promo. Scorecards may link a casino's own terms as evidence only.
+- Never show wallet addresses. Never broadcast wins, balances, multipliers, or heaters.
+- Nudges warn and offer a skippable breather. Never hard-freeze.
+- Typing in chat is never betting activity. Nudges fire only on actual bet controls.
+- Anything on-chain is **devnet only** until a lawyer reviews mainnet. `TODO: lawyer review before mainnet.`
+
+### Phases
+
+| Phase | What it does | Status |
+| :--- | :--- | :--- |
+| 1 Lounge v0 | One websocket room, presence (game title only), mute/report, rate limits | This branch. Hangout is `/lounge` on game-arena. Overlay on the Chrome extension. |
+| 2 Casino scorecards | History + evidence for bink.bet and nuts.gg | Not started |
+| 3 Tipping (JustTheTip) | Non-custodial USDC pouch, per-viewer HMAC labels | Not started. Do not reuse custodial credits/escrow. |
+| 4 Heater protection | Private nudge only | Not started |
+| 5 Peer tilt flags | 3-flagger threshold, never public | Not started |
+| 6 Trivia night | Reuse game-arena trivia + host Rain | Not started |
+| 7 Plans | Feature flags free/pro/streamer. No billing. | Not started |
+
+Logger 0.4 (Bink bets table) is **not in this repo**. Phase 1 presence reuses the Chrome extension game-title readers (URL slug / `data-game-name`). No amounts.
+
+### Run Phase 1 locally
+
+```bash
+PORT=3004 pnpm --filter @tiltcheck/game-arena dev
+```
+
+Open `http://127.0.0.1:3004/lounge`. Talk to the room. Presence is on the right.
+
+Chrome overlay polls that origin. Override with `chrome.storage.local.tiltcheck_lounge_url`.
+
+```bash
+pnpm --filter @tiltcheck/game-arena test
+pnpm --filter @tiltcheck/chrome-extension test
+```
+
+### Env vars (later phases too)
+
+| Var | Used for |
+| :--- | :--- |
+| `PORT` | game-arena listen port. Use `3004` locally so it does not collide with API `8080`. |
+| `REDIS_URL` | Optional. Arena adapter + future tip NX lock. |
+| `SOLANA_RPC` | Must be `https://api.devnet.solana.com` until lawyer review. |
+| `TIP_LABEL_SECRET` | Phase 3 HMAC for per-viewer Degen #NNNN labels. |
+| `LOUNGE_MOD_USER_IDS` | Comma-separated user ids allowed to mute. Empty in local dev means anyone can mute. |
 
 ---
 

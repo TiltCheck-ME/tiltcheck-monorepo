@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Degen Lounge | TiltCheck</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font: 14px/1.4 ui-monospace, monospace; background: #0f1115; color: #f3f6f8; }
+    main { max-width: 52rem; margin: 0 auto; padding: 1.25rem; display: grid; grid-template-columns: 1fr 14rem; gap: 1rem; min-height: 100vh; }
+    h1 { font-size: 1.1rem; margin: 0 0 0.25rem; }
+    .tag { color: #17c3b2; font-size: 0.8rem; }
+    #log { height: 24rem; overflow: auto; border: 1px solid #2a3140; padding: 0.75rem; background: #12151c; }
+    #presence { border: 1px solid #2a3140; padding: 0.75rem; background: #12151c; }
+    form { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    input, button { font: inherit; padding: 0.5rem 0.7rem; border: 1px solid #2a3140; background: #1a1f29; color: inherit; }
+    button { background: #17c3b2; color: #0f1115; font-weight: 700; }
+    .footer { grid-column: 1 / -1; color: #5a6472; font-size: 0.78rem; }
+    .heart { display: inline-block; width: 0.7rem; height: 0.7rem; background: #17c3b2; clip-path: path('M12 21s-8-4.5-8-10a5 5 0 019-3 5 5 0 019 3c0 5.5-8 10-8 10z'); transform: scale(0.6); vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Degen Lounge</h1>
+      <p class="tag" id="tagline">Show receipts or touch grass.</p>
+      <div id="log" aria-live="polite"></div>
+      <form id="chat">
+        <input id="text" maxlength="500" placeholder="talk to the room. no names required." autocomplete="off" />
+        <button type="submit">SEND</button>
+      </form>
+      <p id="err" class="tag"></p>
+    </section>
+    <aside id="presence" aria-label="Who is here"></aside>
+    <p class="footer">Made for Degens. By Degens. Neutral hangout. No casino owns this room. Devnet only if anything later goes on-chain. TODO: lawyer review before mainnet.</p>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const userId = 'guest-' + Math.random().toString(36).slice(2, 8);
+    const username = 'degen-' + userId.slice(-4);
+    const socket = io({ transports: ['websocket', 'polling'] });
+    const log = document.getElementById('log');
+    const presenceEl = document.getElementById('presence');
+    const err = document.getElementById('err');
+
+    function line(msg) {
+      const p = document.createElement('p');
+      p.textContent = msg;
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    socket.on('connect', () => {
+      socket.emit('join-lounge', { userId, username, gameTitle: null, status: 'online' });
+    });
+    socket.on('lounge-snapshot', (snap) => {
+      document.getElementById('tagline').textContent = snap.tagline;
+      log.innerHTML = '';
+      for (const m of snap.messages) line(m.username + ': ' + m.text);
+      renderPresence(snap.presence);
+    });
+    socket.on('lounge-message', (m) => line(m.username + ': ' + m.text));
+    socket.on('lounge-presence', (list) => renderPresence(list));
+    socket.on('lounge-error', (reason) => { err.textContent = reason; });
+
+    function renderPresence(list) {
+      presenceEl.innerHTML = '<strong>in the lounge</strong>';
+      for (const row of list) {
+        const p = document.createElement('p');
+        const game = row.gameTitle ? ', playing ' + row.gameTitle : '';
+        const away = row.awayMessage ? ' — ' + row.awayMessage : '';
+        p.textContent = row.username + ' (' + row.status + game + away + ')';
+        presenceEl.appendChild(p);
+      }
+    }
+
+    document.getElementById('chat').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const input = document.getElementById('text');
+      socket.emit('lounge-message', { userId, username, text: input.value });
+      input.value = '';
+    });
+  </script>
+</body>
+</html>

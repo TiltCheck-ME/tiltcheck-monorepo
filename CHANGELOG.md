@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 -->
 
 # TiltCheck — Changelog
 
@@ -6,10 +6,11 @@ All notable changes to this repository will be documented here.
 
 Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the current branch / next cut. Older entries stay as historical snapshots.
 
-## [Unreleased] — 2026-10-14
+## [Unreleased] — 2026-10-28
 
 ### Added
 
+- Degen Lounge v0: one room on game-arena (`/lounge`), presence with game title only, mute/report/rate-limit. Chrome overlay talks to local arena. Typing still does not count as a bet.
 - `/touch-grass` is the games hub (Live Trivia + Degens Against Decency). Crisis copy lives on the footer/legal only. Pro overlay iframes `?mode=pause` during the cover.
 
 ### Changed
