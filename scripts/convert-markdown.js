@@ -3,8 +3,8 @@
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
  *
  * GitHub Pages site builder for TiltCheck.
- * - `/` is the single-page zip pitch
- * - old product html files redirect home
+ * - `/` is the brakes homepage
+ * - `/cooldown`, `/casinos`, `/touch-grass` are real Pages routes
  * - `/docs/*` specs from markdown
  *
  * Project Pages require relative asset paths — never "/styles/...".
@@ -37,7 +37,6 @@ import {
   INSTALL_STEPS,
   INSTALL_MOVES,
   INSTALL_NOTE,
-  HUD,
   VAULT,
   LAUNCH_HONESTY,
   WHAT_IT_IS,
@@ -50,6 +49,10 @@ import {
   GRADING_STEPS,
   TOOL_REGISTRY,
   INSTALL_SURFACES,
+  TOUCH_GRASS,
+  TOUCH_GRASS_TRIVIA,
+  TOUCH_GRASS_DAD_PROMPTS,
+  TOUCH_GRASS_DAD_CARDS,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -187,16 +190,22 @@ function href(depth, file) {
 }
 
 /** @param {'root' | 'docs'} depth @param {string} current */
+function dirHref(depth, folder) {
+  return depth === 'root' ? `${folder}/` : `../${folder}/`;
+}
+
 function navHtml(depth, current) {
   const homeHref = href(depth, 'index.html');
   const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
+  const cooldownCurrent = current === 'cooldown' ? ' aria-current="page"' : '';
+  const grassCurrent = current === 'touch-grass' ? ' aria-current="page"' : '';
 
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="${SITE_URL}/cooldown">Cooldown</a>
+    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>Cooldown</a>
     <a href="${href(depth, 'extension.html')}">Extension</a>
-    <a href="${SITE_URL}/touch-grass">Touch Grass</a>
+    <a href="${dirHref(depth, 'touch-grass')}"${grassCurrent}>Touch Grass</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>`;
@@ -322,12 +331,6 @@ function buildRootLanding() {
       <a class="hero-actions__secondary-link" href="${escapeHtml(TERTIARY_LINK.href)}">${escapeHtml(TERTIARY_LINK.label)}</a>
       <p class="landing-hero__privacy">${escapeHtml(SITE_PRIVACY)}</p>
     </div>
-    <aside class="landing-hud" aria-hidden="true">
-      <div class="landing-hud__spin"><span>${escapeHtml(HUD.spin)}</span><span class="landing-hud__count">${escapeHtml(HUD.countdown)}</span></div>
-      <span class="landing-hud__chip">${escapeHtml(HUD.chip)}</span>
-      <p class="landing-hud__lock">${escapeHtml(HUD.lock)}</p>
-      <p class="landing-hud__meta">${escapeHtml(HUD.lockMeta)}</p>
-    </aside>
   </section>
   <section class="landing-moves" id="install" aria-label="How it works">
     <p class="landing-moves__eyebrow">${escapeHtml(INSTALL_EYEBROW)}</p>
@@ -380,7 +383,7 @@ function buildExtensionPage() {
 
   const actions = `
     ${zipCtaHtml()}
-    <a class="hero-actions__secondary-link" href="${SITE_URL}/cooldown">Set a Cooldown lock</a>`;
+    <a class="hero-actions__secondary-link" href="cooldown/">Set a Cooldown lock</a>`;
 
   const content = `${productHero({
     eyebrow: 'Browser extension',
@@ -442,12 +445,6 @@ function buildCasinosPage(casinos) {
   const categories = [...new Set(casinos.map((c) => c.category))].sort();
   const cards = casinos
     .map((c) => {
-      const slug = String(c.name)
-        .toLowerCase()
-        .replace(/&/g, ' and ')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      const live = `${SITE_URL}/casinos/${slug}`;
       return `<article class="casino-card" data-name="${escapeHtml(c.name.toLowerCase())}" data-category="${escapeHtml(c.category)}" data-grade="${escapeHtml(c.grade)}">
   <div class="casino-card__top">
     <span class="casino-card__grade ${gradeClass(c.grade)}">${escapeHtml(c.grade)}</span>
@@ -455,7 +452,6 @@ function buildCasinosPage(casinos) {
   </div>
   <h3 class="casino-card__name">${escapeHtml(c.name)}</h3>
   <p class="casino-card__risk">Risk: ${escapeHtml(c.risk)}</p>
-  <a class="casino-card__link" href="${live}" rel="noopener noreferrer">Full audit on tiltcheck.me →</a>
 </article>`;
     })
     .join('\n');
@@ -508,9 +504,8 @@ function buildCasinosPage(casinos) {
   const content = `${productHero({
     eyebrow: 'Casino trust',
     title: 'Look up the operator. Read the proof.',
-    lede: `Before you deposit, check who you are playing. This page lists ${casinos.length} curated operators with letter grades and risk labels (sweeps, crypto, regulated, scam, and more). It is a starting point — not a green light. Full license, domain, and scam proof lanes open on tiltcheck.me.`,
-    actionsHtml: `<a class="btn btn-primary" href="${SITE_URL}/casinos">Open live directory</a>
-    <a class="hero-actions__secondary-link" href="tools.html">Related tools</a>`,
+    lede: `Before you deposit, check who you are playing. This page lists ${casinos.length} curated operators with letter grades and risk labels (sweeps, crypto, regulated, scam, and more). It is a starting point — not a green light. This Pages twin ships baseline cards only.`,
+    actionsHtml: `<a class="btn btn-primary" href="${href('docs', 'index.html')}">Back home</a>`,
   })}
 <main class="product-main">
   <section class="public-page-section">
@@ -541,8 +536,155 @@ ${script}`;
   return shell({
     title: 'Casino Trust | TiltCheck',
     description: 'Curated casino trust grades — static mirror of the TiltCheck directory.',
-    depth: 'root',
+    depth: 'docs',
     current: 'casinos',
+    body: content,
+  });
+}
+
+function buildCooldownPage() {
+  const content = `<main class="cooldown-page">
+  <div class="cooldown-panel">
+    <h1>Cooldown</h1>
+    <p class="cooldown-punch">Sign a lock so 3am-you cannot put the stack back.</p>
+    <p class="cooldown-fine">Not a deposit. No keys. Solana wallet. Devnet. Casinos do not have to honor it. You do. Stronger only.</p>
+    <ol class="cooldown-steps">
+      <li>Connect a Solana wallet you hold. Exodus is out.</li>
+      <li>Pick the scope: everything, a category, or one game.</li>
+      <li>Pick how long. Stronger locks only. No SOL moves.</li>
+    </ol>
+    <p class="cooldown-host">tiltcheck.me is GitHub Pages. This host is static HTML, so it cannot pop a wallet signer. The homepage button needed a real page instead of a 404. The lock itself still needs a Solana Wallet Standard signer in an app host.</p>
+  </div>
+</main>`;
+
+  return shell({
+    title: 'Cooldown | On-chain wallet lock | TiltCheck',
+    description:
+      'Sign a lock so 3am-you cannot put the stack back. Not a deposit. Solana wallet. Devnet.',
+    depth: 'docs',
+    current: 'cooldown',
+    body: content,
+  });
+}
+
+function buildTouchGrassPage() {
+  const triviaJson = JSON.stringify(TOUCH_GRASS_TRIVIA);
+  const promptsJson = JSON.stringify(TOUCH_GRASS_DAD_PROMPTS);
+  const cardsJson = JSON.stringify(TOUCH_GRASS_DAD_CARDS);
+  const content = `${productHero({
+    eyebrow: 'Off-ramp',
+    title: TOUCH_GRASS.title,
+    lede: TOUCH_GRASS.lede,
+    actionsHtml: `<a class="btn btn-primary" href="${DISCORD_URL}" rel="noopener noreferrer">Open Discord tables</a>
+    <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <p class="touch-grass-idle">${escapeHtml(TOUCH_GRASS.idleSoon)}</p>
+      <div class="touch-grass-grid">
+        <article class="public-page-card touch-grass-pane">
+          <p class="public-page-card__eyebrow">Practice</p>
+          <h2 class="public-page-card__title">${escapeHtml(TOUCH_GRASS.triviaPane)}</h2>
+          <p class="public-page-card__copy">${escapeHtml(TOUCH_GRASS.triviaNote)}</p>
+          <div id="tg-trivia"></div>
+        </article>
+        <article class="public-page-card touch-grass-pane">
+          <p class="public-page-card__eyebrow">Practice</p>
+          <h2 class="public-page-card__title">${escapeHtml(TOUCH_GRASS.dadPane)}</h2>
+          <p class="public-page-card__copy">${escapeHtml(TOUCH_GRASS.dadDiscordOnly)}</p>
+          <div id="tg-dad"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  var trivia = ${triviaJson};
+  var prompts = ${promptsJson};
+  var whites = ${cardsJson};
+  function pick(list, skip) {
+    var pool = list.filter(function (item) { return item !== skip; });
+    if (!pool.length) pool = list.slice();
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function shuffle(list) {
+    var pool = list.slice();
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = pool[i];
+      pool[i] = pool[j];
+      pool[j] = tmp;
+    }
+    return pool;
+  }
+  function el(html) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    return wrap.firstElementChild;
+  }
+  function renderTrivia(host, skip) {
+    var card = pick(trivia, skip);
+    host.innerHTML = '';
+    var box = el('<div class="tg-play"></div>');
+    box.appendChild(el('<h3 class="tg-q"></h3>')).textContent = card.question;
+    card.choices.forEach(function (choice) {
+      var btn = el('<button type="button" class="tg-choice"></button>');
+      btn.textContent = choice.key + '. ' + choice.text;
+      btn.addEventListener('click', function () {
+        if (box.getAttribute('data-done')) return;
+        box.setAttribute('data-done', '1');
+        var ok = choice.key === card.answer;
+        btn.classList.add(ok ? 'is-right' : 'is-wrong');
+        var note = el('<p class="tg-note"></p>');
+        note.textContent = (ok ? 'Hit. ' : 'Miss. Answer ' + card.answer + '. ') + card.explanation;
+        var next = el('<button type="button" class="btn btn-secondary">Next</button>');
+        next.addEventListener('click', function () { renderTrivia(host, card); });
+        box.appendChild(note);
+        box.appendChild(next);
+      });
+      box.appendChild(btn);
+    });
+    host.appendChild(box);
+  }
+  function renderDad(host, skipPrompt) {
+    var prompt = pick(prompts, skipPrompt);
+    var hand = shuffle(whites).slice(0, 4);
+    host.innerHTML = '';
+    var box = el('<div class="tg-play"></div>');
+    box.appendChild(el('<h3 class="tg-q"></h3>')).textContent = prompt;
+    hand.forEach(function (card) {
+      var btn = el('<button type="button" class="tg-choice"></button>');
+      btn.textContent = card;
+      btn.addEventListener('click', function () {
+        if (box.getAttribute('data-done')) return;
+        box.setAttribute('data-done', '1');
+        btn.classList.add('is-right');
+        var filled = prompt.indexOf('_____') >= 0 ? prompt.replace('_____', card) : prompt + ' ' + card;
+        var note = el('<p class="tg-note"></p>');
+        note.textContent = filled + ' Dry run. That is as live as this pane gets.';
+        var next = el('<button type="button" class="btn btn-secondary">Next</button>');
+        next.addEventListener('click', function () { renderDad(host, prompt); });
+        box.appendChild(note);
+        box.appendChild(next);
+      });
+      box.appendChild(btn);
+    });
+    host.appendChild(box);
+  }
+  var triviaHost = document.getElementById('tg-trivia');
+  var dadHost = document.getElementById('tg-dad');
+  if (triviaHost) renderTrivia(triviaHost);
+  if (dadHost) renderDad(dadHost);
+})();
+</script>`;
+
+  return shell({
+    title: 'Touch Grass | Games hub | TiltCheck',
+    description: 'Casino tab is cooked. Sit at a table that is not a spin. Live Trivia and Degens Against Decency.',
+    depth: 'docs',
+    current: 'touch-grass',
     body: content,
   });
 }
@@ -675,9 +817,34 @@ function run() {
   const loginDir = path.join(siteRoot, 'login');
   fs.mkdirSync(loginDir, { recursive: true });
   fs.writeFileSync(path.join(loginDir, 'index.html'), buildLoginPage());
-  for (const retired of ['casinos.html', 'tools.html']) {
-    fs.writeFileSync(path.join(siteRoot, retired), buildHomeRedirect(retired));
-  }
+  const casinos = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'apps/web/src/data/casinos.json'), 'utf8'),
+  );
+  const casinosDir = path.join(siteRoot, 'casinos');
+  fs.mkdirSync(casinosDir, { recursive: true });
+  fs.writeFileSync(path.join(casinosDir, 'index.html'), buildCasinosPage(casinos));
+  const cooldownDir = path.join(siteRoot, 'cooldown');
+  fs.mkdirSync(cooldownDir, { recursive: true });
+  fs.writeFileSync(path.join(cooldownDir, 'index.html'), buildCooldownPage());
+  const grassDir = path.join(siteRoot, 'touch-grass');
+  fs.mkdirSync(grassDir, { recursive: true });
+  fs.writeFileSync(path.join(grassDir, 'index.html'), buildTouchGrassPage());
+  fs.writeFileSync(
+    path.join(siteRoot, 'casinos.html'),
+    `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=casinos/"/>
+<link rel="canonical" href="${SITE_URL}/casinos/"/>
+<title>Casino Trust | TiltCheck</title>
+</head>
+<body>
+<p><a href="casinos/">Casino trust directory</a></p>
+</body>
+</html>`,
+  );
+  fs.writeFileSync(path.join(siteRoot, 'tools.html'), buildHomeRedirect('tools.html'));
 
   const zipSource = path.join(repoRoot, 'apps/web/public/downloads/tiltcheck-extension.zip');
   const zipDestDir = path.join(siteRoot, 'downloads');

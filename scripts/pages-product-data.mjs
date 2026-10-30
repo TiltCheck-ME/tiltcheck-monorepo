@@ -27,8 +27,8 @@ export const CTA_GATED_LABEL = 'CHROME ZIP NOT ON THIS SITE';
 export const CTA_GATED_HINT =
   'The public zip is not up yet. Wallet lock and casino lookup work now. If you are building the extension, load unpacked dist from the repo.';
 export const SECONDARY_CTAS = [
-  { label: "DON'T FEED THE HOUSE", href: `${SITE_URL}/cooldown`, primary: true },
-  { label: 'IS THIS CASINO SUS?', href: `${SITE_URL}/casinos`, primary: false },
+  { label: "DON'T FEED THE HOUSE", href: 'cooldown/', primary: true },
+  { label: 'IS THIS CASINO SUS?', href: 'casinos/', primary: false },
 ];
 export const TERTIARY_LINK = {
   label: 'How the Chrome brakes work',
@@ -306,6 +306,87 @@ export const TOOL_REGISTRY = [
     description: 'Partner alerts when sessions go sideways.',
     status: 'beta',
   },
+];
+
+export const TOUCH_GRASS = {
+  title: 'Touch Grass',
+  lede: 'Casino tab is cooked. Sit at a table that is not a spin.',
+  idleSoon: 'No drop running. Play a practice table or wait. soon™',
+  triviaPane: 'Live Trivia',
+  dadPane: 'Degens Against Decency',
+  dadDiscordOnly:
+    'Live DA&D still lives in Discord. Practice prompts are here. Open Discord when you want a real table.',
+  triviaNote: 'Offline questions from the bank. Pick one. Reveal. Next. Live answering still lives in Discord.',
+};
+
+export const TOUCH_GRASS_TRIVIA = [
+  {
+    id: 'tg-due',
+    question: 'You just lost four in a row and said you are due. What actually happened?',
+    choices: [
+      { key: 'A', text: 'The universe owes you a heater' },
+      { key: 'B', text: 'Gambler’s fallacy. The next spin does not remember you' },
+      { key: 'C', text: 'Variance is illegal in your state' },
+      { key: 'D', text: 'The house paused to let you catch up' },
+    ],
+    answer: 'B',
+    explanation: 'Independence. The slot is not keeping a tab. You are.',
+  },
+  {
+    id: 'tg-house',
+    question: 'Chasing the loss, chasing the win, thinking you are due. That is…',
+    choices: [
+      { key: 'A', text: 'Bankroll science' },
+      { key: 'B', text: 'A skill edge' },
+      { key: 'C', text: 'Feeding the house' },
+      { key: 'D', text: 'Risk-free because you almost had it' },
+    ],
+    answer: 'C',
+    explanation: 'That loop is the product. Lock or walk. Do not send the stack back.',
+  },
+  {
+    id: 'tg-cooldown',
+    question: 'A TiltCheck Cooldown is which of these?',
+    choices: [
+      { key: 'A', text: 'A deposit we hold for you' },
+      { key: 'B', text: 'A signed Solana lock. No keys. No SOL moved' },
+      { key: 'C', text: 'Self-exclusion at the casino' },
+      { key: 'D', text: 'A Phantom-only feature' },
+    ],
+    answer: 'B',
+    explanation: 'You sign. We never hold keys. Casinos do not have to honor it. You do.',
+  },
+  {
+    id: 'tg-zip',
+    question: 'The Chrome zip on tiltcheck.me is…',
+    choices: [
+      { key: 'A', text: 'A public download in the hero' },
+      { key: 'B', text: 'In the Chrome Web Store' },
+      { key: 'C', text: 'Not on this site. Devs load unpacked dist' },
+      { key: 'D', text: 'Required before casino lookup works' },
+    ],
+    answer: 'C',
+    explanation: 'Gated on purpose. Wallet lock and casino lookup work without the zip.',
+  },
+];
+
+export const TOUCH_GRASS_DAD_PROMPTS = [
+  "I'm not tilted, I'm just _____.",
+  "The last time I said I'm due, I actually _____.",
+  'Bankroll management, according to me, is _____.',
+  'I cashed out once. Then I _____.',
+  'The house is not the problem. The problem is _____.',
+];
+
+export const TOUCH_GRASS_DAD_CARDS = [
+  'one more spin, no cap',
+  'a heater that was actually variance',
+  'rinsing what was left of rent',
+  'wen win, except never',
+  "the gambler's fallacy with extra steps",
+  'locking in after already being cooked',
+  'soon™, said the bonus terms',
+  'blaming the slot, never the session',
 ];
 
 export const INSTALL_SURFACES = [

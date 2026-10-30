@@ -1976,7 +1976,7 @@ body.degen-background > .wallet-adapter-modal {
 
 .landing-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3.25rem);
   align-items: start;
   width: min(100% - 2rem, 78rem);

@@ -16,7 +16,8 @@ Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the
 ### Changed
 
 - Homepage job is brakes only: DON'T FEED THE HOUSE → Cooldown, IS THIS CASINO SUS? → `/casinos` trust scores (RTP stays at `/intel/rtp`), extension as a text link. Dopamine line is back under the H1. AutoVault sits below the fold for Stake.us and nuts.gg. Degen Lounge is not on tiltcheck.me. GitHub Pages twin matches. Zip stays gated.
-- Primary nav swaps Bonuses for Touch Grass (`/touch-grass`). Lounge plans stay off this site until the lounge is public. `/bonuses` still exists; it is just not a tab.
+- Primary nav swaps Bonuses for Touch Grass (`/touch-grass`). GitHub Pages now serves the games hub (Trivia + Degens Against Decency practice tables). Not a chat feed. Lounge stays off this site until it is public. `/bonuses` still exists; it is just not a tab.
+- Homepage hero links are real Pages routes: DON'T FEED THE HOUSE → `/cooldown/`, IS THIS CASINO SUS? → `/casinos/`. Decorative HUD box is gone.
 - Cooldown signs with any installed Solana Wallet Standard wallet except Exodus. Copy says Solana wallet, not Phantom or Solflare. Same lock, not a deposit. Opaque panel stays so glitter does not eat the letters.
 - Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
 - Home hero retort is harm reduction made for degens, by degens — tested tools, not a mom lecture. Chrome zip CTA is gated (`ZIP DROPS SOON™`) with a visible reason until the sideload is public.

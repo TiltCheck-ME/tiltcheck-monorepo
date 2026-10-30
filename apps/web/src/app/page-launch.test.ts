@@ -10,12 +10,12 @@ describe('homepage source', () => {
     'utf8',
   );
 
-  it('renders brakes hero, HUD, install, AutoVault, honesty', () => {
+  it('renders brakes hero, install, AutoVault, honesty', () => {
     expect(source).toContain('HOME_LAUNCH');
     expect(source).toContain('id="install"');
     expect(source).toContain('landing-hero');
     expect(source).toContain('HOME_LAUNCH.dopamine');
-    expect(source).toContain('landing-hud');
+    expect(source).not.toContain('landing-hud');
     expect(source).toContain('HOME_LAUNCH.vault');
     expect(source).toContain('HOME_LAUNCH.tertiaryLink');
     expect(source).toContain('landing_cooldown_click');
