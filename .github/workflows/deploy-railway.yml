@@ -52,7 +52,7 @@ jobs:
       activity: ${{ steps.filter.outputs.activity }}
       cloudflared: ${{ steps.filter.outputs.cloudflared }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -132,7 +132,7 @@ jobs:
 
       - name: Checkout
         if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
         if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
