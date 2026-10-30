@@ -27,4 +27,11 @@ describe('Cooldown page copy', () => {
     );
     expect(layout).not.toContain('Phantom or Solflare');
   });
+
+  it('shows devnet guidance when wallet send errors have no message', () => {
+    expect(source).toContain(
+      'Switch your wallet to Solana devnet and try again. Cooldown only signs a lock on devnet — no SOL moves.',
+    );
+    expect(source).toContain('walletTxErrorMessage');
+  });
 });

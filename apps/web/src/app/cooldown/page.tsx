@@ -64,6 +64,14 @@ function fmtDate(unix: number): string {
   return new Date(unix * 1000).toLocaleString();
 }
 
+const EMPTY_WALLET_TX_ERROR =
+  'Switch your wallet to Solana devnet and try again. Cooldown only signs a lock on devnet — no SOL moves.';
+
+function walletTxErrorMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  return raw.trim() === '' ? EMPTY_WALLET_TX_ERROR : raw;
+}
+
 async function fetchLockStatus(wallet: string, game?: string, category?: string): Promise<LockStatus> {
   const params = new URLSearchParams({ wallet });
   if (game) params.set('game', game);
@@ -173,7 +181,7 @@ export default function CooldownPage() {
       setTxStatus(`Lock set. Tx: ${sig.slice(0, 20)}...`);
       await loadLocks(wallet);
     } catch (err: unknown) {
-      setTxStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      setTxStatus(`Error: ${walletTxErrorMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -208,7 +216,7 @@ export default function CooldownPage() {
       setTxStatus(`Extended +7d. Tx: ${signature.slice(0, 20)}...`);
       await loadLocks(wallet);
     } catch (err: unknown) {
-      setTxStatus(`Extend failed: ${err instanceof Error ? err.message : String(err)}`);
+      setTxStatus(`Extend failed: ${walletTxErrorMessage(err)}`);
     } finally {
       setLoading(false);
     }
