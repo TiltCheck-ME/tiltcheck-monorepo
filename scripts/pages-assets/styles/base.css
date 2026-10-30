@@ -1106,7 +1106,7 @@ td {
 
 .landing-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3.25rem);
   align-items: start;
   width: min(100% - 2rem, 78rem);
@@ -1341,6 +1341,112 @@ td {
     grid-template-columns: 1fr;
   }
   .landing-moves__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cooldown-page {
+  width: min(100% - 2rem, 40rem);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem) 0 4rem;
+  color: #e8eee8;
+}
+
+.cooldown-panel {
+  padding: 1.5rem 1.35rem 1.75rem;
+  background: #0a0d11;
+  border: 1px solid rgba(23, 195, 178, 0.32);
+}
+
+.cooldown-panel h1 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cooldown-punch {
+  margin: 0 0 0.7rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #e8eee8;
+}
+
+.cooldown-fine,
+.cooldown-host {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: #d7e0d8;
+  line-height: 1.5;
+}
+
+.cooldown-steps {
+  margin: 0 0 1.25rem;
+  padding-left: 1.2rem;
+  color: #c5d0c8;
+  line-height: 1.6;
+}
+
+.touch-grass-idle {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #8fa197;
+}
+
+.touch-grass-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.tg-play {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.tg-q {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f4f7f2;
+}
+
+.tg-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #283347;
+  background: transparent;
+  color: #e8eee8;
+  cursor: pointer;
+}
+
+.tg-choice:hover,
+.tg-choice.is-right {
+  border-color: #17c3b2;
+  color: #17c3b2;
+}
+
+.tg-choice.is-wrong {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.tg-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: #c5d0c8;
+  line-height: 1.45;
+}
+
+@media (max-width: 799px) {
+  .touch-grass-grid {
     grid-template-columns: 1fr;
   }
 }

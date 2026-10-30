@@ -49,15 +49,6 @@ export default function Home() {
           </Link>
           <p className="landing-hero__privacy">{HOME_LAUNCH.privacy}</p>
         </div>
-        <aside className="landing-hud" aria-hidden="true">
-          <div className="landing-hud__spin">
-            <span className="landing-hud__spin-label">{HOME_LAUNCH.hud.spin}</span>
-            <span className="landing-hud__count">{HOME_LAUNCH.hud.countdown}</span>
-          </div>
-          <span className="landing-hud__chip">{HOME_LAUNCH.hud.chip}</span>
-          <p className="landing-hud__lock">{HOME_LAUNCH.hud.lock}</p>
-          <p className="landing-hud__meta">{HOME_LAUNCH.hud.lockMeta}</p>
-        </aside>
       </section>
       <section id="install" className="landing-moves" aria-label="How it works">
         <p className="landing-moves__eyebrow">{HOME_LAUNCH.installEyebrow}</p>

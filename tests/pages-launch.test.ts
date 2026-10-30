@@ -24,19 +24,22 @@ describe('GitHub Pages launch twin', () => {
     expect(SECONDARY_CTAS).toHaveLength(2);
     expect(SECONDARY_CTAS[0]).toEqual({
       label: "DON'T FEED THE HOUSE",
-      href: 'https://tiltcheck.me/cooldown',
+      href: 'cooldown/',
       primary: true,
     });
     expect(SECONDARY_CTAS[1]).toEqual({
       label: 'IS THIS CASINO SUS?',
-      href: 'https://tiltcheck.me/casinos',
+      href: 'casinos/',
       primary: false,
     });
     expect(TERTIARY_LINK.href).toBe('extension.html');
     expect(VAULT.href).toBe('https://tiltcheck.me/tools/auto-vault');
     expect(VAULT.body).toMatch(/Stake\.us/i);
-    expect(convertMarkdown).toContain('landing-hud');
-    expect(convertMarkdown).toContain('${SITE_URL}/touch-grass">Touch Grass');
+    expect(convertMarkdown).not.toContain('landing-hud');
+    expect(convertMarkdown).toContain("dirHref(depth, 'touch-grass')");
+    expect(convertMarkdown).toContain('buildTouchGrassPage');
+    expect(convertMarkdown).toContain('buildCooldownPage');
+    expect(convertMarkdown).toContain('buildCasinosPage');
     expect(convertMarkdown).not.toMatch(/Bonuses/i);
     expect(convertMarkdown).not.toContain('pit-hero');
     expect(convertMarkdown).not.toMatch(/Zip soon™/);
