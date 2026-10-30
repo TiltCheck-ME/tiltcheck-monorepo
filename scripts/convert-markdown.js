@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the single-page zip pitch
@@ -20,6 +20,7 @@ import {
   DISCORD_URL,
   KOFI_URL,
   SITE_H1_LINES,
+  SITE_DOPAMINE,
   SITE_KICKER,
   SITE_LEDE,
   SITE_ONE_LINER,
@@ -195,6 +196,7 @@ function navHtml(depth, current) {
   <div class="site-nav__links">
     <a href="${SITE_URL}/cooldown">Cooldown</a>
     <a href="${href(depth, 'extension.html')}">Extension</a>
+    <a href="${SITE_URL}/touch-grass">Touch Grass</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>`;
@@ -311,6 +313,7 @@ function buildRootLanding() {
     <div class="landing-hero__copy">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
       <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
+      <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
       <p class="landing-hero__kicker">${escapeHtml(SITE_KICKER)}</p>
       <p class="landing-hero__lede">${escapeHtml(SITE_LEDE)}</p>
       <div class="hero-actions landing-hero__actions">

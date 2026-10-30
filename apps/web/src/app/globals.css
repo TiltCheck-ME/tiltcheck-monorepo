@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -1045,9 +1045,34 @@ body.degen-background:has(.landing-page)::before {
     radial-gradient(ellipse 70% 50% at 80% 10%, rgba(23, 195, 178, 0.12), transparent 60%);
 }
 
+/* Cooldown copy sits on a plate. Glitter stays as chrome, not in the letters. */
+body.degen-background:has(.cooldown-page)::before {
+  background: rgba(5, 7, 10, 0.93);
+}
+
+.cooldown-page {
+  width: min(100% - 2rem, 40rem);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem) 0 4rem;
+  color: #e8eee8;
+}
+
+.cooldown-panel {
+  padding: 1.5rem 1.35rem 1.75rem;
+  background: #0a0d11;
+  border: 1px solid rgba(23, 195, 178, 0.32);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
 body.degen-background > * {
   position: relative;
   z-index: 1;
+}
+
+/* Wallet modal portals onto body. The rule above would flatten it to relative z-index 1. */
+body.degen-background > .wallet-adapter-modal {
+  position: fixed;
+  z-index: 2000;
 }
 
 .neon {
@@ -1991,8 +2016,20 @@ body.degen-background > * {
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 42px rgba(23, 195, 178, 0.35);
 }
 
-.landing-hero__kicker {
+.landing-hero__dopamine {
   margin: 1.15rem 0 0;
+  max-width: 36rem;
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-size: clamp(1.12rem, 1.05rem + 0.4vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: #17c3b2;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+}
+
+.landing-hero__kicker {
+  margin: 0.7rem 0 0;
   max-width: 40rem;
   font-size: clamp(1.05rem, 1.05rem + 0.2vw, 1.22rem);
   line-height: 1.55;

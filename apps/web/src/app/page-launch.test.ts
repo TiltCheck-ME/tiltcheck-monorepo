@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 import { readFileSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,7 @@ describe('homepage source', () => {
     expect(source).toContain('HOME_LAUNCH');
     expect(source).toContain('id="install"');
     expect(source).toContain('landing-hero');
+    expect(source).toContain('HOME_LAUNCH.dopamine');
     expect(source).toContain('landing-hud');
     expect(source).toContain('HOME_LAUNCH.vault');
     expect(source).toContain('HOME_LAUNCH.tertiaryLink');

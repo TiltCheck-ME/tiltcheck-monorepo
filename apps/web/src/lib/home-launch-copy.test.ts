@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 import { describe, expect, it } from 'vitest';
 import { HOME_LAUNCH } from './home-launch-copy';
 import { SITE_ONE_LINER, SITE_OG_SUBLINE, SITE_SEO_TITLE } from './site-copy';
@@ -9,6 +9,7 @@ const homeBlob = JSON.stringify(HOME_LAUNCH).toLowerCase();
 describe('HOME_LAUNCH', () => {
   it('locks brakes-only hero copy', () => {
     expect(HOME_LAUNCH.h1).toEqual(['House always wins?', 'FUCK THAT.']);
+    expect(HOME_LAUNCH.dopamine).toBe("The math isn't rigged. Your dopamine is.");
     expect(HOME_LAUNCH.kicker).toBe(
       'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.',
     );
@@ -23,7 +24,7 @@ describe('HOME_LAUNCH', () => {
     expect(HOME_LAUNCH.ctaReady).toBe(false);
     expect(HOME_LAUNCH.secondaryCtas).toEqual([
       { label: "DON'T FEED THE HOUSE", href: '/cooldown' },
-      { label: 'IS THIS CASINO SUS?', href: '/intel/rtp' },
+      { label: 'IS THIS CASINO SUS?', href: '/casinos' },
     ]);
     expect(HOME_LAUNCH.tertiaryLink).toEqual({
       label: 'How the Chrome brakes work',

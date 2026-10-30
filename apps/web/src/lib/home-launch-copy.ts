@@ -1,7 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
+  dopamine: "The math isn't rigged. Your dopamine is.",
   kicker:
     'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.',
   lede:
@@ -14,7 +15,7 @@ export const HOME_LAUNCH = {
     'The public zip is not up yet. Wallet lock and casino lookup work now. If you are building the extension, load unpacked dist from the repo.',
   secondaryCtas: [
     { label: "DON'T FEED THE HOUSE", href: '/cooldown' },
-    { label: 'IS THIS CASINO SUS?', href: '/intel/rtp' },
+    { label: 'IS THIS CASINO SUS?', href: '/casinos' },
   ] as const,
   tertiaryLink: { label: 'How the Chrome brakes work', href: '/extension' } as const,
   privacy:

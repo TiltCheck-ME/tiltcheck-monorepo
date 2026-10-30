@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
@@ -11,6 +11,7 @@ export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`
 
 export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
+export const SITE_DOPAMINE = "The math isn't rigged. Your dopamine is.";
 export const SITE_KICKER =
   'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.';
 export const SITE_LEDE =
@@ -27,7 +28,7 @@ export const CTA_GATED_HINT =
   'The public zip is not up yet. Wallet lock and casino lookup work now. If you are building the extension, load unpacked dist from the repo.';
 export const SECONDARY_CTAS = [
   { label: "DON'T FEED THE HOUSE", href: `${SITE_URL}/cooldown`, primary: true },
-  { label: 'IS THIS CASINO SUS?', href: `${SITE_URL}/intel/rtp`, primary: false },
+  { label: 'IS THIS CASINO SUS?', href: `${SITE_URL}/casinos`, primary: false },
 ];
 export const TERTIARY_LINK = {
   label: 'How the Chrome brakes work',

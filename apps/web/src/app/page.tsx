@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import JsonLd from '@/components/JsonLd';
@@ -19,6 +19,7 @@ export default function Home() {
             <span className="landing-hero__title-q">{HOME_LAUNCH.h1[0]}</span>
             <span className="landing-hero__title-a">{HOME_LAUNCH.h1[1]}</span>
           </h1>
+          <p className="landing-hero__dopamine">{HOME_LAUNCH.dopamine}</p>
           <p className="landing-hero__kicker">{HOME_LAUNCH.kicker}</p>
           <p className="landing-hero__lede">{HOME_LAUNCH.lede}</p>
           <div className="hero-actions landing-hero__actions">
