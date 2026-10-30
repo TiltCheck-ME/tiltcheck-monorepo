@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <title>TiltCheck | House always wins? FUCK THAT.</title>
-<meta name="description" content="Non-custodial brakes for degens: on-chain Cooldown locks, Chrome session monitoring, casino trust scores, and tilt-aware tooling."/>
+<meta name="description" content="Brakes for people who already gamble: slow the next spin, block the game that rinses you, lock the wallet you signed, and check if the casino is sus. We never hold your keys."/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#06080b"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="styles/base.css"/>
 
 </head>
@@ -14,82 +14,64 @@
 <nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="index.html" aria-current="page"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="#install">Zip soon™</a>
+    <a href="https://tiltcheck.me/cooldown">Cooldown</a>
+    <a href="extension.html">Extension</a>
+    <a href="https://tiltcheck.me/touch-grass">Touch Grass</a>
     <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>
 <main class="landing-page">
-  <section class="hero-surface" aria-label="TiltCheck">
-    <div class="landing-shell landing-hero-centered">
+  <section class="landing-hero" aria-label="TiltCheck">
+    <div class="landing-hero__copy">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
-      <h1 class="landing-hero-title landing-hero-title--centered">House always wins?<br/>FUCK THAT.</h1>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">The house banks on your tilt.</p>
-      <p class="landing-hero-retort landing-hero-subtitle--centered">Harm reduction made for degens, by degens. Tested tools that actually work — not a lecture from your mom.</p>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Cooldown v2: sign a Solana devnet lock. No cancel. No keys held. Wen mainnet? soon.</p>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Cooldown is on-chain self-exclusion — you sign, we never hold keys. Chrome Core (zip not public yet) is a two-second spin lock on supported casino tabs. Fullscreen Touch Grass (~2 min) is Pro only. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.</p>
-      <div class="hero-actions">
-        <span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">ZIP DROPS SOON™</button><span id="gated-zip-why" class="gated-zip-cta__why">Disabled because the zip is not public yet. No half-baked sideload. Cooldown is the lock that ships today.</span></span>
-        <a class="btn btn-primary" href="https://tiltcheck.me/cooldown">SET A COOLDOWN LOCK</a>
-        <a class="btn btn-secondary" href="extension.html">EXTENSION DETAILS</a>
+      <h1 class="landing-hero__title"><span class="landing-hero__title-q">House always wins?</span><span class="landing-hero__title-a">FUCK THAT.</span></h1>
+      <p class="landing-hero__dopamine">The math isn&#39;t rigged. Your dopamine is.</p>
+      <p class="landing-hero__kicker">Chasing the loss, chasing the win, thinking you are due. That is feeding the house.</p>
+      <p class="landing-hero__lede">Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets.</p>
+      <div class="hero-actions landing-hero__actions">
+        <a class="btn btn-primary" href="https://tiltcheck.me/cooldown">DON&#39;T FEED THE HOUSE</a>
+        <a class="btn btn-secondary" href="https://tiltcheck.me/casinos">IS THIS CASINO SUS?</a>
       </div>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.</p>
+      <a class="hero-actions__secondary-link" href="extension.html">How the Chrome brakes work</a>
+      <p class="landing-hero__privacy">We never ask for your casino password or wallet seed. You sign a Cooldown. Zip is not on this site.</p>
     </div>
+    <aside class="landing-hud" aria-hidden="true">
+      <div class="landing-hud__spin"><span>SPIN</span><span class="landing-hud__count">2s</span></div>
+      <span class="landing-hud__chip">On your list</span>
+      <p class="landing-hud__lock">Cooldown signed</p>
+      <p class="landing-hud__meta">devnet</p>
+    </aside>
   </section>
-
-  <section class="public-page-section" id="install" aria-label="Install">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Install — gated</p>
-        <h2 class="public-page-card__title">Wen zip</h2>
-        <ol class="public-page-list"><li>Zip is not public yet. soon™ — do not hunt a half-baked sideload.</li>
-<li>When it drops: chrome://extensions → Developer mode → Load unpacked.</li>
-<li>Core will lock the spin button for two seconds on supported tabs. Fullscreen Touch Grass stays Pro.</li></ol>
-        <p class="public-page-card__copy">Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.</p>
-      </article>
-    </div>
+  <section class="landing-moves" id="install" aria-label="How it works">
+    <p class="landing-moves__eyebrow">How it works</p>
+    <h2 class="landing-moves__title">Three moves. None of them are a lecture.</h2>
+    <ol class="landing-moves__list"><li class="landing-move">
+  <span class="landing-move__num">01</span>
+  <h3 class="landing-move__title">Look up the house</h3>
+  <p>Trust scores are receipts — payout stories, licenses, scam reports — not a vibe rank.</p>
+</li>
+<li class="landing-move">
+  <span class="landing-move__num">02</span>
+  <h3 class="landing-move__title">Don&#39;t feed it</h3>
+  <p>Sign a Cooldown. The win stays off the table until the timer ends. Stronger locks only. You sign. We never hold keys. Casinos do not have to honor it. You do.</p>
+</li>
+<li class="landing-move">
+  <span class="landing-move__num">03</span>
+  <h3 class="landing-move__title">Slow the next click</h3>
+  <p>Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Zip is not on this site. Devs load unpacked dist.</p>
+</li></ol>
   </section>
-
-  <section class="public-page-section" aria-label="What it does">
-    <div class="landing-shell">
-      <div class="public-page-grid public-page-grid--3"><article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step 01</p>
-  <h3 class="public-page-card__title">Cooldown (on-chain)</h3>
-  <p class="public-page-card__copy">Self-exclusion that cannot be weaseled off in a settings menu. Lock all play, a category, or one game. Stronger locks only — expires on-chain when the timer hits. Solana devnet today.</p>
-</article>
-<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step 02</p>
-  <h3 class="public-page-card__title">Session intel</h3>
-  <p class="public-page-card__copy">Chrome Core will lock the spin button for two seconds on supported tabs once the zip is public. Fullscreen Touch Grass (~2 min cover) is Pro monolith only.</p>
-</article>
-<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step 03</p>
-  <h3 class="public-page-card__title">Trust receipts</h3>
-  <p class="public-page-card__copy">Trust Engine grades operators from public data — RTP drift, compliance filings, payout evidence, scam reports. Bonus tracker and intel tools link back to those scores.</p>
-</article></div>
-    </div>
+  <section class="landing-vault" aria-label="AutoVault">
+    <h2 class="landing-vault__title">AutoVault — skim the win on the sites we actually support.</h2>
+    <p class="landing-vault__body">Stake.us and nuts.gg only. Dashboard owns the rule. The tab presses the vault button so the hit is not sitting in playable balance. Not every casino.</p>
+    <a class="btn btn-secondary" href="https://tiltcheck.me/tools/auto-vault">AUTOVAULT SETUP</a>
   </section>
-
-  <section class="public-page-section" aria-label="Live stack">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Live stack</p>
-        <h2 class="public-page-card__title">Cooldown + extension + trust intel</h2>
-        <p class="public-page-card__copy">Self-sovereign brakes — not a casino nanny hotline.</p>
-        <p class="public-page-card__copy">Non-custodial. You sign locks. We read public data.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="Honesty">
-    <div class="landing-shell">
-      <ul class="public-page-list"><li>Cooldown ships on Solana devnet — not mainnet custody theater.</li>
-<li>Extension zip is not public yet. Core is a 2s spin lock when it drops. Fullscreen Touch Grass is Pro only. No Chrome Web Store.</li>
-<li>Trust scores blend live rollup feeds with curated baselines when the API is down.</li>
-<li>JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.</li>
-<li>Discord bot exposes tilt checks and tip commands for server-side degens.</li>
-<li>Supported extension tabs include Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.</li>
-<li>SusLink can bounce critical scam URLs to a warning page when the API is up.</li></ul>
-    </div>
+  <section class="landing-tape" aria-label="Honesty">
+    <p class="landing-tape__label">THE FINE PRINT</p>
+    <ul class="landing-tape__list"><li>This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.</li>
+<li>The Chrome zip is not on this site and not in the Chrome Web Store. The two-second spin lock and game list exist in the repo as an unpacked install.</li>
+<li>Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.</li>
+<li>AutoVault is two casinos. We do not fake a vault button everywhere.</li></ul>
   </section>
 </main>
 <footer class="site-footer">
