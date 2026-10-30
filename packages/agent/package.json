@@ -34,6 +34,6 @@
     "@google/adk": "^0.6.0",
     "@google/adk-devtools": "^0.6.0",
     "@tiltcheck/database": "workspace:*",
-    "zod": "^4.3.6"
+    "zod": "^4.6.6"
   }
 }
