@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
 import { describe, expect, it } from 'vitest';
 import { decidePublicRoute } from './public-route-gate';
 
@@ -28,6 +28,11 @@ describe('decidePublicRoute', () => {
       '/sitemap.xml',
       '/robots.txt',
       '/downloads/tiltcheck-extension.zip',
+      '/tools/auto-vault',
+      '/tools/auto-vault/android',
+      '/tools/auto-vault/share',
+      '/nuts',
+      '/stake',
     ]) {
       expect(decidePublicRoute(path)).toEqual({ action: 'next' });
     }
@@ -40,7 +45,7 @@ describe('decidePublicRoute', () => {
   });
 
   it('sends retired marketing paths home with a temporary redirect', () => {
-    for (const path of ['/tools', '/tools/auto-vault', '/operators', '/operators/instant-redeem', '/docs', '/legal/limit', '/ask', '/site-map']) {
+    for (const path of ['/tools', '/operators', '/operators/instant-redeem', '/docs', '/legal/limit', '/ask', '/site-map']) {
       expect(decidePublicRoute(path)).toEqual({ action: 'redirect', status: 307, destination: '/' });
     }
   });
