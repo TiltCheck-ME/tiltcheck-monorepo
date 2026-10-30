@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
 # Public tiltcheck.me. Not Railway.
 name: Deploy GitHub Pages Specs
 
@@ -31,6 +31,8 @@ jobs:
         run: |
           mkdir -p out/styles
           cp scripts/pages-assets/styles/base.css out/styles/base.css
+          mkdir -p out/assets
+          cp apps/web/public/assets/backgroundglitter.png out/assets/backgroundglitter.png
           mkdir -p out/docs-md
           rsync -av docs/tiltcheck/ out/docs-md/
 

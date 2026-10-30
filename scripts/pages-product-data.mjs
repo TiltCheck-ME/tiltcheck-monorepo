@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
@@ -11,65 +11,66 @@ export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`
 
 export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';
-export const SITE_KICKER = [
-  'The house banks on your tilt.',
-  'Harm reduction made for degens, by degens. Tested tools that actually work — not a lecture from your mom.',
-  'Cooldown v2: sign a Solana devnet lock. No cancel. No keys held. Wen mainnet? soon.',
-];
+export const SITE_DOPAMINE = "The math isn't rigged. Your dopamine is.";
+export const SITE_KICKER =
+  'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.';
 export const SITE_LEDE =
-  'Cooldown is on-chain self-exclusion — you sign, we never hold keys. Chrome Core (zip not public yet) is a two-second spin lock on supported casino tabs. Fullscreen Touch Grass (~2 min) is Pro only. Trust Engine scores casinos from public RTP, compliance, and payout evidence. No custody. No passwords.';
+  'Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets.';
 export const SITE_ONE_LINER =
-  'Non-custodial brakes for degens: on-chain Cooldown locks, Chrome session monitoring, casino trust scores, and tilt-aware tooling.';
+  'Brakes for people who already gamble: slow the next spin, block the game that rinses you, lock the wallet you signed, and check if the casino is sus. We never hold your keys.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
-  'Does not read your wallet keys or casino password. Cooldown is you signing an on-chain lock — we never hold keys.';
+  'We never ask for your casino password or wallet seed. You sign a Cooldown. Zip is not on this site.';
 export const CTA_READY = false;
 export const CTA_LABEL = 'DOWNLOAD THE ZIP';
-export const CTA_GATED_LABEL = 'ZIP DROPS SOON™';
+export const CTA_GATED_LABEL = 'CHROME ZIP NOT ON THIS SITE';
 export const CTA_GATED_HINT =
-  'Disabled because the zip is not public yet. No half-baked sideload. Cooldown is the lock that ships today.';
+  'The public zip is not up yet. Wallet lock and casino lookup work now. If you are building the extension, load unpacked dist from the repo.';
 export const SECONDARY_CTAS = [
-  { label: 'SET A COOLDOWN LOCK', href: `${SITE_URL}/cooldown`, primary: true },
-  { label: 'EXTENSION DETAILS', href: 'extension.html', primary: false },
+  { label: "DON'T FEED THE HOUSE", href: `${SITE_URL}/cooldown`, primary: true },
+  { label: 'IS THIS CASINO SUS?', href: `${SITE_URL}/casinos`, primary: false },
 ];
-export const INSTALL_STEPS = [
-  'Zip is not public yet. soon™ — do not hunt a half-baked sideload.',
-  'When it drops: chrome://extensions → Developer mode → Load unpacked.',
-  'Core will lock the spin button for two seconds on supported tabs. Fullscreen Touch Grass stays Pro.',
+export const TERTIARY_LINK = {
+  label: 'How the Chrome brakes work',
+  href: 'extension.html',
+};
+export const INSTALL_EYEBROW = 'How it works';
+export const INSTALL_TITLE = 'Three moves. None of them are a lecture.';
+export const INSTALL_MOVES = [
+  {
+    title: 'Look up the house',
+    body: 'Trust scores are receipts — payout stories, licenses, scam reports — not a vibe rank.',
+  },
+  {
+    title: "Don't feed it",
+    body: 'Sign a Cooldown. The win stays off the table until the timer ends. Stronger locks only. You sign. We never hold keys. Casinos do not have to honor it. You do.',
+  },
+  {
+    title: 'Slow the next click',
+    body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Zip is not on this site. Devs load unpacked dist.',
+  },
 ];
+export const INSTALL_STEPS = INSTALL_MOVES.map((move) => `${move.title}. ${move.body}`);
 export const INSTALL_NOTE =
-  'Core will run guest when the zip drops. Cooldown is the lock that ships today. Discord later for dashboard vault rules, buddies, and sync.';
-export const LAUNCH_CARDS = [
-  {
-    step: '01',
-    title: 'Cooldown (on-chain)',
-    body: 'Self-exclusion that cannot be weaseled off in a settings menu. Lock all play, a category, or one game. Stronger locks only — expires on-chain when the timer hits. Solana devnet today.',
-  },
-  {
-    step: '02',
-    title: 'Session intel',
-    body: 'Chrome Core will lock the spin button for two seconds on supported tabs once the zip is public. Fullscreen Touch Grass (~2 min cover) is Pro monolith only.',
-  },
-  {
-    step: '03',
-    title: 'Trust receipts',
-    body: 'Trust Engine grades operators from public data — RTP drift, compliance filings, payout evidence, scam reports. Bonus tracker and intel tools link back to those scores.',
-  },
-];
-export const LAUNCH_MOCK = {
-  status: 'Live stack',
-  signal: 'Cooldown + extension + trust intel',
-  footer: 'Self-sovereign brakes — not a casino nanny hotline.',
-  chip: 'Non-custodial. You sign locks. We read public data.',
+  'Wallet lock and casino lookup work in this browser right now. The Chrome zip is not a public download yet. Devs load unpacked dist. That is a packaging gap, not a fake product.';
+export const HUD = {
+  spin: 'SPIN',
+  countdown: '2s',
+  chip: 'On your list',
+  lock: 'Cooldown signed',
+  lockMeta: 'devnet',
+};
+export const VAULT = {
+  title: 'AutoVault — skim the win on the sites we actually support.',
+  body: 'Stake.us and nuts.gg only. Dashboard owns the rule. The tab presses the vault button so the hit is not sitting in playable balance. Not every casino.',
+  ctaLabel: 'AUTOVAULT SETUP',
+  href: `${SITE_URL}/tools/auto-vault`,
 };
 export const LAUNCH_HONESTY = [
-  'Cooldown ships on Solana devnet — not mainnet custody theater.',
-  'Extension zip is not public yet. Core is a 2s spin lock when it drops. Fullscreen Touch Grass is Pro only. No Chrome Web Store.',
-  'Trust scores blend live rollup feeds with curated baselines when the API is down.',
-  'JustTheTip tips USDC on Solana with tilt-aware velocity guards — optional, separate flow.',
-  'Discord bot exposes tilt checks and tip commands for server-side degens.',
-  'Supported extension tabs include Stake, Stake.us, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, and CSGOEmpire.',
-  'SusLink can bounce critical scam URLs to a warning page when the API is up.',
+  'This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
+  'The Chrome zip is not on this site and not in the Chrome Web Store. The two-second spin lock and game list exist in the repo as an unpacked install.',
+  'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
+  'AutoVault is two casinos. We do not fake a vault button everywhere.',
 ];
 
 /** Plain-English pitch for cold visitors — sits under the hero. */
@@ -92,7 +93,7 @@ export const HOW_IT_WORKS = [
   {
     step: '01',
     title: 'Install',
-    body: 'Sideload the read-only Chrome extension. No private keys. It lives in the casino tab you already use.',
+    body: 'Set a Cooldown lock and check Trust intel. Chrome Core is an unpacked sideload until the zip is public. No private keys.',
     note: 'One install. Two minutes.',
   },
   {

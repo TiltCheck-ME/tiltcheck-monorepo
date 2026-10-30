@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -432,6 +432,8 @@ html, body {
 
 :root {
   --font-geist-sans: var(--font-inter), "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-plex: var(--font-plex), "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display: var(--font-display), "Big Shoulders", Impact, "Arial Narrow", sans-serif;
   --font-geist-mono: var(--font-jetbrains-mono), "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-mono: var(--font-geist-mono);
   /* === TiltCheck theme tokens (teal player / amber partner) === */
@@ -1036,9 +1038,41 @@ body.degen-background::before {
   z-index: 0;
 }
 
+/* Landing needs the glitter as felt, not a blackout. Other pages keep the heavy veil. */
+body.degen-background:has(.landing-page)::before {
+  background:
+    linear-gradient(180deg, rgba(6, 10, 8, 0.48) 0%, rgba(5, 7, 10, 0.66) 70%, rgba(5, 7, 10, 0.84) 100%),
+    radial-gradient(ellipse 70% 50% at 80% 10%, rgba(23, 195, 178, 0.12), transparent 60%);
+}
+
+/* Cooldown copy sits on a plate. Glitter stays as chrome, not in the letters. */
+body.degen-background:has(.cooldown-page)::before {
+  background: rgba(5, 7, 10, 0.93);
+}
+
+.cooldown-page {
+  width: min(100% - 2rem, 40rem);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem) 0 4rem;
+  color: #e8eee8;
+}
+
+.cooldown-panel {
+  padding: 1.5rem 1.35rem 1.75rem;
+  background: #0a0d11;
+  border: 1px solid rgba(23, 195, 178, 0.32);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
 body.degen-background > * {
   position: relative;
   z-index: 1;
+}
+
+/* Wallet modal portals onto body. The rule above would flatten it to relative z-index 1. */
+body.degen-background > .wallet-adapter-modal {
+  position: fixed;
+  z-index: 2000;
 }
 
 .neon {
@@ -1249,7 +1283,7 @@ body.degen-background > * {
 
 .landing-hero-retort {
   max-width: 36rem;
-  margin: 0.45rem auto 0;
+  margin: 0.45rem 0 0;
   font-size: clamp(0.95rem, 0.95rem + 0.2vw, 1.08rem);
   line-height: 1.6;
   color: #17c3b2;
@@ -1934,9 +1968,272 @@ body.degen-background > * {
 .landing-page {
   display: flex;
   flex-direction: column;
-  gap: clamp(4rem, 7vw, 6.5rem);
+  gap: clamp(3.25rem, 6vw, 5.5rem);
   padding: 0 0 clamp(4rem, 7vw, 6rem);
   overflow-x: clip;
+  font-family: var(--font-plex), "IBM Plex Sans", sans-serif;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: start;
+  width: min(100% - 2rem, 78rem);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4.5rem) 0 0;
+}
+
+.landing-hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  animation: landing-rise 0.8s ease-out both;
+}
+
+.landing-hero__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08em;
+  margin: 1.1rem 0 0;
+  max-width: 12ch;
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.landing-hero__title-q {
+  font-size: clamp(2.4rem, 6.5vw, 5.2rem);
+  color: #f6fbff;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.55);
+}
+
+.landing-hero__title-a {
+  font-size: clamp(3.1rem, 8.4vw, 6.8rem);
+  color: #17c3b2;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 42px rgba(23, 195, 178, 0.35);
+}
+
+.landing-hero__dopamine {
+  margin: 1.15rem 0 0;
+  max-width: 36rem;
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-size: clamp(1.12rem, 1.05rem + 0.4vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: #17c3b2;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+}
+
+.landing-hero__kicker {
+  margin: 0.7rem 0 0;
+  max-width: 40rem;
+  font-size: clamp(1.05rem, 1.05rem + 0.2vw, 1.22rem);
+  line-height: 1.55;
+  color: #d7e0d8;
+}
+
+.landing-hero__lede,
+.landing-hero__privacy {
+  margin: 1.1rem 0 0;
+  max-width: 40rem;
+  color: #c5d0c8;
+  line-height: 1.68;
+}
+
+.landing-hero__privacy {
+  font-size: 0.88rem;
+  color: #8fa197;
+}
+
+.landing-hero__actions {
+  justify-content: flex-start;
+  margin-top: 1.75rem;
+}
+
+.landing-hero .hero-actions__secondary-link {
+  margin-top: 0.85rem;
+}
+
+.landing-hud {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.2rem 1.25rem 1.3rem;
+  border: 1px solid rgba(23, 195, 178, 0.38);
+  background: linear-gradient(165deg, #12181a 0%, #0b1012 100%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  animation: landing-slide 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+.landing-hud__spin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(23, 195, 178, 0.45);
+  background: rgba(8, 12, 12, 0.9);
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa197;
+}
+
+.landing-hud__count {
+  font-family: var(--font-mono);
+  color: #17c3b2;
+}
+
+.landing-hud__chip {
+  justify-self: start;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(255, 176, 32, 0.5);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffb020;
+}
+
+.landing-hud__lock {
+  margin: 0;
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #f4f7f2;
+}
+
+.landing-hud__meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffb020;
+}
+
+.landing-moves,
+.landing-vault,
+.landing-tape {
+  width: min(100% - 2rem, 78rem);
+  margin: 0 auto;
+}
+
+.landing-moves__eyebrow,
+.landing-tape__label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #17c3b2;
+}
+
+.landing-moves__title,
+.landing-vault__title,
+.landing-move__title {
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #f4f7f2;
+}
+
+.landing-moves__title {
+  margin: 0.4rem 0 0;
+  max-width: 16ch;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 0.92;
+}
+
+.landing-moves__list {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem 1.5rem;
+}
+
+.landing-move {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.1rem 0 0;
+  border-top: 2px solid #17c3b2;
+}
+
+.landing-move__num {
+  font-family: var(--font-display), "Big Shoulders", sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #17c3b2;
+}
+
+.landing-move p,
+.landing-vault__body,
+.landing-tape__list li {
+  margin: 0;
+  color: #c5d0c8;
+  line-height: 1.6;
+}
+
+.landing-vault {
+  padding: 1.25rem 0 0;
+  border-top: 1px solid rgba(23, 195, 178, 0.25);
+}
+
+.landing-vault__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.landing-vault__body {
+  margin: 0.75rem 0 1.1rem;
+  max-width: 44rem;
+}
+
+.landing-tape {
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-left: 4px solid #17c3b2;
+  background: linear-gradient(90deg, rgba(23, 195, 178, 0.08), rgba(8, 12, 10, 0.55));
+}
+
+.landing-tape__list {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+@keyframes landing-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes landing-slide {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero__copy,
+  .landing-hud {
+    animation: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+  }
+  .landing-moves__list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .landing-shell,

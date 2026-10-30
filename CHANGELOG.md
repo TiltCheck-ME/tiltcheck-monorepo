@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 -->
 
 # TiltCheck — Changelog
 
@@ -6,14 +6,18 @@ All notable changes to this repository will be documented here.
 
 Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the current branch / next cut. Older entries stay as historical snapshots.
 
-## [Unreleased] — 2026-10-14
+## [Unreleased] — 2026-10-29
 
 ### Added
 
+- Degen Lounge v0: one room on game-arena (`/lounge`), presence with game title only, mute/report/rate-limit. Chrome overlay talks to local arena. Typing still does not count as a bet.
 - `/touch-grass` is the games hub (Live Trivia + Degens Against Decency). Crisis copy lives on the footer/legal only. Pro overlay iframes `?mode=pause` during the cover.
 
 ### Changed
 
+- Homepage job is brakes only: DON'T FEED THE HOUSE → Cooldown, IS THIS CASINO SUS? → `/casinos` trust scores (RTP stays at `/intel/rtp`), extension as a text link. Dopamine line is back under the H1. AutoVault sits below the fold for Stake.us and nuts.gg. Degen Lounge is not on tiltcheck.me. GitHub Pages twin matches. Zip stays gated.
+- Primary nav swaps Bonuses for Touch Grass (`/touch-grass`). Lounge plans stay off this site until the lounge is public. `/bonuses` still exists; it is just not a tab.
+- Cooldown signs with any installed Solana Wallet Standard wallet except Exodus. Copy says Solana wallet, not Phantom or Solflare. Same lock, not a deposit. Opaque panel stays so glitter does not eat the letters.
 - Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
 - Home hero retort is harm reduction made for degens, by degens — tested tools, not a mom lecture. Chrome zip CTA is gated (`ZIP DROPS SOON™`) with a visible reason until the sideload is public.
 - Public `tiltcheck.me` is GitHub Pages, not Railway. Pages twin (`scripts/pages-product-data.mjs` + `convert-markdown.js`) ships the gated zip / hero copy. Railway no longer builds or deploys the `web` image.

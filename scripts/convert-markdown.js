@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the single-page zip pitch
@@ -20,6 +20,7 @@ import {
   DISCORD_URL,
   KOFI_URL,
   SITE_H1_LINES,
+  SITE_DOPAMINE,
   SITE_KICKER,
   SITE_LEDE,
   SITE_ONE_LINER,
@@ -30,10 +31,14 @@ import {
   CTA_GATED_LABEL,
   CTA_GATED_HINT,
   SECONDARY_CTAS,
+  TERTIARY_LINK,
+  INSTALL_EYEBROW,
+  INSTALL_TITLE,
   INSTALL_STEPS,
+  INSTALL_MOVES,
   INSTALL_NOTE,
-  LAUNCH_CARDS,
-  LAUNCH_MOCK,
+  HUD,
+  VAULT,
   LAUNCH_HONESTY,
   WHAT_IT_IS,
   HOW_IT_WORKS,
@@ -54,7 +59,7 @@ const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
 
-const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
+const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
 function slugify(name) {
   return name
@@ -183,14 +188,15 @@ function href(depth, file) {
 
 /** @param {'root' | 'docs'} depth @param {string} current */
 function navHtml(depth, current) {
-  const downloadHref = depth === 'root' ? '#install' : '../index.html#install';
   const homeHref = href(depth, 'index.html');
   const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
 
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
-    <a href="${downloadHref}">${CTA_READY ? 'Download' : 'Zip soon™'}</a>
+    <a href="${SITE_URL}/cooldown">Cooldown</a>
+    <a href="${href(depth, 'extension.html')}">Extension</a>
+    <a href="${SITE_URL}/touch-grass">Touch Grass</a>
     <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
   </div>
 </nav>`;
@@ -293,74 +299,49 @@ function secondaryCtaHtml() {
   ).join('\n        ');
 }
 
-function kickerHtml() {
-  return SITE_KICKER.map((line, index) => {
-    const className =
-      index === 1
-        ? 'landing-hero-retort landing-hero-subtitle--centered'
-        : 'landing-hero-subtitle landing-hero-subtitle--centered';
-    return `<p class="${className}">${escapeHtml(line)}</p>`;
-  }).join('\n      ');
-}
-
 function buildRootLanding() {
-  const steps = INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n');
-  const cards = LAUNCH_CARDS.map(
-    (card) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">Step ${escapeHtml(card.step)}</p>
-  <h3 class="public-page-card__title">${escapeHtml(card.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(card.body)}</p>
-</article>`,
+  const moves = INSTALL_MOVES.map(
+    (move, index) => `<li class="landing-move">
+  <span class="landing-move__num">${String(index + 1).padStart(2, '0')}</span>
+  <h3 class="landing-move__title">${escapeHtml(move.title)}</h3>
+  <p>${escapeHtml(move.body)}</p>
+</li>`,
   ).join('\n');
   const honesty = LAUNCH_HONESTY.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
-
   const content = `<main class="landing-page">
-  <section class="hero-surface" aria-label="TiltCheck">
-    <div class="landing-shell landing-hero-centered">
+  <section class="landing-hero" aria-label="TiltCheck">
+    <div class="landing-hero__copy">
       <p class="brand-wordmark">Tilt<span>Check</span></p>
-      <h1 class="landing-hero-title landing-hero-title--centered">${escapeHtml(SITE_H1_LINES[0])}<br/>${escapeHtml(SITE_H1_LINES[1])}</h1>
-      ${kickerHtml()}
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_LEDE)}</p>
-      <div class="hero-actions">
-        ${zipCtaHtml()}
+      <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
+      <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
+      <p class="landing-hero__kicker">${escapeHtml(SITE_KICKER)}</p>
+      <p class="landing-hero__lede">${escapeHtml(SITE_LEDE)}</p>
+      <div class="hero-actions landing-hero__actions">
         ${secondaryCtaHtml()}
       </div>
-      <p class="landing-hero-subtitle landing-hero-subtitle--centered">${escapeHtml(SITE_PRIVACY)}</p>
+      <a class="hero-actions__secondary-link" href="${escapeHtml(TERTIARY_LINK.href)}">${escapeHtml(TERTIARY_LINK.label)}</a>
+      <p class="landing-hero__privacy">${escapeHtml(SITE_PRIVACY)}</p>
     </div>
+    <aside class="landing-hud" aria-hidden="true">
+      <div class="landing-hud__spin"><span>${escapeHtml(HUD.spin)}</span><span class="landing-hud__count">${escapeHtml(HUD.countdown)}</span></div>
+      <span class="landing-hud__chip">${escapeHtml(HUD.chip)}</span>
+      <p class="landing-hud__lock">${escapeHtml(HUD.lock)}</p>
+      <p class="landing-hud__meta">${escapeHtml(HUD.lockMeta)}</p>
+    </aside>
   </section>
-
-  <section class="public-page-section" id="install" aria-label="Install">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
-        <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
-        <ol class="public-page-list">${steps}</ol>
-        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
-      </article>
-    </div>
+  <section class="landing-moves" id="install" aria-label="How it works">
+    <p class="landing-moves__eyebrow">${escapeHtml(INSTALL_EYEBROW)}</p>
+    <h2 class="landing-moves__title">${escapeHtml(INSTALL_TITLE)}</h2>
+    <ol class="landing-moves__list">${moves}</ol>
   </section>
-
-  <section class="public-page-section" aria-label="What it does">
-    <div class="landing-shell">
-      <div class="public-page-grid public-page-grid--3">${cards}</div>
-    </div>
+  <section class="landing-vault" aria-label="AutoVault">
+    <h2 class="landing-vault__title">${escapeHtml(VAULT.title)}</h2>
+    <p class="landing-vault__body">${escapeHtml(VAULT.body)}</p>
+    <a class="btn btn-secondary" href="${escapeHtml(VAULT.href)}">${escapeHtml(VAULT.ctaLabel)}</a>
   </section>
-
-  <section class="public-page-section" aria-label="Live stack">
-    <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${escapeHtml(LAUNCH_MOCK.status)}</p>
-        <h2 class="public-page-card__title">${escapeHtml(LAUNCH_MOCK.signal)}</h2>
-        <p class="public-page-card__copy">${escapeHtml(LAUNCH_MOCK.footer)}</p>
-        <p class="public-page-card__copy">${escapeHtml(LAUNCH_MOCK.chip)}</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="public-page-section" aria-label="Honesty">
-    <div class="landing-shell">
-      <ul class="public-page-list">${honesty}</ul>
-    </div>
+  <section class="landing-tape" aria-label="Honesty">
+    <p class="landing-tape__label">THE FINE PRINT</p>
+    <ul class="landing-tape__list">${honesty}</ul>
   </section>
 </main>`;
 
@@ -404,7 +385,7 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: 'Browser extension',
     title: 'TiltCheck lives in the casino tab.',
-    lede: 'This is the main product. A free Chrome extension that watches your live online-casino session — bet pacing, tilt spirals, pressure loops — and enforces the exit rules you set. Read-only. No wallet keys. Sideload beta now; store listing later.',
+    lede: 'Chrome Core watches supported casino tabs: two-second spin lock plus a local game list you arm. Read-only. No wallet keys. Zip is not on this site. Store listing later. Cooldown is the live wallet lock.',
     actionsHtml: actions,
   })}
 <main class="product-main">
@@ -421,8 +402,8 @@ function buildExtensionPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${CTA_READY ? 'Install' : 'Install — gated'}</p>
-        <h2 class="public-page-card__title">${CTA_READY ? 'Three steps' : 'Wen zip'}</h2>
+        <p class="public-page-card__eyebrow">${escapeHtml(INSTALL_EYEBROW)}</p>
+        <h2 class="public-page-card__title">${escapeHtml(INSTALL_TITLE)}</h2>
         <ol class="public-page-list">${INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n')}</ol>
         <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
@@ -690,10 +671,11 @@ function run() {
 
   fs.writeFileSync(path.join(outRoot, 'index.html'), buildDocsIndexPage(indexEntries));
   fs.writeFileSync(path.join(siteRoot, 'index.html'), buildRootLanding());
+  fs.writeFileSync(path.join(siteRoot, 'extension.html'), buildExtensionPage());
   const loginDir = path.join(siteRoot, 'login');
   fs.mkdirSync(loginDir, { recursive: true });
   fs.writeFileSync(path.join(loginDir, 'index.html'), buildLoginPage());
-  for (const retired of ['extension.html', 'casinos.html', 'tools.html']) {
+  for (const retired of ['casinos.html', 'tools.html']) {
     fs.writeFileSync(path.join(siteRoot, retired), buildHomeRedirect(retired));
   }
 
@@ -701,6 +683,13 @@ function run() {
   const zipDestDir = path.join(siteRoot, 'downloads');
   fs.mkdirSync(zipDestDir, { recursive: true });
   fs.copyFileSync(zipSource, path.join(zipDestDir, 'tiltcheck-extension.zip'));
+
+  const glitterSrc = path.join(repoRoot, 'apps/web/public/assets/backgroundglitter.png');
+  const assetsDir = path.join(siteRoot, 'assets');
+  fs.mkdirSync(assetsDir, { recursive: true });
+  if (fs.existsSync(glitterSrc)) {
+    fs.copyFileSync(glitterSrc, path.join(assetsDir, 'backgroundglitter.png'));
+  }
 
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
   fs.writeFileSync(path.join(siteRoot, 'CNAME'), 'tiltcheck.me\n');

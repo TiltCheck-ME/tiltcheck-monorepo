@@ -24,7 +24,9 @@
     "https://*.csgoempire.com/*",
     "https://*.tiltcheck.me/*",
     "https://api.tiltcheck.me/*",
-    "https://*.magic.link/*"
+    "https://*.magic.link/*",
+    "http://127.0.0.1:3004/*",
+    "http://localhost:3004/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me https://*.magic.link; frame-src https://*.magic.link"

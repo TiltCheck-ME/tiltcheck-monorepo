@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -42,6 +42,7 @@ import { eventRouter } from '@tiltcheck/event-router';
 import * as promClient from 'prom-client';
 import { triviaManager } from './trivia-manager.js';
 import { redisClient } from './redis-client.js';
+import { loungeRoom } from './lounge/lounge-room.js';
 import type { TriviaCompletedEventData } from '@tiltcheck/types';
 
 // ES module __dirname equivalent
@@ -103,7 +104,15 @@ const socketIoCorsOrigins = [
 
 // Add localhost in development
 if (config.isDev) {
-  socketIoCorsOrigins.push('http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000');
+  socketIoCorsOrigins.push(
+    'http://localhost:3000',
+    'http://localhost:3004',
+    'http://localhost:5173',
+    'http://localhost:8080',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3004',
+    'http://127.0.0.1:8080',
+  );
 }
 
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
@@ -460,6 +469,60 @@ io.use(async (socket, next) => {
 // Routes
 
 // Health check
+app.get('/lounge', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/lounge.html'));
+});
+
+app.get('/lounge/state', (_req, res) => {
+  res.json(loungeRoom.snapshot());
+});
+
+app.post('/lounge/join', (req, res) => {
+  const body = req.body as { userId?: string; username?: string; gameTitle?: string; status?: 'online' | 'away' | 'idle'; awayMessage?: string };
+  if (!body.userId || !body.username) {
+    res.status(400).json({ error: 'userId and username required' });
+    return;
+  }
+  const presence = loungeRoom.join(body);
+  io.to('lounge').emit('lounge-presence', loungeRoom.snapshot().presence);
+  res.json(presence);
+});
+
+app.post('/lounge/message', (req, res) => {
+  const body = req.body as { userId?: string; username?: string; text?: string };
+  if (!body.userId || !body.username || typeof body.text !== 'string') {
+    res.status(400).json({ error: 'userId, username, and text required' });
+    return;
+  }
+  const posted = loungeRoom.post(body.userId, body.username, body.text);
+  if (!posted.ok) {
+    res.status(400).json({ error: posted.reason });
+    return;
+  }
+  io.to('lounge').emit('lounge-message', posted.message);
+  res.json(posted.message);
+});
+
+app.post('/lounge/report', (req, res) => {
+  const body = req.body as { reporterId?: string; targetId?: string; reason?: string };
+  const result = loungeRoom.report(body.reporterId ?? '', body.targetId ?? '', body.reason ?? '');
+  if ('ok' in result && result.ok === false) {
+    res.status(400).json({ error: result.reason });
+    return;
+  }
+  res.json(result);
+});
+
+app.post('/lounge/mute', (req, res) => {
+  const body = req.body as { moderatorId?: string; targetId?: string };
+  const result = loungeRoom.mute(body.moderatorId ?? '', body.targetId ?? '');
+  if (!result.ok) {
+    res.status(403).json({ error: result.reason });
+    return;
+  }
+  res.json({ ok: true });
+});
+
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -874,6 +937,48 @@ io.on('connection', (socket) => {
       players: liveTriviaState.players,
     });
   };
+
+  socket.on('join-lounge', (data) => {
+    socket.join('lounge');
+    if (data?.userId && data?.username) {
+      loungeRoom.join(data);
+    }
+    socket.emit('lounge-snapshot', loungeRoom.snapshot());
+    io.to('lounge').emit('lounge-presence', loungeRoom.snapshot().presence);
+  });
+
+  socket.on('lounge-message', (data) => {
+    if (!data?.userId || !data?.username) {
+      socket.emit('lounge-error', 'who even are you');
+      return;
+    }
+    const posted = loungeRoom.post(data.userId, data.username, data.text ?? '');
+    if (!posted.ok) {
+      socket.emit('lounge-error', posted.reason);
+      return;
+    }
+    io.to('lounge').emit('lounge-message', posted.message);
+  });
+
+  socket.on('lounge-report', (data) => {
+    const result = loungeRoom.report(data?.reporterId ?? '', data?.targetId ?? '', data?.reason ?? '');
+    if ('ok' in result && result.ok === false) {
+      socket.emit('lounge-error', result.reason);
+    }
+  });
+
+  socket.on('lounge-mute', (data) => {
+    const result = loungeRoom.mute(data?.moderatorId ?? user?.id ?? '', data?.targetId ?? '');
+    if (!result.ok) {
+      socket.emit('lounge-error', result.reason);
+    }
+  });
+
+  socket.on('lounge-presence-update', (data) => {
+    if (!data?.userId) return;
+    loungeRoom.setPresence(data);
+    io.to('lounge').emit('lounge-presence', loungeRoom.snapshot().presence);
+  });
 
   // Join lobby
   socket.on('join-lobby', () => {

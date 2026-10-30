@@ -1,6 +1,6 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 */
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Big_Shoulders, IBM_Plex_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { RootProvider } from "@/lib/providers";
 import AriaSlangProvider from "@/components/AriaSlangProvider";
@@ -16,6 +16,20 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
   weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const plex = IBM_Plex_Sans({
+  subsets: ["latin"],
+  variable: "--font-plex",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const display = Big_Shoulders({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["700", "800", "900"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -56,7 +70,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} degen-background antialiased`}
+        className={`${inter.variable} ${plex.variable} ${display.variable} ${jetbrainsMono.variable} degen-background antialiased`}
       >
         <JsonLd data={organizationJsonLd()} />
         <RootProvider>

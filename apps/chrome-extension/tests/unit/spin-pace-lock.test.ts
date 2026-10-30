@@ -216,6 +216,19 @@ describe('installSpinPaceLock', () => {
     expect(newButton.disabled).toBe(true);
   });
 
+  it('does not treat typing in chat as a bet', async () => {
+    const chat = document.createElement('textarea');
+    chat.id = 'chat';
+    document.body.appendChild(chat);
+    const handle = install();
+    chat.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+    chat.dispatchEvent(new InputEvent('input', { bubbles: true, data: 'brb chasing a bonus' }));
+    await flush();
+    vi.advanceTimersByTime(0);
+    expect(handle.lockUntil()).toBe(0);
+    expect(toast()?.style.display === 'block').toBe(false);
+  });
+
   it('does not start a lock after stop() before the timer', async () => {
     const button = spinButton();
     const handle = install();

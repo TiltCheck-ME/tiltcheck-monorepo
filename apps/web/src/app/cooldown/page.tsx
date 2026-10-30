@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 'use client';
 
 /**
@@ -8,6 +8,8 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import BrandTagline from '@/components/BrandTagline';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -62,6 +64,14 @@ function fmtDate(unix: number): string {
   return new Date(unix * 1000).toLocaleString();
 }
 
+const EMPTY_WALLET_TX_ERROR =
+  'Switch your wallet to Solana devnet and try again. Cooldown only signs a lock on devnet — no SOL moves.';
+
+function walletTxErrorMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  return raw.trim() === '' ? EMPTY_WALLET_TX_ERROR : raw;
+}
+
 async function fetchLockStatus(wallet: string, game?: string, category?: string): Promise<LockStatus> {
   const params = new URLSearchParams({ wallet });
   if (game) params.set('game', game);
@@ -73,11 +83,17 @@ async function fetchLockStatus(wallet: string, game?: string, category?: string)
 
 // Build and sign a set_lock transaction via the injected Solana wallet.
 // The SDK instruction builder is imported lazily to avoid SSR issues.
+type SendLockTx = (
+  transaction: import('@solana/web3.js').Transaction,
+  connection: import('@solana/web3.js').Connection,
+) => Promise<string>;
+
 async function signAndSendLock(
   wallet: string,
   scope: number,
   targetKey: string,
   endTime: number,
+  sendTransaction: SendLockTx,
 ): Promise<string> {
   // Dynamic import to avoid SSR errors.
   const [{ setLock, hashTarget, zeroTarget, SCOPE_ALL }, { Connection, PublicKey, Transaction }] =
@@ -85,9 +101,6 @@ async function signAndSendLock(
       import('@tiltcheck/cooldown-sdk'),
       import('@solana/web3.js'),
     ]);
-
-  const w = window as unknown as { solana?: { publicKey: { toString(): string }; signAndSendTransaction(tx: unknown): Promise<{ signature: string }> } };
-  if (!w.solana?.publicKey) throw new Error('Wallet not connected');
 
   const ownerKey = new PublicKey(wallet);
   const target = scope === SCOPE_ALL ? zeroTarget() : hashTarget(targetKey);
@@ -99,7 +112,7 @@ async function signAndSendLock(
   tx.recentBlockhash = blockhash;
   tx.feePayer = ownerKey;
 
-  const { signature } = await w.solana.signAndSendTransaction(tx);
+  const signature = await sendTransaction(tx, connection);
   await connection.confirmTransaction(signature, 'confirmed');
   return signature;
 }
@@ -107,8 +120,9 @@ async function signAndSendLock(
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function CooldownPage() {
-  const [wallet, setWallet] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
+  const { publicKey, connecting, sendTransaction } = useWallet();
+  const { setVisible } = useWalletModal();
+  const wallet = publicKey?.toBase58() ?? null;
   const [scope, setScope] = useState<ScopeId>('all');
   const [selectedCategory, setSelectedCategory] = useState<CategorySlug>('crash');
   const [selectedGame, setSelectedGame] = useState<string>(GAMES[0]!.key);
@@ -118,24 +132,9 @@ export default function CooldownPage() {
   const [txStatus, setTxStatus] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
-  // ── Connect wallet ──────────────────────────────────────────────────────────
-
-  const connectWallet = useCallback(async () => {
-    const w = window as unknown as { solana?: { connect(): Promise<{ publicKey: { toString(): string } }> } };
-    if (!w.solana) {
-      setTxStatus('No Solana wallet detected. Install Phantom and try again.');
-      return;
-    }
-    setConnecting(true);
-    try {
-      const resp = await w.solana.connect();
-      setWallet(resp.publicKey.toString());
-    } catch {
-      setTxStatus('Wallet connection rejected.');
-    } finally {
-      setConnecting(false);
-    }
-  }, []);
+  const connectWallet = useCallback(() => {
+    setVisible(true);
+  }, [setVisible]);
 
   // ── Load active locks ───────────────────────────────────────────────────────
 
@@ -178,11 +177,11 @@ export default function CooldownPage() {
         scope === 'category' ? `category:${selectedCategory}` :
         selectedGame;
 
-      const sig = await signAndSendLock(wallet, scopeNum, targetKey, endTime);
+      const sig = await signAndSendLock(wallet, scopeNum, targetKey, endTime, sendTransaction);
       setTxStatus(`Lock set. Tx: ${sig.slice(0, 20)}...`);
       await loadLocks(wallet);
     } catch (err: unknown) {
-      setTxStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      setTxStatus(`Error: ${walletTxErrorMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -201,9 +200,6 @@ export default function CooldownPage() {
           import('@solana/web3.js'),
         ]);
 
-      const w = window as unknown as { solana?: { publicKey: { toString(): string }; signAndSendTransaction(tx: unknown): Promise<{ signature: string }> } };
-      if (!w.solana?.publicKey) throw new Error('Wallet not connected');
-
       const scopeNum = lock.scope === 'all' ? 0 : lock.scope === 'category' ? 1 : 2;
       // Use the stored targetKey to derive the same PDA the lock was originally created with.
       const target = scopeNum === SA ? zeroTarget() : hashTarget(targetKey);
@@ -215,12 +211,12 @@ export default function CooldownPage() {
       const { blockhash } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash;
       tx.feePayer = ownerKey;
-      const { signature } = await w.solana.signAndSendTransaction(tx);
+      const signature = await sendTransaction(tx, connection);
       await connection.confirmTransaction(signature, 'confirmed');
       setTxStatus(`Extended +7d. Tx: ${signature.slice(0, 20)}...`);
       await loadLocks(wallet);
     } catch (err: unknown) {
-      setTxStatus(`Extend failed: ${err instanceof Error ? err.message : String(err)}`);
+      setTxStatus(`Extend failed: ${walletTxErrorMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -229,11 +225,14 @@ export default function CooldownPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '2rem 1rem', fontFamily: 'var(--font-inter, sans-serif)', color: '#e2e8f0' }}>
+    <main className="cooldown-page">
+      <div className="cooldown-panel">
       <h1 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.25rem' }}>Cooldown</h1>
-      <p style={{ color: '#94a3b8', marginBottom: '2rem', fontSize: '0.9rem' }}>
-        On-chain self-exclusion. Lock your wallet out of a game, category, or everything.
-        The lock can only get stronger until it expires naturally.
+      <p style={{ color: '#e8eee8', marginBottom: '0.7rem', fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.4 }}>
+        Sign a lock so 3am-you cannot put the stack back.
+      </p>
+      <p style={{ color: '#d7e0d8', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
+        Not a deposit. No keys. Solana wallet. Devnet. Casinos do not have to honor it. You do. Stronger only.
       </p>
 
       {/* ── Connect wallet ── */}
@@ -241,14 +240,17 @@ export default function CooldownPage() {
         <button
           onClick={connectWallet}
           disabled={connecting}
-          style={btnStyle('#3b82f6')}
+          style={btnStyle('#17c3b2')}
         >
-          {connecting ? 'Connecting...' : 'Connect Wallet (Phantom)'}
+          {connecting ? 'Opening wallets...' : 'SIGN WITH WALLET'}
         </button>
       ) : (
-        <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.5rem' }}>
-          Connected: <code style={{ color: '#94a3b8' }}>{wallet.slice(0, 8)}...{wallet.slice(-6)}</code>
+        <p style={{ fontSize: '0.8rem', color: '#8fa197', marginBottom: '1.5rem' }}>
+          Connected: <code style={{ color: '#d7e0d8' }}>{wallet.slice(0, 8)}...{wallet.slice(-6)}</code>
         </p>
+      )}
+      {txStatus && !wallet && (
+        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#f87171' }}>{txStatus}</p>
       )}
 
       {wallet && (
@@ -379,6 +381,7 @@ export default function CooldownPage() {
       <footer style={{ marginTop: '3rem', borderTop: '1px solid #1e293b', paddingTop: '1rem' }}>
         <BrandTagline compact />
       </footer>
+      </div>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
 
 
 
@@ -65,6 +65,7 @@ import {
 } from './core-options.js';
 
 import { installSpinPaceLock, type PaceLockHandle } from './spin-pace-lock.js';
+import { installLoungeOverlay } from './lounge-overlay.js';
 
 
 
@@ -304,6 +305,7 @@ async function boot(): Promise<void> {
 
 
   await startCoreCircuitBreaker();
+  installLoungeOverlay();
 
 
 
