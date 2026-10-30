@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 -->
 
 # TiltCheck — Changelog
 
@@ -6,7 +6,7 @@ All notable changes to this repository will be documented here.
 
 Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the current branch / next cut. Older entries stay as historical snapshots.
 
-## [Unreleased] — 2026-10-28
+## [Unreleased] — 2026-10-29
 
 ### Added
 
@@ -15,6 +15,7 @@ Format follows `.github/CHANGELOG_TEMPLATE.md`. `[Unreleased]` is what is on the
 
 ### Changed
 
+- Homepage job is brakes only: DON'T FEED THE HOUSE → Cooldown, sus lookup second, extension as a text link. AutoVault sits below the fold for Stake.us and nuts.gg. Degen Lounge is not on tiltcheck.me. GitHub Pages twin matches. Zip stays gated.
 - Public copy tells the truth about Core vs Pro: Core is a two-second spin lock; fullscreen Touch Grass (~2 min) is Pro only. Cooldown is first in the tool registry, dual-primary on home, and linked from tools, getting-started, dashboard Safety, and the extension popup.
 - Home hero retort is harm reduction made for degens, by degens — tested tools, not a mom lecture. Chrome zip CTA is gated (`ZIP DROPS SOON™`) with a visible reason until the sideload is public.
 - Public `tiltcheck.me` is GitHub Pages, not Railway. Pages twin (`scripts/pages-product-data.mjs` + `convert-markdown.js`) ships the gated zip / hero copy. Railway no longer builds or deploys the `web` image.

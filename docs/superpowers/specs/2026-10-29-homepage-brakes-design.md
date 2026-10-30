@@ -2,7 +2,7 @@
 
 # Homepage job: brakes — design spec
 
-Status: Draft (awaiting founder review of this file)  
+Status: Approved  
 Owner: founder (solo)  
 Surface: `tiltcheck.me` homepage (GitHub Pages twin + Next.js `apps/web`)  
 Date: 2026-10-29  
