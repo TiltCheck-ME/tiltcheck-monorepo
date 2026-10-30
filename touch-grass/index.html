@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Touch Grass | Games hub | TiltCheck</title>
+<meta name="description" content="Casino tab is cooked. Sit at a table that is not a spin. Live Trivia and Degens Against Decency."/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles/base.css"/>
+
+</head>
+<body>
+<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="../index.html"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="../cooldown/">Cooldown</a>
+    <a href="../extension.html">Extension</a>
+    <a href="../touch-grass/" aria-current="page">Touch Grass</a>
+    <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Discord</a>
+  </div>
+</nav>
+<header class="product-hero">
+  <div class="landing-shell">
+    <span class="brand-eyebrow">Off-ramp</span>
+    <h1 class="product-hero__title">Touch Grass</h1>
+    <p class="product-hero__lede">Casino tab is cooked. Sit at a table that is not a spin.</p>
+    <div class="hero-actions hero-actions--start"><a class="btn btn-primary" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">Open Discord tables</a>
+    <a class="hero-actions__secondary-link" href="../index.html">Back home</a></div>
+  </div>
+</header>
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <p class="touch-grass-idle">No drop running. Play a practice table or wait. soon™</p>
+      <div class="touch-grass-grid">
+        <article class="public-page-card touch-grass-pane">
+          <p class="public-page-card__eyebrow">Practice</p>
+          <h2 class="public-page-card__title">Live Trivia</h2>
+          <p class="public-page-card__copy">Offline questions from the bank. Pick one. Reveal. Next. Live answering still lives in Discord.</p>
+          <div id="tg-trivia"></div>
+        </article>
+        <article class="public-page-card touch-grass-pane">
+          <p class="public-page-card__eyebrow">Practice</p>
+          <h2 class="public-page-card__title">Degens Against Decency</h2>
+          <p class="public-page-card__copy">Live DA&amp;D still lives in Discord. Practice prompts are here. Open Discord when you want a real table.</p>
+          <div id="tg-dad"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  var trivia = [{"id":"tg-due","question":"You just lost four in a row and said you are due. What actually happened?","choices":[{"key":"A","text":"The universe owes you a heater"},{"key":"B","text":"Gambler’s fallacy. The next spin does not remember you"},{"key":"C","text":"Variance is illegal in your state"},{"key":"D","text":"The house paused to let you catch up"}],"answer":"B","explanation":"Independence. The slot is not keeping a tab. You are."},{"id":"tg-house","question":"Chasing the loss, chasing the win, thinking you are due. That is…","choices":[{"key":"A","text":"Bankroll science"},{"key":"B","text":"A skill edge"},{"key":"C","text":"Feeding the house"},{"key":"D","text":"Risk-free because you almost had it"}],"answer":"C","explanation":"That loop is the product. Lock or walk. Do not send the stack back."},{"id":"tg-cooldown","question":"A TiltCheck Cooldown is which of these?","choices":[{"key":"A","text":"A deposit we hold for you"},{"key":"B","text":"A signed Solana lock. No keys. No SOL moved"},{"key":"C","text":"Self-exclusion at the casino"},{"key":"D","text":"A Phantom-only feature"}],"answer":"B","explanation":"You sign. We never hold keys. Casinos do not have to honor it. You do."},{"id":"tg-zip","question":"The Chrome zip on tiltcheck.me is…","choices":[{"key":"A","text":"A public download in the hero"},{"key":"B","text":"In the Chrome Web Store"},{"key":"C","text":"Not on this site. Devs load unpacked dist"},{"key":"D","text":"Required before casino lookup works"}],"answer":"C","explanation":"Gated on purpose. Wallet lock and casino lookup work without the zip."}];
+  var prompts = ["I'm not tilted, I'm just _____.","The last time I said I'm due, I actually _____.","Bankroll management, according to me, is _____.","I cashed out once. Then I _____.","The house is not the problem. The problem is _____."];
+  var whites = ["one more spin, no cap","a heater that was actually variance","rinsing what was left of rent","wen win, except never","the gambler's fallacy with extra steps","locking in after already being cooked","soon™, said the bonus terms","blaming the slot, never the session"];
+  function pick(list, skip) {
+    var pool = list.filter(function (item) { return item !== skip; });
+    if (!pool.length) pool = list.slice();
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function shuffle(list) {
+    var pool = list.slice();
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = pool[i];
+      pool[i] = pool[j];
+      pool[j] = tmp;
+    }
+    return pool;
+  }
+  function el(html) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    return wrap.firstElementChild;
+  }
+  function renderTrivia(host, skip) {
+    var card = pick(trivia, skip);
+    host.innerHTML = '';
+    var box = el('<div class="tg-play"></div>');
+    box.appendChild(el('<h3 class="tg-q"></h3>')).textContent = card.question;
+    card.choices.forEach(function (choice) {
+      var btn = el('<button type="button" class="tg-choice"></button>');
+      btn.textContent = choice.key + '. ' + choice.text;
+      btn.addEventListener('click', function () {
+        if (box.getAttribute('data-done')) return;
+        box.setAttribute('data-done', '1');
+        var ok = choice.key === card.answer;
+        btn.classList.add(ok ? 'is-right' : 'is-wrong');
+        var note = el('<p class="tg-note"></p>');
+        note.textContent = (ok ? 'Hit. ' : 'Miss. Answer ' + card.answer + '. ') + card.explanation;
+        var next = el('<button type="button" class="btn btn-secondary">Next</button>');
+        next.addEventListener('click', function () { renderTrivia(host, card); });
+        box.appendChild(note);
+        box.appendChild(next);
+      });
+      box.appendChild(btn);
+    });
+    host.appendChild(box);
+  }
+  function renderDad(host, skipPrompt) {
+    var prompt = pick(prompts, skipPrompt);
+    var hand = shuffle(whites).slice(0, 4);
+    host.innerHTML = '';
+    var box = el('<div class="tg-play"></div>');
+    box.appendChild(el('<h3 class="tg-q"></h3>')).textContent = prompt;
+    hand.forEach(function (card) {
+      var btn = el('<button type="button" class="tg-choice"></button>');
+      btn.textContent = card;
+      btn.addEventListener('click', function () {
+        if (box.getAttribute('data-done')) return;
+        box.setAttribute('data-done', '1');
+        btn.classList.add('is-right');
+        var filled = prompt.indexOf('_____') >= 0 ? prompt.replace('_____', card) : prompt + ' ' + card;
+        var note = el('<p class="tg-note"></p>');
+        note.textContent = filled + ' Dry run. That is as live as this pane gets.';
+        var next = el('<button type="button" class="btn btn-secondary">Next</button>');
+        next.addEventListener('click', function () { renderDad(host, prompt); });
+        box.appendChild(note);
+        box.appendChild(next);
+      });
+      box.appendChild(btn);
+    });
+    host.appendChild(box);
+  }
+  var triviaHost = document.getElementById('tg-trivia');
+  var dadHost = document.getElementById('tg-dad');
+  if (triviaHost) renderTrivia(triviaHost);
+  if (dadHost) renderDad(dadHost);
+})();
+</script>
+<footer class="site-footer">
+  <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
+  <span class="site-footer__tag">Made for Degens. By Degens.</span>
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+</footer>
+</body>
+</html>
