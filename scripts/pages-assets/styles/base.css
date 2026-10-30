@@ -25,7 +25,7 @@
   --border-subtle: #1e2533;
   --border-default: #283347;
   --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --font-display: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+  --font-display: "Big Shoulders", Impact, "Arial Narrow", sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --weight-bold: 900;
@@ -1135,13 +1135,14 @@ td {
 
 .landing-hero__title-q {
   font-size: clamp(2.4rem, 6.5vw, 5.4rem);
-  color: #e8eee8;
+  color: #f6fbff;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.55);
 }
 
 .landing-hero__title-a {
   font-size: clamp(3.1rem, 8.4vw, 6.8rem);
   color: #17c3b2;
-  text-shadow: 0 0 42px rgba(23, 195, 178, 0.35);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 42px rgba(23, 195, 178, 0.35);
 }
 
 .landing-hero__kicker {
