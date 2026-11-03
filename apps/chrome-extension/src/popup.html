@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -799,16 +799,6 @@
       <input type="checkbox" id="opt-in-checkbox" />
       <span>Enforcement on. Every spin locks the spin button for two seconds.</span>
     </label>
-    <fieldset id="slider-controls" class="guard-controls" disabled>
-      <legend>Thresholds (enabled after opt-in)</legend>
-      <div class="slider-row">
-        <div class="slider-meta">
-          <span>Sensitivity</span>
-          <span class="slider-value" id="risk-threshold-label">85 — Balanced</span>
-        </div>
-        <input type="range" id="risk-threshold-slider" class="guard-range" min="50" max="100" step="1" value="85" />
-      </div>
-    </fieldset>
     <p class="guard-note">Core is this 2s spin lock. Fullscreen Touch Grass (~2 min) is Pro monolith only. Wallet lock lives on <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">tiltcheck.me/cooldown</a> — you sign, we never hold keys.</p>
   </section>
 
@@ -843,6 +833,17 @@
         <button type="button" class="btn btn-ghost" id="btn-add-slug">Add</button>
       </div>
       <div class="slug-registry" id="slug-registry" aria-label="Active blocked game slugs"></div>
+          <div class="rg-signpost" style="margin-top:14px; padding:10px 12px; background:rgba(23,195,178,0.06); border:1px solid rgba(23,195,178,0.2); border-radius:4px; font-size:11px; line-height:1.45; color:var(--muted);">
+        <strong style="color:var(--text); display:block; margin-bottom:4px;">Need an operator-enforced ban?</strong>
+        Browser filters and wallet locks are harm-reduction tools on your device, not regulatory exclusion. For official self-exclusion registers or helpline support:
+        <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a href="https://www.ncpgambling.org/" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">NCPG (US)</a>
+          <span style="color:var(--border);">·</span>
+          <a href="tel:18004262537" style="color:var(--teal);">1-800-GAMBLER</a>
+          <span style="color:var(--border);">·</span>
+          <a href="https://www.gamstop.co.uk/" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">GAMSTOP (UK)</a>
+        </div>
+      </div>
     </div>
   </section>
 

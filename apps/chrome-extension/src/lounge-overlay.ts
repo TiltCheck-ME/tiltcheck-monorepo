@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 */
 
 import { readPresenceGameTitle } from './presence-game-title.js';
 
@@ -86,7 +86,6 @@ export function installLoungeOverlay(doc: Document = document): () => void {
     <div class="foot">Chat is named. Tips stay between you two. Made for Degens. By Degens.</div>
   `;
   shadow.append(style, panel);
-  doc.body.append(host);
 
   const log = panel.querySelector('.log') as HTMLElement;
   const who = panel.querySelector('.who') as HTMLElement;
@@ -178,6 +177,12 @@ export function installLoungeOverlay(doc: Document = document): () => void {
         tag.textContent = 'Pick a username. Chat is named. Tips stay private.';
         gateForm.hidden = false;
         chatForm.hidden = true;
+        const res = await fetch(`${base}/lounge/state`);
+        if (!res.ok) throw new Error('lounge down');
+        if (!host.isConnected && doc.body) {
+          doc.body.append(host);
+        }
+        render((await res.json()) as LoungeState, { userId: '', username: '' });
         return;
       }
       gateForm.hidden = true;
@@ -194,6 +199,9 @@ export function installLoungeOverlay(doc: Document = document): () => void {
       });
       const res = await fetch(`${base}/lounge/state`);
       if (!res.ok) throw new Error('lounge down');
+      if (!host.isConnected && doc.body) {
+        doc.body.append(host);
+      }
       render((await res.json()) as LoungeState, me);
       const [cardsRes, triviaRes, noticeRes] = await Promise.all([
         fetch(`${base}/lounge/scorecards`),
@@ -222,7 +230,9 @@ export function installLoungeOverlay(doc: Document = document): () => void {
         noticeEl.appendChild(skip);
       }
     } catch {
-      tag.textContent = 'Lounge offline. Local: game-arena on :3004 /lounge';
+      if (host.isConnected) {
+        host.remove();
+      }
     }
   };
 
@@ -268,6 +278,8 @@ export function installLoungeOverlay(doc: Document = document): () => void {
   return () => {
     stopped = true;
     if (timer) clearInterval(timer);
-    host.remove();
+    if (host.isConnected) {
+      host.remove();
+    }
   };
 }

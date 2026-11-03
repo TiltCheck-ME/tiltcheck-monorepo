@@ -205,7 +205,7 @@ apps/chrome-extension/
 │   ├── development.md
 │   ├── publishing.md
 │   ├── discord-oauth.md            # Extension Discord OAuth + redirect URIs
-│   └── surgical-self-exclusion.md  # Surgical Self-Exclusion technical reference
+│   └── browser-game-filters.md      # Browser Game Filters technical reference
 └── tests/unit/
     ├── background.test.ts
     ├── config.test.ts
@@ -264,7 +264,7 @@ Generic fallback selectors activate on other casino sites.
 - **Vault Integration**: Recommends vaulting at configurable profit thresholds; stop-loss alerts at 50% drawdown.
 - **License Verification**: Scans casino footers against known licensing authorities across multiple jurisdictions.
 - **Cooldown Enforcement**: Full-page overlay blocks betting during critical-tilt cooldown windows.
-- **Session pause (surgical block)**: Blocks specific games or categories on this tab. Not operator self-exclusion. See `docs/surgical-self-exclusion.md`.
+- **Session pause (surgical block)**: Blocks specific games or categories on this tab. Not operator self-exclusion. See `docs/browser-game-filters.md`.
 - **Provably-Fair Verification**: FairnessService cross-checks server seeds against on-chain commitments.
 - **Demo Mode**: Full sidebar walkthrough available before Discord login.
 
@@ -289,7 +289,7 @@ Generic fallback selectors activate on other casino sites.
 
 ## Related Documentation
 
-- [Surgical Self-Exclusion Reference](docs/surgical-self-exclusion.md)
+- [Browser Game Filters Reference](docs/browser-game-filters.md)
 - [Features Reference](docs/features.md)
 - [Development Guide](docs/development.md)
 - [Installation Guide](docs/installation.md)

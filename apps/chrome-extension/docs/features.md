@@ -112,7 +112,7 @@ Supported categories and their matched keywords:
 | crash          | crash, aviator, jetx, spaceman                   |
 | table_games    | blackjack, roulette, baccarat, poker, table      |
 
-For the full technical reference, including API endpoints and Discord slash commands, see [docs/surgical-self-exclusion.md](surgical-self-exclusion.md).
+For the full technical reference, including API endpoints and Discord slash commands, see [docs/browser-game-filters.md](browser-game-filters.md).
 
 ---
 

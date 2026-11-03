@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import {
   addCustomSlug,
@@ -424,8 +424,8 @@ let guardSlugs: string[] = [];
 let guardCategories: GameCategory[] = [];
 
 function setTouchGrassControlsEnabled(enabled: boolean): void {
-  const fieldset = $<HTMLFieldSetElement>('slider-controls');
-  fieldset.disabled = !enabled;
+  const fieldset = document.getElementById('slider-controls') as HTMLFieldSetElement | null;
+  if (fieldset) fieldset.disabled = !enabled;
 }
 
 function setGameBlockControlsEnabled(enabled: boolean): void {
@@ -435,9 +435,11 @@ function setGameBlockControlsEnabled(enabled: boolean): void {
 }
 
 function syncRiskSliderUi(value: number): void {
+  const slider = document.getElementById('risk-threshold-slider') as HTMLInputElement | null;
+  const label = document.getElementById('risk-threshold-label');
   const clamped = clampRisk(value);
-  $<HTMLInputElement>('risk-threshold-slider').value = String(clamped);
-  $('risk-threshold-label').textContent = `${clamped} — ${riskLabel(clamped)}`;
+  if (slider) slider.value = String(clamped);
+  if (label) label.textContent = `${clamped} — ${riskLabel(clamped)}`;
 }
 
 function renderSlugRegistry(): void {
@@ -484,14 +486,17 @@ function initGuardSettingsPanel(): void {
     const enabled = (e.target as HTMLInputElement).checked;
     await saveTouchGrassOptIn(enabled);
     setTouchGrassControlsEnabled(enabled);
-    toast(enabled ? 'Touch Grass enforcement armed.' : 'Touch Grass enforcement off.');
+    toast(enabled ? 'Spin brake armed.' : 'Spin brake off.');
   });
 
-  $<HTMLInputElement>('risk-threshold-slider').addEventListener('input', async (e) => {
-    const value = Number((e.target as HTMLInputElement).value);
-    syncRiskSliderUi(value);
-    await saveRiskThreshold(value);
-  });
+  const riskSlider = document.getElementById('risk-threshold-slider') as HTMLInputElement | null;
+  if (riskSlider) {
+    riskSlider.addEventListener('input', async (e) => {
+      const value = Number((e.target as HTMLInputElement).value);
+      syncRiskSliderUi(value);
+      await saveRiskThreshold(value);
+    });
+  }
 
   $<HTMLInputElement>('game-block-master-toggle').addEventListener('change', async (e) => {
     const enabled = (e.target as HTMLInputElement).checked;
