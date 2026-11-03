@@ -1,25 +1,21 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03",
   "name": "@tiltcheck/cli",
-  "version": "0.1.0",
-  "description": "TiltCheck CLI",
+  "version": "0.2.0",
+  "description": "TiltCheck CLI - Offline Provably Fair Verifier and Casino Intelligence",
   "type": "module",
   "bin": {
     "tiltcheck": "./bin/tiltcheck.cjs"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "checklists": "node dist/index.js checklists"
+    "build": "tsc --build",
+    "dev": "tsc --build --watch",
+    "clean": "node -e \"const fs = require('node:fs'); fs.rmSync('dist', { recursive: true, force: true }); fs.rmSync('tsconfig.tsbuildinfo', { force: true });\"",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@google-cloud/vertexai": "^1.10.4",
-    "@google/genai": "^1.47.0",
     "@tiltcheck/shared": "workspace:*",
-    "commander": "^14.0.3",
-    "dotenv": "^17.3.1",
-    "ora": "^9.3.0"
+    "commander": "^14.0.3"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

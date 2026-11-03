@@ -41,6 +41,7 @@ Zip download stays gated (`ctaReady: false`) until Chrome Core's play path is no
 | RG-1 | Signpost GAMSTOP / NCPG next to browser filters | Done | Signpost added in popup.html Guards panel with 1-800-GAMBLER links. |
 | EXT-6 | Delete dead extension trees (`src/v2`, `sidebar.ts`, `sw.js`, unused engines) | Done | Pruned src/v2, legacy sidebar.ts, sw.js, originals-detector.ts, SolanaProvider.ts, fairness-tutorial.ts. |
 | CAS-1 | Audit & expand Casino Trust Directory (`/casinos`) with evidence and RTP data for Stake, Roobet, and BC.Game | Done | Added deep-dive showcase, provably fair RTP math, slot downgrade profiles, AutoVault support, and verified receipts. |
+| CLI-1 | Modernize CLI into offline-first suite (verify, rtp, trust, cooldown); prune GCP & localhost:4000 stubs | Done | Full local-first suite with Ed25519 cooldown, HMAC-SHA256 verifier, RTP inspector, and 34 passing tests. |
 
 ## P2 — later
 
