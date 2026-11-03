@@ -39,12 +39,12 @@ Zip download stays gated (`ctaReady: false`) until Chrome Core's play path is no
 | EXT-5 | Remove Core sensitivity slider (placebo) | Done | Removed from popup.html & popup.ts; 2s brake is fixed. |
 | DOC-1 | Rename surgical-self-exclusion docs; RGaaS 403 as optional appendix | Done | Documented as Browser Game Filters with appendix for RGaaS. |
 | RG-1 | Signpost GAMSTOP / NCPG next to browser filters | Done | Signpost added in popup.html Guards panel with 1-800-GAMBLER links. |
+| EXT-6 | Delete dead extension trees (`src/v2`, `sidebar.ts`, `sw.js`, unused engines) | Done | Pruned src/v2, legacy sidebar.ts, sw.js, originals-detector.ts, SolanaProvider.ts, fairness-tutorial.ts. |
 
 ## P2 — later
 
 | ID | Task |
 | :--- | :--- |
-| EXT-6 | Delete dead extension trees (`src/v2`, `sidebar.ts`, `sw.js`, unused engines) |
 | SIG-1 | Do not fake tilt history. Wire `recordBet` only if we want the warn ladder |
 | REL-1 | Ungate public zip only after EXT-1–3 |
 | CHN-1 | Cooldown mainnet + Chrome Web Store |
