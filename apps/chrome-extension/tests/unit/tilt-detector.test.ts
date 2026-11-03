@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-24 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 import { describe, expect, it } from 'vitest';
 import { TiltDetector } from '../../src/tilt-detector.ts';
 
@@ -106,3 +106,35 @@ describe('TiltDetector - detectRedeemOpportunity', () => {
     expect(first).toEqual(second);
   });
 });
+
+describe('TiltDetector - spotter interventions copy and brand laws', () => {
+  it('generates spotter interventions without any emojis', () => {
+    const detector = new TiltDetector(100, 'moderate');
+    // Simulate critical loss stop-loss
+    detector.recordBet(60, 0);
+
+    const interventions = detector.generateInterventions();
+    expect(interventions.length).toBeGreaterThan(0);
+
+    const emojiRegex = /[\p{Extended_Pictographic}]/u;
+    for (const action of interventions) {
+      expect(action.message).not.toMatch(emojiRegex);
+      expect(action.message).not.toContain('\u23F0');
+      expect(action.message).not.toMatch(/time for a break\?/i);
+    }
+  });
+
+  it('formats session break intervention with spotter tone and no clock emoji', () => {
+    const detector = new TiltDetector(100, 'moderate');
+    // Force session start time back past criticalDuration (2 hours)
+    (detector as unknown as { sessionStartTime: number }).sessionStartTime = Date.now() - (2.5 * 3600 * 1000);
+
+    const interventions = detector.generateInterventions();
+    const sessionBreak = interventions.find((i) => i.type === 'session_break');
+    expect(sessionBreak).toBeDefined();
+    expect(sessionBreak?.message).toContain('SESSION DURATION LIMIT');
+    expect(sessionBreak?.message).toContain('House edge compounds with time.');
+    expect(sessionBreak?.message).not.toContain('\u23F0');
+  });
+});
+

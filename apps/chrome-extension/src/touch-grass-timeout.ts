@@ -1,8 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 
 /**
  * Touch Grass Timeout — fullscreen, non-dismissible pause until duration elapses.
- * 8s breathing pacer, 20s forensic/mindfulness rotation, pause-hub iframe with CSP fallback.
+ * 8s breathing pacer, 20s spotter guidance rotation, pause-hub iframe with CSP fallback.
  *
  * Risk: undismissable by design — future popup settings must require explicit opt-in
  * for duration and policy (accessibility + platform ToS posture).
@@ -20,9 +20,9 @@ export const HUB_IFRAME_ID = 'tiltcheck-lockdown-hub';
 const HUB_IFRAME_LOAD_TIMEOUT_MS = 4_000;
 
 export const CSP_FALLBACK_PROMPTS: readonly string[] = [
-  'Stand up. Two minutes of legs, not spins.',
-  'Get water. The reel will still be there.',
-  'Text a person who does not have a referral code.',
+  'Stand up. Two minutes of legs, not clicking reels.',
+  'Get water. The house edge will still be there.',
+  'Text a friend who does not have a referral code.',
 ];
 
 export function resolveTouchGrassHubUrl(origin: string = TOUCH_GRASS_HUB_ORIGIN): string {
@@ -56,14 +56,14 @@ export const MESSAGE_ROTATE_MS = 20_000;
 const MESSAGE_FADE_SWAP_MS = 450;
 
 export const BREAK_MESSAGES: readonly string[] = [
-  'Click velocity anomaly detected. Your brain is scrambling to patch a sudden dopamine drop, not a mathematical edge.',
-  'Fact: Fast-clicking alters nothing but the speed at which the house edge resolves against your balance.',
-  "House algorithms monitor pacing. When you accelerate play, you transition from choice to pure execution of the machine's loop.",
-  'Drop your shoulders. Unclench your jaw. Exhale completely. Mechanically cut the physical adrenaline loop.',
-  'The platform has a memory; house telemetry tracks your live click-velocity to categorize your risk and volatility tolerance in real time.',
-  "Turbo spins and short-cycling cut off your brain's natural evaluation window. The house relies on your auto-pilot.",
-  'Prefrontal cortex (rational limit) is offline. Amygdala (fight-or-flight) is driving. You cannot out-gamble a system while hijacked.',
-  'Inhale for 4 seconds. Exhale for 4 seconds. Let the neural chemical spike clear before the layout unlocks.',
+  "You are down 60% in 9 minutes. You are not on a heater, you're chasing. Close the tab.",
+  "Ed Craven doesn't need your rent money. Close the browser.",
+  "That's 14 dead spins on Hacksaw. You already know how this movie ends.",
+  "You're playing a 94.5% downgraded RTP tier on an offshore mirror thinking it's 96.5%.",
+  "The bonus buy will not make you whole. Step back and breathe.",
+  "Turbo spinning through dead rolls only speeds up the house edge. Walk away for two minutes.",
+  "House telemetry loves rage clicking. Take your hand off the mouse.",
+  "Unclench your jaw, put the phone down, and drink some water. The reel can wait.",
 ];
 
 const LOCKDOWN_ROOT_ID = 'tiltcheck-lockdown-root';
@@ -313,7 +313,7 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
 
   const headline = document.createElement('h1');
   headline.className = 'tiltcheck-lockdown-headline';
-  headline.textContent = 'Hold the line. Recalibrate.';
+  headline.textContent = 'Hold up. Recalibrate.';
 
   const reasonEl = document.createElement('p');
   reasonEl.className = 'tiltcheck-lockdown-reason';
@@ -337,7 +337,7 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
 
   const signalLabel = document.createElement('div');
   signalLabel.className = 'tiltcheck-signal-label';
-  signalLabel.textContent = 'Signal';
+  signalLabel.textContent = 'Spotter Signal';
 
   const messageRegion = document.createElement('div');
   messageRegion.className = 'tiltcheck-signal-region';
@@ -352,7 +352,7 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
   const foot = document.createElement('p');
   foot.className = 'tiltcheck-lockdown-foot';
   foot.textContent =
-    'This tab stays locked until the counter hits zero. No dismiss. Future settings: explicit opt-in for duration and policy.';
+    'This tab stays locked until the countdown hits zero. No dismiss. Spotter protocol active.';
 
   const hubOrigin = resolveTouchGrassHubOrigin();
   const iframe = document.createElement('iframe');

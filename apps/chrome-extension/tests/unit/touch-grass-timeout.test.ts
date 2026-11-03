@@ -1,10 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * @vitest-environment jsdom
- * Pro Touch Grass cover — pause-hub iframe + CSP fallback. Timer still owns the leash.
+ * Touch Grass cover — pause-hub iframe + CSP fallback with blunt spotter tone.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  BREAK_MESSAGES,
   CSP_FALLBACK_PROMPTS,
   HUB_IFRAME_ID,
   resetTouchGrassTimeoutForTests,
@@ -143,3 +144,36 @@ describe('triggerTouchGrassTimeout hub iframe', () => {
     expect(document.getElementById('lockdown-timer')).toBeTruthy();
   });
 });
+
+describe('spotter tone and copy integrity', () => {
+  it('delivers witty blunt spotter messages without moralizing lecture', () => {
+    expect(BREAK_MESSAGES).toContain(
+      "You are down 60% in 9 minutes. You are not on a heater, you're chasing. Close the tab."
+    );
+    expect(BREAK_MESSAGES).toContain(
+      "Ed Craven doesn't need your rent money. Close the browser."
+    );
+    expect(BREAK_MESSAGES).toContain(
+      "That's 14 dead spins on Hacksaw. You already know how this movie ends."
+    );
+    expect(BREAK_MESSAGES).toContain(
+      "You're playing a 94.5% downgraded RTP tier on an offshore mirror thinking it's 96.5%."
+    );
+
+    // Verify absence of clinical/HR prefrontal cortex preaching
+    for (const msg of BREAK_MESSAGES) {
+      expect(msg).not.toMatch(/prefrontal cortex/i);
+      expect(msg).not.toMatch(/amygdala/i);
+      expect(msg).not.toMatch(/hijacked/i);
+    }
+  });
+
+  it('renders spotter headline and spotter protocol footer', () => {
+    triggerTouchGrassTimeout("You are down 60% in 9 minutes. You are not on a heater, you're chasing. Close the tab.");
+    const root = document.getElementById('tiltcheck-lockdown-root');
+    expect(root?.querySelector('.tiltcheck-lockdown-headline')?.textContent).toBe('Hold up. Recalibrate.');
+    expect(root?.querySelector('.tiltcheck-signal-label')?.textContent).toBe('Spotter Signal');
+    expect(root?.querySelector('.tiltcheck-lockdown-foot')?.textContent).toContain('Spotter protocol active.');
+  });
+});
+

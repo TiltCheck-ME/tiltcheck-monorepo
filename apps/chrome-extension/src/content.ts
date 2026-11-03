@@ -1,108 +1,136 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
-
-
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 
 /**
-
- * Core content script — pace-locks spins when enforcement is on.
-
- * Pro monolith (sidebar, extractor, strategic filters) lazy-loads when
-
+ * Core content script — pace-locks spins and provides event-driven Touch Grass timeouts.
+ *
+ * Non-custodial: operates entirely client-side with zero custody of player funds.
+ * Pro monolith (extractor, strategic filters) lazy-loads when
  * `tiltcheck_pro_monolith_enabled === true` and tears down on flag off.
-
  */
 
-
-
 function isDomain(hostname: string, domain: string): boolean {
-
   return hostname === domain || hostname.endsWith('.' + domain);
-
 }
-
-
 
 const hostname = window.location.hostname.toLowerCase();
-
 const pathname = window.location.pathname.toLowerCase();
-
 const isDiscordAuthRoute = pathname.startsWith('/auth/discord');
 
-
-
 const isExcludedDomain =
-
   isDomain(hostname, 'discord.com') ||
-
   (hostname === 'localhost' && window.location.port === '3333') ||
-
   (hostname === 'localhost' && window.location.port === '3001' && isDiscordAuthRoute) ||
-
   (isDomain(hostname, 'api.tiltcheck.me') && isDiscordAuthRoute);
 
-
-
 if (isExcludedDomain) {
-
   if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') {
-
     console.log('[TiltCheck] Skipping - excluded domain:', hostname);
-
   }
-
 }
 
-
-
 import {
-
   CORE_CIRCUIT_BREAKER_STORAGE_KEYS,
-
   loadCoreCircuitBreakerOptions,
-
   type CoreCircuitBreakerOptions,
-
 } from './core-options.js';
 
-import { installSpinPaceLock, type PaceLockHandle } from './spin-pace-lock.js';
+import { installSpinPaceLock, type PaceLockHandle, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
 import { installLoungeOverlay } from './lounge-overlay.js';
 import { installHeaterNudge, type HeaterHandle } from './heater-nudge.js';
+import { installChaseWarning, type ChaseHandle } from './chase-warning.js';
+import { triggerTouchGrassTimeout, TOUCH_GRASS_DURATION_MS } from './touch-grass-timeout.js';
 import { installLocalGameBlocker } from './pro/local-game-blocker.js';
 
-
-
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
-
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
 
 /** Pro still dispatches this. Core ignores it. */
 export const TILTCHECK_CORE_RECORD_BET_EVENT = 'tiltcheck-core-record-bet';
 
-
+/** Event-driven tilt signals and timeout triggers for Core */
+export const TILTCHECK_TILT_SIGNAL_EVENT = 'tiltcheck-tilt-signal';
+export const TILTCHECK_TRIGGER_TIMEOUT_EVENT = 'tiltcheck-trigger-timeout';
 
 type ProMonolithModule = {
-
   startProMonolith: () => Promise<void>;
-
   deactivateProMonolith: () => void;
-
 };
-
-
 
 type TiltCheckWindow = Window & { __tiltcheckCoreShieldActive?: boolean };
 
-
-
 let paceLock: PaceLockHandle | null = null;
-
 let heaterNudge: HeaterHandle | null = null;
-
+let chaseWarning: ChaseHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
-
 let proModulePromise: Promise<ProMonolithModule> | null = null;
-
 let proActive = false;
+
+// Rapid click velocity tracking for tilt signals
+let clickTimestamps: number[] = [];
+export const RAPID_CLICK_BURST_COUNT = 5;
+export const RAPID_CLICK_WINDOW_MS = 1500;
+
+export function handleRapidClickTilt(target: Element): boolean {
+  const isActionControl =
+    target.closest(SPIN_CONTROL_SELECTOR) !== null ||
+    target.matches(SPIN_CONTROL_SELECTOR) ||
+    target.closest('button, [role="button"]') !== null;
+
+  if (!isActionControl) return false;
+
+  const now = Date.now();
+  clickTimestamps = clickTimestamps.filter((t) => now - t <= RAPID_CLICK_WINDOW_MS);
+  clickTimestamps.push(now);
+
+  if (clickTimestamps.length >= RAPID_CLICK_BURST_COUNT) {
+    clickTimestamps = [];
+    const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
+    triggerTouchGrassTimeout(
+      "Rapid clicking detected. Turbo mashing only speeds up the house edge. Step back and breathe.",
+      duration
+    );
+    return true;
+  }
+  return false;
+}
+
+export function installEventDrivenTiltWatcher(): () => void {
+  const onSignal = (event: Event) => {
+    const custom = event as CustomEvent<{ signal?: string; reason?: string; durationMs?: number }>;
+    const reason =
+      custom.detail?.reason ||
+      (custom.detail?.signal === 'rapid_clicking'
+        ? "Rapid clicking detected. Turbo mashing only speeds up the house edge. Step back and breathe."
+        : custom.detail?.signal === 'loss_chasing'
+        ? "You are down on consecutive spins and ramping stake size. You're chasing, not on a heater. Step back."
+        : "Tilt signal detected. Step back and recalibrate.");
+    const duration = custom.detail?.durationMs ?? coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
+    triggerTouchGrassTimeout(reason, duration);
+  };
+
+  const onTrigger = (event: Event) => {
+    const custom = event as CustomEvent<{ reason?: string; durationMs?: number }>;
+    const reason = custom.detail?.reason || "Hold up. Recalibrate.";
+    const duration = custom.detail?.durationMs ?? coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
+    triggerTouchGrassTimeout(reason, duration);
+  };
+
+  const onClickCapture = (event: Event) => {
+    if (event.target instanceof Element) {
+      handleRapidClickTilt(event.target);
+    }
+  };
+
+  window.addEventListener(TILTCHECK_TILT_SIGNAL_EVENT, onSignal);
+  window.addEventListener(TILTCHECK_TRIGGER_TIMEOUT_EVENT, onTrigger);
+  document.addEventListener('click', onClickCapture, true);
+
+  return () => {
+    window.removeEventListener(TILTCHECK_TILT_SIGNAL_EVENT, onSignal);
+    window.removeEventListener(TILTCHECK_TRIGGER_TIMEOUT_EVENT, onTrigger);
+    document.removeEventListener('click', onClickCapture, true);
+  };
+}
 
 
 
@@ -261,161 +289,119 @@ function installCoreOptionsListener(): void {
 
 
 function syncPaceLock(enabled: boolean): void {
-
   if (enabled && !paceLock) {
-
     paceLock = installSpinPaceLock();
-
     if (!heaterNudge) {
-
       try {
-
         heaterNudge = installHeaterNudge();
-
       } catch {
-
         heaterNudge = null;
-
       }
-
     }
-
+    if (!chaseWarning) {
+      try {
+        chaseWarning = installChaseWarning(
+          document,
+          () => (paceLock ? paceLock.lockUntil() : 0),
+          (stake, lastLossStake) => {
+            if (stake >= lastLossStake * 1.5) {
+              const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
+              triggerTouchGrassTimeout(
+                "You are down on consecutive spins and ramping stake size. You're chasing, not on a heater. Step back.",
+                duration
+              );
+            }
+          }
+        );
+      } catch {
+        chaseWarning = null;
+      }
+    }
     return;
-
   }
 
   if (!enabled && paceLock) {
-
+    chaseWarning?.stop();
+    chaseWarning = null;
     heaterNudge?.stop();
-
     heaterNudge = null;
-
     paceLock.stop();
-
     paceLock = null;
-
   }
-
 }
-
-
 
 async function startCoreCircuitBreaker(): Promise<void> {
-
   await waitForDocumentEnd();
-
   const opts = await refreshCoreOptions();
-
   installCoreOptionsListener();
-
   (window as TiltCheckWindow).__tiltcheckCoreShieldActive = true;
-
   syncPaceLock(opts.enforcementEnabled);
-
 }
 
-
-
 async function boot(): Promise<void> {
-
   if (isExcludedDomain) {
-
     return;
-
   }
 
-
-
   await startCoreCircuitBreaker();
+  installEventDrivenTiltWatcher();
   installLoungeOverlay();
   installLocalGameBlocker();
 
-
-
   if (await shouldLoadProMonolith()) {
-
     await setProMonolithEnabled(true);
-
   }
-
 }
-
-
 
 void boot();
 
-
-
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-
   if (isExcludedDomain && message.type !== 'get_sidebar_state') {
-
     sendResponse({ error: 'Feature disabled on this domain' });
-
     return true;
-
   }
-
-
 
   if (
-
     proActive &&
-
     (message.type === 'toggle_sidebar' ||
-
       message.type === 'open_sidebar' ||
-
       message.type === 'get_sidebar_state')
-
   ) {
-
     return false;
-
   }
 
-
-
   switch (message.type) {
+    case 'trigger_touch_grass': {
+      const duration = message.durationMs ?? coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
+      triggerTouchGrassTimeout(
+        message.reason || "Tilt signal detected. Step back and recalibrate.",
+        duration
+      );
+      sendResponse({ success: true, active: true });
+      return true;
+    }
 
     case 'toggle_sidebar':
-
     case 'open_sidebar':
-
       sendResponse({
-
         success: false,
-
         coreOnly: true,
-
         hint: 'Set tiltcheck_pro_monolith_enabled to true in chrome.storage.local to load the full TiltCheck panel.',
-
       });
-
       return true;
 
     case 'get_sidebar_state':
-
       sendResponse({
-
         exists: false,
-
         visible: false,
-
         injectionDisabled: false,
-
         coreOnly: true,
-
       });
-
       return true;
 
     default:
-
       return false;
-
   }
-
 });
 
 

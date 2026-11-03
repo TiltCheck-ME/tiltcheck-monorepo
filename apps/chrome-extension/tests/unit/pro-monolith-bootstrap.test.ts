@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * @vitest-environment jsdom
  * Pro monolith bootstrap — sidebar, extractor, license gate, injection toggle.
@@ -87,7 +87,7 @@ function mockHeavyDependencies(options?: {
       v?.shouldAnalyze === false ? v.warningMessage : null
     ),
   }));
-  vi.doMock('../../src/sidebar/index.js', () => ({
+  vi.doMock('../../src/decoupled-sidebar.js', () => ({
     initSidebar: vi.fn(() => {
       let sidebar = document.getElementById('tiltcheck-sidebar');
       if (!sidebar) {
@@ -265,7 +265,7 @@ describe('pro-monolith-bootstrap', () => {
       openPremium: vi.fn().mockResolvedValue(undefined),
     };
     const initSidebar = vi.fn(() => sidebarStub);
-    vi.doMock('../../src/sidebar/index.js', () => ({ initSidebar }));
+    vi.doMock('../../src/decoupled-sidebar.js', () => ({ initSidebar }));
     mockHeavyDependencies();
 
     const { startProMonolith } = await import('../../src/pro-monolith-bootstrap.ts');

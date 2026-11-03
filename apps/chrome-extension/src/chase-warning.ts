@@ -1,12 +1,19 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/**
+ * chase-warning.ts
+ * Real-time spotter alert for loss chasing.
+ * Non-custodial: purely client-side heuristic with zero custody of player funds.
+ */
 
 import { CASINO_SELECTORS } from './extractor.js';
 import { PACE_HOST_ID, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
 
 export const CHASE_SETTLE_MS = 5000;
-export const CHASE_TOAST_TEXT = "No cap, the last one lost and this stake is bigger. That's the chase.";
+export const CHASE_TOAST_TEXT = "Last spin lost and you raised the stake. You're chasing, not on a heater. Step back.";
 
 const CHASE_POLL_MS = 250;
+
+export type ChaseEscalationHandler = (stake: number, lastLossStake: number) => void;
 
 export type ChaseHandle = {
   stop: () => void;
@@ -32,7 +39,11 @@ function readField(doc: Document, field: 'betAmount' | 'balance'): number | null
   return parseMoney(raw);
 }
 
-export function installChaseWarning(doc: Document, lockUntil: () => number): ChaseHandle {
+export function installChaseWarning(
+  doc: Document,
+  lockUntil: () => number,
+  onChaseEscalation?: ChaseEscalationHandler
+): ChaseHandle {
   const host = doc.getElementById(PACE_HOST_ID);
   const shadow = host?.shadowRoot;
   if (!host || !shadow) {
@@ -125,6 +136,7 @@ export function installChaseWarning(doc: Document, lockUntil: () => number): Cha
     if (stake === null || balance === null) return;
     if (typeof lastLosingStake === 'number' && stake > lastLosingStake) {
       toast.style.display = 'block';
+      onChaseEscalation?.(stake, lastLosingStake);
     }
     watchBalance(stake, balance);
   };

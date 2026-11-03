@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * @vitest-environment jsdom
  */
@@ -180,4 +180,19 @@ describe('installChaseWarning', () => {
     expect(root?.querySelector('style')?.textContent).toContain('.chase-toast');
     expect(document.head.querySelector('style')).toBeNull();
   });
+
+  it('calls onChaseEscalation handler when stake increases after a loss', () => {
+    const onEscalation = vi.fn();
+    const handle = installChaseWarning(document, () => 0, onEscalation);
+    handles.push(handle);
+
+    recordLoss('2', '100', '80');
+    expect(handle.lastLosingStake()).toBe(2);
+
+    bet.textContent = '4';
+    clickSpin();
+
+    expect(onEscalation).toHaveBeenCalledWith(4, 2);
+  });
 });
+

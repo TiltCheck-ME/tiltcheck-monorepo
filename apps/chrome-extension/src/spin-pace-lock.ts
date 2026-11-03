@@ -1,8 +1,13 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/**
+ * spin-pace-lock.ts
+ * Pacing circuit breaker for rapid betting / slot spin clicks.
+ * Non-custodial: client-side DOM throttling with zero custody of player funds.
+ */
 
 export const PACE_LOCK_MS = 2000;
 export const PACE_TICK_MS = 250;
-export const PACE_TOAST_TEXT = "No cap, the balance is still catching that last spin.";
+export const PACE_TOAST_TEXT = "Pacing lock active. Let the last spin settle before firing again.";
 export const PACE_HOST_ID = 'tiltcheck-pace-host';
 
 export const SPIN_CONTROL_SELECTOR = [

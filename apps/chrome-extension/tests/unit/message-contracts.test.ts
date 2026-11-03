@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * @vitest-environment jsdom
  */
@@ -136,7 +136,7 @@ function mockContentDependencies() {
     };
   });
 
-  vi.doMock('../../src/sidebar/index.js', () => ({
+  vi.doMock('../../src/decoupled-sidebar.js', () => ({
     initSidebar: vi.fn(() => {
       let sidebar = document.getElementById('tiltcheck-sidebar');
       if (!sidebar) {

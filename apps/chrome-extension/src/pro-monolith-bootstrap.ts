@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -12,6 +12,8 @@
  * - Real-time interventions
  * - Vault recommendations
  * - Real-world spending reminders
+ * 
+ * Non-custodial: operates strictly in the user's browser with zero custody of player funds.
  */
 
 /**
@@ -42,9 +44,6 @@ import { CasinoDataExtractor, AnalyzerClient, SpinEvent } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
 import { CasinoLicenseVerifier, getAnalysisBlockMessage } from './license-verifier.js';
 import { updateMobileLicenseHud } from './mobile-license-hud.js';
-import { initSidebar } from './sidebar/index.js';
-import { SidebarUI } from './sidebar/types.js';
-import { INJECTION_DISABLED_KEY } from './sidebar/constants.js';
 import { Analyzer } from './analyzer.js';
 import { FairnessService } from './FairnessService.js';
 import { postRoundTelemetry, postWinSecureTelemetry } from './telemetry-client.js';
@@ -57,6 +56,15 @@ import {
   attachMarketingSiteStorageListener,
   syncMarketingSiteTokenFromExtensionStorage,
 } from './web-app-session-sync.js';
+
+import {
+  initSidebar,
+  type SidebarUI,
+  type SessionStats,
+} from './decoupled-sidebar.js';
+
+export const INJECTION_DISABLED_KEY = 'tiltcheck_injection_disabled';
+export { initSidebar, type SidebarUI, type SessionStats };
 
 interface StoredUserData {
   id?: string;
@@ -1288,16 +1296,16 @@ function showCooldownOverlay(duration: number) {
 
   overlay.innerHTML = `
     <div style="text-align: center;">
-      <h1 style="font-size: 48px; margin-bottom: 20px;">STOP</h1>
-      <h2 style="font-size: 32px; margin-bottom: 10px;">Cooldown Period</h2>
-      <p style="font-size: 18px; color: #ffaa00; margin-bottom: 30px;">
-        Tilt detected. Take a break.
+      <h1 style="font-size: 48px; margin-bottom: 20px;">HOLD UP</h1>
+      <h2 style="font-size: 32px; margin-bottom: 10px;">Spotter Lockdown</h2>
+      <p style="font-size: 18px; color: #ff4a4a; margin-bottom: 30px;">
+        Tilt detected. You're chasing, not recovering. Step back.
       </p>
-      <div id="cooldown-timer" style="font-size: 72px; font-weight: bold; color: #00ff88;">
+      <div id="cooldown-timer" style="font-size: 72px; font-weight: bold; color: #17c3b2;">
         ${Math.ceil(duration / 1000)}
       </div>
       <p style="font-size: 14px; margin-top: 20px; color: rgba(255, 255, 255, 0.7);">
-        Betting will resume when the timer reaches zero.
+        Reel stays locked until countdown reaches zero. Spotter protocol active.
       </p>
     </div>
   `;
@@ -1387,9 +1395,9 @@ function openVaultInterface(amount: number) {
     data: { suggestedAmount: amount }
   }, (response) => {
     if (response?.success) {
-      showNotification('✓ Vault interface opened', 'success');
+      showNotification('[OK] Vault interface opened', 'success');
     } else if (response?.error) {
-      showNotification(`✗ Vault error: ${response.error}`, 'error');
+      showNotification(`[ERROR] Vault error: ${response.error}`, 'error');
     }
   });
 }

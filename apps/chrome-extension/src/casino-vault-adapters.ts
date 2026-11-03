@@ -1,8 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * casino-vault-adapters.ts
  * Adapter pattern for casino-specific vault mechanics.
  * DOM-based fallback for casinos without a public API.
+ * Non-custodial: operates strictly inside the user's browser session with zero custody of player funds.
  */
 
 export interface CasinoVaultAdapter {
@@ -15,7 +16,7 @@ export interface CasinoVaultAdapter {
 }
 
 // ---------------------------------------------------------------------------
-// Stake.com — GraphQL API (session cookie)
+// Stake.com / Stake.us — GraphQL API (session cookie)
 // ---------------------------------------------------------------------------
 export class StakeVaultAdapter implements CasinoVaultAdapter {
   name = 'stake';
@@ -25,9 +26,18 @@ export class StakeVaultAdapter implements CasinoVaultAdapter {
     return true;
   }
 
+  getGraphQLEndpoint(hostname?: string): string {
+    const host = (hostname ?? (typeof window !== 'undefined' ? window.location?.hostname || '' : '')).toLowerCase();
+    if (host === 'stake.us' || host.endsWith('.stake.us')) {
+      return 'https://stake.us/_api/graphql';
+    }
+    return 'https://api.stake.com/graphql';
+  }
+
   async getBalance(): Promise<number | null> {
     try {
-      const res = await fetch('https://api.stake.com/graphql', {
+      const endpoint = this.getGraphQLEndpoint();
+      const res = await fetch(endpoint, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -35,6 +45,9 @@ export class StakeVaultAdapter implements CasinoVaultAdapter {
           query: `query { user { balances { available { amount currency { name } } } } }`,
         }),
       });
+      if (!res.ok) {
+        return null;
+      }
       const json = await res.json();
       const balances: { available: { amount: number } }[] =
         json?.data?.user?.balances ?? [];
@@ -50,7 +63,8 @@ export class StakeVaultAdapter implements CasinoVaultAdapter {
 
   async vaultAmount(amount: number, _currency = 'usd'): Promise<boolean> {
     try {
-      const res = await fetch('https://api.stake.com/graphql', {
+      const endpoint = this.getGraphQLEndpoint();
+      const res = await fetch(endpoint, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -61,6 +75,9 @@ export class StakeVaultAdapter implements CasinoVaultAdapter {
           variables: { amount },
         }),
       });
+      if (!res.ok) {
+        return false;
+      }
       const json = await res.json();
       return !!json?.data?.createVaultDeposit?.id;
     } catch {

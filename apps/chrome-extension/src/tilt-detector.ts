@@ -1,6 +1,7 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * TiltCheck - Real-time tilt detection and intervention system
+ * Non-custodial: purely client-side heuristic monitoring with zero custody of player funds.
  * 
  * Monitors player behavior for signs of tilt:
  * - Fast consecutive bets (rage betting)
@@ -642,7 +643,7 @@ export class TiltDetector {
       amount: this.currentBalance,
       threshold: this.redeemThreshold,
       urgency,
-      message: `🎯 PROFIT GOAL REACHED! You're at $${this.currentBalance.toFixed(2)}, which is above your $${this.redeemThreshold} goal. Secure the win and cash out now!`
+      message: `PROFIT TARGET REACHED: You're at $${this.currentBalance.toFixed(2)}, above your $${this.redeemThreshold} goal. Lock in the profit and cash out before the house takes it back.`
     };
   }
 
@@ -670,7 +671,7 @@ export class TiltDetector {
       item: item.item,
       cost: item.avgCost,
       quantity,
-      message: `Hey, you mentioned needing ${item.item}. Your balance is ${quantity}x what they cost - maybe pull $${item.avgCost} and grab them now?`
+      message: `Spotter check: your balance equals ${quantity}x ${item.item}. Lock up $${item.avgCost} for real life before the reel eats it.`
     };
   }
 
@@ -688,7 +689,7 @@ export class TiltDetector {
     if (criticalSigns.length > 0) {
       interventions.push({
         type: 'cooldown',
-        message: `🛑 TILT DETECTED: ${criticalSigns.map(t => t.description).join(', ')}. Take a 5-minute break.`,
+        message: `TILT DETECTED: ${criticalSigns.map(t => t.description).join(', ')}. You're chasing. Close the tab and take 5.`,
         actionRequired: true,
         data: { duration: 5 * 60 * 1000, tiltSigns: criticalSigns }
       });
@@ -699,7 +700,7 @@ export class TiltDetector {
     if (highSigns.length >= 2) {
       interventions.push({
         type: 'phone_friend',
-        message: '📞 Multiple tilt indicators detected. Maybe call someone before continuing?',
+        message: 'Multiple tilt indicators firing. Step away from the screen before your balance takes the hit.',
         actionRequired: false,
         data: { tiltSigns: highSigns }
       });
@@ -710,7 +711,7 @@ export class TiltDetector {
       if (vaultRec.urgency === 'critical') {
         interventions.push({
           type: 'stop_loss_triggered',
-          message: `⚠️ STOP LOSS: ${vaultRec.reason}. Strongly recommend vaulting your remaining balance.`,
+          message: `STOP LOSS TRIGGERED: ${vaultRec.reason}. Ed Craven doesn't need your rent money. Vault your remaining balance.`,
           actionRequired: true,
           data: vaultRec
         });
@@ -724,7 +725,7 @@ export class TiltDetector {
       } else {
         interventions.push({
           type: 'vault_balance',
-          message: `💰 ${vaultRec.reason}. Consider vaulting $${vaultRec.suggestedAmount.toFixed(2)}.`,
+          message: `VAULT RECOMMENDATION: ${vaultRec.reason}. Lock up $${vaultRec.suggestedAmount.toFixed(2)} right now.`,
           actionRequired: false,
           data: vaultRec
         });
@@ -746,7 +747,7 @@ export class TiltDetector {
     if (durationWarning && durationWarning.severity === 'critical') {
       interventions.push({
         type: 'session_break',
-        message: `⏰ ${durationWarning.description}. Time for a break?`,
+        message: `SESSION DURATION LIMIT: ${durationWarning.description}. House edge compounds with time. Step away from the screen.`,
         actionRequired: false,
         data: durationWarning
       });

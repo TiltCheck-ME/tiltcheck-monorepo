@@ -1,9 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * @vitest-environment jsdom
- * Core content script — pace lock when enforcement is on, cover stays out.
+ * Core content script — pace lock and event-driven Touch Grass timeouts.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetTouchGrassTimeoutForTests } from '../../src/touch-grass-timeout.js';
 
 type OnMessageHandler = (message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void;
 
@@ -73,6 +74,7 @@ describe('core content script contracts', () => {
     vi.restoreAllMocks();
     document.head.innerHTML = '';
     document.body.innerHTML = '';
+    resetTouchGrassTimeoutForTests();
   });
 
   it('registers a runtime message handler', async () => {
@@ -125,12 +127,92 @@ describe('core content script contracts', () => {
     expect(response).not.toHaveBeenCalled();
   });
 
-  it('does not call the full-screen cover from Core', async () => {
+  it('wires Touch Grass timeout mechanics into Core for tilt signals', async () => {
     const nodeUrl = await import('node:url');
     const source = await import('node:fs/promises').then((fs) =>
       fs.readFile(new nodeUrl.URL('../../src/content.ts', import.meta.url), 'utf8')
     );
-    expect(source).not.toContain('triggerTouchGrassTimeout');
+    expect(source).toContain('triggerTouchGrassTimeout');
+    expect(source).toContain('installEventDrivenTiltWatcher');
+    expect(source).toContain('handleRapidClickTilt');
+  });
+
+  it('triggers Touch Grass timeout via runtime message', async () => {
+    const { listeners } = createChromeMock();
+    await import('../../src/content.ts');
+    await flush();
+
+    const response = vi.fn();
+    listeners[0]!(
+      { type: 'trigger_touch_grass', reason: 'You are down 60% in 9 minutes. Close the tab.' },
+      null,
+      response
+    );
+    expect(response).toHaveBeenCalledWith(expect.objectContaining({ success: true, active: true }));
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+  });
+
+  it('triggers Touch Grass timeout on rapid clicking bursts', async () => {
+    const { handleRapidClickTilt } = await import('../../src/content.ts');
+    const btn = document.createElement('button');
+    btn.className = 'spin-button';
+    document.body.appendChild(btn);
+
+    for (let i = 0; i < 4; i++) {
+      expect(handleRapidClickTilt(btn)).toBe(false);
+    }
+    expect(handleRapidClickTilt(btn)).toBe(true);
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+  });
+
+  it('triggers Touch Grass timeout when clicking rapidly on nested child elements inside a button', async () => {
+    const { handleRapidClickTilt } = await import('../../src/content.ts');
+    const btn = document.createElement('button');
+    btn.className = 'game-action-btn';
+    const span = document.createElement('span');
+    span.textContent = 'SPIN';
+    btn.appendChild(span);
+    document.body.appendChild(btn);
+
+    for (let i = 0; i < 4; i++) {
+      expect(handleRapidClickTilt(span)).toBe(false);
+    }
+    expect(handleRapidClickTilt(span)).toBe(true);
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+  });
+
+  it('responds to window-level tilt signal and trigger timeout events', async () => {
+    createChromeMock();
+    const { TILTCHECK_TILT_SIGNAL_EVENT, TILTCHECK_TRIGGER_TIMEOUT_EVENT } = await import(
+      '../../src/content.ts'
+    );
+    const { resetTouchGrassTimeoutForTests: resetTimeout } = await import(
+      '../../src/touch-grass-timeout.js'
+    );
+    await flush();
+
+    window.dispatchEvent(
+      new CustomEvent(TILTCHECK_TILT_SIGNAL_EVENT, {
+        detail: { signal: 'loss_chasing' },
+      })
+    );
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+    expect(document.querySelector('.tiltcheck-lockdown-reason')?.textContent).toContain(
+      "You are down on consecutive spins and ramping stake size"
+    );
+
+    document.getElementById('tiltcheck-lockdown-root')?.remove();
+    resetTimeout();
+
+    window.dispatchEvent(
+      new CustomEvent(TILTCHECK_TRIGGER_TIMEOUT_EVENT, {
+        detail: { reason: 'Ed Craven doesn\'t need your rent money. Close the browser.' },
+      })
+    );
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+    expect(document.querySelector('.tiltcheck-lockdown-reason')?.textContent).toContain(
+      "Ed Craven doesn't need your rent money"
+    );
   });
 
   it('does not install the pace lock when enforcement is off', async () => {

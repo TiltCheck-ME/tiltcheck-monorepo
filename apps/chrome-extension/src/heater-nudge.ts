@@ -1,9 +1,14 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/**
+ * heater-nudge.ts
+ * Real-time spotter nudge during win streaks.
+ * Non-custodial: optional client-side lock heuristic with zero custody of player funds.
+ */
 
 import { PACE_HOST_ID, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
 
-export const HEATER_TOAST_TEXT = 'Looks like a heater. Lock half of this win? Skip anytime.';
-export const HEATER_CAP_TEXT = 'Heater mode: generosity on a leash for 30 min. Opt-in. Skip anytime.';
+export const HEATER_TOAST_TEXT = "You're up right now. Lock half this win before the house claws it back. Skip anytime.";
+export const HEATER_CAP_TEXT = "Spotter check: lock half your profit before volatility reverses. Opt-in. Skip anytime.";
 export const HEATER_RATIO = 1.05;
 
 export type HeaterHandle = {
