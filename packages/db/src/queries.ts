@@ -1810,7 +1810,7 @@ export async function removeBuddy(userId: string, buddyId: string): Promise<bool
 }
 
 // ============================================================================
-// Surgical Self-Exclusion Queries
+// Game Block / Cooldown Queries
 // ============================================================================
 
 /**

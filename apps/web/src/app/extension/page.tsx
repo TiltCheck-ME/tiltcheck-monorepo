@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -10,24 +10,24 @@ import { HOME_LAUNCH } from "@/lib/home-launch-copy";
 
 const coreSignals = [
   {
-    title: "Session monitoring",
-    body: "Read-only signals on supported casino tabs — click pacing, loss-chase heuristics, and tilt patterns before your bankroll pays tuition.",
+    title: "Two-second spin brake",
+    body: "You hit bet. The button is dead for two seconds. A click during that window does not place another bet. Time to see the last result before autopilot sends the next one.",
   },
   {
-    title: "Spin lock (Core)",
-    body: "Every spin locks the spin button for two seconds. A click during the lock does not spin. Fullscreen Touch Grass (~2 min) is Pro monolith only — not the sideloaded zip.",
+    title: "Your game list",
+    body: "You name the games that wreck you. Chicken, mines, crash — those tiles do not click. Slots stay until you add them. This is your browser, not the casino closing your account.",
   },
   {
-    title: "SusLink bounce",
-    body: "Critical sus casino URLs can get redirected to a warning page when the API is up. Pair with Cooldown for on-chain locks.",
+    title: "Sus link bounce",
+    body: "If you click a critically sus casino URL and our safety API is up, we dump you on a warning page instead of the skem.",
   },
 ];
 
 const notThis = [
-  "No HUD or sidebar out of the box (that is Pro).",
-  "No Discord login required for Core.",
-  "No wallet keys. No payments. No Instant Redeem cashout.",
-  "Not on the Chrome Web Store. Zip is not public yet — soon™.",
+  "It does not play for you, cash you out, or hold wallet keys.",
+  "It does not need Discord to run the spin brake or the game list.",
+  "It is not a casino ban and not GAMSTOP. Turn the extension off and the overlay is gone.",
+  "It is not in the Chrome Web Store. The zip is not a public download on this site yet.",
 ];
 
 export default function ExtensionPage() {
@@ -37,11 +37,10 @@ export default function ExtensionPage() {
       <PublicPageHero
         compact
         eyebrow="Browser extension // Core"
-        title="Session intel in the tab. Two-second spin lock. No nanny overlay."
+        title="It sits on the casino tab and gets in your way. On purpose."
         description={
           <p>
-            Monitors live session behavior on Stake, Roobet, BC.Game, and other supported tabs — tilt detection from click pacing, not wallet custody.
-            Zip is not public yet. Store listing later. Account sync is optional; Core will run guest. For wallet-level locks, use{' '}
+            Install it on Chrome. Open Stake, Roobet, BC.Game, or the other listed casinos. After a spin, the bet button sleeps for two seconds. Games you put on your list stop clicking. We never see your password or keys. For a wallet lock you cannot toggle off in settings, use{' '}
             <Link href="/cooldown" className="text-[#17c3b2] underline-offset-2 hover:underline">
               Cooldown
             </Link>
@@ -51,8 +50,8 @@ export default function ExtensionPage() {
         actions={
           <>
             <GatedZipCta funnelEvent="extension_download_click" funnelSource="web-extension-hero" />
-            <Link href="/casinos" className="btn btn-secondary" data-text="CHECK CASINO TRUST">
-              CHECK CASINO TRUST
+            <Link href="/casinos" className="btn btn-secondary" data-text="IS THIS CASINO SUS?">
+              IS THIS CASINO SUS?
             </Link>
           </>
         }
@@ -61,21 +60,23 @@ export default function ExtensionPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-card public-page-card--accent">
-            <p className="public-page-card__eyebrow">{HOME_LAUNCH.ctaReady ? 'Install' : 'Install — gated'}</p>
-            <h2 className="public-page-card__title">{HOME_LAUNCH.ctaReady ? 'Three steps' : 'Wen zip'}</h2>
+            <p className="public-page-card__eyebrow">On the casino tab</p>
+            <h2 className="public-page-card__title">How you use it</h2>
             <ol className="public-page-list">
-              {HOME_LAUNCH.installSteps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
+              <li>Load it in Chrome. Until a public zip exists, that means unpacked dist from the repo.</li>
+              <li>Open Stake, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, or CSGOEmpire.</li>
+              <li>Spin. The bet button sleeps two seconds. In Guards, arm the games that wreck you — chicken first if that is the hole. Slots stay clickable until you add them.</li>
             </ol>
-            <p className="public-page-card__copy">{HOME_LAUNCH.installNote}</p>
+            <p className="public-page-card__copy">
+              This does not lock a wallet. Wallet lock is Cooldown, a different button. This does not need Discord.
+            </p>
           </div>
         </div>
       </section>
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader compact eyebrow="Core" title="What it does right now." />
+          <PublicPageSectionHeader compact eyebrow="On the tab" title="What it actually does." />
           <div className="public-page-grid public-page-grid--3">
             {coreSignals.map(({ title, body }) => (
               <article key={title} className="public-page-card">
@@ -96,8 +97,8 @@ export default function ExtensionPage() {
             ))}
           </ul>
           <p className="mt-6 max-w-2xl text-sm text-gray-500 leading-relaxed">
-            Pro session HUD is opt-in storage later — do not expect a toolbar panel from Core.
-            Instant Redeem badges live on the casino directory; the extension does not cash you out.
+            No extra HUD. No cashout button. If you want a lock the casino cannot ignore, that is not this
+            extension — that is a real self-exclusion register or GAMSTOP, which we are not.
           </p>
           <p className="mt-8">
             <BrandTagline />

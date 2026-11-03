@@ -1,7 +1,6 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 /**
- * Game Blocker — Session pause (surgical block) for the Chrome Extension.
- * Blocks games on the user's tab only; not operator-account self-exclusion.
+ * Game Blocker — Game block / category block for the Chrome Extension.`r`n * Blocks games on the user's tab only. This is a browser-level game block, not a casino-registered lock.
  *
  * Fetches the user's ForbiddenGamesProfile from the TiltCheck API, then watches
  * the casino DOM for matching game launchers, providers, and casino hostnames.
@@ -17,19 +16,13 @@
 
 import { EXT_CONFIG } from './config.js';
 import type { ForbiddenGamesProfile, GameCategory } from '@tiltcheck/types';
+import { CATEGORY_KEYWORDS } from './exclusion-taxonomy.js';
 
 const OVERLAY_ID = 'tiltcheck-game-block-overlay';
 const POLL_INTERVAL_MS = 3000;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-const CATEGORY_SLUGS: Record<GameCategory, string[]> = {
-  chicken_mines: ['chicken', 'mines', 'minefield'],
-  bonus_buy: ['bonus-buy', 'bonusbuy', 'feature-buy', 'featurebuy'],
-  live_dealer: ['live-dealer', 'live-casino', 'live_dealer', 'livecasino'],
-  slots: ['slot', 'slots'],
-  crash: ['crash', 'aviator', 'jetx', 'spaceman'],
-  table_games: ['blackjack', 'roulette', 'baccarat', 'poker', 'table'],
-};
+const CATEGORY_SLUGS = CATEGORY_KEYWORDS;
 
 interface BlockMatch {
   gameId: string | null;

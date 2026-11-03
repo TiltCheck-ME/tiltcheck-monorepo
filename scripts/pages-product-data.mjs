@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
@@ -62,9 +62,20 @@ export const HUD = {
 };
 export const VAULT = {
   title: 'AutoVault — skim the win on the sites we actually support.',
-  body: 'Stake.us and nuts.gg only. Dashboard owns the rule. The tab presses the vault button so the hit is not sitting in playable balance. Not every casino.',
-  ctaLabel: 'AUTOVAULT SETUP',
-  href: `${SITE_URL}/tools/auto-vault`,
+  body: 'Stake.us and nuts.gg. The tab presses vault so the hit is not sitting in playable balance.',
+  ctaLabel: 'AUTOVAULT',
+  href: 'autovault/',
+};
+export const AUTOVAULT_PAGE = {
+  eyebrow: 'Two casinos. That is the list.',
+  title: 'Skim the hit.',
+  punch: 'Stake.us and nuts.gg. Dashboard owns the rule. The tab presses vault. You confirm. We never hold funds.',
+  steps: [
+    'Set the vault rule in the dashboard after Discord login.',
+    'Open Stake.us or nuts.gg with the script or unpacked extension.',
+    'When you hit, a slice leaves playable balance so you cannot rinse the whole thing.',
+  ],
+  fine: 'Not every casino. Some rooms only open the vault dialog. Zip is not on this site.',
 };
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.',

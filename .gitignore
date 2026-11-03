@@ -156,3 +156,18 @@ docs/ops/linear-tasks-last-run.json
 .anchor/
 target/
 test-ledger/
+
+# Build and error artifacts — not for version control
+audit_full.txt
+audit_report.txt
+bot_err.txt
+bot_err_full.txt
+bot-error.log
+build_error.log
+build_error.txt
+build_error_2.log
+build_errors_2.txt
+build_errors_3.txt
+build_log.txt
+local_docker_build.log
+wallet-result.txt

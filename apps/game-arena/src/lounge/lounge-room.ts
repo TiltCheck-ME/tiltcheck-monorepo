@@ -49,6 +49,7 @@ export const LOUNGE_TAGLINE = 'Show receipts or touch grass.';
 export class LoungeRoom {
   private messages: LoungeMessage[] = [];
   private presence = new Map<string, LoungePresence>();
+  private names = new Map<string, string>();
   private mutes = new Set<string>();
   private reports: LoungeReport[] = [];
   private sendTimes = new Map<string, number[]>();
@@ -90,7 +91,12 @@ export class LoungeRoom {
       lastActive: now,
     };
     this.presence.set(userId, row);
+    this.names.set(userId, username);
     return { ...row };
+  }
+
+  usernameOf(userId: string): string | null {
+    return this.presence.get(userId)?.username ?? this.names.get(userId) ?? null;
   }
 
   leave(userId: string): void {

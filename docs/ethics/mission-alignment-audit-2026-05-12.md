@@ -1,3 +1,5 @@
+<!-- Historical doc: 'self-exclusion' references below describe third-party casino/government systems or pre-policy terminology. They are intentionally preserved for historical accuracy. -->
+
 # TiltCheck mission and ethics alignment audit
 
 © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-12

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -33,13 +33,19 @@ describe('GitHub Pages launch twin', () => {
       primary: false,
     });
     expect(TERTIARY_LINK.href).toBe('extension.html');
-    expect(VAULT.href).toBe('https://tiltcheck.me/tools/auto-vault');
+    expect(VAULT.href).toBe('autovault/');
+    expect(convertMarkdown).toContain('buildAutovaultPage');
+    expect(convertMarkdown).toContain('site-nav__discord');
+    expect(convertMarkdown).not.toContain('>Discord</a>');
     expect(VAULT.body).toMatch(/Stake\.us/i);
     expect(convertMarkdown).not.toContain('landing-hud');
-    expect(convertMarkdown).toContain("dirHref(depth, 'touch-grass')");
-    expect(convertMarkdown).toContain('buildTouchGrassPage');
+    expect(convertMarkdown).toContain("dirHref(depth, 'nudges')");
+    expect(convertMarkdown).toContain('buildNudgesPage');
     expect(convertMarkdown).toContain('buildCooldownPage');
     expect(convertMarkdown).toContain('buildCasinosPage');
+    expect(convertMarkdown).not.toContain('>Touch Grass<');
+    expect(convertMarkdown).toContain('>Casinos</a>');
+    expect(convertMarkdown).toContain('site-footer__more');
     expect(convertMarkdown).not.toMatch(/Bonuses/i);
     expect(convertMarkdown).not.toContain('pit-hero');
     expect(convertMarkdown).not.toMatch(/Zip soon™/);

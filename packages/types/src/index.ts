@@ -1145,7 +1145,7 @@ export interface WalletMapping {
 }
 
 // ============================================
-// Surgical Self-Exclusion Types
+// Game Block / Cooldown Types
 // ============================================
 
 export const GAME_EXCLUSION_CATEGORIES = [

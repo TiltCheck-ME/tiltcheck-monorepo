@@ -149,7 +149,7 @@ export {
   claimBonus,
   getUserSessions,
 
-  // Surgical Self-Exclusion queries
+  // Game Block / Cooldown queries
   getUserExclusions,
   addExclusion,
   removeExclusion,
@@ -220,7 +220,7 @@ export type {
   BlogPost,
   CreateBlogPostPayload,
 
-  // Surgical Self-Exclusion types
+  // Game Block / Cooldown types
   GameExclusion,
   CreateGameExclusionPayload,
   ForbiddenGamesProfile,

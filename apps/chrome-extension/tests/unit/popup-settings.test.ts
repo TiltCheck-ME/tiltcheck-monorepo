@@ -6,6 +6,7 @@ import {
   clampRisk,
   formatDurationLabel,
   riskLabel,
+  toggleCategoryInList,
   toggleSlugInList,
 } from '../../src/popup-settings.js';
 
@@ -22,6 +23,12 @@ describe('popup-settings helpers', () => {
     expect(first).toEqual(['plinko']);
     const second = toggleSlugInList(first, 'plinko');
     expect(second).toEqual([]);
+  });
+
+  it('toggles categories from user config only', () => {
+    expect(toggleCategoryInList([], 'chicken_mines')).toEqual(['chicken_mines']);
+    expect(toggleCategoryInList(['chicken_mines'], 'chicken_mines')).toEqual([]);
+    expect(toggleCategoryInList([], 'not-a-category')).toEqual([]);
   });
 
   it('adds custom slugs safely', () => {

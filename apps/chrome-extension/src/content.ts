@@ -66,6 +66,8 @@ import {
 
 import { installSpinPaceLock, type PaceLockHandle } from './spin-pace-lock.js';
 import { installLoungeOverlay } from './lounge-overlay.js';
+import { installHeaterNudge, type HeaterHandle } from './heater-nudge.js';
+import { installLocalGameBlocker } from './pro/local-game-blocker.js';
 
 
 
@@ -93,6 +95,8 @@ type TiltCheckWindow = Window & { __tiltcheckCoreShieldActive?: boolean };
 
 
 let paceLock: PaceLockHandle | null = null;
+
+let heaterNudge: HeaterHandle | null = null;
 
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 
@@ -262,11 +266,29 @@ function syncPaceLock(enabled: boolean): void {
 
     paceLock = installSpinPaceLock();
 
+    if (!heaterNudge) {
+
+      try {
+
+        heaterNudge = installHeaterNudge();
+
+      } catch {
+
+        heaterNudge = null;
+
+      }
+
+    }
+
     return;
 
   }
 
   if (!enabled && paceLock) {
+
+    heaterNudge?.stop();
+
+    heaterNudge = null;
 
     paceLock.stop();
 
@@ -306,6 +328,7 @@ async function boot(): Promise<void> {
 
   await startCoreCircuitBreaker();
   installLoungeOverlay();
+  installLocalGameBlocker();
 
 
 

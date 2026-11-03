@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 */
 
 /** Honest public tool status — install = DM-ready mobile setup pages. */
 export type ToolStatus = 'install' | 'live' | 'beta' | 'soon';
@@ -53,8 +53,8 @@ export const TOOL_REGISTRY: ToolEntry[] = [
   {
     href: '/cooldown',
     label: 'COOLDOWN',
-    title: 'On-chain self-exclusion',
-    description: 'Lock your wallet from games, a category, or everything. You sign. Devnet. No cancel in v1.',
+    title: 'On-chain wallet lock',
+    description: 'Lock your wallet from games, a category, or everything. You sign. Devnet. Operators are not required to honor it.',
     status: 'live',
   },
   {
@@ -82,7 +82,7 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     href: '/tools/geo-laws',
     label: 'GEO LAWS',
     title: 'Regulation by Region',
-    description: 'Legal status, regulators, and self-exclusion links by country.',
+    description: 'Legal status, regulators, and responsible gambling resources by country.',
     status: 'live',
   },
   {

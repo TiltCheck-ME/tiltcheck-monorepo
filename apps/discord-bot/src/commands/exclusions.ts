@@ -1,7 +1,7 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
- * Surgical Self-Exclusion Commands
- * Block specific games or whole categories without nuking your account.
+ * Game Block & Category Block Commands
+ * Block specific games or whole categories that tilt you — without nuking your account.
  */
 
 import {

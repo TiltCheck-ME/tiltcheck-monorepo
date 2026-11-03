@@ -35,7 +35,8 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Toggle TiltCheck Sidebar"
+    "default_title": "TiltCheck Guards",
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {

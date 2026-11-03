@@ -1,3 +1,5 @@
+<!-- Historical doc: 'self-exclusion' references below describe third-party casino/government systems or pre-policy terminology. They are intentionally preserved for historical accuracy. -->
+
 # TiltCheck PWA Migration Plan
 
 ## Executive Summary

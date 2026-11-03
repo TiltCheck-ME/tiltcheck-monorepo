@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 -->
 
 # Surgical Self-Exclusion — Technical Reference
 
@@ -8,7 +8,7 @@ Made for Degens. By Degens.
 
 ## Overview
 
-Surgical Self-Exclusion lets users block specific games or entire game categories from loading in their browser — without closing their account or engaging a casino's own exclusion systems. The block is enforced client-side by the Chrome Extension and server-side by the API gatekeeper endpoint.
+Surgical Self-Exclusion lets users block specific games or entire game categories from loading in their browser — without closing their account or engaging a casino's own exclusion systems. The list is user config. Nothing is blocked until they arm it. Core content script enforces local categories/slugs (clicks are swallowed, lobby tiles are redacted). Discord/API exclusions still sync when a session is linked.
 
 This is intentionally scalpel-level. You are not blocking your whole account — you are telling past-you to protect present-you from the games that get you every time.
 

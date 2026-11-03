@@ -1,0 +1,79 @@
+{
+  "eyebrow": "What we say when you're cooked",
+  "title": "The toasts.",
+  "lede": "Same lines Chrome fires when you are about to rinse it. Catalog, not a live overlay.",
+  "metaDescription": "The actual TiltCheck toast prompts: pace, chase, heater, drain. What we say when you are about to send the stack back.",
+  "honesty": "These fire in Chrome. The wallet lock is Cooldown. The 2s brake is the extension.",
+  "groups": [
+    {
+      "id": "tab",
+      "when": "On the tab",
+      "items": [
+        {
+          "fire": "After a spin",
+          "text": "No cap, the balance is still catching that last spin."
+        },
+        {
+          "fire": "Stake went up after a loss",
+          "text": "No cap, the last one lost and this stake is bigger. That's the chase."
+        },
+        {
+          "fire": "Heater",
+          "text": "Looks like a heater. Lock half of this win? Skip anytime."
+        }
+      ]
+    },
+    {
+      "id": "rinse",
+      "when": "When you're rinsing it",
+      "items": [
+        {
+          "fire": "Three losses",
+          "text": "3 losses in a row. The RNG doesn't care about your feelings. Take a breather — we'll be here."
+        },
+        {
+          "fire": "Revenge betting",
+          "text": "The house has officially entered its winning streak era. Revenge betting is their favorite thing. Don't give them the satisfaction."
+        },
+        {
+          "fire": "You cannot outrun it",
+          "text": "You cannot outrun the math. We say this with love. Walk away with what you've got left."
+        },
+        {
+          "fire": "Half the deposit, 10 minutes",
+          "text": "Half your deposit in under 10 minutes. The math is currently beating you like a drum. Take 5 before you're eating ramen all week."
+        },
+        {
+          "fire": "Velocity, not luck",
+          "text": "50% gone in 10 minutes is a velocity problem, not a luck problem. Mandatory stop."
+        }
+      ]
+    },
+    {
+      "id": "bankroll",
+      "when": "When the bet gets stupid",
+      "items": [
+        {
+          "fire": "Big bet",
+          "text": "That's a big bet. Like, a real chunk of your bag. Just making sure that was on purpose."
+        },
+        {
+          "fire": "Doubling down",
+          "text": "Oh, doubling down again? Bold strategy. Let's see if it pays off. (Narrator: It won't.)"
+        },
+        {
+          "fire": "Three double-ups",
+          "text": "Three consecutive double-ups. That's not a strategy, that's a prayer. The math has no sympathy."
+        },
+        {
+          "fire": "Three hours in",
+          "text": "Three hours in. Your brain is cooked whether you feel it or not. Go eat something. We'll still be here."
+        },
+        {
+          "fire": "Still here",
+          "text": "Still here? The house noticed. They sent a thank-you card. Maybe cash out while you're ahead."
+        }
+      ]
+    }
+  ]
+}

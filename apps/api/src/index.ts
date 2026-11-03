@@ -249,7 +249,7 @@ app.use('/rgaas', geoComplianceMiddleware, rgaasRouter);
 // Safety routes
 app.use('/safety', safetyRouter);
 
-// Public self-exclusion reads (no auth, no custody)
+// Public cooldown / wallet lock reads (no auth, no custody)
 app.use('/cooldown', cooldownRouter);
 
 // Tip log read (session-auth, wallet-bound, 10 req/min)

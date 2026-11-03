@@ -4,6 +4,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  TILTCHECK_BLOCKED_CATEGORIES_KEY,
   TILTCHECK_BLOCKED_GAMES_KEY,
   TILTCHECK_GAME_BLOCK_OPT_IN_KEY,
 } from '../../src/pro/blocked-games-options.js';
@@ -119,6 +120,38 @@ describe('LocalGameBlocker', () => {
     const blackjack = document.querySelector('a[href="/casino/games/blackjack"]');
     expect(blackjack?.getAttribute('data-tiltcheck-local-blocked')).toBeNull();
 
+    blocker.destroy();
+  });
+
+  it('swallows clicks on chicken cards when the user armed that category', async () => {
+    stubChromeStorage({
+      [TILTCHECK_BLOCKED_GAMES_KEY]: [],
+      [TILTCHECK_BLOCKED_CATEGORIES_KEY]: ['chicken_mines'],
+      [TILTCHECK_GAME_BLOCK_OPT_IN_KEY]: true,
+    });
+    window.history.pushState({}, '', '/casino');
+    document.body.innerHTML = `
+      <a href="/casino/games/chicken-road" data-game-name="Chicken Road">Chicken Road</a>
+      <a href="/casino/slots/sweet-bonanza" data-game-name="Sweet Bonanza">Sweet Bonanza</a>
+    `;
+    const { LocalGameBlocker } = await import('../../src/pro/local-game-blocker.ts');
+    const blocker = new LocalGameBlocker();
+    await blocker.init();
+
+    const chicken = document.querySelector('[data-game-name="Chicken Road"]') as HTMLAnchorElement;
+    const slots = document.querySelector('[data-game-name="Sweet Bonanza"]') as HTMLAnchorElement;
+    expect(chicken.getAttribute('href')).toBeNull();
+    expect(chicken.getAttribute('data-tiltcheck-local-blocked')).toBe('chicken_mines');
+    expect(chicken.style.pointerEvents).toBe('none');
+
+    const chickenClick = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const slotsClick = new MouseEvent('click', { bubbles: true, cancelable: true });
+    chicken.dispatchEvent(chickenClick);
+    slots.dispatchEvent(slotsClick);
+
+    expect(chickenClick.defaultPrevented).toBe(true);
+    expect(slotsClick.defaultPrevented).toBe(false);
+    expect(slots.getAttribute('href')).toBe('/casino/slots/sweet-bonanza');
     blocker.destroy();
   });
 });

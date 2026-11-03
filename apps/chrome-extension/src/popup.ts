@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import {
   addCustomSlug,
@@ -6,12 +6,15 @@ import {
   loadGameBlockUiState,
   loadTouchGrassUiState,
   riskLabel,
+  saveBlockedCategories,
   saveBlockedGames,
   saveGameBlockOptIn,
+  toggleCategoryInList,
   saveRiskThreshold,
   saveTouchGrassOptIn,
   toggleSlugInList,
 } from './popup-settings.js';
+import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -418,6 +421,7 @@ function renderExclusions() {
 // ---------------------------------------------------------------------------
 
 let guardSlugs: string[] = [];
+let guardCategories: GameCategory[] = [];
 
 function setTouchGrassControlsEnabled(enabled: boolean): void {
   const fieldset = $<HTMLFieldSetElement>('slider-controls');
@@ -453,6 +457,10 @@ function renderSlugRegistry(): void {
     const slug = btn.dataset['slug'] ?? '';
     btn.classList.toggle('active', guardSlugs.includes(slug));
   });
+  document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-category]').forEach((btn) => {
+    const category = btn.dataset['category'] ?? '';
+    btn.classList.toggle('active', guardCategories.includes(category as GameCategory));
+  });
 }
 
 async function refreshGuardSettingsUi(): Promise<void> {
@@ -464,6 +472,7 @@ async function refreshGuardSettingsUi(): Promise<void> {
   const game = await loadGameBlockUiState();
   $<HTMLInputElement>('game-block-master-toggle').checked = game.optIn;
   guardSlugs = [...game.slugs];
+  guardCategories = [...game.categories];
   setGameBlockControlsEnabled(game.optIn);
   renderSlugRegistry();
 }
@@ -498,6 +507,18 @@ function initGuardSettingsPanel(): void {
       guardSlugs = toggleSlugInList(guardSlugs, slug);
       await saveBlockedGames(guardSlugs);
       renderSlugRegistry();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-category]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!$<HTMLInputElement>('game-block-master-toggle').checked) return;
+      const category = btn.dataset['category'] ?? '';
+      guardCategories = toggleCategoryInList(guardCategories, category);
+      await saveBlockedCategories(guardCategories);
+      renderSlugRegistry();
+      const label = GAME_EXCLUSION_CATEGORY_LABELS[category as GameCategory] ?? category;
+      toast(guardCategories.includes(category as GameCategory) ? `${label} blocked.` : `${label} unblocked.`);
     });
   });
 

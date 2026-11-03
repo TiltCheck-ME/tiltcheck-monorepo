@@ -64,6 +64,14 @@ describe('LoungeRoom', () => {
     expect(room.snapshot().tagline).toBe(LOUNGE_TAGLINE);
   });
 
+  it('keeps a username on file so tips can name the two parties privately', () => {
+    const room = new LoungeRoom();
+    room.join({ userId: 'local-jmenichole', username: 'jmenichole' });
+    expect(room.usernameOf('local-jmenichole')).toBe('jmenichole');
+    room.leave('local-jmenichole');
+    expect(room.usernameOf('local-jmenichole')).toBe('jmenichole');
+  });
+
   it('does not treat typing or chat as betting activity', () => {
     const room = new LoungeRoom();
     room.join({ userId: 'u1', username: 'jme' });

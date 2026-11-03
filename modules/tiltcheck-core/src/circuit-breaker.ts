@@ -141,7 +141,7 @@ export class CircuitBreaker {
         let text = `CRISIS DETECTED (${analysis.stage}). My monitors flagged high-risk language in your chat: "${analysis.detectedKeywords.join(', ')}". One more bet is a mistake. Step back now.`;
 
         if (analysis.stage === 'FINAL_EXIT') {
-          text = `EXIT PROTOCOL ACTIVATED. You mentioned "${analysis.detectedKeywords[0]}". Stop the bleeding now. I've sent a direct link to the Self-Exclusion API and notified your Accountabilibuddy. Zero Drift starts now.`;
+          text = `EXIT PROTOCOL ACTIVATED. You mentioned "${analysis.detectedKeywords[0]}". Stop the bleeding now. I've sent a direct link to the Wallet Lock page and notified your Accountabilibuddy. Zero Drift starts now.`;
         } else if (analysis.stage === 'DESPERATION') {
           action = 'COOLDOWN_LOCK';
           text = `THE CHASE DETECTED. You are showing signs of desperation: "${analysis.detectedKeywords.join(', ')}". I'm locking the vault for 30 minutes to reset your brain chemistry. Logic or Luck—you have neither right now.`;

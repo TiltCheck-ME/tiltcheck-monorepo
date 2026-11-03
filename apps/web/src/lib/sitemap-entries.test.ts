@@ -17,6 +17,7 @@ const REQUIRED_PATHS = [
   '/login',
   '/dashboard',
   '/touch-grass',
+  '/nudges',
 ];
 
 describe('sitemap-entries', () => {
@@ -36,5 +37,11 @@ describe('sitemap-entries', () => {
     const entry = SITEMAP_PAGE_ENTRIES.find((item) => item.path === '/touch-grass');
     expect(entry?.description).toBe('Off-ramp games hub — Live Trivia and Degens Against Decency.');
     expect(entry?.description).not.toMatch(/crisis|hotline|1-800/i);
+  });
+
+  it('lists /nudges as the toast catalog', () => {
+    const entry = SITEMAP_PAGE_ENTRIES.find((item) => item.path === '/nudges');
+    expect(entry?.description).toMatch(/toast prompts/i);
+    expect(entry?.priority).toBe(0.85);
   });
 });

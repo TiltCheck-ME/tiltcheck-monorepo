@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
 
 /**
  * Popup bindings for core Touch Grass + Pro strategic filter storage keys.
@@ -14,20 +14,24 @@ import {
   type CoreCircuitBreakerOptions,
 } from './core-options.js';
 import {
+  loadBlockedCategories,
   loadBlockedGameSlugs,
   loadGameBlockOptIn,
+  normalizeBlockedCategories,
   normalizeBlockedGameSlug,
   normalizeBlockedGamesList,
+  TILTCHECK_BLOCKED_CATEGORIES_KEY,
   TILTCHECK_BLOCKED_GAMES_KEY,
-  TILTCHECK_GAME_BLOCK_OPT_IN_KEY,
 } from './pro/blocked-games-options.js';
+import { GAME_EXCLUSION_CATEGORIES, type GameCategory } from './exclusion-taxonomy.js';
 
 export const RISK_MIN = 50;
 export const RISK_MAX = 100;
 export const DURATION_MIN_MS = 30_000;
 export const DURATION_MAX_MS = 300_000;
 
-export const QUICK_BLOCK_SLUGS = ['plinko', 'mines', 'dice', 'crash'] as const;
+export const QUICK_BLOCK_SLUGS = ['plinko', 'dice', 'keno'] as const;
+export const QUICK_BLOCK_CATEGORIES: readonly GameCategory[] = GAME_EXCLUSION_CATEGORIES;
 
 export interface TouchGrassUiState {
   optIn: boolean;
@@ -38,6 +42,7 @@ export interface TouchGrassUiState {
 export interface GameBlockUiState {
   optIn: boolean;
   slugs: string[];
+  categories: GameCategory[];
 }
 
 export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
@@ -53,6 +58,7 @@ export async function loadGameBlockUiState(): Promise<GameBlockUiState> {
   return {
     optIn: await loadGameBlockOptIn(),
     slugs: await loadBlockedGameSlugs(),
+    categories: await loadBlockedCategories(),
   };
 }
 
@@ -88,6 +94,23 @@ export async function saveBlockedGames(slugs: string[]): Promise<void> {
   await chrome.storage.local.set({
     [TILTCHECK_BLOCKED_GAMES_KEY]: normalizeBlockedGamesList(slugs),
   });
+}
+
+export async function saveBlockedCategories(categories: readonly string[]): Promise<void> {
+  await chrome.storage.local.set({
+    [TILTCHECK_BLOCKED_CATEGORIES_KEY]: normalizeBlockedCategories(categories),
+  });
+}
+
+export function toggleCategoryInList(categories: readonly GameCategory[], category: string): GameCategory[] {
+  if (!GAME_EXCLUSION_CATEGORIES.includes(category as GameCategory)) return [...categories];
+  const next = new Set(categories);
+  if (next.has(category as GameCategory)) {
+    next.delete(category as GameCategory);
+  } else {
+    next.add(category as GameCategory);
+  }
+  return normalizeBlockedCategories([...next]);
 }
 
 export function toggleSlugInList(slugs: readonly string[], slug: string): string[] {
