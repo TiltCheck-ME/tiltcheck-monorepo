@@ -1,8 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import { HOME_LAUNCH } from '@/lib/home-launch-copy';
-import { PUBLIC_FOOTER_LINKS } from '@/lib/public-footer';
+import { PUBLIC_FOOTER_LINKS, PUBLIC_FOOTER_MORE } from '@/lib/public-footer';
 
 const Footer = () => {
   const hotlineParts = HOME_LAUNCH.footerDisclaimer.split('1-800-GAMBLER');
@@ -15,6 +15,16 @@ const Footer = () => {
   return (
     <footer className="site-footer" aria-label="Site footer">
       <div className="footer-shell">
+        <nav className="footer-more" aria-label="More tools">
+          <p className="footer-more__label">Also</p>
+          <div className="footer-more__links">
+            {PUBLIC_FOOTER_MORE.map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
         <div className="footer-bottom">
           <p className="footer-copy">
             {beforeHotline}

@@ -1,3 +1,5 @@
+<!-- Historical doc: 'self-exclusion' references below describe third-party casino/government systems or pre-policy terminology. They are intentionally preserved for historical accuracy. -->
+
 # Casino Trust Score Methodology & Real Verified Data
 
 ## Overview

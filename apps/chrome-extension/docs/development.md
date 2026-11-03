@@ -121,7 +121,7 @@ Fullscreen **Touch Grass Timeout** overlay (~120s), no dismiss controls, paired 
 
 ### game-blocker.ts
 
-Enforces the user's Surgical Self-Exclusion list at the DOM level (API-backed `ForbiddenGamesProfile`). See [docs/surgical-self-exclusion.md](surgical-self-exclusion.md) for the full reference.
+Enforces the user's Surgical Self-Exclusion list at the DOM level (API-backed `ForbiddenGamesProfile`). See [docs/browser-game-filters.md](browser-game-filters.md) for the full reference.
 
 ### pro/local-game-blocker.ts (Pro only)
 

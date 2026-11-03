@@ -1,35 +1,81 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
 
 /**
- * Pro-only strategic game filter — persistent local blocklist (no API).
- * URL hard-stop + DOM grid redaction. Does not run in core content.ts.
+ * User-configured game/category filter. Nothing is blocked until the popup list is armed.
+ * Core content.ts installs this. Clicks on matching lobby tiles are swallowed.
  */
 
 import {
+  loadBlockedCategories,
   loadBlockedGameSlugs,
   loadGameBlockOptIn,
+  TILTCHECK_BLOCKED_CATEGORIES_KEY,
   TILTCHECK_BLOCKED_GAMES_KEY,
   TILTCHECK_GAME_BLOCK_OPT_IN_KEY,
 } from './blocked-games-options.js';
+import {
+  haystackFromElement,
+  haystackFromLocation,
+  matchExclusion,
+  type ExclusionHit,
+  type GameCategory,
+} from '../exclusion-taxonomy.js';
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './containment.js';
 
 const LOCAL_OVERLAY_ID = 'tiltcheck-local-game-block-overlay';
 const SANITIZED_ATTR = 'data-tiltcheck-local-blocked';
 const PLACEHOLDER_LABEL = '[ GAME EXCLUDED ]';
 
+let installed: LocalGameBlocker | null = null;
+
+export function installLocalGameBlocker(doc: Document = document): LocalGameBlocker {
+  if (installed) return installed;
+  installed = new LocalGameBlocker(doc);
+  void installed.init();
+  return installed;
+}
+
 export class LocalGameBlocker {
   private blockedSlugs: string[] = [];
+  private blockedCategories: GameCategory[] = [];
   private enforcementEnabled = false;
   private observer: MutationObserver | null = null;
   private scanScheduled = false;
   private storageListenerAttached = false;
+  private clickBound = false;
+  private readonly doc: Document;
+
+  constructor(doc: Document = document) {
+    this.doc = doc;
+  }
+
+  private readonly onBlockedPointer = (event: Event): void => {
+    if (!this.enforcementEnabled) return;
+    if (this.blockedSlugs.length === 0 && this.blockedCategories.length === 0) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (isInsideTiltcheckSafetyRoot(target)) return;
+    const hit = matchExclusion(haystackFromElement(target), this.blockedSlugs, this.blockedCategories);
+    if (!hit) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const card = target.closest('a, button, [role="button"], article, li, div');
+    if (card instanceof HTMLElement) {
+      this.sanitizeNode(card, hit.value);
+    }
+  };
 
   private readonly handleStorageChange = (
     changes: Record<string, chrome.storage.StorageChange>,
     area: string
   ) => {
     if (area !== 'local') return;
-    if (changes[TILTCHECK_BLOCKED_GAMES_KEY] || changes[TILTCHECK_GAME_BLOCK_OPT_IN_KEY]) {
+    if (
+      changes[TILTCHECK_BLOCKED_GAMES_KEY] ||
+      changes[TILTCHECK_BLOCKED_CATEGORIES_KEY] ||
+      changes[TILTCHECK_GAME_BLOCK_OPT_IN_KEY]
+    ) {
       void this.reloadAndScan();
     }
   };
@@ -38,6 +84,7 @@ export class LocalGameBlocker {
     await this.reloadAndScan();
     this.startObserver();
     this.attachStorageListener();
+    this.attachClickGuard();
   }
 
   resume(_source = 'navigation'): void {
@@ -56,6 +103,8 @@ export class LocalGameBlocker {
       this.storageListenerAttached = false;
     }
     this.removeUrlOverlay();
+    this.detachClickGuard();
+    if (installed === this) installed = null;
   }
 
   private attachStorageListener(): void {
@@ -71,6 +120,7 @@ export class LocalGameBlocker {
   private async reloadAndScan(): Promise<void> {
     this.enforcementEnabled = await loadGameBlockOptIn();
     this.blockedSlugs = this.enforcementEnabled ? await loadBlockedGameSlugs() : [];
+    this.blockedCategories = this.enforcementEnabled ? await loadBlockedCategories() : [];
     this.scan();
   }
 
@@ -89,14 +139,14 @@ export class LocalGameBlocker {
   }
 
   private scan(): void {
-    if (this.blockedSlugs.length === 0) {
+    if (this.blockedSlugs.length === 0 && this.blockedCategories.length === 0) {
       this.removeUrlOverlay();
       return;
     }
 
-    const urlHit = this.matchUrl(window.location.href, this.blockedSlugs);
+    const urlHit = this.matchHref(window.location.href);
     if (urlHit) {
-      this.injectUrlOverlay(urlHit);
+      this.injectUrlOverlay(urlHit.value);
       return;
     }
 
@@ -104,97 +154,88 @@ export class LocalGameBlocker {
     this.redactDomMatches();
   }
 
-  /** Returns matched slug when URL path/search references a blocked game. */
-  matchUrl(href: string, slugs: readonly string[] = this.blockedSlugs): string | null {
-    let pathSearch = '';
-    try {
-      const u = new URL(href, window.location.origin);
-      pathSearch = `${u.pathname}${u.search}`.toLowerCase();
-    } catch {
-      pathSearch = href.toLowerCase();
-    }
-
-    for (const slug of slugs) {
-      if (this.pathContainsSlug(pathSearch, slug)) {
-        return slug;
-      }
-    }
-    return null;
+  /** Returns matched slug/category when URL path/search references a blocked game. */
+  matchUrl(
+    href: string,
+    slugs: readonly string[] = this.blockedSlugs,
+    categories: readonly GameCategory[] = this.blockedCategories,
+  ): string | null {
+    return this.matchHref(href, slugs, categories)?.value ?? null;
   }
 
-  private pathContainsSlug(pathSearch: string, slug: string): boolean {
-    if (pathSearch.includes(`/${slug}/`) || pathSearch.includes(`/${slug}`)) {
-      return true;
+  private matchHref(
+    href: string,
+    slugs: readonly string[] = this.blockedSlugs,
+    categories: readonly GameCategory[] = this.blockedCategories,
+  ): ExclusionHit | null {
+    let loc = { pathname: href, search: '', href };
+    try {
+      const parsed = new URL(href, window.location.origin);
+      loc = { pathname: parsed.pathname, search: parsed.search, href: parsed.href };
+    } catch {
+      // keep raw href
     }
-    if (pathSearch.includes(`games/${slug}`) || pathSearch.includes(`game/${slug}`)) {
-      return true;
-    }
-    const segmentMatch = pathSearch.split(/[/?#&=_-]+/).includes(slug);
-    return segmentMatch;
+    return matchExclusion(haystackFromLocation(loc), slugs, categories);
   }
 
   private redactDomMatches(): void {
-    const nodesBySlug = this.collectBlockedNodes();
-    for (const [slug, nodes] of nodesBySlug) {
+    const nodesByKey = this.collectBlockedNodes();
+    for (const [key, nodes] of nodesByKey) {
       for (const node of nodes) {
-        this.sanitizeNode(node, slug);
+        this.sanitizeNode(node, key);
       }
     }
   }
 
-  /** Single-pass DOM scan: map each blocked slug to nodes that reference it. */
+  /** Single-pass DOM scan: map each blocked slug/category to nodes that reference it. */
   private collectBlockedNodes(): Map<string, HTMLElement[]> {
     const buckets = new Map<string, Set<HTMLElement>>();
-    for (const slug of this.blockedSlugs) {
-      buckets.set(slug, new Set());
-    }
 
-    const tryAdd = (el: Element | null, slug: string) => {
+    const tryAdd = (el: Element | null, key: string) => {
       if (!el || !(el instanceof HTMLElement)) return;
       if (isInsideTiltcheckSafetyRoot(el)) return;
       if (el.closest(`#${LOCAL_OVERLAY_ID}`)) return;
       const card = el.closest('a, button, [role="button"], article, li, div') as HTMLElement | null;
-      buckets.get(slug)?.add(card ?? el);
+      if (!buckets.has(key)) buckets.set(key, new Set());
+      buckets.get(key)?.add(card ?? el);
     };
 
-    const slugLowers = this.blockedSlugs.map((s) => ({ slug: s, lower: s.toLowerCase() }));
+    const consider = (el: Element) => {
+      const hit = matchExclusion(haystackFromElement(el), this.blockedSlugs, this.blockedCategories);
+      if (hit) tryAdd(el, hit.value);
+    };
 
-    for (const anchor of document.querySelectorAll<HTMLAnchorElement>('a[href]')) {
-      const href = (anchor.getAttribute('href') ?? '').toLowerCase();
-      for (const { slug, lower } of slugLowers) {
-        if (href.includes(lower)) {
-          tryAdd(anchor, slug);
-        }
-      }
+    for (const anchor of this.doc.querySelectorAll<HTMLAnchorElement>('a[href]')) {
+      consider(anchor);
     }
 
-    for (const el of document.querySelectorAll<HTMLElement>(
-      '[data-game-name], [data-game-id], [data-game], [data-testid*="game"]'
+    for (const el of this.doc.querySelectorAll<HTMLElement>(
+      'button, [role="button"], [data-game-name], [data-game-id], [data-game], [data-testid*="game"]'
     )) {
-      const blob = [
-        el.getAttribute('data-game-name'),
-        el.getAttribute('data-game-id'),
-        el.getAttribute('data-game'),
-        el.getAttribute('data-testid'),
-        el.textContent,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      for (const { slug, lower } of slugLowers) {
-        if (blob.includes(lower)) {
-          tryAdd(el, slug);
-        }
-      }
+      consider(el);
     }
 
     const result = new Map<string, HTMLElement[]>();
-    for (const [slug, set] of buckets) {
+    for (const [key, set] of buckets) {
       if (set.size > 0) {
-        result.set(slug, [...set]);
+        result.set(key, [...set]);
       }
     }
     return result;
+  }
+
+  private attachClickGuard(): void {
+    if (this.clickBound) return;
+    this.doc.addEventListener('click', this.onBlockedPointer, true);
+    this.doc.addEventListener('pointerdown', this.onBlockedPointer, true);
+    this.clickBound = true;
+  }
+
+  private detachClickGuard(): void {
+    if (!this.clickBound) return;
+    this.doc.removeEventListener('click', this.onBlockedPointer, true);
+    this.doc.removeEventListener('pointerdown', this.onBlockedPointer, true);
+    this.clickBound = false;
   }
 
   private disableInteractiveTarget(target: HTMLElement): void {
@@ -282,7 +323,7 @@ export class LocalGameBlocker {
           <strong style="color: #ff4a4a;">${slug}</strong> is on your local exclusion list.
         </p>
         <p style="margin: 0 0 20px; font-size: 12px; line-height: 1.45; color: #666;">
-          Past-you removed this game type from your interface. Edit the list in extension settings (Pro).
+          You put this on your list. It does not click. Edit the list in the extension Guards tab.
         </p>
         <button type="button" id="tiltcheck-local-block-back" style="
           background: transparent;
@@ -316,13 +357,13 @@ export class LocalGameBlocker {
   }
 
   private startObserver(): void {
-    if (!document.body) return;
+    if (!this.doc.body) return;
     this.observer = new MutationObserver((mutations) => {
       if (mutationsOnlyTouchSafetyRoots(mutations)) {
         return;
       }
       this.scheduleScan();
     });
-    this.observer.observe(document.body, { childList: true, subtree: true });
+    this.observer.observe(this.doc.body, { childList: true, subtree: true });
   }
 }

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 import Link from 'next/link';
 import PublicPageHero, { PublicPageSectionHeader } from '@/components/PublicPageHero';
 
@@ -13,7 +13,7 @@ const paths = [
   {
     tag: 'Install',
     title: 'Extension or AutoVault',
-    body: 'Chrome Core is a 2s spin lock on supported tabs. /nuts or /stake for mobile AutoVault — DM links only.',
+    body: 'Chrome Core (unpacked) is a 2s spin lock plus your local game list. Zip is not on this site. /nuts or /stake for mobile AutoVault — DM links only.',
     href: '/extension',
     label: 'Extension guide',
   },
@@ -25,16 +25,16 @@ const paths = [
     label: 'Read the flow',
   },
   {
-    tag: 'Play',
-    title: 'Touch Grass games hub',
-    body: 'Off-ramp tables when the casino tab needs to die. Trivia and DA&D. Not therapy.',
-    href: '/touch-grass',
-    label: 'Open the hub',
+    tag: 'Toasts',
+    title: 'The nudges',
+    body: 'The actual lines Chrome fires when you are about to rinse it. Pace, chase, heater, drain. Not a games hub.',
+    href: '/nudges',
+    label: 'Read the toasts',
   },
 ];
 
 const steps = [
-  { n: '1', title: 'Install', body: 'Extension zip or mobile userscript from /tools install links.' },
+  { n: '1', title: 'Lock', body: 'On-chain Cooldown at /cooldown. Chrome zip is not on this site yet — sideload dist if you are building it.' },
   { n: '2', title: 'Set rules', body: 'On-chain Cooldown at /cooldown. Dashboard shields and vault rules after Discord.' },
   { n: '3', title: 'Play once', body: 'Open a supported session. TiltCheck reads the tab, not your keys.' },
 ];

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -799,42 +799,51 @@
       <input type="checkbox" id="opt-in-checkbox" />
       <span>Enforcement on. Every spin locks the spin button for two seconds.</span>
     </label>
-    <fieldset id="slider-controls" class="guard-controls" disabled>
-      <legend>Thresholds (enabled after opt-in)</legend>
-      <div class="slider-row">
-        <div class="slider-meta">
-          <span>Sensitivity</span>
-          <span class="slider-value" id="risk-threshold-label">85 — Balanced</span>
-        </div>
-        <input type="range" id="risk-threshold-slider" class="guard-range" min="50" max="100" step="1" value="85" />
-      </div>
-    </fieldset>
     <p class="guard-note">Core is this 2s spin lock. Fullscreen Touch Grass (~2 min) is Pro monolith only. Wallet lock lives on <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">tiltcheck.me/cooldown</a> — you sign, we never hold keys.</p>
   </section>
 
   <section class="guard-panel" id="strategic-filter-panel">
     <h3>Strategic Filters</h3>
     <p class="guard-policy">
-      Permanently remove game types from your lobby grid and block direct URLs.
-      Requires Pro mode on the casino tab (<code style="color:#ff9a9a">tiltcheck_pro_monolith_enabled</code>).
+      Your list. Categories and individual games you add do not click on casino tabs.
+      Chicken first if that is the hole. Slots stay playable until you add them.
     </p>
     <label class="guard-opt-row" for="game-block-master-toggle">
       <input type="checkbox" id="game-block-master-toggle" />
-      <span>I enable local game-type exclusion on this device. I choose which games never render.</span>
+      <span>Arm local exclusion. I pick the games. TiltCheck does not guess.</span>
     </label>
     <div id="game-block-controls-container" style="opacity:0.45; pointer-events:none;">
-      <p class="guard-note" style="margin-top:0; margin-bottom:8px;">Quick targets</p>
+      <p class="guard-note" style="margin-top:0; margin-bottom:8px;">Categories</p>
+      <div class="slug-grid" id="category-quick-grid">
+        <button type="button" class="slug-chip" data-category="chicken_mines">Chicken / Mines</button>
+        <button type="button" class="slug-chip" data-category="crash">Crash</button>
+        <button type="button" class="slug-chip" data-category="slots">Slots</button>
+        <button type="button" class="slug-chip" data-category="table_games">Table games</button>
+        <button type="button" class="slug-chip" data-category="live_dealer">Live dealer</button>
+        <button type="button" class="slug-chip" data-category="bonus_buy">Bonus buy</button>
+      </div>
+      <p class="guard-note" style="margin-top:10px; margin-bottom:8px;">Individual games</p>
       <div class="slug-grid" id="slug-quick-grid">
         <button type="button" class="slug-chip" data-slug="plinko">Plinko</button>
-        <button type="button" class="slug-chip" data-slug="mines">Mines</button>
         <button type="button" class="slug-chip" data-slug="dice">Dice</button>
-        <button type="button" class="slug-chip" data-slug="crash">Crash</button>
+        <button type="button" class="slug-chip" data-slug="keno">Keno</button>
       </div>
       <div class="slug-add-row">
-        <input type="text" id="custom-slug-input" placeholder="e.g. keno, hacksaw" autocomplete="off" />
+        <input type="text" id="custom-slug-input" placeholder="one game slug, e.g. chicken-road" autocomplete="off" />
         <button type="button" class="btn btn-ghost" id="btn-add-slug">Add</button>
       </div>
       <div class="slug-registry" id="slug-registry" aria-label="Active blocked game slugs"></div>
+          <div class="rg-signpost" style="margin-top:14px; padding:10px 12px; background:rgba(23,195,178,0.06); border:1px solid rgba(23,195,178,0.2); border-radius:4px; font-size:11px; line-height:1.45; color:var(--muted);">
+        <strong style="color:var(--text); display:block; margin-bottom:4px;">Need an operator-enforced ban?</strong>
+        Browser filters and wallet locks are harm-reduction tools on your device, not regulatory exclusion. For official self-exclusion registers or helpline support:
+        <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">
+          <a href="https://www.ncpgambling.org/" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">NCPG (US)</a>
+          <span style="color:var(--border);">·</span>
+          <a href="tel:18004262537" style="color:var(--teal);">1-800-GAMBLER</a>
+          <span style="color:var(--border);">·</span>
+          <a href="https://www.gamstop.co.uk/" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">GAMSTOP (UK)</a>
+        </div>
+      </div>
     </div>
   </section>
 

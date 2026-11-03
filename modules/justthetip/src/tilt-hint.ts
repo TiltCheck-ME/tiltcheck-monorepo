@@ -10,7 +10,7 @@
  * Credit tips (`/tip/send`, `/tip/claim`) never hit the chain. This HTTP check is the
  * only enforcement layer for those routes. RPC/API failure defaults FAIL-OPEN so a
  * Solana outage does not freeze every tip. Set COOLDOWN_GUARD_FAIL_CLOSED=true in
- * production if self-exclusion must not be bypassable during an outage.
+ * production if game block / Cooldown enforcement must not be bypassable during an outage.
  * Rollback: unset the env var or skip the guard call in the route.
  */
 

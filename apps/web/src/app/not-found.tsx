@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import PublicPageHero from '@/components/PublicPageHero';
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const RECOVERY_LINKS = [
   { href: '/', label: 'Home', primary: true },
-  { href: '/touch-grass', label: 'Touch Grass', primary: false },
+  { href: '/nudges', label: 'Nudges', primary: false },
   { href: '/cooldown', label: 'Set a Cooldown lock', primary: false },
 ] as const;
 

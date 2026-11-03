@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 import type { MetadataRoute } from 'next';
 
 export type SitemapCategory =
@@ -26,7 +26,7 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   {
     path: '/cooldown',
     title: 'Cooldown',
-    description: 'On-chain self-exclusion locks on Solana devnet.',
+    description: 'On-chain wallet lock on Solana devnet. Operators are not required to honor it.',
     category: 'Core',
     changeFrequency: 'weekly',
     priority: 0.95,
@@ -79,6 +79,14 @@ export const SITEMAP_PAGE_ENTRIES: SitemapPageEntry[] = [
   },
   { path: '/login', title: 'Account', category: 'Core', changeFrequency: 'monthly', priority: 0.4 },
   { path: '/dashboard', title: 'Dashboard', category: 'Core', changeFrequency: 'weekly', priority: 0.6 },
+  {
+    path: '/nudges',
+    title: 'Nudges',
+    description: 'Toast prompts TiltCheck fires when you are about to rinse a balance.',
+    category: 'Core',
+    changeFrequency: 'monthly',
+    priority: 0.85,
+  },
   {
     path: '/touch-grass',
     title: 'Touch Grass',

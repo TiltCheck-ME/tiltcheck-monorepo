@@ -34,29 +34,6 @@ Our primary goal is to shift the definition of a "win." Instead of encouraging e
 
 ---
 
-## Recent Product/Platform Updates (Mar 2026)
-
-- **OAuth callback hardening:** `/auth/discord/callback` now derives auth source from the signed `state` value (`ext_` / `web_`) and rejects cookie/state source mismatches.
-- **Extension no-login usability:** the Chrome extension can run in a built-in **demo mode** when no Discord token is present, with mock responses for core sidebar actions.
-- **Web dashboard auth gate:** `/dashboard/` now redirects unauthenticated users into the Discord login flow and sends authenticated users to `/play/profile.html`.
-- **Static asset packaging fix:** `apps/web` build now copies non-Vite static files into `dist/` so icon/logo and legacy page assets ship correctly.
-
----
-
-<!-- docs-agent:start:mr-code-impact -->
-### MR Code Impact (Auto-updated)
-
-- Generated for ref: `pending`
-- Diff source: `pending`
-- Changed files detected: **0**
-- Touched areas: none
-
-#### Files in scope
-- No changed files were detected.
-<!-- docs-agent:end:mr-code-impact -->
-
----
-
 ## North Star Product Loop
 
 TiltCheck is being refocused around one clear product loop:
@@ -149,7 +126,7 @@ TiltCheck includes comprehensive automation for security, reliability, and maint
 ```
 tiltcheck-monorepo/
 ├── apps/                    # User-facing applications (bot, web, dashboard)
-├── programs/cooldown/       # Solana self-exclusion registry (no custody)
+├── programs/cooldown/       # Solana wallet lock registry (no custody)
 ├── services/                # Backend infrastructure and core services
 ├── modules/                 # Business logic modules (suslink, justthetip, etc.)
 ├── packages/                # Shared libraries and utilities
@@ -213,7 +190,7 @@ Shared wallet notifications and "phone-a-friend" tilt intervention.
 
 Cooldown is the on-chain safety layer for TiltCheck. A person locks their own wallet out of gambling. Any casino, tip bot, wallet, or sweepstakes site can check that lock. The program stores lock records only: wallet public keys, timestamps, and sha256 hashes of game ids. It does not hold tokens, custody funds, or personal data.
 
-A lock can only get stronger until it expires or a delayed cancel finishes. Stronger means a later end time, a wider scope, or more listed operators and games. Scope `0` excludes all gambling. Scope `1` excludes listed operators. Scope `2` excludes listed game hashes. Moving from operators or games to all-gambling is allowed. Going the other way, shrinking the end time, or dropping an entry is rejected. That is deliberate: a self-exclusion you can undo in the moment of tilt does not work.
+A lock can only get stronger until it expires or a delayed cancel finishes. Stronger means a later end time, a wider scope, or more listed operators and games. Scope `0` excludes all gambling. Scope `1` excludes listed operators. Scope `2` excludes listed game hashes. Moving from operators or games to all-gambling is allowed. Going the other way, shrinking the end time, or dropping an entry is rejected. That is deliberate: a game block you can undo in the moment of tilt does not work.
 
 Getting out takes time. `request_cancel` starts a 7-day clock (`CANCEL_DELAY_SECS = 604800`) and the lock stays fully active during it. `finalize_cancel` closes the account only after those 7 days and returns the rent to the authority. Extending the lock clears a pending cancel, so the 7 days start over if you ask again. `close_expired` closes the account only once `now > until`.
 
@@ -402,104 +379,32 @@ It's built by someone who understands the problems firsthand.
 
 ---
 
-## Cooldown
+## What's Live
 
-Cooldown is a portable, non-custodial self-exclusion registry on Solana.
-A user locks their wallet out of a specific game, category, or everything for a chosen duration.
-Any casino, tip bot, or wallet can query the lock via the API or on-chain — no Solana client required.
-
-**Program ID (devnet):** `7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2`
-
-### Lock scopes
-
-| Scope | Value | Meaning |
-|-------|-------|---------|
-| All | `0` | Blocks every gambling check for this wallet |
-| Category | `1` | Blocks a named category (crash, plinko, slots-high-vol, live-dealer) |
-| Game | `2` | Blocks a specific game, identified by sha256 of `"provider:game_slug"` |
-
-Each (scope, target_id) pair is a separate PDA: `["lock", owner, scope_u8, target_id]`.
-A wallet can have many concurrent locks. Game IDs are hashed — raw strings never hit the chain.
-
-### Why a lock can only get stronger
-
-`set_lock` is an upsert: it creates the lock PDA on first call; on subsequent calls it only accepts a `new_end_time > current_end_time`. `extend_lock` enforces the same rule. There is no instruction that shortens or closes an active lock. The account expires naturally when `now > end_time`. This means no mid-tilt cancel is possible — the user cannot rug themselves out of their own commitment window.
-
-### SDK usage
-
-```ts
-import { isLocked, setLock, hashTarget, zeroTarget, SCOPE_ALL, SCOPE_GAME } from '@tiltcheck/cooldown-sdk';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-
-const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
-const wallet = new PublicKey('...');
-
-// Check if a wallet is locked (priority: All > Category > Game)
-const status = await isLocked(connection, wallet, {
-  game: 'pragmatic:plinko',   // optional, hashed internally
-  category: 'crash',          // optional
-});
-// { locked: boolean; scope: 'all'|'category'|'game'|null; endTime: number | null }
-
-// Build a set_lock instruction (30-day all-scope lock)
-const endTime = Math.floor(Date.now() / 1000) + 30 * 86_400;
-const ix = setLock(wallet, SCOPE_ALL, zeroTarget(), endTime);
-const tx = new Transaction().add(ix);
-```
-
-### API usage
-
-```
-GET https://api.tiltcheck.me/cooldown/check?wallet=<pubkey>&game=<str>&category=<str>
-```
-
-Returns `{ locked, scope, endTime }`. CORS open. 30-second cache. No Solana client needed.
-
-```json
-{ "locked": true, "scope": "game", "endTime": 1832400000 }
-```
-
-### Lock page and demo casino
-
-- Lock page: `/cooldown` — connect wallet, pick scope/target/duration, sign transaction
-- Demo casino: `/cooldown/casino-demo` — game grid that calls `isLocked` before each bet
-
-### JustTheTip integration
-
-Tips and Rain sent to or from a wallet with an active all-scope lock are blocked with a clear message.
-If tip velocity in the last 60 minutes is 3x or more the 7-day hourly average, the bot replies with a "Want to bench `<game>`?" tilt hint and a prefilled lock-page URL.
-
-Tip totals (by day and by game): `GET /tips/log?wallet=<pubkey>`
-
-### License
-
-The Cooldown program and SDK are MIT-licensed. See `programs/cooldown/LICENSE`.
-
----
+| Surface | Status |
+| :--- | :--- |
+| Discord bot + JustTheTip bot + Dad bot | Live on Railway |
+| API (Express gateway) | Live on Railway |
+| Trust rollup | Live on Railway |
+| Web (`tiltcheck.me`) | Live — GitHub Pages |
+| User dashboard | Live on Railway |
+| Control room | Live on Railway |
+| Game arena + Degen Lounge | Live on Railway |
+| Chrome extension | Load-unpacked (Web Store submission in progress) |
+| Cooldown (on-chain wallet lock) | Live on Solana devnet |
 
 ## Roadmap
 
-### Phase 1 — Core Launch (MVP)
+### Now — Chrome Web Store
+Get the extension published so users can install it without loading unpacked dist.
 
-- JustTheTip, SusLink, CollectClock
-- Basic trust engines
-- TiltCheck Core
-- Discord bot
+### Next — Cooldown Mainnet
+After legal review: mainnet deployment of the on-chain wallet lock.
 
-### Phase 2 — Intelligence Expansion
+### Later — Casino Trust Score Pages
+SEO-optimized public page per casino with evidence-backed trust scores to drive organic traffic.
 
-- Prediction models
-- Advanced trust scoring
-- Accountabilibuddy
-
-### Phase 3 — TiltCheck Arena
-
-- Web UI
-- Casino dashboards
-- DA&D game arena
-- NFT identity manager
-
-See `15-future-roadmap.md` for full details.
+See `docs/tiltcheck/15-future-roadmap.md` for full details.
 
 ---
 
@@ -511,7 +416,8 @@ Neutral hangout for people who gamble. No casino owns it. Brand line: **Show rec
 
 - Non-custodial. We never hold, pool, forward, or escrow user funds. No forwarding wallets.
 - No casino games, paid placement, paid scores, affiliate links, or sweepstakes promo. Scorecards may link a casino's own terms as evidence only.
-- Never show wallet addresses. Never broadcast wins, balances, multipliers, or heaters.
+- Chat uses real usernames. People should know who they are talking to.
+- Tips are private to the two parties. Bystanders only see per-viewer `Degen #NNNN` labels, never those usernames. Never show wallet addresses. Never broadcast wins, balances, multipliers, or heaters.
 - Nudges warn and offer a skippable breather. Never hard-freeze.
 - Typing in chat is never betting activity. Nudges fire only on actual bet controls.
 - Anything on-chain is **devnet only** until a lawyer reviews mainnet. `TODO: lawyer review before mainnet.`
@@ -520,25 +426,25 @@ Neutral hangout for people who gamble. No casino owns it. Brand line: **Show rec
 
 | Phase | What it does | Status |
 | :--- | :--- | :--- |
-| 1 Lounge v0 | One websocket room, presence (game title only), mute/report, rate limits | This branch. Hangout is `/lounge` on game-arena. Overlay on the Chrome extension. |
-| 2 Casino scorecards | History + evidence for bink.bet and nuts.gg | Not started |
-| 3 Tipping (JustTheTip) | Non-custodial USDC pouch, per-viewer HMAC labels | Not started. Do not reuse custodial credits/escrow. |
-| 4 Heater protection | Private nudge only | Not started |
-| 5 Peer tilt flags | 3-flagger threshold, never public | Not started |
-| 6 Trivia night | Reuse game-arena trivia + host Rain | Not started |
-| 7 Plans | Feature flags free/pro/streamer. No billing. | Not started |
+| 1 Lounge v0 | One websocket room, presence (game title only), mute/report, rate limits | Done. Hangout is `/lounge` on game-arena. Overlay on the Chrome extension. |
+| 2 Casino scorecards | History + evidence for bink.bet and nuts.gg | Done. Terms URLs only. No invented negative claims. `GET /lounge/scorecards`. |
+| 3 Tipping (JustTheTip) | Non-custodial USDC pouch, names only for sender+receiver | Plumbing. `POST /lounge/tip` + `GET /lounge/tip/:id`. Room announce is tipId only. Devnet + lawyer TODO. |
+| 4 Heater protection | Private nudge only | Done. Skippable toast on `#tiltcheck-pace-host` after a spin click + 5% uptick. |
+| 5 Peer tilt flags | 3-flagger threshold, never public | Done. `POST /lounge/flag`. Target-only notice. Counts never public. |
+| 6 Trivia night | Reuse game-arena trivia + host Rain | Done. `GET /lounge/trivia` reads existing `triviaManager`. No second game. No entry fees. |
+| 7 Plans | Feature flags free/pro/streamer. No billing. | Done. Free on. Pro/streamer stubs off. `GET /lounge/plans`. |
 
 Logger 0.4 (Bink bets table) is **not in this repo**. Phase 1 presence reuses the Chrome extension game-title readers (URL slug / `data-game-name`). No amounts.
 
-### Run Phase 1 locally
+### Run locally
 
 ```bash
 PORT=3004 pnpm --filter @tiltcheck/game-arena dev
 ```
 
-Open `http://127.0.0.1:3004/lounge`. Talk to the room. Presence is on the right.
+Open `http://127.0.0.1:3004/lounge`. Walk in as **jmenichole** (or pick a handle). Chat is named. Open a second tab with a different username to test private tips.
 
-Chrome overlay polls that origin. Override with `chrome.storage.local.tiltcheck_lounge_url`.
+Chrome overlay polls that origin. Override with `chrome.storage.local.tiltcheck_lounge_url`. HTTPS casino tabs cannot fetch HTTP localhost — use `/lounge` for local proof.
 
 ```bash
 pnpm --filter @tiltcheck/game-arena test

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
@@ -45,8 +45,8 @@ export const HOME_LAUNCH = {
   } as const,
   vault: {
     title: 'AutoVault — skim the win on the sites we actually support.',
-    body: 'Stake.us and nuts.gg only. Dashboard owns the rule. The tab presses the vault button so the hit is not sitting in playable balance. Not every casino.',
-    ctaLabel: 'AUTOVAULT SETUP',
+    body: 'Stake.us and nuts.gg. The tab presses vault so the hit is not sitting in playable balance.',
+    ctaLabel: 'AUTOVAULT',
     href: '/tools/auto-vault',
   } as const,
   honesty: [

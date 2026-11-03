@@ -49,7 +49,7 @@ import { Analyzer } from './analyzer.js';
 import { FairnessService } from './FairnessService.js';
 import { postRoundTelemetry, postWinSecureTelemetry } from './telemetry-client.js';
 import { GameBlocker } from './game-blocker.js';
-import { LocalGameBlocker } from './pro/local-game-blocker.js';
+import { installLocalGameBlocker, LocalGameBlocker } from './pro/local-game-blocker.js';
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './pro/containment.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import type { CasinoVerification } from './license-verifier.js';
@@ -806,13 +806,10 @@ function initialize() {
 
   // Local strategic filter (storage-only blocklist; no API).
   if (!localGameBlocker) {
-    localGameBlocker = new LocalGameBlocker();
-    localGameBlocker.init().catch((err) => {
-      console.warn('[TiltCheck] Local game blocker init failed:', err);
-    });
+    localGameBlocker = installLocalGameBlocker();
   }
 
-  // Surgical Self-Exclusion (API profile): init after auth storage is ready.
+  // Game block / Cooldown profile (API): init after auth storage is ready.
   setTimeout(() => {
     Promise.all([
       getLinkedDiscordId(),

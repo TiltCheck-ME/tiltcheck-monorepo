@@ -6,13 +6,14 @@ import { describe, expect, it } from 'vitest';
 import { PUBLIC_NAV } from './public-nav';
 
 describe('PUBLIC_NAV', () => {
-  it('lists Cooldown, extension, Touch Grass, and trust intel', () => {
+  it('lists Cooldown, extension, and Nudges', () => {
     expect(PUBLIC_NAV.links.map((link) => link.href)).toEqual([
       '/cooldown',
       '/extension',
-      '/touch-grass',
-      '/intel/rtp',
+      '/nudges',
     ]);
+    expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Trust intel');
+    expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Touch Grass');
     expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Bonuses');
     expect(PUBLIC_NAV.downloadHref).toBe('/extension');
     expect(PUBLIC_NAV.downloadLabel).toBe('Extension');

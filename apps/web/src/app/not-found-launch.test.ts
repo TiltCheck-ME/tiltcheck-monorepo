@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,9 +7,9 @@ import { describe, expect, it } from 'vitest';
 describe('not-found source', () => {
   const source = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'not-found.tsx'), 'utf8');
 
-  it('recovers through home, touch grass, and Cooldown', () => {
+  it('recovers through home, Nudges, and Cooldown', () => {
     expect(source).toContain("href: '/'");
-    expect(source).toContain("href: '/touch-grass'");
+    expect(source).toContain("href: '/nudges'");
     expect(source).toContain("href: '/cooldown'");
     expect(source).not.toContain("href: '/downloads/tiltcheck-extension.zip'");
     expect(source).toContain('DISCORD_INVITE_URL');

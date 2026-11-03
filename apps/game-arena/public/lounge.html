@@ -7,61 +7,127 @@
   <style>
     :root { color-scheme: dark; }
     body { margin: 0; font: 14px/1.4 ui-monospace, monospace; background: #0f1115; color: #f3f6f8; }
-    main { max-width: 52rem; margin: 0 auto; padding: 1.25rem; display: grid; grid-template-columns: 1fr 14rem; gap: 1rem; min-height: 100vh; }
-    h1 { font-size: 1.1rem; margin: 0 0 0.25rem; }
+    #gate, main { max-width: 68rem; margin: 0 auto; padding: 1.25rem; }
+    #gate { max-width: 28rem; }
+    main { display: none; grid-template-columns: 1fr 14rem 16rem; gap: 1rem; min-height: 100vh; }
+    main.open { display: grid; }
+    h1, h2 { font-size: 1.1rem; margin: 0 0 0.25rem; }
+    h2 { font-size: 0.85rem; color: #17c3b2; }
     .tag { color: #17c3b2; font-size: 0.8rem; }
     #log { height: 24rem; overflow: auto; border: 1px solid #2a3140; padding: 0.75rem; background: #12151c; }
-    #presence { border: 1px solid #2a3140; padding: 0.75rem; background: #12151c; }
-    form { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    #presence, #cards, #trivia, #plans { border: 1px solid #2a3140; padding: 0.75rem; background: #12151c; }
+    form { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
     input, button { font: inherit; padding: 0.5rem 0.7rem; border: 1px solid #2a3140; background: #1a1f29; color: inherit; }
     button { background: #17c3b2; color: #0f1115; font-weight: 700; }
+    button.flag, button.tip { padding: 0.15rem 0.4rem; font-size: 0.7rem; margin-left: 0.35rem; }
+    button.ghost { background: transparent; color: #17c3b2; }
+    .me { color: #17c3b2; font-size: 0.8rem; }
     .footer { grid-column: 1 / -1; color: #5a6472; font-size: 0.78rem; }
     .heart { display: inline-block; width: 0.7rem; height: 0.7rem; background: #17c3b2; clip-path: path('M12 21s-8-4.5-8-10a5 5 0 019-3 5 5 0 019 3c0 5.5-8 10-8 10z'); transform: scale(0.6); vertical-align: middle; }
+    #notice { display: none; grid-column: 1 / -1; background: #0f1115; border: 1px solid #17c3b2; padding: 0.75rem; }
+    .claim { margin: 0.5rem 0 0; font-size: 0.75rem; color: #9aa3b2; }
+    .tip-line { color: #17c3b2; }
+    label { display: block; margin: 0.75rem 0 0.35rem; }
   </style>
 </head>
 <body>
-  <main>
+  <section id="gate">
+    <h1>Degen Lounge</h1>
+    <p class="tag">Show receipts or touch grass.</p>
+    <p>Chat is public. People should know who they are talking to. Tips stay between the two of you. Everyone else sees Degen numbers, not names.</p>
+    <p>First seat while we build this is <strong>jmenichole</strong>. That is you unless you pick another handle.</p>
+    <form id="login">
+      <label for="handle">Username</label>
+      <input id="handle" maxlength="32" value="jmenichole" autocomplete="username" />
+      <button type="submit">WALK IN</button>
+    </form>
+    <p class="claim">Discord login is optional later. Local handle is enough to test.</p>
+    <p id="gate-err" class="tag"></p>
+  </section>
+  <main id="room">
     <section>
       <h1>Degen Lounge</h1>
       <p class="tag" id="tagline">Show receipts or touch grass.</p>
+      <p class="me" id="you"></p>
+      <button type="button" class="ghost" id="logout">log out</button>
       <div id="log" aria-live="polite"></div>
       <form id="chat">
-        <input id="text" maxlength="500" placeholder="talk to the room. no names required." autocomplete="off" />
+        <input id="text" maxlength="500" placeholder="talk to the room. names are on." autocomplete="off" />
         <button type="submit">SEND</button>
       </form>
       <p id="err" class="tag"></p>
     </section>
     <aside id="presence" aria-label="Who is here"></aside>
-    <p class="footer">Made for Degens. By Degens. Neutral hangout. No casino owns this room. Devnet only if anything later goes on-chain. TODO: lawyer review before mainnet.</p>
+    <aside>
+      <div id="cards" aria-label="Casino scorecards"></div>
+      <div id="trivia" style="margin-top:0.75rem"></div>
+      <div id="plans" style="margin-top:0.75rem"></div>
+    </aside>
+    <p id="notice" role="status"></p>
+    <p class="footer">Made for Degens. By Degens. Neutral hangout. Chat is named. Tips are private. Devnet only if anything later goes on-chain. TODO: lawyer review before mainnet.</p>
   </main>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const userId = 'guest-' + Math.random().toString(36).slice(2, 8);
-    const username = 'degen-' + userId.slice(-4);
-    const socket = io({ transports: ['websocket', 'polling'] });
+    const gate = document.getElementById('gate');
+    const room = document.getElementById('room');
     const log = document.getElementById('log');
     const presenceEl = document.getElementById('presence');
     const err = document.getElementById('err');
+    const noticeEl = document.getElementById('notice');
+    let me = null;
+    let socket = null;
+    const seenTips = new Set();
 
-    function line(msg) {
+    function line(msg, className) {
       const p = document.createElement('p');
+      if (className) p.className = className;
       p.textContent = msg;
       log.appendChild(p);
       log.scrollTop = log.scrollHeight;
     }
 
-    socket.on('connect', () => {
-      socket.emit('join-lounge', { userId, username, gameTitle: null, status: 'online' });
-    });
-    socket.on('lounge-snapshot', (snap) => {
-      document.getElementById('tagline').textContent = snap.tagline;
-      log.innerHTML = '';
-      for (const m of snap.messages) line(m.username + ': ' + m.text);
-      renderPresence(snap.presence);
-    });
-    socket.on('lounge-message', (m) => line(m.username + ': ' + m.text));
-    socket.on('lounge-presence', (list) => renderPresence(list));
-    socket.on('lounge-error', (reason) => { err.textContent = reason; });
+    async function api(path, opts) {
+      const res = await fetch(path, { credentials: 'include', ...opts });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      return body;
+    }
+
+    function showRoom() {
+      gate.style.display = 'none';
+      room.classList.add('open');
+      document.getElementById('you').textContent = 'You are ' + me.username + '. Chat is named. Tips stay between you and them.';
+    }
+
+    function connect() {
+      socket = io({ transports: ['websocket', 'polling'] });
+      socket.on('connect', () => {
+        socket.emit('join-lounge', { userId: me.userId, username: me.username, gameTitle: null, status: 'online' });
+      });
+      socket.on('lounge-snapshot', (snap) => {
+        document.getElementById('tagline').textContent = snap.tagline;
+        log.innerHTML = '';
+        for (const m of snap.messages) line(m.username + ': ' + m.text);
+        renderPresence(snap.presence);
+      });
+      socket.on('lounge-message', (m) => line(m.username + ': ' + m.text));
+      socket.on('lounge-presence', (list) => renderPresence(list));
+      socket.on('lounge-error', (reason) => { err.textContent = reason; });
+      socket.on('lounge-tip', (data) => {
+        void hydrateTip(data.tipId);
+      });
+    }
+
+    async function hydrateTip(tipId) {
+      try {
+        if (seenTips.has(tipId)) return;
+        const view = await api('/lounge/tip/' + encodeURIComponent(tipId) + '?viewerId=' + encodeURIComponent(me.userId) + '&username=' + encodeURIComponent(me.username));
+        seenTips.add(tipId);
+        line(view.line, 'tip-line');
+      } catch (error) {
+        err.textContent = error.message;
+      }
+    }
 
     function renderPresence(list) {
       presenceEl.innerHTML = '<strong>in the lounge</strong>';
@@ -69,17 +135,163 @@
         const p = document.createElement('p');
         const game = row.gameTitle ? ', playing ' + row.gameTitle : '';
         const away = row.awayMessage ? ' — ' + row.awayMessage : '';
-        p.textContent = row.username + ' (' + row.status + game + away + ')';
+        const mine = row.userId === me.userId ? ' (you)' : '';
+        p.textContent = row.username + mine + ' (' + row.status + game + away + ')';
+        if (row.userId !== me.userId) {
+          const flag = document.createElement('button');
+          flag.type = 'button';
+          flag.className = 'flag';
+          flag.textContent = 'breather';
+          flag.addEventListener('click', () => flagPeer(row.userId));
+          p.appendChild(flag);
+          const tip = document.createElement('button');
+          tip.type = 'button';
+          tip.className = 'tip';
+          tip.textContent = 'tip';
+          tip.addEventListener('click', () => sendTip(row.userId, row.username));
+          p.appendChild(tip);
+        }
         presenceEl.appendChild(p);
       }
     }
 
+    async function flagPeer(targetId) {
+      try {
+        await api('/lounge/flag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flaggerId: me.userId, targetId, accountAgeDays: 30, reputationOk: true }),
+        });
+        err.textContent = 'flag noted. counts stay private.';
+      } catch (error) {
+        err.textContent = error.message;
+      }
+    }
+
+    async function sendTip(receiverId, receiverName) {
+      const raw = window.prompt('Tip ' + receiverName + ' how much USD? Names stay between you two.', '2.00');
+      if (!raw) return;
+      try {
+        const view = await api('/lounge/tip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: me.userId, username: me.username, receiverId, amountUsd: raw }),
+        });
+        if (view.tipId) seenTips.add(view.tipId);
+        line(view.line, 'tip-line');
+      } catch (error) {
+        err.textContent = error.message;
+      }
+    }
+
+    async function loadBoards() {
+      const [cards, trivia, plans] = await Promise.all([
+        api('/lounge/scorecards'),
+        api('/lounge/trivia'),
+        api('/lounge/plans'),
+      ]);
+      const cardsEl = document.getElementById('cards');
+      cardsEl.innerHTML = '<h2>scorecards</h2>';
+      for (const card of cards.cards || []) {
+        const wrap = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = card.name;
+        wrap.appendChild(title);
+        const pay = document.createElement('p');
+        pay.className = 'claim';
+        pay.textContent = card.payout;
+        wrap.appendChild(pay);
+        for (const claim of card.claims || []) {
+          const p = document.createElement('p');
+          p.className = 'claim';
+          p.textContent = claim.label + ': ' + claim.value;
+          wrap.appendChild(p);
+        }
+        cardsEl.appendChild(wrap);
+      }
+      const triviaEl = document.getElementById('trivia');
+      triviaEl.innerHTML = '<h2>trivia night</h2>';
+      const tn = document.createElement('p');
+      tn.className = 'claim';
+      tn.textContent = trivia.note;
+      triviaEl.appendChild(tn);
+      const plansEl = document.getElementById('plans');
+      plansEl.innerHTML = '<h2>plans</h2>';
+      const pf = document.createElement('p');
+      pf.className = 'claim';
+      pf.textContent = plans.billing ? 'billing on — that is a bug' : 'free hangout. pro/streamer flags off. no billing.';
+      plansEl.appendChild(pf);
+    }
+
+    async function pollNotice() {
+      if (!me) return;
+      const body = await api('/lounge/me/notice?userId=' + encodeURIComponent(me.userId));
+      if (body.notice?.copy) {
+        noticeEl.style.display = 'block';
+        noticeEl.textContent = '';
+        noticeEl.appendChild(document.createTextNode(body.notice.copy + ' '));
+        const skip = document.createElement('button');
+        skip.type = 'button';
+        skip.textContent = 'Skip';
+        skip.addEventListener('click', () => { noticeEl.style.display = 'none'; });
+        noticeEl.appendChild(skip);
+      }
+    }
+
+    document.getElementById('login').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const handle = document.getElementById('handle').value;
+      void (async () => {
+        try {
+          const body = await api('/lounge/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ handle }),
+          });
+          me = body.user;
+          showRoom();
+          connect();
+          await loadBoards();
+        } catch (error) {
+          document.getElementById('gate-err').textContent = error.message;
+        }
+      })();
+    });
+
+    document.getElementById('logout').addEventListener('click', () => {
+      void (async () => {
+        await api('/lounge/logout', { method: 'POST' });
+        me = null;
+        if (socket) socket.disconnect();
+        room.classList.remove('open');
+        gate.style.display = '';
+        document.getElementById('handle').value = 'jmenichole';
+      })();
+    });
+
     document.getElementById('chat').addEventListener('submit', (event) => {
       event.preventDefault();
+      if (!me || !socket) return;
       const input = document.getElementById('text');
-      socket.emit('lounge-message', { userId, username, text: input.value });
+      socket.emit('lounge-message', { userId: me.userId, username: me.username, text: input.value });
       input.value = '';
     });
+
+    void (async () => {
+      try {
+        const body = await api('/lounge/whoami');
+        if (body.user) {
+          me = body.user;
+          document.getElementById('handle').value = me.username;
+          showRoom();
+          connect();
+          await loadBoards();
+        }
+      } catch {
+        // stay on the gate
+      }
+    })();
+    setInterval(() => { pollNotice().catch(() => undefined); }, 4000);
   </script>
 </body>
 </html>

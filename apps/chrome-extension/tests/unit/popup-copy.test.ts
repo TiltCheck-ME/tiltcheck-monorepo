@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,5 +25,18 @@ describe('popup guest-first copy', () => {
   it('lands guests on Guards after init', () => {
     expect(popupTs).toContain("activateTab(userId ? 'status' : 'block')");
     expect(popupTs).not.toContain('Open the sidebar on your casino tab to finish Discord sign-in.');
+  });
+
+  it('does not include the placebo Core sensitivity slider (EXT-5)', () => {
+    expect(popupHtml).not.toContain('id="slider-controls"');
+    expect(popupHtml).not.toContain('id="risk-threshold-slider"');
+    expect(popupHtml).not.toContain('<span>Sensitivity</span>');
+  });
+
+  it('signposts GAMSTOP and NCPG next to browser filters (RG-1)', () => {
+    expect(popupHtml).toContain('class="rg-signpost"');
+    expect(popupHtml).toContain('ncpgambling.org');
+    expect(popupHtml).toContain('1-800-GAMBLER');
+    expect(popupHtml).toContain('gamstop.co.uk');
   });
 });

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -103,9 +103,10 @@ const Nav = () => {
         rel="noopener noreferrer"
         onClick={close}
         className="nav-sidebar-link nav-discord-link"
+        aria-label={PUBLIC_NAV.discordLabel}
+        title={PUBLIC_NAV.discordLabel}
       >
-        <DiscordIcon size={16} />
-        {PUBLIC_NAV.discordLabel}
+        <DiscordIcon size={18} />
       </a>
     </>
   );
@@ -130,9 +131,10 @@ const Nav = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="nav-desktop-link nav-discord-link"
+            aria-label={PUBLIC_NAV.discordLabel}
+            title={PUBLIC_NAV.discordLabel}
           >
-            <DiscordIcon size={16} />
-            {PUBLIC_NAV.discordLabel}
+            <DiscordIcon size={18} />
           </a>
           <AuthButton />
         </div>

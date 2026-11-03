@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28
 /**
  * TypeScript type definitions for Game Arena
  */
@@ -116,6 +116,7 @@ export interface ServerToClientEvents {
   'lounge-message': (data: { id: string; userId: string; username: string; text: string; timestamp: number }) => void;
   'lounge-presence': (data: Array<{ userId: string; username: string; status: string; awayMessage: string | null; gameTitle: string | null; lastActive: number }>) => void;
   'lounge-error': (reason: string) => void;
+  'lounge-tip': (data: { tipId: string }) => void;
 }
 
 export interface TriviaLivePlayerState {

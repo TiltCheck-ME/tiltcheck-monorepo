@@ -8,7 +8,6 @@ export const PUBLIC_NAV = {
   links: [
     { href: '/cooldown', label: 'Cooldown' },
     { href: '/extension', label: 'Extension' },
-    { href: '/touch-grass', label: 'Touch Grass' },
-    { href: '/intel/rtp', label: 'Trust intel' },
+    { href: '/nudges', label: 'Nudges' },
   ],
 } as const;

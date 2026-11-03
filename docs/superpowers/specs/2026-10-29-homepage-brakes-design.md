@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 -->
 
 # Homepage job: brakes — design spec
 
@@ -45,10 +45,11 @@ Hangout (Degen Lounge, lounge tips) stays off the homepage until `/lounge` is a 
 | :--- | :--- |
 | Homepage job | Brakes only |
 | H1 | `House always wins?` / `FUCK THAT.` |
+| Dopamine line | `The math isn't rigged. Your dopamine is.` |
 | Kicker | `Chasing the loss, chasing the win, thinking you are due. That is feeding the house.` |
 | Subhead | Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets. |
 | Primary CTA | **DON'T FEED THE HOUSE** → `/cooldown` (Pages: `https://tiltcheck.me/cooldown`) |
-| Secondary CTA | **IS THIS CASINO SUS?** → `/intel/rtp` |
+| Secondary CTA | **IS THIS CASINO SUS?** → `/casinos` (trust scores). RTP stays at `/intel/rtp`. |
 | Tertiary | Text link, not a button: How the Chrome brakes work → `/extension` |
 | Fine print under CTAs | Never ask for casino password or wallet seed. You sign a Cooldown. Zip is not on this site. |
 | Hero buttons | Two. Funnel attrs stay on both. |
@@ -74,9 +75,10 @@ The homepage why: chasing a loss, chasing a win, or thinking you are due is feed
 ```
 BrandTagline
 H1 (two lines)
+Dopamine line (The math isn't rigged. Your dopamine is.)
 Kicker (feeding the house)
 Subhead (brakes + Cooldown why + sus lookup + no keys)
-[ DON'T FEED THE HOUSE ]  [ IS THIS CASINO SUS? ]
+[ DON'T FEED THE HOUSE ]  [ IS THIS CASINO SUS? → /casinos ]
 How the Chrome brakes work  (text)
 Fine print
                     | HUD: 2s frozen spin, blocked-game chip, signed Cooldown timer

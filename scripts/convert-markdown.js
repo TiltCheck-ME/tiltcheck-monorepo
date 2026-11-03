@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the brakes homepage
- * - `/cooldown`, `/casinos`, `/touch-grass` are real Pages routes
+ * - `/cooldown`, `/casinos`, `/nudges`, `/autovault` are real Pages routes
+ * - `/tools/auto-vault` redirects to `/autovault` so the old footer href still lands
+ * - `/touch-grass` redirects to `/nudges` so old links and the Pro overlay still land
  * - `/docs/*` specs from markdown
  *
  * Project Pages require relative asset paths — never "/styles/...".
@@ -38,6 +40,7 @@ import {
   INSTALL_MOVES,
   INSTALL_NOTE,
   VAULT,
+  AUTOVAULT_PAGE,
   LAUNCH_HONESTY,
   WHAT_IT_IS,
   HOW_IT_WORKS,
@@ -49,10 +52,6 @@ import {
   GRADING_STEPS,
   TOOL_REGISTRY,
   INSTALL_SURFACES,
-  TOUCH_GRASS,
-  TOUCH_GRASS_TRIVIA,
-  TOUCH_GRASS_DAD_PROMPTS,
-  TOUCH_GRASS_DAD_CARDS,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -61,6 +60,7 @@ const sourceRoot = path.resolve(process.argv[2] || 'docs/tiltcheck');
 const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
 const COPYRIGHT = '© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.';
+const DISCORD_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>`;
 
 const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>`;
 
@@ -198,21 +198,28 @@ function navHtml(depth, current) {
   const homeHref = href(depth, 'index.html');
   const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
   const cooldownCurrent = current === 'cooldown' ? ' aria-current="page"' : '';
-  const grassCurrent = current === 'touch-grass' ? ' aria-current="page"' : '';
+  const nudgesCurrent = current === 'nudges' ? ' aria-current="page"' : '';
 
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
     <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>Cooldown</a>
     <a href="${href(depth, 'extension.html')}">Extension</a>
-    <a href="${dirHref(depth, 'touch-grass')}"${grassCurrent}>Touch Grass</a>
-    <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a>
+    <a href="${dirHref(depth, 'nudges')}"${nudgesCurrent}>Nudges</a>
+    <a class="site-nav__discord" href="${DISCORD_URL}" rel="noopener noreferrer" aria-label="Discord" title="Discord">${DISCORD_ICON}</a>
   </div>
 </nav>`;
 }
 
-function footerHtml() {
+function footerHtml(depth) {
   return `<footer class="site-footer">
+  <nav class="site-footer__more" aria-label="More tools">
+    <p class="site-footer__more-label">Also</p>
+    <div class="site-footer__links">
+      <a href="${dirHref(depth, 'casinos')}">Casinos</a>
+      <a href="${dirHref(depth, 'autovault')}">AutoVault</a>
+    </div>
+  </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
   <span class="site-footer__tag">${FOOTER}</span>
   ${COPYRIGHT}
@@ -235,7 +242,7 @@ ${extraHead}
 <body>
 ${navHtml(depth, current)}
 ${body}
-${footerHtml()}
+${footerHtml(depth)}
 </body>
 </html>`;
 }
@@ -567,126 +574,110 @@ function buildCooldownPage() {
   });
 }
 
-function buildTouchGrassPage() {
-  const triviaJson = JSON.stringify(TOUCH_GRASS_TRIVIA);
-  const promptsJson = JSON.stringify(TOUCH_GRASS_DAD_PROMPTS);
-  const cardsJson = JSON.stringify(TOUCH_GRASS_DAD_CARDS);
+function mapPublicHref(depth, target) {
+  if (String(target).startsWith('http')) return target;
+  if (target === '/extension') return href(depth, 'extension.html');
+  const folder = String(target).replace(/^\//, '').split('/')[0];
+  return dirHref(depth, folder);
+}
+
+function loadNudges() {
+  return JSON.parse(fs.readFileSync(path.join(repoRoot, 'apps/web/src/data/nudges.json'), 'utf8'));
+}
+
+function buildNudgesPage() {
+  const nudges = loadNudges();
+  const groups = nudges.groups
+    .map((group) => {
+      const cards = group.items
+        .map(
+          (item) => `<article class="public-page-card nudge-toast">
+  <p class="public-page-card__eyebrow">${escapeHtml(item.fire)}</p>
+  <p class="nudge-toast__text">${escapeHtml(item.text)}</p>
+</article>`,
+        )
+        .join('\n');
+      return `<section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Toast</span>
+        <h2 class="public-page-section-heading__title">${escapeHtml(group.when)}</h2>
+      </div>
+      <div class="public-page-grid public-page-grid--2">${cards}</div>
+    </div>
+  </section>`;
+    })
+    .join('\n');
   const content = `${productHero({
-    eyebrow: 'Off-ramp',
-    title: TOUCH_GRASS.title,
-    lede: TOUCH_GRASS.lede,
-    actionsHtml: `<a class="btn btn-primary" href="${DISCORD_URL}" rel="noopener noreferrer">Open Discord tables</a>
-    <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>`,
+    eyebrow: nudges.eyebrow,
+    title: nudges.title,
+    lede: nudges.lede,
   })}
 <main class="product-main">
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <p class="touch-grass-idle">${escapeHtml(TOUCH_GRASS.idleSoon)}</p>
-      <div class="touch-grass-grid">
-        <article class="public-page-card touch-grass-pane">
-          <p class="public-page-card__eyebrow">Practice</p>
-          <h2 class="public-page-card__title">${escapeHtml(TOUCH_GRASS.triviaPane)}</h2>
-          <p class="public-page-card__copy">${escapeHtml(TOUCH_GRASS.triviaNote)}</p>
-          <div id="tg-trivia"></div>
-        </article>
-        <article class="public-page-card touch-grass-pane">
-          <p class="public-page-card__eyebrow">Practice</p>
-          <h2 class="public-page-card__title">${escapeHtml(TOUCH_GRASS.dadPane)}</h2>
-          <p class="public-page-card__copy">${escapeHtml(TOUCH_GRASS.dadDiscordOnly)}</p>
-          <div id="tg-dad"></div>
-        </article>
-      </div>
-    </div>
-  </section>
-</main>
-<script>
-(function () {
-  var trivia = ${triviaJson};
-  var prompts = ${promptsJson};
-  var whites = ${cardsJson};
-  function pick(list, skip) {
-    var pool = list.filter(function (item) { return item !== skip; });
-    if (!pool.length) pool = list.slice();
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-  function shuffle(list) {
-    var pool = list.slice();
-    for (var i = pool.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = pool[i];
-      pool[i] = pool[j];
-      pool[j] = tmp;
-    }
-    return pool;
-  }
-  function el(html) {
-    var wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    return wrap.firstElementChild;
-  }
-  function renderTrivia(host, skip) {
-    var card = pick(trivia, skip);
-    host.innerHTML = '';
-    var box = el('<div class="tg-play"></div>');
-    box.appendChild(el('<h3 class="tg-q"></h3>')).textContent = card.question;
-    card.choices.forEach(function (choice) {
-      var btn = el('<button type="button" class="tg-choice"></button>');
-      btn.textContent = choice.key + '. ' + choice.text;
-      btn.addEventListener('click', function () {
-        if (box.getAttribute('data-done')) return;
-        box.setAttribute('data-done', '1');
-        var ok = choice.key === card.answer;
-        btn.classList.add(ok ? 'is-right' : 'is-wrong');
-        var note = el('<p class="tg-note"></p>');
-        note.textContent = (ok ? 'Hit. ' : 'Miss. Answer ' + card.answer + '. ') + card.explanation;
-        var next = el('<button type="button" class="btn btn-secondary">Next</button>');
-        next.addEventListener('click', function () { renderTrivia(host, card); });
-        box.appendChild(note);
-        box.appendChild(next);
-      });
-      box.appendChild(btn);
-    });
-    host.appendChild(box);
-  }
-  function renderDad(host, skipPrompt) {
-    var prompt = pick(prompts, skipPrompt);
-    var hand = shuffle(whites).slice(0, 4);
-    host.innerHTML = '';
-    var box = el('<div class="tg-play"></div>');
-    box.appendChild(el('<h3 class="tg-q"></h3>')).textContent = prompt;
-    hand.forEach(function (card) {
-      var btn = el('<button type="button" class="tg-choice"></button>');
-      btn.textContent = card;
-      btn.addEventListener('click', function () {
-        if (box.getAttribute('data-done')) return;
-        box.setAttribute('data-done', '1');
-        btn.classList.add('is-right');
-        var filled = prompt.indexOf('_____') >= 0 ? prompt.replace('_____', card) : prompt + ' ' + card;
-        var note = el('<p class="tg-note"></p>');
-        note.textContent = filled + ' Dry run. That is as live as this pane gets.';
-        var next = el('<button type="button" class="btn btn-secondary">Next</button>');
-        next.addEventListener('click', function () { renderDad(host, prompt); });
-        box.appendChild(note);
-        box.appendChild(next);
-      });
-      box.appendChild(btn);
-    });
-    host.appendChild(box);
-  }
-  var triviaHost = document.getElementById('tg-trivia');
-  var dadHost = document.getElementById('tg-dad');
-  if (triviaHost) renderTrivia(triviaHost);
-  if (dadHost) renderDad(dadHost);
-})();
-</script>`;
+  ${groups}
+  <p class="nudge-honesty">${escapeHtml(nudges.honesty)}</p>
+</main>`;
 
   return shell({
-    title: 'Touch Grass | Games hub | TiltCheck',
-    description: 'Casino tab is cooked. Sit at a table that is not a spin. Live Trivia and Degens Against Decency.',
+    title: 'Nudges | The toasts | TiltCheck',
+    description: nudges.metaDescription,
     depth: 'docs',
-    current: 'touch-grass',
+    current: 'nudges',
     body: content,
   });
+}
+
+function buildAutovaultPage() {
+  const steps = AUTOVAULT_PAGE.steps
+    .map((step) => `<li>${escapeHtml(step)}</li>`)
+    .join('\n');
+  const content = `<main class="cooldown-page">
+  <div class="cooldown-panel">
+    <p class="brand-eyebrow">${escapeHtml(AUTOVAULT_PAGE.eyebrow)}</p>
+    <h1>${escapeHtml(AUTOVAULT_PAGE.title)}</h1>
+    <p class="cooldown-punch">${escapeHtml(AUTOVAULT_PAGE.punch)}</p>
+    <ol class="cooldown-steps">${steps}</ol>
+    <p class="cooldown-fine">${escapeHtml(AUTOVAULT_PAGE.fine)}</p>
+  </div>
+</main>`;
+
+  return shell({
+    title: 'AutoVault | Skim the hit | TiltCheck',
+    description: AUTOVAULT_PAGE.punch,
+    depth: 'docs',
+    current: 'autovault',
+    body: content,
+  });
+}
+
+function buildAutovaultRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=../../autovault/"/>
+<link rel="canonical" href="${SITE_URL}/autovault/"/>
+<title>AutoVault | TiltCheck</title>
+</head>
+<body>
+<p><a href="../../autovault/">AutoVault lives here</a></p>
+</body>
+</html>`;
+}
+
+function buildNudgesRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=../nudges/"/>
+<link rel="canonical" href="${SITE_URL}/nudges/"/>
+<title>Nudges | TiltCheck</title>
+</head>
+<body>
+<p><a href="../nudges/">The toasts live here now</a></p>
+</body>
+</html>`;
 }
 
 function buildToolsPage() {
@@ -826,9 +817,18 @@ function run() {
   const cooldownDir = path.join(siteRoot, 'cooldown');
   fs.mkdirSync(cooldownDir, { recursive: true });
   fs.writeFileSync(path.join(cooldownDir, 'index.html'), buildCooldownPage());
+  const nudgesDir = path.join(siteRoot, 'nudges');
+  fs.mkdirSync(nudgesDir, { recursive: true });
+  fs.writeFileSync(path.join(nudgesDir, 'index.html'), buildNudgesPage());
+  const autovaultDir = path.join(siteRoot, 'autovault');
+  fs.mkdirSync(autovaultDir, { recursive: true });
+  fs.writeFileSync(path.join(autovaultDir, 'index.html'), buildAutovaultPage());
+  const legacyVaultDir = path.join(siteRoot, 'tools', 'auto-vault');
+  fs.mkdirSync(legacyVaultDir, { recursive: true });
+  fs.writeFileSync(path.join(legacyVaultDir, 'index.html'), buildAutovaultRedirect());
   const grassDir = path.join(siteRoot, 'touch-grass');
   fs.mkdirSync(grassDir, { recursive: true });
-  fs.writeFileSync(path.join(grassDir, 'index.html'), buildTouchGrassPage());
+  fs.writeFileSync(path.join(grassDir, 'index.html'), buildNudgesRedirect());
   fs.writeFileSync(
     path.join(siteRoot, 'casinos.html'),
     `<!DOCTYPE html>

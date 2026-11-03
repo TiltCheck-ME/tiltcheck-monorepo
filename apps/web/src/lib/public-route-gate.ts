@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
 
 export type PublicRouteDecision =
   | { action: 'next' }
@@ -12,6 +12,8 @@ const STAY_EXACT = new Set([
   '/login',
   '/dashboard',
   '/touch-grass',
+  '/nudges',
+  '/autovault',
   '/sitemap.xml',
   '/robots.txt',
   '/extension',
@@ -23,7 +25,7 @@ const STAY_EXACT = new Set([
 ]);
 
 /** Prefixes for nested public marketing routes (cooldown demo, blog posts, intel). */
-const STAY_PREFIXES = ['/cooldown', '/intel', '/blog', '/casinos', '/touch-grass', '/tools/auto-vault'];
+const STAY_PREFIXES = ['/cooldown', '/intel', '/blog', '/casinos', '/touch-grass', '/nudges', '/tools/auto-vault'];
 
 export function normalizePublicPath(pathname: string): string {
   const withoutSuffix = pathname.split('?')[0]?.split('#')[0] ?? '/';

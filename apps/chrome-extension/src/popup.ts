@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import {
   addCustomSlug,
@@ -6,12 +6,15 @@ import {
   loadGameBlockUiState,
   loadTouchGrassUiState,
   riskLabel,
+  saveBlockedCategories,
   saveBlockedGames,
   saveGameBlockOptIn,
+  toggleCategoryInList,
   saveRiskThreshold,
   saveTouchGrassOptIn,
   toggleSlugInList,
 } from './popup-settings.js';
+import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -418,10 +421,11 @@ function renderExclusions() {
 // ---------------------------------------------------------------------------
 
 let guardSlugs: string[] = [];
+let guardCategories: GameCategory[] = [];
 
 function setTouchGrassControlsEnabled(enabled: boolean): void {
-  const fieldset = $<HTMLFieldSetElement>('slider-controls');
-  fieldset.disabled = !enabled;
+  const fieldset = document.getElementById('slider-controls') as HTMLFieldSetElement | null;
+  if (fieldset) fieldset.disabled = !enabled;
 }
 
 function setGameBlockControlsEnabled(enabled: boolean): void {
@@ -431,9 +435,11 @@ function setGameBlockControlsEnabled(enabled: boolean): void {
 }
 
 function syncRiskSliderUi(value: number): void {
+  const slider = document.getElementById('risk-threshold-slider') as HTMLInputElement | null;
+  const label = document.getElementById('risk-threshold-label');
   const clamped = clampRisk(value);
-  $<HTMLInputElement>('risk-threshold-slider').value = String(clamped);
-  $('risk-threshold-label').textContent = `${clamped} — ${riskLabel(clamped)}`;
+  if (slider) slider.value = String(clamped);
+  if (label) label.textContent = `${clamped} — ${riskLabel(clamped)}`;
 }
 
 function renderSlugRegistry(): void {
@@ -453,6 +459,10 @@ function renderSlugRegistry(): void {
     const slug = btn.dataset['slug'] ?? '';
     btn.classList.toggle('active', guardSlugs.includes(slug));
   });
+  document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-category]').forEach((btn) => {
+    const category = btn.dataset['category'] ?? '';
+    btn.classList.toggle('active', guardCategories.includes(category as GameCategory));
+  });
 }
 
 async function refreshGuardSettingsUi(): Promise<void> {
@@ -464,6 +474,7 @@ async function refreshGuardSettingsUi(): Promise<void> {
   const game = await loadGameBlockUiState();
   $<HTMLInputElement>('game-block-master-toggle').checked = game.optIn;
   guardSlugs = [...game.slugs];
+  guardCategories = [...game.categories];
   setGameBlockControlsEnabled(game.optIn);
   renderSlugRegistry();
 }
@@ -475,14 +486,17 @@ function initGuardSettingsPanel(): void {
     const enabled = (e.target as HTMLInputElement).checked;
     await saveTouchGrassOptIn(enabled);
     setTouchGrassControlsEnabled(enabled);
-    toast(enabled ? 'Touch Grass enforcement armed.' : 'Touch Grass enforcement off.');
+    toast(enabled ? 'Spin brake armed.' : 'Spin brake off.');
   });
 
-  $<HTMLInputElement>('risk-threshold-slider').addEventListener('input', async (e) => {
-    const value = Number((e.target as HTMLInputElement).value);
-    syncRiskSliderUi(value);
-    await saveRiskThreshold(value);
-  });
+  const riskSlider = document.getElementById('risk-threshold-slider') as HTMLInputElement | null;
+  if (riskSlider) {
+    riskSlider.addEventListener('input', async (e) => {
+      const value = Number((e.target as HTMLInputElement).value);
+      syncRiskSliderUi(value);
+      await saveRiskThreshold(value);
+    });
+  }
 
   $<HTMLInputElement>('game-block-master-toggle').addEventListener('change', async (e) => {
     const enabled = (e.target as HTMLInputElement).checked;
@@ -498,6 +512,18 @@ function initGuardSettingsPanel(): void {
       guardSlugs = toggleSlugInList(guardSlugs, slug);
       await saveBlockedGames(guardSlugs);
       renderSlugRegistry();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-category]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!$<HTMLInputElement>('game-block-master-toggle').checked) return;
+      const category = btn.dataset['category'] ?? '';
+      guardCategories = toggleCategoryInList(guardCategories, category);
+      await saveBlockedCategories(guardCategories);
+      renderSlugRegistry();
+      const label = GAME_EXCLUSION_CATEGORY_LABELS[category as GameCategory] ?? category;
+      toast(guardCategories.includes(category as GameCategory) ? `${label} blocked.` : `${label} unblocked.`);
     });
   });
 

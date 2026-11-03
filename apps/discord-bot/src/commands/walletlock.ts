@@ -12,7 +12,7 @@ function feeDisclosureEmbed(): EmbedBuilder {
     .setColor(0xfacc15)
     .setTitle('Wallet lock — fee disclosure')
     .setDescription(
-      'Harm-reduction cooldown on vault actions. Not operator self-exclusion. Not on-chain immutability.',
+      'Harm-reduction cooldown on vault actions. Not a casino-registered block. Not on-chain immutability.',
     )
     .addFields(
       {

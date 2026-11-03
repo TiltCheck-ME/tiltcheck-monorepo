@@ -43,6 +43,31 @@ import * as promClient from 'prom-client';
 import { triviaManager } from './trivia-manager.js';
 import { redisClient } from './redis-client.js';
 import { loungeRoom } from './lounge/lounge-room.js';
+import {
+  LOUNGE_COOKIE,
+  LOUNGE_DEFAULT_SEAT,
+  clearLoungeCookieHeader,
+  identityFromHandle,
+  loungeCookieHeader,
+  readCookie,
+  signLoungeIdentity,
+  verifyLoungeIdentity,
+  type LoungeIdentity,
+} from './lounge/identity.js';
+import { SEEDED_SCORECARDS, publishClaim, payoutLabel } from './lounge/scorecards.js';
+import { PeerFlagBoard } from './lounge/peer-flags.js';
+import { LOUNGE_PLAN_FLAGS } from './lounge/plans.js';
+import { loungeTriviaCard } from './lounge/trivia-bridge.js';
+import {
+  InFlightTipLock,
+  IdempotencyStore,
+  atomicDebit,
+  publicTipAnnouncement,
+  renderTipForViewer,
+  shouldAnnounceTip,
+  stripWalletsFromView,
+  type TipParties,
+} from './lounge/tips.js';
 import type { TriviaCompletedEventData } from '@tiltcheck/types';
 
 // ES module __dirname equivalent
@@ -466,35 +491,90 @@ io.use(async (socket, next) => {
   }
 });
 
+function loungeIdentitySecret(): string {
+  return process.env.TIP_LABEL_SECRET || config.session.secret || 'dev-lounge-identity';
+}
+
+function identityFromDiscord(session: SessionData | undefined): LoungeIdentity | null {
+  if (!session) return null;
+  const discord = mapAuthUserToDiscordUser(session);
+  if (!discord.id) return null;
+  return { userId: discord.id, username: discord.username || 'Degen' };
+}
+
+function loungeActor(req: express.Request, body?: { userId?: string; username?: string }): LoungeIdentity | null {
+  const fromCookie = verifyLoungeIdentity(
+    loungeIdentitySecret(),
+    readCookie(req.headers.cookie, LOUNGE_COOKIE),
+  );
+  if (fromCookie) return fromCookie;
+  const fromDiscord = identityFromDiscord(req.user);
+  if (fromDiscord) return fromDiscord;
+  if (body?.userId && body.username) {
+    return { userId: String(body.userId).slice(0, 64), username: String(body.username).slice(0, 32) };
+  }
+  return null;
+}
+
 // Routes
 
-// Health check
 app.get('/lounge', (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/lounge.html'));
+});
+
+app.get('/lounge/whoami', optionalAuth, (req, res) => {
+  const user = loungeActor(req);
+  res.json({
+    user,
+    defaultSeat: LOUNGE_DEFAULT_SEAT,
+    source: user?.userId === req.user?.discordId || user?.userId === req.user?.userId ? 'discord' : user ? 'local' : null,
+  });
+});
+
+app.post('/lounge/login', optionalAuth, (req, res) => {
+  const discord = identityFromDiscord(req.user);
+  const body = req.body as { handle?: string; useDiscord?: boolean };
+  const user = body.useDiscord && discord ? discord : identityFromHandle(body.handle);
+  const token = signLoungeIdentity(loungeIdentitySecret(), user);
+  res.setHeader('Set-Cookie', loungeCookieHeader(token, !config.isDev));
+  res.json({ user, source: body.useDiscord && discord ? 'discord' : 'local', defaultSeat: LOUNGE_DEFAULT_SEAT });
+});
+
+app.post('/lounge/logout', (_req, res) => {
+  res.setHeader('Set-Cookie', clearLoungeCookieHeader(!config.isDev));
+  res.json({ user: null });
 });
 
 app.get('/lounge/state', (_req, res) => {
   res.json(loungeRoom.snapshot());
 });
 
-app.post('/lounge/join', (req, res) => {
+app.post('/lounge/join', optionalAuth, (req, res) => {
   const body = req.body as { userId?: string; username?: string; gameTitle?: string; status?: 'online' | 'away' | 'idle'; awayMessage?: string };
-  if (!body.userId || !body.username) {
-    res.status(400).json({ error: 'userId and username required' });
+  const actor = loungeActor(req, body);
+  if (!actor) {
+    res.status(401).json({ error: 'walk in first' });
     return;
   }
-  const presence = loungeRoom.join(body);
+  const presence = loungeRoom.join({
+    userId: actor.userId,
+    username: actor.username,
+    gameTitle: body.gameTitle,
+    status: body.status,
+    awayMessage: body.awayMessage,
+  });
   io.to('lounge').emit('lounge-presence', loungeRoom.snapshot().presence);
   res.json(presence);
 });
 
-app.post('/lounge/message', (req, res) => {
+app.post('/lounge/message', optionalAuth, (req, res) => {
   const body = req.body as { userId?: string; username?: string; text?: string };
-  if (!body.userId || !body.username || typeof body.text !== 'string') {
-    res.status(400).json({ error: 'userId, username, and text required' });
+  const actor = loungeActor(req, body);
+  if (!actor || typeof body.text !== 'string') {
+    res.status(actor ? 400 : 401).json({ error: actor ? 'userId, username, and text required' : 'walk in first' });
     return;
   }
-  const posted = loungeRoom.post(body.userId, body.username, body.text);
+  const posted = loungeRoom.post(actor.userId, actor.username, body.text);
   if (!posted.ok) {
     res.status(400).json({ error: posted.reason });
     return;
@@ -511,6 +591,166 @@ app.post('/lounge/report', (req, res) => {
     return;
   }
   res.json(result);
+});
+
+const loungeFlags = new PeerFlagBoard();
+const loungeTipLock = new InFlightTipLock();
+const loungeTipIds = new IdempotencyStore<{ tipId: string }>();
+const loungeTips = new Map<string, TipParties & { commitment: 'processed' | 'confirmed' | 'finalized' }>();
+const loungeBudgets = new Map<string, { remaining: number }>();
+const loungeScorecards = [...SEEDED_SCORECARDS];
+const loungeNotices = new Map<string, { copy: string }>();
+let loungeTipSeq = 0;
+
+function tipLabelSecret(): string {
+  return process.env.TIP_LABEL_SECRET || loungeIdentitySecret();
+}
+
+function viewStoredTip(viewerId: string, stored: TipParties): ReturnType<typeof renderTipForViewer> {
+  return stripWalletsFromView(renderTipForViewer(tipLabelSecret(), viewerId, stored));
+}
+
+app.get('/lounge/scorecards', (_req, res) => {
+  res.json({
+    cards: loungeScorecards.map((card) => ({
+      ...card,
+      payout: payoutLabel(card.payoutSamples, null),
+    })),
+  });
+});
+
+app.post('/lounge/scorecards/claim', (req, res) => {
+  const body = req.body as { slug?: string; claim?: Parameters<typeof publishClaim>[1] };
+  const card = loungeScorecards.find((row) => row.slug === body.slug);
+  if (!card || !body.claim) {
+    res.status(400).json({ error: 'missing card' });
+    return;
+  }
+  const result = publishClaim(card, body.claim);
+  if (!result.ok) {
+    res.status(400).json({ error: result.reason });
+    return;
+  }
+  const idx = loungeScorecards.findIndex((row) => row.slug === card.slug);
+  loungeScorecards[idx] = result.card;
+  res.json(result.card);
+});
+
+app.post('/lounge/flag', (req, res) => {
+  const body = req.body as { flaggerId?: string; targetId?: string; linkedId?: string; accountAgeDays?: number; reputationOk?: boolean };
+  const result = loungeFlags.submit({
+    flaggerId: body.flaggerId ?? '',
+    targetId: body.targetId ?? '',
+    linkedId: body.linkedId,
+    accountAgeDays: body.accountAgeDays ?? 0,
+    reputationOk: body.reputationOk ?? false,
+  });
+  if (!result.ok) {
+    res.status(400).json({ error: result.reason });
+    return;
+  }
+  if (result.notify) {
+    loungeNotices.set(result.notify.targetId, { copy: result.notify.copy });
+  }
+  res.json({ ok: true, notify: result.notify ? { delivered: true } : null });
+});
+
+app.get('/lounge/me/notice', (req, res) => {
+  const userId = String(req.query.userId ?? '');
+  const notice = loungeNotices.get(userId) ?? null;
+  if (notice) loungeNotices.delete(userId);
+  res.json({ notice });
+});
+
+app.get('/lounge/plans', (_req, res) => {
+  res.json({ flags: LOUNGE_PLAN_FLAGS, billing: false });
+});
+
+app.get('/lounge/trivia', (_req, res) => {
+  const live = triviaManager.getLiveState();
+  res.json(loungeTriviaCard(live ? { gameId: live.gameId, playerCount: live.playerCount } : null));
+});
+
+app.post('/lounge/tip', optionalAuth, (req, res) => {
+  const body = req.body as { receiverId?: string; amountUsd?: string; idempotencyKey?: string };
+  const actor = loungeActor(req, req.body as { userId?: string; username?: string });
+  if (!actor) {
+    res.status(401).json({ error: 'walk in first' });
+    return;
+  }
+  if (!body.receiverId || !body.amountUsd) {
+    res.status(400).json({ error: 'receiverId and amountUsd required' });
+    return;
+  }
+  if (body.receiverId === actor.userId) {
+    res.status(400).json({ error: 'not yourself' });
+    return;
+  }
+  const receiverUsername = loungeRoom.usernameOf(body.receiverId);
+  if (!receiverUsername) {
+    res.status(404).json({ error: 'receiver is not in the lounge' });
+    return;
+  }
+  if (body.idempotencyKey) {
+    const cached = loungeTipIds.get(body.idempotencyKey);
+    if (cached) {
+      const stored = loungeTips.get(cached.tipId);
+      if (stored) {
+        res.json(viewStoredTip(actor.userId, stored));
+        return;
+      }
+    }
+  }
+  if (!loungeTipLock.acquire(actor.userId)) {
+    res.status(409).json({ error: 'one in-flight tip' });
+    return;
+  }
+  try {
+    if (!loungeBudgets.has(actor.userId)) {
+      loungeBudgets.set(actor.userId, { remaining: 100 });
+    }
+    if (atomicDebit(loungeBudgets, actor.userId, Number(body.amountUsd)) == null) {
+      res.status(400).json({ error: 'overspend' });
+      return;
+    }
+    const stored = {
+      tipId: `tip-${++loungeTipSeq}`,
+      senderId: actor.userId,
+      receiverId: body.receiverId,
+      senderUsername: actor.username,
+      receiverUsername,
+      amountUsd: String(body.amountUsd),
+      commitment: 'confirmed' as const,
+    };
+    // Local stub is pre-confirmed so we can test the private-name split. Real chain stays devnet + lawyer TODO.
+    if (!shouldAnnounceTip(stored)) {
+      res.status(202).json({ status: 'waiting-on-chain' });
+      return;
+    }
+    loungeTips.set(stored.tipId, stored);
+    if (body.idempotencyKey) loungeTipIds.remember(body.idempotencyKey, { tipId: stored.tipId });
+    io.to('lounge').emit('lounge-tip', publicTipAnnouncement(stored.tipId));
+    res.json(viewStoredTip(actor.userId, stored));
+  } finally {
+    loungeTipLock.release(actor.userId);
+  }
+});
+
+app.get('/lounge/tip/:tipId', optionalAuth, (req, res) => {
+  const actor = loungeActor(req, {
+    userId: typeof req.query.viewerId === 'string' ? req.query.viewerId : undefined,
+    username: typeof req.query.username === 'string' ? req.query.username : undefined,
+  });
+  if (!actor) {
+    res.status(401).json({ error: 'walk in first' });
+    return;
+  }
+  const stored = loungeTips.get(String(req.params.tipId));
+  if (!stored) {
+    res.status(404).json({ error: 'no tip' });
+    return;
+  }
+  res.json(viewStoredTip(actor.userId, stored));
 });
 
 app.post('/lounge/mute', (req, res) => {
@@ -689,7 +929,10 @@ app.get('/game/:gameId', requireAuth, (_req, res) => {
 // Auth routes (Unified with Ecosystem API)
 app.get('/auth/discord', (req, res) => {
   const redirectBase = config.isDev ? 'http://localhost:3000' : 'https://api.tiltcheck.me';
-  const myUrl = config.isDev ? `http://localhost:${config.port}/arena` : 'https://arena.tiltcheck.me/arena';
+  const nextPath = req.query.redirect === '/lounge' ? '/lounge' : '/arena';
+  const myUrl = config.isDev
+    ? `http://localhost:${config.port}${nextPath}`
+    : `https://arena.tiltcheck.me${nextPath}`;
   res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(myUrl)}`);
 });
 
