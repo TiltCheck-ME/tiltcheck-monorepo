@@ -448,30 +448,149 @@ function gradeClass(grade) {
   return 'grade-f';
 }
 
-function buildCasinosPage(casinos) {
-  const categories = [...new Set(casinos.map((c) => c.category))].sort();
-  const cards = casinos
+function buildAuditedShowcase(auditedCasinos) {
+  const showcaseCards = auditedCasinos
     .map((c) => {
-      return `<article class="casino-card" data-name="${escapeHtml(c.name.toLowerCase())}" data-category="${escapeHtml(c.category)}" data-grade="${escapeHtml(c.grade)}">
-  <div class="casino-card__top">
-    <span class="casino-card__grade ${gradeClass(c.grade)}">${escapeHtml(c.grade)}</span>
-    <span class="casino-card__cat">${escapeHtml(c.category)}</span>
-  </div>
-  <h3 class="casino-card__name">${escapeHtml(c.name)}</h3>
-  <p class="casino-card__risk">Risk: ${escapeHtml(c.risk)}</p>
-</article>`;
+      const evidenceList = (c.evidence || [])
+        .map((e) => '<li>' + escapeHtml(e) + '</li>')
+        .join('\n');
+
+      return '<article class="audit-card">\n' +
+        '  <div class="audit-card__header">\n' +
+        '    <div class="audit-card__title-row">\n' +
+        '      <h3 class="audit-card__name">' + escapeHtml(c.name) + '</h3>\n' +
+        '      <div class="audit-card__tags">\n' +
+        '        <span class="casino-card__grade ' + gradeClass(c.grade) + '">' + escapeHtml(c.grade) + '</span>\n' +
+        '        <span class="audit-card__cat">' + escapeHtml(c.category) + '</span>\n' +
+        '        <span class="audit-card__badge">Audited Intel</span>\n' +
+        '      </div>\n' +
+        '    </div>\n' +
+        '    <p class="audit-card__risk">Risk: <strong>' + escapeHtml(c.risk) + '</strong></p>\n' +
+        '  </div>\n' +
+        '  <div class="audit-card__body">\n' +
+        '    <dl class="audit-card__specs">\n' +
+        '      <div class="audit-card__spec">\n' +
+        '        <dt>License & Entity</dt>\n' +
+        '        <dd>' + escapeHtml(c.license || 'Unlicensed / Unknown') + '</dd>\n' +
+        '      </div>\n' +
+        '      <div class="audit-card__spec">\n' +
+        '        <dt>Originals RTP Math</dt>\n' +
+        '        <dd class="spec-highlight">' + escapeHtml(c.rtpOriginals || 'Not reported') + '</dd>\n' +
+        '      </div>\n' +
+        '      <div class="audit-card__spec">\n' +
+        '        <dt>Slot RTP Reality</dt>\n' +
+        '        <dd>' + escapeHtml(c.rtpSlots || 'Variable / unverified') + '</dd>\n' +
+        '      </div>\n' +
+        '      <div class="audit-card__spec">\n' +
+        '        <dt>Guardrail Compatibility</dt>\n' +
+        '        <dd>' + escapeHtml(c.vaultSupport || 'None') + '</dd>\n' +
+        '      </div>\n' +
+        '      <div class="audit-card__spec">\n' +
+        '        <dt>Cashout & Playthrough</dt>\n' +
+        '        <dd>' + escapeHtml(c.playthrough || 'Standard') + '</dd>\n' +
+        '      </div>\n' +
+        '    </dl>\n' +
+        '    <div class="audit-card__evidence-box">\n' +
+        '      <h4 class="audit-card__evidence-title">Documented Receipts & Friction</h4>\n' +
+        '      <ul class="audit-card__evidence-list">\n' +
+        evidenceList + '\n' +
+        '      </ul>\n' +
+        '    </div>\n' +
+        '  </div>\n' +
+        '</article>';
     })
     .join('\n');
 
-  const filters = ['All', ...categories]
+  return '<section class="public-page-section audited-showcase-section">\n' +
+    '  <div class="landing-shell">\n' +
+    '    <div class="public-page-section-heading">\n' +
+    '      <span class="brand-eyebrow">Audited deep dives</span>\n' +
+    '      <h2 class="public-page-section-heading__title">Stake, Roobet & BC.Game: The Receipts.</h2>\n' +
+    '      <p class="public-page-section-heading__sub">Provably fair house edge, slot RTP downgrade reality, TiltCheck extension guardrail compatibility, and documented withdrawal friction.</p>\n' +
+    '    </div>\n' +
+    '    <div class="audited-grid">\n' +
+    showcaseCards + '\n' +
+    '    </div>\n' +
+    '  </div>\n' +
+    '</section>';
+}
+
+function buildCasinosPage(casinos) {
+  const auditedCasinos = casinos.filter((c) => Boolean(c.audited));
+  const categories = [...new Set(casinos.map((c) => c.category))].sort();
+  const cards = casinos
+    .map((c) => {
+      const isAudited = Boolean(c.audited);
+      const keywords = [
+        c.name,
+        c.category,
+        c.grade,
+        c.risk,
+        c.license,
+        c.rtpSummary,
+        ...(c.evidence || []),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      let extraContent = '';
+      if (isAudited) {
+        const evidenceItems = (c.evidence || [])
+          .map((e) => '<li>' + escapeHtml(e) + '</li>')
+          .join('');
+
+        extraContent = '\n' +
+          '  <div class="casino-card__meta-tags">\n' +
+          '    <span class="badge-audited">Audited</span>\n' +
+          (c.rtpSummary ? '    <span class="badge-rtp">' + escapeHtml(c.rtpSummary) + '</span>\n' : '') +
+          '  </div>\n' +
+          '  <p class="casino-card__license">' + escapeHtml(c.license || '') + '</p>\n' +
+          '  <details class="casino-card__details">\n' +
+          '    <summary class="casino-card__details-toggle">View verified evidence (' + (c.evidence || []).length + ')</summary>\n' +
+          '    <div class="casino-card__details-body">\n' +
+          '      <div class="casino-card__stat">\n' +
+          '        <span class="stat-label">Originals RTP</span>\n' +
+          '        <span class="stat-value text-accent">' + escapeHtml(c.rtpOriginals || 'N/A') + '</span>\n' +
+          '      </div>\n' +
+          '      <div class="casino-card__stat">\n' +
+          '        <span class="stat-label">Slot Tiers</span>\n' +
+          '        <span class="stat-value">' + escapeHtml(c.rtpSlots || 'N/A') + '</span>\n' +
+          '      </div>\n' +
+          '      <div class="casino-card__stat">\n' +
+          '        <span class="stat-label">Guardrail Support</span>\n' +
+          '        <span class="stat-value">' + escapeHtml(c.vaultSupport || 'N/A') + '</span>\n' +
+          '      </div>\n' +
+          '      <div class="casino-card__stat">\n' +
+          '        <span class="stat-label">Playthrough</span>\n' +
+          '        <span class="stat-value">' + escapeHtml(c.playthrough || 'N/A') + '</span>\n' +
+          '      </div>\n' +
+          '      <h4 class="evidence-subheading">Verified Receipts</h4>\n' +
+          '      <ul class="casino-card__evidence-list">' + evidenceItems + '</ul>\n' +
+          '    </div>\n' +
+          '  </details>';
+      }
+
+      return '<article class="casino-card' + (isAudited ? ' casino-card--audited' : '') + '" data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(c.grade) + '" data-audited="' + (isAudited ? 'true' : 'false') + '" data-keywords="' + escapeHtml(keywords) + '">\n' +
+        '  <div class="casino-card__top">\n' +
+        '    <span class="casino-card__grade ' + gradeClass(c.grade) + '">' + escapeHtml(c.grade) + '</span>\n' +
+        '    <span class="casino-card__cat">' + escapeHtml(c.category) + '</span>\n' +
+        '  </div>\n' +
+        '  <h3 class="casino-card__name">' + escapeHtml(c.name) + '</h3>\n' +
+        '  <p class="casino-card__risk">Risk: ' + escapeHtml(c.risk) + '</p>' + extraContent + '\n' +
+        '</article>';
+    })
+    .join('\n');
+
+  const filters = ['All', 'Audited', ...categories]
     .map(
       (cat, i) =>
-        `<button type="button" class="filter-chip${i === 0 ? ' is-active' : ''}" data-filter="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`,
+        '<button type="button" class="filter-chip' + (i === 0 ? ' is-active' : '') + '" data-filter="' + escapeHtml(cat) + '">' + escapeHtml(cat) + (cat === 'Audited' ? ' (' + auditedCasinos.length + ')' : '') + '</button>',
     )
     .join('\n');
 
   const steps = GRADING_STEPS.map(
-    (s) => `<li><strong>${escapeHtml(s.title)}</strong> — ${escapeHtml(s.body)}</li>`,
+    (s) => '<li><strong>' + escapeHtml(s.title) + '</strong> — ' + escapeHtml(s.body) + '</li>',
   ).join('\n');
 
   const script = `<script>
@@ -487,8 +606,10 @@ function buildCasinosPage(casinos) {
     cards.forEach(function (card) {
       var name = card.getAttribute('data-name') || '';
       var cat = card.getAttribute('data-category') || '';
-      var okCat = activeCat === 'All' || cat === activeCat;
-      var okQ = !q || name.indexOf(q) !== -1;
+      var audited = card.getAttribute('data-audited') === 'true';
+      var keywords = card.getAttribute('data-keywords') || '';
+      var okCat = activeCat === 'All' || (activeCat === 'Audited' ? audited : cat === activeCat);
+      var okQ = !q || name.indexOf(q) !== -1 || keywords.indexOf(q) !== -1;
       var show = okCat && okQ;
       card.hidden = !show;
       if (show) shown += 1;
@@ -506,21 +627,22 @@ function buildCasinosPage(casinos) {
   });
   apply();
 })();
-</script>`;
+<\/script>`;
 
   const content = `${productHero({
-    eyebrow: 'Casino trust',
+    eyebrow: 'Casino trust directory',
     title: 'Look up the operator. Read the proof.',
-    lede: `Before you deposit, check who you are playing. This page lists ${casinos.length} curated operators with letter grades and risk labels (sweeps, crypto, regulated, scam, and more). It is a starting point — not a green light. This Pages twin ships baseline cards only.`,
-    actionsHtml: `<a class="btn btn-primary" href="${href('docs', 'index.html')}">Back home</a>`,
+    lede: 'Before you deposit, check who you are playing. This page audits ' + casinos.length + ' curated operators with letter grades, verified RTP data, regulatory licenses, and documented red flags. Deep-dive evidence is published below for Stake.us, Stake.com, Roobet, and BC.Game.',
+    actionsHtml: '<a class="btn btn-primary" href="' + href('docs', 'index.html') + '">Back home</a>',
   })}
 <main class="product-main">
+  ${buildAuditedShowcase(auditedCasinos)}
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="casino-toolbar">
         <label class="casino-search">
           <span class="sr-only">Search casinos</span>
-          <input id="casino-search" type="search" placeholder="Search operator name…" autocomplete="off"/>
+          <input id="casino-search" type="search" placeholder="Search operator name, license, RTP, or provider…" autocomplete="off"/>
         </label>
         <div class="filter-row" role="group" aria-label="Category filters">${filters}</div>
         <p class="casino-count" id="casino-count">${casinos.length} operators</p>
@@ -542,7 +664,7 @@ ${script}`;
 
   return shell({
     title: 'Casino Trust | TiltCheck',
-    description: 'Curated casino trust grades — static mirror of the TiltCheck directory.',
+    description: 'Curated casino trust grades and verified RTP evidence — static mirror of the TiltCheck directory.',
     depth: 'docs',
     current: 'casinos',
     body: content,

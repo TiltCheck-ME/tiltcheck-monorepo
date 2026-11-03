@@ -291,6 +291,19 @@ export default function CasinosPage() {
                           <dt className="text-gray-500 shrink-0">Baseline grade</dt>
                           <dd className="text-right text-white font-mono">{casino.grade}</dd>
                         </div>
+                        {casino.rtpSummary && (
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-gray-500 shrink-0">RTP data</dt>
+                            <dd className="text-right text-[#17c3b2] font-mono text-xs">{casino.rtpSummary}</dd>
+                          </div>
+                        )}
+                        {casino.vaultSupport && (
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-gray-500 shrink-0">Guardrails</dt>
+                            <dd className="text-right text-gray-300 font-mono text-xs">{casino.vaultSupport}</dd>
+                          </div>
+                        )}
+                        </div>
                       </dl>
                       {previewViolations.length > 0 ? (
                         <ul className="mt-3 space-y-1.5 text-xs text-gray-400 leading-relaxed list-disc list-inside">
