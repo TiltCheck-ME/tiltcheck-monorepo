@@ -1,10 +1,18 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 */
 /**
  * Zip apps/chrome-extension/dist into the web download CTA path.
- * Sideload package must match current Core build — never ship a stale Dec zip.
+ * Sideload package must match current Core build — never ship a stale zip.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, copyFileSync, statSync, unlinkSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  copyFileSync,
+  statSync,
+  unlinkSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +23,7 @@ const zipName = 'tiltcheck-extension.zip';
 const localZip = path.join(extRoot, zipName);
 const webDownloads = path.resolve(extRoot, '../web/public/downloads');
 const webZip = path.join(webDownloads, zipName);
+const stagingDir = path.join(extRoot, '.dist-package');
 
 const required = [
   'manifest.json',
@@ -42,20 +51,56 @@ for (const zipPath of [localZip, webZip]) {
   if (existsSync(zipPath)) unlinkSync(zipPath);
 }
 
-// Fresh archive only — exclude source maps from the sideload download.
-const zipResult = spawnSync(
-  'zip',
-  ['-r', '-q', localZip, '.', '-x', '*.map', '-x', '*/.*'],
-  {
-    cwd: distDir,
-    stdio: 'inherit',
-  },
-);
+// Stage clean dist without source maps
+if (existsSync(stagingDir)) rmSync(stagingDir, { recursive: true, force: true });
+mkdirSync(stagingDir, { recursive: true });
 
-if (zipResult.status !== 0) {
-  console.error('zip failed');
-  process.exit(zipResult.status ?? 1);
+function copyFiltered(src, dest) {
+  mkdirSync(dest, { recursive: true });
+  const entries = readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.name.endsWith('.map') || entry.name.startsWith('.')) continue;
+    const sPath = path.join(src, entry.name);
+    const dPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyFiltered(sPath, dPath);
+    } else {
+      copyFileSync(sPath, dPath);
+    }
+  }
 }
+
+copyFiltered(distDir, stagingDir);
+
+if (process.platform === 'win32') {
+  const escapedStaging = stagingDir.replace(/\\/g, '\\\\');
+  const escapedZip = localZip.replace(/\\/g, '\\\\');
+  const psScript = `Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedStaging}', '${escapedZip}')`;
+  const res = spawnSync('powershell.exe', ['-NoProfile', '-Command', psScript], {
+    stdio: 'inherit',
+  });
+  if (res.status !== 0) {
+    console.error('PowerShell zip creation failed');
+    rmSync(stagingDir, { recursive: true, force: true });
+    process.exit(res.status ?? 1);
+  }
+} else {
+  const zipResult = spawnSync(
+    'zip',
+    ['-r', '-q', localZip, '.'],
+    {
+      cwd: stagingDir,
+      stdio: 'inherit',
+    },
+  );
+  if (zipResult.status !== 0) {
+    console.error('zip failed');
+    rmSync(stagingDir, { recursive: true, force: true });
+    process.exit(zipResult.status ?? 1);
+  }
+}
+
+rmSync(stagingDir, { recursive: true, force: true });
 
 mkdirSync(webDownloads, { recursive: true });
 copyFileSync(localZip, webZip);
