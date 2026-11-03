@@ -57,4 +57,30 @@ describe('GitHub Pages launch twin', () => {
       'href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP',
     );
   });
+
+  it('renders audited evidence and RTP profiles for Stake, Roobet, and BC.Game', () => {
+    expect(convertMarkdown).toContain('buildAuditedShowcase');
+    expect(convertMarkdown).toContain('Stake, Roobet & BC.Game: The Receipts.');
+    expect(convertMarkdown).toContain('data-audited');
+
+    const casinosData = JSON.parse(
+      readFileSync(path.join(process.cwd(), 'apps/web/src/data/casinos.json'), 'utf8'),
+    );
+    const audited = casinosData.filter((c: any) => c.audited);
+    expect(audited.map((c: any) => c.name)).toEqual([
+      'Stake.us',
+      'Roobet',
+      'Stake.com',
+      'BC.Game',
+    ]);
+
+    for (const c of audited) {
+      expect(c.license).toBeTruthy();
+      expect(c.rtpSummary).toMatch(/RTP/i);
+      expect(c.rtpOriginals).toMatch(/99\.00%|97\.00%/);
+      expect(c.rtpSlots).toBeTruthy();
+      expect(c.evidence.length).toBeGreaterThanOrEqual(4);
+      expect(c.vaultSupport).toBeTruthy();
+    }
+  });
 });

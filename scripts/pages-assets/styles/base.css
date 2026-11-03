@@ -1054,6 +1054,271 @@ td {
   text-transform: uppercase;
 }
 
+.casino-card--audited {
+  border-color: rgba(23, 195, 178, 0.35);
+  background: rgba(14, 22, 28, 0.65);
+}
+
+.casino-card__meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0.3rem;
+}
+
+.badge-audited {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #17c3b2;
+  border: 1px solid rgba(23, 195, 178, 0.4);
+  background: rgba(23, 195, 178, 0.12);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+}
+
+.badge-rtp {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+}
+
+.casino-card__license {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.45rem 0 0;
+  line-height: 1.4;
+}
+
+.casino-card__details {
+  margin-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 0.65rem;
+}
+
+.casino-card__details-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #17c3b2;
+  cursor: pointer;
+  user-select: none;
+}
+
+.casino-card__details-toggle:hover {
+  color: #48d5c6;
+}
+
+.casino-card__details-body {
+  margin-top: 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.casino-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.casino-card__stat .stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.casino-card__stat .stat-value {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.stat-value.text-accent {
+  color: #17c3b2;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.evidence-subheading {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #f59e0b;
+  margin: 0.6rem 0 0.3rem;
+}
+
+.casino-card__evidence-list {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.casino-card__evidence-list li + li {
+  margin-top: 0.25rem;
+}
+
+/* Audited Showcase Section */
+.audited-showcase-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.audited-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.audit-card {
+  padding: 1.35rem 1.25rem;
+  border: 1px solid rgba(23, 195, 178, 0.26);
+  border-radius: 1.25rem;
+  background: rgba(12, 17, 23, 0.7);
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--transition-base), transform var(--transition-base);
+}
+
+.audit-card:hover {
+  border-color: rgba(23, 195, 178, 0.5);
+  transform: translateY(-2px);
+}
+
+.audit-card__header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.audit-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.audit-card__name {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.audit-card__tags {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.audit-card__cat {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.audit-card__badge {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #17c3b2;
+  border: 1px solid rgba(23, 195, 178, 0.45);
+  background: rgba(23, 195, 178, 0.12);
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.35rem;
+}
+
+.audit-card__risk {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.audit-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.audit-card__specs {
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.audit-card__spec dt {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.audit-card__spec dd {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.audit-card__spec .spec-highlight {
+  color: #17c3b2;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.audit-card__evidence-box {
+  margin-top: auto;
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.75rem;
+}
+
+.audit-card__evidence-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #f59e0b;
+}
+
+.audit-card__evidence-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.audit-card__evidence-list li + li {
+  margin-top: 0.35rem;
+}
+
 .method-list {
   margin: 0;
   padding-left: 1.2rem;

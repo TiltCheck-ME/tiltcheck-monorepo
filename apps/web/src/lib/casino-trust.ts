@@ -19,6 +19,14 @@ interface RawCasino {
   grade: string;
   risk: string;
   category: string;
+  license?: string;
+  rtpSummary?: string;
+  rtpOriginals?: string;
+  rtpSlots?: string;
+  vaultSupport?: string;
+  playthrough?: string;
+  evidence?: string[];
+  audited?: boolean;
 }
 
 interface CasinoMeta {
@@ -108,7 +116,7 @@ const CASINO_META: Record<string, CasinoMeta> = {
   Pulsz: { license: 'Sweepstakes model (US/Canada)', violations: [] },
   'WOW Vegas': { license: 'Sweepstakes model (US/Canada)', violations: [] },
   'High 5 Casino': { license: 'Sweepstakes model (US/Canada)', violations: [] },
-  'Stake.us': { license: 'Sweepstakes model (US/Canada)', violations: ['Confusing sweepstakes redemption terms', 'Limited cashout options vs Stake.com'] },
+  'Stake.us': { license: 'Sweepstakes model (US/Canada) — Sweepsteaks Limited / Medium Rare N.V.', violations: ['Restricted in 7 US states: ID, KY, MI, NV, NY, VT, WA', '1x playthrough strictly required on Stake Cash (SC) before redemption', 'Dual-currency model (GC vs SC) causes accidental spend'] },
   McLuck: { license: 'Sweepstakes model (US/Canada)', violations: [] },
   'Fortune Coins': { license: 'Sweepstakes model (US/Canada)', violations: [] },
   'Hello Millions': { license: 'Sweepstakes model (US/Canada)', violations: [] },
@@ -131,10 +139,10 @@ const CASINO_META: Record<string, CasinoMeta> = {
   Bet365: { license: 'UKGC / Malta MGA / Gibraltar GGB', violations: ['£52.5m UKGC fine (2023) — AML and social responsibility failures'] },
   '888casino': { license: 'UKGC / Gibraltar GGB / Malta MGA', violations: ['£9.4m UKGC fine (2022) — social responsibility failures'] },
   'PokerStars Casino': { license: 'Isle of Man GSC / UKGC / Malta MGA', violations: [] },
-  'Stake.com': { license: 'Curaçao eGaming', violations: ['Blocked in US, UK, Australia, and numerous other jurisdictions', 'No independent third-party RTP audits published', 'Influencer marketing targeting under-25 audiences'] },
-  Roobet: { license: 'Curaçao eGaming', violations: ['Blocked in multiple EU and North American jurisdictions', 'Operates in restricted regions relying on VPN workarounds'] },
+  'Stake.com': { license: 'Curaçao eGaming (Medium Rare N.V., Master License 8048/JAZ)', violations: ['Blocked in US, UK, Australia, France, Germany, Netherlands, and multiple tier-1 jurisdictions', 'No published third-party lab audits (eCOGRA/GLI) for Originals', 'Aggressive influencer marketing targeting young demographics', 'Variable 3rd-party slot RTP tiers without in-game percentage badge'] },
+  Roobet: { license: 'Curaçao eGaming (Raw Entertainment B.V. / TekHou5 B.V., License 8048/JAZ)', violations: ['Blocked in US, UK, Australia, Germany, Netherlands, Spain; aggressive VPN detection locks accounts', 'Deploys lower RTP tiers on Pragmatic Play (94.5%) and Play\'n GO (94.2%/91.2%) vs manufacturer default maximums', 'Intrusive Tier-2 KYC requested on large crypto withdrawals'] },
   Rollbit: { license: 'Curaçao eGaming', violations: ['No published independent RTP audits', 'NFT/token integration raises unresolved regulatory questions'] },
-  'BC.Game': { license: 'Curaçao eGaming / Kahnawake', violations: ['Community withdrawal delay reports', 'Limited responsible gambling toolset'] },
+  'BC.Game': { license: 'Curaçao eGaming (BlockDance B.V., CIL #5536/JAZ; sub-license disputes) / Kahnawake', violations: ['Predatory locked BCD bonus mechanics: releases at only 0.2% per wager (~500x turnover)', 'Frequent community withdrawal dispute and verification delay reports', 'Corporate entity opacity between Curaçao and offshore holding shells', 'Extensive lower RTP slot tiers deployed across 8,000+ game catalog'] },
   Bovada: { license: 'Kahnawake Gaming Commission', violations: ['Unlicensed in most US states', 'Withdrawal processing delay reports in community forums'] },
   'Ignition Casino': { license: 'Kahnawake Gaming Commission', violations: ['Unlicensed in most US states'] },
   SlotsOfVegas: { license: 'No valid gaming license detected', violations: ['Widespread withdrawal denial reports', 'Blacklisted by AskGamblers and Casinomeister', 'Fake bonus terms'] },
@@ -454,6 +462,9 @@ export function casinoMatchesQuery(casino: CasinoEntry, query: string): boolean 
     casino.category.toLowerCase().includes(normalizedQuery) ||
     casino.grade.toLowerCase().includes(normalizedQuery) ||
     casino.risk.toLowerCase().includes(normalizedQuery) ||
+    (casino.license ? casino.license.toLowerCase().includes(normalizedQuery) : false) ||
+    (casino.rtpSummary ? casino.rtpSummary.toLowerCase().includes(normalizedQuery) : false) ||
+    (casino.evidence ? casino.evidence.some((e) => e.toLowerCase().includes(normalizedQuery)) : false) ||
     casino.domainCandidates.some((domain) => domain.includes(normalizedQuery))
   );
 }

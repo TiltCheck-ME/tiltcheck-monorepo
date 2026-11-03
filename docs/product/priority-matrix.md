@@ -40,6 +40,7 @@ Zip download stays gated (`ctaReady: false`) until Chrome Core's play path is no
 | DOC-1 | Rename surgical-self-exclusion docs; RGaaS 403 as optional appendix | Done | Documented as Browser Game Filters with appendix for RGaaS. |
 | RG-1 | Signpost GAMSTOP / NCPG next to browser filters | Done | Signpost added in popup.html Guards panel with 1-800-GAMBLER links. |
 | EXT-6 | Delete dead extension trees (`src/v2`, `sidebar.ts`, `sw.js`, unused engines) | Done | Pruned src/v2, legacy sidebar.ts, sw.js, originals-detector.ts, SolanaProvider.ts, fairness-tutorial.ts. |
+| CAS-1 | Audit & expand Casino Trust Directory (`/casinos`) with evidence and RTP data for Stake, Roobet, and BC.Game | Done | Added deep-dive showcase, provably fair RTP math, slot downgrade profiles, AutoVault support, and verified receipts. |
 
 ## P2 — later
 
