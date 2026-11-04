@@ -46,6 +46,11 @@ import {
   TILTCHECK_CASHOUT_GOALS_KEY,
   sanitizeCashoutGoals,
 } from './profit-lock.js';
+import {
+  TILTCHECK_STREAK_VOLATILITY_KEY,
+  DEFAULT_STREAK_VOLATILITY_STATE,
+  type StreakVolatilityState,
+} from './streak-volatility.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -666,6 +671,105 @@ function initCashoutRouterListeners(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Session Win-Streak & Cold-Run Volatility Tracker
+// ---------------------------------------------------------------------------
+
+function updateStreakVolatilityUI(state: StreakVolatilityState): void {
+  const badge = document.getElementById('streak-badge');
+  const currentVal = document.getElementById('streak-current-val');
+  const hitRateEl = document.getElementById('streak-hit-rate');
+  const maxDeadEl = document.getElementById('streak-max-dead');
+  const statusMsgEl = document.getElementById('streak-status-msg');
+
+  if (!badge || !currentVal || !hitRateEl || !maxDeadEl) return;
+
+  // Status badge & styling
+  if (state.isDueTrapActive) {
+    badge.className = 'streak-badge streak-trap';
+    badge.textContent = 'FALLACY TRAP';
+  } else if (state.streakAlertLevel === 'CRITICAL_COLD') {
+    badge.className = 'streak-badge streak-trap';
+    badge.textContent = 'EXTREME COLD';
+  } else if (state.consecutiveDeadSpins >= 10 || state.currentStreakType === 'COLD') {
+    badge.className = 'streak-badge streak-cold';
+    badge.textContent = `${state.consecutiveDeadSpins} DEAD SPINS`;
+  } else if (state.consecutiveWins >= 3 || state.currentStreakType === 'HOT') {
+    badge.className = 'streak-badge streak-hot';
+    badge.textContent = `HEATER (${state.consecutiveWins} W)`;
+  } else {
+    badge.className = 'streak-badge streak-neutral';
+    badge.textContent = state.totalSpins > 0 ? 'STEADY PACING' : 'TRACKING ACTIVE';
+  }
+
+  // Values
+  if (state.currentStreakType === 'COLD') {
+    currentVal.textContent = `${state.consecutiveDeadSpins} Dead Spins`;
+    currentVal.style.color = '#f97316';
+  } else if (state.currentStreakType === 'HOT') {
+    currentVal.textContent = `${state.consecutiveWins} Wins`;
+    currentVal.style.color = '#17c3b2';
+  } else {
+    currentVal.textContent = '0 Dead Spins';
+    currentVal.style.color = 'var(--text)';
+  }
+
+  hitRateEl.textContent = `${state.hitRate.toFixed(1)}%`;
+  maxDeadEl.textContent = `${state.maxDeadSpins} Spins`;
+
+  if (statusMsgEl) {
+    statusMsgEl.textContent = state.alertMessage || 'Pacing steady. Volatility telemetry normal.';
+  }
+}
+
+function loadStreakVolatility(): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { type: 'get_streak_volatility_state' }, (res) => {
+        if (!chrome.runtime.lastError && res && typeof res.consecutiveDeadSpins === 'number') {
+          updateStreakVolatilityUI(res);
+          return;
+        }
+        fallbackLoadStreakVolatilityFromStorage();
+      });
+    } else {
+      fallbackLoadStreakVolatilityFromStorage();
+    }
+  });
+}
+
+function fallbackLoadStreakVolatilityFromStorage(): void {
+  chrome.storage.local.get([TILTCHECK_STREAK_VOLATILITY_KEY], (res) => {
+    const stored = res[TILTCHECK_STREAK_VOLATILITY_KEY] as StreakVolatilityState | undefined;
+    if (stored && typeof stored.consecutiveDeadSpins === 'number') {
+      updateStreakVolatilityUI(stored);
+    } else {
+      updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
+    }
+  });
+}
+
+function initStreakVolatilityListeners(): void {
+  const resetBtn = document.getElementById('btn-reset-streak');
+  if (!resetBtn) return;
+
+  resetBtn.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId) {
+        chrome.tabs.sendMessage(tabId, { type: 'reset_streak_volatility' }, () => {
+          // tab might not be a casino tab, ignore error
+        });
+      }
+      chrome.storage.local.remove([TILTCHECK_STREAK_VOLATILITY_KEY], () => {
+        updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
+        toast('Streak baseline reset.');
+      });
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Exclusions
 // ---------------------------------------------------------------------------
 
@@ -1220,6 +1324,14 @@ function initGuardSettingsPanel(): void {
     if (changes[TILTCHECK_CASHOUT_GOALS_KEY]) {
       loadCashoutGoalsProgress();
     }
+    if (changes[TILTCHECK_STREAK_VOLATILITY_KEY]) {
+      const newVal = changes[TILTCHECK_STREAK_VOLATILITY_KEY].newValue as StreakVolatilityState | undefined;
+      if (newVal) {
+        updateStreakVolatilityUI(newVal);
+      } else {
+        updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
+      }
+    }
   });
 }
 
@@ -1236,6 +1348,7 @@ function activateTab(id: string) {
   if (id === 'status') {
     loadSessionRadar();
     loadCashoutGoalsProgress();
+    loadStreakVolatility();
   }
   if (id === 'block') loadExclusions();
   if (id === 'vault') loadVaultRules();
@@ -1397,8 +1510,10 @@ async function init() {
   initGuardSettingsPanel();
   initSessionRadarListeners();
   initCashoutRouterListeners();
+  initStreakVolatilityListeners();
   loadSessionRadar();
   loadCashoutGoalsProgress();
+  loadStreakVolatility();
 
   // Vault listeners
   initVaultListeners();

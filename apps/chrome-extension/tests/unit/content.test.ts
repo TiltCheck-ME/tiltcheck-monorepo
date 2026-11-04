@@ -312,6 +312,19 @@ describe('core content script contracts', () => {
     listeners[0]!({ type: 'reset_session_pnl' }, null, resetResponse);
     expect(resetResponse).toHaveBeenCalled();
 
+    const streakStateResponse = vi.fn();
+    listeners[0]!({ type: 'get_streak_volatility_state' }, null, streakStateResponse);
+    expect(streakStateResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        consecutiveDeadSpins: expect.any(Number),
+        hitRate: expect.any(Number),
+      })
+    );
+
+    const resetStreakResponse = vi.fn();
+    listeners[0]!({ type: 'reset_streak_volatility' }, null, resetStreakResponse);
+    expect(resetStreakResponse).toHaveBeenCalled();
+
     const cashoutStateResponse = vi.fn();
     listeners[0]!({ type: 'get_cashout_router_state' }, null, cashoutStateResponse);
     expect(cashoutStateResponse).toHaveBeenCalledWith(

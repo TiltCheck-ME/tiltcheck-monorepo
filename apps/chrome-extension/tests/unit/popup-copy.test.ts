@@ -66,4 +66,18 @@ describe('popup guest-first copy', () => {
     expect(popupTs).toContain('triggerActiveTabCashout');
     expect(popupTs).toContain('triggerActiveTabAutoVault');
   });
+
+  it('renders Session Win-Streak & Volatility Spotter card and wires telemetry', () => {
+    expect(popupHtml).toContain('id="streak-volatility-card"');
+    expect(popupHtml).toContain('id="streak-badge"');
+    expect(popupHtml).toContain('id="streak-current-val"');
+    expect(popupHtml).toContain('id="streak-hit-rate"');
+    expect(popupHtml).toContain('id="streak-max-dead"');
+    expect(popupHtml).toContain('id="btn-reset-streak"');
+
+    expect(popupTs).toContain('TILTCHECK_STREAK_VOLATILITY_KEY');
+    expect(popupTs).toContain('updateStreakVolatilityUI');
+    expect(popupTs).toContain('loadStreakVolatility');
+    expect(popupTs).toContain('initStreakVolatilityListeners');
+  });
 });

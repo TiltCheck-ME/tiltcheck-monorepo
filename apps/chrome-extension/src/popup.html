@@ -782,6 +782,93 @@
       background: rgba(255,255,255,0.05);
     }
 
+    /* --- STREAK & VOLATILITY CARD --- */
+    .streak-card {
+      background: #0f1115;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      font-family: var(--mono);
+    }
+    .streak-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .streak-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .streak-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .streak-badge.streak-neutral { color: var(--muted); background: var(--surface); border-color: var(--border); }
+    .streak-badge.streak-cold    { color: #f97316; background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.35); }
+    .streak-badge.streak-hot     { color: #17c3b2; background: rgba(23,195,178,0.12); border-color: rgba(23,195,178,0.3); }
+    .streak-badge.streak-trap    { color: #ef4444; background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.45); animation: glitch 0.38s steps(2) infinite; }
+
+    .streak-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .streak-stat-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      padding: 6px;
+      text-align: center;
+    }
+    .streak-stat-label {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+    .streak-stat-val {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .streak-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .btn-reset-streak {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-reset-streak:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.05);
+    }
+
     /* --- CASHOUT GOALS PROGRESS CARD --- */
     .goals-card {
       background: #0f1115;
@@ -982,6 +1069,32 @@
         <span>Low: <strong id="radar-stat-low" style="color:#ff4a4a">$0.00</strong></span>
       </div>
       <button type="button" class="btn-reset-radar" id="btn-reset-radar" title="Reset Session Baseline">Reset</button>
+    </div>
+  </section>
+
+  <!-- Session Win-Streak & Cold-Run Volatility Tracker -->
+  <section class="streak-card" id="streak-volatility-card">
+    <div class="streak-header">
+      <span class="streak-title">Streak &amp; Volatility Spotter</span>
+      <span id="streak-badge" class="streak-badge streak-neutral">TRACKING ACTIVE</span>
+    </div>
+    <div class="streak-grid">
+      <div class="streak-stat-item">
+        <div class="streak-stat-label">Current Streak</div>
+        <div id="streak-current-val" class="streak-stat-val">0 Dead Spins</div>
+      </div>
+      <div class="streak-stat-item">
+        <div class="streak-stat-label">Hit Rate</div>
+        <div id="streak-hit-rate" class="streak-stat-val">0.0%</div>
+      </div>
+      <div class="streak-stat-item">
+        <div class="streak-stat-label">Max Cold Streak</div>
+        <div id="streak-max-dead" class="streak-stat-val">0 Spins</div>
+      </div>
+    </div>
+    <div class="streak-footer">
+      <span id="streak-status-msg" style="line-height:1.3; font-size:9.5px;">Pacing steady. Volatility telemetry normal.</span>
+      <button type="button" class="btn-reset-streak" id="btn-reset-streak" title="Reset Streak Baseline">Reset</button>
     </div>
   </section>
 

@@ -47,6 +47,11 @@ import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
 import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
 import { detectCashoutTarget, triggerCashoutNavigation, triggerAutoVault } from './cashout-router.js';
+import {
+  installStreakVolatilityTracker,
+  type StreakVolatilityHandle,
+  DEFAULT_STREAK_VOLATILITY_STATE,
+} from './streak-volatility.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -74,6 +79,7 @@ let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
 let profitLock: ProfitLockHandle | null = null;
 let bonusTracker: BonusTrackerHandle | null = null;
 let sessionRadar: SessionVelocityHandle | null = null;
+let streakTracker: StreakVolatilityHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -475,6 +481,13 @@ async function startCoreCircuitBreaker(): Promise<void> {
       sessionRadar = null;
     }
   }
+  if (!streakTracker) {
+    try {
+      streakTracker = installStreakVolatilityTracker(document);
+    } catch {
+      streakTracker = null;
+    }
+  }
 }
 
 async function boot(): Promise<void> {
@@ -583,6 +596,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     case 'reset_session_pnl':
       sendResponse(sessionRadar ? sessionRadar.reset() : null);
+      return true;
+
+    case 'get_streak_volatility_state':
+      sendResponse(streakTracker ? streakTracker.getState() : DEFAULT_STREAK_VOLATILITY_STATE);
+      return true;
+
+    case 'reset_streak_volatility':
+      sendResponse(streakTracker ? streakTracker.reset() : DEFAULT_STREAK_VOLATILITY_STATE);
       return true;
 
     case 'get_cashout_router_state': {
