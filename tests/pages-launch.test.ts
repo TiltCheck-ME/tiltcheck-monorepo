@@ -42,6 +42,8 @@ describe('GitHub Pages launch twin', () => {
     expect(convertMarkdown).toContain("dirHref(depth, 'nudges')");
     expect(convertMarkdown).toContain('buildNudgesPage');
     expect(convertMarkdown).toContain('buildCooldownPage');
+    expect(convertMarkdown).toContain('Terminal Cooldown (No Wallet Needed)');
+    expect(convertMarkdown).not.toContain('Offline Cryptographic Lock');
     expect(convertMarkdown).toContain('buildCasinosPage');
     expect(convertMarkdown).not.toContain('>Touch Grass<');
     expect(convertMarkdown).toContain('>Casinos</a>');

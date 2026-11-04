@@ -581,8 +581,8 @@ function buildAuditedShowcase(auditedCasinos) {
 
 function buildCasinosPage(casinos) {
   const auditedCasinos = casinos.filter((c) => Boolean(c.audited));
-  const categories = [...new Set(casinos.map((c) => c.category))].sort();
-  const cards = casinos
+  const categories = [...new Set(auditedCasinos.map((c) => c.category))].sort();
+  const cards = auditedCasinos
     .map((c) => {
       const isAudited = Boolean(c.audited);
       const keywords = [
@@ -650,7 +650,7 @@ function buildCasinosPage(casinos) {
     })
     .join('\n');
 
-  const filters = ['All', 'Audited', ...categories]
+  const filters = ['All', ...categories]
     .map(
       (cat, i) =>
         '<button type="button" class="filter-chip' + (i === 0 ? ' is-active' : '') + '" data-filter="' + escapeHtml(cat) + '">' + escapeHtml(cat) + (cat === 'Audited' ? ' (' + auditedCasinos.length + ')' : '') + '</button>',
@@ -682,7 +682,7 @@ function buildCasinosPage(casinos) {
       card.hidden = !show;
       if (show) shown += 1;
     });
-    if (count) count.textContent = shown + ' operators';
+    if (count) count.textContent = shown + ' audited operators';
   }
   if (input) input.addEventListener('input', apply);
   chips.forEach(function (chip) {
@@ -700,7 +700,7 @@ function buildCasinosPage(casinos) {
   const content = `${productHero({
     eyebrow: 'Casino trust directory',
     title: 'Look up the operator. Read the proof.',
-    lede: 'Before you deposit, check who you are playing. This page audits ' + casinos.length + ' curated operators with letter grades, verified RTP data, regulatory licenses, and documented red flags. Deep-dive evidence is published below for Stake.us, Stake.com, Roobet, and BC.Game.',
+    lede: 'Before you deposit, check who you are playing. This page audits ' + auditedCasinos.length + ' verified operators with letter grades, verified RTP data, regulatory licenses, and documented red flags. Deep-dive evidence is published below for Stake.us, Stake.com, Roobet, and BC.Game.',
     actionsHtml: '<a class="btn btn-primary" href="' + href('docs', 'index.html') + '">Back home</a>',
   })}
 <main class="product-main">
@@ -713,7 +713,7 @@ function buildCasinosPage(casinos) {
           <input id="casino-search" type="search" placeholder="Search operator name, license, RTP, or provider…" autocomplete="off"/>
         </label>
         <div class="filter-row" role="group" aria-label="Category filters">${filters}</div>
-        <p class="casino-count" id="casino-count">${casinos.length} operators</p>
+        <p class="casino-count" id="casino-count">${auditedCasinos.length} audited operators</p>
       </div>
       <div class="casino-grid">${cards}</div>
     </div>
@@ -760,9 +760,10 @@ function buildCooldownPage() {
           <a class="btn btn-primary" href="${href(depth, 'extension.html')}">Get the extension</a>
         </div>
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Offline Cryptographic Lock (CLI)</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Need an unforgeable cryptographic lock without connecting a wallet? Run our offline CLI suite:</p>
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Terminal Cooldown (No Wallet Needed)</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Don't want to connect a crypto wallet? Set a local break timer directly from your terminal:</p>
           <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
+          <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a tamper-proof self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
         </div>
       </div>
     </div>

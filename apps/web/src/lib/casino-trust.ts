@@ -413,7 +413,9 @@ export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
   },
 ];
 
-export const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map((casino) => {
+export const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[])
+  .filter((casino) => Boolean(casino.audited))
+  .map((casino) => {
   const meta = CASINO_META[casino.name] ?? {};
   const collectClockLink = COLLECTCLOCK_LINKS[casino.name];
   const monitoredDomain = COMMUNITY_DOMAIN_BY_NAME.get(normalizeCasinoName(casino.name)) ?? extractHostname(collectClockLink?.url);
