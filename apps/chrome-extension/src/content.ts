@@ -44,6 +44,7 @@ import { installRealityHud, type RealityHudHandle } from './reality-hud.js';
 import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barrier.js';
 import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } from './reverse-withdrawal-shield.js';
 import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
+import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -69,6 +70,7 @@ let realityHud: RealityHudHandle | null = null;
 let depositBarrier: DepositBarrierHandle | null = null;
 let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
 let profitLock: ProfitLockHandle | null = null;
+let bonusTracker: BonusTrackerHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -283,6 +285,7 @@ function installCoreOptionsListener(): void {
           syncDepositBarrier(opts);
           syncReverseWithdrawalShield(opts);
           syncProfitLock(opts);
+          syncBonusTracker(opts);
 
         });
 
@@ -391,6 +394,24 @@ function syncProfitLock(opts: CoreCircuitBreakerOptions): void {
   }
 }
 
+function syncBonusTracker(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.bonusConfig?.active;
+  if (shouldRun) {
+    if (!bonusTracker) {
+      try {
+        bonusTracker = installBonusTracker(document, opts.bonusConfig);
+      } catch {
+        bonusTracker = null;
+      }
+    } else {
+      bonusTracker.updateConfig(opts.bonusConfig);
+    }
+  } else if (bonusTracker) {
+    bonusTracker.stop();
+    bonusTracker = null;
+  }
+}
+
 function syncPaceLock(enabled: boolean): void {
   if (enabled && !paceLock) {
     paceLock = installSpinPaceLock();
@@ -443,6 +464,7 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncDepositBarrier(opts);
   syncReverseWithdrawalShield(opts);
   syncProfitLock(opts);
+  syncBonusTracker(opts);
 }
 
 async function boot(): Promise<void> {
@@ -534,6 +556,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         floor: profitLock ? profitLock.getFloor() : null,
         softWarningActive: profitLock ? profitLock.isSoftWarningActive() : false,
         hardGuardTriggered: profitLock ? profitLock.isHardGuardTriggered() : false,
+      });
+      return true;
+
+    case 'get_bonus_tracker_state':
+      sendResponse({
+        active: bonusTracker !== null,
+        config: bonusTracker ? bonusTracker.getConfig() : null,
+        progress: bonusTracker ? bonusTracker.getProgress() : null,
       });
       return true;
 

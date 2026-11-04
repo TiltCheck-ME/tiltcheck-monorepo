@@ -225,6 +225,7 @@ The lightweight Manifest V3 browser extension delivers real-time client-side int
 7. **Reality Cashout Goals**: Connects casino chip thresholds directly to tangible bills and essentials (Power bill $250, groceries $120, tank of gas $50, trash bags $14, Spotify $11) with one-click payment links.
 8. **Touch Grass Timeout**: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.
 9. **Stake.us AutoVault**: Performs direct non-custodial vaulting via `https://stake.us/_api/graphql` using existing browser session cookies without third-party API exposure.
+10. **Bonus Playthrough Tracker & Max-Bet Trap Alarm**: Real-time HUD tracking promotional rollover wagering progress, with instant alerts and optional bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit) to prevent bonus forfeiture.
 
 ### Why It Exists
 

@@ -47,7 +47,7 @@ export const INSTALL_MOVES = [
   },
   {
     title: 'Slow the next click',
-    body: 'Chrome on the casino tab. 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, and profit-lock ratchet with reality cashout goals. Sideload zip is live.',
+    body: 'Chrome on the casino tab. 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, and bonus playthrough tracker. Sideload zip is live.',
   },
 ];
 export const INSTALL_STEPS = [
@@ -84,7 +84,7 @@ export const AUTOVAULT_PAGE = {
 };
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, and profit-lock ratchet with reality cashout goals.',
+  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, and bonus playthrough tracker.',
   'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
 ];
@@ -250,6 +250,10 @@ export const EXTENSION_SIGNALS = [
   {
     title: 'Profit-Lock & Reality Goals',
     body: 'Locks a trailing profit floor (50% default) when ahead, backing it with an escalating 60-second brake and real-world utility toasts (bills, rent, gas).',
+  },
+  {
+    title: 'Bonus Tracker & Max-Bet Alarm',
+    body: 'Tracks promotional rollover wagering with an in-page progress HUD and intercepts over-limit stakes before bonus winnings are voided by the operator.',
   },
 ];
 

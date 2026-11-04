@@ -24,6 +24,9 @@ import {
   addGoalToList,
   removeGoalFromList,
   type CashoutGoal,
+  saveBonusTrackerConfig,
+  type BonusTrackerConfig,
+  DEFAULT_BONUS_TRACKER_CONFIG,
   toggleSlugInList,
 } from './popup-settings.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
@@ -478,6 +481,7 @@ function renderSlugRegistry(): void {
 }
 
 let currentGoals: CashoutGoal[] = [];
+let currentBonusConfig: BonusTrackerConfig = { ...DEFAULT_BONUS_TRACKER_CONFIG };
 
 function renderGoalsList(): void {
   const container = document.getElementById('cashout-goals-list');
@@ -609,6 +613,28 @@ async function refreshGuardSettingsUi(): Promise<void> {
   currentGoals = [...(touch.goals || [])];
   renderGoalsList();
 
+  currentBonusConfig = touch.bonusConfig ? { ...touch.bonusConfig } : { ...DEFAULT_BONUS_TRACKER_CONFIG };
+  const bonusToggle = document.getElementById('bonus-tracker-toggle') as HTMLInputElement | null;
+  if (bonusToggle) {
+    bonusToggle.checked = currentBonusConfig.active;
+  }
+  const bonusNameInput = document.getElementById('bonus-name-input') as HTMLInputElement | null;
+  if (bonusNameInput) {
+    bonusNameInput.value = currentBonusConfig.bonusName;
+  }
+  const bonusTargetInput = document.getElementById('bonus-target-wager') as HTMLInputElement | null;
+  if (bonusTargetInput) {
+    bonusTargetInput.value = String(currentBonusConfig.targetWager);
+  }
+  const bonusMaxBetInput = document.getElementById('bonus-max-bet') as HTMLInputElement | null;
+  if (bonusMaxBetInput) {
+    bonusMaxBetInput.value = String(currentBonusConfig.maxBetLimit);
+  }
+  const bonusBlockToggle = document.getElementById('bonus-block-exceeded-toggle') as HTMLInputElement | null;
+  if (bonusBlockToggle) {
+    bonusBlockToggle.checked = currentBonusConfig.blockExceededBets;
+  }
+
   const cooldownStatus = document.getElementById('deposit-cooldown-status');
   if (cooldownStatus) {
     const isCooldown = touch.cooldownActiveUntil > Date.now();
@@ -734,6 +760,48 @@ function initGuardSettingsPanel(): void {
       if (nameInput) nameInput.value = '';
       if (amountInput) amountInput.value = '';
       toast('Goal "' + name + '" added.');
+    });
+  }
+
+  const bonusToggle = document.getElementById('bonus-tracker-toggle') as HTMLInputElement | null;
+  if (bonusToggle) {
+    bonusToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      currentBonusConfig.active = enabled;
+      await saveBonusTrackerConfig(currentBonusConfig);
+      toast(enabled ? 'Bonus playthrough tracker armed.' : 'Bonus playthrough tracker off.');
+    });
+  }
+
+  const bonusSaveBtn = document.getElementById('bonus-save-btn');
+  if (bonusSaveBtn) {
+    bonusSaveBtn.addEventListener('click', async () => {
+      const name = (document.getElementById('bonus-name-input') as HTMLInputElement)?.value.trim() || 'Deposit Bonus';
+      const target = Number((document.getElementById('bonus-target-wager') as HTMLInputElement)?.value) || 1000;
+      const maxBet = Number((document.getElementById('bonus-max-bet') as HTMLInputElement)?.value) || 5;
+      const block = (document.getElementById('bonus-block-exceeded-toggle') as HTMLInputElement)?.checked ?? true;
+
+      currentBonusConfig = {
+        ...currentBonusConfig,
+        active: true,
+        bonusName: name,
+        targetWager: Math.max(10, target),
+        maxBetLimit: Math.max(0.5, maxBet),
+        blockExceededBets: block,
+      };
+
+      if (bonusToggle) bonusToggle.checked = true;
+      await saveBonusTrackerConfig(currentBonusConfig);
+      toast('Bonus tracker armed (' + name + ').');
+    });
+  }
+
+  const bonusResetBtn = document.getElementById('bonus-reset-btn');
+  if (bonusResetBtn) {
+    bonusResetBtn.addEventListener('click', async () => {
+      currentBonusConfig.currentWagered = 0;
+      await saveBonusTrackerConfig(currentBonusConfig);
+      toast('Bonus wagering progress reset to $0.00.');
     });
   }
 

@@ -33,6 +33,10 @@ const coreSignals = [
     title: "Profit-lock & reality goals",
     body: "Locks in a trailing profit floor once you are ahead. Triggers a soft warning escalating to a 60-second brake if unacted upon, plus real-world goal toasts (power bills, groceries, gas) to ground credits in real life.",
   },
+  {
+    title: "Bonus playthrough & max-bet traps",
+    body: "In-page rollover progress HUD tracks promotional wagering targets in real time. Flags max-bet violations (e.g. $5.00 limit) and can intercept clicks before bonus winnings are forfeited.",
+  },
 ];
 
 const notThis = [

@@ -7,6 +7,12 @@
 
 import { TOUCH_GRASS_DURATION_MS } from './touch-grass-timeout.js';
 import {
+  DEFAULT_BONUS_TRACKER_CONFIG,
+  type BonusTrackerConfig,
+  sanitizeBonusConfig,
+  TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
+} from './bonus-tracker.js';
+import {
   DEFAULT_CASHOUT_GOALS,
   type CashoutGoal,
   sanitizeCashoutGoals,
@@ -31,6 +37,8 @@ export const TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY = 'tiltcheck_profit_lock_min_p
 export const TILTCHECK_CASHOUT_GOALS_ENABLED_KEY = 'tiltcheck_cashout_goals_enabled';
 export const TILTCHECK_CASHOUT_GOALS_KEY = 'tiltcheck_cashout_goals';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
+export type { BonusTrackerConfig };
 
 export type RiskProfile = 'conservative' | 'moderate' | 'degen';
 
@@ -59,6 +67,7 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
   TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
   TILTCHECK_CASHOUT_GOALS_KEY,
+  TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
 ] as const;
 
@@ -119,6 +128,7 @@ export interface CoreCircuitBreakerOptions {
   minProfit: number;
   goalsEnabled: boolean;
   goals: CashoutGoal[];
+  bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
 }
 
@@ -155,6 +165,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
       TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
       TILTCHECK_CASHOUT_GOALS_KEY,
+      TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
       TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
       'riskLevel',
     ]);
@@ -224,6 +235,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
     const goalsEnabled = goalsOpt === undefined ? DEFAULT_CASHOUT_GOALS_ENABLED : goalsOpt === true;
 
     const goals = sanitizeCashoutGoals(stored[TILTCHECK_CASHOUT_GOALS_KEY]);
+    const bonusConfig = sanitizeBonusConfig(stored[TILTCHECK_BONUS_TRACKER_CONFIG_KEY]);
 
     const cooldownActiveUntil = typeof stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] === 'number' && Number.isFinite(stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
@@ -253,6 +265,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       minProfit,
       goalsEnabled,
       goals,
+      bonusConfig,
       cooldownActiveUntil,
     };
   } catch {
@@ -272,6 +285,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       minProfit: DEFAULT_MIN_PROFIT,
       goalsEnabled: DEFAULT_CASHOUT_GOALS_ENABLED,
       goals: [...DEFAULT_CASHOUT_GOALS],
+      bonusConfig: { ...DEFAULT_BONUS_TRACKER_CONFIG },
       cooldownActiveUntil: 0,
     };
   }

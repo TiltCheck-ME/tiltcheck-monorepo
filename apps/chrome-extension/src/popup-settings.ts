@@ -39,6 +39,13 @@ import {
 } from './pro/blocked-games-options.js';
 import { GAME_EXCLUSION_CATEGORIES, type GameCategory } from './exclusion-taxonomy.js';
 import { type CashoutGoal, DEFAULT_CASHOUT_GOALS, sanitizeCashoutGoals } from './profit-lock.js';
+import {
+  type BonusTrackerConfig,
+  DEFAULT_BONUS_TRACKER_CONFIG,
+  calculateTargetWager,
+  calculateBonusProgress,
+  saveBonusTrackerConfig as persistBonusConfig,
+} from './bonus-tracker.js';
 
 export const RISK_MIN = 50;
 export const RISK_MAX = 100;
@@ -62,6 +69,7 @@ export interface TouchGrassUiState {
   minProfit: number;
   goalsEnabled: boolean;
   goals: CashoutGoal[];
+  bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
 }
 
@@ -87,6 +95,7 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     minProfit: opts.minProfit,
     goalsEnabled: opts.goalsEnabled,
     goals: opts.goals,
+    bonusConfig: opts.bonusConfig,
     cooldownActiveUntil: opts.cooldownActiveUntil,
   };
 }
@@ -143,6 +152,10 @@ export function toggleGoalInList(goals: readonly CashoutGoal[], goalId: string):
 
 export function addGoalToList(goals: readonly CashoutGoal[], newGoal: CashoutGoal): CashoutGoal[] {
   return [...goals, newGoal];
+}
+
+export async function saveBonusTrackerConfig(config: BonusTrackerConfig): Promise<void> {
+  await persistBonusConfig(config);
 }
 
 export function removeGoalFromList(goals: readonly CashoutGoal[], goalId: string): CashoutGoal[] {
@@ -244,5 +257,6 @@ export function riskLabel(threshold: number): string {
 }
 
 export { DEFAULT_RISK_THRESHOLD, DEFAULT_TOUCH_GRASS_DURATION_MS };
-export type { CoreCircuitBreakerOptions, CashoutGoal };
+export type { CoreCircuitBreakerOptions, CashoutGoal, BonusTrackerConfig };
+export { DEFAULT_BONUS_TRACKER_CONFIG, calculateTargetWager, calculateBonusProgress };
 export { DEFAULT_CASHOUT_GOALS };

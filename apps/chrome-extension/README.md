@@ -128,7 +128,7 @@ Full redirect URI list, popup wiring, and failure cases: [docs/discord-oauth.md]
 
 ## Version
 
-**Current Version:** 1.2.2 (see `manifest.json`)
+**Current Version:** 1.2.3 (see `manifest.json`)
 
 ---
 

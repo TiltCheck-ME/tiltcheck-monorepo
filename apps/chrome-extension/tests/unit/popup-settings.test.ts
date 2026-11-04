@@ -55,6 +55,9 @@ describe('popup-settings helpers', () => {
       toggleGoalInList,
       addGoalToList,
       removeGoalFromList,
+      saveBonusTrackerConfig,
+      calculateTargetWager,
+      calculateBonusProgress,
     } = await import('../../src/popup-settings.js');
     (globalThis as unknown as { chrome: unknown }).chrome = {
       storage: {
@@ -115,5 +118,19 @@ describe('popup-settings helpers', () => {
     const removed = removeGoalFromList(added, 'electric');
     expect(removed).toHaveLength(1);
     expect(removed[0]?.id).toBe('water');
+
+    const bonusCfg = {
+      active: true,
+      bonusName: 'Match Bonus',
+      targetWager: 3500,
+      currentWagered: 500,
+      maxBetLimit: 5,
+      blockExceededBets: true,
+    };
+    await saveBonusTrackerConfig(bonusCfg);
+    expect(storage['tiltcheck_bonus_tracker_config']).toEqual(bonusCfg);
+
+    expect(calculateTargetWager(100, 100, 35)).toBe(7000);
+    expect(calculateBonusProgress(500, 1000).percent).toBe(50);
   });
 });

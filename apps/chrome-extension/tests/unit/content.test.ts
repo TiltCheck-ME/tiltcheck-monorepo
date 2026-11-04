@@ -295,5 +295,13 @@ describe('core content script contracts', () => {
         peak: expect.any(Number),
       })
     );
+
+    const bonusResponse = vi.fn();
+    listeners[0]!({ type: 'get_bonus_tracker_state' }, null, bonusResponse);
+    expect(bonusResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+      })
+    );
   });
 });

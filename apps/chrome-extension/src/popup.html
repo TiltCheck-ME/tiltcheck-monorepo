@@ -880,6 +880,41 @@
     </div>
   </section>
 
+  <section class="guard-panel" id="bonus-tracker-panel">
+    <h3>Bonus Playthrough & Traps</h3>
+    <p class="guard-policy">
+      Tracks promotional rollover in real time and intercepts bets over the maximum bonus limit before the house voids your payout.
+    </p>
+    <label class="guard-opt-row" for="bonus-tracker-toggle">
+      <input type="checkbox" id="bonus-tracker-toggle" />
+      <span>Track bonus wagering and enforce max-bet limits.</span>
+    </label>
+    <div id="bonus-tracker-controls" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+      <div class="form-row">
+        <label for="bonus-name-input">Bonus Name</label>
+        <input type="text" id="bonus-name-input" placeholder="e.g. 100% Welcome Match" style="background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-size:11px;" />
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div class="form-row" style="flex:1;">
+          <label for="bonus-target-wager">Target Wager ($)</label>
+          <input type="number" id="bonus-target-wager" min="10" step="10" placeholder="1000" style="background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-size:11px;" />
+        </div>
+        <div class="form-row" style="flex:1;">
+          <label for="bonus-max-bet">Max Bet Limit ($)</label>
+          <input type="number" id="bonus-max-bet" min="0.5" step="0.5" placeholder="5" style="background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-size:11px;" />
+        </div>
+      </div>
+      <label class="guard-opt-row" for="bonus-block-exceeded-toggle" style="margin-top:2px;">
+        <input type="checkbox" id="bonus-block-exceeded-toggle" checked />
+        <span style="font-size:11px;">Physically block spin button if stake exceeds max bet limit.</span>
+      </label>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <button type="button" id="bonus-save-btn" class="icon-btn" style="flex:1; width:auto; padding:6px 10px; font-size:11px; font-weight:700; background:rgba(23,195,178,0.15); color:#17c3b2; border:1px solid #17c3b2;">Save & Arm</button>
+        <button type="button" id="bonus-reset-btn" class="icon-btn" style="width:auto; padding:6px 10px; font-size:11px;">Reset</button>
+      </div>
+    </div>
+  </section>
+
   <section class="guard-panel" id="strategic-filter-panel">
     <h3>Strategic Filters</h3>
     <p class="guard-policy">
