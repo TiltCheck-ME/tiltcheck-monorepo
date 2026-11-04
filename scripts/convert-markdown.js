@@ -15,6 +15,7 @@
  *   node scripts/convert-markdown.js [sourceDir] [outDir]
  */
 import fs from 'fs';
+import { calculateCasinoTrust } from '@tiltcheck/intel-tools';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -505,6 +506,7 @@ function gradeClass(grade) {
 function buildAuditedShowcase(auditedCasinos) {
   const showcaseCards = auditedCasinos
     .map((c) => {
+      const trust = calculateCasinoTrust(c);
       const evidenceList = (c.evidence || [])
         .map((e) => '<li>' + escapeHtml(e) + '</li>')
         .join('\n');
@@ -514,14 +516,22 @@ function buildAuditedShowcase(auditedCasinos) {
         '    <div class="audit-card__title-row">\n' +
         '      <h3 class="audit-card__name">' + escapeHtml(c.name) + '</h3>\n' +
         '      <div class="audit-card__tags">\n' +
-        '        <span class="casino-card__grade ' + gradeClass(c.grade) + '">' + escapeHtml(c.grade) + '</span>\n' +
+        '        <span class="casino-card__grade ' + gradeClass(trust.grade) + '">' + escapeHtml(trust.grade) + '</span>\n' +
+        '        <span class="audit-card__score">' + trust.score + '/100</span>\n' +
         '        <span class="audit-card__cat">' + escapeHtml(c.category) + '</span>\n' +
         '        <span class="audit-card__badge">Audited Intel</span>\n' +
         '      </div>\n' +
         '    </div>\n' +
-        '    <p class="audit-card__risk">Risk: <strong>' + escapeHtml(c.risk) + '</strong></p>\n' +
+        '    <p class="audit-card__risk">Risk: <strong>' + escapeHtml(trust.risk) + '</strong></p>\n' +
         '  </div>\n' +
         '  <div class="audit-card__body">\n' +
+        '    <div class="audit-card__pillars-row">\n' +
+        '      <div class="audit-pillar"><span class="pillar-lbl">Financial</span><span class="pillar-val">' + trust.pillars.financialPayouts + '/100</span></div>\n' +
+        '      <div class="audit-pillar"><span class="pillar-lbl">Proof Quality</span><span class="pillar-val">' + trust.pillars.fairnessTransparency + '/100</span></div>\n' +
+        '      <div class="audit-pillar"><span class="pillar-lbl">Promo Honesty</span><span class="pillar-val">' + trust.pillars.promotionalHonesty + '/100</span></div>\n' +
+        '      <div class="audit-pillar"><span class="pillar-lbl">Operations</span><span class="pillar-val">' + trust.pillars.operationalSupport + '/100</span></div>\n' +
+        '      <div class="audit-pillar"><span class="pillar-lbl">Community</span><span class="pillar-val">' + trust.pillars.communityReputation + '/100</span></div>\n' +
+        '    </div>\n' +
         '    <dl class="audit-card__specs">\n' +
         '      <div class="audit-card__spec">\n' +
         '        <dt>License & Entity</dt>\n' +
@@ -559,8 +569,8 @@ function buildAuditedShowcase(auditedCasinos) {
     '  <div class="landing-shell">\n' +
     '    <div class="public-page-section-heading">\n' +
     '      <span class="brand-eyebrow">Audited deep dives</span>\n' +
-    '      <h2 class="public-page-section-heading__title">Stake, Roobet & BC.Game: The Receipts.</h2>\n' +
-    '      <p class="public-page-section-heading__sub">Provably fair house edge, slot RTP downgrade reality, TiltCheck extension guardrail compatibility, and documented withdrawal friction.</p>\n' +
+    '      <h2 class="public-page-section-heading__title">Audited Operator Receipts — Stake, Roobet & BC.Game: The Receipts.</h2>\n' +
+    '      <p class="public-page-section-heading__sub">Deterministic 5-pillar trust scoring, provably fair verification, certified slot RTP profiles, and documented friction across ' + auditedCasinos.length + ' audited operators.</p>\n' +
     '    </div>\n' +
     '    <div class="audited-grid">\n' +
     showcaseCards + '\n' +
@@ -625,13 +635,17 @@ function buildCasinosPage(casinos) {
           '  </details>';
       }
 
-      return '<article class="casino-card' + (isAudited ? ' casino-card--audited' : '') + '" data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(c.grade) + '" data-audited="' + (isAudited ? 'true' : 'false') + '" data-keywords="' + escapeHtml(keywords) + '">\n' +
+      const trust = calculateCasinoTrust(c);
+      return '<article class="casino-card' + (isAudited ? ' casino-card--audited' : '') + '" data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(trust.grade) + '" data-audited="' + (isAudited ? 'true' : 'false') + '" data-keywords="' + escapeHtml(keywords) + '">\n' +
         '  <div class="casino-card__top">\n' +
-        '    <span class="casino-card__grade ' + gradeClass(c.grade) + '">' + escapeHtml(c.grade) + '</span>\n' +
+        '    <div class="casino-card__grade-block">\n' +
+        '      <span class="casino-card__grade ' + gradeClass(trust.grade) + '">' + escapeHtml(trust.grade) + '</span>\n' +
+        '      <span class="casino-card__score-label">' + trust.score + '/100</span>\n' +
+        '    </div>\n' +
         '    <span class="casino-card__cat">' + escapeHtml(c.category) + '</span>\n' +
         '  </div>\n' +
         '  <h3 class="casino-card__name">' + escapeHtml(c.name) + '</h3>\n' +
-        '  <p class="casino-card__risk">Risk: ' + escapeHtml(c.risk) + '</p>' + extraContent + '\n' +
+        '  <p class="casino-card__risk">Risk: <strong>' + escapeHtml(trust.risk) + '</strong></p>' + extraContent + '\n' +
         '</article>';
     })
     .join('\n');

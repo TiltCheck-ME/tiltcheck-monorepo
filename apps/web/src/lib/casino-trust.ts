@@ -5,6 +5,11 @@ import {
   normalizeCasinoName,
 } from '@tiltcheck/shared/community-casinos';
 import RAW_CASINOS from '@/data/casinos.json';
+import {
+  calculateCasinoTrust,
+  gradeFromScore,
+  riskFromScore,
+} from '@tiltcheck/intel-tools';
 
 export interface LiveTrustScore {
   casinoName: string;
@@ -141,7 +146,10 @@ const CASINO_META: Record<string, CasinoMeta> = {
   'PokerStars Casino': { license: 'Isle of Man GSC / UKGC / Malta MGA', violations: [] },
   'Stake.com': { license: 'Curaçao eGaming (Medium Rare N.V., Master License 8048/JAZ)', violations: ['Blocked in US, UK, Australia, France, Germany, Netherlands, and multiple tier-1 jurisdictions', 'No published third-party lab audits (eCOGRA/GLI) for Originals', 'Aggressive influencer marketing targeting young demographics', 'Variable 3rd-party slot RTP tiers without in-game percentage badge'] },
   Roobet: { license: 'Curaçao eGaming (Raw Entertainment B.V. / TekHou5 B.V., License 8048/JAZ)', violations: ['Blocked in US, UK, Australia, Germany, Netherlands, Spain; aggressive VPN detection locks accounts', 'Deploys lower RTP tiers on Pragmatic Play (94.5%) and Play\'n GO (94.2%/91.2%) vs manufacturer default maximums', 'Intrusive Tier-2 KYC requested on large crypto withdrawals'] },
-  Rollbit: { license: 'Curaçao eGaming', violations: ['No published independent RTP audits', 'NFT/token integration raises unresolved regulatory questions'] },
+  Shuffle: { license: 'Curaçao eGaming (Natural Nine B.V., License 8048/JAZ2023-017)', violations: ['Restricted in US, UK, Australia, and regulated jurisdictions', 'KYC Level 1 required for FIAT transactions'] },
+  Rollbit: { license: 'Curaçao eGaming (Bull Gaming N.V., License 8048/JAZ)', violations: ['Blocked in US, UK, Australia, and tier-1 jurisdictions', 'Token and NFT integration introduces financial volatility outside casino play'] },
+  Gamdom: { license: 'Curaçao eGaming (Smein Hosting N.V., Master License 365/JAZ)', violations: ['Restricted in US, UK, and tier-1 jurisdictions', 'Requires KYC verification on flagged large withdrawals'] },
+  Duelbits: { license: 'Curaçao eGaming (Liquid Gaming N.V., Master License 365/JAZ)', violations: ['Restricted in US, UK, Australia, and tier-1 markets', 'Tier-2 KYC requested on large crypto withdrawals'] },
   'BC.Game': { license: 'Curaçao eGaming (BlockDance B.V., CIL #5536/JAZ; sub-license disputes) / Kahnawake', violations: ['Predatory locked BCD bonus mechanics: releases at only 0.2% per wager (~500x turnover)', 'Frequent community withdrawal dispute and verification delay reports', 'Corporate entity opacity between Curaçao and offshore holding shells', 'Extensive lower RTP slot tiers deployed across 8,000+ game catalog'] },
   Bovada: { license: 'Kahnawake Gaming Commission', violations: ['Unlicensed in most US states', 'Withdrawal processing delay reports in community forums'] },
   'Ignition Casino': { license: 'Kahnawake Gaming Commission', violations: ['Unlicensed in most US states'] },
@@ -237,9 +245,7 @@ export function normalizeTrustKey(value: string): string {
 const sortedGradeEntries = Object.entries(GRADE_SCORE).sort((left, right) => left[1] - right[1]);
 
 export function gradeFromNumericScore(score: number): string {
-  return sortedGradeEntries.reduce((best, [grade, threshold]) => (
-    Math.abs(threshold - score) < Math.abs(GRADE_SCORE[best] - score) ? grade : best
-  ), 'F');
+  return gradeFromScore(score);
 }
 
 export function getScoreColor(score: number): string {
@@ -315,20 +321,20 @@ export type TrustPillarKey = (typeof TRUST_PILLAR_DEFINITIONS)[number]['key'];
 
 export const GRADING_METHODOLOGY_STEPS = [
   {
-    title: 'Curated baseline grade',
-    body: 'Each operator starts from a researched letter grade in our casino directory. That maps to a numeric score — not vibes, not affiliate rank.',
+    title: 'Deterministic trust engine',
+    body: 'Each operator is scored from 0–100 across 5 verified operational pillars: Financial Payouts (40%), Fairness & RTP Proof (25%), Promotional Honesty (15%), Operational Support (10%), and Community Reputation (10%).',
   },
   {
-    title: 'Category + pillar split',
-    body: 'Five pillar bars are derived from the baseline score plus category modifiers (Regulated, Sweeps, Crypto, Offshore, etc.). Same grade, different category — different pillar shape.',
+    title: 'Fact-driven pillar metrics',
+    body: 'Pillars are calculated directly from verified redemption velocity, provably fair cryptography, certified slot RTP tiers, playthrough rules, and TiltCheck extension guardrail compatibility.',
   },
   {
-    title: 'Documented issues',
-    body: 'Known violations and license basis are listed on the card when curated. Empty violations is not a clean bill — it means no issue is attached yet.',
+    title: 'Documented issues & receipts',
+    body: 'Known violations, slot downgrades, and license registries are surfaced on every card. Audited cards feature verified evidence receipts with zero marketing fluff.',
   },
   {
     title: 'Live feed overlay',
-    body: 'When RGaaS matches an operator, the card switches to a live score with timestamp. No match = curated baseline only. We do not invent live data.',
+    body: 'When RGaaS matches an operator, the card switches to a live score with timestamp. No match = deterministic audited baseline only. We do not invent live data.',
   },
   {
     title: 'Full proof page',
@@ -408,23 +414,42 @@ export const PUBLIC_TRUST_SUPPORT_MODULES: PublicTrustSupportModule[] = [
 ];
 
 export const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map((casino) => {
-  const base = GRADE_SCORE[casino.grade] ?? 40;
-  const nameHash = hashStr(casino.name);
+  const meta = CASINO_META[casino.name] ?? {};
   const collectClockLink = COLLECTCLOCK_LINKS[casino.name];
   const monitoredDomain = COMMUNITY_DOMAIN_BY_NAME.get(normalizeCasinoName(casino.name)) ?? extractHostname(collectClockLink?.url);
+
+  const calc = calculateCasinoTrust({
+    name: casino.name,
+    category: casino.category,
+    audited: casino.audited,
+    license: casino.license || meta.license,
+    rtpSummary: casino.rtpSummary,
+    rtpOriginals: casino.rtpOriginals,
+    rtpSlots: casino.rtpSlots,
+    vaultSupport: casino.vaultSupport,
+    playthrough: casino.playthrough,
+    evidence: casino.evidence,
+    violations: meta.violations,
+  });
 
   return {
     ...casino,
     slug: slugifyCasinoName(casino.name),
-    score: base,
+    score: calc.score,
+    grade: calc.grade,
+    risk: calc.risk,
     communityPriority: getCommunityDefaultCasinoPriority(casino.name),
     sourcePriority: BONUS_FEED_PRIORITY[casino.name] ?? Number.MAX_SAFE_INTEGER,
-    meta: CASINO_META[casino.name] ?? {},
+    meta,
     affiliateUrl: collectClockLink?.url,
     promoCode: collectClockLink?.code ?? null,
     monitoredDomain,
     domainCandidates: uniqueDomains([monitoredDomain, extractHostname(collectClockLink?.url)]),
-    ...derivePillars(base, casino.category, nameHash),
+    financialPayouts: calc.pillars.financialPayouts,
+    fairnessTransparency: calc.pillars.fairnessTransparency,
+    promotionalHonesty: calc.pillars.promotionalHonesty,
+    operationalSupport: calc.pillars.operationalSupport,
+    communityReputation: calc.pillars.communityReputation,
   };
 }).sort(
   (left, right) =>

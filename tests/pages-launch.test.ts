@@ -65,7 +65,7 @@ describe('GitHub Pages launch twin', () => {
     }
   });
 
-  it('renders audited evidence and RTP profiles for Stake, Roobet, and BC.Game', () => {
+  it('renders audited evidence and RTP profiles for Stake, Roobet, BC.Game, Shuffle, and audited operators', () => {
     expect(convertMarkdown).toContain('buildAuditedShowcase');
     expect(convertMarkdown).toContain('Stake, Roobet & BC.Game: The Receipts.');
     expect(convertMarkdown).toContain('data-audited');
@@ -75,16 +75,24 @@ describe('GitHub Pages launch twin', () => {
     );
     const audited = casinosData.filter((c: any) => c.audited);
     expect(audited.map((c: any) => c.name)).toEqual([
+      'Chumba Casino',
+      'Pulsz',
+      'WOW Vegas',
+      'High 5 Casino',
       'Stake.us',
       'Roobet',
       'Stake.com',
+      'Rollbit',
+      'Gamdom',
       'BC.Game',
+      'Shuffle',
+      'Duelbits',
     ]);
 
     for (const c of audited) {
       expect(c.license).toBeTruthy();
       expect(c.rtpSummary).toMatch(/RTP/i);
-      expect(c.rtpOriginals).toMatch(/99\.00%|97\.00%/);
+      expect(c.rtpOriginals).toMatch(/99\.00%|97\.00%|99\.50%|95\.50%/);
       expect(c.rtpSlots).toBeTruthy();
       expect(c.evidence.length).toBeGreaterThanOrEqual(4);
       expect(c.vaultSupport).toBeTruthy();

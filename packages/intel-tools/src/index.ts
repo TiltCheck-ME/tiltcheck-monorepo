@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 
 export type {
   CasinoRecord,
@@ -47,4 +47,20 @@ export type {
   OperatorFactType,
   VipCurrencyAnswer,
 } from './operator-facts.js';
+export {
+  calculateCasinoTrust,
+  calculateCommunityReputation,
+  calculateFairnessTransparency,
+  calculateFinancialPayouts,
+  calculateOperationalSupport,
+  calculatePromotionalHonesty,
+  gradeFromScore,
+  riskFromScore,
+} from './calculator.js';
+export type {
+  CasinoPillars,
+  CasinoTrustCalculation,
+  CasinoTrustInput,
+  PillarBreakdownItem,
+} from './calculator.js';
 export { IntelTools, createIntelTools, toCasinoSummary } from './tools.js';
