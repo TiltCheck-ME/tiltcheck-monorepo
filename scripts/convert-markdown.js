@@ -358,9 +358,9 @@ function buildRootLanding() {
     <h2 class="landing-moves__title">${escapeHtml(INSTALL_TITLE)}</h2>
     <ol class="landing-moves__list">${moves}</ol>
   </section>
-  <section class="landing-brakes" aria-label="The 4 In-Session Brakes">
+  <section class="landing-brakes" aria-label="The In-Session Brakes & Guards">
     <p class="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
-    <h2 class="landing-brakes__title">THE 4 IN-SESSION BRAKES</h2>
+    <h2 class="landing-brakes__title">THE IN-SESSION BRAKES &amp; GUARDS</h2>
     <ul class="landing-brakes__list">${brakes}</ul>
     <div class="landing-calc">
       <div class="landing-calc__inputs">

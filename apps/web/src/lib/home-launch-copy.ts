@@ -33,7 +33,7 @@ export const HOME_LAUNCH = {
     },
     {
       title: 'Slow the next click',
-      body: 'Chrome on the casino tab. 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, and one-click cashout router. Sideload zip is live.',
+      body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Sideload zip is live.',
     },
   ] as const,
   hud: {
@@ -51,7 +51,7 @@ export const HOME_LAUNCH = {
   } as const,
   honesty: [
     'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, and one-click cashout router.',
+    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
     'Browser filters are your list. Not an operator account close. Turn the extension off and play continues.',
     'AutoVault is two casinos. We do not fake a vault button everywhere.',
   ],
@@ -119,5 +119,11 @@ export const CORE_BRAKES = [
     title: "In-Session Auto-Vaulting",
     body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
     status: "Non-custodial safe deposits",
+  },
+  {
+    num: "11",
+    title: "Session Win-Streak & Volatility Spotter",
+    body: "Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ('I'm Due') stake escalations with immediate Cashier exit ramps before tilt sets in.",
+    status: "Live streak & fallacy telemetry",
   },
 ];
