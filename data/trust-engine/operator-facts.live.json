@@ -5,28 +5,32 @@
       "slug": "chumba-casino",
       "name": "Chumba Casino",
       "category": "Sweeps",
-      "domains": ["chumbacasino.com"],
+      "domains": [
+        "chumbacasino.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Standard EFT redemptions take 24-72 hours to approve and 1-3 business days to clear.",
         "sourceUrl": "https://www.chumbacasino.com/terms-and-conditions",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 72
       },
       "welcomeBonusSummary": {
         "summary": "2,000,000 Gold Coins and 2 Sweeps Coins free on sign-up.",
         "sourceUrl": "https://www.chumbacasino.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "global-poker",
       "name": "Global Poker",
       "category": "Sweeps",
-      "domains": ["globalpoker.com"],
+      "domains": [
+        "globalpoker.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Prize redemptions process within 24-48 hours once account verification is complete.",
@@ -47,7 +51,9 @@
       "slug": "luckyland-slots",
       "name": "LuckyLand Slots",
       "category": "Sweeps",
-      "domains": ["luckylandslots.com"],
+      "domains": [
+        "luckylandslots.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Electronic gift card redemption within 24 hours, bank transfers 48-120 hours.",
@@ -68,19 +74,21 @@
       "slug": "pulsz",
       "name": "Pulsz",
       "category": "Sweeps",
-      "domains": ["pulsz.com"],
+      "domains": [
+        "pulsz.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Skrill redemptions process within 24 hours, bank transfers take 2-5 business days.",
-        "sourceUrl": "https://www.pulsz.com/terms-of-use",
-        "asOf": "2026-10-14",
+        "claim": "Redemptions via online banking take 24-48 hours; gift card redemptions process within 24 hours.",
+        "sourceUrl": "https://www.pulsz.com/terms-and-conditions",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 120
+        "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "5,000 Gold Coins and 2.3 free Sweeps Coins welcome bonus.",
+        "summary": "5,000 Gold Coins and 2.3 Sweepstakes Coins upon completed registration.",
         "sourceUrl": "https://www.pulsz.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
       "vipCurrencyRules": [
         {
@@ -91,68 +99,74 @@
           "asOf": "2026-10-14"
         }
       ],
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "wow-vegas",
       "name": "WOW Vegas",
       "category": "Sweeps",
-      "domains": ["wowvegas.com"],
+      "domains": [
+        "wowvegas.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Trustly and Skrill redemptions process within 24 to 48 hours for verified profiles.",
+        "claim": "Prize redemptions process within 24-48 hours following identity verification.",
         "sourceUrl": "https://www.wowvegas.com/terms-and-conditions",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "1,750,000 WOW Coins plus 35 free Sweeps Coins across initial sign-up and purchase.",
+        "summary": "250,000 WOW Coins and 5 free Sweepstakes Coins across the first 3 days.",
         "sourceUrl": "https://www.wowvegas.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "high-5-casino",
       "name": "High 5 Casino",
       "category": "Sweeps",
-      "domains": ["high5casino.com"],
+      "domains": [
+        "high5casino.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Prize redemptions process within 24-72 hours via Checkbook or gift card options.",
-        "sourceUrl": "https://high5casino.com/terms",
-        "asOf": "2026-10-14",
+        "claim": "Prize redemptions via Trustly or PayPal process in 24-48 hours; gift cards in 1-24 hours.",
+        "sourceUrl": "https://high5casino.com/terms-and-conditions",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 72
+        "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "5 Sweeps Coins, 250 Game Coins, and 600 Diamonds on sign-up.",
+        "summary": "250 Game Coins, 5 Sweeps Coins, and 600 Diamonds upon account creation.",
         "sourceUrl": "https://high5casino.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "stake-us",
       "name": "Stake.us",
       "category": "Sweeps",
-      "domains": ["stake.us"],
+      "domains": [
+        "stake.us"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Crypto redemptions process instantly to under 2 hours on verified accounts.",
+        "claim": "Crypto redemptions (BTC, ETH, LTC, USDT, DOGE) typically approve and clear within 10-60 minutes.",
         "sourceUrl": "https://stake.us/terms",
-        "asOf": "2026-10-14",
-        "minHours": 0,
+        "asOf": "2026-11-04",
+        "minHours": 1,
         "maxHours": 2
       },
       "welcomeBonusSummary": {
-        "summary": "Daily 1 Stake Cash plus 10,000 Gold Coins faucet on login.",
+        "summary": "250,000 Gold Coins and $25 Stake Cash upon verified sign-up.",
         "sourceUrl": "https://stake.us",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
       "vipCurrencyRules": [
         {
@@ -163,98 +177,108 @@
           "asOf": "2026-10-14"
         }
       ],
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "mcluck",
       "name": "McLuck",
       "category": "Sweeps",
-      "domains": ["mcluck.com"],
+      "domains": [
+        "mcluck.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Gift card redemption clears in 24 hours, bank transfers 48-96 hours.",
+        "claim": "Prize redemptions process within 24-72 hours via EFT bank transfer or digital gift cards.",
         "sourceUrl": "https://www.mcluck.com/terms-and-conditions",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 96
+        "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "7,500 Gold Coins and 2.5 free Sweeps Coins on registration.",
+        "summary": "7,500 Gold Coins and 2.5 Sweepstakes Coins free on sign-up.",
         "sourceUrl": "https://www.mcluck.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "fortune-coins",
       "name": "Fortune Coins",
       "category": "Sweeps",
-      "domains": ["fortunecoins.com"],
+      "domains": [
+        "fortunecoins.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Redemptions approve within 24-48 hours, bank clearance within 3-5 business days.",
+        "claim": "Bank transfers typically approve and clear within 24-72 hours via Trustly online banking or Skrill.",
         "sourceUrl": "https://www.fortunecoins.com/terms-of-use",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 120
+        "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "Up to 630,000 Gold Coins and 1,400 Fortune Coins (100 FC = $1) over the welcome journey.",
+        "summary": "140,000 Gold Coins and 500 Fortune Coins ($5.00 value) free on registration.",
         "sourceUrl": "https://www.fortunecoins.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "hello-millions",
       "name": "Hello Millions",
       "category": "Sweeps",
-      "domains": ["hellomillions.com"],
+      "domains": [
+        "hellomillions.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Card and gift card redemptions take 24-48 hours, bank wires take 3-5 business days.",
-        "sourceUrl": "https://www.hellomillions.com/terms",
-        "asOf": "2026-10-14",
+        "claim": "Prize redemptions process within 24-72 business hours via EFT bank deposit or digital gift vouchers.",
+        "sourceUrl": "https://www.hellomillions.com/terms-and-conditions",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 120
+        "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "15,000 Gold Coins and 2.5 Sweeps Coins free on sign-up.",
+        "summary": "15,000 Gold Coins and 2.5 Sweepstakes Coins on sign-up.",
         "sourceUrl": "https://www.hellomillions.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "modo-casino",
       "name": "Modo Casino",
       "category": "Sweeps",
-      "domains": ["modocasino.com", "modo.us"],
+      "domains": [
+        "modo.us"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Standard debit and bank transfer redemptions clear within 24-72 hours.",
+        "claim": "ACH online banking transfers process within 24-48 hours; debit card cashouts supported.",
         "sourceUrl": "https://modo.us/terms",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 72
+        "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "20,000 Gold Coins and 1 Sweeps Coin immediately on completion of profile.",
+        "summary": "20,000 Gold Coins and 1 Sweeps Coin free on sign-up.",
         "sourceUrl": "https://modo.us",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "myprize-us",
       "name": "MyPrize US",
       "category": "Sweeps",
-      "domains": ["myprize.us"],
+      "domains": [
+        "myprize.us"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Crypto and bank redemptions process in 12-48 hours.",
@@ -275,28 +299,32 @@
       "slug": "crown-coins-casino",
       "name": "Crown Coins Casino",
       "category": "Sweeps",
-      "domains": ["crowncoinscasino.com"],
+      "domains": [
+        "crowncoinscasino.com"
+      ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Skrill and instant banking redemptions process within 24-48 hours.",
-        "sourceUrl": "https://crowncoinscasino.com/terms",
-        "asOf": "2026-10-14",
+        "claim": "Skrill and Instant ACH options process within 24-48 hours.",
+        "sourceUrl": "https://crowncoinscasino.com/terms-and-conditions",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "100,000 Crown Coins and 2 Sweeps Coins upon email verification.",
+        "summary": "100,000 Crown Coins and 2 Sweeps Coins free on sign-up.",
         "sourceUrl": "https://crowncoinscasino.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "funrize",
       "name": "Funrize",
       "category": "Sweeps",
-      "domains": ["funrize.com"],
+      "domains": [
+        "funrize.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Prize redemptions process within 24-48 hours via electronic bank transfer.",
@@ -317,7 +345,9 @@
       "slug": "zula-casino",
       "name": "Zula Casino",
       "category": "Sweeps",
-      "domains": ["zulacasino.com"],
+      "domains": [
+        "zulacasino.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Bank transfer redemptions clear in 24 to 72 hours for verified patrons.",
@@ -338,7 +368,9 @@
       "slug": "real-prize",
       "name": "Real Prize",
       "category": "Sweeps",
-      "domains": ["realprize.com"],
+      "domains": [
+        "realprize.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Prize redemptions process in 24-72 hours via ACH or cards.",
@@ -359,7 +391,9 @@
       "slug": "jackpota",
       "name": "Jackpota",
       "category": "Sweeps",
-      "domains": ["jackpota.com"],
+      "domains": [
+        "jackpota.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Gift card redemption clears in 24 hours, bank transfers in 48-96 hours.",
@@ -380,7 +414,9 @@
       "slug": "nolimitcoins",
       "name": "NoLimitCoins",
       "category": "Sweeps",
-      "domains": ["nolimitcoins.com"],
+      "domains": [
+        "nolimitcoins.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Direct bank transfer redemptions clear in 24 to 72 hours.",
@@ -401,7 +437,9 @@
       "slug": "rolla",
       "name": "Rolla",
       "category": "Sweeps",
-      "domains": ["rolla.com"],
+      "domains": [
+        "rolla.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Redemptions review within 24 hours, payment dispatch within 1-3 business days.",
@@ -422,7 +460,9 @@
       "slug": "roobet",
       "name": "Roobet",
       "category": "Crypto",
-      "domains": ["roobet.com"],
+      "domains": [
+        "roobet.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "On-chain crypto withdrawals execute within minutes to 1 hour depending on network congestion.",
@@ -447,7 +487,9 @@
       "slug": "bitcasino-io",
       "name": "Bitcasino.io",
       "category": "Crypto",
-      "domains": ["bitcasino.io"],
+      "domains": [
+        "bitcasino.io"
+      ],
       "status": "live",
       "welcomeBonusSummary": {
         "summary": "20% cashback up to 10,000 USDT on first 7 days of play.",
@@ -470,7 +512,9 @@
       "slug": "sportsbet-io",
       "name": "Sportsbet.io",
       "category": "Crypto",
-      "domains": ["sportsbet.io"],
+      "domains": [
+        "sportsbet.io"
+      ],
       "status": "live",
       "welcomeBonusSummary": {
         "summary": "Clubhouse welcome boost and weekly price boost tokens.",
@@ -493,7 +537,9 @@
       "slug": "stake-com",
       "name": "Stake.com",
       "category": "Crypto",
-      "domains": ["stake.com"],
+      "domains": [
+        "stake.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Automated instant on-chain withdrawals typically settle within 5 to 15 minutes.",
@@ -518,7 +564,9 @@
       "slug": "rollbit",
       "name": "Rollbit",
       "category": "Crypto",
-      "domains": ["rollbit.com"],
+      "domains": [
+        "rollbit.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Instant crypto withdrawals across BTC, ETH, SOL, and LTC networks.",
@@ -543,7 +591,9 @@
       "slug": "fortunejack",
       "name": "FortuneJack",
       "category": "Crypto",
-      "domains": ["fortunejack.com"],
+      "domains": [
+        "fortunejack.com"
+      ],
       "status": "live",
       "welcomeBonusSummary": {
         "summary": "Up to 6 BTC or 1,200 USD welcome package across first four deposits plus 250 free spins.",
@@ -566,7 +616,9 @@
       "slug": "cloudbet",
       "name": "Cloudbet",
       "category": "Crypto",
-      "domains": ["cloudbet.com"],
+      "domains": [
+        "cloudbet.com"
+      ],
       "status": "live",
       "welcomeBonusSummary": {
         "summary": "100% matched deposit bonus up to 5 BTC/ETH/USDT released in increments as points are earned.",
@@ -589,7 +641,9 @@
       "slug": "gamdom",
       "name": "Gamdom",
       "category": "Crypto",
-      "domains": ["gamdom.com"],
+      "domains": [
+        "gamdom.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Immediate crypto withdrawals through automated payment hot wallets.",
@@ -614,7 +668,9 @@
       "slug": "bc-game",
       "name": "BC.Game",
       "category": "Crypto",
-      "domains": ["bc.game"],
+      "domains": [
+        "bc.game"
+      ],
       "status": "live",
       "welcomeBonusSummary": {
         "summary": "Four deposit match bonuses up to 360% in BCD currency.",
@@ -637,7 +693,9 @@
       "slug": "shuffle",
       "name": "Shuffle",
       "category": "Crypto",
-      "domains": ["shuffle.com"],
+      "domains": [
+        "shuffle.com"
+      ],
       "status": "live",
       "redemptionTime": {
         "claim": "Instant automated crypto withdrawals for standard accounts with zero fee deductions.",
@@ -662,7 +720,9 @@
       "slug": "mbit-casino",
       "name": "Mbit Casino",
       "category": "Crypto",
-      "domains": ["mbitcasino.io"],
+      "domains": [
+        "mbitcasino.io"
+      ],
       "status": "live",
       "welcomeBonusSummary": {
         "summary": "Up to 4 BTC plus 325 free spins across the first three crypto deposits.",
@@ -680,6 +740,125 @@
       ],
       "verifiedBy": "spotter-audit",
       "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "draftkings-casino",
+      "name": "DraftKings Casino",
+      "category": "Regulated",
+      "domains": [
+        "draftkings.com",
+        "casino.draftkings.com"
+      ],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "ACH and debit withdrawals approve and process within 1-24 hours; retail casino cage cashout available immediately.",
+        "sourceUrl": "https://casino.draftkings.com",
+        "asOf": "2026-11-04",
+        "minHours": 1,
+        "maxHours": 24
+      },
+      "welcomeBonusSummary": {
+        "summary": "100% deposit match up to $2,000 in casino bonus funds or $50 in casino credits.",
+        "sourceUrl": "https://casino.draftkings.com",
+        "asOf": "2026-11-04"
+      },
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
+    },
+    {
+      "slug": "fanduel-casino",
+      "name": "FanDuel Casino",
+      "category": "Regulated",
+      "domains": [
+        "fanduel.com",
+        "casino.fanduel.com"
+      ],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Automated ACH, PayPal, and retail partner casino cage pick-up process within 1-24 hours.",
+        "sourceUrl": "https://casino.fanduel.com",
+        "asOf": "2026-11-04",
+        "minHours": 1,
+        "maxHours": 24
+      },
+      "welcomeBonusSummary": {
+        "summary": "Play It Again up to $1,000 back in casino bonus funds on net losses in first 24 hours.",
+        "sourceUrl": "https://casino.fanduel.com",
+        "asOf": "2026-11-04"
+      },
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
+    },
+    {
+      "slug": "betmgm",
+      "name": "BetMGM",
+      "category": "Regulated",
+      "domains": [
+        "betmgm.com",
+        "casino.betmgm.com"
+      ],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Instant physical cage redemption at Borgata and MGM Grand properties; electronic ACH clears in 24-48 hours.",
+        "sourceUrl": "https://casino.betmgm.com",
+        "asOf": "2026-11-04",
+        "minHours": 1,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "100% deposit match up to $1,000 plus $25 on the house on sign-up.",
+        "sourceUrl": "https://casino.betmgm.com",
+        "asOf": "2026-11-04"
+      },
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
+    },
+    {
+      "slug": "caesars-casino",
+      "name": "Caesars Casino",
+      "category": "Regulated",
+      "domains": [
+        "caesarscasino.com",
+        "caesars.com"
+      ],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Instant cash pickup at Caesars physical casino cages; online banking ACH processes in 24-48 hours.",
+        "sourceUrl": "https://www.caesarscasino.com",
+        "asOf": "2026-11-04",
+        "minHours": 1,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "100% deposit match up to $2,500 with 2,500 Reward Credits on $25 wager.",
+        "sourceUrl": "https://www.caesarscasino.com",
+        "asOf": "2026-11-04"
+      },
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
+    },
+    {
+      "slug": "betrivers",
+      "name": "BetRivers",
+      "category": "Regulated",
+      "domains": [
+        "betrivers.com"
+      ],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "RushPay automated processing approves over 80% of withdrawals instantly; ACH clears within 1-24 hours.",
+        "sourceUrl": "https://www.betrivers.com",
+        "asOf": "2026-11-04",
+        "minHours": 1,
+        "maxHours": 24
+      },
+      "welcomeBonusSummary": {
+        "summary": "100% deposit match up to $500 with 1x playthrough requirement.",
+        "sourceUrl": "https://www.betrivers.com",
+        "asOf": "2026-11-04"
+      },
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     }
   ]
 }

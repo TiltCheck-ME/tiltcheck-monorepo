@@ -4,18 +4,18 @@
     "grade": "B",
     "risk": "Medium",
     "category": "Sweeps",
-    "license": "US Sweepstakes model (AMOE compliant). VGW Holdings Limited (Malta / Delaware)",
-    "rtpSummary": "Proprietary Slots 95.00%–96.00% RTP · Table Games up to 99.50% RTP",
-    "rtpOriginals": "VGW Proprietary Games: Blackjack (99.50% RTP / 0.50% house edge with optimal basic strategy), Jacks or Better Video Poker (99.54% RTP). Certified RNG by Gaming Laboratories International (GLI).",
-    "rtpSlots": "Proprietary VGW software and licensed ReelPlay/Relax Gaming titles. RTPs verified in 95.00% to 96.00% range with certified math models.",
-    "vaultSupport": "TiltCheck browser extension session timer and balance HUD",
-    "playthrough": "1x playthrough required on Sweeps Coins (SC) before redemption. Minimum redemption  for bank EFT,  for gift cards.",
+    "license": "VGW Holdings — Sweepstakes model (US/Canada)",
+    "rtpSummary": "In-House 95.50%–97.00% RTP · Slots 94.00%–96.50% variable",
+    "rtpOriginals": "VGW In-House Classic Tables & Fireshot slots: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.",
+    "rtpSlots": "Pragmatic Play and Relax Gaming slot titles running on provider math; no live in-game RTP badge.",
+    "vaultSupport": "TiltCheck HUD session timer and spend brake notifications",
+    "playthrough": "1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility",
     "evidence": [
-      "Legal US sweepstakes operation with registered corporate entity and compliant Alternative Method of Entry (AMOE).",
-      "Standard EFT redemptions take 24–72 hours to approve and 1–3 business days to clear to US bank accounts.",
-      "GLI certified RNG ensures fair and tamper-free outcomes across all proprietary slot and table games.",
-      "High  minimum threshold on cash bank redemptions creates friction for smaller recreational players.",
-      "TiltCheck extension injects session timer and wage-hour HUD to prevent extended marathon sessions."
+      "Operating under US sweepstakes law with alternative method of entry (AMOE) offering 5 SC per postal envelope.",
+      "Redemption minimums: 100 SC for EFT bank transfer; 10 SC for electronic gift cards.",
+      "EFT redemption velocity: 24–72 hours approval, followed by 1–3 business days bank clearing.",
+      "Dual-currency model (Gold Coins vs Sweeps Coins) can cause accidental spend of promotional currency.",
+      "Restricted states: Idaho, Michigan, Montana, Nevada, and Washington."
     ],
     "redemptionMinHours": 24,
     "redemptionMaxHours": 72,
@@ -35,21 +35,21 @@
   },
   {
     "name": "Pulsz",
-    "grade": "B",
+    "grade": "B+",
     "risk": "Medium",
     "category": "Sweeps",
-    "license": "US Sweepstakes model (AMOE compliant). Yellow Social Interactive Limited (Gibraltar / US)",
-    "rtpSummary": "Certified Slots 96.00%–96.50% RTP · Scratchcards 95.00% RTP",
-    "rtpOriginals": "Pulsz Exclusive Arcade & Table titles: Blackjack (99.50% RTP), Texas Hold'em. Independent RNG certification by BMM Testlabs.",
-    "rtpSlots": "Large catalog of Pragmatic Play, NetEnt, and Relax Gaming slots deployed at standard 96.00%–96.50% RTP tiers.",
-    "vaultSupport": "TiltCheck browser extension session timer and spend barrier",
-    "playthrough": "1x playthrough required on Sweeps Coins (SC) prior to redemption. Minimum redemption  for cash (Skrill/bank),  for gift cards.",
+    "license": "Sweepstakes model (US/Canada). Yellow Social Interactive Limited (Gibraltar)",
+    "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% variable",
+    "rtpOriginals": "Pulsz in-house tables: 99.50% Blackjack RTP. Certified RNG by BMM Testlabs.",
+    "rtpSlots": "Pragmatic Play, NetEnt, and Booming Games slots deployed on certified default tiers.",
+    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "playthrough": "1x playthrough on Sweepstakes Coins (SC) prior to redemption",
     "evidence": [
-      "Compliant US sweepstakes structure with free daily login Sweeps Coins and mail-in AMOE redemption.",
-      "Skrill redemptions process within 24 hours; online bank transfers take 2–5 business days for verified accounts.",
-      "Transparent VIP loyalty program where Gold Coin and Sweeps Coin play contributes to tier multipliers.",
-      "Strict identity verification (photo ID + proof of address) required before initial prize redemption.",
-      "TiltCheck extension provides deposit barrier and session brake to prevent chase re-ups."
+      "AMOE mail-in compliance: 5 Sweepstakes Coins granted per compliant handwritten postcard.",
+      "Redemption threshold: 100 SC for online bank wire; 10 SC for digital gift cards.",
+      "Fast prize distribution: Trustly online banking typically clears within 24–48 hours.",
+      "BMM Testlabs certification confirms independent RNG fairness and outcome unpredictability.",
+      "Restricted in Idaho, Michigan, Nevada, Washington, and Montana."
     ],
     "redemptionMinHours": 24,
     "redemptionMaxHours": 120,
@@ -60,18 +60,18 @@
     "grade": "B+",
     "risk": "Medium",
     "category": "Sweeps",
-    "license": "US Sweepstakes model (AMOE compliant). MW SERVICES LIMITED (Isle of Man / US)",
-    "rtpSummary": "Certified Slots 96.00%–96.50% RTP · Megaways 96.20% RTP",
-    "rtpOriginals": "WOW Vegas Originals & Classic Table Games: Blackjack (99.50% RTP), Baccarat (98.94% RTP). Certified RNG by Gaming Associates.",
-    "rtpSlots": "Extensive 900+ slot catalog featuring Pragmatic Play, Betsoft, and 3 Oaks Gaming deployed at standard 96.00%+ profiles.",
-    "vaultSupport": "TiltCheck browser extension session timer and balance HUD",
-    "playthrough": "1x playthrough required on Sweeps Coins (SC) before redemption. Minimum redemption  for Trustly/Skrill.",
+    "license": "Sweepstakes model (US/Canada). MW Services Limited",
+    "rtpSummary": "Tables 99.50% RTP · Slots 94.50%–96.80% certified",
+    "rtpOriginals": "Single-Deck and Multi-Hand Blackjack: 99.50% RTP. GLI certified RNG.",
+    "rtpSlots": "Over 800+ slots from Pragmatic Play, Betsoft, and BGaming running certified manufacturer RTP profiles.",
+    "vaultSupport": "TiltCheck session HUD and spend brake controls",
+    "playthrough": "1x playthrough requirement on promotional Sweepstakes Coins",
     "evidence": [
-      "Fully legal US sweepstakes casino operating under standard sweepstakes promotional rules with daily free SC.",
-      "Trustly and Skrill redemptions process within 24 to 48 hours for verified customer profiles.",
-      "RNG certified by Gaming Associates for game integrity and statistical randomness.",
-      "Requires full KYC verification (government ID + SSN confirmation) prior to first redemption approval.",
-      "TiltCheck extension injects session timer and wage-hour tracking to visualize real financial cost."
+      "US sweepstakes compliance: Mail-in AMOE offers 3 Sweepstakes Coins per postal submission.",
+      "Redemption turnaround: Skrill and Trustly online banking settle within 24–48 hours.",
+      "Minimum cash prize redemption is 100 SC; gift card redemptions start at 25 SC.",
+      "RNG audited by Gaming Labs International (GLI) and BMM Testlabs.",
+      "Excludes players from Idaho, Michigan, Nevada, Washington, and Connecticut."
     ],
     "redemptionMinHours": 24,
     "redemptionMaxHours": 48,
@@ -79,21 +79,21 @@
   },
   {
     "name": "High 5 Casino",
-    "grade": "B",
+    "grade": "B+",
     "risk": "Medium",
     "category": "Sweeps",
-    "license": "US Sweepstakes model (AMOE compliant). High 5 Entertainment LLC (New Jersey, US)",
-    "rtpSummary": "Proprietary Slots 95.00%–96.50% RTP · Pragmatic Slots 96.50% RTP",
-    "rtpOriginals": "High 5 Proprietary Classics: Da Vinci Diamonds, Golden Knight, Triple Double Da Vinci Diamonds. Certified RNG with 95.50%–96.50% RTP profiles.",
-    "rtpSlots": "1,200+ games including High 5 Games proprietary titles and Pragmatic Play slots configured at standard RTP tiers.",
-    "vaultSupport": "TiltCheck browser extension session timer and balance HUD",
-    "playthrough": "1x playthrough on Sweeps Coins (SC) required before prize redemption. Minimum redemption  for cash,  for digital gift cards.",
+    "license": "Sweepstakes model (US/Canada). High 5 Entertainment LLC / High 5 Games",
+    "rtpSummary": "Proprietary Slots 95.50%–97.00% RTP · Tables 99.50% RTP",
+    "rtpOriginals": "High 5 In-House Studio Titles & Tables: 95.50% to 99.50% RTP. Independent RNG audits by GLI.",
+    "rtpSlots": "Catalog of 1,200+ games powered by High 5 Games proprietary licensed studio math.",
+    "vaultSupport": "TiltCheck DOM vault adapter and session cooldown reminders",
+    "playthrough": "1x playthrough requirement on Sweeps Coins",
     "evidence": [
-      "Established US gaming company (founded 1995 in New Jersey) operating compliant social sweepstakes casino.",
-      "EGR Top Social Casino award winner; prize redemptions process within 24–72 hours via Checkbook or gift cards.",
-      "Proprietary slot games mathematically verified and certified for fairness by third-party testing labs.",
-      "Dual-currency system with Diamonds feature adds game-layer complexity for casual players.",
-      "TiltCheck extension provides spend barrier and cool-off triggers when balance swings sharply."
+      "Operated by established land-based slot developer High 5 Games (30-year gaming history).",
+      "AMOE postal request provides 3 Sweeps Coins per compliant mail-in card.",
+      "Payout rails: PayPal, Trustly ACH, and digital gift cards process in 24–48 hours.",
+      "EGR Top Social Casino Operator award winner with verified GLI RNG certifications.",
+      "Restricted states: Idaho, Michigan, Nevada, and Washington."
     ],
     "redemptionMinHours": 24,
     "redemptionMaxHours": 72,
@@ -101,7 +101,7 @@
   },
   {
     "name": "Stake.us",
-    "grade": "B",
+    "grade": "B+",
     "risk": "Medium",
     "category": "Sweeps",
     "audited": true,
@@ -115,6 +115,7 @@
       "Restricted in 7 US states: Idaho, Kentucky, Michigan, Nevada, New York, Vermont, Washington.",
       "Redemption velocity: Crypto redemptions (BTC, ETH, LTC, USDT, DOGE) typically 10–60 minutes after identity verification.",
       "Provably fair seed hygiene: Server seed hash published prior to play; client seed customizable at any time.",
+      "US sweepstakes AMOE compliance: Mail-in postcard request code provides 5 Stake Cash.",
       "Dual-currency model creates high accidental burn: Users often wager SC thinking it is GC.",
       "TiltCheck extension provides native AutoVault button to skim wins directly into vault balance."
     ]
@@ -123,25 +124,81 @@
     "name": "McLuck",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)",
+    "rtpSummary": "Live Tables 99.50% RTP · Slots 94.50%–96.50% variable",
+    "rtpOriginals": "Pragmatic Play / 3 Oaks in-house tables: 99.50% Blackjack RTP.",
+    "rtpSlots": "Pragmatic Play, NetEnt, and Playson slot titles with provider-certified mathematical models.",
+    "vaultSupport": "TiltCheck DOM vault adapter and auto-session brake notifications",
+    "playthrough": "1x playthrough requirement on Sweepstakes Coins (SC) before redemption",
+    "evidence": [
+      "Compliant US sweepstakes model with alternative method of entry (AMOE) offering 4 SC per handwritten request.",
+      "Redemption minimums: 75 SC for online bank transfer (EFT); 10 SC for electronic gift cards.",
+      "Redemption processing velocity: 24–72 hours following initial KYC identity approval.",
+      "Restricted states: Alabama, Delaware, Georgia, Idaho, Kentucky, Michigan, Montana, Nevada, Washington.",
+      "Dual-currency separation maintains distinction between recreational Gold Coins and redeemable Sweeps Coins."
+    ]
   },
   {
     "name": "Fortune Coins",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). Social Gaming LLC (Delaware entity)",
+    "rtpSummary": "Originals 97.00% RTP · Slots 94.20%–96.00% certified",
+    "rtpOriginals": "Fortune Coins Originals: 97.00% average RTP. BMM Testlabs certified.",
+    "rtpSlots": "Proprietary in-house slots and third-party titles operating on BMM certified RNG math.",
+    "vaultSupport": "TiltCheck HUD session timer and spend brake warnings",
+    "playthrough": "1x playthrough requirement on Fortune Coins (FC, 100 FC = $1.00 USD)",
+    "evidence": [
+      "Delaware registered corporate entity operating compliant sweepstakes promotional contests.",
+      "AMOE compliance: Free mail-in request grants 500 Fortune Coins ($5.00 redeemable value).",
+      "Redemption threshold: Minimum 5,000 FC ($50.00 USD) via Trustly online banking or Skrill.",
+      "Redemption turnaround: Bank transfers typically approve and clear within 24–72 hours.",
+      "Restricted in Washington, Idaho, and Michigan per published terms and conditions."
+    ]
   },
   {
     "name": "Hello Millions",
-    "grade": "B",
+    "grade": "B+",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)",
+    "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% certified",
+    "rtpOriginals": "Pragmatic Play / Evoplay tables: 99.50% Blackjack RTP.",
+    "rtpSlots": "Pragmatic Play, Relax Gaming, and BGaming titles running certified slot RTP configurations.",
+    "vaultSupport": "TiltCheck DOM vault adapter and cooldown enforcement",
+    "playthrough": "1x playthrough required on Sweepstakes Coins (SC) prior to redemption",
+    "evidence": [
+      "Compliant US sweepstakes framework with no purchase necessary AMOE offering 4 SC per mail-in envelope.",
+      "Prize redemption processing: 24–72 business hours via EFT bank deposit or digital gift vouchers.",
+      "Minimum cash prize redemption threshold set at 75 SC; gift cards available at 10 SC.",
+      "Independent RNG testing provided by accredited testing laboratories GLI and BMM.",
+      "Excluded US jurisdictions: ID, MI, MT, NV, WA, AL, GA, and DE."
+    ]
   },
   {
     "name": "Modo Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). ARB Gaming LLC (Delaware, entity file #7438992)",
+    "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% variable",
+    "rtpOriginals": "Hacksaw / Relax table games: 99.50% Blackjack RTP.",
+    "rtpSlots": "Catalog powered by Hacksaw Gaming, Relax, and Pragmatic Play running certified manufacturer RTPs.",
+    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "playthrough": "Strict 1x playthrough on Sweeps Coins (SC) before redemption eligibility",
+    "evidence": [
+      "US incorporated operator (ARB Gaming LLC) operating under legal sweepstakes regulations.",
+      "Free entry method (AMOE): Mail-in request code provides 3 free Sweeps Coins.",
+      "Redemption speeds: ACH online banking transfers process within 24–48 hours; debit card cashouts supported.",
+      "Redemption thresholds: 100 SC minimum for bank transfer, 20 SC minimum for gift cards.",
+      "State exclusions: Idaho, Michigan, Nevada, Washington per official sweepstakes rules."
+    ]
   },
   {
     "name": "Funrize",
@@ -157,9 +214,23 @@
   },
   {
     "name": "Crown Coins Casino",
-    "grade": "B",
+    "grade": "B+",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). Sunflower Limited (Manchester, UK / US operations)",
+    "rtpSummary": "In-House Casuals 97.00% RTP · Slots 94.50%–96.50% certified",
+    "rtpOriginals": "Crown Coins in-house casuals: 97.00% average RTP. BMM Testlabs certified.",
+    "rtpSlots": "Ruby Play, Pragmatic Play, and Hacksaw Gaming certified slots.",
+    "vaultSupport": "TiltCheck HUD session brake and cooldown tools",
+    "playthrough": "1x playthrough requirement on Sweeps Coins (SC)",
+    "evidence": [
+      "Compliant sweepstakes gaming platform with free daily login rewards and mail-in AMOE submissions.",
+      "Fast prize redemptions: Skrill and Instant ACH options process within 24–48 hours.",
+      "Accessible redemption floor: Minimum 50 SC ($50 USD) for cash redemptions.",
+      "RNG and payout mechanics verified by BMM Testlabs.",
+      "Excluded territories: Idaho, Michigan, Nevada, Washington."
+    ]
   },
   {
     "name": "MyPrize US",
@@ -595,31 +666,101 @@
     "name": "DraftKings Casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB / CT DCP state gaming commissions",
+    "rtpSummary": "In-House 97.00%–99.50% RTP · Certified slots 94.00%–96.50% variable",
+    "rtpOriginals": "DraftKings In-House Table Games & Rocket: 99.50% RTP (Blackjack), 97.00% (Rocket). GLI-19 certified RNG.",
+    "rtpSlots": "Regulated slot catalog (IGT, NetEnt, Light & Wonder) operating on state-approved RTP profiles with mandatory minimum 85% statutory floor.",
+    "vaultSupport": "TiltCheck HUD session brake overlay + state-mandated responsible gaming deposit/loss limiters",
+    "playthrough": "1x turnover on real money deposits; 1x to 15x on promotional bonus credit",
+    "evidence": [
+      "Authorized and regulated by NJ Division of Gaming Enforcement, PA Gaming Control Board, and MI Gaming Control Board.",
+      "RNG testing and math models certified by Gaming Laboratories International (GLI-19).",
+      "Payout velocity: ACH and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly.",
+      "Strict 21+ identity and geolocation verification required per state gaming regulations.",
+      "Responsible gaming integration includes mandatory 1-800-GAMBLER helpline and state self-exclusion registry links."
+    ]
   },
   {
     "name": "FanDuel Casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB state gaming enforcement",
+    "rtpSummary": "In-House 99.50% RTP · Certified slots 94.00%–96.80% manufacturer tiers",
+    "rtpOriginals": "FanDuel In-House Blackjack: 99.50% RTP. State gaming lab certified RNG.",
+    "rtpSlots": "Regulated slot libraries from Evolution, NetEnt, and Scientific Games deployed at certified manufacturer tiers.",
+    "vaultSupport": "TiltCheck HUD overlay + mandatory daily/weekly deposit and session limit controls",
+    "playthrough": "Clean 1x playthrough requirement on Play-It-Again refund promotions and site credit",
+    "evidence": [
+      "Operating under active state casino licenses in New Jersey, Pennsylvania, Michigan, and West Virginia.",
+      "All games certified fair by accredited independent testing labs under state regulatory oversight.",
+      "Automated banking rails via VIP Preferred ACH, PayPal, and retail partner casino cage pick-up within 1–24 hours.",
+      "Real-time state geolocation boundary enforcement blocks unapproved multi-state play.",
+      "Mandatory state self-exclusion and player cool-off limits integrated into account settings."
+    ]
   },
   {
     "name": "BetMGM",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB — MGM Resorts International & Entain plc",
+    "rtpSummary": "Exclusive Tables 99.50% RTP · Slots 94.10%–96.20% certified profiles",
+    "rtpOriginals": "BetMGM Exclusive Blackjack: 99.50% RTP. GLI certified RNG.",
+    "rtpSlots": "Exclusive BetMGM progressive slots and studio games audited by Gaming Laboratories International.",
+    "vaultSupport": "GameSense responsible gaming framework + TiltCheck session HUD brake",
+    "playthrough": "15x playthrough on standard welcome bonuses; 1x on real money bankroll",
+    "evidence": [
+      "Fully licensed and regulated by NJ DGE, PA PGCB, MI MGCB, and WV Lottery Commission.",
+      "Instant physical cage redemption available at Borgata Hotel Casino (Atlantic City) and MGM Grand properties.",
+      "Electronic ACH bank transfers clear in 24–48 hours following standard security approval.",
+      "Integrated with the American Gaming Association recognized GameSense responsible gaming program.",
+      "Mandatory 21+ geolocation fencing with hardware-level boundary verification."
+    ]
   },
   {
     "name": "Caesars Casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB — Caesars Entertainment Inc.",
+    "rtpSummary": "Classic Tables 99.50% RTP · Slots 94.00%–96.50% variable",
+    "rtpOriginals": "Caesars In-House Classic Blackjack: 99.50% RTP. State tested RNG.",
+    "rtpSlots": "Caesars branded slots and third-party catalogs governed by state gaming division RNG regulations.",
+    "vaultSupport": "Caesars RG limit tools + TiltCheck session cooldown notifications",
+    "playthrough": "1x to 15x rollover requirements depending on selected game category",
+    "evidence": [
+      "Licensed by Tier-1 US state gaming authorities with rigorous financial and AML audits.",
+      "Instant cash pickup at Caesars, Harrah's, and Tropicana physical casino cages.",
+      "VIP Preferred ACH and online banking payments processed within 24–48 business hours.",
+      "Comprehensive RG limiters: daily deposit, spending, and time limits with enforceable cool-off intervals.",
+      "Audited RTP payouts compliant with state gaming control board publication standards."
+    ]
   },
   {
     "name": "BetRivers",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB / IL IGB — Rush Street Interactive",
+    "rtpSummary": "Single-Deck Tables 99.50% RTP · Slots standard 95.00%–96.50%",
+    "rtpOriginals": "Rush Street Single-Deck Blackjack: 99.50% RTP. GLI tested RNG.",
+    "rtpSlots": "Multi-provider catalog featuring certified RTP configurations without unannounced stealth downgrades.",
+    "vaultSupport": "RushPay automated payout approval + TiltCheck HUD spend brake",
+    "playthrough": "1x industry-leading playthrough requirement on all bonus credits",
+    "evidence": [
+      "Regulated by premier state gaming commissions with public monthly revenue and tax reporting.",
+      "RushPay automated withdrawal processing approves over 80% of cashout requests instantly.",
+      "Clean 1x playthrough on all promotional offers with no hidden rollover multiplier locks.",
+      "Independent RNG validation conducted by GLI and BMM Testlabs across all interactive titles.",
+      "Active integration with state problem gambling councils and self-exclusion directories."
+    ]
   },
   {
     "name": "Borgata Online",

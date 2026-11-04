@@ -80,6 +80,11 @@ describe('GitHub Pages launch twin', () => {
       'WOW Vegas',
       'High 5 Casino',
       'Stake.us',
+      'McLuck',
+      'Fortune Coins',
+      'Hello Millions',
+      'Modo Casino',
+      'Crown Coins Casino',
       'Roobet',
       'Stake.com',
       'Rollbit',
@@ -87,6 +92,11 @@ describe('GitHub Pages launch twin', () => {
       'BC.Game',
       'Shuffle',
       'Duelbits',
+      'DraftKings Casino',
+      'FanDuel Casino',
+      'BetMGM',
+      'Caesars Casino',
+      'BetRivers',
     ]);
 
     for (const c of audited) {
