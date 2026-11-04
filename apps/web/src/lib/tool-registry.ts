@@ -93,13 +93,6 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     status: 'live',
   },
   {
-    href: '/tools/justthetip',
-    label: 'JUST THE TIP',
-    title: 'SOL Peer Tipping',
-    description: 'Tip SOL by Discord username. Non-custodial.',
-    status: 'live',
-  },
-  {
     href: '/tools/tarot-flip-comparison',
     label: 'TAROT FLIP DIFF',
     title: 'Tarot Flip Comparison',
@@ -129,10 +122,10 @@ export const TOOL_REGISTRY: ToolEntry[] = [
   },
   {
     href: '/tools/auto-vault',
-    label: 'LOCKVAULT',
-    title: 'Auto Profit Lock (dashboard)',
-    description: 'Durable vault rules in dashboard. In-tab skim: use install links.',
-    status: 'beta',
+    label: 'AUTOVAULT',
+    title: 'Auto Profit Lock',
+    description: 'Skim a percentage of heater wins straight to your vault before you rinse it.',
+    status: 'live',
   },
   {
     href: '/tools/buddy-system',

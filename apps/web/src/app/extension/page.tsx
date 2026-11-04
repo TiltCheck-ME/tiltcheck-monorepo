@@ -29,7 +29,7 @@ const coreSignals = [
 
 const notThis = [
   "It does not play for you, cash you out, or hold wallet keys (non-custodial).",
-  "It does not need Discord to run the spin brake, game list, or reality HUD.",
+  "It does not require accounts, sign-ins, or cloud servers — runs 100% locally in your browser tab.",
   "It is not a casino ban and not GAMSTOP. Turn the extension off and the overlay is gone.",
   "It is distributed as a direct sideload zip on this site (Web Store listing later).",
 ];
@@ -67,12 +67,12 @@ export default function ExtensionPage() {
             <p className="public-page-card__eyebrow">On the casino tab</p>
             <h2 className="public-page-card__title">How you use it</h2>
             <ol className="public-page-list">
-              <li>Download the zip directly from this page, unpack it, and load via chrome://extensions Developer mode.</li>
-              <li>Open Stake, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, or CSGOEmpire.</li>
-              <li>Spin. The bet button sleeps two seconds. Wage HUD tracks torched shifts. Deposit barrier blocks cashier re-ups. In Guards, arm the games that wreck you — chicken first if that is the hole.</li>
+              <li>Download the extension zip directly from this page and extract the folder.</li>
+              <li>In Chrome, Brave, or Edge, navigate to chrome://extensions and switch on Developer mode (top right).</li>
+              <li>Click &ldquo;Load unpacked&rdquo; and select the extracted folder. Open your casino tab and play with brakes.</li>
             </ol>
             <p className="public-page-card__copy">
-              This does not lock a wallet. Wallet lock is Cooldown, a different button. This does not need Discord.
+              This enforces browser-level guardrails on the active casino tab. To cryptographically lock a wallet address, use Cooldown.
             </p>
           </div>
         </div>

@@ -78,19 +78,6 @@ export default function AutoVaultPage() {
   const primaryActionHref =
     !loading && user ? vaultLaneUrl : getWebLoginRedirect('/tools/auto-vault');
 
-  React.useEffect(() => {
-    if (loading || !user) {
-      return;
-    }
-
-    // Bumped from 1.4s to 5s so logged-in users actually have time to see
-    // the in-browser install section before getting punted to the dashboard.
-    const redirectTimer = window.setTimeout(() => {
-      window.location.assign(vaultLaneUrl);
-    }, 5000);
-
-    return () => window.clearTimeout(redirectTimer);
-  }, [loading, user, vaultLaneUrl]);
 
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
@@ -104,46 +91,33 @@ export default function AutoVaultPage() {
               <span className="text-gray-400">AutoVault</span>
             </p>
             <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-2">
-              AutoVault moved into the dashboard lane
+              AutoVault — Skim the Hit Before You Rinse It
             </h1>
             <p className="text-gray-400 text-sm max-w-2xl">
-              Web still explains the system. The actual AutoVault rules now live in the TiltCheck
-              dashboard beside LockVault timers, Wallet Lock cooldowns, and release controls.
+              Automatically skims a cut of big wins directly into your casino vault as you play.
+              Zero logins, zero servers, 100% client-side inside the TiltCheck browser extension.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a
-                href={primaryActionHref}
-                className={`inline-flex items-center justify-center rounded-xl border px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
-                  loading
-                    ? 'pointer-events-none border-[#283347] text-gray-500'
-                    : 'border-[#17c3b2]/40 bg-[#17c3b2]/10 text-[#17c3b2] hover:bg-[#17c3b2]/20'
-                }`}
+              <Link
+                href="/extension"
+                className="inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
               >
-                {loading
-                  ? 'Checking session...'
-                  : user
-                    ? 'Open AutoVault rules'
-                    : 'Log in for AutoVault rules'}
+                Install Extension
+              </Link>
+              <a
+                href="/downloads/tiltcheck-extension.zip"
+                download
+                className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/30"
+              >
+                Download .zip
               </a>
               <a
                 href={vaultLaneUrl}
-                className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/30"
+                className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 transition-all hover:border-[#17c3b2]/30 hover:text-white"
               >
-                Open LockVault + Wallet Lock lane
-              </a>
-              <a
-                href={dashboardUrl}
-                className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/30"
-              >
-                Open full dashboard
+                Dashboard controls
               </a>
             </div>
-            {user && (
-              <p className="mt-4 text-xs font-mono text-gray-500">
-                Session found. Punting you to the dashboard AutoVault lane in 5 seconds. Or stay
-                here and grab the in-browser surfaces below.
-              </p>
-            )}
           </div>
 
           {/* In-browser AutoVault surfaces — extension + userscript */}
@@ -325,25 +299,23 @@ export default function AutoVaultPage() {
 
           <div className="mt-10 rounded-2xl border border-[#283347] bg-black/30 p-6">
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-500">
-              Ownership split
+              Zero Custody Architecture
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[#283347] bg-black/30 p-5">
                 <p className="text-sm font-black uppercase tracking-tight text-white">
-                  Web keeps the pitch
+                  Local Session Execution
                 </p>
                 <p className="mt-3 text-sm text-gray-400">
-                  Public explainers, discovery, and trust-building stay here so you can understand
-                  the guardrail before you use it.
+                  The extension communicates directly with your active casino session. TiltCheck never sees passwords, never touches private keys, and never acts as a bank.
                 </p>
               </div>
               <div className="rounded-2xl border border-[#17c3b2]/25 bg-[#17c3b2]/5 p-5">
                 <p className="text-sm font-black uppercase tracking-tight text-white">
-                  Dashboard owns the controls
+                  Client-Side Triggers
                 </p>
                 <p className="mt-3 text-sm text-gray-300">
-                  Live AutoVault rules, LockVault state, Wallet Lock cooldowns, and unlock requests
-                  are managed in the dashboard.
+                  You configure the profit threshold and skim cut. Every vault action happens right inside your browser tab before the next spin can fire.
                 </p>
               </div>
             </div>

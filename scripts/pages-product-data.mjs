@@ -50,7 +50,11 @@ export const INSTALL_MOVES = [
     body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.',
   },
 ];
-export const INSTALL_STEPS = INSTALL_MOVES.map((move) => `${move.title}. ${move.body}`);
+export const INSTALL_STEPS = [
+  'Download the extension zip directly from this site and extract the folder.',
+  'In Chrome, Brave, or Edge, navigate to chrome://extensions and switch on Developer mode (top right).',
+  'Click "Load unpacked" and select the extracted folder. Pin the extension to your toolbar and spin with brakes.',
+];
 export const INSTALL_NOTE =
   'Wallet lock, casino trust lookup, and direct browser extension zip download are live. Sideload via chrome://extensions Developer mode. Store listing coming later.';
 export const HUD = {
@@ -62,23 +66,24 @@ export const HUD = {
 };
 export const VAULT = {
   title: 'AutoVault — skim the win on the sites we actually support.',
-  body: 'Stake.us and nuts.gg. The tab presses vault so the hit is not sitting in playable balance.',
+  body: 'Stake.us and supported rooms. AutoVault moves your profit into your vault so the hit is not sitting in playable balance.',
   ctaLabel: 'AUTOVAULT',
   href: 'autovault/',
 };
 export const AUTOVAULT_PAGE = {
-  eyebrow: 'Two casinos. That is the list.',
+  eyebrow: 'In-Session Win Protection',
   title: 'Skim the hit.',
-  punch: 'Stake.us and nuts.gg. Dashboard owns the rule. The tab presses vault. You confirm. We never hold funds.',
+  punch:
+    'Stake.us, Stake.com, and supported rooms. Hit a heater? AutoVault moves your cut straight into the casino vault so you don’t rinse it back.',
   steps: [
-    'Set the vault rule in the dashboard after Discord login.',
-    'Open Stake.us or nuts.gg with the script or unpacked extension.',
-    'When you hit, a slice leaves playable balance so you cannot rinse the whole thing.',
+    'Install the TiltCheck browser extension from the direct download on this site.',
+    'Open the extension on your casino tab and set your skim percentage (e.g. 10%) and big-win threshold.',
+    'Play normally. When a win hits, AutoVault moves that slice straight into your vault. Zero logins, zero servers, 100% in your browser.',
   ],
-  fine: 'Not every casino. Some rooms only open the vault dialog. Zip is not on this site.',
+  fine: 'Direct API vaulting on Stake.us and Stake.com via session cookie. Vault nudge dialogs on supported rooms. TiltCheck never sees passwords or holds funds.',
 };
 export const LAUNCH_HONESTY = [
-  'This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
+  'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
   'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
   'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
@@ -296,13 +301,6 @@ export const TOOL_REGISTRY = [
     status: 'live',
   },
   {
-    href: '/tools/justthetip',
-    label: 'JUST THE TIP',
-    title: 'SOL Peer Tipping',
-    description: 'Tip SOL by Discord username. Non-custodial.',
-    status: 'live',
-  },
-  {
     href: '/tools/session-stats',
     label: 'PAYOUT DRIFT MONITOR',
     title: 'Slot Math Index',
@@ -325,10 +323,10 @@ export const TOOL_REGISTRY = [
   },
   {
     href: '/tools/auto-vault',
-    label: 'LOCKVAULT',
+    label: 'AUTOVAULT',
     title: 'Auto Profit Lock',
-    description: 'Durable vault rules in dashboard. In-tab skim via install links.',
-    status: 'beta',
+    description: 'Skim a percentage of heater wins straight to your vault before you rinse it.',
+    status: 'live',
   },
   {
     href: '/tools/buddy-system',
@@ -346,8 +344,8 @@ export const TOUCH_GRASS = {
   triviaPane: 'Live Trivia',
   dadPane: 'Degens Against Decency',
   dadDiscordOnly:
-    'Live DA&D still lives in Discord. Practice prompts are here. Open Discord when you want a real table.',
-  triviaNote: 'Offline questions from the bank. Pick one. Reveal. Next. Live answering still lives in Discord.',
+    'Practice prompts and offline cards. Reset your headspace before touching a casino tab again.',
+  triviaNote: 'Offline questions from the bank. Pick one. Reveal. Next. Instant in-browser grounding.',
 };
 
 export const TOUCH_GRASS_TRIVIA = [

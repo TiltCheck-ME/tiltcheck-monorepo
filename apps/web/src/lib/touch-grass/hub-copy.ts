@@ -13,7 +13,7 @@ export const TOUCH_GRASS_HUB = {
   triviaPane: 'Live Trivia',
   dadPane: 'Degens Against Decency',
   dadDiscordOnly:
-    'Live DA&D still lives in Discord. Practice prompts are here. Open Discord when you want a real table.',
+    'Practice prompts and offline cards. Reset your headspace before touching a casino tab again.',
 } as const;
 
 export const PAUSE_HIDDEN_CTA_HREFS = ['/pay/jackpot', '/tools/degens-arena'] as const;

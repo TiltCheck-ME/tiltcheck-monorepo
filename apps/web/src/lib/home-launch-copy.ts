@@ -50,7 +50,7 @@ export const HOME_LAUNCH = {
     href: '/tools/auto-vault',
   } as const,
   honesty: [
-    'This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
+    'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
     'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
     'Browser filters are your list. Not an operator account close. Turn the extension off and play continues.',
     'AutoVault is two casinos. We do not fake a vault button everywhere.',
