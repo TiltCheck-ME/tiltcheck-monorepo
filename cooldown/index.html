@@ -30,7 +30,21 @@
       <li>Pick the scope: everything, a category, or one game.</li>
       <li>Pick how long. Stronger locks only. No SOL moves.</li>
     </ol>
-    <p class="cooldown-host">tiltcheck.me is GitHub Pages. This host is static HTML, so it cannot pop a wallet signer. The homepage button needed a real page instead of a 404. The lock itself still needs a Solana Wallet Standard signer in an app host.</p>
+    <div class="cooldown-how" style="margin-top: 2rem; border-top: 1px solid #283347; padding-top: 1.5rem;">
+      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How To Enforce Your Lock</h2>
+      <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. In-Browser Guard (Extension)</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">Install the TiltCheck browser extension. Active voluntary locks engage the DOM Deposit Barrier across cashier pages and deaden spin buttons on high-risk games.</p>
+          <a class="btn btn-primary" href="../extension.html">Get the extension</a>
+        </div>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Offline Cryptographic Lock (CLI)</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Need an unforgeable cryptographic lock without connecting a wallet? Run our offline CLI suite:</p>
+          <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 <footer class="site-footer">
