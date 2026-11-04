@@ -12,6 +12,7 @@
  */
 
 import { type CashoutGoal } from './profit-lock.js';
+import { getAdapterForHost } from './casino-vault-adapters.js';
 
 export interface CasinoCashoutRoute {
   id: string;
@@ -470,3 +471,64 @@ export function calculateGoalsProgress(
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// Non-Custodial Session Auto-Vaulting
+// ---------------------------------------------------------------------------
+
+export interface AutoVaultResult {
+  vaulted: boolean;
+  method: 'api' | 'dom' | 'none';
+  amount: number;
+  currency: string;
+  casinoName: string | null;
+  error?: string;
+}
+
+export async function triggerAutoVault(
+  amount: number,
+  currency = 'usd',
+  doc: Document = document,
+  hostnameOverride?: string,
+): Promise<AutoVaultResult> {
+  const hostname =
+    hostnameOverride ??
+    doc.location?.hostname ??
+    (typeof window !== 'undefined' ? window.location?.hostname : '') ??
+    '';
+
+  const adapter = getAdapterForHost(hostname);
+  if (!adapter) {
+    return {
+      vaulted: false,
+      method: 'none',
+      amount,
+      currency,
+      casinoName: null,
+      error: 'No vault adapter available for this operator.',
+    };
+  }
+
+  try {
+    const success = await adapter.vaultAmount(amount, currency);
+    const method = adapter.name === 'stake' ? 'api' : 'dom';
+    return {
+      vaulted: success,
+      method: success ? method : 'none',
+      amount,
+      currency,
+      casinoName: adapter.name,
+      error: success ? undefined : 'Vault transaction failed or button not found.',
+    };
+  } catch (err) {
+    return {
+      vaulted: false,
+      method: 'none',
+      amount,
+      currency,
+      casinoName: adapter.name,
+      error: err instanceof Error ? err.message : 'Unknown error during auto-vault.',
+    };
+  }
+}
+

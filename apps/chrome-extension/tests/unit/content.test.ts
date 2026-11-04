@@ -330,5 +330,9 @@ describe('core content script contracts', () => {
         navigated: expect.any(Boolean),
       })
     );
+
+    const vaultResponse = vi.fn();
+    const claimed = listeners[0]!({ type: 'trigger_auto_vault', amount: 50 }, null, vaultResponse);
+    expect(claimed).toBe(true);
   });
 });

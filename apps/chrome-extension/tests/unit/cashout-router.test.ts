@@ -11,6 +11,7 @@ import {
   CASINO_CASHOUT_ROUTES,
   detectCashoutTarget,
   findRouteForHostname,
+  triggerAutoVault,
   triggerCashoutNavigation,
 } from '../../src/cashout-router.js';
 import { type CashoutGoal } from '../../src/profit-lock.js';
@@ -187,5 +188,32 @@ describe('calculateGoalsProgress', () => {
       expect(item.percent).toBe(0);
       expect(item.isAchieved).toBe(false);
     }
+  });
+});
+
+describe('triggerAutoVault', () => {
+  it('returns failure when no vault adapter is available for operator', async () => {
+    const result = await triggerAutoVault(50, 'usd', document, 'unknown-casino.xyz');
+    expect(result.vaulted).toBe(false);
+    expect(result.method).toBe('none');
+    expect(result.error).toContain('No vault adapter');
+  });
+
+  it('invokes vaultAmount on Stake adapter when host matches Stake', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          createVaultDeposit: { id: 'deposit_123', amount: 25 },
+        },
+      }),
+    });
+    globalThis.fetch = mockFetch;
+
+    const result = await triggerAutoVault(25, 'usd', document, 'stake.com');
+    expect(result.vaulted).toBe(true);
+    expect(result.method).toBe('api');
+    expect(result.amount).toBe(25);
+    expect(result.casinoName).toBe('stake');
   });
 });

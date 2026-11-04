@@ -46,7 +46,7 @@ import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } fr
 import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
 import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
-import { detectCashoutTarget, triggerCashoutNavigation } from './cashout-router.js';
+import { detectCashoutTarget, triggerCashoutNavigation, triggerAutoVault } from './cashout-router.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -604,6 +604,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     case 'trigger_cashout_navigation': {
       const result = triggerCashoutNavigation(document);
       sendResponse(result);
+      return true;
+    }
+
+    case 'trigger_auto_vault': {
+      const amount = typeof message.amount === 'number' && Number.isFinite(message.amount) ? message.amount : 0;
+      const currency = typeof message.currency === 'string' ? message.currency : 'usd';
+      triggerAutoVault(amount, currency, document).then((res) => {
+        sendResponse(res);
+      });
       return true;
     }
 

@@ -64,5 +64,6 @@ describe('popup guest-first copy', () => {
     expect(popupTs).toContain('loadCashoutGoalsProgress');
     expect(popupTs).toContain('initCashoutRouterListeners');
     expect(popupTs).toContain('triggerActiveTabCashout');
+    expect(popupTs).toContain('triggerActiveTabAutoVault');
   });
 });

@@ -517,10 +517,21 @@ function renderGoalsProgressUI(
     }
 
     if (item.isAchieved) {
+      const vaultBtn = document.createElement('button');
+      vaultBtn.type = 'button';
+      vaultBtn.className = 'goal-action-btn';
+      vaultBtn.style.background = '#fbbf24';
+      vaultBtn.textContent = 'Vault ->';
+      vaultBtn.title = 'Vault target funds into casino safe';
+      vaultBtn.addEventListener('click', () => {
+        triggerActiveTabAutoVault(item.targetAmount);
+      });
+      actionWrap.appendChild(vaultBtn);
+
       const lockBtn = document.createElement('button');
       lockBtn.type = 'button';
       lockBtn.className = 'goal-action-btn';
-      lockBtn.textContent = 'Secure ->';
+      lockBtn.textContent = 'Cashier ->';
       lockBtn.title = 'Open cashier to lock in this goal';
       lockBtn.addEventListener('click', () => {
         triggerActiveTabCashout();
@@ -610,6 +621,25 @@ function triggerActiveTabCashout(): void {
           }
         }
         toast('No active casino detected in current tab.', true);
+      });
+    }
+  });
+}
+
+function triggerActiveTabAutoVault(amount: number): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'trigger_auto_vault', amount }, (res) => {
+        if (!chrome.runtime.lastError && res && res.vaulted) {
+          toast(`Vaulted $${amount.toFixed(2)} to ${res.casinoName} safe!`);
+          loadSessionRadar();
+          loadCashoutGoalsProgress();
+          return;
+        }
+
+        toast(res?.error || 'Operator safe not detected. Opening cashier...', true);
+        triggerActiveTabCashout();
       });
     }
   });

@@ -47,7 +47,7 @@ export const INSTALL_MOVES = [
   },
   {
     title: 'Slow the next click',
-    body: 'Chrome on the casino tab. 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, and bonus playthrough tracker. Sideload zip is live.',
+    body: 'Chrome on the casino tab. 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, and one-click cashout router. Sideload zip is live.',
   },
 ];
 export const INSTALL_STEPS = [
@@ -84,7 +84,7 @@ export const AUTOVAULT_PAGE = {
 };
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, and bonus playthrough tracker.',
+  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, and one-click cashout router.',
   'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
 ];
@@ -254,6 +254,18 @@ export const EXTENSION_SIGNALS = [
   {
     title: 'Bonus Tracker & Max-Bet Alarm',
     body: 'Tracks promotional rollover wagering with an in-page progress HUD and intercepts over-limit stakes before bonus winnings are voided by the operator.',
+  },
+  {
+    title: 'Session Velocity Radar',
+    body: 'Real-time rolling loss velocity ($/min) with vector sparkline momentum and alert bands (Steady, Drain, Bleed, Cliff-Dive) right in the extension popup.',
+  },
+  {
+    title: 'One-Click Cashout Router',
+    body: 'Deep-links straight to the native cashier and redemption portals across 21+ crypto and sweeps operators, plus visual progress bars towards real-world bills.',
+  },
+  {
+    title: 'In-Session Auto-Vaulting',
+    body: 'Non-custodial safe deposits (e.g. Stake Vault) triggered automatically or via one click when cashout goals and ratchet floors are hit.',
   },
 ];
 
@@ -481,5 +493,29 @@ export const CORE_BRAKES = [
     title: "Profit-Lock & Reality Goals",
     body: "Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.",
     status: "Trailing floor + goal alerts",
+  },
+  {
+    num: "07",
+    title: "Bonus Playthrough & Max-Bet Traps",
+    body: "Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).",
+    status: "Live HUD + trap interceptor",
+  },
+  {
+    num: "08",
+    title: "Session Velocity Radar & Sparkline",
+    body: "Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.",
+    status: "Rolling velocity telemetry",
+  },
+  {
+    num: "09",
+    title: "One-Click Cashout Router & Goal Bars",
+    body: "Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.",
+    status: "21+ operator deep links",
+  },
+  {
+    num: "10",
+    title: "In-Session Auto-Vaulting",
+    body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
+    status: "Non-custodial safe deposits",
   },
 ];
