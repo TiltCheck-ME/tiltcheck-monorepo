@@ -58,6 +58,13 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     status: 'live',
   },
   {
+    href: '/tools/rtp-scanner',
+    label: 'SLOT RTP SCANNER',
+    title: 'Live Slot RTP Downgrade Scanner',
+    description: 'Inspect multi-tier RTP downgrades (96.5% vs 94.2% vs 88.5%) and calculate the hidden Greed Tax per operator.',
+    status: 'live',
+  },
+  {
     href: 'https://github.com/TiltCheck-ME/tiltcheck-monorepo/tree/main/packages/cli',
     label: 'OFFLINE CLI',
     title: 'Offline-First CLI Suite',

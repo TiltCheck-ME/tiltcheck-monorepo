@@ -82,6 +82,13 @@ export const AUTOVAULT_PAGE = {
   ],
   fine: 'Direct API vaulting on Stake.us and Stake.com via session cookie. Vault nudge dialogs on supported rooms. TiltCheck never sees passwords or holds funds.',
 };
+export const RTP_SCANNER_PAGE = {
+  eyebrow: "RTP Forensics & Downgrade Scanner",
+  title: "Live Slot RTP Downgrade Scanner",
+  punch: "Providers ship games with up to 5 certified return-to-player tiers (e.g. 96.5% down to 88.0%). Shady casinos quietly pick the lowest tier without telling the player.",
+  fine: "Certified tiers sourced from GLI, eCOGRA, and BMM lab test reports. Compare your casino deployment against manufacturer baselines.",
+};
+
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
   'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
@@ -299,6 +306,13 @@ export const TOOL_REGISTRY = [
     title: 'Offline-First CLI Suite',
     description: 'Provably fair HMAC-SHA256 verifier, slot RTP downgrade calculator, operator trust audit, and Ed25519 voluntary cooldown tokens.',
     status: 'live',
+  },
+  {
+    href: "/tools/rtp-scanner",
+    label: "SLOT RTP SCANNER",
+    title: "Live Slot RTP Downgrade Scanner",
+    description: "Inspect multi-tier RTP downgrades (96.5% vs 94.2% vs 88.5%) and calculate the hidden Greed Tax per operator.",
+    status: "live",
   },
   {
     href: '/tools/verify',

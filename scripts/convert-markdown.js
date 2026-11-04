@@ -54,10 +54,13 @@ import {
   TOOL_REGISTRY,
   INSTALL_SURFACES,
   CORE_BRAKES,
+  RTP_SCANNER_PAGE,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
+const masterRtpPath = path.join(repoRoot, 'data/provider-master-rtp.json');
+const masterRtp = JSON.parse(fs.readFileSync(masterRtpPath, 'utf8'));
 const sourceRoot = path.resolve(process.argv[2] || 'docs/tiltcheck');
 const outRoot = path.resolve(process.argv[3] || 'out/docs');
 const FOOTER = 'Made for Degens. By Degens.';
@@ -875,6 +878,157 @@ function buildAutovaultRedirect() {
 </html>`;
 }
 
+function buildRtpScannerPage() {
+  const depth = "docs";
+  let gameOptions = "";
+  masterRtp.providers.forEach(function(prov) {
+    prov.games.forEach(function(g) {
+      gameOptions += "<option value=\"" + escapeHtml(g.gameSlug) + "\">" + escapeHtml(g.gameTitle) + " (" + escapeHtml(prov.providerName) + ") - Max " + g.maxRtp.toFixed(2) + "%</option>";
+    });
+  });
+
+  const gamesJson = JSON.stringify(
+    masterRtp.providers.flatMap(function(p) {
+      return p.games.map(function(g) {
+        return {
+          slug: g.gameSlug,
+          title: g.gameTitle,
+          provider: p.providerName,
+          maxRtp: g.maxRtp,
+          tiers: g.certifiedTiers,
+        };
+      });
+    })
+  );
+
+  const content = `<main class="cooldown-page">
+  <div class="cooldown-panel" style="max-width: 840px; text-align: left;">
+    <p class="brand-eyebrow">${escapeHtml(RTP_SCANNER_PAGE.eyebrow)}</p>
+    <h1>${escapeHtml(RTP_SCANNER_PAGE.title)}</h1>
+    <p class="cooldown-punch">${escapeHtml(RTP_SCANNER_PAGE.punch)}</p>
+    
+    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Select Slot Title</label>
+        <select id="slotSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace;" onchange="onSlotChange()">
+          ${gameOptions}
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Bet Per Spin (\$)</label>
+          <input id="scanBet" type="number" step="0.5" value="1.0" min="0.1" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace;" oninput="updateScanCalc()"/>
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Spin Count</label>
+          <input id="scanSpins" type="number" step="100" value="1000" min="10" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace;" oninput="updateScanCalc()"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Selected Deployed Tier</label>
+        <select id="tierSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #f4a261; padding: 0.5rem; font-family: monospace;" onchange="updateScanCalc()">
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1rem; border-top: 1px solid #283347; padding-top: 1rem;">
+        <div style="background: rgba(255,255,255,0.03); padding: 0.75rem; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 10px; font-family: monospace; color: #a0afbe; text-transform: uppercase;">Wager Volume</div>
+          <div id="resWager" style="font-size: 1.1rem; font-family: monospace; font-weight: bold; color: #fff;">\$1,000.00</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); padding: 0.75rem; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 10px; font-family: monospace; color: #17c3b2; text-transform: uppercase;">Loss at Max RTP</div>
+          <div id="resMaxLoss" style="font-size: 1.1rem; font-family: monospace; font-weight: bold; color: #17c3b2;">-\$35.00</div>
+        </div>
+        <div style="background: rgba(230,57,70,0.1); padding: 0.75rem; border: 1px solid rgba(230,57,70,0.3);">
+          <div style="font-size: 10px; font-family: monospace; color: #e63946; text-transform: uppercase; font-weight: bold;">Hidden Greed Tax</div>
+          <div id="resTax" style="font-size: 1.25rem; font-family: monospace; font-weight: 800; color: #e63946;">-\$20.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family: monospace; font-size: 12px; color: #a0afbe; line-height: 1.6; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 6px;">
+      <strong style="color: #17c3b2;">HOW TO VERIFY LIVE IN-GAME:</strong> Open the slot on your casino tab. Click the (i) or (?) menu button and navigate to the final rules page. Gaming regulators legally mandate that the game declare its specific active return-to-player percentage on that rules slide.
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <a class="btn btn-primary" href="${href(depth, "downloads/tiltcheck-extension.zip")}" download>DOWNLOAD EXTENSION BRAKES</a>
+    </div>
+  </div>
+</main>
+<script>
+var gamesData = ` + gamesJson + `;
+
+function onSlotChange() {
+  var sel = document.getElementById("slotSelect");
+  var slug = sel.value;
+  var game = gamesData.find(function(g) { return g.slug === slug; });
+  if (!game) return;
+  var tierSelect = document.getElementById("tierSelect");
+  tierSelect.innerHTML = "";
+  game.tiers.forEach(function(t, idx) {
+    var opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t.toFixed(2) + "%" + (idx === 0 ? " (Max Certified)" : " (Lowered Tier)");
+    tierSelect.appendChild(opt);
+  });
+  if (game.tiers.length > 1) {
+    tierSelect.selectedIndex = 1;
+  }
+  updateScanCalc();
+}
+
+function updateScanCalc() {
+  var sel = document.getElementById("slotSelect");
+  var slug = sel.value;
+  var game = gamesData.find(function(g) { return g.slug === slug; });
+  if (!game) return;
+
+  var bet = parseFloat(document.getElementById("scanBet").value) || 1.0;
+  var spins = parseInt(document.getElementById("scanSpins").value) || 1000;
+  var tierSelect = document.getElementById("tierSelect");
+  var deployedRtp = parseFloat(tierSelect.value) || game.maxRtp;
+
+  var wager = bet * spins;
+  var maxEdge = (100 - game.maxRtp) / 100;
+  var depEdge = (100 - deployedRtp) / 100;
+
+  var maxLoss = wager * maxEdge;
+  var depLoss = wager * depEdge;
+  var greedTax = depLoss - maxLoss;
+
+  document.getElementById("resWager").textContent = "$" + wager.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById("resMaxLoss").textContent = "-$" + maxLoss.toFixed(2);
+  document.getElementById("resTax").textContent = greedTax > 0 ? "-$" + greedTax.toFixed(2) : "$0.00";
+}
+window.addEventListener("DOMContentLoaded", onSlotChange);
+</script>`;
+
+  return shell({
+    title: "Slot RTP Downgrade Scanner | TiltCheck",
+    description: "Inspect multi-tier RTP downgrades and calculate the hidden casino Greed Tax per session.",
+    depth: "docs",
+    current: "rtp-scanner",
+    body: content,
+  });
+}
+
+function buildRtpScannerRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=../../rtp-scanner/"/>
+<link rel="canonical" href="${SITE_URL}/rtp-scanner/"/>
+<title>Slot RTP Downgrade Scanner | TiltCheck</title>
+</head>
+<body>
+<p><a href="../../rtp-scanner/">Slot RTP Downgrade Scanner lives here</a></p>
+</body>
+</html>`;
+}
+
 function buildNudgesRedirect() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1030,6 +1184,13 @@ function run() {
   const nudgesDir = path.join(siteRoot, 'nudges');
   fs.mkdirSync(nudgesDir, { recursive: true });
   fs.writeFileSync(path.join(nudgesDir, 'index.html'), buildNudgesPage());
+  const rtpScannerDir = path.join(siteRoot, "rtp-scanner");
+  fs.mkdirSync(rtpScannerDir, { recursive: true });
+  fs.writeFileSync(path.join(rtpScannerDir, "index.html"), buildRtpScannerPage());
+  const toolsRtpDir = path.join(siteRoot, "tools", "rtp-scanner");
+  fs.mkdirSync(toolsRtpDir, { recursive: true });
+  fs.writeFileSync(path.join(toolsRtpDir, "index.html"), buildRtpScannerRedirect());
+
   const autovaultDir = path.join(siteRoot, 'autovault');
   fs.mkdirSync(autovaultDir, { recursive: true });
   fs.writeFileSync(path.join(autovaultDir, 'index.html'), buildAutovaultPage());
