@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 
 import { describe, expect, it } from 'vitest';
 import {
@@ -10,14 +10,14 @@ import {
 } from '../scripts/audit-us-operators';
 
 describe('US Operator Audit Target Registry', () => {
-  it('defines 15 canonical popular US operator targets (5 Regulated, 10 Sweeps)', () => {
-    expect(US_OPERATOR_TARGETS).toHaveLength(15);
+  it('defines 23 canonical popular US operator targets (5 Regulated, 18 Sweeps)', () => {
+    expect(US_OPERATOR_TARGETS).toHaveLength(23);
 
     const regulated = US_OPERATOR_TARGETS.filter((t) => t.category === 'Regulated');
     const sweeps = US_OPERATOR_TARGETS.filter((t) => t.category === 'Sweeps');
 
     expect(regulated).toHaveLength(5);
-    expect(sweeps).toHaveLength(10);
+    expect(sweeps).toHaveLength(18);
 
     const regNames = regulated.map((t) => t.name);
     expect(regNames).toContain('DraftKings Casino');
@@ -37,6 +37,14 @@ describe('US Operator Audit Target Registry', () => {
     expect(sweepsNames).toContain('Hello Millions');
     expect(sweepsNames).toContain('Modo Casino');
     expect(sweepsNames).toContain('Crown Coins Casino');
+    expect(sweepsNames).toContain('LuckyLand Slots');
+    expect(sweepsNames).toContain('Global Poker');
+    expect(sweepsNames).toContain('Zula Casino');
+    expect(sweepsNames).toContain('Funzpoints');
+    expect(sweepsNames).toContain('Funrize');
+    expect(sweepsNames).toContain('Real Prize');
+    expect(sweepsNames).toContain('Jackpota');
+    expect(sweepsNames).toContain('NoLimitCoins');
   });
 
   it('validates all targets satisfy strict audit receipt and evidence standards', () => {
@@ -137,9 +145,9 @@ describe('parseCliArgs', () => {
 });
 
 describe('runUsOperatorAudit', () => {
-  it('executes full automated audit in mock mode and verifies all 15 targets are compliant', async () => {
+  it('executes full automated audit in mock mode and verifies all 23 targets are compliant', async () => {
     const results = await runUsOperatorAudit({ mock: true });
-    expect(results).toHaveLength(15);
+    expect(results).toHaveLength(23);
 
     for (const r of results) {
       expect(r.compliant).toBe(true);

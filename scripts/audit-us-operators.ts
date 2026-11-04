@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Automated Trust Auditor for Popular US Gaming Operators
@@ -643,6 +643,302 @@ export const US_OPERATOR_TARGETS: UsOperatorAuditTarget[] = [
       terms: 'https://crowncoinscasino.com/terms-and-conditions',
     },
   },
+  {
+    slug: 'luckyland-slots',
+    name: 'LuckyLand Slots',
+    category: 'Sweeps',
+    primaryDomain: 'luckylandslots.com',
+    officialDomains: ['luckylandslots.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). VGW Holdings Limited',
+    banking: {
+      minHours: 24,
+      maxHours: 72,
+      minCashoutUsd: 50,
+      claim: 'Electronic gift card redemption within 24 hours, bank transfers 48-72 hours.',
+      sourceUrl: 'https://luckylandslots.com/terms',
+    },
+    welcomeBonus: {
+      summary: '7,777 Gold Coins and 10 free Sweeps Coins upon account registration.',
+      sourceUrl: 'https://luckylandslots.com',
+    },
+    rtpProfile: {
+      summary: 'In-House Slots 95.50%–96.50% RTP · Casuals 97.00% RTP',
+      originals: 'VGW In-House Slots & Casuals: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.',
+      slots: 'Proprietary instant-win games and social slots running certified mathematical models.',
+    },
+    vaultSupport: 'TiltCheck session HUD and spend limit alerts',
+    playthrough: '1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility',
+    evidence: [
+      'Operated by VGW Holdings (parent company of Chumba Casino and Global Poker).',
+      'AMOE postal compliance: 5 free Sweeps Coins per handwritten mail-in request card.',
+      'Redemption options: Digital gift cards starting at 50 SC (24h) and EFT bank transfers starting at 50 SC (48–72h).',
+      'Independent RNG certified by Gaming Associates ensuring fair and unpredictable outcomes.',
+      'Restricted jurisdictions: Washington, Idaho, Michigan, Nevada, and Montana.',
+    ],
+    endpoints: {
+      home: 'https://luckylandslots.com',
+      terms: 'https://luckylandslots.com/terms',
+    },
+  },
+  {
+    slug: 'global-poker',
+    name: 'Global Poker',
+    category: 'Sweeps',
+    primaryDomain: 'globalpoker.com',
+    officialDomains: ['globalpoker.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). VGW Games Limited',
+    banking: {
+      minHours: 24,
+      maxHours: 48,
+      minCashoutUsd: 50,
+      claim: 'Prize redemptions process within 24-48 hours once account verification is complete.',
+      sourceUrl: 'https://globalpoker.com/terms-conditions',
+    },
+    welcomeBonus: {
+      summary: '150,000 Gold Coins and 30 free Sweeps Coins on first deposit package.',
+      sourceUrl: 'https://globalpoker.com',
+    },
+    rtpProfile: {
+      summary: 'Peer-to-Peer Tables 97.00%–99.00% effective RTP · Rake 5% max cap',
+      originals: 'Global Poker In-House Tables: 97.00% to 99.00% effective RTP. iTech Labs certified dealing RNG.',
+      slots: 'Classic social poker and jackpot sit-and-go tournaments with peer-to-peer liquidity.',
+    },
+    vaultSupport: 'TiltCheck table time limiter and session spend alerts',
+    playthrough: '1x playthrough requirement on Sweeps Coins before prize redemption',
+    evidence: [
+      'Licensed sweepstakes poker platform operated by VGW Group under US sweepstakes regulations.',
+      'AMOE compliance: Free postal requests provide 5 Sweeps Coins per compliant mail-in envelope.',
+      'Direct bank wire redemptions process within 24–48 hours to verified bank accounts.',
+      'Certified peer-to-peer card dealing RNG audited and certified by iTech Labs.',
+      'Restricted states: Idaho, Michigan, Montana, Nevada, and Washington.',
+    ],
+    endpoints: {
+      home: 'https://globalpoker.com',
+      terms: 'https://globalpoker.com/terms-conditions',
+    },
+  },
+  {
+    slug: 'zula-casino',
+    name: 'Zula Casino',
+    category: 'Sweeps',
+    primaryDomain: 'zulacasino.com',
+    officialDomains: ['zulacasino.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). SCPS LLC (Delaware entity) / Blazesoft',
+    banking: {
+      minHours: 24,
+      maxHours: 72,
+      minCashoutUsd: 50,
+      claim: 'Bank transfer redemptions clear in 24 to 72 hours for verified patrons.',
+      sourceUrl: 'https://www.zulacasino.com/terms-and-conditions',
+    },
+    welcomeBonus: {
+      summary: '100,000 Gold Coins and 10 free Sweeps Coins upon verified registration.',
+      sourceUrl: 'https://www.zulacasino.com',
+    },
+    rtpProfile: {
+      summary: 'Certified Slots 95.00%–96.80% RTP · Casuals 97.00%',
+      originals: 'Zula Casuals & Tables: 97.00% average RTP. Certified RNG by BMM Testlabs.',
+      slots: 'Multi-studio slot library featuring Pragmatic Play, Relax, and Booming Games at certified RTP tiers.',
+    },
+    vaultSupport: 'TiltCheck DOM auto-vault integration and session HUD',
+    playthrough: '1x playthrough requirement on Sweeps Coins prior to redemption',
+    evidence: [
+      'Operated by Blazesoft affiliate SCPS LLC with legal US sweepstakes structure.',
+      'AMOE mail-in program provides 5 Sweeps Coins per compliant written request.',
+      'Redemption threshold: Minimum 50 SC ($50 USD) for bank deposits and gift cards.',
+      'Bank transfer turnaround: Settle within 24–72 hours following initial KYC approval.',
+      'Excluded states: Washington, Idaho, Michigan, and Georgia per terms.',
+    ],
+    endpoints: {
+      home: 'https://www.zulacasino.com',
+      terms: 'https://www.zulacasino.com/terms-and-conditions',
+    },
+  },
+  {
+    slug: 'funzpoints',
+    name: 'Funzpoints',
+    category: 'Sweeps',
+    primaryDomain: 'funzpoints.com',
+    officialDomains: ['funzpoints.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). Woopla Inc. (Canada / US operations)',
+    banking: {
+      minHours: 24,
+      maxHours: 48,
+      minCashoutUsd: 20,
+      claim: 'Direct ACH bank transfer redemptions process in 24-48 hours with $20 minimum.',
+      sourceUrl: 'https://funzpoints.com/rules',
+    },
+    welcomeBonus: {
+      summary: '250 Premium Funzpoints ($2.50) and 1,000 Standard Funzpoints on profile completion.',
+      sourceUrl: 'https://funzpoints.com',
+    },
+    rtpProfile: {
+      summary: 'Proprietary Slots 95.50%–96.50% RTP · Certified RNG',
+      originals: 'Funzpoints Proprietary Slots: 95.50% to 96.50% RTP. Independent certified RNG.',
+      slots: 'Custom slot portfolio built specifically for sweepstakes compliance with no third-party iframe math.',
+    },
+    vaultSupport: 'TiltCheck session timer and loss brake alerts',
+    playthrough: '1x playthrough on Premium Funzpoints (100 Premium Points = $1.00 USD)',
+    evidence: [
+      'Operated by Woopla Inc under long-standing US promotional sweepstakes compliance.',
+      'Industry-low redemption minimum of 2,000 Premium Funzpoints ($20.00 USD).',
+      'AMOE compliance: Mail-in requests award 500 Premium Funzpoints ($5.00) with no purchase required.',
+      'Direct bank transfer redemptions typically process in 24–48 business hours.',
+      'Restricted states: Idaho per published official rules.',
+    ],
+    endpoints: {
+      home: 'https://funzpoints.com',
+      terms: 'https://funzpoints.com/rules',
+    },
+  },
+  {
+    slug: 'funrize',
+    name: 'Funrize',
+    category: 'Sweeps',
+    primaryDomain: 'funrize.com',
+    officialDomains: ['funrize.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). A1 Development LLC (Delaware entity)',
+    banking: {
+      minHours: 24,
+      maxHours: 48,
+      minCashoutUsd: 25,
+      claim: 'Prize redemptions process within 24-48 hours via electronic bank transfer.',
+      sourceUrl: 'https://funrize.com/terms',
+    },
+    welcomeBonus: {
+      summary: '125,000 Tournament Coins and free promotional entries on registration.',
+      sourceUrl: 'https://funrize.com',
+    },
+    rtpProfile: {
+      summary: 'NetGame Slots 95.50%–96.50% RTP · GLI certified',
+      originals: 'NetGame In-House Titles: 95.50% to 96.50% RTP. Certified RNG by GLI.',
+      slots: 'NetGame entertainment social gaming catalog running certified RNG algorithms.',
+    },
+    vaultSupport: 'TiltCheck HUD session brake and cooldown tools',
+    playthrough: '1x playthrough requirement on promotional entries (100 entries = $1.00 USD)',
+    evidence: [
+      'Delaware incorporated sweepstakes operator running certified promotional gaming.',
+      'AMOE mail-in program offers 100 free entries ($1.00) per handwritten request card.',
+      'Redemption floor: Low 25.00 USD minimum for gift cards; 100.00 USD for bank transfers.',
+      'EFT payouts typically clear in 24–48 business hours via Trustly banking rails.',
+      'Restricted in Idaho, Michigan, Nevada, Washington, and Wyoming.',
+    ],
+    endpoints: {
+      home: 'https://funrize.com',
+      terms: 'https://funrize.com/terms',
+    },
+  },
+  {
+    slug: 'real-prize',
+    name: 'Real Prize',
+    category: 'Sweeps',
+    primaryDomain: 'realprize.com',
+    officialDomains: ['realprize.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). RealPlay Tech Inc.',
+    banking: {
+      minHours: 24,
+      maxHours: 72,
+      minCashoutUsd: 100,
+      claim: 'Prize redemptions process in 24-72 hours via ACH or cards.',
+      sourceUrl: 'https://www.realprize.com/terms',
+    },
+    welcomeBonus: {
+      summary: '100,000 Gold Coins and 2 Sweeps Coins upon account creation.',
+      sourceUrl: 'https://www.realprize.com',
+    },
+    rtpProfile: {
+      summary: 'Multi-Studio Slots 95.00%–96.50% RTP · Casuals 97.00%',
+      originals: 'Real Prize Casuals & Tables: 97.00% average RTP. Certified provider math.',
+      slots: 'Games supplied by Pragmatic Play and Relax Gaming running certified provider math.',
+    },
+    vaultSupport: 'TiltCheck DOM auto-vault integration and session HUD',
+    playthrough: '1x playthrough on Sweeps Coins prior to redemption',
+    evidence: [
+      'Operated by RealPlay Tech Inc following standard US sweepstakes compliance.',
+      'AMOE postal entry grants 3 Sweeps Coins per compliant handwritten index card.',
+      'Redemption speeds: 24–72 hours via ACH direct bank transfer.',
+      'Games supplied by Pragmatic Play and Relax Gaming running certified provider math.',
+      'Restricted in Idaho, Michigan, Nevada, and Washington.',
+    ],
+    endpoints: {
+      home: 'https://www.realprize.com',
+      terms: 'https://www.realprize.com/terms',
+    },
+  },
+  {
+    slug: 'jackpota',
+    name: 'Jackpota',
+    category: 'Sweeps',
+    primaryDomain: 'jackpota.com',
+    officialDomains: ['jackpota.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)',
+    banking: {
+      minHours: 24,
+      maxHours: 72,
+      minCashoutUsd: 75,
+      claim: 'Gift card redemption clears in 24 hours, bank transfers in 48-72 hours.',
+      sourceUrl: 'https://www.jackpota.com/terms',
+    },
+    welcomeBonus: {
+      summary: '7,500 Gold Coins and 2.5 Sweepstakes Coins on sign-up.',
+      sourceUrl: 'https://www.jackpota.com',
+    },
+    rtpProfile: {
+      summary: 'Provider Slots 95.00%–96.80% RTP · Tables 99.50%',
+      originals: 'Jackpota In-House Tables: 99.50% Blackjack RTP. GLI and BMM certified.',
+      slots: 'Pragmatic Play and 3 Oaks Gaming slots with independent fairness certificates.',
+    },
+    vaultSupport: 'TiltCheck DOM vault adapter and auto-session brake notifications',
+    playthrough: '1x playthrough requirement on Sweepstakes Coins (SC)',
+    evidence: [
+      'Operated by B2Services OÜ (sister brand to McLuck and Hello Millions).',
+      'AMOE mail-in program offers 4 free Sweeps Coins per handwritten request.',
+      'Redemption minimums: 75 SC for EFT bank deposit; 10 SC for electronic gift cards.',
+      'Turnaround velocity: 24 hours for digital gift cards; 48–72 hours for bank EFT.',
+      'Excluded states: ID, MI, MT, NV, WA, AL, GA, and DE.',
+    ],
+    endpoints: {
+      home: 'https://www.jackpota.com',
+      terms: 'https://www.jackpota.com/terms',
+    },
+  },
+  {
+    slug: 'nolimitcoins',
+    name: 'NoLimitCoins',
+    category: 'Sweeps',
+    primaryDomain: 'nolimitcoins.com',
+    officialDomains: ['nolimitcoins.com'],
+    licensingBasis: 'Sweepstakes model (US/Canada). A1 Development LLC (Delaware entity)',
+    banking: {
+      minHours: 24,
+      maxHours: 72,
+      minCashoutUsd: 25,
+      claim: 'Direct bank transfer redemptions clear in 24 to 72 hours.',
+      sourceUrl: 'https://nolimitcoins.com/terms',
+    },
+    welcomeBonus: {
+      summary: '100,000 Gold Coins and 100 free Super Coins on registration.',
+      sourceUrl: 'https://nolimitcoins.com',
+    },
+    rtpProfile: {
+      summary: 'Certified Slots 95.00%–96.50% RTP · Casuals 95.50%',
+      originals: 'NoLimitCoins NetGame Titles: 95.50% to 96.50% RTP. Certified RNG.',
+      slots: 'Slot portfolio running NetGame certified mathematical models with verified RNG.',
+    },
+    vaultSupport: 'TiltCheck session HUD and spend limit alerts',
+    playthrough: '1x playthrough requirement on Super Coins (100 Super Coins = $1.00 USD)',
+    evidence: [
+      'Operating under US sweepstakes regulations managed by A1 Development LLC.',
+      'AMOE mail-in requests award 100 Super Coins ($1.00 USD) without purchase.',
+      'Low redemption floor: Minimum 25 USD for digital gift cards; 100 USD for bank transfers.',
+      'Payout clearance: Electronic bank transfers process within 24–72 hours.',
+      'Restricted states: Idaho, Michigan, Nevada, Washington, and Wyoming.',
+    ],
+    endpoints: {
+      home: 'https://nolimitcoins.com',
+      terms: 'https://nolimitcoins.com/terms',
+    },
+  },
 ];
 
 export async function checkEndpointNetwork(
@@ -839,7 +1135,6 @@ export async function runUsOperatorAudit(options: AuditCliOptions = {}) {
         grade: r.trust.grade,
         risk: r.trust.risk,
         category: r.target.category,
-        audited: true,
         license: r.target.licensingBasis,
         rtpSummary: r.target.rtpProfile.summary,
         rtpOriginals: r.target.rtpProfile.originals,
@@ -847,10 +1142,24 @@ export async function runUsOperatorAudit(options: AuditCliOptions = {}) {
         vaultSupport: r.target.vaultSupport,
         playthrough: r.target.playthrough,
         evidence: r.target.evidence,
+        redemptionMinHours: r.target.banking.minHours,
+        redemptionMaxHours: r.target.banking.maxHours,
+        audited: true,
       };
 
       if (idx !== -1) {
         rawCasinos[idx] = { ...rawCasinos[idx], ...auditPayload };
+      } else {
+        if (r.target.category === 'Sweeps') {
+          const firstNonSweeps = rawCasinos.findIndex((c: any) => c.category !== 'Sweeps');
+          if (firstNonSweeps !== -1) {
+            rawCasinos.splice(firstNonSweeps, 0, auditPayload);
+          } else {
+            rawCasinos.push(auditPayload);
+          }
+        } else {
+          rawCasinos.push(auditPayload);
+        }
       }
     }
 
@@ -895,7 +1204,27 @@ export async function runUsOperatorAudit(options: AuditCliOptions = {}) {
     writeFileSync(factsPath, JSON.stringify(factsData, null, 2) + '\n', 'utf8');
     console.log(`[WRITE] Updated ${factsPath}`);
 
-    // 3. Rebuild static twins via convert-markdown.js
+    // 3. Persist structured audit run summary
+    const summaryPath = path.resolve(process.cwd(), 'data/trust-engine/us-operator-audit-summary.json');
+    const summaryData = {
+      timestamp: dateStr,
+      evaluatedOperators: results.length,
+      averageScore: avgScore,
+      results: results.map((r) => ({
+        slug: r.target.slug,
+        name: r.target.name,
+        category: r.target.category,
+        grade: r.trust.grade,
+        score: r.trust.score,
+        risk: r.trust.risk,
+        network: r.network,
+        compliant: r.compliant,
+      })),
+    };
+    writeFileSync(summaryPath, JSON.stringify(summaryData, null, 2) + '\n', 'utf8');
+    console.log(`[WRITE] Updated ${summaryPath}`);
+
+    // 4. Rebuild static twins via convert-markdown.js
     console.log('[WRITE] Synchronizing Pages twin via scripts/convert-markdown.js...');
     execSync('node scripts/convert-markdown.js', { stdio: 'inherit' });
     console.log('[WRITE] Pages twin synchronized successfully.');

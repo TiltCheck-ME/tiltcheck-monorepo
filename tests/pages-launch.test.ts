@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -78,6 +78,8 @@ describe('GitHub Pages launch twin', () => {
     const audited = casinosData.filter((c: any) => c.audited);
     expect(audited.map((c: any) => c.name)).toEqual([
       'Chumba Casino',
+      'Global Poker',
+      'LuckyLand Slots',
       'Pulsz',
       'WOW Vegas',
       'High 5 Casino',
@@ -86,7 +88,13 @@ describe('GitHub Pages launch twin', () => {
       'Fortune Coins',
       'Hello Millions',
       'Modo Casino',
+      'Funrize',
+      'Zula Casino',
       'Crown Coins Casino',
+      'Real Prize',
+      'Jackpota',
+      'NoLimitCoins',
+      'Funzpoints',
       'Roobet',
       'Stake.com',
       'Rollbit',

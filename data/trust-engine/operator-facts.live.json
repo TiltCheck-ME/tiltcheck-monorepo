@@ -35,17 +35,17 @@
       "redemptionTime": {
         "claim": "Prize redemptions process within 24-48 hours once account verification is complete.",
         "sourceUrl": "https://globalpoker.com/terms-conditions",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "Free welcome package with 150,000 Gold Coins and 30 Sweeps Coins bonus on first purchase.",
+        "summary": "150,000 Gold Coins and 30 free Sweeps Coins on first deposit package.",
         "sourceUrl": "https://globalpoker.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "luckyland-slots",
@@ -56,19 +56,19 @@
       ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Electronic gift card redemption within 24 hours, bank transfers 48-120 hours.",
+        "claim": "Electronic gift card redemption within 24 hours, bank transfers 48-72 hours.",
         "sourceUrl": "https://luckylandslots.com/terms",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 120
+        "maxHours": 72
       },
       "welcomeBonusSummary": {
         "summary": "7,777 Gold Coins and 10 free Sweeps Coins upon account registration.",
         "sourceUrl": "https://luckylandslots.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "pulsz",
@@ -329,17 +329,17 @@
       "redemptionTime": {
         "claim": "Prize redemptions process within 24-48 hours via electronic bank transfer.",
         "sourceUrl": "https://funrize.com/terms",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 48
       },
       "welcomeBonusSummary": {
-        "summary": "125,000 Tournament Coins free upon registration.",
+        "summary": "125,000 Tournament Coins and free promotional entries on registration.",
         "sourceUrl": "https://funrize.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "zula-casino",
@@ -352,17 +352,17 @@
       "redemptionTime": {
         "claim": "Bank transfer redemptions clear in 24 to 72 hours for verified patrons.",
         "sourceUrl": "https://www.zulacasino.com/terms-and-conditions",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "100,000 Gold Coins and 10 Sweeps Coins unlocked upon registration and phone verification.",
+        "summary": "100,000 Gold Coins and 10 free Sweeps Coins upon verified registration.",
         "sourceUrl": "https://www.zulacasino.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "real-prize",
@@ -375,17 +375,17 @@
       "redemptionTime": {
         "claim": "Prize redemptions process in 24-72 hours via ACH or cards.",
         "sourceUrl": "https://www.realprize.com/terms",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "100,000 Gold Coins and 2 Sweeps Coins on registration.",
+        "summary": "100,000 Gold Coins and 2 Sweeps Coins upon account creation.",
         "sourceUrl": "https://www.realprize.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "jackpota",
@@ -396,19 +396,19 @@
       ],
       "status": "live",
       "redemptionTime": {
-        "claim": "Gift card redemption clears in 24 hours, bank transfers in 48-96 hours.",
+        "claim": "Gift card redemption clears in 24 hours, bank transfers in 48-72 hours.",
         "sourceUrl": "https://www.jackpota.com/terms",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
-        "maxHours": 96
+        "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "7,500 Gold Coins and 2.5 free Sweeps Coins welcome pack.",
+        "summary": "7,500 Gold Coins and 2.5 Sweepstakes Coins on sign-up.",
         "sourceUrl": "https://www.jackpota.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "nolimitcoins",
@@ -421,17 +421,17 @@
       "redemptionTime": {
         "claim": "Direct bank transfer redemptions clear in 24 to 72 hours.",
         "sourceUrl": "https://nolimitcoins.com/terms",
-        "asOf": "2026-10-14",
+        "asOf": "2026-11-04",
         "minHours": 24,
         "maxHours": 72
       },
       "welcomeBonusSummary": {
-        "summary": "100,000 Gold Coins on signup plus daily wheel spins.",
+        "summary": "100,000 Gold Coins and 100 free Super Coins on registration.",
         "sourceUrl": "https://nolimitcoins.com",
-        "asOf": "2026-10-14"
+        "asOf": "2026-11-04"
       },
-      "verifiedBy": "spotter-audit",
-      "lastVerifiedAt": "2026-10-14"
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
     },
     {
       "slug": "rolla",
@@ -855,6 +855,29 @@
       "welcomeBonusSummary": {
         "summary": "100% deposit match up to $500 with 1x playthrough requirement.",
         "sourceUrl": "https://www.betrivers.com",
+        "asOf": "2026-11-04"
+      },
+      "verifiedBy": "tiltcheck-us-auditor",
+      "lastVerifiedAt": "2026-11-04"
+    },
+    {
+      "slug": "funzpoints",
+      "name": "Funzpoints",
+      "category": "Sweeps",
+      "domains": [
+        "funzpoints.com"
+      ],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Direct ACH bank transfer redemptions process in 24-48 hours with $20 minimum.",
+        "sourceUrl": "https://funzpoints.com/rules",
+        "asOf": "2026-11-04",
+        "minHours": 24,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "250 Premium Funzpoints ($2.50) and 1,000 Standard Funzpoints on profile completion.",
+        "sourceUrl": "https://funzpoints.com",
         "asOf": "2026-11-04"
       },
       "verifiedBy": "tiltcheck-us-auditor",

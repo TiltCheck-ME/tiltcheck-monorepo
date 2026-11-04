@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 name: US Operator Trust Audit
 
 on:
@@ -52,25 +52,25 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run verification audit (check mode)
-        if: ${{ github.event_name == 'schedule' || github.event.inputs.mode == 'check' }}
+        if: ${{ github.event.inputs.mode == 'check' }}
         run: pnpm audit:us-operators:check
 
       - name: Run update audit (write mode)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'write' }}
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.mode == 'write' }}
         run: |
           pnpm audit:us-operators:write
           node scripts/convert-markdown.js
           pnpm vitest run tests/pages-launch.test.ts packages/intel-tools/tests/ tests/audit-us-operators.test.ts
 
       - name: Detect changes and create pull request
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'write' }}
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.mode == 'write' }}
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             branch="ops/audit-us-operators-$(date -u +%Y%m%d)"
             git checkout -b "$branch"
-            git add apps/web/src/data/casinos.json data/trust-engine/operator-facts.live.json out/
+            git add apps/web/src/data/casinos.json data/trust-engine/operator-facts.live.json data/trust-engine/us-operator-audit-summary.json out/
             git commit -m "audit(trust): refresh popular US operator trust receipts [skip ci]"
             git push origin "$branch" --force
             gh pr create \
