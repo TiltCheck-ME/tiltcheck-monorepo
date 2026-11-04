@@ -53,7 +53,6 @@ import {
   TOOL_REGISTRY,
   INSTALL_SURFACES,
   CORE_BRAKES,
-  WHY_NO_BOT,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -335,8 +334,6 @@ function buildRootLanding() {
   <span class="landing-brake__status">${escapeHtml(b.status)}</span>
 </li>`,
   ).join('\n');
-  const botFlaws = WHY_NO_BOT.botFlaws.map((f) => `<li>${escapeHtml(f)}</li>`).join('\n');
-  const spotterStrengths = WHY_NO_BOT.spotterStrengths.map((s) => `<li>${escapeHtml(s)}</li>`).join('\n');
 
   const content = `<main class="landing-page">
   <section class="landing-hero" aria-label="TiltCheck">
@@ -380,27 +377,6 @@ function buildRootLanding() {
         <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
       </div>
     </div>
-  </section>
-  <section class="landing-why-no-bot" aria-label="Why No Discord Bot">
-    <p class="landing-why-no-bot__eyebrow">${escapeHtml(WHY_NO_BOT.eyebrow)}</p>
-    <h2 class="landing-why-no-bot__title">${escapeHtml(WHY_NO_BOT.title)}</h2>
-    <div class="landing-why-no-bot__grid">
-      <div class="landing-why-no-bot__card landing-why-no-bot__card--bot">
-        <div class="landing-why-no-bot__header">
-          <h3 class="landing-why-no-bot__card-title">The Discord Bot Problem</h3>
-          <span class="landing-why-no-bot__tag landing-why-no-bot__tag--bad">TOO LATE</span>
-        </div>
-        <ul class="landing-why-no-bot__list">${botFlaws}</ul>
-      </div>
-      <div class="landing-why-no-bot__card landing-why-no-bot__card--spotter">
-        <div class="landing-why-no-bot__header">
-          <h3 class="landing-why-no-bot__card-title">The Browser Extension Spotter</h3>
-          <span class="landing-why-no-bot__tag landing-why-no-bot__tag--good">INTERCEPTS THE TRIGGER</span>
-        </div>
-        <ul class="landing-why-no-bot__list">${spotterStrengths}</ul>
-      </div>
-    </div>
-    <p class="landing-why-no-bot__verdict">${escapeHtml(WHY_NO_BOT.verdict)}</p>
   </section>
   <section class="landing-vault" aria-label="AutoVault">
     <h2 class="landing-vault__title">${escapeHtml(VAULT.title)}</h2>

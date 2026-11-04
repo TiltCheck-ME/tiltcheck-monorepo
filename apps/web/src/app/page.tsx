@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import JsonLd from '@/components/JsonLd';
-import { HOME_LAUNCH, CORE_BRAKES, WHY_NO_BOT } from '@/lib/home-launch-copy';
+import { HOME_LAUNCH, CORE_BRAKES } from '@/lib/home-launch-copy';
 import { webPageJsonLd } from '@/lib/structured-data';
 import { SITE_ONE_LINER, SITE_SEO_TITLE } from '@/lib/site-copy';
 
@@ -76,35 +76,6 @@ export default function Home() {
             </li>
           ))}
         </ul>
-      </section>
-      <section className="landing-why-no-bot" aria-label="Why No Discord Bot">
-        <p className="landing-why-no-bot__eyebrow">{WHY_NO_BOT.eyebrow}</p>
-        <h2 className="landing-why-no-bot__title">{WHY_NO_BOT.title}</h2>
-        <div className="landing-why-no-bot__grid">
-          <div className="landing-why-no-bot__card landing-why-no-bot__card--bot">
-            <div className="landing-why-no-bot__header">
-              <h3 className="landing-why-no-bot__card-title">The Discord Bot Problem</h3>
-              <span className="landing-why-no-bot__tag landing-why-no-bot__tag--bad">TOO LATE</span>
-            </div>
-            <ul className="landing-why-no-bot__list">
-              {WHY_NO_BOT.botFlaws.map((f) => (
-                <li key={f}>{f}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="landing-why-no-bot__card landing-why-no-bot__card--spotter">
-            <div className="landing-why-no-bot__header">
-              <h3 className="landing-why-no-bot__card-title">The Browser Extension Spotter</h3>
-              <span className="landing-why-no-bot__tag landing-why-no-bot__tag--good">INTERCEPTS THE TRIGGER</span>
-            </div>
-            <ul className="landing-why-no-bot__list">
-              {WHY_NO_BOT.spotterStrengths.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <p className="landing-why-no-bot__verdict">{WHY_NO_BOT.verdict}</p>
       </section>
       <section className="landing-vault" aria-label="AutoVault">
         <h2 className="landing-vault__title">{HOME_LAUNCH.vault.title}</h2>

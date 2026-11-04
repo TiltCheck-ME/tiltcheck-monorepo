@@ -85,20 +85,3 @@ export const CORE_BRAKES = [
     status: "Hard stop on reload",
   },
 ];
-
-export const WHY_NO_BOT = {
-  eyebrow: "The Strategic Reality",
-  title: "Why We Stopped Focusing on Discord Bots",
-  subtitle: "Because you do not tilt in Discord. You tilt in the casino tab.",
-  botFlaws: [
-    "Too slow: By the time you switch tabs to Discord and type /cooldown, your stack is already gone.",
-    "Cannot stop spins: A bot in a chatroom cannot pause the spin button or lock the cashier trigger.",
-    "Wasted server costs: 24/7 cloud servers (Railway, bot dynos) cost real money every month for tools players only check when they are already sober.",
-  ],
-  spotterStrengths: [
-    "Right on the tab: Sits directly on Stake, Roobet, and sweeps sites right next to the bet button.",
-    "Active brakes: Freezes auto-spins for 2s, translates losses into work shifts, and shuts the deposit door.",
-    "Zero hosting costs: Runs on free GitHub Pages and your browser. Zero cloud bills for the project.",
-  ],
-  verdict: "We demoted the Discord bots to optional community tools. 100% of our focus is on the browser extension that protects your balance in real time.",
-};
