@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,5 +38,18 @@ describe('popup guest-first copy', () => {
     expect(popupHtml).toContain('ncpgambling.org');
     expect(popupHtml).toContain('1-800-GAMBLER');
     expect(popupHtml).toContain('gamstop.co.uk');
+  });
+
+  it('renders Session Velocity Radar card and wires popup updates', () => {
+    expect(popupHtml).toContain('id="session-radar-card"');
+    expect(popupHtml).toContain('id="radar-sparkline-wrap"');
+    expect(popupHtml).toContain('id="radar-badge"');
+    expect(popupHtml).toContain('id="radar-velocity-val"');
+    expect(popupHtml).toContain('id="btn-reset-radar"');
+
+    expect(popupTs).toContain('generateSparklineSvg');
+    expect(popupTs).toContain('determineVelocityStatus');
+    expect(popupTs).toContain('loadSessionRadar');
+    expect(popupTs).toContain('updateSessionRadarUI');
   });
 });

@@ -36,6 +36,7 @@ import {
   normalizeBlockedGamesList,
   TILTCHECK_BLOCKED_CATEGORIES_KEY,
   TILTCHECK_BLOCKED_GAMES_KEY,
+  TILTCHECK_GAME_BLOCK_OPT_IN_KEY,
 } from './pro/blocked-games-options.js';
 import { GAME_EXCLUSION_CATEGORIES, type GameCategory } from './exclusion-taxonomy.js';
 import { type CashoutGoal, DEFAULT_CASHOUT_GOALS, sanitizeCashoutGoals } from './profit-lock.js';

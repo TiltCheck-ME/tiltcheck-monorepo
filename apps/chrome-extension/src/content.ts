@@ -45,6 +45,7 @@ import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barr
 import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } from './reverse-withdrawal-shield.js';
 import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
+import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -71,6 +72,7 @@ let depositBarrier: DepositBarrierHandle | null = null;
 let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
 let profitLock: ProfitLockHandle | null = null;
 let bonusTracker: BonusTrackerHandle | null = null;
+let sessionRadar: SessionVelocityHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -465,6 +467,13 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncReverseWithdrawalShield(opts);
   syncProfitLock(opts);
   syncBonusTracker(opts);
+  if (!sessionRadar) {
+    try {
+      sessionRadar = installSessionVelocityRadar(document);
+    } catch {
+      sessionRadar = null;
+    }
+  }
 }
 
 async function boot(): Promise<void> {
@@ -565,6 +574,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         config: bonusTracker ? bonusTracker.getConfig() : null,
         progress: bonusTracker ? bonusTracker.getProgress() : null,
       });
+      return true;
+
+    case 'get_session_pnl_state':
+      sendResponse(sessionRadar ? sessionRadar.getState() : null);
+      return true;
+
+    case 'reset_session_pnl':
+      sendResponse(sessionRadar ? sessionRadar.reset() : null);
       return true;
 
     default:

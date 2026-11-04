@@ -303,5 +303,13 @@ describe('core content script contracts', () => {
         active: expect.any(Boolean),
       })
     );
+
+    const radarResponse = vi.fn();
+    listeners[0]!({ type: 'get_session_pnl_state' }, null, radarResponse);
+    expect(radarResponse).toHaveBeenCalled();
+
+    const resetResponse = vi.fn();
+    listeners[0]!({ type: 'reset_session_pnl' }, null, resetResponse);
+    expect(resetResponse).toHaveBeenCalled();
   });
 });

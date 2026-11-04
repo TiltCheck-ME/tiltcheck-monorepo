@@ -30,6 +30,13 @@ import {
   toggleSlugInList,
 } from './popup-settings.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
+import {
+  generateSparklineSvg,
+  determineVelocityStatus,
+  TILTCHECK_SESSION_PNL_KEY,
+  type SessionPnlState,
+  DEFAULT_SESSION_PNL_STATE,
+} from './session-velocity.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -333,6 +340,105 @@ function formatDuration(startMs: number): string {
   const h = Math.floor(diff / 3600);
   const m = Math.floor((diff % 3600) / 60);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+// ---------------------------------------------------------------------------
+// Session Net PnL & Velocity Radar
+// ---------------------------------------------------------------------------
+
+function formatPnl(val: number): string {
+  if (val > 0) return `+$${val.toFixed(2)}`;
+  if (val < 0) return `-$${Math.abs(val).toFixed(2)}`;
+  return '$0.00';
+}
+
+function updateSessionRadarUI(state: SessionPnlState): void {
+  const badge = document.getElementById('radar-badge');
+  const pnlVal = document.getElementById('radar-pnl-val');
+  const velVal = document.getElementById('radar-velocity-val');
+  const sparkWrap = document.getElementById('radar-sparkline-wrap');
+  const peakEl = document.getElementById('radar-stat-peak');
+  const lowEl = document.getElementById('radar-stat-low');
+
+  if (!badge || !pnlVal || !velVal || !sparkWrap) return;
+
+  const statusInfo = determineVelocityStatus(state.velocityPerMin, state.netPnl);
+
+  // Update status badge
+  badge.className = `radar-badge radar-${statusInfo.status.toLowerCase()}`;
+  badge.textContent = statusInfo.label;
+  badge.title = statusInfo.reason;
+
+  // Update Net PnL value & color
+  pnlVal.textContent = formatPnl(state.netPnl);
+  pnlVal.className = 'radar-pnl-val ' + (state.netPnl > 0 ? 'stat-pos' : state.netPnl < 0 ? 'stat-neg' : 'stat-neu');
+
+  // Update velocity readout
+  if (Math.abs(state.velocityPerMin) < 0.01) {
+    velVal.textContent = '0.00/min';
+    velVal.style.color = 'var(--muted)';
+  } else if (state.velocityPerMin > 0) {
+    velVal.textContent = `+$${state.velocityPerMin.toFixed(2)}/min`;
+    velVal.style.color = '#17c3b2';
+  } else {
+    velVal.textContent = `-$${Math.abs(state.velocityPerMin).toFixed(2)}/min`;
+    velVal.style.color = statusInfo.color;
+  }
+
+  // Update peak & low
+  if (peakEl) peakEl.textContent = formatPnl(state.peakPnl);
+  if (lowEl) lowEl.textContent = formatPnl(state.lowestPnl);
+
+  // Render SVG sparkline
+  sparkWrap.innerHTML = generateSparklineSvg(state.samples, 328, 70);
+}
+
+function loadSessionRadar(): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { type: 'get_session_pnl_state' }, (res) => {
+        if (!chrome.runtime.lastError && res && res.success && res.state) {
+          updateSessionRadarUI(res.state);
+          return;
+        }
+        fallbackLoadSessionRadarFromStorage();
+      });
+    } else {
+      fallbackLoadSessionRadarFromStorage();
+    }
+  });
+}
+
+function fallbackLoadSessionRadarFromStorage(): void {
+  chrome.storage.local.get([TILTCHECK_SESSION_PNL_KEY], (res) => {
+    const stored = res[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+    if (stored && Array.isArray(stored.samples)) {
+      updateSessionRadarUI(stored);
+    } else {
+      updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
+    }
+  });
+}
+
+function initSessionRadarListeners(): void {
+  const resetBtn = document.getElementById('btn-reset-radar');
+  if (!resetBtn) return;
+
+  resetBtn.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId) {
+        chrome.tabs.sendMessage(tabId, { type: 'reset_session_pnl' }, () => {
+          // tab might not be a casino tab, ignore error
+        });
+      }
+      chrome.storage.local.remove([TILTCHECK_SESSION_PNL_KEY], () => {
+        updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
+        toast('Session baseline reset.');
+      });
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -873,10 +979,18 @@ function initGuardSettingsPanel(): void {
     const keys = Object.keys(changes);
     if (
       keys.some((k) =>
-        k.startsWith('tiltcheck_') && k !== 'activityFeed'
+        k.startsWith('tiltcheck_') && k !== 'activityFeed' && k !== TILTCHECK_SESSION_PNL_KEY
       )
     ) {
       void refreshGuardSettingsUi();
+    }
+    if (changes[TILTCHECK_SESSION_PNL_KEY]) {
+      const newVal = changes[TILTCHECK_SESSION_PNL_KEY].newValue as SessionPnlState | undefined;
+      if (newVal) {
+        updateSessionRadarUI(newVal);
+      } else {
+        updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
+      }
     }
   });
 }
@@ -891,6 +1005,7 @@ function activateTab(id: string) {
   document.querySelector(`.tab[data-tab="${id}"]`)!.classList.add('active');
   $(`panel-${id}`).classList.add('active');
 
+  if (id === 'status') loadSessionRadar();
   if (id === 'block') loadExclusions();
   if (id === 'vault') loadVaultRules();
 }
@@ -1049,6 +1164,8 @@ async function init() {
   });
 
   initGuardSettingsPanel();
+  initSessionRadarListeners();
+  loadSessionRadar();
 
   // Vault listeners
   initVaultListeners();

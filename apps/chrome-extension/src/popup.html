@@ -682,6 +682,105 @@
       line-height: 1.45;
       margin-top: 8px;
     }
+
+    /* --- SESSION RADAR BLOCK --- */
+    .radar-card {
+      background: #0f1115;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      font-family: var(--mono);
+    }
+    .radar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .radar-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .radar-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .radar-steady { color: #17c3b2; background: rgba(23,195,178,0.12); border-color: rgba(23,195,178,0.3); }
+    .radar-drain  { color: #fbbf24; background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.3); }
+    .radar-bleed  { color: #f97316; background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.35); }
+    .radar-cliff  { color: #ef4444; background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.45); animation: glitch 0.38s steps(2) infinite; }
+    
+    .radar-pnl-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .radar-pnl-val {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .radar-velocity-val {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .radar-sparkline-wrap {
+      width: 100%;
+      height: 70px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .radar-sparkline-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .radar-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .radar-footer-stats {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-reset-radar {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-reset-radar:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.05);
+    }
   </style>
 </head>
 <body>
@@ -714,6 +813,31 @@
 
 <!-- ===== STATUS PANEL ===== -->
 <div id="panel-status" class="panel">
+
+  <!-- Session Momentum & Velocity Radar -->
+  <section class="radar-card" id="session-radar-card">
+    <div class="radar-header">
+      <span class="radar-title">Session Velocity Radar</span>
+      <span id="radar-badge" class="radar-badge radar-steady">STEADY</span>
+    </div>
+    <div class="radar-pnl-row">
+      <div id="radar-pnl-val" class="radar-pnl-val stat-neu">$0.00</div>
+      <div id="radar-velocity-val" class="radar-velocity-val">0.00/min</div>
+    </div>
+    <div class="radar-sparkline-wrap" id="radar-sparkline-wrap">
+      <svg viewBox="0 0 280 70" width="100%" height="70" xmlns="http://www.w3.org/2000/svg">
+        <line x1="8" y1="35" x2="272" y2="35" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3 3" />
+        <text x="140" y="38" text-anchor="middle" fill="rgba(160,175,190,0.5)" font-family="Space Grotesk, -apple-system, sans-serif" font-size="10" font-weight="600" letter-spacing="0.08em">AWAITING SPIN TELEMETRY</text>
+      </svg>
+    </div>
+    <div class="radar-footer">
+      <div class="radar-footer-stats">
+        <span>Peak: <strong id="radar-stat-peak" style="color:#17c3b2">$0.00</strong></span>
+        <span>Low: <strong id="radar-stat-low" style="color:#ff4a4a">$0.00</strong></span>
+      </div>
+      <button type="button" class="btn-reset-radar" id="btn-reset-radar" title="Reset Session Baseline">Reset</button>
+    </div>
+  </section>
 
   <!-- Auth gate (shown when logged out) -->
   <div id="auth-gate" class="auth-gate" style="display:none">
