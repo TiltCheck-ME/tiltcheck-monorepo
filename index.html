@@ -29,6 +29,7 @@
       <p class="landing-hero__kicker">Chasing the loss, chasing the win, thinking you are due. That is feeding the house.</p>
       <p class="landing-hero__lede">Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets.</p>
       <div class="hero-actions landing-hero__actions">
+        <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP</a>
         <a class="btn btn-primary" href="cooldown/">DON&#39;T FEED THE HOUSE</a>
         <a class="btn btn-secondary" href="casinos/">IS THIS CASINO SUS?</a>
       </div>
@@ -55,6 +56,76 @@
   <p>Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.</p>
 </li></ol>
   </section>
+  <section class="landing-brakes" aria-label="The 4 In-Session Brakes">
+    <p class="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
+    <h2 class="landing-brakes__title">THE 4 IN-SESSION BRAKES</h2>
+    <ul class="landing-brakes__list"><li class="landing-brake">
+  <span class="landing-brake__num">01</span>
+  <h3 class="landing-brake__title">2s Spin Brake</h3>
+  <p class="landing-brake__body">Locks the bet button for two seconds after every single spin. You cannot spam auto-spin into a blackout. Your balance actually catches up before you fire again.</p>
+  <span class="landing-brake__status">Enforced by default</span>
+</li>
+<li class="landing-brake">
+  <span class="landing-brake__num">02</span>
+  <h3 class="landing-brake__title">Strategic Game Filters</h3>
+  <p class="landing-brake__body">Puts blunt warning badges right on Mines, Chicken, Plinko, and high-house-edge slots. Shows you the mathematical trap before you drop your stack.</p>
+  <span class="landing-brake__status">Live game scan</span>
+</li>
+<li class="landing-brake">
+  <span class="landing-brake__num">03</span>
+  <h3 class="landing-brake__title">Reality Wage Clock</h3>
+  <p class="landing-brake__body">Translates casino chips into your actual hourly day-job wage ($25/hr default). Seeing 12 hours of labor torched hits different than numbers on a screen.</p>
+  <span class="landing-brake__status">Configurable wage</span>
+</li>
+<li class="landing-brake">
+  <span class="landing-brake__num">04</span>
+  <h3 class="landing-brake__title">DOM Deposit Barrier</h3>
+  <p class="landing-brake__body">Freezes cashier and deposit triggers across Stake, Roobet, and sweepstakes frontends when you are tilted or on a Cooldown. Stops you from digging the hole deeper.</p>
+  <span class="landing-brake__status">Hard stop on reload</span>
+</li></ul>
+    <div class="landing-calc">
+      <div class="landing-calc__inputs">
+        <div class="landing-calc__slider-row">
+          <label class="landing-calc__label" for="wageSlider">Your Hourly Day-Job Wage: <strong id="wageVal">$25/hr</strong></label>
+          <input type="range" id="wageSlider" class="landing-calc__slider" min="15" max="150" value="25" step="5" oninput="updateLandingWage()"/>
+        </div>
+        <div class="landing-calc__slider-row">
+          <label class="landing-calc__label" for="lossSlider">Simulated Session Loss: <strong id="lossVal" style="color:#e63946;">-$300</strong></label>
+          <input type="range" id="lossSlider" class="landing-calc__slider" min="50" max="2500" value="300" step="50" oninput="updateLandingWage()"/>
+        </div>
+      </div>
+      <div class="landing-calc__banner">
+        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK INTERCEPT</span>
+        <p class="landing-calc__banner-lead">Session Down: <span id="calcLossText">-$300.00</span> (<span id="calcHoursText" style="color:#f4a261;">12.0 hours</span> of labor torched)</p>
+        <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
+      </div>
+    </div>
+  </section>
+  <section class="landing-why-no-bot" aria-label="Why No Discord Bot">
+    <p class="landing-why-no-bot__eyebrow">The Strategic Reality</p>
+    <h2 class="landing-why-no-bot__title">Why We Stopped Focusing on Discord Bots</h2>
+    <div class="landing-why-no-bot__grid">
+      <div class="landing-why-no-bot__card landing-why-no-bot__card--bot">
+        <div class="landing-why-no-bot__header">
+          <h3 class="landing-why-no-bot__card-title">The Discord Bot Problem</h3>
+          <span class="landing-why-no-bot__tag landing-why-no-bot__tag--bad">TOO LATE</span>
+        </div>
+        <ul class="landing-why-no-bot__list"><li>Too slow: By the time you switch tabs to Discord and type /cooldown, your stack is already gone.</li>
+<li>Cannot stop spins: A bot in a chatroom cannot pause the spin button or lock the cashier trigger.</li>
+<li>Wasted server costs: 24/7 cloud servers (Railway, bot dynos) cost real money every month for tools players only check when they are already sober.</li></ul>
+      </div>
+      <div class="landing-why-no-bot__card landing-why-no-bot__card--spotter">
+        <div class="landing-why-no-bot__header">
+          <h3 class="landing-why-no-bot__card-title">The Browser Extension Spotter</h3>
+          <span class="landing-why-no-bot__tag landing-why-no-bot__tag--good">INTERCEPTS THE TRIGGER</span>
+        </div>
+        <ul class="landing-why-no-bot__list"><li>Right on the tab: Sits directly on Stake, Roobet, and sweeps sites right next to the bet button.</li>
+<li>Active brakes: Freezes auto-spins for 2s, translates losses into work shifts, and shuts the deposit door.</li>
+<li>Zero hosting costs: Runs on free GitHub Pages and your browser. Zero cloud bills for the project.</li></ul>
+      </div>
+    </div>
+    <p class="landing-why-no-bot__verdict">We demoted the Discord bots to optional community tools. 100% of our focus is on the browser extension that protects your balance in real time.</p>
+  </section>
   <section class="landing-vault" aria-label="AutoVault">
     <h2 class="landing-vault__title">AutoVault — skim the win on the sites we actually support.</h2>
     <p class="landing-vault__body">Stake.us and nuts.gg. The tab presses vault so the hit is not sitting in playable balance.</p>
@@ -68,6 +139,25 @@
 <li>AutoVault is two casinos. We do not fake a vault button everywhere.</li></ul>
   </section>
 </main>
+<script>
+function updateLandingWage() {
+  var w = parseFloat(document.getElementById('wageSlider').value);
+  var l = parseFloat(document.getElementById('lossSlider').value);
+  document.getElementById('wageVal').textContent = '$' + w + '/hr';
+  document.getElementById('lossVal').textContent = '-$' + l;
+  var hrs = (l / w).toFixed(1);
+  document.getElementById('calcLossText').textContent = '-$' + l.toFixed(2);
+  document.getElementById('calcHoursText').textContent = hrs + ' hours';
+  var desc = document.getElementById('calcDescText');
+  if (hrs >= 16) {
+    desc.textContent = 'That is two full 40-hour work weeks wiped out in one session. Walk away right now.';
+  } else if (hrs >= 8) {
+    desc.textContent = 'That is an entire 8-hour shift gone. You spent all day working for the house. Close the tab.';
+  } else {
+    desc.textContent = 'That is ' + hrs + ' hours of your hard labor torched. Respect your time and slow down.';
+  }
+}
+</script>
 <footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
     <p class="site-footer__more-label">Also</p>
