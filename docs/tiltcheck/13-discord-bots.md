@@ -2,6 +2,9 @@
 
 # 13. Discord Bot Architecture & Command Design
 
+> [!NOTE] ARCHIVED / DEPRECATED (2026-11-04)
+> Standalone Discord bots (TiltCheck bot, JustTheTip, DAD) have been archived. In-session harm reduction now operates directly in the browser extension on casino tabs, with public trust audits on GitHub Pages (tiltcheck.me) and zero-network verification in @tiltcheck/cli.
+
 > Historical architecture note: this document captures an older multi-module command model.
 > It is **not** the live slash-command source of truth anymore.
 > Use `docs/discord-command-ownership.md` for the current command split across TiltCheck, JustTheTip, and DAD.

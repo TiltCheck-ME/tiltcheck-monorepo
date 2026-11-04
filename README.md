@@ -386,7 +386,7 @@ It's built by someone who understands the problems firsthand.
 
 | Surface | Status |
 | :--- | :--- |
-| Discord bot + JustTheTip bot + Dad bot | Live on Railway |
+| Discord bots (core, tipping, dad) | Archived (Harm reduction pivoted to browser extension spotter) |
 | API (Express gateway) | Live on Railway |
 | Trust rollup | Live on Railway |
 | Web (`tiltcheck.me`) | Live — GitHub Pages |

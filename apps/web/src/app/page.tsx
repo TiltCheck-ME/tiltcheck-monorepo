@@ -1,8 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import JsonLd from '@/components/JsonLd';
-import { HOME_LAUNCH } from '@/lib/home-launch-copy';
+import { HOME_LAUNCH, CORE_BRAKES, WHY_NO_BOT } from '@/lib/home-launch-copy';
 import { webPageJsonLd } from '@/lib/structured-data';
 import { SITE_ONE_LINER, SITE_SEO_TITLE } from '@/lib/site-copy';
 
@@ -62,6 +62,49 @@ export default function Home() {
             </li>
           ))}
         </ol>
+      </section>
+      <section className="landing-brakes" aria-label="The 4 In-Session Brakes">
+        <p className="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
+        <h2 className="landing-brakes__title">THE 4 IN-SESSION BRAKES</h2>
+        <ul className="landing-brakes__list">
+          {CORE_BRAKES.map((b) => (
+            <li key={b.num} className="landing-brake">
+              <span className="landing-brake__num">{b.num}</span>
+              <h3 className="landing-brake__title">{b.title}</h3>
+              <p className="landing-brake__body">{b.body}</p>
+              <span className="landing-brake__status">{b.status}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="landing-why-no-bot" aria-label="Why No Discord Bot">
+        <p className="landing-why-no-bot__eyebrow">{WHY_NO_BOT.eyebrow}</p>
+        <h2 className="landing-why-no-bot__title">{WHY_NO_BOT.title}</h2>
+        <div className="landing-why-no-bot__grid">
+          <div className="landing-why-no-bot__card landing-why-no-bot__card--bot">
+            <div className="landing-why-no-bot__header">
+              <h3 className="landing-why-no-bot__card-title">The Discord Bot Problem</h3>
+              <span className="landing-why-no-bot__tag landing-why-no-bot__tag--bad">TOO LATE</span>
+            </div>
+            <ul className="landing-why-no-bot__list">
+              {WHY_NO_BOT.botFlaws.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="landing-why-no-bot__card landing-why-no-bot__card--spotter">
+            <div className="landing-why-no-bot__header">
+              <h3 className="landing-why-no-bot__card-title">The Browser Extension Spotter</h3>
+              <span className="landing-why-no-bot__tag landing-why-no-bot__tag--good">INTERCEPTS THE TRIGGER</span>
+            </div>
+            <ul className="landing-why-no-bot__list">
+              {WHY_NO_BOT.spotterStrengths.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <p className="landing-why-no-bot__verdict">{WHY_NO_BOT.verdict}</p>
       </section>
       <section className="landing-vault" aria-label="AutoVault">
         <h2 className="landing-vault__title">{HOME_LAUNCH.vault.title}</h2>

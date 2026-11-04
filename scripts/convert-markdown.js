@@ -52,6 +52,8 @@ import {
   GRADING_STEPS,
   TOOL_REGISTRY,
   INSTALL_SURFACES,
+  CORE_BRAKES,
+  WHY_NO_BOT,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -325,6 +327,17 @@ function buildRootLanding() {
 </li>`,
   ).join('\n');
   const honesty = LAUNCH_HONESTY.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
+  const brakes = CORE_BRAKES.map(
+    (b) => `<li class="landing-brake">
+  <span class="landing-brake__num">${escapeHtml(b.num)}</span>
+  <h3 class="landing-brake__title">${escapeHtml(b.title)}</h3>
+  <p class="landing-brake__body">${escapeHtml(b.body)}</p>
+  <span class="landing-brake__status">${escapeHtml(b.status)}</span>
+</li>`,
+  ).join('\n');
+  const botFlaws = WHY_NO_BOT.botFlaws.map((f) => `<li>${escapeHtml(f)}</li>`).join('\n');
+  const spotterStrengths = WHY_NO_BOT.spotterStrengths.map((s) => `<li>${escapeHtml(s)}</li>`).join('\n');
+
   const content = `<main class="landing-page">
   <section class="landing-hero" aria-label="TiltCheck">
     <div class="landing-hero__copy">
@@ -334,6 +347,7 @@ function buildRootLanding() {
       <p class="landing-hero__kicker">${escapeHtml(SITE_KICKER)}</p>
       <p class="landing-hero__lede">${escapeHtml(SITE_LEDE)}</p>
       <div class="hero-actions landing-hero__actions">
+        ${zipCtaHtml()}
         ${secondaryCtaHtml()}
       </div>
       <a class="hero-actions__secondary-link" href="${escapeHtml(TERTIARY_LINK.href)}">${escapeHtml(TERTIARY_LINK.label)}</a>
@@ -345,6 +359,49 @@ function buildRootLanding() {
     <h2 class="landing-moves__title">${escapeHtml(INSTALL_TITLE)}</h2>
     <ol class="landing-moves__list">${moves}</ol>
   </section>
+  <section class="landing-brakes" aria-label="The 4 In-Session Brakes">
+    <p class="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
+    <h2 class="landing-brakes__title">THE 4 IN-SESSION BRAKES</h2>
+    <ul class="landing-brakes__list">${brakes}</ul>
+    <div class="landing-calc">
+      <div class="landing-calc__inputs">
+        <div class="landing-calc__slider-row">
+          <label class="landing-calc__label" for="wageSlider">Your Hourly Day-Job Wage: <strong id="wageVal">$25/hr</strong></label>
+          <input type="range" id="wageSlider" class="landing-calc__slider" min="15" max="150" value="25" step="5" oninput="updateLandingWage()"/>
+        </div>
+        <div class="landing-calc__slider-row">
+          <label class="landing-calc__label" for="lossSlider">Simulated Session Loss: <strong id="lossVal" style="color:#e63946;">-$300</strong></label>
+          <input type="range" id="lossSlider" class="landing-calc__slider" min="50" max="2500" value="300" step="50" oninput="updateLandingWage()"/>
+        </div>
+      </div>
+      <div class="landing-calc__banner">
+        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK INTERCEPT</span>
+        <p class="landing-calc__banner-lead">Session Down: <span id="calcLossText">-$300.00</span> (<span id="calcHoursText" style="color:#f4a261;">12.0 hours</span> of labor torched)</p>
+        <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
+      </div>
+    </div>
+  </section>
+  <section class="landing-why-no-bot" aria-label="Why No Discord Bot">
+    <p class="landing-why-no-bot__eyebrow">${escapeHtml(WHY_NO_BOT.eyebrow)}</p>
+    <h2 class="landing-why-no-bot__title">${escapeHtml(WHY_NO_BOT.title)}</h2>
+    <div class="landing-why-no-bot__grid">
+      <div class="landing-why-no-bot__card landing-why-no-bot__card--bot">
+        <div class="landing-why-no-bot__header">
+          <h3 class="landing-why-no-bot__card-title">The Discord Bot Problem</h3>
+          <span class="landing-why-no-bot__tag landing-why-no-bot__tag--bad">TOO LATE</span>
+        </div>
+        <ul class="landing-why-no-bot__list">${botFlaws}</ul>
+      </div>
+      <div class="landing-why-no-bot__card landing-why-no-bot__card--spotter">
+        <div class="landing-why-no-bot__header">
+          <h3 class="landing-why-no-bot__card-title">The Browser Extension Spotter</h3>
+          <span class="landing-why-no-bot__tag landing-why-no-bot__tag--good">INTERCEPTS THE TRIGGER</span>
+        </div>
+        <ul class="landing-why-no-bot__list">${spotterStrengths}</ul>
+      </div>
+    </div>
+    <p class="landing-why-no-bot__verdict">${escapeHtml(WHY_NO_BOT.verdict)}</p>
+  </section>
   <section class="landing-vault" aria-label="AutoVault">
     <h2 class="landing-vault__title">${escapeHtml(VAULT.title)}</h2>
     <p class="landing-vault__body">${escapeHtml(VAULT.body)}</p>
@@ -354,7 +411,26 @@ function buildRootLanding() {
     <p class="landing-tape__label">THE FINE PRINT</p>
     <ul class="landing-tape__list">${honesty}</ul>
   </section>
-</main>`;
+</main>
+<script>
+function updateLandingWage() {
+  var w = parseFloat(document.getElementById('wageSlider').value);
+  var l = parseFloat(document.getElementById('lossSlider').value);
+  document.getElementById('wageVal').textContent = '$' + w + '/hr';
+  document.getElementById('lossVal').textContent = '-$' + l;
+  var hrs = (l / w).toFixed(1);
+  document.getElementById('calcLossText').textContent = '-$' + l.toFixed(2);
+  document.getElementById('calcHoursText').textContent = hrs + ' hours';
+  var desc = document.getElementById('calcDescText');
+  if (hrs >= 16) {
+    desc.textContent = 'That is two full 40-hour work weeks wiped out in one session. Walk away right now.';
+  } else if (hrs >= 8) {
+    desc.textContent = 'That is an entire 8-hour shift gone. You spent all day working for the house. Close the tab.';
+  } else {
+    desc.textContent = 'That is ' + hrs + ' hours of your hard labor torched. Respect your time and slow down.';
+  }
+}
+</script>`;
 
   return shell({
     title: 'TiltCheck | House always wins? FUCK THAT.',

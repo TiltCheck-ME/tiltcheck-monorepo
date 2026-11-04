@@ -42,9 +42,10 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       api: ${{ steps.filter.outputs.api }}
-      discord-bot: ${{ steps.filter.outputs.discord-bot }}
-      justthetip-bot: ${{ steps.filter.outputs.justthetip-bot }}
-      dad-bot: ${{ steps.filter.outputs.dad-bot }}
+      # [ARCHIVED 2026-11-04] Discord bots archived from Railway deploy:
+      # discord-bot: ${{ steps.filter.outputs.discord-bot }}
+      # justthetip-bot: ${{ steps.filter.outputs.justthetip-bot }}
+      # dad-bot: ${{ steps.filter.outputs.dad-bot }}
       trust-rollup: ${{ steps.filter.outputs.trust-rollup }}
       control-room: ${{ steps.filter.outputs.control-room }}
       game-arena: ${{ steps.filter.outputs.game-arena }}
@@ -107,12 +108,10 @@ jobs:
         include:
           - service: api
             changed: ${{ needs.changes.outputs.api }}
-          - service: discord-bot
-            changed: ${{ needs.changes.outputs['discord-bot'] }}
-          - service: justthetip-bot
-            changed: ${{ needs.changes.outputs['justthetip-bot'] }}
-          - service: dad-bot
-            changed: ${{ needs.changes.outputs['dad-bot'] }}
+          # [ARCHIVED 2026-11-04] Discord bots archived from Railway deploy:
+          # - service: discord-bot
+          # - service: justthetip-bot
+          # - service: dad-bot
           - service: trust-rollup
             changed: ${{ needs.changes.outputs['trust-rollup'] }}
           - service: control-room
@@ -196,15 +195,10 @@ jobs:
           - service: api
             railway_service_id: "d36d7de5-160c-42e3-9cfc-95e3cc37b9d8"
             changed: ${{ needs.changes.outputs.api }}
-          - service: discord-bot
-            railway_service_id: "91b91e98-fc19-4006-8edd-f7c2a1e45865"
-            changed: ${{ needs.changes.outputs['discord-bot'] }}
-          - service: justthetip-bot
-            railway_service_id: "1a168cbc-1a83-4e81-b6a2-c90d5afb7235"
-            changed: ${{ needs.changes.outputs['justthetip-bot'] }}
-          - service: dad-bot
-            railway_service_id: "1e8b60f1-625d-4351-8f17-b5180c20f8f4"
-            changed: ${{ needs.changes.outputs['dad-bot'] }}
+          # [ARCHIVED 2026-11-04] Discord bots archived from Railway deploy:
+          # - service: discord-bot
+          # - service: justthetip-bot
+          # - service: dad-bot
           - service: trust-rollup
             railway_service_id: "a3d4ca4c-868b-4332-8316-03b0d0b0d238"
             changed: ${{ needs.changes.outputs['trust-rollup'] }}

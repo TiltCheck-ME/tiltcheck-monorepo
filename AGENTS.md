@@ -50,9 +50,9 @@ This repo does not ship an active tracked GCP deploy workflow. Container service
 | :--- | :--- | :--- | :--- |
 | **api** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Central Gateway. |
 | **web** (`tiltcheck.me`) | GitHub Pages | `.github/workflows/pages.yml` + `scripts/convert-markdown.js` | Live public site. Not Railway. |
-| **discord-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: primary TiltCheck bot runtime. |
-| **justthetip-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate tipping bot service. |
-| **dad-bot** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: separate dad bot service. |
+| **discord-bot** | Archived | `.github/workflows/deploy-railway.yml` | Archived (2026-11-04): In-session harm reduction moved to browser extension spotter. |
+| **justthetip-bot** | Archived | `.github/workflows/deploy-railway.yml` | Archived (2026-11-04): Deprecated to eliminate custodial hot-wallet liability. |
+| **dad-bot** | Archived | `.github/workflows/deploy-railway.yml` | Archived (2026-11-04): Standalone bot retired; trivia/games moved to static web hub. |
 | **trust-rollup** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live: Trust Engine aggregator. |
 | **control-room** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |
 | **game-arena** | GHCR -> Railway | `.github/workflows/deploy-railway.yml` | Live app service; public hostname may route via direct custom domain or optional tunnel. |

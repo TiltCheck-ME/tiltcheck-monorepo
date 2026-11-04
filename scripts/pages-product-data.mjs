@@ -434,3 +434,47 @@ export const INSTALL_SURFACES = [
     description: 'Same script, Stake.us steps. SC/GC vault + session stats.',
   },
 ];
+
+export const CORE_BRAKES = [
+  {
+    num: "01",
+    title: "2s Spin Brake",
+    body: "Locks the bet button for two seconds after every single spin. You cannot spam auto-spin into a blackout. Your balance actually catches up before you fire again.",
+    status: "Enforced by default",
+  },
+  {
+    num: "02",
+    title: "Strategic Game Filters",
+    body: "Puts blunt warning badges right on Mines, Chicken, Plinko, and high-house-edge slots. Shows you the mathematical trap before you drop your stack.",
+    status: "Live game scan",
+  },
+  {
+    num: "03",
+    title: "Reality Wage Clock",
+    body: "Translates casino chips into your actual hourly day-job wage ($25/hr default). Seeing 12 hours of labor torched hits different than numbers on a screen.",
+    status: "Configurable wage",
+  },
+  {
+    num: "04",
+    title: "DOM Deposit Barrier",
+    body: "Freezes cashier and deposit triggers across Stake, Roobet, and sweepstakes frontends when you are tilted or on a Cooldown. Stops you from digging the hole deeper.",
+    status: "Hard stop on reload",
+  },
+];
+
+export const WHY_NO_BOT = {
+  eyebrow: "The Strategic Reality",
+  title: "Why We Stopped Focusing on Discord Bots",
+  subtitle: "Because you do not tilt in Discord. You tilt in the casino tab.",
+  botFlaws: [
+    "Too slow: By the time you switch tabs to Discord and type /cooldown, your stack is already gone.",
+    "Cannot stop spins: A bot in a chatroom cannot pause the spin button or lock the cashier trigger.",
+    "Wasted server costs: 24/7 cloud servers (Railway, bot dynos) cost real money every month for tools players only check when they are already sober.",
+  ],
+  spotterStrengths: [
+    "Right on the tab: Sits directly on Stake, Roobet, and sweeps sites right next to the bet button.",
+    "Active brakes: Freezes auto-spins for 2s, translates losses into work shifts, and shuts the deposit door.",
+    "Zero hosting costs: Runs on free GitHub Pages and your browser. Zero cloud bills for the project.",
+  ],
+  verdict: "We demoted the Discord bots to optional community tools. 100% of our focus is on the browser extension that protects your balance in real time.",
+};

@@ -1757,3 +1757,244 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Landing Brakes & Why No Bot Sections --- */
+.landing-brakes,
+.landing-why-no-bot {
+  width: min(100% - 2rem, 78rem);
+  margin: 0 auto;
+}
+
+.landing-brakes__eyebrow,
+.landing-why-no-bot__eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #17c3b2;
+}
+
+.landing-brakes__title,
+.landing-why-no-bot__title {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #f4f7f2;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 0.95;
+}
+
+.landing-brakes__list {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.landing-brake {
+  padding: 1.2rem;
+  background: rgba(13, 16, 23, 0.7);
+  border: 1px solid #1e2533;
+  border-top: 2px solid #17c3b2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.landing-brake__num {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #17c3b2;
+}
+
+.landing-brake__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #f4f7f2;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.landing-brake__body {
+  margin: 0;
+  color: #c5d0c8;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.landing-brake__status {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #17c3b2;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.landing-calc {
+  margin-top: 1.75rem;
+  padding: 1.5rem;
+  background: rgba(8, 10, 14, 0.85);
+  border: 1px solid #283347;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.landing-calc__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.landing-calc__slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.landing-calc__label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #c5d0c8;
+}
+
+.landing-calc__label strong {
+  color: #17c3b2;
+}
+
+.landing-calc__slider {
+  width: 100%;
+  accent-color: #17c3b2;
+}
+
+.landing-calc__banner {
+  padding: 1.25rem;
+  background: rgba(18, 10, 12, 0.9);
+  border: 1px solid #e63946;
+  border-left: 4px solid #e63946;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.landing-calc__banner-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #e63946;
+  letter-spacing: 0.12em;
+}
+
+.landing-calc__banner-lead {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.landing-calc__banner-lead span {
+  color: #f4a261;
+}
+
+.landing-calc__banner-desc {
+  font-size: 0.82rem;
+  color: #c5d0c8;
+  margin: 0;
+}
+
+.landing-why-no-bot__grid {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.landing-why-no-bot__card {
+  padding: 1.25rem;
+  background: rgba(13, 16, 23, 0.7);
+  border: 1px solid #1e2533;
+}
+
+.landing-why-no-bot__card--bot {
+  border-top: 2px solid #e63946;
+}
+
+.landing-why-no-bot__card--spotter {
+  border-top: 2px solid #17c3b2;
+}
+
+.landing-why-no-bot__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.landing-why-no-bot__card-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.landing-why-no-bot__tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+}
+
+.landing-why-no-bot__tag--bad {
+  color: #e63946;
+  background: rgba(230, 57, 70, 0.12);
+}
+
+.landing-why-no-bot__tag--good {
+  color: #17c3b2;
+  background: rgba(23, 195, 178, 0.12);
+}
+
+.landing-why-no-bot__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #c5d0c8;
+  line-height: 1.5;
+}
+
+.landing-why-no-bot__verdict {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: #8a97a8;
+  border-top: 1px solid #1e2533;
+  padding-top: 0.75rem;
+}
+
+@media (max-width: 899px) {
+  .landing-brakes__list {
+    grid-template-columns: 1fr;
+  }
+  .landing-calc {
+    grid-template-columns: 1fr;
+  }
+  .landing-why-no-bot__grid {
+    grid-template-columns: 1fr;
+  }
+}

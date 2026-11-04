@@ -2,6 +2,20 @@
 
 # Session Log
 
+## 2026-11-04 — feat(web): live site redesign & Discord bots archival
+
+Deployed the spotter-focused website redesign across GitHub Pages and Next.js twin, and archived standalone Discord bots from Railway deployment:
+- Live Site Redesign (`scripts/pages-product-data.mjs`, `scripts/convert-markdown.js`, `apps/web/src/app/page.tsx`, `apps/web/src/lib/home-launch-copy.ts`):
+  - Preserved iconic hero headline ("House always wins? FUCK THAT.", "The math isn't rigged. Your dopamine is.").
+  - Added "The 4 In-Session Brakes" section highlighting 2s Spin Brake, Strategic Game Filters, Reality Wage Clock, and DOM Deposit Barrier.
+  - Added interactive Reality Wage Clock simulator allowing players to calculate labor hours torched against a customizable wage ($25/hr baseline).
+  - Added "Why We Stopped Focusing on Discord Bots" architectural breakdown detailing why real-time in-session browser defense beats post-loss chatroom commands.
+  - Added direct sideload zip CTA button to the homepage hero action area.
+- Discord Bots Archival (`.github/workflows/deploy-railway.yml`, `AGENTS.md`, `README.md`, `docs/tiltcheck/13-discord-bots.md`):
+  - Archived `discord-bot`, `justthetip-bot`, and `dad-bot` from Railway build and deployment matrices to halt cloud hosting costs and eliminate custodial liabilities.
+  - Updated ecosystem deployment reality documentation to reflect that in-session harm reduction now operates via the client browser extension.
+- Verification & Test Pass: Rebuilt static Pages site via `node scripts/convert-markdown.js docs/tiltcheck out/docs`; verified 100% pass across all test suites (3/3 pages launch, 67/67 web, 34/34 CLI); 0 emoji violations.
+
 ## 2026-11-04 — docs: public documentation synchronization for Phases 1–5
 
 Synchronized all public-facing and internal documentation across the repository to reflect the completed Phases 1–5 deliverables:
