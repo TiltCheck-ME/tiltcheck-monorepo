@@ -1,5 +1,5 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
-import { readFileSync } from 'node:fs';
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -18,7 +18,7 @@ const convertMarkdown = readFileSync(
 
 describe('GitHub Pages launch twin', () => {
   it('locks brakes hero copy to the Next twin', () => {
-    expect(CTA_READY).toBe(false);
+    expect(CTA_READY).toBe(true);
     expect(SITE_DOPAMINE).toBe("The math isn't rigged. Your dopamine is.");
     expect(SITE_KICKER).toMatch(/thinking you are due/i);
     expect(SECONDARY_CTAS).toHaveLength(2);
@@ -52,10 +52,17 @@ describe('GitHub Pages launch twin', () => {
     expect(convertMarkdown).not.toMatch(/lounge/i);
   });
 
-  it('does not emit a live zip download while the sideload is gated', () => {
-    expect(convertMarkdown).not.toContain(
+  it('emits a live zip download when sideload is ungated', () => {
+    expect(convertMarkdown).toContain(
       'href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP',
     );
+    const extensionHtmlPath = path.join(process.cwd(), 'out/extension.html');
+    if (existsSync(extensionHtmlPath)) {
+      const extensionHtml = readFileSync(extensionHtmlPath, 'utf8');
+      expect(extensionHtml).toContain(
+        'href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP',
+      );
+    }
   });
 
   it('renders audited evidence and RTP profiles for Stake, Roobet, and BC.Game', () => {

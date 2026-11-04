@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
@@ -21,7 +21,7 @@ export const SITE_ONE_LINER =
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
   'We never ask for your casino password or wallet seed. You sign a Cooldown. Zip is not on this site.';
-export const CTA_READY = false;
+export const CTA_READY = true;
 export const CTA_LABEL = 'DOWNLOAD THE ZIP';
 export const CTA_GATED_LABEL = 'CHROME ZIP NOT ON THIS SITE';
 export const CTA_GATED_HINT =

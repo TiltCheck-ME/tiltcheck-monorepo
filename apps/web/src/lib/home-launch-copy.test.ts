@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
 import { describe, expect, it } from 'vitest';
 import { HOME_LAUNCH } from './home-launch-copy';
 import { SITE_ONE_LINER, SITE_OG_SUBLINE, SITE_SEO_TITLE } from './site-copy';
@@ -21,7 +21,7 @@ describe('HOME_LAUNCH', () => {
   });
 
   it('uses two hero buttons and a text tertiary', () => {
-    expect(HOME_LAUNCH.ctaReady).toBe(false);
+    expect(HOME_LAUNCH.ctaReady).toBe(true);
     expect(HOME_LAUNCH.secondaryCtas).toEqual([
       { label: "DON'T FEED THE HOUSE", href: '/cooldown' },
       { label: 'IS THIS CASINO SUS?', href: '/casinos' },

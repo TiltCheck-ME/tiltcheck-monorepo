@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 -->
 
 # TiltCheck priority matrix
 
@@ -6,7 +6,7 @@ Made for Degens. By Degens.
 
 Public `tiltcheck.me` is GitHub Pages (`scripts/pages-product-data.mjs` + `scripts/convert-markdown.js`). Next.js `apps/web` is the twin. Edit both or production still looks gated.
 
-Zip download stays gated (`ctaReady: false`) until Chrome Core's play path is not broken. That is not permission to wallpaper the homepage with "not live."
+Zip download is ungated (`ctaReady: true`) and sideload zip is packaged.
 
 ## Live vs gated
 
@@ -16,7 +16,7 @@ Zip download stays gated (`ctaReady: false`) until Chrome Core's play path is no
 | Cooldown | API + Solana devnet | Live wallet lock. Operators are not required to honor it. Not GAMSTOP. |
 | Trust intel / casinos | API + rollup | Live advisory scores. Baselines if API is down. |
 | Discord / JustTheTip / dad-bot | Railway | Live. |
-| Chrome Core | Load unpacked `apps/chrome-extension/dist` | Works on 8 casino hosts. Not Chrome Web Store. Zip not on the site. |
+| Chrome Core | Load unpacked or download zip | Works on 8 casino hosts. Sideload zip is live on tiltcheck.me. |
 | Pro HUD | `tiltcheck_pro_monolith_enabled` | Off by default. |
 | GGR / historical tilt | none | Cannot be computed. Do not sell it. |
 
@@ -46,11 +46,11 @@ Zip download stays gated (`ctaReady: false`) until Chrome Core's play path is no
 
 ## P2 — later
 
-| ID | Task |
-| :--- | :--- |
-| SIG-1 | Do not fake tilt history. Wire `recordBet` only if we want the warn ladder |
-| REL-1 | Ungate public zip only after EXT-1–3 |
-| CHN-1 | Cooldown mainnet + Chrome Web Store |
+| ID | Task | Status | Note |
+| :--- | :--- | :--- | :--- |
+| REL-1 | Ungate public zip only after EXT-1–3 | Done | Packaged clean Core zip (116 KB) and ungated CTA_READY across Pages and web twin. |
+| SIG-1 | Do not fake tilt history. Wire `recordBet` only if we want the warn ladder | Open | Pending signal pipeline. |
+| CHN-1 | Cooldown mainnet + Chrome Web Store | Open | Cooldown is devnet-first. Store listing later. |
 
 ## Decision rules
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-01
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
@@ -7,7 +7,7 @@ export const HOME_LAUNCH = {
     'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.',
   lede:
     'Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets.',
-  ctaReady: false,
+  ctaReady: true,
   ctaLabel: 'DOWNLOAD THE ZIP',
   ctaGatedLabel: 'CHROME ZIP NOT ON THIS SITE',
   ctaHref: '/downloads/tiltcheck-extension.zip',
