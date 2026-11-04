@@ -37,6 +37,15 @@ import {
   type SessionPnlState,
   DEFAULT_SESSION_PNL_STATE,
 } from './session-velocity.js';
+import {
+  calculateGoalsProgress,
+  findRouteForHostname,
+  type CasinoCashoutRoute,
+} from './cashout-router.js';
+import {
+  TILTCHECK_CASHOUT_GOALS_KEY,
+  sanitizeCashoutGoals,
+} from './profit-lock.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -439,6 +448,191 @@ function initSessionRadarListeners(): void {
       });
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Cashout Goals Progress & One-Click Cashout Router
+// ---------------------------------------------------------------------------
+
+let activeCashoutRoute: CasinoCashoutRoute | null = null;
+
+function renderGoalsProgressUI(
+  goals: readonly CashoutGoal[],
+  balance: number | null,
+  netPnl: number,
+): void {
+  const container = document.getElementById('cashout-goals-progress-list');
+  if (!container) return;
+
+  const items = calculateGoalsProgress(goals, balance, netPnl);
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    const emptyEl = document.createElement('div');
+    emptyEl.style.cssText = 'color: var(--muted); font-size: 10px; padding: 6px 0;';
+    emptyEl.textContent = 'No cashout goals active. Click Edit Goals to arm one.';
+    container.appendChild(emptyEl);
+    return;
+  }
+
+  for (const item of items) {
+    const itemEl = document.createElement('div');
+    itemEl.className = 'goal-progress-item' + (item.isAchieved ? ' goal-achieved' : '');
+
+    const metricText = item.metric === 'profit' ? 'profit' : 'bal';
+    const topRow = document.createElement('div');
+    topRow.className = 'goal-row-top';
+    topRow.innerHTML = `
+      <span class="goal-name">${item.name}</span>
+      <span class="goal-stats"><strong>$${item.currentAmount.toFixed(2)}</strong> / $${item.targetAmount.toFixed(2)} (${item.percent}%)</span>
+    `;
+
+    const track = document.createElement('div');
+    track.className = 'goal-track';
+    const fill = document.createElement('div');
+    fill.className = 'goal-fill' + (item.isAchieved ? ' goal-fill-achieved' : '');
+    fill.style.width = `${Math.min(100, item.percent)}%`;
+    track.appendChild(fill);
+
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'goal-row-bottom';
+
+    const statusBadge = document.createElement('span');
+    statusBadge.className = 'goal-status-badge' + (item.isAchieved ? ' badge-achieved' : '');
+    statusBadge.textContent = item.isAchieved
+      ? '100% FUNDED - CASHOUT NOW'
+      : `${item.metric.toUpperCase()} TARGET (${metricText})`;
+
+    const actionWrap = document.createElement('div');
+    actionWrap.style.cssText = 'display: flex; gap: 4px; align-items: center;';
+
+    if (item.linkUrl) {
+      const link = document.createElement('a');
+      link.href = item.linkUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'goal-action-btn';
+      link.textContent = 'Pay / Buy ->';
+      actionWrap.appendChild(link);
+    }
+
+    if (item.isAchieved) {
+      const lockBtn = document.createElement('button');
+      lockBtn.type = 'button';
+      lockBtn.className = 'goal-action-btn';
+      lockBtn.textContent = 'Secure ->';
+      lockBtn.title = 'Open cashier to lock in this goal';
+      lockBtn.addEventListener('click', () => {
+        triggerActiveTabCashout();
+      });
+      actionWrap.appendChild(lockBtn);
+    }
+
+    bottomRow.appendChild(statusBadge);
+    bottomRow.appendChild(actionWrap);
+
+    itemEl.appendChild(topRow);
+    itemEl.appendChild(track);
+    itemEl.appendChild(bottomRow);
+
+    container.appendChild(itemEl);
+  }
+}
+
+function loadCashoutGoalsProgress(): void {
+  chrome.storage.local.get(
+    [TILTCHECK_CASHOUT_GOALS_KEY, TILTCHECK_SESSION_PNL_KEY],
+    (stored) => {
+      const goals = sanitizeCashoutGoals(stored[TILTCHECK_CASHOUT_GOALS_KEY]);
+      const pnlState = stored[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+      const balance = pnlState?.currentBalance ?? null;
+      const netPnl = pnlState?.netPnl ?? 0;
+
+      renderGoalsProgressUI(goals, balance, netPnl);
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        const labelEl = document.getElementById('quick-cashout-label');
+        if (!labelEl) return;
+
+        if (tab?.id) {
+          chrome.tabs.sendMessage(tab.id, { type: 'get_cashout_router_state' }, (res) => {
+            if (!chrome.runtime.lastError && res && res.success && res.info) {
+              const name = res.info.casinoName;
+              if (name) {
+                labelEl.textContent = `${res.info.buttonLabel} (${name}) ->`;
+                return;
+              }
+            }
+
+            if (tab?.url) {
+              try {
+                const parsedUrl = new URL(tab.url);
+                const route = findRouteForHostname(parsedUrl.hostname);
+                if (route) {
+                  activeCashoutRoute = route;
+                  labelEl.textContent = `${route.buttonLabel} (${route.name}) ->`;
+                  return;
+                }
+              } catch {
+                // Ignore URL parsing errors
+              }
+            }
+            labelEl.textContent = 'One-Click Cashout ->';
+          });
+        }
+      });
+    }
+  );
+}
+
+function triggerActiveTabCashout(): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'trigger_cashout_navigation' }, (res) => {
+        if (!chrome.runtime.lastError && res && res.navigated) {
+          toast(`Navigating to cashier (${res.method})...`);
+          return;
+        }
+
+        if (tab.url) {
+          try {
+            const parsed = new URL(tab.url);
+            const route = findRouteForHostname(parsed.hostname);
+            if (route?.cashierUrl) {
+              chrome.tabs.update(tab.id, { url: route.cashierUrl });
+              toast(`Redirecting to ${route.name} cashier...`);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+        }
+        toast('No active casino detected in current tab.', true);
+      });
+    }
+  });
+}
+
+function initCashoutRouterListeners(): void {
+  const cashoutBtn = document.getElementById('btn-quick-cashout');
+  if (cashoutBtn) {
+    cashoutBtn.addEventListener('click', () => {
+      triggerActiveTabCashout();
+    });
+  }
+
+  const editGoalsBtn = document.getElementById('btn-config-goals');
+  if (editGoalsBtn) {
+    editGoalsBtn.addEventListener('click', () => {
+      activateTab('block');
+      const panel = document.getElementById('cashout-goals-panel');
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -991,6 +1185,10 @@ function initGuardSettingsPanel(): void {
       } else {
         updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
       }
+      loadCashoutGoalsProgress();
+    }
+    if (changes[TILTCHECK_CASHOUT_GOALS_KEY]) {
+      loadCashoutGoalsProgress();
     }
   });
 }
@@ -1005,7 +1203,10 @@ function activateTab(id: string) {
   document.querySelector(`.tab[data-tab="${id}"]`)!.classList.add('active');
   $(`panel-${id}`).classList.add('active');
 
-  if (id === 'status') loadSessionRadar();
+  if (id === 'status') {
+    loadSessionRadar();
+    loadCashoutGoalsProgress();
+  }
   if (id === 'block') loadExclusions();
   if (id === 'vault') loadVaultRules();
 }
@@ -1165,7 +1366,9 @@ async function init() {
 
   initGuardSettingsPanel();
   initSessionRadarListeners();
+  initCashoutRouterListeners();
   loadSessionRadar();
+  loadCashoutGoalsProgress();
 
   // Vault listeners
   initVaultListeners();

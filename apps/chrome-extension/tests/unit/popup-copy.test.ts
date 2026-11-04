@@ -52,4 +52,17 @@ describe('popup guest-first copy', () => {
     expect(popupTs).toContain('loadSessionRadar');
     expect(popupTs).toContain('updateSessionRadarUI');
   });
+
+  it('renders Smart Cashout Goals Progress Card and One-Click Cashout button', () => {
+    expect(popupHtml).toContain('id="cashout-goals-progress-card"');
+    expect(popupHtml).toContain('id="cashout-goals-progress-list"');
+    expect(popupHtml).toContain('id="btn-quick-cashout"');
+    expect(popupHtml).toContain('id="quick-cashout-label"');
+    expect(popupHtml).toContain('id="btn-config-goals"');
+
+    expect(popupTs).toContain('calculateGoalsProgress');
+    expect(popupTs).toContain('loadCashoutGoalsProgress');
+    expect(popupTs).toContain('initCashoutRouterListeners');
+    expect(popupTs).toContain('triggerActiveTabCashout');
+  });
 });

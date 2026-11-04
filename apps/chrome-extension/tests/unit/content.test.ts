@@ -311,5 +311,24 @@ describe('core content script contracts', () => {
     const resetResponse = vi.fn();
     listeners[0]!({ type: 'reset_session_pnl' }, null, resetResponse);
     expect(resetResponse).toHaveBeenCalled();
+
+    const cashoutStateResponse = vi.fn();
+    listeners[0]!({ type: 'get_cashout_router_state' }, null, cashoutStateResponse);
+    expect(cashoutStateResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        info: expect.objectContaining({
+          buttonLabel: expect.any(String),
+        }),
+      })
+    );
+
+    const cashoutNavResponse = vi.fn();
+    listeners[0]!({ type: 'trigger_cashout_navigation' }, null, cashoutNavResponse);
+    expect(cashoutNavResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        navigated: expect.any(Boolean),
+      })
+    );
   });
 });

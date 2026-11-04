@@ -20,6 +20,7 @@
 
 import { readBalance } from './reality-hud.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
+import { triggerCashoutNavigation } from './cashout-router.js';
 
 export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
 export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
@@ -453,17 +454,7 @@ function showGoalToast(doc: Document, goal: CashoutGoal, balance: number): void 
 }
 
 function navigateToCashier(doc: Document): void {
-  const cashierTrigger = doc.querySelector(
-    'a[href*="cashier"], a[href*="wallet"], a[href*="withdraw"], button[data-test*="cashier"], button[data-test*="wallet"]'
-  ) as HTMLElement | null;
-  if (cashierTrigger) {
-    cashierTrigger.click();
-    return;
-  }
-  const hostname = doc.location?.hostname || '';
-  if (hostname.includes('stake')) {
-    doc.location.href = `https://${hostname}/?tab=wallet&modal=withdraw`;
-  }
+  triggerCashoutNavigation(doc);
 }
 
 export function showSoftWarningModal(

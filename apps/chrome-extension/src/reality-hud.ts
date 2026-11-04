@@ -7,6 +7,7 @@
  */
 
 import { CASINO_SELECTORS } from './extractor.js';
+import { triggerCashoutNavigation } from './cashout-router.js';
 
 export const TILTCHECK_HOURLY_WAGE_KEY = 'tiltcheck_hourly_wage';
 export const TILTCHECK_REALITY_HUD_ENABLED_KEY = 'tiltcheck_reality_hud_enabled';
@@ -219,7 +220,33 @@ export function installRealityHud(
         dismiss();
       });
 
+      const cashoutBtn = doc.createElement('button');
+      cashoutBtn.type = 'button';
+      cashoutBtn.className = 'tiltcheck-reality-hud-cashout';
+      cashoutBtn.setAttribute('aria-label', 'Open casino cashier');
+      cashoutBtn.textContent = 'Cashier ->';
+      cashoutBtn.style.cssText = [
+        'background: #17c3b2',
+        'border: none',
+        'border-radius: 4px',
+        'color: #000000',
+        'font-family: inherit',
+        'font-size: 0.75rem',
+        'font-weight: 700',
+        'cursor: pointer',
+        'padding: 3px 8px',
+        'text-transform: uppercase',
+        'margin-left: 0.5rem',
+        'white-space: nowrap',
+      ].join(';');
+
+      cashoutBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerCashoutNavigation(doc);
+      });
+
       hud.appendChild(textSpan);
+      hud.appendChild(cashoutBtn);
       hud.appendChild(dismissBtn);
       (doc.body ?? doc.documentElement).appendChild(hud);
     } else {

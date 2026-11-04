@@ -781,6 +781,152 @@
       border-color: rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.05);
     }
+
+    /* --- CASHOUT GOALS PROGRESS CARD --- */
+    .goals-card {
+      background: #0f1115;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      font-family: var(--mono);
+    }
+    .goals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .goals-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .btn-config-goals {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-config-goals:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.05);
+    }
+    .goals-progress-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .goal-progress-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 6px 8px;
+      transition: border-color 0.2s ease;
+    }
+    .goal-progress-item.goal-achieved {
+      border-color: rgba(23, 195, 178, 0.5);
+      background: rgba(23, 195, 178, 0.05);
+    }
+    .goal-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .goal-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .goal-stats {
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .goal-stats strong {
+      color: var(--text);
+    }
+    .goal-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .goal-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #17c3b2, #34d399);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .goal-fill.goal-fill-achieved {
+      background: linear-gradient(90deg, #17c3b2, #fbbf24);
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+    }
+    .goal-row-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+    }
+    .goal-status-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .goal-status-badge.badge-achieved {
+      color: #fbbf24;
+      font-weight: 800;
+    }
+    .goal-action-btn {
+      color: #000;
+      background: var(--teal);
+      border: none;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .goal-action-btn:hover {
+      background: #1ae5d1;
+    }
+    .btn-quick-cashout {
+      width: 100%;
+      background: linear-gradient(90deg, #17c3b2, #14b8a6);
+      color: #000000;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 9px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+    }
+    .btn-quick-cashout:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+    .btn-quick-cashout:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -837,6 +983,20 @@
       </div>
       <button type="button" class="btn-reset-radar" id="btn-reset-radar" title="Reset Session Baseline">Reset</button>
     </div>
+  </section>
+
+  <!-- Smart Cashout Goals Progress Card -->
+  <section class="goals-card" id="cashout-goals-progress-card">
+    <div class="goals-header">
+      <span class="goals-title">Cashout Goals Progress</span>
+      <button type="button" class="btn-config-goals" id="btn-config-goals" title="Configure goals in Guards tab">Edit Goals</button>
+    </div>
+    <div class="goals-progress-list" id="cashout-goals-progress-list">
+      <!-- Populated dynamically via popup.ts -->
+    </div>
+    <button type="button" class="btn-quick-cashout" id="btn-quick-cashout">
+      <span id="quick-cashout-label">One-Click Cashout &rarr;</span>
+    </button>
   </section>
 
   <!-- Auth gate (shown when logged out) -->

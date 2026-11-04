@@ -46,6 +46,7 @@ import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } fr
 import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
 import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
+import { detectCashoutTarget, triggerCashoutNavigation } from './cashout-router.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -583,6 +584,28 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     case 'reset_session_pnl':
       sendResponse(sessionRadar ? sessionRadar.reset() : null);
       return true;
+
+    case 'get_cashout_router_state': {
+      const info = detectCashoutTarget(document);
+      sendResponse({
+        success: true,
+        info: {
+          isCasinoTab: Boolean(info.route || info.clickTarget),
+          casinoName: info.casinoName,
+          cashierUrl: info.cashierUrl,
+          buttonLabel: info.buttonLabel,
+          isSweepstakes: info.isSweepstakes,
+          canClick: Boolean(info.clickTarget),
+        },
+      });
+      return true;
+    }
+
+    case 'trigger_cashout_navigation': {
+      const result = triggerCashoutNavigation(document);
+      sendResponse(result);
+      return true;
+    }
 
     default:
       return false;
