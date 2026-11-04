@@ -6,8 +6,8 @@ export const PUBLIC_NAV = {
   discordLabel: 'Discord',
   accountLabel: 'Account',
   links: [
-    { href: '/cooldown', label: 'Cooldown' },
     { href: '/extension', label: 'Extension' },
-    { href: '/nudges', label: 'Nudges' },
+    { href: '/casinos', label: 'Casinos' },
+    { href: '/cooldown', label: 'Cooldown' },
   ],
 } as const;

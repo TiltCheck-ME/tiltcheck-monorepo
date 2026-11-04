@@ -198,15 +198,16 @@ function dirHref(depth, folder) {
 function navHtml(depth, current) {
   const homeHref = href(depth, 'index.html');
   const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
+  const extensionCurrent = current === 'extension' ? ' aria-current="page"' : '';
+  const casinosCurrent = current === 'casinos' ? ' aria-current="page"' : '';
   const cooldownCurrent = current === 'cooldown' ? ' aria-current="page"' : '';
-  const nudgesCurrent = current === 'nudges' ? ' aria-current="page"' : '';
 
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
   <div class="site-nav__links">
+    <a href="${href(depth, 'extension.html')}"${extensionCurrent}>Extension</a>
+    <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>Casinos</a>
     <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>Cooldown</a>
-    <a href="${href(depth, 'extension.html')}">Extension</a>
-    <a href="${dirHref(depth, 'nudges')}"${nudgesCurrent}>Nudges</a>
     <a class="site-nav__discord" href="${DISCORD_URL}" rel="noopener noreferrer" aria-label="Discord" title="Discord">${DISCORD_ICON}</a>
   </div>
 </nav>`;
@@ -217,8 +218,8 @@ function footerHtml(depth) {
   <nav class="site-footer__more" aria-label="More tools">
     <p class="site-footer__more-label">Also</p>
     <div class="site-footer__links">
-      <a href="${dirHref(depth, 'casinos')}">Casinos</a>
       <a href="${dirHref(depth, 'autovault')}">AutoVault</a>
+      <a href="${dirHref(depth, 'nudges')}">Nudges</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
