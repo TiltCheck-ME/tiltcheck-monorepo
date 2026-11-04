@@ -34,7 +34,7 @@ It is built around five principles:
 1. **Modularity** – Every tool stands alone.  
 2. **Interoperability** – Tools share insights through trust engines.  
 3. **Predictive Intelligence** – AI evaluates fairness, bonus cycles, and tilt.  
-4. **Cost Discipline** – Prefer free-tier and serverless infrastructure.  
+4. **Cost Discipline** – Prefer static hosting, offline-first toolchains, and zero-custody client architectures.  
 5. **Degen Ergonomics** – Simple, funny, blunt, and extremely practical.
 
 This documentation describes the entire architecture, every module, how they interact, and how the AI agent should reason about the system.

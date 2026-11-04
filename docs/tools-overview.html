@@ -269,10 +269,59 @@
 <li><code>game.completed</code> — Processes game results for winners/losers and bad beats</li>
 </ul>
 
+<h3>Browser Extension Core Guardrails (TiltGuard)</h3>
+
+<p>The lightweight Manifest V3 browser extension delivers real-time client-side intervention directly on casino frontends with zero custodial keys and zero remote dependencies:</p>
+
+<p>1. <strong>2s Spin Pace Lock (Spin Brake)</strong>: Enforces a 2-second timeout between spins on supported casino frontends to catch rapid balance desyncs and interrupt reflexive re-spins.</p>
+<p>2. <strong>Strategic Game Filters</strong>: Identifies trap conditions in Mines, Chicken, Plinko, and high-volatility slots, displaying immediate mathematical house-edge awareness.</p>
+<p>3. <strong>Reality-Grounding Wage-Hour HUD</strong>: Injects a clean session drawdown counter converting credits directly into equivalent real-world working hours ($25/hr baseline default, fully customizable in settings).</p>
+<p>4. <strong>DOM Deposit Barrier</strong>: Intercepts and blocks cashier and deposit button clicks during active cooldowns and Touch Grass timeouts to eliminate reflexive reload impulses.</p>
+<p>5. <strong>Touch Grass Timeout</strong>: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.</p>
+<p>6. <strong>Stake.us AutoVault</strong>: Performs direct non-custodial vaulting via <code>https://stake.us/_api/graphql</code> using existing browser session cookies without third-party API exposure.</p>
+
 <h3>Why It Exists</h3>
 
 <p>Nobody thinks clearly on tilt.</p>
 <p>TiltCheck helps users slow down <em>without policing them</em>.</p>
+
+<p>---</p>
+
+<h1>4.8 Offline-First CLI Suite (<code>@tiltcheck/cli</code>)</h1>
+
+<p><strong>Zero-network audit and verification toolchain for terminal-native degens.</strong></p>
+
+<h3>Purpose</h3>
+
+<p>Provide 100% offline mathematical certainty and self-sovereign risk controls without relying on hosted APIs or central servers.</p>
+
+<h3>Core Commands</h3>
+
+<ul>
+<li><code>tiltcheck verify &lt;game&gt; &lt;serverSeed&gt; &lt;clientSeed&gt; &lt;nonce&gt;</code>: Offline HMAC-SHA256 provably fair audit verification for Stake, BC.Game, Roobet, and standard crypto games.</li>
+<li><code>tiltcheck rtp &lt;gameName&gt; [--stated &lt;rtp&gt;]</code>: Analyzes slot and table game configurations to detect house-edge downgrades across operator tiers.</li>
+<li><code>tiltcheck trust &lt;operatorName&gt;</code>: Audits casino safety, licensing jurisdiction, bonus wager requirements, and redemption speeds directly against local trust facts.</li>
+<li><code>tiltcheck cooldown &lt;duration&gt; [--reason &lt;reason&gt;]</code>: Generates local Ed25519 cryptographic commitment tokens for self-exclusion and wallet lockouts.</li>
+</ul>
+
+<p>---</p>
+
+<h1>4.9 Casino Trust Directory (<code>/casinos</code>)</h1>
+
+<p><strong>Public directory and forensic audit receipts for crypto and sweepstakes casinos.</strong></p>
+
+<h3>Purpose</h3>
+
+<p>Expose verified redemption rules, bonus wager traps, licensing facts, and provably fair math before a player risks funds.</p>
+
+<h3>Core Features</h3>
+
+<ul>
+<li><strong>116 Curated Operators</strong>: Comprehensive database of sweeps and crypto casinos graded on licensing, payout speeds, and KYC practices.</li>
+<li><strong>Deep-Dive Forensic Audits</strong>: In-depth audits for Stake.us, Roobet, Stake.com, and BC.Game featuring exact provably fair math formulations, code snippets, and verification recipes.</li>
+<li><strong>30-Operator Coverage Gate</strong>: Production-verified fact database (<code>data/trust-engine/operator-facts.live.json</code>) covering minimum redemption limits, welcome bonus turnover terms, and VIP currency rules.</li>
+<li><strong>Zero-Affiliate Independence</strong>: Unbiased scoring strictly driven by mathematical fairness and verified community withdrawal logs.</li>
+</ul>
 
 <p>---</p>
 
