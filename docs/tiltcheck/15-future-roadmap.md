@@ -1,4 +1,4 @@
-© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
 
 # 15. Future Roadmap
 This roadmap outlines the phased evolution of the TiltCheck ecosystem.  
@@ -191,7 +191,41 @@ This enables third-party bots and services. The RGaaS pivot accelerated this pha
 
 ---
 
-# 15.9 Long-Term Vision
+# 15.9 Ecosystem Delivery Reality (Completed Phases 1–5)
+
+Across recent development sprints, TiltCheck completed five core deliverable phases establishing an uncompromised, zero-custody, offline-first foundation:
+
+### Phase 1 — Casino Trust Directory & Showcase Audits
+- 116 curated casino directory live on GitHub Pages (`https://tiltcheck.me/casinos`) with grade distributions and search.
+- Four deep-dive forensic audits for top-volume operators: Stake.us, Roobet, Stake.com, and BC.Game with exact mathematical verification recipes and code snippets.
+- Real-time bonus wager traps, minimum redemption limits, and crypto/sweeps payout profiles.
+
+### Phase 2 — Offline-First CLI Modernization
+- Complete modernization of `@tiltcheck/cli` into an offline-first terminal suite with zero remote API dependencies.
+- `tiltcheck verify`: local HMAC-SHA256 provably fair audit verification.
+- `tiltcheck rtp`: slot and table house-edge downgrade calculator.
+- `tiltcheck trust`: instant offline lookup against bundled casino trust facts.
+- `tiltcheck cooldown`: local Ed25519 cryptographic commitment tokens.
+
+### Phase 3 — Extension Spotter Architecture Realignment
+- Alignment of Manifest V3 browser extension to peer-level spotter posture ("Made for Degens. By Degens.").
+- Stake.us AutoVault GraphQL endpoint fix (`https://stake.us/_api/graphql`) utilizing session cookies directly without external API bridge.
+- Rapid-click and loss-chasing Touch Grass timeouts (60-second interactive freeze).
+- Pruned intrusive legacy telemetry and sidebar bloat in default core build.
+
+### Phase 4 — Sideload Ungating & Release
+- `CTA_READY = true` live release: direct sideload zip packaged and hosted at `https://tiltcheck.me/downloads/tiltcheck-extension.zip`.
+- Clean 121 KB MV3 build with step-by-step developer-mode loading instructions on public site and twin web app (`apps/web/src/app/extension`).
+- Automated package scripts (`pnpm -C apps/chrome-extension package`) synchronized with public asset delivery.
+
+### Phase 5 — Reality-Grounding HUD, DOM Deposit Barrier & 30-Operator Coverage Gate
+- Reality-Grounding Wage-Hour HUD (`apps/chrome-extension/src/reality-hud.ts`): translates raw session drawdown into real-world hourly labor ($25/hr baseline default, user-configurable).
+- DOM Deposit Barrier (`apps/chrome-extension/src/deposit-barrier.ts`): intercepts cashier and deposit clicks across casino frontends during active cooldowns and Touch Grass timeouts.
+- 30-Operator Coverage Gate Cleared: promoted all 30 priority operators into `data/trust-engine/operator-facts.live.json` with verified minimum redemption thresholds, turnover rules, and VIP currencies.
+
+---
+
+# 15.10 Long-Term Vision
 
 TiltCheck becomes:
 

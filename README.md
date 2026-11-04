@@ -86,7 +86,7 @@ See [16. RGaaS Pivot Docs](./docs/tiltcheck/16-rgaas-pivot.md) for full integrat
 1. **Modularity** — Every tool stands alone
 2. **Interoperability** — Tools share insights through trust engines
 3. **Predictive Intelligence** — AI evaluates fairness, bonus cycles, and tilt
-4. **Cost Discipline** — Built on GCP serverless infrastructure
+4. **Cost Discipline** — Static hosting, offline-first toolchains, and zero-custody client architectures
 5. **Degen Ergonomics** — Simple, funny, blunt, and extremely practical
 
 ## Branch Protection & Required Checks
@@ -103,14 +103,14 @@ See [`docs/tiltcheck/17-branch-protection.md`](docs/tiltcheck/17-branch-protecti
 
 TiltCheck includes comprehensive automation for security, reliability, and maintenance:
 
-- **🔐 Security Scanning:** CodeQL (daily), Dependabot (weekly), pnpm audit (daily)
-- **🤖 Dependency Updates:** Automated PRs with safe auto-merge for patch/minor updates
-- **📋 Issue/PR Templates:** Standardized reporting with security checklists
-- **🏷️ Auto-labeling:** Automatic PR labels based on changed files and size
-- **🧹 Stale Bot:** Automatic cleanup of inactive issues/PRs
-- **👥 CODEOWNERS:** Automatic review requests for security-sensitive changes
-- **💚 Health Monitoring:** Production service health checks every 6 hours
-- **📝 MR Docs Agent (GitLab MVP):** Optional MR-triggered section updates for README/hackathon docs via marker-owned blocks
+- **Security Scanning:** CodeQL (daily), Dependabot (weekly), pnpm audit (daily)
+- **Dependency Updates:** Automated PRs with safe auto-merge for patch/minor updates
+- **Issue/PR Templates:** Standardized reporting with security checklists
+- **Auto-labeling:** Automatic PR labels based on changed files and size
+- **Stale Bot:** Automatic cleanup of inactive issues/PRs
+- **CODEOWNERS:** Automatic review requests for security-sensitive changes
+- **Health Monitoring:** Production service health checks every 6 hours
+- **MR Docs Agent (GitLab MVP):** Optional MR-triggered section updates for README/hackathon docs via marker-owned blocks
 
 **Quick Start:**
 
@@ -144,42 +144,42 @@ tiltcheck-monorepo/
 
 ## Modules Overview
 
-### 🪙 **JustTheTip**
+### **JustTheTip**
 
 Non-custodial tipping, airdrops, and swaps.  
 Community-funded via a **2.5% protocol fee** for free users. No custody. Elite Tier removes all fees.
 
-### 🔗 **SusLink**
+### **SusLink**
 
 AI-powered link scanner that detects scam sites, redirects, and impersonation.
 
-### ⏰ **CollectClock**
+### **CollectClock**
 
 Daily bonus tracker with nerf detection and bonus cycle prediction.
 
-### 🎁 **FreeSpinScan** *(archived concept)*
+### **FreeSpinScan** *(archived concept)*
 
 Historical promo submission system with auto-classification, mod approval queue, and prediction engine.  
 Removed from the current MVP roadmap but preserved in the codebase/docs for future reference.
 
-### 📋 **QualifyFirst** *(archived concept)*
+### **QualifyFirst** *(archived concept)*
 
 Historical AI survey router that pre-screened users to prevent screen-outs and wasted time.  
 No longer an active project; referenced only as an archived design.
 
-### 🎮 **DA&D (Degens Against Decency)**
+### **DA&D (Degens Against Decency)**
 
 AI-powered card game built for degen communities.
 
-### 🧠 **TiltCheck Core**
+### **TiltCheck Core**
 
 Tilt detection, cooldown nudges, and accountability tools.
 
-### 🤝 **Accountabilibuddy**
+### **Accountabilibuddy**
 
 Shared wallet notifications and "phone-a-friend" tilt intervention.
 
-### 🏛️ **Trust Engines**
+### **Trust Engines**
 
 - **Casino Trust Engine** — Scores casinos based on RTP, bonus nerfs, payout delays, etc.
 - **Degen Trust Engine** — Scores users based on behavior patterns, tilt signals, and community actions.
@@ -355,13 +355,16 @@ The custom Copilot Agent can answer questions like:
 
 ## Tech Stack
 
+- **Next.js & Static Site Generation** — Public static web deployment via GitHub Pages (`tiltcheck.me`)
+- **Offline CLI Suite** — Node.js + TypeScript (`@tiltcheck/cli`) with Ed25519 local crypto and provably fair math
+- **Manifest V3 Extension** — Pure client-side DOM guardrails, wage HUD, and Stake.us AutoVault cookie bridging
 - **Discord.js** — Bot framework
-- **Railway + GHCR** — Container runtime plus image registry for the wired production services
+- **Railway + GHCR** — Container runtime plus image registry for backend services
 - **Neon PostgreSQL** — Serverless/Edge database (PostgreSQL 16)
 - **@neondatabase/serverless** — Ultra-fast stateless HTTP driver
 - **Magic.link** — Non-custodial wallet creation
 - **Jupiter** — Solana swaps
-- **Google Cloud Storage** — Object storage
+- **Solana Devnet** — Non-custodial cooldown program
 
 ---
 
@@ -390,19 +393,21 @@ It's built by someone who understands the problems firsthand.
 | User dashboard | Live on Railway |
 | Control room | Live on Railway |
 | Game arena + Degen Lounge | Live on Railway |
-| Chrome extension | Load-unpacked (Web Store submission in progress) |
-| Cooldown (on-chain wallet lock) | Live on Solana devnet |
+| Chrome extension | Direct sideload zip (`tiltcheck.me/downloads/tiltcheck-extension.zip`) + unpacked MV3 |
+| CLI Suite (`@tiltcheck/cli`) | Live offline-first verifier, RTP audit, trust engine, cooldown tokens |
+| Cooldown (on-chain wallet lock) | Live on Solana devnet + offline Ed25519 commitments |
+| Casino Trust Directory (`/casinos`) | Live on GitHub Pages — 116 curated operators, 4 audited deep-dives |
 
 ## Roadmap
 
-### Now — Chrome Web Store
-Get the extension published so users can install it without loading unpacked dist.
+### Now — Chrome Extension Release & Direct Sideloading
+Direct sideload zip (v1.2.2) available for instant download, featuring 4 core guards: 2s spin brake, strategic game filters, reality wage HUD ($25/hr baseline), and DOM deposit barrier. Chrome Web Store submission tracking in progress.
 
-### Next — Cooldown Mainnet
-After legal review: mainnet deployment of the on-chain wallet lock.
+### Next — Casino Trust Score Deep-Dives
+Public evidence-backed audits live for Stake.us, Roobet, Stake.com, and BC.Game, with coverage gate cleared across 30 priority operators. Expansion across remaining sweepstakes and crypto casinos.
 
-### Later — Casino Trust Score Pages
-SEO-optimized public page per casino with evidence-backed trust scores to drive organic traffic.
+### Later — Cooldown Mainnet
+Solana mainnet deployment of the non-custodial wallet lock program following devnet audit and offline Ed25519 proof parity.
 
 See `docs/tiltcheck/15-future-roadmap.md` for full details.
 

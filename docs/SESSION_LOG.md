@@ -2,6 +2,17 @@
 
 # Session Log
 
+## 2026-11-04 — docs: public documentation synchronization for Phases 1–5
+
+Synchronized all public-facing and internal documentation across the repository to reflect the completed Phases 1–5 deliverables:
+- Purged legacy emojis from `README.md` in strict adherence to brand law; updated infrastructure and tech stack descriptions to reflect static hosting, offline-first toolchains, and zero-custody client architectures.
+- Updated `apps/chrome-extension/README.md` to document the 4 core guards (2s spin pace lock, strategic game filters, reality wage HUD, DOM deposit barrier), Touch Grass timeout, and Stake.us AutoVault direct GraphQL routing (`https://stake.us/_api/graphql`).
+- Updated `docs/ops/OPERATOR-FACTS.md` coverage gate status to live following verified promotion of 30 priority operators into `data/trust-engine/operator-facts.live.json`.
+- Updated `docs/tiltcheck/0-intro.md` cost discipline principle to emphasize static hosting, offline-first toolchains, and zero-custody architectures.
+- Updated `docs/tiltcheck/4-tools-overview.md` with detailed sections for Browser Extension Core Guardrails (4.7), Offline-First CLI Suite (4.8), and Casino Trust Directory & Forensic Audits (4.9).
+- Updated `docs/tiltcheck/15-future-roadmap.md` with section 15.9 documenting ecosystem delivery reality across Phases 1–5; renumbered long-term vision to 15.10.
+- Rebuilt GitHub Pages site via `node scripts/convert-markdown.js docs/tiltcheck out/docs`. Verified 0 emoji violations and 100% test pass rate across pages-launch, web, CLI, and extension suites.
+
 ## 2026-11-04 — feat(spotter): Phase 5 reality-grounding HUD, DOM deposit barrier & operator facts gate
 
 Completed Phase 5 of the TiltCheck ecosystem roadmap:

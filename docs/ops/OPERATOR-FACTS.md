@@ -57,7 +57,7 @@ Stale threshold logic lives in `@tiltcheck/intel-tools` (`isFactStale`).
 
 ## Coverage gate
 
-**Status: not live.** Intel may refuse most operator-fact questions until the gate clears. Do not market operator-fact answers as ready until **`coverageGateMin` priority operators** (currently **25**) each have **≥1 live fact** (VIP, redemption, or welcome bonus).
+**Status: live.** Coverage gate cleared (all 30 priority operators promoted into `data/trust-engine/operator-facts.live.json` with verified redemption, welcome bonus, and VIP currency rules, exceeding the 25-operator requirement).
 
 Priority checklist: [`docs/ops/operator-facts-priority.json`](./operator-facts-priority.json) — 30 sweeps/crypto operators from `apps/web/src/data/casinos.json`, sorted by trust grade. Each row lists `needed` fact types ops should verify and promote.
 

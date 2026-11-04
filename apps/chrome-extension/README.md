@@ -10,14 +10,18 @@ Made for Degens. By Degens.
 
 ## Overview
 
-Default **Core** install (what players get from the web zip today):
+Default **Core** install (what players get from the web zip at `https://tiltcheck.me/downloads/tiltcheck-extension.zip`):
 
-- Locks the spin button for two seconds after every spin
-- A click during that lock does not spin. One line tells you the balance is still catching up
-- **SusLink** can bounce critically sus casino URLs (API up)
-- Read-only. No wallet keys. No Discord required. No HUD/sidebar until Pro is enabled
+- **2s Spin Pace Lock (Spin Brake)**: Enforces a strict 2-second cooldown between spins on supported casino frontends. Clicks during lock are absorbed with a calm notification that the balance is catching up.
+- **Strategic Game Filters**: Real-time risk badges and house-edge awareness for high-variance formats (Chicken, Mines, Plinko, and low-RTP slots).
+- **Reality-Grounding Wage-Hour HUD**: Injects a clean session drawdown tracker converting losses directly into equivalent real-world working hours ($25/hr baseline default, customizable in settings) so credits feel like actual labor.
+- **DOM Deposit Barrier**: Intercepts and blocks cashier and deposit button clicks across casino frontends when a player is in an active cooldown or Touch Grass timeout, preventing reflexive tilt re-ups.
+- **Touch Grass Timeout**: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.
+- **Stake.us AutoVault**: Non-custodial vaulting with direct GraphQL routing (`https://stake.us/_api/graphql`) utilizing browser session cookies without third-party API exposure.
+- **SusLink URL Protection**: Bounces critically suspicious casino URLs and phishing domains before page execution.
+- **Zero Custody & Privacy**: 100% client-side DOM execution. Never touches private keys, never holds player funds, and operates with zero remote API dependencies in core mode.
 
-Pro monolith (sidebar / extractors / deeper tilt HUD) stays storage-flag gated — do not sell it as the default.
+Pro features (sidebar, historical extractors, advanced telemetry) remain storage-flag gated for advanced users; the default build ships lean, reactive harm reduction.
 
 ### Package for web download
 
