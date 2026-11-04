@@ -1,5 +1,5 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -267,6 +267,15 @@ describe('getWelcomeBonusAnswer', () => {
 });
 
 describe('listAvailableFactTypesAnswer', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-18'));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   const records = [
     {
       slug: 'fixture-casino',
@@ -392,3 +401,26 @@ describe('IntelTools operatorFacts filtering', () => {
     }
   });
 });
+
+describe('live operator facts coverage gate', () => {
+  it('satisfies the priority coverage gate of at least 25 valid live records', () => {
+    const livePath = join(process.cwd(), 'data/trust-engine/operator-facts.live.json');
+    const records = loadOperatorFactsFromPath(livePath);
+
+    expect(records.length).toBeGreaterThanOrEqual(25);
+
+    for (const record of records) {
+      expect(record.slug).toBeTruthy();
+      expect(record.name).toBeTruthy();
+      expect(record.status).toBe('live');
+      expect(record.lastVerifiedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+      const hasRedemption = Boolean(record.redemptionTime?.claim && record.redemptionTime?.sourceUrl);
+      const hasWelcome = Boolean(record.welcomeBonusSummary?.summary && record.welcomeBonusSummary?.sourceUrl);
+      const hasVip = Boolean(record.vipCurrencyRules && record.vipCurrencyRules.length > 0);
+
+      expect(hasRedemption || hasWelcome || hasVip).toBe(true);
+    }
+  });
+});
+

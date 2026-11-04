@@ -5,9 +5,17 @@
  */
 
 import {
+  DEFAULT_HOURLY_WAGE,
   DEFAULT_RISK_THRESHOLD,
   DEFAULT_TOUCH_GRASS_DURATION_MS,
   loadCoreCircuitBreakerOptions,
+  MAX_HOURLY_WAGE,
+  MIN_HOURLY_WAGE,
+  TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+  TILTCHECK_HOURLY_WAGE_KEY,
+  TILTCHECK_REALITY_HUD_ENABLED_KEY,
+  TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
   TILTCHECK_RISK_THRESHOLD_KEY,
   TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY,
   TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
@@ -37,6 +45,11 @@ export interface TouchGrassUiState {
   optIn: boolean;
   riskThreshold: number;
   durationMs: number;
+  hourlyWage: number;
+  realityHudEnabled: boolean;
+  realityThresholdHours: number;
+  depositBarrierEnabled: boolean;
+  cooldownActiveUntil: number;
 }
 
 export interface GameBlockUiState {
@@ -51,7 +64,32 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     optIn: opts.enforcementEnabled,
     riskThreshold: opts.riskThreshold,
     durationMs: opts.touchGrassDurationMs,
+    hourlyWage: opts.hourlyWage,
+    realityHudEnabled: opts.realityHudEnabled,
+    realityThresholdHours: opts.realityThresholdHours,
+    depositBarrierEnabled: opts.depositBarrierEnabled,
+    cooldownActiveUntil: opts.cooldownActiveUntil,
   };
+}
+
+export function clampHourlyWage(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return DEFAULT_HOURLY_WAGE;
+  return Math.min(MAX_HOURLY_WAGE, Math.max(MIN_HOURLY_WAGE, Math.round(n)));
+}
+
+export async function saveHourlyWage(value: unknown): Promise<number> {
+  const clamped = clampHourlyWage(value);
+  await chrome.storage.local.set({ [TILTCHECK_HOURLY_WAGE_KEY]: clamped });
+  return clamped;
+}
+
+export async function saveRealityHudEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_REALITY_HUD_ENABLED_KEY]: enabled });
+}
+
+export async function saveDepositBarrierEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY]: enabled });
 }
 
 export async function loadGameBlockUiState(): Promise<GameBlockUiState> {

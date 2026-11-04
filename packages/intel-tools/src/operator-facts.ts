@@ -266,6 +266,7 @@ function availableFactTypesAreStale(record: OperatorFactRecord, now?: Date): boo
 export function listAvailableFactTypesAnswer(
   records: OperatorFactRecord[],
   query: string,
+  now?: Date,
 ): FactAnswer<OperatorFactType[]> {
   const resolved = resolveSingleMatch(records, query);
   if (resolved.kind === 'none') {
@@ -284,6 +285,6 @@ export function listAvailableFactTypesAnswer(
     kind: 'hit',
     record: resolved.record,
     payload: types,
-    stale: availableFactTypesAreStale(resolved.record),
+    stale: availableFactTypesAreStale(resolved.record, now),
   };
 }

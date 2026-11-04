@@ -73,6 +73,10 @@ const TIMER_ID = 'lockdown-timer';
 let overlayActive = false;
 let overlayHubMessageListener: ((event: MessageEvent) => void) | null = null;
 
+export function isTouchGrassActive(): boolean {
+  return overlayActive;
+}
+
 /** Test-only: release the overlay latch after jsdom teardown. Does not change live dismiss rules. */
 export function resetTouchGrassTimeoutForTests(): void {
   overlayActive = false;

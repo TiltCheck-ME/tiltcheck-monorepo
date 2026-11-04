@@ -78,8 +78,8 @@ export class IntelTools {
     return getWelcomeBonusAnswer(this.operatorFacts, query, geoTag);
   }
 
-  listAvailableFactTypes(query: string) {
-    return listAvailableFactTypesAnswer(this.operatorFacts, query);
+  listAvailableFactTypes(query: string, now?: Date) {
+    return listAvailableFactTypesAnswer(this.operatorFacts, query, now);
   }
 
   async fetchLiveScores(): Promise<{ scores: LiveTrustScore[]; source: string }> {

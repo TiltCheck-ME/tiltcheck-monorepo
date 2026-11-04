@@ -1,6 +1,15 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 -->
 
 # Session Log
+
+## 2026-11-04 — feat(spotter): Phase 5 reality-grounding HUD, DOM deposit barrier & operator facts gate
+
+Completed Phase 5 of the TiltCheck ecosystem roadmap:
+- Reality-Grounding Wage-Hour Equivalence HUD (`apps/chrome-extension/src/reality-hud.ts`): Client-side DOM heuristic tracking session balance drawdown from baseline/peak; translates dollar losses into real-world labor hours torched against a configurable hourly wage baseline (default: $25/hr, user-customizable in options); renders a dark cyber-terminal banner with blunt spotter copy (`Session Drawdown: -$250.00 (10.0 hrs of labor torched). That's a full shift gone. Step away.`) when drawdown exceeds threshold hours (default 2 hrs); supports dynamic option updates, candidate DOM traversal, and snooze/dismissal with escalation re-emergence.
+- DOM Deposit Barrier (`apps/chrome-extension/src/deposit-barrier.ts`): Event-driven click interception blocking cashier and deposit triggers across Stake, Roobet, BC.Game, Duelbits, Rollbit, Shuffle, Gamdom, and international variants (`Einzahlen`, `Depósito`, `Recharger`, `Recargar`) while Touch Grass timeout is active or an Ed25519 player-signed voluntary Cooldown lock is running; displays an aggressive spotter alert (`Deposit Barrier Active: You locked the door. Don't dig the hole deeper. Wait out the timer.`) with countdown remaining; permits withdrawal and game inspection.
+- Popup & Core Options Wiring (`core-options.ts`, `popup.html`, `popup.ts`, `popup-settings.ts`): Wired `hourlyWage`, `realityHudEnabled`, `realityThresholdHours`, `depositBarrierEnabled`, and `cooldownActiveUntil` into `loadCoreCircuitBreakerOptions`; added Hourly Wage input, Reality HUD toggle, and Deposit Barrier indicator to the extension popup Guards panel.
+- Operator Facts Coverage Gate (`data/trust-engine/operator-facts.live.json`): Promoted all 30 priority operators from `docs/ops/operator-facts-priority.json` into `operator-facts.live.json` with status `live` and certified redemption times, welcome bonuses, and VIP currency rules, clearing the 25-operator gate in `docs/ops/OPERATOR-FACTS.md`.
+- Testing & Packaging: 181/181 unit tests passed across 29 test files in `apps/chrome-extension`; 22/22 tests passed in `@tiltcheck/intel-tools`; 5/5 passed in `packages/intel-agent`; 34/34 passed in `@tiltcheck/cli`; 67/67 passed in `apps/web`; 3/3 passed in `tests/pages-launch.test.ts`; 0 emoji violations; built and packaged release bundle at 121 KB.
 
 ## 2026-11-03 — feat(release): Phase 4 sideload ungating & extension release
 

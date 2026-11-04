@@ -802,6 +802,35 @@
     <p class="guard-note">Core is this 2s spin lock. Fullscreen Touch Grass (~2 min) is Pro monolith only. Wallet lock lives on <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">tiltcheck.me/cooldown</a> — you sign, we never hold keys.</p>
   </section>
 
+  <section class="guard-panel" id="reality-hud-panel">
+    <h3>Reality HUD</h3>
+    <p class="guard-policy">
+      Wage-hour equivalence banner. Converts session drawdown into hours of labor torched.
+    </p>
+    <label class="guard-opt-row" for="reality-hud-toggle">
+      <input type="checkbox" id="reality-hud-toggle" />
+      <span>Enable floating reality HUD when drawdown hits threshold hours.</span>
+    </label>
+    <div class="form-row" style="margin-top:8px;">
+      <label for="hourly-wage-input">Hourly wage (USD)</label>
+      <input type="number" id="hourly-wage-input" min="5" max="2000" step="1" value="25" />
+    </div>
+  </section>
+
+  <section class="guard-panel" id="deposit-barrier-panel">
+    <h3>Deposit Barrier</h3>
+    <p class="guard-policy">
+      Intercepts cashier and deposit button clicks during active timeouts and voluntary cooldowns.
+    </p>
+    <label class="guard-opt-row" for="deposit-barrier-toggle">
+      <input type="checkbox" id="deposit-barrier-toggle" />
+      <span>Block deposit clicks while timeout or voluntary lock is running.</span>
+    </label>
+    <div id="deposit-cooldown-status" class="guard-note" style="display:none; color:#ff4a4a; font-weight:700;">
+      Voluntary lock engaged.
+    </div>
+  </section>
+
   <section class="guard-panel" id="strategic-filter-panel">
     <h3>Strategic Filters</h3>
     <p class="guard-policy">

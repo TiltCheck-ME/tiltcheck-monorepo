@@ -256,4 +256,27 @@ describe('core content script contracts', () => {
     await flush();
     expect(document.getElementById('tiltcheck-pace-host')).not.toBeNull();
   });
+
+  it('handles get_deposit_barrier_state and get_reality_hud_state runtime messages', async () => {
+    const { listeners } = createChromeMock();
+    await import('../../src/content.ts');
+    await flush();
+
+    const depositResponse = vi.fn();
+    listeners[0]!({ type: 'get_deposit_barrier_state' }, null, depositResponse);
+    expect(depositResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+        cooldownUntil: expect.any(Number),
+      })
+    );
+
+    const realityResponse = vi.fn();
+    listeners[0]!({ type: 'get_reality_hud_state' }, null, realityResponse);
+    expect(realityResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        visible: expect.any(Boolean),
+      })
+    );
+  });
 });

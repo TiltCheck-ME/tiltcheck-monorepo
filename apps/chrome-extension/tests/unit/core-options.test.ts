@@ -29,6 +29,11 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.touchGrassCooldownMs).toBe(DEFAULT_TOUCH_GRASS_COOLDOWN_MS);
     expect(opts.enforcementEnabled).toBe(true);
     expect(opts.riskProfile).toBe(DEFAULT_RISK_PROFILE);
+    expect(opts.hourlyWage).toBe(25);
+    expect(opts.realityHudEnabled).toBe(true);
+    expect(opts.realityThresholdHours).toBe(2);
+    expect(opts.depositBarrierEnabled).toBe(true);
+    expect(opts.cooldownActiveUntil).toBe(0);
   });
 
   it('loads risk profile from tiltcheck_risk_profile with riskLevel fallback', async () => {
@@ -45,11 +50,21 @@ describe('loadCoreCircuitBreakerOptions', () => {
       [TILTCHECK_RISK_THRESHOLD_KEY]: 200,
       tiltcheck_touch_grass_duration_ms: 90_000,
       tiltcheck_touch_grass_cooldown_ms: 100_000,
+      tiltcheck_hourly_wage: 3500,
+      tiltcheck_reality_hud_enabled: false,
+      tiltcheck_reality_threshold_hours: 48,
+      tiltcheck_deposit_barrier_enabled: false,
+      tiltcheck_cooldown_active_until: 1700000000000,
     });
     const opts = await loadCoreCircuitBreakerOptions();
     expect(opts.riskThreshold).toBe(100);
     expect(opts.touchGrassDurationMs).toBe(90_000);
     expect(opts.touchGrassCooldownMs).toBe(100_000);
+    expect(opts.hourlyWage).toBe(2000); // clamped to 2000
+    expect(opts.realityHudEnabled).toBe(false);
+    expect(opts.realityThresholdHours).toBe(24); // clamped to 24
+    expect(opts.depositBarrierEnabled).toBe(false);
+    expect(opts.cooldownActiveUntil).toBe(1700000000000);
   });
 
   it('disables enforcement when opt-in is explicitly false', async () => {

@@ -40,4 +40,40 @@ describe('popup-settings helpers', () => {
     expect(formatDurationLabel(90_000)).toBe('1m 30s');
     expect(riskLabel(55)).toBe('Strict');
   });
+
+  it('saves hourly wage, reality hud, and deposit barrier settings', async () => {
+    const storage: Record<string, unknown> = {};
+    const { saveHourlyWage, saveRealityHudEnabled, saveDepositBarrierEnabled } = await import('../../src/popup-settings.js');
+    (globalThis as unknown as { chrome: unknown }).chrome = {
+      storage: {
+        local: {
+          set: (data: Record<string, unknown>) => {
+            Object.assign(storage, data);
+            return Promise.resolve();
+          },
+        },
+      },
+    };
+
+    await saveHourlyWage(45);
+    expect(storage['tiltcheck_hourly_wage']).toBe(45);
+
+    const clampedMax = await saveHourlyWage(3000);
+    expect(clampedMax).toBe(2000);
+    expect(storage['tiltcheck_hourly_wage']).toBe(2000);
+
+    const clampedMin = await saveHourlyWage(1);
+    expect(clampedMin).toBe(5);
+    expect(storage['tiltcheck_hourly_wage']).toBe(5);
+
+    const clampedNaN = await saveHourlyWage(NaN);
+    expect(clampedNaN).toBe(25);
+    expect(storage['tiltcheck_hourly_wage']).toBe(25);
+
+    await saveRealityHudEnabled(false);
+    expect(storage['tiltcheck_reality_hud_enabled']).toBe(false);
+
+    await saveDepositBarrierEnabled(false);
+    expect(storage['tiltcheck_deposit_barrier_enabled']).toBe(false);
+  });
 });

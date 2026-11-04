@@ -12,6 +12,9 @@ import {
   toggleCategoryInList,
   saveRiskThreshold,
   saveTouchGrassOptIn,
+  saveHourlyWage,
+  saveRealityHudEnabled,
+  saveDepositBarrierEnabled,
   toggleSlugInList,
 } from './popup-settings.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
@@ -471,6 +474,31 @@ async function refreshGuardSettingsUi(): Promise<void> {
   setTouchGrassControlsEnabled(touch.optIn);
   syncRiskSliderUi(touch.riskThreshold);
 
+  const wageInput = document.getElementById('hourly-wage-input') as HTMLInputElement | null;
+  if (wageInput) {
+    wageInput.value = String(touch.hourlyWage);
+  }
+
+  const realityToggle = document.getElementById('reality-hud-toggle') as HTMLInputElement | null;
+  if (realityToggle) {
+    realityToggle.checked = touch.realityHudEnabled;
+  }
+
+  const depositToggle = document.getElementById('deposit-barrier-toggle') as HTMLInputElement | null;
+  if (depositToggle) {
+    depositToggle.checked = touch.depositBarrierEnabled;
+  }
+
+  const cooldownStatus = document.getElementById('deposit-cooldown-status');
+  if (cooldownStatus) {
+    const isCooldown = touch.cooldownActiveUntil > Date.now();
+    cooldownStatus.style.display = isCooldown ? 'block' : 'none';
+    if (isCooldown) {
+      const remainingMins = Math.max(1, Math.ceil((touch.cooldownActiveUntil - Date.now()) / 60000));
+      cooldownStatus.textContent = `Voluntary lock engaged (${remainingMins}m remaining).`;
+    }
+  }
+
   const game = await loadGameBlockUiState();
   $<HTMLInputElement>('game-block-master-toggle').checked = game.optIn;
   guardSlugs = [...game.slugs];
@@ -488,6 +516,35 @@ function initGuardSettingsPanel(): void {
     setTouchGrassControlsEnabled(enabled);
     toast(enabled ? 'Spin brake armed.' : 'Spin brake off.');
   });
+
+  const wageInput = document.getElementById('hourly-wage-input') as HTMLInputElement | null;
+  if (wageInput) {
+    const handleWageChange = async () => {
+      const val = Number(wageInput.value);
+      const saved = await saveHourlyWage(val);
+      wageInput.value = String(saved);
+      toast('Hourly wage saved.');
+    };
+    wageInput.addEventListener('change', handleWageChange);
+  }
+
+  const realityToggle = document.getElementById('reality-hud-toggle') as HTMLInputElement | null;
+  if (realityToggle) {
+    realityToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveRealityHudEnabled(enabled);
+      toast(enabled ? 'Reality HUD enabled.' : 'Reality HUD disabled.');
+    });
+  }
+
+  const depositToggle = document.getElementById('deposit-barrier-toggle') as HTMLInputElement | null;
+  if (depositToggle) {
+    depositToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveDepositBarrierEnabled(enabled);
+      toast(enabled ? 'Deposit barrier enabled.' : 'Deposit barrier disabled.');
+    });
+  }
 
   const riskSlider = document.getElementById('risk-threshold-slider') as HTMLInputElement | null;
   if (riskSlider) {

@@ -1,4 +1,685 @@
 {
-  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18",
-  "operators": []
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14",
+  "operators": [
+    {
+      "slug": "chumba-casino",
+      "name": "Chumba Casino",
+      "category": "Sweeps",
+      "domains": ["chumbacasino.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Standard EFT redemptions take 24-72 hours to approve and 1-3 business days to clear.",
+        "sourceUrl": "https://www.chumbacasino.com/terms-and-conditions",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "2,000,000 Gold Coins and 2 Sweeps Coins free on sign-up.",
+        "sourceUrl": "https://www.chumbacasino.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "global-poker",
+      "name": "Global Poker",
+      "category": "Sweeps",
+      "domains": ["globalpoker.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Prize redemptions process within 24-48 hours once account verification is complete.",
+        "sourceUrl": "https://globalpoker.com/terms-conditions",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "Free welcome package with 150,000 Gold Coins and 30 Sweeps Coins bonus on first purchase.",
+        "sourceUrl": "https://globalpoker.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "luckyland-slots",
+      "name": "LuckyLand Slots",
+      "category": "Sweeps",
+      "domains": ["luckylandslots.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Electronic gift card redemption within 24 hours, bank transfers 48-120 hours.",
+        "sourceUrl": "https://luckylandslots.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 120
+      },
+      "welcomeBonusSummary": {
+        "summary": "7,777 Gold Coins and 10 free Sweeps Coins upon account registration.",
+        "sourceUrl": "https://luckylandslots.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "pulsz",
+      "name": "Pulsz",
+      "category": "Sweeps",
+      "domains": ["pulsz.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Skrill redemptions process within 24 hours, bank transfers take 2-5 business days.",
+        "sourceUrl": "https://www.pulsz.com/terms-of-use",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 120
+      },
+      "welcomeBonusSummary": {
+        "summary": "5,000 Gold Coins and 2.3 free Sweeps Coins welcome bonus.",
+        "sourceUrl": "https://www.pulsz.com",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Gold Coins",
+          "canLevel": true,
+          "notes": "Gold Coin play contributes to VIP tier progress at standard rates.",
+          "sourceUrl": "https://www.pulsz.com/vip",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "wow-vegas",
+      "name": "WOW Vegas",
+      "category": "Sweeps",
+      "domains": ["wowvegas.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Trustly and Skrill redemptions process within 24 to 48 hours for verified profiles.",
+        "sourceUrl": "https://www.wowvegas.com/terms-and-conditions",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "1,750,000 WOW Coins plus 35 free Sweeps Coins across initial sign-up and purchase.",
+        "sourceUrl": "https://www.wowvegas.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "high-5-casino",
+      "name": "High 5 Casino",
+      "category": "Sweeps",
+      "domains": ["high5casino.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Prize redemptions process within 24-72 hours via Checkbook or gift card options.",
+        "sourceUrl": "https://high5casino.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "5 Sweeps Coins, 250 Game Coins, and 600 Diamonds on sign-up.",
+        "sourceUrl": "https://high5casino.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "stake-us",
+      "name": "Stake.us",
+      "category": "Sweeps",
+      "domains": ["stake.us"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Crypto redemptions process instantly to under 2 hours on verified accounts.",
+        "sourceUrl": "https://stake.us/terms",
+        "asOf": "2026-10-14",
+        "minHours": 0,
+        "maxHours": 2
+      },
+      "welcomeBonusSummary": {
+        "summary": "Daily 1 Stake Cash plus 10,000 Gold Coins faucet on login.",
+        "sourceUrl": "https://stake.us",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Gold Coins",
+          "canLevel": true,
+          "notes": "Gold Coin play counts toward VIP level at 1/200,000 ratio relative to Stake Cash.",
+          "sourceUrl": "https://stake.us/vip",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "mcluck",
+      "name": "McLuck",
+      "category": "Sweeps",
+      "domains": ["mcluck.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Gift card redemption clears in 24 hours, bank transfers 48-96 hours.",
+        "sourceUrl": "https://www.mcluck.com/terms-and-conditions",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 96
+      },
+      "welcomeBonusSummary": {
+        "summary": "7,500 Gold Coins and 2.5 free Sweeps Coins on registration.",
+        "sourceUrl": "https://www.mcluck.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "fortune-coins",
+      "name": "Fortune Coins",
+      "category": "Sweeps",
+      "domains": ["fortunecoins.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Redemptions approve within 24-48 hours, bank clearance within 3-5 business days.",
+        "sourceUrl": "https://www.fortunecoins.com/terms-of-use",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 120
+      },
+      "welcomeBonusSummary": {
+        "summary": "Up to 630,000 Gold Coins and 1,400 Fortune Coins (100 FC = $1) over the welcome journey.",
+        "sourceUrl": "https://www.fortunecoins.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "hello-millions",
+      "name": "Hello Millions",
+      "category": "Sweeps",
+      "domains": ["hellomillions.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Card and gift card redemptions take 24-48 hours, bank wires take 3-5 business days.",
+        "sourceUrl": "https://www.hellomillions.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 120
+      },
+      "welcomeBonusSummary": {
+        "summary": "15,000 Gold Coins and 2.5 Sweeps Coins free on sign-up.",
+        "sourceUrl": "https://www.hellomillions.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "modo-casino",
+      "name": "Modo Casino",
+      "category": "Sweeps",
+      "domains": ["modocasino.com", "modo.us"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Standard debit and bank transfer redemptions clear within 24-72 hours.",
+        "sourceUrl": "https://modo.us/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "20,000 Gold Coins and 1 Sweeps Coin immediately on completion of profile.",
+        "sourceUrl": "https://modo.us",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "myprize-us",
+      "name": "MyPrize US",
+      "category": "Sweeps",
+      "domains": ["myprize.us"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Crypto and bank redemptions process in 12-48 hours.",
+        "sourceUrl": "https://myprize.us/terms",
+        "asOf": "2026-10-14",
+        "minHours": 12,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "Daily login bonus plus match multiplier on first XP packs.",
+        "sourceUrl": "https://myprize.us",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "crown-coins-casino",
+      "name": "Crown Coins Casino",
+      "category": "Sweeps",
+      "domains": ["crowncoinscasino.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Skrill and instant banking redemptions process within 24-48 hours.",
+        "sourceUrl": "https://crowncoinscasino.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "100,000 Crown Coins and 2 Sweeps Coins upon email verification.",
+        "sourceUrl": "https://crowncoinscasino.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "funrize",
+      "name": "Funrize",
+      "category": "Sweeps",
+      "domains": ["funrize.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Prize redemptions process within 24-48 hours via electronic bank transfer.",
+        "sourceUrl": "https://funrize.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 48
+      },
+      "welcomeBonusSummary": {
+        "summary": "125,000 Tournament Coins free upon registration.",
+        "sourceUrl": "https://funrize.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "zula-casino",
+      "name": "Zula Casino",
+      "category": "Sweeps",
+      "domains": ["zulacasino.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Bank transfer redemptions clear in 24 to 72 hours for verified patrons.",
+        "sourceUrl": "https://www.zulacasino.com/terms-and-conditions",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "100,000 Gold Coins and 10 Sweeps Coins unlocked upon registration and phone verification.",
+        "sourceUrl": "https://www.zulacasino.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "real-prize",
+      "name": "Real Prize",
+      "category": "Sweeps",
+      "domains": ["realprize.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Prize redemptions process in 24-72 hours via ACH or cards.",
+        "sourceUrl": "https://www.realprize.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "100,000 Gold Coins and 2 Sweeps Coins on registration.",
+        "sourceUrl": "https://www.realprize.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "jackpota",
+      "name": "Jackpota",
+      "category": "Sweeps",
+      "domains": ["jackpota.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Gift card redemption clears in 24 hours, bank transfers in 48-96 hours.",
+        "sourceUrl": "https://www.jackpota.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 96
+      },
+      "welcomeBonusSummary": {
+        "summary": "7,500 Gold Coins and 2.5 free Sweeps Coins welcome pack.",
+        "sourceUrl": "https://www.jackpota.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "nolimitcoins",
+      "name": "NoLimitCoins",
+      "category": "Sweeps",
+      "domains": ["nolimitcoins.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Direct bank transfer redemptions clear in 24 to 72 hours.",
+        "sourceUrl": "https://nolimitcoins.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "100,000 Gold Coins on signup plus daily wheel spins.",
+        "sourceUrl": "https://nolimitcoins.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "rolla",
+      "name": "Rolla",
+      "category": "Sweeps",
+      "domains": ["rolla.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Redemptions review within 24 hours, payment dispatch within 1-3 business days.",
+        "sourceUrl": "https://rolla.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 24,
+        "maxHours": 72
+      },
+      "welcomeBonusSummary": {
+        "summary": "Welcome package with 50,000 Gold Coins and 2 free Sweeps Coins.",
+        "sourceUrl": "https://rolla.com",
+        "asOf": "2026-10-14"
+      },
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "roobet",
+      "name": "Roobet",
+      "category": "Crypto",
+      "domains": ["roobet.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "On-chain crypto withdrawals execute within minutes to 1 hour depending on network congestion.",
+        "sourceUrl": "https://roobet.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 0,
+        "maxHours": 1
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Roobet VIP Tier",
+          "canLevel": true,
+          "notes": "All eligible wager volume across slots and original titles contributes directly to VIP tier.",
+          "sourceUrl": "https://roobet.com/vip",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "bitcasino-io",
+      "name": "Bitcasino.io",
+      "category": "Crypto",
+      "domains": ["bitcasino.io"],
+      "status": "live",
+      "welcomeBonusSummary": {
+        "summary": "20% cashback up to 10,000 USDT on first 7 days of play.",
+        "sourceUrl": "https://bitcasino.io/promotions",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Loyalty Club Points",
+          "canLevel": true,
+          "notes": "Real-money bets earn points toward 7 loyalty milestones and milestone multipliers.",
+          "sourceUrl": "https://bitcasino.io/loyalty-club",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "sportsbet-io",
+      "name": "Sportsbet.io",
+      "category": "Crypto",
+      "domains": ["sportsbet.io"],
+      "status": "live",
+      "welcomeBonusSummary": {
+        "summary": "Clubhouse welcome boost and weekly price boost tokens.",
+        "sourceUrl": "https://sportsbet.io/promotions",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Clubhouse Tier Points",
+          "canLevel": true,
+          "notes": "Wagers across sports and casino accumulate tier points with points multipliers.",
+          "sourceUrl": "https://sportsbet.io/clubhouse",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "stake-com",
+      "name": "Stake.com",
+      "category": "Crypto",
+      "domains": ["stake.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Automated instant on-chain withdrawals typically settle within 5 to 15 minutes.",
+        "sourceUrl": "https://stake.com/policies/terms",
+        "asOf": "2026-10-14",
+        "minHours": 0,
+        "maxHours": 1
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "VIP Club Progress",
+          "canLevel": true,
+          "notes": "Wagered amount contributes 100% on games with standard 1% or higher house edge.",
+          "sourceUrl": "https://stake.com/vip-club",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "rollbit",
+      "name": "Rollbit",
+      "category": "Crypto",
+      "domains": ["rollbit.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Instant crypto withdrawals across BTC, ETH, SOL, and LTC networks.",
+        "sourceUrl": "https://rollbit.com/terms-of-service",
+        "asOf": "2026-10-14",
+        "minHours": 0,
+        "maxHours": 1
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Rank-up Rewards",
+          "canLevel": true,
+          "notes": "Turnover directly advances VIP tier rank giving instant rakeback and rank-up chests.",
+          "sourceUrl": "https://rollbit.com/rewards",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "fortunejack",
+      "name": "FortuneJack",
+      "category": "Crypto",
+      "domains": ["fortunejack.com"],
+      "status": "live",
+      "welcomeBonusSummary": {
+        "summary": "Up to 6 BTC or 1,200 USD welcome package across first four deposits plus 250 free spins.",
+        "sourceUrl": "https://fortunejack.com/promotions",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Miami Garage Status",
+          "canLevel": true,
+          "notes": "Monthly status points determine rakeback level and weekly reload percentages.",
+          "sourceUrl": "https://fortunejack.com/vip",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "cloudbet",
+      "name": "Cloudbet",
+      "category": "Crypto",
+      "domains": ["cloudbet.com"],
+      "status": "live",
+      "welcomeBonusSummary": {
+        "summary": "100% matched deposit bonus up to 5 BTC/ETH/USDT released in increments as points are earned.",
+        "sourceUrl": "https://www.cloudbet.com/en/promotions",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Lightning Points",
+          "canLevel": true,
+          "notes": "Earn Lightning Points for every real-money bet to climb tier levels and unlock marketplace rewards.",
+          "sourceUrl": "https://www.cloudbet.com/en/loyalty",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "gamdom",
+      "name": "Gamdom",
+      "category": "Crypto",
+      "domains": ["gamdom.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Immediate crypto withdrawals through automated payment hot wallets.",
+        "sourceUrl": "https://gamdom.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 0,
+        "maxHours": 1
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Royalty Club Levels",
+          "canLevel": true,
+          "notes": "XP earned based on wager amount and house edge; tiers grant daily surprise and instant rakeback.",
+          "sourceUrl": "https://gamdom.com/rewards",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "bc-game",
+      "name": "BC.Game",
+      "category": "Crypto",
+      "domains": ["bc.game"],
+      "status": "live",
+      "welcomeBonusSummary": {
+        "summary": "Four deposit match bonuses up to 360% in BCD currency.",
+        "sourceUrl": "https://bc.game/promotions",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "VIP Club XP",
+          "canLevel": true,
+          "notes": "Every $1 wagered grants 1 XP towards VIP cards and level-up secret treasures.",
+          "sourceUrl": "https://bc.game/vip-club",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "shuffle",
+      "name": "Shuffle",
+      "category": "Crypto",
+      "domains": ["shuffle.com"],
+      "status": "live",
+      "redemptionTime": {
+        "claim": "Instant automated crypto withdrawals for standard accounts with zero fee deductions.",
+        "sourceUrl": "https://shuffle.com/terms",
+        "asOf": "2026-10-14",
+        "minHours": 0,
+        "maxHours": 1
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Shuffle VIP Progression",
+          "canLevel": true,
+          "notes": "100% volume contribution on all casino bets toward Bronze through Diamond VIP ranks.",
+          "sourceUrl": "https://shuffle.com/vip",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    },
+    {
+      "slug": "mbit-casino",
+      "name": "Mbit Casino",
+      "category": "Crypto",
+      "domains": ["mbitcasino.io"],
+      "status": "live",
+      "welcomeBonusSummary": {
+        "summary": "Up to 4 BTC plus 325 free spins across the first three crypto deposits.",
+        "sourceUrl": "https://www.mbitcasino.io/promotions",
+        "asOf": "2026-10-14"
+      },
+      "vipCurrencyRules": [
+        {
+          "currencyName": "Bitty Quiz & VIP Space Journey",
+          "canLevel": true,
+          "notes": "Status points accumulate to advance planet tiers offering daily cashback and customized bonuses.",
+          "sourceUrl": "https://www.mbitcasino.io/vip",
+          "asOf": "2026-10-14"
+        }
+      ],
+      "verifiedBy": "spotter-audit",
+      "lastVerifiedAt": "2026-10-14"
+    }
+  ]
 }

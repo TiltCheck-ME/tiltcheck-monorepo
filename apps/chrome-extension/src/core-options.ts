@@ -15,6 +15,12 @@ export const TILTCHECK_TOUCH_GRASS_OPT_IN_KEY = 'tiltcheck_touch_grass_opt_in';
 /** Core tilt sensitivity profile (Conservative / Moderate / Degen). */
 export const TILTCHECK_RISK_PROFILE_KEY = 'tiltcheck_risk_profile';
 
+export const TILTCHECK_HOURLY_WAGE_KEY = 'tiltcheck_hourly_wage';
+export const TILTCHECK_REALITY_HUD_ENABLED_KEY = 'tiltcheck_reality_hud_enabled';
+export const TILTCHECK_REALITY_THRESHOLD_HOURS_KEY = 'tiltcheck_reality_threshold_hours';
+export const TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY = 'tiltcheck_deposit_barrier_enabled';
+export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+
 export type RiskProfile = 'conservative' | 'moderate' | 'degen';
 
 export const DEFAULT_RISK_PROFILE: RiskProfile = 'moderate';
@@ -32,6 +38,11 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_TOUCH_GRASS_COOLDOWN_MS_KEY,
   TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
   TILTCHECK_RISK_PROFILE_KEY,
+  TILTCHECK_HOURLY_WAGE_KEY,
+  TILTCHECK_REALITY_HUD_ENABLED_KEY,
+  TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
+  TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+  TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
 ] as const;
 
 export function normalizeRiskProfile(value: unknown, legacyRiskLevel?: unknown): RiskProfile {
@@ -53,6 +64,15 @@ export const DEFAULT_TOUCH_GRASS_DURATION_MS = TOUCH_GRASS_DURATION_MS;
 /** Cooldown slightly longer than lockout to prevent re-fire on first click after unlock. */
 export const DEFAULT_TOUCH_GRASS_COOLDOWN_MS = DEFAULT_TOUCH_GRASS_DURATION_MS + 5_000;
 
+export const DEFAULT_HOURLY_WAGE = 25;
+export const MIN_HOURLY_WAGE = 5;
+export const MAX_HOURLY_WAGE = 2000;
+export const DEFAULT_REALITY_HUD_ENABLED = true;
+export const DEFAULT_REALITY_THRESHOLD_HOURS = 2;
+export const MIN_REALITY_THRESHOLD_HOURS = 0.5;
+export const MAX_REALITY_THRESHOLD_HOURS = 24;
+export const DEFAULT_DEPOSIT_BARRIER_ENABLED = true;
+
 const MIN_RISK_THRESHOLD = 50;
 const MAX_RISK_THRESHOLD = 100;
 const MIN_DURATION_MS = 30_000;
@@ -67,12 +87,23 @@ export interface CoreCircuitBreakerOptions {
   riskProfile: RiskProfile;
   /** When false, core path does not fire Touch Grass (default true until options UI ships). */
   enforcementEnabled: boolean;
+  hourlyWage: number;
+  realityHudEnabled: boolean;
+  realityThresholdHours: number;
+  depositBarrierEnabled: boolean;
+  cooldownActiveUntil: number;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
   const n = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, Math.round(n)));
+}
+
+function clampFloat(value: unknown, min: number, max: number, fallback: number): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return Math.min(max, Math.max(min, n));
 }
 
 /**
@@ -86,6 +117,11 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_TOUCH_GRASS_COOLDOWN_MS_KEY,
       TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
       TILTCHECK_RISK_PROFILE_KEY,
+      TILTCHECK_HOURLY_WAGE_KEY,
+      TILTCHECK_REALITY_HUD_ENABLED_KEY,
+      TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
+      TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+      TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
       'riskLevel',
     ]);
 
@@ -107,6 +143,30 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
     const optIn = stored[TILTCHECK_TOUCH_GRASS_OPT_IN_KEY];
     const enforcementEnabled = optIn === undefined ? true : optIn === true;
 
+    const hourlyWage = clampInt(
+      stored[TILTCHECK_HOURLY_WAGE_KEY],
+      MIN_HOURLY_WAGE,
+      MAX_HOURLY_WAGE,
+      DEFAULT_HOURLY_WAGE
+    );
+
+    const realityHudOpt = stored[TILTCHECK_REALITY_HUD_ENABLED_KEY];
+    const realityHudEnabled = realityHudOpt === undefined ? DEFAULT_REALITY_HUD_ENABLED : realityHudOpt === true;
+
+    const realityThresholdHours = clampFloat(
+      stored[TILTCHECK_REALITY_THRESHOLD_HOURS_KEY],
+      MIN_REALITY_THRESHOLD_HOURS,
+      MAX_REALITY_THRESHOLD_HOURS,
+      DEFAULT_REALITY_THRESHOLD_HOURS
+    );
+
+    const depositBarrierOpt = stored[TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY];
+    const depositBarrierEnabled = depositBarrierOpt === undefined ? DEFAULT_DEPOSIT_BARRIER_ENABLED : depositBarrierOpt === true;
+
+    const cooldownActiveUntil = typeof stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] === 'number' && Number.isFinite(stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
+      ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
+      : 0;
+
     return {
       riskThreshold: clampInt(
         stored[TILTCHECK_RISK_THRESHOLD_KEY],
@@ -121,6 +181,11 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
         stored['riskLevel']
       ),
       enforcementEnabled,
+      hourlyWage,
+      realityHudEnabled,
+      realityThresholdHours,
+      depositBarrierEnabled,
+      cooldownActiveUntil,
     };
   } catch {
     return {
@@ -129,6 +194,11 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       touchGrassCooldownMs: DEFAULT_TOUCH_GRASS_COOLDOWN_MS,
       riskProfile: DEFAULT_RISK_PROFILE,
       enforcementEnabled: true,
+      hourlyWage: DEFAULT_HOURLY_WAGE,
+      realityHudEnabled: DEFAULT_REALITY_HUD_ENABLED,
+      realityThresholdHours: DEFAULT_REALITY_THRESHOLD_HOURS,
+      depositBarrierEnabled: DEFAULT_DEPOSIT_BARRIER_ENABLED,
+      cooldownActiveUntil: 0,
     };
   }
 }

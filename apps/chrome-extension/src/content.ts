@@ -40,6 +40,8 @@ import { installHeaterNudge, type HeaterHandle } from './heater-nudge.js';
 import { installChaseWarning, type ChaseHandle } from './chase-warning.js';
 import { triggerTouchGrassTimeout, TOUCH_GRASS_DURATION_MS } from './touch-grass-timeout.js';
 import { installLocalGameBlocker } from './pro/local-game-blocker.js';
+import { installRealityHud, type RealityHudHandle } from './reality-hud.js';
+import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barrier.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -61,6 +63,8 @@ type TiltCheckWindow = Window & { __tiltcheckCoreShieldActive?: boolean };
 let paceLock: PaceLockHandle | null = null;
 let heaterNudge: HeaterHandle | null = null;
 let chaseWarning: ChaseHandle | null = null;
+let realityHud: RealityHudHandle | null = null;
+let depositBarrier: DepositBarrierHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -271,6 +275,8 @@ function installCoreOptionsListener(): void {
         void refreshCoreOptions().then((opts) => {
 
           syncPaceLock(opts.enforcementEnabled);
+          syncRealityHud(opts);
+          syncDepositBarrier(opts);
 
         });
 
@@ -287,6 +293,50 @@ function installCoreOptionsListener(): void {
 }
 
 
+
+function syncRealityHud(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.realityHudEnabled;
+  if (shouldRun) {
+    if (!realityHud) {
+      try {
+        realityHud = installRealityHud(document, {
+          hourlyWage: opts.hourlyWage,
+          enabled: opts.realityHudEnabled,
+          thresholdHours: opts.realityThresholdHours,
+        });
+      } catch {
+        realityHud = null;
+      }
+    } else {
+      realityHud.updateOptions({
+        hourlyWage: opts.hourlyWage,
+        enabled: opts.realityHudEnabled,
+        thresholdHours: opts.realityThresholdHours,
+      });
+    }
+  } else if (realityHud) {
+    realityHud.stop();
+    realityHud = null;
+  }
+}
+
+function syncDepositBarrier(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.depositBarrierEnabled;
+  if (shouldRun) {
+    if (!depositBarrier) {
+      try {
+        depositBarrier = installDepositBarrier(document);
+      } catch {
+        depositBarrier = null;
+      }
+    }
+    depositBarrier?.updateCooldown(opts.cooldownActiveUntil);
+    depositBarrier?.updateEnabled(opts.depositBarrierEnabled);
+  } else if (depositBarrier) {
+    depositBarrier.stop();
+    depositBarrier = null;
+  }
+}
 
 function syncPaceLock(enabled: boolean): void {
   if (enabled && !paceLock) {
@@ -336,6 +386,8 @@ async function startCoreCircuitBreaker(): Promise<void> {
   installCoreOptionsListener();
   (window as TiltCheckWindow).__tiltcheckCoreShieldActive = true;
   syncPaceLock(opts.enforcementEnabled);
+  syncRealityHud(opts);
+  syncDepositBarrier(opts);
 }
 
 async function boot(): Promise<void> {
@@ -396,6 +448,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         visible: false,
         injectionDisabled: false,
         coreOnly: true,
+      });
+      return true;
+
+    case 'get_deposit_barrier_state':
+      sendResponse({
+        active: depositBarrier ? depositBarrier.isActive() : false,
+        cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+      });
+      return true;
+
+    case 'get_reality_hud_state':
+      sendResponse({
+        visible: realityHud ? realityHud.isVisible() : false,
+        baseline: realityHud ? realityHud.getBaseline() : null,
       });
       return true;
 

@@ -44,6 +44,10 @@ Zip download is ungated (`ctaReady: true`) and sideload zip is packaged.
 | CLI-1 | Modernize CLI into offline-first suite (verify, rtp, trust, cooldown); prune GCP & localhost:4000 stubs | Done | Full local-first suite with Ed25519 cooldown, HMAC-SHA256 verifier, RTP inspector, and 34 passing tests. |
 | SPOT-1 | Extension Spotter architecture: Stake.us AutoVault cookie fix, Core Touch Grass timeout, spotter copy, legacy sidebar tree pruned | Done | Fixed Stake.us GraphQL endpoint; wired rapid-click & loss escalation Touch Grass timeout in Core; pruned 15 unmaintained sidebar files. |
 
+| HUD-1 | Reality-Grounding Wage-Hour HUD: session drawdown translated into labor hours ($25/hr default) | Done | Floating terminal HUD on casino DOM with blunt spotter copy; customizable wage in popup. |
+| DEP-1 | DOM Deposit Barrier: intercept cashier/deposit clicks during Touch Grass or voluntary lock | Done | Blocks re-up attempts across Stake, Roobet, BC.Game and crypto/sweeps operators with active lock countdown. |
+| INT-1 | Operator facts coverage gate: promote 30 priority operators into live dataset | Done | Satisfies >= 25 operator gate in docs/ops/OPERATOR-FACTS.md with verified redemption, welcome, and VIP rules. |
+
 ## P2 — later
 
 | ID | Task | Status | Note |
