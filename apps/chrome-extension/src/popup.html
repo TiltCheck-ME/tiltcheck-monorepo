@@ -842,6 +842,44 @@
     </label>
   </section>
 
+  <section class="guard-panel" id="profit-lock-panel">
+    <h3>Profit-Lock Ratchet</h3>
+    <p class="guard-policy">
+      Locks in a trailing profit floor once you are ahead. If your balance slides back to the floor, TiltCheck gives you a soft warning, escalating to a 60-second brake if you rage-spin through it.
+    </p>
+    <label class="guard-opt-row" for="profit-lock-toggle">
+      <input type="checkbox" id="profit-lock-toggle" />
+      <span>Protect profit with a trailing floor.</span>
+    </label>
+    <div class="form-row" style="margin-top:8px;">
+      <label for="trailing-percent-select">Protected Profit Share</label>
+      <select id="trailing-percent-select" style="background:#080a0e; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-family:inherit;">
+        <option value="25">25% floor (Aggressive)</option>
+        <option value="50" selected>50% floor (Recommended)</option>
+        <option value="75">75% floor (Conservative)</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="guard-panel" id="cashout-goals-panel">
+    <h3>Reality Cashout Goals</h3>
+    <p class="guard-policy">
+      Ties casino credits to real-world bills and items. Pops a reminder toast when you cross target amounts so you can lock in real life.
+    </p>
+    <label class="guard-opt-row" for="cashout-goals-toggle">
+      <input type="checkbox" id="cashout-goals-toggle" />
+      <span>Enable reality-anchoring goal toasts.</span>
+    </label>
+    <div id="cashout-goals-list" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+      <!-- Populated dynamically via popup.ts -->
+    </div>
+    <div style="margin-top:10px; display:flex; gap:6px;">
+      <input type="text" id="new-goal-name" placeholder="Item/Bill (e.g. Electric)" style="flex:2; background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 6px; font-size:11px;" />
+      <input type="number" id="new-goal-amount" placeholder="$" min="1" step="1" style="flex:1; background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 6px; font-size:11px;" />
+      <button type="button" id="add-goal-btn" class="icon-btn" style="width:auto; padding:0 8px; font-size:11px; font-weight:700;">+ Add</button>
+    </div>
+  </section>
+
   <section class="guard-panel" id="strategic-filter-panel">
     <h3>Strategic Filters</h3>
     <p class="guard-policy">

@@ -1,12 +1,20 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  DEFAULT_CASHOUT_GOALS_ENABLED,
+  DEFAULT_MIN_PROFIT,
+  DEFAULT_PROFIT_LOCK_ENABLED,
   DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED,
   DEFAULT_RISK_PROFILE,
   DEFAULT_RISK_THRESHOLD,
   DEFAULT_TOUCH_GRASS_COOLDOWN_MS,
   DEFAULT_TOUCH_GRASS_DURATION_MS,
+  DEFAULT_TRAILING_PERCENT,
   loadCoreCircuitBreakerOptions,
+  TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
+  TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY,
   TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
   TILTCHECK_RISK_PROFILE_KEY,
   TILTCHECK_RISK_THRESHOLD_KEY,
@@ -36,6 +44,11 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.realityThresholdHours).toBe(2);
     expect(opts.depositBarrierEnabled).toBe(true);
     expect(opts.reverseWithdrawalShieldEnabled).toBe(DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED);
+    expect(opts.profitLockEnabled).toBe(DEFAULT_PROFIT_LOCK_ENABLED);
+    expect(opts.trailingPercent).toBe(DEFAULT_TRAILING_PERCENT);
+    expect(opts.minProfit).toBe(DEFAULT_MIN_PROFIT);
+    expect(opts.goalsEnabled).toBe(DEFAULT_CASHOUT_GOALS_ENABLED);
+    expect(opts.goals.length).toBeGreaterThan(0);
     expect(opts.cooldownActiveUntil).toBe(0);
   });
 
@@ -48,7 +61,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.riskProfile).toBe('degen');
   });
 
-  it('clamps risk threshold and honors custom duration/cooldown', async () => {
+  it('clamps risk threshold and honors custom duration/cooldown and profit lock', async () => {
     (chrome.storage.local.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       [TILTCHECK_RISK_THRESHOLD_KEY]: 200,
       tiltcheck_touch_grass_duration_ms: 90_000,
@@ -58,6 +71,10 @@ describe('loadCoreCircuitBreakerOptions', () => {
       tiltcheck_reality_threshold_hours: 48,
       tiltcheck_deposit_barrier_enabled: false,
       [TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY]: false,
+      [TILTCHECK_PROFIT_LOCK_ENABLED_KEY]: true,
+      [TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY]: 75,
+      [TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY]: 100,
+      [TILTCHECK_CASHOUT_GOALS_ENABLED_KEY]: false,
       tiltcheck_cooldown_active_until: 1700000000000,
     });
     const opts = await loadCoreCircuitBreakerOptions();
@@ -69,6 +86,10 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.realityThresholdHours).toBe(24); // clamped to 24
     expect(opts.depositBarrierEnabled).toBe(false);
     expect(opts.reverseWithdrawalShieldEnabled).toBe(false);
+    expect(opts.profitLockEnabled).toBe(true);
+    expect(opts.trailingPercent).toBe(75);
+    expect(opts.minProfit).toBe(100);
+    expect(opts.goalsEnabled).toBe(false);
     expect(opts.cooldownActiveUntil).toBe(1700000000000);
   });
 

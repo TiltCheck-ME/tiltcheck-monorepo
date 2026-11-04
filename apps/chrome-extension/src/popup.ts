@@ -16,6 +16,14 @@ import {
   saveRealityHudEnabled,
   saveDepositBarrierEnabled,
   saveReverseWithdrawalShieldEnabled,
+  saveProfitLockEnabled,
+  saveProfitLockTrailingPercent,
+  saveCashoutGoalsEnabled,
+  saveCashoutGoals,
+  toggleGoalInList,
+  addGoalToList,
+  removeGoalFromList,
+  type CashoutGoal,
   toggleSlugInList,
 } from './popup-settings.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
@@ -469,6 +477,94 @@ function renderSlugRegistry(): void {
   });
 }
 
+let currentGoals: CashoutGoal[] = [];
+
+function renderGoalsList(): void {
+  const container = document.getElementById('cashout-goals-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (currentGoals.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.color = 'rgba(160, 175, 190, 0.6)';
+    empty.style.fontSize = '11px';
+    empty.textContent = 'No cashout goals set. Add one below.';
+    container.appendChild(empty);
+    return;
+  }
+
+  for (const goal of currentGoals) {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.justifyContent = 'space-between';
+    row.style.padding = '6px 8px';
+    row.style.background = 'rgba(255, 255, 255, 0.04)';
+    row.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+    row.style.borderRadius = '4px';
+    row.style.fontSize = '12px';
+
+    const left = document.createElement('label');
+    left.style.display = 'flex';
+    left.style.alignItems = 'center';
+    left.style.gap = '6px';
+    left.style.cursor = 'pointer';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = goal.enabled;
+    checkbox.addEventListener('change', async () => {
+      currentGoals = toggleGoalInList(currentGoals, goal.id);
+      await saveCashoutGoals(currentGoals);
+      renderGoalsList();
+    });
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = goal.name;
+    if (!goal.enabled) {
+      nameSpan.style.opacity = '0.4';
+      nameSpan.style.textDecoration = 'line-through';
+    }
+
+    left.appendChild(checkbox);
+    left.appendChild(nameSpan);
+
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.alignItems = 'center';
+    right.style.gap = '8px';
+
+    const badge = document.createElement('span');
+    badge.style.fontFamily = 'var(--mono)';
+    badge.style.fontSize = '11px';
+    badge.style.fontWeight = '700';
+    badge.style.color = '#17c3b2';
+    badge.textContent = goal.metric === 'profit' ? '+' + '$' + goal.targetAmount : '$' + goal.targetAmount;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = 'x';
+    removeBtn.style.background = 'transparent';
+    removeBtn.style.border = 'none';
+    removeBtn.style.color = 'rgba(160, 175, 190, 0.6)';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.fontSize = '12px';
+    removeBtn.style.padding = '0 4px';
+    removeBtn.addEventListener('click', async () => {
+      currentGoals = removeGoalFromList(currentGoals, goal.id);
+      await saveCashoutGoals(currentGoals);
+      renderGoalsList();
+    });
+
+    right.appendChild(badge);
+    right.appendChild(removeBtn);
+
+    row.appendChild(left);
+    row.appendChild(right);
+    container.appendChild(row);
+  }
+}
+
 async function refreshGuardSettingsUi(): Promise<void> {
   const touch = await loadTouchGrassUiState();
   $<HTMLInputElement>('opt-in-checkbox').checked = touch.optIn;
@@ -494,6 +590,24 @@ async function refreshGuardSettingsUi(): Promise<void> {
   if (reverseShieldToggle) {
     reverseShieldToggle.checked = touch.reverseWithdrawalShieldEnabled;
   }
+
+  const profitLockToggle = document.getElementById('profit-lock-toggle') as HTMLInputElement | null;
+  if (profitLockToggle) {
+    profitLockToggle.checked = touch.profitLockEnabled;
+  }
+
+  const trailingSelect = document.getElementById('trailing-percent-select') as HTMLSelectElement | null;
+  if (trailingSelect) {
+    trailingSelect.value = String(touch.trailingPercent);
+  }
+
+  const goalsToggle = document.getElementById('cashout-goals-toggle') as HTMLInputElement | null;
+  if (goalsToggle) {
+    goalsToggle.checked = touch.goalsEnabled;
+  }
+
+  currentGoals = [...(touch.goals || [])];
+  renderGoalsList();
 
   const cooldownStatus = document.getElementById('deposit-cooldown-status');
   if (cooldownStatus) {
@@ -558,6 +672,68 @@ function initGuardSettingsPanel(): void {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveReverseWithdrawalShieldEnabled(enabled);
       toast(enabled ? 'Reverse-withdrawal shield armed.' : 'Reverse-withdrawal shield disabled.');
+    });
+  }
+
+  const profitLockToggle = document.getElementById('profit-lock-toggle') as HTMLInputElement | null;
+  if (profitLockToggle) {
+    profitLockToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveProfitLockEnabled(enabled);
+      toast(enabled ? 'Profit-lock ratchet armed.' : 'Profit-lock ratchet disabled.');
+    });
+  }
+
+  const trailingSelect = document.getElementById('trailing-percent-select') as HTMLSelectElement | null;
+  if (trailingSelect) {
+    trailingSelect.addEventListener('change', async (e) => {
+      const val = Number((e.target as HTMLSelectElement).value);
+      await saveProfitLockTrailingPercent(val);
+      toast('Trailing floor set to ' + val + '% of peak profit.');
+    });
+  }
+
+  const goalsToggle = document.getElementById('cashout-goals-toggle') as HTMLInputElement | null;
+  if (goalsToggle) {
+    goalsToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveCashoutGoalsEnabled(enabled);
+      toast(enabled ? 'Reality cashout goals armed.' : 'Reality cashout goals disabled.');
+    });
+  }
+
+  const addGoalBtn = document.getElementById('add-goal-btn');
+  if (addGoalBtn) {
+    addGoalBtn.addEventListener('click', async () => {
+      const nameInput = document.getElementById('new-goal-name') as HTMLInputElement | null;
+      const amountInput = document.getElementById('new-goal-amount') as HTMLInputElement | null;
+      const name = nameInput?.value.trim() || '';
+      const amount = Number(amountInput?.value);
+
+      if (!name) {
+        toast('Enter a bill or item name.');
+        return;
+      }
+      if (!amount || amount <= 0) {
+        toast('Enter a valid dollar amount.');
+        return;
+      }
+
+      const newGoal: CashoutGoal = {
+        id: 'custom_' + Date.now(),
+        name,
+        targetAmount: Math.round(amount * 100) / 100,
+        metric: 'balance',
+        enabled: true,
+      };
+
+      currentGoals = addGoalToList(currentGoals, newGoal);
+      await saveCashoutGoals(currentGoals);
+      renderGoalsList();
+
+      if (nameInput) nameInput.value = '';
+      if (amountInput) amountInput.value = '';
+      toast('Goal "' + name + '" added.');
     });
   }
 

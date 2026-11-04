@@ -6,6 +6,11 @@
  */
 
 import { TOUCH_GRASS_DURATION_MS } from './touch-grass-timeout.js';
+import {
+  DEFAULT_CASHOUT_GOALS,
+  type CashoutGoal,
+  sanitizeCashoutGoals,
+} from './profit-lock.js';
 
 export const TILTCHECK_RISK_THRESHOLD_KEY = 'tiltcheck_risk_threshold';
 export const TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY = 'tiltcheck_touch_grass_duration_ms';
@@ -20,6 +25,11 @@ export const TILTCHECK_REALITY_HUD_ENABLED_KEY = 'tiltcheck_reality_hud_enabled'
 export const TILTCHECK_REALITY_THRESHOLD_HOURS_KEY = 'tiltcheck_reality_threshold_hours';
 export const TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY = 'tiltcheck_deposit_barrier_enabled';
 export const TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY = 'tiltcheck_reverse_withdrawal_shield_enabled';
+export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
+export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
+export const TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY = 'tiltcheck_profit_lock_min_profit';
+export const TILTCHECK_CASHOUT_GOALS_ENABLED_KEY = 'tiltcheck_cashout_goals_enabled';
+export const TILTCHECK_CASHOUT_GOALS_KEY = 'tiltcheck_cashout_goals';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
 
 export type RiskProfile = 'conservative' | 'moderate' | 'degen';
@@ -44,6 +54,11 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
   TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
   TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY,
+  TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
+  TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
+  TILTCHECK_CASHOUT_GOALS_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
 ] as const;
 
@@ -75,6 +90,10 @@ export const MIN_REALITY_THRESHOLD_HOURS = 0.5;
 export const MAX_REALITY_THRESHOLD_HOURS = 24;
 export const DEFAULT_DEPOSIT_BARRIER_ENABLED = true;
 export const DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED = true;
+export const DEFAULT_PROFIT_LOCK_ENABLED = true;
+export const DEFAULT_TRAILING_PERCENT = 50;
+export const DEFAULT_MIN_PROFIT = 50;
+export const DEFAULT_CASHOUT_GOALS_ENABLED = true;
 
 const MIN_RISK_THRESHOLD = 50;
 const MAX_RISK_THRESHOLD = 100;
@@ -95,6 +114,11 @@ export interface CoreCircuitBreakerOptions {
   realityThresholdHours: number;
   depositBarrierEnabled: boolean;
   reverseWithdrawalShieldEnabled: boolean;
+  profitLockEnabled: boolean;
+  trailingPercent: number;
+  minProfit: number;
+  goalsEnabled: boolean;
+  goals: CashoutGoal[];
   cooldownActiveUntil: number;
 }
 
@@ -126,6 +150,11 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
       TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
       TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
+      TILTCHECK_PROFIT_LOCK_ENABLED_KEY,
+      TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY,
+      TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
+      TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
+      TILTCHECK_CASHOUT_GOALS_KEY,
       TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
       'riskLevel',
     ]);
@@ -174,6 +203,28 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
         ? DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED
         : reverseWithdrawalShieldOpt === true;
 
+    const profitLockOpt = stored[TILTCHECK_PROFIT_LOCK_ENABLED_KEY];
+    const profitLockEnabled = profitLockOpt === undefined ? DEFAULT_PROFIT_LOCK_ENABLED : profitLockOpt === true;
+
+    const trailingPercent = clampInt(
+      stored[TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY],
+      10,
+      90,
+      DEFAULT_TRAILING_PERCENT
+    );
+
+    const minProfit = clampInt(
+      stored[TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY],
+      10,
+      10000,
+      DEFAULT_MIN_PROFIT
+    );
+
+    const goalsOpt = stored[TILTCHECK_CASHOUT_GOALS_ENABLED_KEY];
+    const goalsEnabled = goalsOpt === undefined ? DEFAULT_CASHOUT_GOALS_ENABLED : goalsOpt === true;
+
+    const goals = sanitizeCashoutGoals(stored[TILTCHECK_CASHOUT_GOALS_KEY]);
+
     const cooldownActiveUntil = typeof stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] === 'number' && Number.isFinite(stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       : 0;
@@ -197,6 +248,11 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       realityThresholdHours,
       depositBarrierEnabled,
       reverseWithdrawalShieldEnabled,
+      profitLockEnabled,
+      trailingPercent,
+      minProfit,
+      goalsEnabled,
+      goals,
       cooldownActiveUntil,
     };
   } catch {
@@ -211,6 +267,11 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       realityThresholdHours: DEFAULT_REALITY_THRESHOLD_HOURS,
       depositBarrierEnabled: DEFAULT_DEPOSIT_BARRIER_ENABLED,
       reverseWithdrawalShieldEnabled: DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED,
+      profitLockEnabled: DEFAULT_PROFIT_LOCK_ENABLED,
+      trailingPercent: DEFAULT_TRAILING_PERCENT,
+      minProfit: DEFAULT_MIN_PROFIT,
+      goalsEnabled: DEFAULT_CASHOUT_GOALS_ENABLED,
+      goals: [...DEFAULT_CASHOUT_GOALS],
       cooldownActiveUntil: 0,
     };
   }

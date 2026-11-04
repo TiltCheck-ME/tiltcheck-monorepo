@@ -43,7 +43,19 @@ describe('popup-settings helpers', () => {
 
   it('saves hourly wage, reality hud, and deposit barrier settings', async () => {
     const storage: Record<string, unknown> = {};
-    const { saveHourlyWage, saveRealityHudEnabled, saveDepositBarrierEnabled, saveReverseWithdrawalShieldEnabled } = await import('../../src/popup-settings.js');
+    const {
+      saveHourlyWage,
+      saveRealityHudEnabled,
+      saveDepositBarrierEnabled,
+      saveReverseWithdrawalShieldEnabled,
+      saveProfitLockEnabled,
+      saveProfitLockTrailingPercent,
+      saveCashoutGoalsEnabled,
+      saveCashoutGoals,
+      toggleGoalInList,
+      addGoalToList,
+      removeGoalFromList,
+    } = await import('../../src/popup-settings.js');
     (globalThis as unknown as { chrome: unknown }).chrome = {
       storage: {
         local: {
@@ -78,5 +90,30 @@ describe('popup-settings helpers', () => {
 
     await saveReverseWithdrawalShieldEnabled(false);
     expect(storage['tiltcheck_reverse_withdrawal_shield_enabled']).toBe(false);
+
+    await saveProfitLockEnabled(true);
+    expect(storage['tiltcheck_profit_lock_enabled']).toBe(true);
+
+    await saveProfitLockTrailingPercent(75);
+    expect(storage['tiltcheck_profit_lock_trailing_percent']).toBe(75);
+
+    await saveCashoutGoalsEnabled(true);
+    expect(storage['tiltcheck_cashout_goals_enabled']).toBe(true);
+
+    const testGoals = [
+      { id: 'electric', name: 'Electric Bill', targetAmount: 200, linkUrl: '', metric: 'balance' as const, enabled: true },
+    ];
+    await saveCashoutGoals(testGoals);
+    expect(storage['tiltcheck_cashout_goals']).toEqual(testGoals);
+
+    const toggled = toggleGoalInList(testGoals, 'electric');
+    expect(toggled[0]?.enabled).toBe(false);
+
+    const added = addGoalToList(testGoals, { id: 'water', name: 'Water', targetAmount: 50, metric: 'profit' as const, enabled: true });
+    expect(added).toHaveLength(2);
+
+    const removed = removeGoalFromList(added, 'electric');
+    expect(removed).toHaveLength(1);
+    expect(removed[0]?.id).toBe('water');
   });
 });

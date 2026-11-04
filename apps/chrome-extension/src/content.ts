@@ -43,6 +43,7 @@ import { installLocalGameBlocker } from './pro/local-game-blocker.js';
 import { installRealityHud, type RealityHudHandle } from './reality-hud.js';
 import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barrier.js';
 import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } from './reverse-withdrawal-shield.js';
+import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -67,6 +68,7 @@ let chaseWarning: ChaseHandle | null = null;
 let realityHud: RealityHudHandle | null = null;
 let depositBarrier: DepositBarrierHandle | null = null;
 let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
+let profitLock: ProfitLockHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -280,6 +282,7 @@ function installCoreOptionsListener(): void {
           syncRealityHud(opts);
           syncDepositBarrier(opts);
           syncReverseWithdrawalShield(opts);
+          syncProfitLock(opts);
 
         });
 
@@ -358,6 +361,36 @@ function syncReverseWithdrawalShield(opts: CoreCircuitBreakerOptions): void {
   }
 }
 
+function syncProfitLock(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && (opts.profitLockEnabled || opts.goalsEnabled);
+  if (shouldRun) {
+    if (!profitLock) {
+      try {
+        profitLock = installProfitLock(document, {
+          profitLockEnabled: opts.profitLockEnabled,
+          trailingPercent: opts.trailingPercent,
+          minProfit: opts.minProfit,
+          goalsEnabled: opts.goalsEnabled,
+          goals: opts.goals,
+        });
+      } catch {
+        profitLock = null;
+      }
+    } else {
+      profitLock.updateOptions({
+        profitLockEnabled: opts.profitLockEnabled,
+        trailingPercent: opts.trailingPercent,
+        minProfit: opts.minProfit,
+        goalsEnabled: opts.goalsEnabled,
+        goals: opts.goals,
+      });
+    }
+  } else if (profitLock) {
+    profitLock.stop();
+    profitLock = null;
+  }
+}
+
 function syncPaceLock(enabled: boolean): void {
   if (enabled && !paceLock) {
     paceLock = installSpinPaceLock();
@@ -409,6 +442,7 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncRealityHud(opts);
   syncDepositBarrier(opts);
   syncReverseWithdrawalShield(opts);
+  syncProfitLock(opts);
 }
 
 async function boot(): Promise<void> {
@@ -489,6 +523,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     case 'get_reverse_withdrawal_shield_state':
       sendResponse({
         active: reverseWithdrawalShield !== null,
+      });
+      return true;
+
+    case 'get_profit_lock_state':
+      sendResponse({
+        active: profitLock !== null,
+        baseline: profitLock ? profitLock.getBaseline() : null,
+        peak: profitLock ? profitLock.getPeak() : 0,
+        floor: profitLock ? profitLock.getFloor() : null,
+        softWarningActive: profitLock ? profitLock.isSoftWarningActive() : false,
+        hardGuardTriggered: profitLock ? profitLock.isHardGuardTriggered() : false,
       });
       return true;
 

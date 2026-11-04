@@ -286,5 +286,14 @@ describe('core content script contracts', () => {
         active: expect.any(Boolean),
       })
     );
+
+    const profitResponse = vi.fn();
+    listeners[0]!({ type: 'get_profit_lock_state' }, null, profitResponse);
+    expect(profitResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+        peak: expect.any(Number),
+      })
+    );
   });
 });
