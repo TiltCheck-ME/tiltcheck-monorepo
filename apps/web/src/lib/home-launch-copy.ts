@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
@@ -33,7 +33,7 @@ export const HOME_LAUNCH = {
     },
     {
       title: 'Slow the next click',
-      body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.',
+      body: 'Chrome on the casino tab. 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, and profit-lock ratchet with reality cashout goals. Sideload zip is live.',
     },
   ] as const,
   hud: {
@@ -51,7 +51,7 @@ export const HOME_LAUNCH = {
   } as const,
   honesty: [
     'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
+    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, and profit-lock ratchet with reality cashout goals.',
     'Browser filters are your list. Not an operator account close. Turn the extension off and play continues.',
     'AutoVault is two casinos. We do not fake a vault button everywhere.',
   ],
@@ -83,5 +83,17 @@ export const CORE_BRAKES = [
     title: "DOM Deposit Barrier",
     body: "Freezes cashier and deposit triggers across Stake, Roobet, and sweepstakes frontends when you are tilted or on a Cooldown. Stops you from digging the hole deeper.",
     status: "Hard stop on reload",
+  },
+  {
+    num: "05",
+    title: "Reverse-Withdrawal Shield",
+    body: "Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
+    status: "Active cashier guard",
+  },
+  {
+    num: "06",
+    title: "Profit-Lock & Reality Goals",
+    body: "Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.",
+    status: "Trailing floor + goal alerts",
   },
 ];

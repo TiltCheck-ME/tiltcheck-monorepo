@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -24,6 +24,14 @@ const coreSignals = [
   {
     title: "DOM deposit barrier",
     body: "Catches the panic reload. Cashier and deposit button clicks are intercepted and blocked during Touch Grass timeouts and active voluntary Cooldown locks.",
+  },
+  {
+    title: "Reverse-withdrawal shield",
+    body: "Blocks cancel cashout and reverse redemption buttons while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
+  },
+  {
+    title: "Profit-lock & reality goals",
+    body: "Locks in a trailing profit floor once you are ahead. Triggers a soft warning escalating to a 60-second brake if unacted upon, plus real-world goal toasts (power bills, groceries, gas) to ground credits in real life.",
   },
 ];
 

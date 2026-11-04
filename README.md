@@ -401,7 +401,7 @@ It's built by someone who understands the problems firsthand.
 ## Roadmap
 
 ### Now — Chrome Extension Release & Direct Sideloading
-Direct sideload zip (v1.2.2) available for instant download, featuring 4 core guards: 2s spin brake, strategic game filters, reality wage HUD ($25/hr baseline), and DOM deposit barrier. Chrome Web Store submission tracking in progress.
+Direct sideload zip (v1.2.2) available for instant download, featuring 6 core guards: 2s spin brake, strategic game filters, reality wage HUD ($25/hr baseline), DOM deposit barrier, reverse-withdrawal shield, and profit-lock ratchet with reality cashout goals. Chrome Web Store submission tracking in progress.
 
 ### Next — Casino Trust Score Deep-Dives
 Public evidence-backed audits live for Stake.us, Roobet, Stake.com, and BC.Game, with coverage gate cleared across 30 priority operators. Expansion across remaining sweepstakes and crypto casinos.
