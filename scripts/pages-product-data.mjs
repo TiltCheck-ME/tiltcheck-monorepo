@@ -88,6 +88,12 @@ export const RTP_SCANNER_PAGE = {
   punch: "Providers ship games with up to 5 certified return-to-player tiers (e.g. 96.5% down to 88.0%). Shady casinos quietly pick the lowest tier without telling the player.",
   fine: "Certified tiers sourced from GLI, eCOGRA, and BMM lab test reports. Compare your casino deployment against manufacturer baselines.",
 };
+export const VERIFY_PAGE = {
+  eyebrow: "Provably Fair Cryptographic Audit",
+  title: "Provably Fair HMAC-SHA256 Seed Verifier",
+  punch: "Paste server seed, client seed, and nonce to mathematically recompute and audit casino outcomes (Dice, Limbo, Crash, Roulette, Plinko, Mines) client-side. Independent of casino servers.",
+  fine: "Single-bet cryptographic verification confirms round mathematics. Always verify pre-commitment hashes before trusting seeds.",
+};
 
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',

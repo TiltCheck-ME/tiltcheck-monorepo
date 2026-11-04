@@ -55,6 +55,7 @@ import {
   INSTALL_SURFACES,
   CORE_BRAKES,
   RTP_SCANNER_PAGE,
+  VERIFY_PAGE,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1029,6 +1030,227 @@ function buildRtpScannerRedirect() {
 </html>`;
 }
 
+function buildVerifyPage() {
+  const depth = "docs";
+  const presetsJson = "[{\"id\":\"stake\",\"tag\":\"STAKE DICE/LIMBO\",\"serverSeed\":\"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13\",\"committedHash\":\"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551\",\"clientSeed\":\"stake_session_verifier_audit\",\"nonce\":1,\"edge\":1},{\"id\":\"roobet\",\"tag\":\"ROOBET CRASH\",\"serverSeed\":\"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906\",\"committedHash\":\"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3\",\"clientSeed\":\"roobet_verifier_audit_alpha\",\"nonce\":42,\"edge\":1},{\"id\":\"bcgame\",\"tag\":\"BC.GAME LIMBO\",\"serverSeed\":\"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b\",\"committedHash\":\"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578\",\"clientSeed\":\"bcgame_high_roller_verifier\",\"nonce\":100,\"edge\":1}]";
+
+  const content = `<main class="cooldown-page">
+  <div class="cooldown-panel" style="max-width: 920px; text-align: left;">
+    <p class="brand-eyebrow">${escapeHtml(VERIFY_PAGE.eyebrow)}</p>
+    <h1>${escapeHtml(VERIFY_PAGE.title)}</h1>
+    <p class="cooldown-punch">${escapeHtml(VERIFY_PAGE.punch)}</p>
+
+    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid #283347; padding-bottom: 0.75rem;">
+        <span style="font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe;">Sample Presets:</span>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" onclick="loadVerifyPreset(0)" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[STAKE DICE]</button>
+          <button type="button" onclick="loadVerifyPreset(1)" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[ROOBET CRASH]</button>
+          <button type="button" onclick="loadVerifyPreset(2)" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[BC.GAME LIMBO]</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.25rem; font-weight: bold;">Revealed Server Seed</label>
+          <input id="vfServerSeed" type="text" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px;" oninput="runVerifyCalc()"/>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.25rem; font-weight: bold;">Committed Server Seed Hash (SHA-256)</label>
+          <input id="vfCommittedHash" type="text" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px;" oninput="runVerifyCalc()"/>
+          <div id="vfPreCommitStatus" style="margin-top: 0.35rem; font-family: monospace; font-size: 11px; padding: 0.35rem 0.5rem; border: 1px solid #283347; background: rgba(0,0,0,0.4); color: #a0afbe;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.25rem; font-weight: bold;">Client Seed</label>
+            <input id="vfClientSeed" type="text" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px;" oninput="runVerifyCalc()"/>
+          </div>
+          <div>
+            <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.25rem; font-weight: bold;">Nonce</label>
+            <input id="vfNonce" type="number" min="0" step="1" value="1" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px;" oninput="runVerifyCalc()"/>
+          </div>
+          <div>
+            <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.25rem; font-weight: bold;">House Edge %</label>
+            <input id="vfEdge" type="number" min="0" max="10" step="0.1" value="1.0" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px;" oninput="runVerifyCalc()"/>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid #283347; padding-top: 1rem; margin-top: 1rem;">
+        <div style="margin-bottom: 0.75rem; background: rgba(0,0,0,0.7); border: 1px solid #283347; padding: 0.75rem;">
+          <div style="font-size: 10px; font-family: monospace; color: #a0afbe; text-transform: uppercase;">HMAC-SHA256 Signature</div>
+          <div id="vfHash" style="font-size: 11px; font-family: monospace; color: #17c3b2; word-break: break-all; margin-top: 0.25rem;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="background: rgba(255,255,255,0.03); padding: 0.65rem; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+            <div style="font-size: 9px; font-family: monospace; color: #17c3b2; text-transform: uppercase; font-weight: bold;">Dice (0-100)</div>
+            <div id="vfDice" style="font-size: 1.25rem; font-family: monospace; font-weight: bold; color: #fff;">--</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 0.65rem; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+            <div style="font-size: 9px; font-family: monospace; color: #17c3b2; text-transform: uppercase; font-weight: bold;">Limbo / Crash</div>
+            <div id="vfCrash" style="font-size: 1.25rem; font-family: monospace; font-weight: bold; color: #fff;">--</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 0.65rem; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+            <div style="font-size: 9px; font-family: monospace; color: #17c3b2; text-transform: uppercase; font-weight: bold;">Roulette Pocket</div>
+            <div id="vfRoulette" style="font-size: 1.25rem; font-family: monospace; font-weight: bold; color: #fff;">--</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 0.65rem; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+            <div style="font-size: 9px; font-family: monospace; color: #17c3b2; text-transform: uppercase; font-weight: bold;">Plinko Slot (12)</div>
+            <div id="vfPlinko" style="font-size: 1.25rem; font-family: monospace; font-weight: bold; color: #fff;">--</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 0.65rem; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+            <div style="font-size: 9px; font-family: monospace; color: #17c3b2; text-transform: uppercase; font-weight: bold;">Normalized Float</div>
+            <div id="vfFloat" style="font-size: 1.1rem; font-family: monospace; font-weight: bold; color: #fff;">--</div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; padding: 0.75rem; text-align: center;">
+          <div style="font-size: 10px; font-family: monospace; color: #a0afbe; text-transform: uppercase; margin-bottom: 0.35rem;">Mines Positions (3 Mines in 25 Tiles)</div>
+          <div id="vfMines" style="font-size: 12px; font-family: monospace; color: #ef4444; font-weight: bold;">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family: monospace; font-size: 12px; color: #a0afbe; line-height: 1.6; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 6px;">
+      <strong style="color: #17c3b2;">PROVABLY FAIR GUARANTEE:</strong> Single-round HMAC-SHA256 mathematical derivation confirms that round outcomes were deterministic and could not be altered once seeds were committed. It does not measure long-term RTP drops or platform solvency.
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <a class="btn btn-primary" href="${href(depth, "downloads/tiltcheck-extension.zip")}" download>DOWNLOAD EXTENSION BRAKES</a>
+    </div>
+  </div>
+</main>
+<script>
+var presets = JSON.parse("[{\"id\":\"stake\",\"tag\":\"STAKE DICE/LIMBO\",\"serverSeed\":\"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13\",\"committedHash\":\"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551\",\"clientSeed\":\"stake_session_verifier_audit\",\"nonce\":1,\"edge\":1},{\"id\":\"roobet\",\"tag\":\"ROOBET CRASH\",\"serverSeed\":\"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906\",\"committedHash\":\"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3\",\"clientSeed\":\"roobet_verifier_audit_alpha\",\"nonce\":42,\"edge\":1},{\"id\":\"bcgame\",\"tag\":\"BC.GAME LIMBO\",\"serverSeed\":\"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b\",\"committedHash\":\"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578\",\"clientSeed\":\"bcgame_high_roller_verifier\",\"nonce\":100,\"edge\":1}]");
+var RED_ROULETTE = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+
+async function sha256Hex(str) {
+  var enc = new TextEncoder();
+  var buf = await crypto.subtle.digest("SHA-256", enc.encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+}
+
+async function hmacSha256Hex(keyStr, msgStr) {
+  var enc = new TextEncoder();
+  var keyData = enc.encode(keyStr);
+  var key = await crypto.subtle.importKey("raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  var sig = await crypto.subtle.sign("HMAC", key, enc.encode(msgStr));
+  return Array.from(new Uint8Array(sig)).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+}
+
+function loadVerifyPreset(idx) {
+  var p = presets[idx];
+  if (!p) return;
+  document.getElementById("vfServerSeed").value = p.serverSeed;
+  document.getElementById("vfCommittedHash").value = p.committedHash;
+  document.getElementById("vfClientSeed").value = p.clientSeed;
+  document.getElementById("vfNonce").value = p.nonce;
+  document.getElementById("vfEdge").value = p.edge;
+  runVerifyCalc();
+}
+
+async function runVerifyCalc() {
+  var sSeed = (document.getElementById("vfServerSeed").value || "").trim();
+  var cHash = (document.getElementById("vfCommittedHash").value || "").trim().toLowerCase();
+  var cSeed = (document.getElementById("vfClientSeed").value || "").trim();
+  var nonce = parseInt(document.getElementById("vfNonce").value, 10) || 0;
+  var edge = parseFloat(document.getElementById("vfEdge").value) || 1.0;
+
+  var statusEl = document.getElementById("vfPreCommitStatus");
+  if (!sSeed) {
+    statusEl.textContent = "Awaiting Server Seed input...";
+    statusEl.style.color = "#a0afbe";
+    statusEl.style.borderColor = "#283347";
+    return;
+  }
+
+  var calcHash = await sha256Hex(sSeed);
+  if (!cHash) {
+    statusEl.textContent = "[PRE-COMMITMENT] Calculated SHA-256: " + calcHash + " (Paste pre-bet hash to verify)";
+    statusEl.style.color = "#a0afbe";
+    statusEl.style.borderColor = "#283347";
+  } else if (calcHash === cHash) {
+    statusEl.textContent = "[MATCH] Verified: Server Seed strictly matches pre-bet commitment hash.";
+    statusEl.style.color = "#17c3b2";
+    statusEl.style.borderColor = "#17c3b2";
+  } else {
+    statusEl.textContent = "[ALERT] Hash mismatch! Calculated: " + calcHash + " != Committed: " + cHash;
+    statusEl.style.color = "#ef4444";
+    statusEl.style.borderColor = "#ef4444";
+  }
+
+  if (!cSeed) return;
+
+  var msg = cSeed + ":" + nonce;
+  var hmac = await hmacSha256Hex(sSeed, msg);
+  document.getElementById("vfHash").textContent = hmac;
+
+  var sub = hmac.substring(0, 8);
+  var intVal = parseInt(sub, 16);
+  var flt = intVal / 0xffffffff;
+  document.getElementById("vfFloat").textContent = flt.toFixed(8);
+
+  var dice = Math.min(100.0, Math.floor(flt * 10001) / 100);
+  document.getElementById("vfDice").textContent = dice.toFixed(2);
+
+  var crash = flt === 1 ? 1000000 : Math.floor(((1 - (edge / 100)) / (1 - flt)) * 100) / 100;
+  document.getElementById("vfCrash").textContent = crash.toFixed(2) + "x";
+
+  var pocket = Math.floor(flt * 37);
+  var pColor = pocket === 0 ? "Green" : (RED_ROULETTE.indexOf(pocket) !== -1 ? "Red" : "Black");
+  document.getElementById("vfRoulette").textContent = pocket + " (" + pColor + ")";
+
+  var rights = 0;
+  for (var i = 0; i < 12; i++) {
+    var b = parseInt(hmac.substring(i * 2, i * 2 + 2), 16) || 0;
+    if (b % 2 !== 0) rights++;
+  }
+  document.getElementById("vfPlinko").textContent = "Slot " + rights + " / 12";
+
+  var tiles = [];
+  for (var t = 0; t < 25; t++) tiles.push(t + 1);
+  var mines = [];
+  for (var m = 0; m < 3; m++) {
+    var mb = parseInt(hmac.substring(m * 2, m * 2 + 2), 16) || 0;
+    var idx = mb % tiles.length;
+    mines.push(tiles.splice(idx, 1)[0]);
+  }
+  mines.sort(function(a, b) { return a - b; });
+  document.getElementById("vfMines").textContent = "Tiles: #" + mines.join(", #");
+}
+
+window.addEventListener("DOMContentLoaded", function() {
+  loadVerifyPreset(0);
+});
+</script>`;
+
+  return shell({
+    title: "Provably Fair HMAC-SHA256 Seed Verifier | TiltCheck",
+    description: "Recompute and audit casino outcomes (Dice, Limbo, Crash, Roulette, Plinko, Mines) client-side.",
+    depth: "docs",
+    current: "verify",
+    body: content,
+  });
+}
+
+function buildVerifyDirectRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=../tools/verify/"/>
+<link rel="canonical" href="${SITE_URL}/tools/verify/"/>
+<title>Provably Fair HMAC-SHA256 Seed Verifier | TiltCheck</title>
+</head>
+<body>
+<p><a href="../tools/verify/">Provably Fair Bet Verifier lives here</a></p>
+</body>
+</html>`;
+}
+
 function buildNudgesRedirect() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1190,6 +1412,14 @@ function run() {
   const toolsRtpDir = path.join(siteRoot, "tools", "rtp-scanner");
   fs.mkdirSync(toolsRtpDir, { recursive: true });
   fs.writeFileSync(path.join(toolsRtpDir, "index.html"), buildRtpScannerRedirect());
+
+  const toolsVerifyDir = path.join(siteRoot, "tools", "verify");
+  fs.mkdirSync(toolsVerifyDir, { recursive: true });
+  fs.writeFileSync(path.join(toolsVerifyDir, "index.html"), buildVerifyPage());
+
+  const verifyDir = path.join(siteRoot, "verify");
+  fs.mkdirSync(verifyDir, { recursive: true });
+  fs.writeFileSync(path.join(verifyDir, "index.html"), buildVerifyDirectRedirect());
 
   const autovaultDir = path.join(siteRoot, 'autovault');
   fs.mkdirSync(autovaultDir, { recursive: true });
