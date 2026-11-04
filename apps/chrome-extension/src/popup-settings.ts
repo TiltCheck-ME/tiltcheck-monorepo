@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Popup bindings for core Touch Grass + Pro strategic filter storage keys.
@@ -13,6 +13,7 @@ import {
   MIN_HOURLY_WAGE,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
   TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+  TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
   TILTCHECK_HOURLY_WAGE_KEY,
   TILTCHECK_REALITY_HUD_ENABLED_KEY,
   TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
@@ -49,6 +50,7 @@ export interface TouchGrassUiState {
   realityHudEnabled: boolean;
   realityThresholdHours: number;
   depositBarrierEnabled: boolean;
+  reverseWithdrawalShieldEnabled: boolean;
   cooldownActiveUntil: number;
 }
 
@@ -68,6 +70,7 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     realityHudEnabled: opts.realityHudEnabled,
     realityThresholdHours: opts.realityThresholdHours,
     depositBarrierEnabled: opts.depositBarrierEnabled,
+    reverseWithdrawalShieldEnabled: opts.reverseWithdrawalShieldEnabled,
     cooldownActiveUntil: opts.cooldownActiveUntil,
   };
 }
@@ -90,6 +93,10 @@ export async function saveRealityHudEnabled(enabled: boolean): Promise<void> {
 
 export async function saveDepositBarrierEnabled(enabled: boolean): Promise<void> {
   await chrome.storage.local.set({ [TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY]: enabled });
+}
+
+export async function saveReverseWithdrawalShieldEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY]: enabled });
 }
 
 export async function loadGameBlockUiState(): Promise<GameBlockUiState> {

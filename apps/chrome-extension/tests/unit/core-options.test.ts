@@ -1,11 +1,13 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED,
   DEFAULT_RISK_PROFILE,
   DEFAULT_RISK_THRESHOLD,
   DEFAULT_TOUCH_GRASS_COOLDOWN_MS,
   DEFAULT_TOUCH_GRASS_DURATION_MS,
   loadCoreCircuitBreakerOptions,
+  TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
   TILTCHECK_RISK_PROFILE_KEY,
   TILTCHECK_RISK_THRESHOLD_KEY,
   TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
@@ -33,6 +35,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.realityHudEnabled).toBe(true);
     expect(opts.realityThresholdHours).toBe(2);
     expect(opts.depositBarrierEnabled).toBe(true);
+    expect(opts.reverseWithdrawalShieldEnabled).toBe(DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED);
     expect(opts.cooldownActiveUntil).toBe(0);
   });
 
@@ -54,6 +57,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
       tiltcheck_reality_hud_enabled: false,
       tiltcheck_reality_threshold_hours: 48,
       tiltcheck_deposit_barrier_enabled: false,
+      [TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY]: false,
       tiltcheck_cooldown_active_until: 1700000000000,
     });
     const opts = await loadCoreCircuitBreakerOptions();
@@ -64,6 +68,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.realityHudEnabled).toBe(false);
     expect(opts.realityThresholdHours).toBe(24); // clamped to 24
     expect(opts.depositBarrierEnabled).toBe(false);
+    expect(opts.reverseWithdrawalShieldEnabled).toBe(false);
     expect(opts.cooldownActiveUntil).toBe(1700000000000);
   });
 

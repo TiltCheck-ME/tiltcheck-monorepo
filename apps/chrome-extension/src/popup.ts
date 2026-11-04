@@ -15,6 +15,7 @@ import {
   saveHourlyWage,
   saveRealityHudEnabled,
   saveDepositBarrierEnabled,
+  saveReverseWithdrawalShieldEnabled,
   toggleSlugInList,
 } from './popup-settings.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
@@ -489,6 +490,11 @@ async function refreshGuardSettingsUi(): Promise<void> {
     depositToggle.checked = touch.depositBarrierEnabled;
   }
 
+  const reverseShieldToggle = document.getElementById('reverse-withdrawal-shield-toggle') as HTMLInputElement | null;
+  if (reverseShieldToggle) {
+    reverseShieldToggle.checked = touch.reverseWithdrawalShieldEnabled;
+  }
+
   const cooldownStatus = document.getElementById('deposit-cooldown-status');
   if (cooldownStatus) {
     const isCooldown = touch.cooldownActiveUntil > Date.now();
@@ -543,6 +549,15 @@ function initGuardSettingsPanel(): void {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveDepositBarrierEnabled(enabled);
       toast(enabled ? 'Deposit barrier enabled.' : 'Deposit barrier disabled.');
+    });
+  }
+
+  const reverseShieldToggle = document.getElementById('reverse-withdrawal-shield-toggle') as HTMLInputElement | null;
+  if (reverseShieldToggle) {
+    reverseShieldToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveReverseWithdrawalShieldEnabled(enabled);
+      toast(enabled ? 'Reverse-withdrawal shield armed.' : 'Reverse-withdrawal shield disabled.');
     });
   }
 

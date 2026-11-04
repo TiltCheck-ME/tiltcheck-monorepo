@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Core content script — pace-locks spins and provides event-driven Touch Grass timeouts.
@@ -42,6 +42,7 @@ import { triggerTouchGrassTimeout, TOUCH_GRASS_DURATION_MS } from './touch-grass
 import { installLocalGameBlocker } from './pro/local-game-blocker.js';
 import { installRealityHud, type RealityHudHandle } from './reality-hud.js';
 import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barrier.js';
+import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } from './reverse-withdrawal-shield.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -65,6 +66,7 @@ let heaterNudge: HeaterHandle | null = null;
 let chaseWarning: ChaseHandle | null = null;
 let realityHud: RealityHudHandle | null = null;
 let depositBarrier: DepositBarrierHandle | null = null;
+let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -277,6 +279,7 @@ function installCoreOptionsListener(): void {
           syncPaceLock(opts.enforcementEnabled);
           syncRealityHud(opts);
           syncDepositBarrier(opts);
+          syncReverseWithdrawalShield(opts);
 
         });
 
@@ -338,6 +341,23 @@ function syncDepositBarrier(opts: CoreCircuitBreakerOptions): void {
   }
 }
 
+function syncReverseWithdrawalShield(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.reverseWithdrawalShieldEnabled;
+  if (shouldRun) {
+    if (!reverseWithdrawalShield) {
+      try {
+        reverseWithdrawalShield = installReverseWithdrawalShield(document);
+      } catch {
+        reverseWithdrawalShield = null;
+      }
+    }
+    reverseWithdrawalShield?.updateEnabled(opts.reverseWithdrawalShieldEnabled);
+  } else if (reverseWithdrawalShield) {
+    reverseWithdrawalShield.stop();
+    reverseWithdrawalShield = null;
+  }
+}
+
 function syncPaceLock(enabled: boolean): void {
   if (enabled && !paceLock) {
     paceLock = installSpinPaceLock();
@@ -388,6 +408,7 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncPaceLock(opts.enforcementEnabled);
   syncRealityHud(opts);
   syncDepositBarrier(opts);
+  syncReverseWithdrawalShield(opts);
 }
 
 async function boot(): Promise<void> {
@@ -462,6 +483,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({
         visible: realityHud ? realityHud.isVisible() : false,
         baseline: realityHud ? realityHud.getBaseline() : null,
+      });
+      return true;
+
+    case 'get_reverse_withdrawal_shield_state':
+      sendResponse({
+        active: reverseWithdrawalShield !== null,
       });
       return true;
 

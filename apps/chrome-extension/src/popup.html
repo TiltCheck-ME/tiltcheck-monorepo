@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -829,6 +829,17 @@
     <div id="deposit-cooldown-status" class="guard-note" style="display:none; color:#ff4a4a; font-weight:700;">
       Voluntary lock engaged.
     </div>
+  </section>
+
+  <section class="guard-panel" id="reverse-withdrawal-shield-panel">
+    <h3>Reverse-Withdrawal Shield</h3>
+    <p class="guard-policy">
+      Blocks "Cancel Withdrawal" and "Cancel Redemption" buttons while cashouts are pending. Keep your winnings off the table.
+    </p>
+    <label class="guard-opt-row" for="reverse-withdrawal-shield-toggle">
+      <input type="checkbox" id="reverse-withdrawal-shield-toggle" />
+      <span>Disarm cancel-cashout buttons during pending payout periods.</span>
+    </label>
   </section>
 
   <section class="guard-panel" id="strategic-filter-panel">

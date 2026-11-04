@@ -278,5 +278,13 @@ describe('core content script contracts', () => {
         visible: expect.any(Boolean),
       })
     );
+
+    const reverseResponse = vi.fn();
+    listeners[0]!({ type: 'get_reverse_withdrawal_shield_state' }, null, reverseResponse);
+    expect(reverseResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+      })
+    );
   });
 });

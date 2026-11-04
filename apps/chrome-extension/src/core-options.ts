@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Core circuit-breaker settings (chrome.storage.local).
@@ -19,6 +19,7 @@ export const TILTCHECK_HOURLY_WAGE_KEY = 'tiltcheck_hourly_wage';
 export const TILTCHECK_REALITY_HUD_ENABLED_KEY = 'tiltcheck_reality_hud_enabled';
 export const TILTCHECK_REALITY_THRESHOLD_HOURS_KEY = 'tiltcheck_reality_threshold_hours';
 export const TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY = 'tiltcheck_deposit_barrier_enabled';
+export const TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY = 'tiltcheck_reverse_withdrawal_shield_enabled';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
 
 export type RiskProfile = 'conservative' | 'moderate' | 'degen';
@@ -42,6 +43,7 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_REALITY_HUD_ENABLED_KEY,
   TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
   TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+  TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
 ] as const;
 
@@ -72,6 +74,7 @@ export const DEFAULT_REALITY_THRESHOLD_HOURS = 2;
 export const MIN_REALITY_THRESHOLD_HOURS = 0.5;
 export const MAX_REALITY_THRESHOLD_HOURS = 24;
 export const DEFAULT_DEPOSIT_BARRIER_ENABLED = true;
+export const DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED = true;
 
 const MIN_RISK_THRESHOLD = 50;
 const MAX_RISK_THRESHOLD = 100;
@@ -91,6 +94,7 @@ export interface CoreCircuitBreakerOptions {
   realityHudEnabled: boolean;
   realityThresholdHours: number;
   depositBarrierEnabled: boolean;
+  reverseWithdrawalShieldEnabled: boolean;
   cooldownActiveUntil: number;
 }
 
@@ -121,6 +125,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_REALITY_HUD_ENABLED_KEY,
       TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
       TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+      TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
       TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
       'riskLevel',
     ]);
@@ -163,6 +168,12 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
     const depositBarrierOpt = stored[TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY];
     const depositBarrierEnabled = depositBarrierOpt === undefined ? DEFAULT_DEPOSIT_BARRIER_ENABLED : depositBarrierOpt === true;
 
+    const reverseWithdrawalShieldOpt = stored[TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY];
+    const reverseWithdrawalShieldEnabled =
+      reverseWithdrawalShieldOpt === undefined
+        ? DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED
+        : reverseWithdrawalShieldOpt === true;
+
     const cooldownActiveUntil = typeof stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] === 'number' && Number.isFinite(stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       : 0;
@@ -185,6 +196,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       realityHudEnabled,
       realityThresholdHours,
       depositBarrierEnabled,
+      reverseWithdrawalShieldEnabled,
       cooldownActiveUntil,
     };
   } catch {
@@ -198,6 +210,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       realityHudEnabled: DEFAULT_REALITY_HUD_ENABLED,
       realityThresholdHours: DEFAULT_REALITY_THRESHOLD_HOURS,
       depositBarrierEnabled: DEFAULT_DEPOSIT_BARRIER_ENABLED,
+      reverseWithdrawalShieldEnabled: DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED,
       cooldownActiveUntil: 0,
     };
   }

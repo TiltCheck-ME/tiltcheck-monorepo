@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import { describe, expect, it } from 'vitest';
 import {
   addCustomSlug,
@@ -43,7 +43,7 @@ describe('popup-settings helpers', () => {
 
   it('saves hourly wage, reality hud, and deposit barrier settings', async () => {
     const storage: Record<string, unknown> = {};
-    const { saveHourlyWage, saveRealityHudEnabled, saveDepositBarrierEnabled } = await import('../../src/popup-settings.js');
+    const { saveHourlyWage, saveRealityHudEnabled, saveDepositBarrierEnabled, saveReverseWithdrawalShieldEnabled } = await import('../../src/popup-settings.js');
     (globalThis as unknown as { chrome: unknown }).chrome = {
       storage: {
         local: {
@@ -75,5 +75,8 @@ describe('popup-settings helpers', () => {
 
     await saveDepositBarrierEnabled(false);
     expect(storage['tiltcheck_deposit_barrier_enabled']).toBe(false);
+
+    await saveReverseWithdrawalShieldEnabled(false);
+    expect(storage['tiltcheck_reverse_withdrawal_shield_enabled']).toBe(false);
   });
 });
