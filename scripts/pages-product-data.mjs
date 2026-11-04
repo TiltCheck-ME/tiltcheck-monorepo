@@ -20,7 +20,7 @@ export const SITE_ONE_LINER =
   'Brakes for people who already gamble: slow the next spin, block the game that rinses you, lock the wallet you signed, and check if the casino is sus. We never hold your keys.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
-  'We never ask for your casino password or wallet seed. You sign a Cooldown. Zip is not on this site.';
+  'We never ask for your casino password or wallet seed. You sign a Cooldown. Download the extension zip directly or build from source.';
 export const CTA_READY = true;
 export const CTA_LABEL = 'DOWNLOAD THE ZIP';
 export const CTA_GATED_LABEL = 'CHROME ZIP NOT ON THIS SITE';
@@ -47,12 +47,12 @@ export const INSTALL_MOVES = [
   },
   {
     title: 'Slow the next click',
-    body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Zip is not on this site. Devs load unpacked dist.',
+    body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.',
   },
 ];
 export const INSTALL_STEPS = INSTALL_MOVES.map((move) => `${move.title}. ${move.body}`);
 export const INSTALL_NOTE =
-  'Wallet lock and casino lookup work in this browser right now. The Chrome zip is not a public download yet. Devs load unpacked dist. That is a packaging gap, not a fake product.';
+  'Wallet lock, casino trust lookup, and direct browser extension zip download are live. Sideload via chrome://extensions Developer mode. Store listing coming later.';
 export const HUD = {
   spin: 'SPIN',
   countdown: '2s',
@@ -79,7 +79,7 @@ export const AUTOVAULT_PAGE = {
 };
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-  'The Chrome zip is not on this site and not in the Chrome Web Store. The two-second spin lock and game list exist in the repo as an unpacked install.',
+  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
   'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
 ];
@@ -104,7 +104,7 @@ export const HOW_IT_WORKS = [
   {
     step: '01',
     title: 'Install',
-    body: 'Set a Cooldown lock and check Trust intel. Chrome Core is an unpacked sideload until the zip is public. No private keys.',
+    body: 'Download the extension zip directly, unpack it, and load unpacked in chrome://extensions. Set a Cooldown lock and check Trust intel. No private keys.',
     note: 'One install. Two minutes.',
   },
   {
@@ -222,9 +222,22 @@ export const FAQS = [
 ];
 
 export const EXTENSION_SIGNALS = [
-  { title: 'Read-only', body: 'Watches supported casino tabs. No private keys.' },
-  { title: 'In-tab', body: 'Warnings and exit controls stay on your active screen.' },
-  { title: 'Your rules', body: 'Profit targets and vault limits — we enforce what you set.' },
+  {
+    title: '2s Spin Pace Lock',
+    body: 'Machine zone friction. After every spin, the bet button deadens for two seconds. No turbo mashing into dead rolls.',
+  },
+  {
+    title: 'Strategic Game Filters',
+    body: 'Arm your personal blacklist. Chicken, Mines, Plinko, or high-bleed slots stop clicking the second you put them on your list.',
+  },
+  {
+    title: 'Reality Wage HUD',
+    body: 'Translates session drawdown into hours of real-world labor torched ($25/hr baseline). A blunt terminal reminder before you blow a full shift.',
+  },
+  {
+    title: 'DOM Deposit Barrier',
+    body: 'Catches you reaching for the wallet. Cashier and reload clicks are intercepted and blocked during Touch Grass timeouts and active Cooldowns.',
+  },
 ];
 
 export const GRADING_STEPS = [
@@ -247,6 +260,13 @@ export const GRADING_STEPS = [
 ];
 
 export const TOOL_REGISTRY = [
+  {
+    href: 'https://github.com/TiltCheck-ME/tiltcheck-monorepo/tree/main/packages/cli',
+    label: 'OFFLINE CLI',
+    title: 'Offline-First CLI Suite',
+    description: 'Provably fair HMAC-SHA256 verifier, slot RTP downgrade calculator, operator trust audit, and Ed25519 voluntary cooldown tokens.',
+    status: 'live',
+  },
   {
     href: '/tools/verify',
     label: 'THE RECEIPT',

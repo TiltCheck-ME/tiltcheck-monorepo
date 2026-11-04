@@ -58,6 +58,13 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     status: 'live',
   },
   {
+    href: 'https://github.com/TiltCheck-ME/tiltcheck-monorepo/tree/main/packages/cli',
+    label: 'OFFLINE CLI',
+    title: 'Offline-First CLI Suite',
+    description: 'Provably fair HMAC-SHA256 verifier, slot RTP downgrade calculator, operator trust audit, and Ed25519 voluntary cooldown tokens.',
+    status: 'live',
+  },
+  {
     href: '/tools/verify',
     label: 'THE RECEIPT',
     title: 'Manual Bet Verifier',

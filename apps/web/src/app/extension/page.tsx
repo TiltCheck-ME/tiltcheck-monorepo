@@ -11,23 +11,27 @@ import { HOME_LAUNCH } from "@/lib/home-launch-copy";
 const coreSignals = [
   {
     title: "Two-second spin brake",
-    body: "You hit bet. The button is dead for two seconds. A click during that window does not place another bet. Time to see the last result before autopilot sends the next one.",
+    body: "You hit bet. The button is dead for two seconds. A click during that window does not place another bet. Breaks the machine zone autopilot so you see the result before sending the next one.",
   },
   {
-    title: "Your game list",
-    body: "You name the games that wreck you. Chicken, mines, crash — those tiles do not click. Slots stay until you add them. This is your browser, not the casino closing your account.",
+    title: "Strategic game filters",
+    body: "You name the games that wreck you. Chicken, mines, crash, plinko — those tiles stop clicking. Slots stay playable until you add them. Your browser, not an operator account close.",
   },
   {
-    title: "Sus link bounce",
-    body: "If you click a critically sus casino URL and our safety API is up, we dump you on a warning page instead of the skem.",
+    title: "Reality wage HUD",
+    body: "Translates session drawdowns into hours of real-world labor torched ($25/hr baseline). A blunt terminal reminder before you blow an entire work shift.",
+  },
+  {
+    title: "DOM deposit barrier",
+    body: "Catches the panic reload. Cashier and deposit button clicks are intercepted and blocked during Touch Grass timeouts and active voluntary Cooldown locks.",
   },
 ];
 
 const notThis = [
-  "It does not play for you, cash you out, or hold wallet keys.",
-  "It does not need Discord to run the spin brake or the game list.",
+  "It does not play for you, cash you out, or hold wallet keys (non-custodial).",
+  "It does not need Discord to run the spin brake, game list, or reality HUD.",
   "It is not a casino ban and not GAMSTOP. Turn the extension off and the overlay is gone.",
-  "It is not in the Chrome Web Store. The zip is not a public download on this site yet.",
+  "It is distributed as a direct sideload zip on this site (Web Store listing later).",
 ];
 
 export default function ExtensionPage() {
@@ -63,9 +67,9 @@ export default function ExtensionPage() {
             <p className="public-page-card__eyebrow">On the casino tab</p>
             <h2 className="public-page-card__title">How you use it</h2>
             <ol className="public-page-list">
-              <li>Load it in Chrome. Until a public zip exists, that means unpacked dist from the repo.</li>
+              <li>Download the zip directly from this page, unpack it, and load via chrome://extensions Developer mode.</li>
               <li>Open Stake, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, or CSGOEmpire.</li>
-              <li>Spin. The bet button sleeps two seconds. In Guards, arm the games that wreck you — chicken first if that is the hole. Slots stay clickable until you add them.</li>
+              <li>Spin. The bet button sleeps two seconds. Wage HUD tracks torched shifts. Deposit barrier blocks cashier re-ups. In Guards, arm the games that wreck you — chicken first if that is the hole.</li>
             </ol>
             <p className="public-page-card__copy">
               This does not lock a wallet. Wallet lock is Cooldown, a different button. This does not need Discord.
@@ -77,7 +81,7 @@ export default function ExtensionPage() {
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <PublicPageSectionHeader compact eyebrow="On the tab" title="What it actually does." />
-          <div className="public-page-grid public-page-grid--3">
+          <div className="public-page-grid public-page-grid--2">
             {coreSignals.map(({ title, body }) => (
               <article key={title} className="public-page-card">
                 <h2 className="public-page-card__title">{title}</h2>

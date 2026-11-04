@@ -31,7 +31,7 @@ describe('HOME_LAUNCH', () => {
       href: '/extension',
     });
     expect(HOME_LAUNCH.privacy).toMatch(/You sign a Cooldown/i);
-    expect(HOME_LAUNCH.privacy).toMatch(/Zip is not on this site/i);
+    expect(HOME_LAUNCH.privacy).toMatch(/Download the extension zip/i);
   });
 
   it('names how-it-works moves without weasel', () => {

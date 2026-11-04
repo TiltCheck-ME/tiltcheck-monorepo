@@ -19,7 +19,7 @@ export const HOME_LAUNCH = {
   ] as const,
   tertiaryLink: { label: 'How the Chrome brakes work', href: '/extension' } as const,
   privacy:
-    'We never ask for your casino password or wallet seed. You sign a Cooldown. Zip is not on this site.',
+    'We never ask for your casino password or wallet seed. You sign a Cooldown. Download the extension zip directly or build from source.',
   installEyebrow: 'How it works',
   installTitle: 'Three moves. None of them are a lecture.',
   installMoves: [
@@ -33,7 +33,7 @@ export const HOME_LAUNCH = {
     },
     {
       title: 'Slow the next click',
-      body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Zip is not on this site. Devs load unpacked dist.',
+      body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.',
     },
   ] as const,
   hud: {
@@ -51,7 +51,7 @@ export const HOME_LAUNCH = {
   } as const,
   honesty: [
     'This is live: casino lookup, Discord tools, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-    'The Chrome zip is not on this site and not in the Chrome Web Store. The two-second spin lock and game list exist in the repo as an unpacked install.',
+    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
     'Browser filters are your list. Not an operator account close. Turn the extension off and play continues.',
     'AutoVault is two casinos. We do not fake a vault button everywhere.',
   ],

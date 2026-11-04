@@ -396,7 +396,7 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: 'Browser extension',
     title: 'TiltCheck lives in the casino tab.',
-    lede: 'Chrome Core watches supported casino tabs: two-second spin lock plus a local game list you arm. Read-only. No wallet keys. Zip is not on this site. Store listing later. Cooldown is the live wallet lock.',
+    lede: 'Chrome Core watches supported casino tabs: 2s spin brake, strategic game filters, reality wage HUD, and deposit barrier. Read-only. Zero custody. Download the zip directly.',
     actionsHtml: actions,
   })}
 <main class="product-main">
@@ -426,7 +426,7 @@ function buildExtensionPage() {
         <span class="brand-eyebrow">Core</span>
         <h2 class="public-page-section-heading__title">What it does.</h2>
       </div>
-      <div class="public-page-grid public-page-grid--3">${signals}</div>
+      <div class="public-page-grid public-page-grid--2">${signals}</div>
     </div>
   </section>
 </main>`;
