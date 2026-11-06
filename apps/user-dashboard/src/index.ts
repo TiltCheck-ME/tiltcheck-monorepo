@@ -1536,6 +1536,66 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
   }
 });
 
+app.get('/api/user/:discordId/cooldown-status', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    let walletAddress = typeof req.query.wallet === 'string' ? req.query.wallet.trim() : '';
+
+    if (!walletAddress) {
+      if (db.isConnected()) {
+        const identity = await db.getDegenIdentity(discordId).catch(() => null);
+        walletAddress = identity?.primary_external_address || identity?.magic_address || '';
+      }
+    }
+
+    if (!walletAddress) {
+      res.json({
+        wallet: null,
+        locked: false,
+        scope: null,
+        endTime: null,
+        pda: null,
+        timeRemainingSecs: 0,
+        verifiedAt: Date.now(),
+        unlinked: true,
+      });
+      return;
+    }
+
+    try {
+      new PublicKey(walletAddress);
+    } catch {
+      res.status(400).json({ error: 'wallet must be a Solana public key' });
+      return;
+    }
+
+    const apiPath = `/cooldown/check?wallet=${encodeURIComponent(walletAddress)}&verbose=true`;
+    const response = await requestCanonicalApi(req, apiPath);
+
+    if (response.status >= 400) {
+      sendCanonicalApiResponse(res, response);
+      return;
+    }
+
+    const statusData = (response.body ?? {}) as Record<string, unknown>;
+    res.json({
+      wallet: walletAddress,
+      locked: Boolean(statusData.locked),
+      scope: statusData.scope ?? null,
+      endTime: statusData.endTime ?? null,
+      pda: statusData.pda ?? null,
+      timeRemainingSecs: Number(statusData.timeRemainingSecs ?? 0),
+      verifiedAt: statusData.verifiedAt ?? Date.now(),
+      unlinked: false,
+    });
+  } catch (error) {
+    console.error('[Cooldown Status GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to fetch on-chain cooldown status') });
+  }
+});
+
 app.post('/api/user/:discordId/vault/guardians', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = requireAuthorizedDiscordId(req, res);

@@ -403,6 +403,87 @@
               <div id="profitGuardStatus" class="form-msg"></div>
             </div>
 
+            <!-- ON-CHAIN VOLUNTARY COOLDOWN VAULT (SOLANA ANCHOR TIMELOCK) -->
+            <div id="cooldown-vault-card" class="card" style="margin-bottom: 1.5rem">
+              <div class="vault-status-header" style="justify-content: space-between; flex-wrap: wrap;">
+                <div>
+                  <h3 class="card-title" style="margin-bottom: 0.25rem">Voluntary Cooldown Vault (Solana On-Chain Timelock)</h3>
+                  <p class="section-desc section-desc-inline" style="margin-bottom: 0">
+                    Non-custodial, mathematically immutable Anchor program PDA timelock. Verifies cryptographic on-chain self-exclusion without custodian risk.
+                  </p>
+                </div>
+                <span id="cooldown-status-badge" class="vault-status-badge unlocked">NO ACTIVE LOCK</span>
+              </div>
+
+              <div class="form-group" style="margin-top: 1rem">
+                <label class="form-label" for="cooldown-wallet-input">Linked Solana Wallet (Devnet / Mainnet)</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                  <input
+                    type="text"
+                    id="cooldown-wallet-input"
+                    class="input"
+                    style="flex: 1; min-width: 280px; font-family: var(--font-mono); font-size: 0.85rem;"
+                    placeholder="Enter Solana wallet address (Base58)..."
+                    spellcheck="false"
+                  />
+                  <button id="cooldown-wallet-sync-btn" type="button" class="btn btn-secondary btn-sm">
+                    Sync On-Chain
+                  </button>
+                  <button id="cooldown-wallet-save-btn" type="button" class="btn btn-ghost btn-sm" title="Save as linked primary address">
+                    Save Wallet
+                  </button>
+                </div>
+              </div>
+
+              <div class="safety-summary-stack" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Protection Scope</span>
+                  <span id="cooldown-scope-val" class="safety-stat-value" style="font-size: 1rem;">None</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Time Remaining</span>
+                  <span id="cooldown-timer-val" class="safety-stat-value" style="font-size: 1rem; font-family: var(--font-mono);">--:--:--</span>
+                  <span id="cooldown-ends-at-val" class="safety-stat-copy">No active lock</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Anchor Program PDA</span>
+                  <span id="cooldown-pda-val" class="safety-stat-copy" style="font-family: var(--font-mono); font-size: 0.75rem; word-break: break-all;">Not derived</span>
+                </div>
+              </div>
+
+              <div class="inline-action-row" style="margin-top: 0.75rem; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <a
+                  id="cooldown-extend-btn"
+                  href="https://tiltcheck.me/cooldown?extend=7"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary btn-sm"
+                  style="display: none;"
+                >
+                  +7d Extend Lock
+                </a>
+                <a
+                  id="cooldown-lock-now-btn"
+                  href="https://tiltcheck.me/cooldown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary btn-sm"
+                >
+                  Initiate On-Chain Lock
+                </a>
+                <a
+                  id="cooldown-verify-link"
+                  href="https://tiltcheck.me/cooldown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-ghost btn-sm"
+                >
+                  Verify On Solana &amp; Web Vault
+                </a>
+              </div>
+              <div id="cooldownVaultStatusMsg" class="form-msg" style="margin-top: 0.5rem"></div>
+            </div>
+
             <div class="card-row">
               <div class="card">
                 <h3 class="card-title">Lock Now</h3>
