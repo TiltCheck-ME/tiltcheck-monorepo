@@ -6,7 +6,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ALERT_ID,
+  COOLDOWN_HUD_ID,
   DEPOSIT_SELECTORS,
+  formatCooldownRemaining,
   installDepositBarrier,
   isDepositBarrierActive,
   isDepositTarget,
@@ -321,5 +323,75 @@ describe('installDepositBarrier click interception', () => {
     expect(handle.isActive()).toBe(false);
 
     handle.stop();
+  });
+});
+
+describe('formatCooldownRemaining helper', () => {
+  it('formats days, hours, minutes, and seconds properly', () => {
+    expect(formatCooldownRemaining(86400 * 2 + 3600 * 3 + 60 * 15)).toBe('2d 3h 15m left');
+    expect(formatCooldownRemaining(3600 * 4 + 60 * 12 + 30)).toBe('4h 12m 30s left');
+    expect(formatCooldownRemaining(65)).toBe('1m 5s left');
+    expect(formatCooldownRemaining(0)).toBe('0s');
+    expect(formatCooldownRemaining(-10)).toBe('0s');
+  });
+});
+
+describe('in-session Cooldown Timer HUD', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    document.getElementById(COOLDOWN_HUD_ID)?.remove();
+  });
+
+  it('renders floating HUD when an on-chain lock is active', () => {
+    const handle = installDepositBarrier(document);
+    expect(handle.isHudVisible()).toBe(false);
+    expect(document.getElementById(COOLDOWN_HUD_ID)).toBeNull();
+
+    // Set 2 hours lock
+    const futureTime = Date.now() + 7200 * 1000;
+    handle.updateCooldown(futureTime);
+
+    expect(handle.isHudVisible()).toBe(true);
+    const hud = document.getElementById(COOLDOWN_HUD_ID);
+    expect(hud).not.toBeNull();
+    expect(hud?.textContent).toContain('Vault Lock Active');
+    expect(hud?.textContent).toContain('Deposit Barrier Engaged');
+    expect(hud?.innerHTML).toContain('Verify PDA');
+    expect(hud?.innerHTML).toContain('Extend +7d');
+
+    // Toggle minimize
+    const toggleBtn = hud?.querySelector('.tiltcheck-cooldown-toggle') as HTMLButtonElement | null;
+    expect(toggleBtn).not.toBeNull();
+    toggleBtn?.click();
+
+    expect(hud?.textContent).toContain('LOCK:');
+    expect(hud?.querySelector('.tiltcheck-cooldown-toggle')?.textContent).toBe('+');
+
+    // Expand back
+    (hud?.querySelector('.tiltcheck-cooldown-toggle') as HTMLButtonElement)?.click();
+    expect(hud?.textContent).toContain('Vault Lock Active');
+
+    // Set 2 seconds lock to verify expiration without thousands of fake timer ticks
+    handle.updateCooldown(Date.now() + 2000);
+    expect(handle.isHudVisible()).toBe(true);
+    vi.advanceTimersByTime(3000);
+    expect(handle.isHudVisible()).toBe(false);
+    expect(document.getElementById(COOLDOWN_HUD_ID)).toBeNull();
+
+    handle.stop();
+  });
+
+  it('removes HUD cleanly when handle.stop() is called', () => {
+    const handle = installDepositBarrier(document);
+    handle.updateCooldown(Date.now() + 3600 * 1000);
+    expect(handle.isHudVisible()).toBe(true);
+
+    handle.stop();
+    expect(handle.isHudVisible()).toBe(false);
+    expect(document.getElementById(COOLDOWN_HUD_ID)).toBeNull();
   });
 });
