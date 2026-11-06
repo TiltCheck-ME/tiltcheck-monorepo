@@ -61,6 +61,7 @@
     "ops:task-ai": "node scripts/daily-task-ai.mjs",
     "trust:build": "pnpm --filter @tiltcheck/trust-engines build",
     "trust:start": "pnpm trust:build && node scripts/start-trust-engine-check.mjs",
+    "smoke:cooldown": "tsx scripts/smoke-anchor-devnet.ts",
     "crawl:emails": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts",
     "crawl:emails:dry": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts --dry-run",
     "crawl:emails:all": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts --all",
