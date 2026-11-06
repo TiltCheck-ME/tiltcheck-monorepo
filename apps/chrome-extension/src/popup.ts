@@ -20,6 +20,8 @@ import {
   saveProfitLockTrailingPercent,
   saveCashoutGoalsEnabled,
   saveCashoutGoals,
+  saveAudioAlertsEnabled,
+  saveAudioAlertsVolume,
   toggleGoalInList,
   addGoalToList,
   removeGoalFromList,
@@ -29,6 +31,7 @@ import {
   DEFAULT_BONUS_TRACKER_CONFIG,
   toggleSlugInList,
 } from './popup-settings.js';
+import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
 import {
   generateSparklineSvg,
@@ -1079,6 +1082,20 @@ async function refreshGuardSettingsUi(): Promise<void> {
     }
   }
 
+  const audioToggle = document.getElementById('audio-alerts-toggle') as HTMLInputElement | null;
+  if (audioToggle) {
+    audioToggle.checked = touch.audioAlertsEnabled;
+  }
+
+  const audioVolumeSelect = document.getElementById('audio-volume-select') as HTMLSelectElement | null;
+  if (audioVolumeSelect) {
+    const formatted = touch.audioAlertsVolume.toFixed(2);
+    audioVolumeSelect.value = formatted;
+    if (!audioVolumeSelect.value) {
+      audioVolumeSelect.value = '0.25';
+    }
+  }
+
   const game = await loadGameBlockUiState();
   $<HTMLInputElement>('game-block-master-toggle').checked = game.optIn;
   guardSlugs = [...game.slugs];
@@ -1245,6 +1262,37 @@ function initGuardSettingsPanel(): void {
       const value = Number((e.target as HTMLInputElement).value);
       syncRiskSliderUi(value);
       await saveRiskThreshold(value);
+    });
+  }
+
+  const audioToggle = document.getElementById('audio-alerts-toggle') as HTMLInputElement | null;
+  if (audioToggle) {
+    audioToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveAudioAlertsEnabled(enabled);
+      if (enabled) {
+        playAudioCue('click');
+      }
+      toast(enabled ? 'Spotter sound alerts enabled.' : 'Spotter sound alerts muted.');
+    });
+  }
+
+  const audioVolumeSelect = document.getElementById('audio-volume-select') as HTMLSelectElement | null;
+  if (audioVolumeSelect) {
+    audioVolumeSelect.addEventListener('change', async (e) => {
+      const vol = Number((e.target as HTMLSelectElement).value);
+      await saveAudioAlertsVolume(vol);
+      playAudioCue('heater_alert', vol);
+      toast('Alert volume set to ' + Math.round(vol * 100) + '%.');
+    });
+  }
+
+  const btnTestSound = document.getElementById('btn-test-sound');
+  if (btnTestSound) {
+    btnTestSound.addEventListener('click', () => {
+      const vol = Number(audioVolumeSelect?.value ?? 0.25);
+      playAudioCue('heater_alert', vol);
+      toast('Playing test audio cue.');
     });
   }
 

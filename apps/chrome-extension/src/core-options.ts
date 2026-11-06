@@ -37,6 +37,8 @@ export const TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY = 'tiltcheck_profit_lock_min_p
 export const TILTCHECK_CASHOUT_GOALS_ENABLED_KEY = 'tiltcheck_cashout_goals_enabled';
 export const TILTCHECK_CASHOUT_GOALS_KEY = 'tiltcheck_cashout_goals';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enabled';
+export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
 export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
 export type { BonusTrackerConfig };
 
@@ -69,6 +71,8 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_CASHOUT_GOALS_KEY,
   TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
+  TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
 ] as const;
 
 export function normalizeRiskProfile(value: unknown, legacyRiskLevel?: unknown): RiskProfile {
@@ -103,6 +107,8 @@ export const DEFAULT_PROFIT_LOCK_ENABLED = true;
 export const DEFAULT_TRAILING_PERCENT = 50;
 export const DEFAULT_MIN_PROFIT = 50;
 export const DEFAULT_CASHOUT_GOALS_ENABLED = true;
+export const DEFAULT_AUDIO_ALERTS_ENABLED = true;
+export const DEFAULT_AUDIO_ALERTS_VOLUME = 0.25;
 
 const MIN_RISK_THRESHOLD = 50;
 const MAX_RISK_THRESHOLD = 100;
@@ -130,6 +136,8 @@ export interface CoreCircuitBreakerOptions {
   goals: CashoutGoal[];
   bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
+  audioAlertsEnabled: boolean;
+  audioAlertsVolume: number;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
@@ -241,6 +249,15 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       : 0;
 
+    const audioAlertsEnabled = typeof stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY] === 'boolean'
+      ? stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]
+      : DEFAULT_AUDIO_ALERTS_ENABLED;
+
+    const rawAudioVol = stored[TILTCHECK_AUDIO_ALERTS_VOLUME_KEY];
+    const audioAlertsVolume = typeof rawAudioVol === 'number' && Number.isFinite(rawAudioVol)
+      ? Math.max(0, Math.min(1, rawAudioVol))
+      : DEFAULT_AUDIO_ALERTS_VOLUME;
+
     return {
       riskThreshold: clampInt(
         stored[TILTCHECK_RISK_THRESHOLD_KEY],
@@ -267,6 +284,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       goals,
       bonusConfig,
       cooldownActiveUntil,
+      audioAlertsEnabled,
+      audioAlertsVolume,
     };
   } catch {
     return {
@@ -287,6 +306,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       goals: [...DEFAULT_CASHOUT_GOALS],
       bonusConfig: { ...DEFAULT_BONUS_TRACKER_CONFIG },
       cooldownActiveUntil: 0,
+      audioAlertsEnabled: DEFAULT_AUDIO_ALERTS_ENABLED,
+      audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
     };
   }
 }

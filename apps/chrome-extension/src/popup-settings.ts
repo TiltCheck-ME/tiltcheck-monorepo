@@ -25,6 +25,8 @@ import {
   TILTCHECK_RISK_THRESHOLD_KEY,
   TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY,
   TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
+  TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
+  TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
   type CoreCircuitBreakerOptions,
 } from './core-options.js';
 import {
@@ -72,6 +74,8 @@ export interface TouchGrassUiState {
   goals: CashoutGoal[];
   bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
+  audioAlertsEnabled: boolean;
+  audioAlertsVolume: number;
 }
 
 export interface GameBlockUiState {
@@ -98,7 +102,22 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     goals: opts.goals,
     bonusConfig: opts.bonusConfig,
     cooldownActiveUntil: opts.cooldownActiveUntil,
+    audioAlertsEnabled: opts.audioAlertsEnabled,
+    audioAlertsVolume: opts.audioAlertsVolume,
   };
+}
+
+export async function saveAudioAlertsEnabled(enabled: boolean): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]: enabled });
+  }
+}
+
+export async function saveAudioAlertsVolume(volume: number): Promise<void> {
+  const clamped = Math.max(0, Math.min(1, volume));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUDIO_ALERTS_VOLUME_KEY]: clamped });
+  }
 }
 
 export function clampHourlyWage(value: unknown): number {

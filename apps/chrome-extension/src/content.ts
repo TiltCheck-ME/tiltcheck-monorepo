@@ -52,6 +52,11 @@ import {
   type StreakVolatilityHandle,
   DEFAULT_STREAK_VOLATILITY_STATE,
 } from './streak-volatility.js';
+import {
+  loadAudioAlertsConfig,
+  setAudioAlertsConfigSync,
+  TILTCHECK_AUDIO_ALERTS_CONFIG_KEY,
+} from './audio-alerts.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -284,11 +289,16 @@ function installCoreOptionsListener(): void {
 
 
       const coreKeyTouched = CORE_CIRCUIT_BREAKER_STORAGE_KEYS.some((k) => k in changes);
+      const audioKeyTouched = TILTCHECK_AUDIO_ALERTS_CONFIG_KEY in changes;
 
-      if (coreKeyTouched) {
+      if (coreKeyTouched || audioKeyTouched) {
 
         void refreshCoreOptions().then((opts) => {
 
+          setAudioAlertsConfigSync({
+            enabled: opts.audioAlertsEnabled,
+            volume: opts.audioAlertsVolume,
+          });
           syncPaceLock(opts.enforcementEnabled);
           syncRealityHud(opts);
           syncDepositBarrier(opts);
@@ -465,7 +475,12 @@ function syncPaceLock(enabled: boolean): void {
 
 async function startCoreCircuitBreaker(): Promise<void> {
   await waitForDocumentEnd();
+  await loadAudioAlertsConfig();
   const opts = await refreshCoreOptions();
+  setAudioAlertsConfigSync({
+    enabled: opts.audioAlertsEnabled,
+    volume: opts.audioAlertsVolume,
+  });
   installCoreOptionsListener();
   (window as TiltCheckWindow).__tiltcheckCoreShieldActive = true;
   syncPaceLock(opts.enforcementEnabled);

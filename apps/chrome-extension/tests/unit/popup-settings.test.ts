@@ -58,6 +58,8 @@ describe('popup-settings helpers', () => {
       saveBonusTrackerConfig,
       calculateTargetWager,
       calculateBonusProgress,
+      saveAudioAlertsEnabled,
+      saveAudioAlertsVolume,
     } = await import('../../src/popup-settings.js');
     (globalThis as unknown as { chrome: unknown }).chrome = {
       storage: {
@@ -132,5 +134,17 @@ describe('popup-settings helpers', () => {
 
     expect(calculateTargetWager(100, 100, 35)).toBe(7000);
     expect(calculateBonusProgress(500, 1000).percent).toBe(50);
+
+    await saveAudioAlertsEnabled(true);
+    expect(storage['tiltcheck_audio_alerts_enabled']).toBe(true);
+
+    await saveAudioAlertsVolume(0.5);
+    expect(storage['tiltcheck_audio_alerts_volume']).toBe(0.5);
+
+    await saveAudioAlertsVolume(1.5);
+    expect(storage['tiltcheck_audio_alerts_volume']).toBe(1);
+
+    await saveAudioAlertsVolume(-0.2);
+    expect(storage['tiltcheck_audio_alerts_volume']).toBe(0);
   });
 });

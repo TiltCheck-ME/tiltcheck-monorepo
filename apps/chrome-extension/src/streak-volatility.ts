@@ -14,6 +14,7 @@
 import { readBalance } from './reality-hud.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
 import { CASINO_SELECTORS } from './extractor.js';
+import { playAudioCue } from './audio-alerts.js';
 
 export const STREAK_SPIN_SELECTOR = [
   'button[data-test="spin-button"]',
@@ -204,6 +205,38 @@ export function resetStreakVolatility(timestamp = Date.now()): StreakVolatilityS
     alertMessage: 'Streak tracker reset. Fresh volatility session.',
     lastUpdated: timestamp,
   };
+}
+
+/**
+ * Dispatches relevant acoustic cues when streak volatility thresholds are breached.
+ */
+export function dispatchStreakAudioCue(
+  prevState: StreakVolatilityState,
+  nextState: StreakVolatilityState,
+): void {
+  if (
+    (nextState.isDueTrapActive && !prevState.isDueTrapActive) ||
+    (nextState.streakAlertLevel === 'CRITICAL_COLD' && prevState.streakAlertLevel !== 'CRITICAL_COLD')
+  ) {
+    playAudioCue('due_trap');
+    return;
+  }
+
+  if (
+    nextState.streakAlertLevel === 'HEATER_ALERT' &&
+    prevState.streakAlertLevel !== 'HEATER_ALERT'
+  ) {
+    playAudioCue('heater_alert');
+    return;
+  }
+
+  if (
+    nextState.streakAlertLevel === 'WARN_COLD' &&
+    prevState.streakAlertLevel !== 'WARN_COLD'
+  ) {
+    playAudioCue('cold_warn');
+    return;
+  }
 }
 
 export interface StreakVolatilityHandle {
@@ -427,7 +460,9 @@ export function installStreakVolatilityTracker(
       if (stopped) return;
       const balanceAfter = readBalance(doc);
       if (balanceAfter !== null && Number.isFinite(balanceAfter)) {
+        const prevState = state;
         state = recordSpinOutcome(state, currentBet, balanceBefore, balanceAfter);
+        dispatchStreakAudioCue(prevState, state);
         lastKnownBalance = balanceAfter;
         persist();
         updateDomBadge();
@@ -456,7 +491,9 @@ export function installStreakVolatilityTracker(
     },
     recordOutcome: (currentBet: number | null, prevBalance: number | null, nextBalance: number | null) => {
       if (stopped) return state;
+      const prevState = state;
       state = recordSpinOutcome(state, currentBet, prevBalance, nextBalance);
+      dispatchStreakAudioCue(prevState, state);
       if (nextBalance !== null) lastKnownBalance = nextBalance;
       persist();
       updateDomBadge();

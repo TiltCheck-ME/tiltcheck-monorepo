@@ -5,10 +5,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as audioAlerts from '../../src/audio-alerts.js';
 import {
   parseMoney,
   recordSpinOutcome,
   resetStreakVolatility,
+  dispatchStreakAudioCue,
   installStreakVolatilityTracker,
   DEFAULT_STREAK_VOLATILITY_STATE,
   DEAD_SPIN_WARN_THRESHOLD,
@@ -118,6 +120,42 @@ describe('streak-volatility calculations', () => {
     expect(reset.streakAlertLevel).toBe('NORMAL');
     expect(reset.alertMessage).toContain('Fresh volatility session');
     expect(reset.alertMessage).not.toMatch(/[\u{1F300}-\u{1F9FF}]/u);
+  });
+
+  it('dispatches appropriate audio cues when streak levels transition', () => {
+    const playAudioCueSpy = vi.spyOn(audioAlerts, 'playAudioCue').mockReturnValue(true);
+
+    const normalState = { ...DEFAULT_STREAK_VOLATILITY_STATE, streakAlertLevel: 'NORMAL' as const };
+    const warnColdState = { ...DEFAULT_STREAK_VOLATILITY_STATE, streakAlertLevel: 'WARN_COLD' as const };
+    const critColdState = { ...DEFAULT_STREAK_VOLATILITY_STATE, streakAlertLevel: 'CRITICAL_COLD' as const };
+    const dueTrapState = { ...DEFAULT_STREAK_VOLATILITY_STATE, isDueTrapActive: true, streakAlertLevel: 'CRITICAL_COLD' as const };
+    const heaterState = { ...DEFAULT_STREAK_VOLATILITY_STATE, streakAlertLevel: 'HEATER_ALERT' as const };
+
+    // 1. Normal -> Warn Cold => cold_warn
+    dispatchStreakAudioCue(normalState, warnColdState);
+    expect(playAudioCueSpy).toHaveBeenCalledWith('cold_warn');
+
+    // 2. Warn Cold -> Critical Cold => due_trap
+    playAudioCueSpy.mockClear();
+    dispatchStreakAudioCue(warnColdState, critColdState);
+    expect(playAudioCueSpy).toHaveBeenCalledWith('due_trap');
+
+    // 3. Normal -> Due Trap => due_trap
+    playAudioCueSpy.mockClear();
+    dispatchStreakAudioCue(normalState, dueTrapState);
+    expect(playAudioCueSpy).toHaveBeenCalledWith('due_trap');
+
+    // 4. Normal -> Heater => heater_alert
+    playAudioCueSpy.mockClear();
+    dispatchStreakAudioCue(normalState, heaterState);
+    expect(playAudioCueSpy).toHaveBeenCalledWith('heater_alert');
+
+    // 5. No transition (already in warn cold) => no call
+    playAudioCueSpy.mockClear();
+    dispatchStreakAudioCue(warnColdState, warnColdState);
+    expect(playAudioCueSpy).not.toHaveBeenCalled();
+
+    playAudioCueSpy.mockRestore();
   });
 });
 

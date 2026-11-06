@@ -21,6 +21,7 @@
 import { readBalance } from './reality-hud.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
+import { playAudioCue } from './audio-alerts.js';
 
 export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
 export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
@@ -406,6 +407,7 @@ function ensureStyles(doc: Document): void {
 
 function showGoalToast(doc: Document, goal: CashoutGoal, balance: number): void {
   ensureStyles(doc);
+  playAudioCue('heater_alert');
   let container = doc.getElementById(GOAL_TOAST_CONTAINER_ID);
   if (!container) {
     container = doc.createElement('div');
@@ -470,6 +472,7 @@ export function showSoftWarningModal(
 ): void {
   ensureStyles(doc);
   if (doc.getElementById(PROFIT_LOCK_MODAL_ID)) return;
+  playAudioCue('due_trap');
 
   const modal = doc.createElement('div');
   modal.id = PROFIT_LOCK_MODAL_ID;

@@ -1357,6 +1357,29 @@
     </div>
   </section>
 
+  <section class="guard-panel" id="audio-alerts-panel">
+    <h3>Spotter Sound Alerts</h3>
+    <p class="guard-policy">
+      Subtle acoustic cues synthesize directly in your browser with zero external assets. Hear spin-brake clicks, dead-spin alerts, gambler's fallacy warnings, and heater chimes.
+    </p>
+    <label class="guard-opt-row" for="audio-alerts-toggle">
+      <input type="checkbox" id="audio-alerts-toggle" />
+      <span>Enable cyber audio cues &amp; spotter alerts.</span>
+    </label>
+    <div class="form-row" style="margin-top:8px; display:flex; align-items:center; justify-content:space-between;">
+      <label for="audio-volume-select" style="margin:0;">Alert Volume</label>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <select id="audio-volume-select" style="background:#080a0e; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-family:inherit; font-size:11px;">
+          <option value="0.10">Subtle (10%)</option>
+          <option value="0.25" selected>Standard (25%)</option>
+          <option value="0.50">Clear (50%)</option>
+          <option value="0.80">Loud (80%)</option>
+        </select>
+        <button type="button" id="btn-test-sound" class="icon-btn" style="width:auto; padding:4px 8px; font-size:11px; font-weight:700; background:rgba(23,195,178,0.15); color:#17c3b2; border:1px solid #17c3b2;" title="Play test audio cue">Test Sound</button>
+      </div>
+    </div>
+  </section>
+
   <hr />
 
   <div class="section-head">

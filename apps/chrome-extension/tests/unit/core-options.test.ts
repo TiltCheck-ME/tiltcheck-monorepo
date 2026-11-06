@@ -52,6 +52,8 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.bonusConfig).toBeDefined();
     expect(opts.bonusConfig.active).toBe(false);
     expect(opts.cooldownActiveUntil).toBe(0);
+    expect(opts.audioAlertsEnabled).toBe(true);
+    expect(opts.audioAlertsVolume).toBe(0.25);
   });
 
   it('loads risk profile from tiltcheck_risk_profile with riskLevel fallback', async () => {
