@@ -14,6 +14,11 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
     return next();
   }
 
+  // Skip CSRF check for public non-custodial cooldown registry routes
+  if (req.path === '/cooldown' || req.path.startsWith('/cooldown/')) {
+    return next();
+  }
+
   // Check for custom header
   // Common headers: X-Requested-With, X-CSRF-Token
   const csrfHeader = req.headers['x-requested-with'] || req.headers['x-csrf-token'];

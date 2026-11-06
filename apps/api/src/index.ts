@@ -160,8 +160,8 @@ const appCors = cors({
 const cooldownCors = cors({
   origin: '*',
   credentials: false,
-  methods: ['GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Accept'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'X-Requested-With'],
   maxAge: 30,
 });
 

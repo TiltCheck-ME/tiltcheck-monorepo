@@ -239,6 +239,15 @@ export default function CooldownPage() {
 
       const sig = await signAndSendLock(wallet, scopeNum, targetKey, endTime, sendTransaction);
       setTxStatus(`Lock set. Tx: ${sig.slice(0, 20)}...`);
+      try {
+        await fetch(`${API_BASE}/cooldown/verify-tx`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: sig, wallet }),
+        });
+      } catch {
+        // Non-blocking background verification fallback
+      }
       await loadLocks(wallet);
     } catch (err: unknown) {
       setTxStatus(`Error: ${walletTxErrorMessage(err)}`);
@@ -274,6 +283,15 @@ export default function CooldownPage() {
       const signature = await sendTransaction(tx, connection);
       await connection.confirmTransaction(signature, 'confirmed');
       setTxStatus(`Extended +7d. Tx: ${signature.slice(0, 20)}...`);
+      try {
+        await fetch(`${API_BASE}/cooldown/verify-tx`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature, wallet }),
+        });
+      } catch {
+        // Non-blocking background verification fallback
+      }
       await loadLocks(wallet);
     } catch (err: unknown) {
       setTxStatus(`Extend failed: ${walletTxErrorMessage(err)}`);
