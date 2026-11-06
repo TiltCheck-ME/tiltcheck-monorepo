@@ -56,6 +56,7 @@ import {
   CORE_BRAKES,
   RTP_SCANNER_PAGE,
   VERIFY_PAGE,
+  HOUSE_EDGE_PAGE,
 } from './pages-product-data.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1251,6 +1252,257 @@ function buildVerifyDirectRedirect() {
 </html>`;
 }
 
+function buildHouseEdgePage() {
+  const depth = "docs";
+
+  const content = `<main class="cooldown-page">
+  <div class="cooldown-panel" style="max-width: 960px; text-align: left;">
+    <p class="brand-eyebrow">${escapeHtml(HOUSE_EDGE_PAGE.eyebrow)}</p>
+    <h1>${escapeHtml(HOUSE_EDGE_PAGE.title)}</h1>
+    <p class="cooldown-punch">${escapeHtml(HOUSE_EDGE_PAGE.punch)}</p>
+
+    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid #283347; padding-bottom: 0.75rem;">
+        <span style="font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe;">Select Casino Loyalty Model:</span>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" onclick="selectVipCasino('stake')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[STAKE VIP]</button>
+          <button type="button" onclick="selectVipCasino('roobet')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[ROOBET ROOWARDS]</button>
+          <button type="button" onclick="selectVipCasino('bcgame')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[BC.GAME VIP]</button>
+          <button type="button" onclick="selectVipCasino('sweeps')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[SWEEPSTAKES VIP]</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+        <div>
+          <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.35rem; font-weight: bold;">Milestone Tier Preset</label>
+          <select id="heTierSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px; margin-bottom: 1rem;" onchange="onVipTierChange()">
+          </select>
+
+          <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.35rem; font-weight: bold;">Game Type & House Edge</label>
+          <select id="heGameSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px; margin-bottom: 1rem;" onchange="onVipGameChange()">
+            <option value="1.0:100">Casino Originals (1.0% Edge - 100% Weight)</option>
+            <option value="3.5:100" selected>Certified Slots (3.5% Edge - 100% Weight)</option>
+            <option value="4.5:100">Average Industry Slots (4.5% Edge - 100% Weight)</option>
+            <option value="6.0:100">Downgraded Slots (6.0% Edge - 100% Weight)</option>
+            <option value="10.0:100">Severe Downgrade Slots (10.0% Edge - 100% Weight)</option>
+            <option value="0.5:20">Live Blackjack (0.5% Edge - 20% Throttled Weight)</option>
+            <option value="2.7:50">European Roulette (2.7% Edge - 50% Weight)</option>
+          </select>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div>
+              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Current Wager ($)</label>
+              <input id="heCurrentWager" type="number" min="0" value="100000" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Target Tier ($)</label>
+              <input id="heTargetWager" type="number" min="0" value="250000" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Tier Reward ($)</label>
+              <input id="heReward" type="number" min="0" value="220" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Bet Size ($)</label>
+              <input id="heBetSize" type="number" step="0.5" min="0.1" value="2.0" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.6); border: 1px solid #17c3b2; padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #283347; padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+            <span style="font-size: 10px; font-family: monospace; color: #fff; font-weight: bold; text-transform: uppercase;">Mathematical Reality</span>
+            <span id="heSeverityBadge" style="font-size: 9px; font-family: monospace; padding: 0.15rem 0.5rem; border: 1px solid #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; font-weight: bold; text-transform: uppercase;">PREDATORY CHURN</span>
+          </div>
+
+          <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 0.75rem; margin-bottom: 1rem;">
+            <div style="font-size: 10px; font-family: monospace; color: #ef4444; text-transform: uppercase; font-weight: bold;">Net Statistical Deficit (True Cost)</div>
+            <div id="heNetDeficit" style="font-size: 1.75rem; font-family: monospace; font-weight: 800; color: #ef4444;">-$5,030.00</div>
+            <div style="font-size: 10px; font-family: monospace; color: #a0afbe; margin-top: 0.25rem;">Expected loss minus the unlocked tier reward.</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; font-family: monospace; font-size: 11px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Effective Turnover</div>
+              <div id="heTurnover" style="font-weight: bold; color: #fff; font-size: 13px;">$150,000</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Expected House Loss</div>
+              <div id="heExpLoss" style="font-weight: bold; color: #ef4444; font-size: 13px;">-$5,250.00</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 9px; color: #17c3b2; text-transform: uppercase;">Comp Return Ratio</div>
+              <div id="heCompRatio" style="font-weight: bold; color: #17c3b2; font-size: 13px;">4.19%</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">House Retained</div>
+              <div id="heHouseKeep" style="font-weight: bold; color: #fff; font-size: 13px;">95.81%</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Spins Required</div>
+              <div id="heSpins" style="font-weight: bold; color: #fff; font-size: 13px;">75,000</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Play Duration</div>
+              <div id="heDuration" style="font-weight: bold; color: #fff; font-size: 13px;">~72.9 hrs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family: monospace; font-size: 12px; color: #a0afbe; line-height: 1.6; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 6px;">
+      <strong style="color: #17c3b2;">VIP CHURN PRINCIPLE:</strong> Progress bars are psychological sunk-cost hooks. In 95% of cases, the expected mathematical loss incurred while reaching the next tier dwarfs the tier reward by a factor of 10x to 40x.
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <a class="btn btn-primary" href="${href(depth, "downloads/tiltcheck-extension.zip")}" download>DOWNLOAD EXTENSION BRAKES</a>
+    </div>
+  </div>
+</main>
+<script>
+var vipData = {
+  stake: [
+    { name: "Bronze ($10k Wager)", target: 10000, reward: 15 },
+    { name: "Silver ($50k Wager)", target: 50000, reward: 50 },
+    { name: "Gold ($100k Wager)", target: 100000, reward: 110 },
+    { name: "Platinum I ($250k Wager)", target: 250000, reward: 220 },
+    { name: "Platinum II ($500k Wager)", target: 500000, reward: 440 },
+    { name: "Platinum III ($1.0M Wager)", target: 1000000, reward: 880 },
+    { name: "Platinum IV ($2.5M Wager)", target: 2500000, reward: 1600 }
+  ],
+  roobet: [
+    { name: "Level 1 ($1k Wager)", target: 1000, reward: 2 },
+    { name: "Level 5 ($25k Wager)", target: 25000, reward: 35 },
+    { name: "Level 10 ($100k Wager)", target: 100000, reward: 120 },
+    { name: "VIP Elite ($500k Wager)", target: 500000, reward: 650 }
+  ],
+  bcgame: [
+    { name: "Bronze VIP 8 ($4k Wager)", target: 4000, reward: 6 },
+    { name: "Silver VIP 22 ($50k Wager)", target: 50000, reward: 60 },
+    { name: "Gold VIP 38 ($200k Wager)", target: 200000, reward: 240 },
+    { name: "Platinum VIP 56 ($1.0M Wager)", target: 1000000, reward: 1100 }
+  ],
+  sweeps: [
+    { name: "Bronze Tier (5,000 SC)", target: 5000, reward: 10 },
+    { name: "Silver Tier (25,000 SC)", target: 25000, reward: 50 },
+    { name: "Gold Tier (100,000 SC)", target: 100000, reward: 180 },
+    { name: "Platinum Tier (500,000 SC)", target: 500000, reward: 900 }
+  ]
+};
+
+var currentVipKey = "stake";
+
+function selectVipCasino(key) {
+  currentVipKey = key;
+  var sel = document.getElementById("heTierSelect");
+  sel.innerHTML = "";
+  var list = vipData[key] || vipData.stake;
+  list.forEach(function(item, idx) {
+    var opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = item.name + " - $" + item.reward + " reward";
+    sel.appendChild(opt);
+  });
+  sel.selectedIndex = list.length > 3 ? 3 : 0;
+  onVipTierChange();
+}
+
+function onVipTierChange() {
+  var sel = document.getElementById("heTierSelect");
+  var list = vipData[currentVipKey] || vipData.stake;
+  var item = list[sel.selectedIndex] || list[0];
+  document.getElementById("heTargetWager").value = item.target;
+  document.getElementById("heReward").value = item.reward;
+  document.getElementById("heCurrentWager").value = Math.floor(item.target * 0.4);
+  updateVipCalc();
+}
+
+function onVipGameChange() {
+  updateVipCalc();
+}
+
+function updateVipCalc() {
+  var cur = parseFloat(document.getElementById("heCurrentWager").value) || 0;
+  var tgt = parseFloat(document.getElementById("heTargetWager").value) || 0;
+  var rew = parseFloat(document.getElementById("heReward").value) || 0;
+  var bet = parseFloat(document.getElementById("heBetSize").value) || 1.0;
+
+  var gameParts = (document.getElementById("heGameSelect").value || "3.5:100").split(":");
+  var edge = parseFloat(gameParts[0]) || 3.5;
+  var weight = parseFloat(gameParts[1]) || 100;
+
+  var nominal = Math.max(0, tgt - cur);
+  var effective = nominal / (weight / 100);
+  var expLoss = effective * (edge / 100);
+  var deficit = Math.max(0, expLoss - rew);
+
+  var compRatio = expLoss > 0 ? Math.min(100, (rew / expLoss) * 100) : 0;
+  var houseRetained = Math.max(0, 100 - compRatio);
+  var spins = Math.ceil(effective / bet);
+  var hrs = (spins * 3.5) / 3600;
+
+  document.getElementById("heNetDeficit").textContent = "-$" + deficit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById("heTurnover").textContent = "$" + Math.round(effective).toLocaleString();
+  document.getElementById("heExpLoss").textContent = "-$" + expLoss.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById("heCompRatio").textContent = compRatio.toFixed(2) + "%";
+  document.getElementById("heHouseKeep").textContent = houseRetained.toFixed(2) + "%";
+  document.getElementById("heSpins").textContent = spins.toLocaleString();
+  document.getElementById("heDuration").textContent = "~" + hrs.toFixed(1) + " hrs";
+
+  var badge = document.getElementById("heSeverityBadge");
+  if (compRatio >= 25) {
+    badge.textContent = "MILD CHURN";
+    badge.style.color = "#22c55e";
+    badge.style.borderColor = "#22c55e";
+    badge.style.background = "rgba(34,197,94,0.1)";
+  } else if (compRatio >= 10) {
+    badge.textContent = "MODERATE CHURN";
+    badge.style.color = "#ffd700";
+    badge.style.borderColor = "#ffd700";
+    badge.style.background = "rgba(255,215,0,0.1)";
+  } else if (compRatio >= 3) {
+    badge.textContent = "PREDATORY CHURN";
+    badge.style.color = "#ef4444";
+    badge.style.borderColor = "#ef4444";
+    badge.style.background = "rgba(239,68,68,0.1)";
+  } else {
+    badge.textContent = "EXTREME CHURN";
+    badge.style.color = "#ef4444";
+    badge.style.borderColor = "#ef4444";
+    badge.style.background = "rgba(239,68,68,0.2)";
+  }
+}
+
+window.addEventListener("DOMContentLoaded", function() {
+  selectVipCasino("stake");
+});
+</script>`;
+
+  return shell({
+    title: "House Edge & Comp Point Scanner | TiltCheck",
+    description: "Calculate VIP milestone true cost, expected losses, and comp reward return ratios.",
+    depth: "docs",
+    current: "house-edge-scanner",
+    body: content,
+  });
+}
+
+function buildHouseEdgeRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=../../tools/house-edge-scanner/"/>
+<link rel="canonical" href="${SITE_URL}/tools/house-edge-scanner/"/>
+<title>House Edge & Comp Point Scanner | TiltCheck</title>
+</head>
+<body>
+<p><a href="../../tools/house-edge-scanner/">House Edge & Comp Point Scanner lives here</a></p>
+</body>
+</html>`;
+}
+
 function buildNudgesRedirect() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1412,6 +1664,14 @@ function run() {
   const toolsRtpDir = path.join(siteRoot, "tools", "rtp-scanner");
   fs.mkdirSync(toolsRtpDir, { recursive: true });
   fs.writeFileSync(path.join(toolsRtpDir, "index.html"), buildRtpScannerRedirect());
+
+  const toolsHouseEdgeDir = path.join(siteRoot, "tools", "house-edge-scanner");
+  fs.mkdirSync(toolsHouseEdgeDir, { recursive: true });
+  fs.writeFileSync(path.join(toolsHouseEdgeDir, "index.html"), buildHouseEdgePage());
+
+  const houseEdgeDir = path.join(siteRoot, "house-edge-scanner");
+  fs.mkdirSync(houseEdgeDir, { recursive: true });
+  fs.writeFileSync(path.join(houseEdgeDir, "index.html"), buildHouseEdgeRedirect());
 
   const toolsVerifyDir = path.join(siteRoot, "tools", "verify");
   fs.mkdirSync(toolsVerifyDir, { recursive: true });

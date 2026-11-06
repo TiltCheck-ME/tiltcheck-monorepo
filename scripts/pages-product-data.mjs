@@ -95,6 +95,12 @@ export const VERIFY_PAGE = {
   fine: "Single-bet cryptographic verification confirms round mathematics. Always verify pre-commitment hashes before trusting seeds.",
 };
 
+export const HOUSE_EDGE_PAGE = {
+  eyebrow: "RTP Forensics & Loyalty Economics",
+  title: "House Edge & Comp Point Scanner",
+  punch: "Calculate VIP milestone true cost, expected losses, and comp reward return ratios. See exactly how much the house pockets while you chase loyalty tiers.",
+  fine: "Loyalty mathematical models based on public casino VIP terms. Expected loss = Effective Wager * House Edge.",
+};
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
   'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',

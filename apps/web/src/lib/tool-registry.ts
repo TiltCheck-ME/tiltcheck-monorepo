@@ -88,8 +88,8 @@ export const TOOL_REGISTRY: ToolEntry[] = [
   {
     href: '/tools/house-edge-scanner',
     label: 'THE DELTA ENGINE',
-    title: 'House Edge Calculator',
-    description: 'Claimed payout vs what you got — rigged-session confidence score.',
+    title: 'House Edge & Comp Point Scanner',
+    description: 'Calculate VIP milestone true cost, wager-to-reward ratios, and slot house-edge tax.',
     status: 'live',
   },
   {
