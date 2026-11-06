@@ -37,6 +37,7 @@ export const TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY = 'tiltcheck_profit_lock_min_p
 export const TILTCHECK_CASHOUT_GOALS_ENABLED_KEY = 'tiltcheck_cashout_goals_enabled';
 export const TILTCHECK_CASHOUT_GOALS_KEY = 'tiltcheck_cashout_goals';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+export const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
 export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enabled';
 export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
 export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
@@ -249,6 +250,9 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       : 0;
 
+    const rawWallet = stored[TILTCHECK_COOLDOWN_WALLET_KEY];
+    const cooldownWallet = typeof rawWallet === 'string' && rawWallet.trim().length >= 32 && rawWallet.trim().length <= 44 ? rawWallet.trim() : null;
+
     const audioAlertsEnabled = typeof stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY] === 'boolean'
       ? stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]
       : DEFAULT_AUDIO_ALERTS_ENABLED;
@@ -284,6 +288,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       goals,
       bonusConfig,
       cooldownActiveUntil,
+      cooldownWallet,
       audioAlertsEnabled,
       audioAlertsVolume,
     };
@@ -306,6 +311,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       goals: [...DEFAULT_CASHOUT_GOALS],
       bonusConfig: { ...DEFAULT_BONUS_TRACKER_CONFIG },
       cooldownActiveUntil: 0,
+      cooldownWallet: null,
       audioAlertsEnabled: DEFAULT_AUDIO_ALERTS_ENABLED,
       audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
     };

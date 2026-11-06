@@ -213,10 +213,27 @@ export default function CooldownPage() {
       }
     });
     setActiveLocks(active);
+    if (active.length > 0 && typeof window !== 'undefined') {
+      const maxEndTime = Math.max(...active.map((a) => a.status.endTime ?? 0));
+      if (maxEndTime > Math.floor(Date.now() / 1000)) {
+        window.postMessage(
+          { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'LOCK_UPDATED', wallet: w, endTime: maxEndTime },
+          '*'
+        );
+      }
+    }
   }, []);
 
   useEffect(() => {
-    if (wallet) { void loadLocks(wallet); }
+    if (wallet) {
+      void loadLocks(wallet);
+      if (typeof window !== 'undefined') {
+        window.postMessage(
+          { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'WALLET_CONNECTED', wallet },
+          '*'
+        );
+      }
+    }
   }, [wallet, loadLocks]);
 
   // ── Submit lock ─────────────────────────────────────────────────────────────
@@ -239,6 +256,18 @@ export default function CooldownPage() {
 
       const sig = await signAndSendLock(wallet, scopeNum, targetKey, endTime, sendTransaction);
       setTxStatus(`Lock set. Tx: ${sig.slice(0, 20)}...`);
+      if (typeof window !== 'undefined') {
+        window.postMessage(
+          {
+            source: 'TILTCHECK_COOLDOWN_PAGE',
+            type: 'LOCK_UPDATED',
+            wallet,
+            endTime,
+            signature: sig,
+          },
+          '*'
+        );
+      }
       try {
         await fetch(`${API_BASE}/cooldown/verify-tx`, {
           method: 'POST',
@@ -283,6 +312,18 @@ export default function CooldownPage() {
       const signature = await sendTransaction(tx, connection);
       await connection.confirmTransaction(signature, 'confirmed');
       setTxStatus(`Extended +7d. Tx: ${signature.slice(0, 20)}...`);
+      if (typeof window !== 'undefined') {
+        window.postMessage(
+          {
+            source: 'TILTCHECK_COOLDOWN_PAGE',
+            type: 'LOCK_UPDATED',
+            wallet,
+            endTime: newEndTime,
+            signature,
+          },
+          '*'
+        );
+      }
       try {
         await fetch(`${API_BASE}/cooldown/verify-tx`, {
           method: 'POST',

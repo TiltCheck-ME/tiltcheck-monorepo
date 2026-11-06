@@ -74,6 +74,7 @@ export interface TouchGrassUiState {
   goals: CashoutGoal[];
   bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
+  cooldownWallet: string | null;
   audioAlertsEnabled: boolean;
   audioAlertsVolume: number;
 }
@@ -102,6 +103,7 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     goals: opts.goals,
     bonusConfig: opts.bonusConfig,
     cooldownActiveUntil: opts.cooldownActiveUntil,
+    cooldownWallet: opts.cooldownWallet,
     audioAlertsEnabled: opts.audioAlertsEnabled,
     audioAlertsVolume: opts.audioAlertsVolume,
   };
@@ -280,3 +282,23 @@ export { DEFAULT_RISK_THRESHOLD, DEFAULT_TOUCH_GRASS_DURATION_MS };
 export type { CoreCircuitBreakerOptions, CashoutGoal, BonusTrackerConfig };
 export { DEFAULT_BONUS_TRACKER_CONFIG, calculateTargetWager, calculateBonusProgress };
 export { DEFAULT_CASHOUT_GOALS };
+
+export async function saveCooldownWallet(wallet: string | null): Promise<string | null> {
+  const trimmed = typeof wallet === 'string' ? wallet.trim() : null;
+  const valid = trimmed && trimmed.length >= 32 && trimmed.length <= 44 ? trimmed : null;
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    if (valid) {
+      await chrome.storage.local.set({ [TILTCHECK_COOLDOWN_WALLET_KEY]: valid });
+    } else {
+      await chrome.storage.local.remove([TILTCHECK_COOLDOWN_WALLET_KEY]);
+    }
+  }
+  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+    try {
+      chrome.runtime.sendMessage({ type: 'sync_cooldown_wallet', wallet: valid });
+    } catch {
+      // Ignore runtime message failure in disconnected contexts
+    }
+  }
+  return valid;
+}

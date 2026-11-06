@@ -347,5 +347,62 @@ describe('core content script contracts', () => {
     const vaultResponse = vi.fn();
     const claimed = listeners[0]!({ type: 'trigger_auto_vault', amount: 50 }, null, vaultResponse);
     expect(claimed).toBe(true);
+
+    const cooldownVaultResponse = vi.fn();
+    listeners[0]!({ type: 'get_cooldown_vault_state' }, null, cooldownVaultResponse);
+    expect(cooldownVaultResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+        cooldownUntil: expect.any(Number),
+      })
+    );
+  });
+
+  it('bridges cooldown page events into chrome.storage and runtime messages', async () => {
+    const { chromeMock } = createChromeMock();
+    const { installCooldownPageBridge } = await import('../../src/content.js');
+    const cleanup = installCooldownPageBridge();
+
+    const testWallet = '7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2';
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'WALLET_CONNECTED', wallet: testWallet },
+        source: window,
+      })
+    );
+    await flush();
+
+    expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tiltcheck_cooldown_wallet: testWallet,
+      })
+    );
+    expect(chromeMock.runtime.sendMessage).toHaveBeenCalledWith({
+      type: 'sync_cooldown_wallet',
+      wallet: testWallet,
+    });
+
+    const futureTime = Math.floor(Date.now() / 1000) + 7200;
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'LOCK_UPDATED', wallet: testWallet, endTime: futureTime },
+        source: window,
+      })
+    );
+    await flush();
+
+    expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tiltcheck_cooldown_active_until: futureTime * 1000,
+        tiltcheck_cooldown_wallet: testWallet,
+      })
+    );
+    expect(chromeMock.runtime.sendMessage).toHaveBeenCalledWith({
+      type: 'cooldown_lock_updated',
+      wallet: testWallet,
+      endTime: futureTime,
+    });
+
+    cleanup();
   });
 });

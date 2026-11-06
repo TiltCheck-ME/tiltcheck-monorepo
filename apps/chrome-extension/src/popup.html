@@ -1231,6 +1231,19 @@
     <div id="deposit-cooldown-status" class="guard-note" style="display:none; color:#ff4a4a; font-weight:700;">
       Voluntary lock engaged.
     </div>
+    <div id="cooldown-wallet-sync-wrap" style="margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.25); border:1px solid #1e293b; border-radius:6px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em;">On-Chain Lock Sync</span>
+        <span id="cooldown-stream-badge" style="font-size:10px; padding:2px 6px; border-radius:3px; background:rgba(23,195,178,0.15); color:#17c3b2; font-weight:700;">DEVNET SYNC</span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input type="text" id="cooldown-wallet-input" placeholder="Solana wallet (e.g. 7guG...)" style="flex:1; font-size:11px; font-family:monospace; padding:5px 8px; background:#0b0e14; border:1px solid #283347; border-radius:4px; color:#e2e8f0;" />
+        <button id="btn-sync-cooldown" class="btn btn-ghost" style="padding:5px 10px; font-size:11px; white-space:nowrap;">Sync</button>
+      </div>
+      <div id="cooldown-wallet-note" style="font-size:10px; color:#64748b; margin-top:5px; line-height:1.4;">
+        Syncs real-time locks from <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">tiltcheck.me/cooldown</a>.
+      </div>
+    </div>
   </section>
 
   <section class="guard-panel" id="reverse-withdrawal-shield-panel">

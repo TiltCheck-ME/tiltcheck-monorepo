@@ -1,12 +1,27 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-05
 /**
  * MV3 service worker.
- * Sidebar-first controls and shared tab actions.
+ * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
  */
 
 const VAULT_URL_BASE = 'https://tiltcheck.me/vault';
 const ALLOWED_AUTH_ORIGINS = new Set(['https://api.tiltcheck.me']);
 const API_BASE = 'https://api.tiltcheck.me';
+
+const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
+const ALARM_COOLDOWN_SYNC = 'tiltcheck_cooldown_sync';
+
+let currentStreamAbortController = null;
+let activeCooldownWallet = null;
+let streamReconnectTimer = null;
+
+function clearStreamReconnectTimer() {
+  if (streamReconnectTimer) {
+    clearTimeout(streamReconnectTimer);
+    streamReconnectTimer = null;
+  }
+}
 
 function isAllowedAuthUrl(value) {
   try {
@@ -49,7 +64,202 @@ function buildVaultUrl(suggestedAmount) {
   return VAULT_URL_BASE;
 }
 
-// Handle extension-wide actions requested from content scripts.
+// ── On-Chain Cooldown Verification & Real-Time SSE Stream ────────────────────
+
+async function syncCooldownStatus(wallet) {
+  if (!wallet || typeof wallet !== 'string' || wallet.length < 32) return;
+  try {
+    const res = await fetch(`${API_BASE}/cooldown/check?wallet=${encodeURIComponent(wallet)}&verbose=true`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.locked && typeof data.endTime === 'number') {
+      const endTimeMs = data.endTime * 1000;
+      if (endTimeMs > Date.now()) {
+        chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs });
+        console.log('[TiltCheck] Synced active cooldown lock until:', new Date(endTimeMs).toISOString());
+      }
+    } else if (data && data.locked === false) {
+      chrome.storage?.local?.get?.([TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY], (result) => {
+        const until = result?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY];
+        if (typeof until === 'number' && until <= Date.now()) {
+          chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: 0 });
+        }
+      });
+    }
+  } catch (err) {
+    console.warn('[TiltCheck] Failed to sync cooldown status:', err);
+  }
+}
+
+function scheduleStreamReconnect(wallet, delayMs = 15000) {
+  clearStreamReconnectTimer();
+  streamReconnectTimer = setTimeout(() => {
+    streamReconnectTimer = null;
+    if (activeCooldownWallet === wallet && (!currentStreamAbortController || currentStreamAbortController.signal.aborted)) {
+      startCooldownStream(wallet);
+    }
+  }, delayMs);
+}
+
+function handleSseMessageBlock(block) {
+  const lines = block.split('\n');
+  let eventType = 'message';
+  let dataStr = '';
+
+  for (const line of lines) {
+    if (line.startsWith(':')) {
+      // Heartbeat comment
+      continue;
+    }
+    if (line.startsWith('event:')) {
+      eventType = line.slice(6).trim();
+    } else if (line.startsWith('data:')) {
+      dataStr += line.slice(5).trim();
+    }
+  }
+
+  if (!dataStr) return;
+
+  try {
+    const payload = JSON.parse(dataStr);
+    if (eventType === 'connected' || eventType === 'lock_update') {
+      const lock = payload.lock || payload.status;
+      if (lock && lock.locked && typeof lock.endTime === 'number') {
+        const endTimeMs = lock.endTime * 1000;
+        if (endTimeMs > Date.now()) {
+          chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs });
+          console.log('[TiltCheck] Real-time lock update received. Lock active until:', new Date(endTimeMs).toISOString());
+        }
+      } else if (lock && lock.locked === false) {
+        chrome.storage?.local?.get?.([TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY], (result) => {
+          const until = result?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY];
+          if (typeof until === 'number' && until <= Date.now()) {
+            chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: 0 });
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('[TiltCheck] Failed to parse SSE payload:', e);
+  }
+}
+
+async function startCooldownStream(wallet) {
+  if (!wallet || typeof wallet !== 'string' || wallet.length < 32) return;
+  if (activeCooldownWallet === wallet && currentStreamAbortController && !currentStreamAbortController.signal.aborted) {
+    return;
+  }
+
+  clearStreamReconnectTimer();
+  if (currentStreamAbortController) {
+    currentStreamAbortController.abort();
+    currentStreamAbortController = null;
+  }
+
+  activeCooldownWallet = wallet;
+  const abortController = new AbortController();
+  currentStreamAbortController = abortController;
+
+  try {
+    const streamUrl = `${API_BASE}/cooldown/stream?wallet=${encodeURIComponent(wallet)}`;
+    const response = await fetch(streamUrl, {
+      signal: abortController.signal,
+      headers: {
+        Accept: 'text/event-stream',
+      },
+    });
+
+    if (!response.ok || !response.body) {
+      console.warn('[TiltCheck] Cooldown stream connection error:', response.status);
+      scheduleStreamReconnect(wallet, 15000);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (!abortController.signal.aborted) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+
+      for (const block of parts) {
+        handleSseMessageBlock(block);
+      }
+    }
+  } catch (err) {
+    if (abortController.signal.aborted) return;
+    console.warn('[TiltCheck] Cooldown SSE stream disconnected:', err?.message || err);
+    scheduleStreamReconnect(wallet, 15000);
+  } finally {
+    if (currentStreamAbortController === abortController) {
+      currentStreamAbortController = null;
+    }
+  }
+}
+
+function initCooldownSync() {
+  if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
+
+  chrome.storage.local.get([TILTCHECK_COOLDOWN_WALLET_KEY], (result) => {
+    const wallet = result?.[TILTCHECK_COOLDOWN_WALLET_KEY];
+    if (typeof wallet === 'string' && wallet.trim().length >= 32) {
+      syncCooldownStatus(wallet.trim());
+      startCooldownStream(wallet.trim());
+    }
+  });
+
+  if (chrome.alarms?.create) {
+    try {
+      chrome.alarms.create(ALARM_COOLDOWN_SYNC, { periodInMinutes: 5 });
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+if (typeof chrome !== 'undefined') {
+  if (chrome.alarms?.onAlarm?.addListener) {
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === ALARM_COOLDOWN_SYNC) {
+        chrome.storage?.local?.get?.([TILTCHECK_COOLDOWN_WALLET_KEY], (result) => {
+          const wallet = result?.[TILTCHECK_COOLDOWN_WALLET_KEY];
+          if (typeof wallet === 'string' && wallet.trim().length >= 32) {
+            syncCooldownStatus(wallet.trim());
+            if (!currentStreamAbortController || currentStreamAbortController.signal.aborted) {
+              startCooldownStream(wallet.trim());
+            }
+          }
+        });
+      }
+    });
+  }
+
+  if (chrome.storage?.onChanged?.addListener) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local') return;
+      if (changes[TILTCHECK_COOLDOWN_WALLET_KEY]) {
+        const newWallet = changes[TILTCHECK_COOLDOWN_WALLET_KEY].newValue;
+        if (typeof newWallet === 'string' && newWallet.trim().length >= 32) {
+          syncCooldownStatus(newWallet.trim());
+          startCooldownStream(newWallet.trim());
+        } else if (!newWallet && currentStreamAbortController) {
+          currentStreamAbortController.abort();
+          currentStreamAbortController = null;
+          activeCooldownWallet = null;
+        }
+      }
+    });
+  }
+}
+
+initCooldownSync();
+
+// ── Handle extension-wide actions requested from content scripts ─────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'open_auth_bridge') {
     const authUrl = typeof message.url === 'string' ? message.url : null;
@@ -105,6 +315,52 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
+  if (message.type === 'sync_cooldown_wallet') {
+    const wallet = typeof message.wallet === 'string' ? message.wallet.trim() : null;
+    if (wallet && wallet.length >= 32) {
+      chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_WALLET_KEY]: wallet });
+      syncCooldownStatus(wallet);
+      startCooldownStream(wallet);
+      sendResponse({ success: true, wallet });
+      return true;
+    }
+    sendResponse({ success: false, error: 'Invalid wallet address' });
+    return false;
+  }
+
+  if (message.type === 'cooldown_lock_updated') {
+    const { wallet, endTime } = message;
+    if (typeof endTime === 'number' && endTime > 0) {
+      const endTimeMs = endTime * 1000;
+      const updates = { [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs };
+      if (typeof wallet === 'string' && wallet.trim().length >= 32) {
+        updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
+      }
+      chrome.storage?.local?.set?.(updates);
+      if (wallet && typeof wallet === 'string' && wallet.trim().length >= 32) {
+        syncCooldownStatus(wallet.trim());
+      }
+      sendResponse({ success: true, activeUntil: endTimeMs });
+      return true;
+    }
+    sendResponse({ success: false, error: 'Invalid endTime' });
+    return false;
+  }
+
+  if (message.type === 'get_cooldown_sync_state') {
+    chrome.storage?.local?.get?.(
+      [TILTCHECK_COOLDOWN_WALLET_KEY, TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY],
+      (res) => {
+        sendResponse({
+          wallet: res?.[TILTCHECK_COOLDOWN_WALLET_KEY] || null,
+          cooldownActiveUntil: res?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] || 0,
+          isStreaming: Boolean(currentStreamAbortController && !currentStreamAbortController.signal.aborted),
+        });
+      }
+    );
+    return true;
+  }
+
   return false;
 });
 
@@ -114,11 +370,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return; // Only main frame
   const url = details.url;
-  
+
   // Skip safe origins
-  if (url.startsWith('chrome://') || 
-      url.startsWith('https://tiltcheck.me') || 
-      url.startsWith('https://api.tiltcheck.me')) return;
+  if (
+    url.startsWith('chrome://') ||
+    url.startsWith('https://tiltcheck.me') ||
+    url.startsWith('https://api.tiltcheck.me')
+  ) {
+    return;
+  }
 
   // CASINO FOCUS: Only scan if the URL looks like gambling activity
   const casinoPatterns = /stake|roobet|bc\.game|duelbits|rollbit|bet|casino|slot|gamble|poker|win|bonus/i;
@@ -128,9 +388,9 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     const response = await fetch(`${API_BASE}/safety/suslink/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url }),
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.result.riskLevel === 'critical') {

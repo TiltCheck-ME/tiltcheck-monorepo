@@ -52,6 +52,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.bonusConfig).toBeDefined();
     expect(opts.bonusConfig.active).toBe(false);
     expect(opts.cooldownActiveUntil).toBe(0);
+    expect(opts.cooldownWallet).toBeNull();
     expect(opts.audioAlertsEnabled).toBe(true);
     expect(opts.audioAlertsVolume).toBe(0.25);
   });
@@ -81,6 +82,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
       [TILTCHECK_CASHOUT_GOALS_ENABLED_KEY]: false,
       tiltcheck_bonus_tracker_config: { active: true, targetWager: 5000, currentWagered: 1500, maxBetLimit: 10, bonusName: 'Reload', blockExceededBets: true },
       tiltcheck_cooldown_active_until: 1700000000000,
+      tiltcheck_cooldown_wallet: '7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2',
     });
     const opts = await loadCoreCircuitBreakerOptions();
     expect(opts.riskThreshold).toBe(100);
@@ -98,6 +100,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.bonusConfig.active).toBe(true);
     expect(opts.bonusConfig.targetWager).toBe(5000);
     expect(opts.cooldownActiveUntil).toBe(1700000000000);
+    expect(opts.cooldownWallet).toBe('7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2');
   });
 
   it('disables enforcement when opt-in is explicitly false', async () => {

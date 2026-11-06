@@ -32,6 +32,8 @@ import {
   CORE_CIRCUIT_BREAKER_STORAGE_KEYS,
   loadCoreCircuitBreakerOptions,
   type CoreCircuitBreakerOptions,
+  TILTCHECK_COOLDOWN_WALLET_KEY,
+  TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
 } from './core-options.js';
 
 import { installSpinPaceLock, type PaceLockHandle, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
@@ -511,6 +513,53 @@ async function startCoreCircuitBreaker(): Promise<void> {
   }
 }
 
+
+export function installCooldownPageBridge(): () => void {
+  const onMessage = (event: MessageEvent) => {
+    if (event.source !== window || !event.data || event.data.source !== 'TILTCHECK_COOLDOWN_PAGE') {
+      return;
+    }
+    if (event.data.type === 'WALLET_CONNECTED' && typeof event.data.wallet === 'string') {
+      const wallet = event.data.wallet.trim();
+      if (wallet.length >= 32 && wallet.length <= 44) {
+        chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_WALLET_KEY]: wallet });
+        try {
+          chrome.runtime?.sendMessage?.({ type: 'sync_cooldown_wallet', wallet });
+        } catch {
+          // Extension context disconnected in tests
+        }
+      }
+    } else if (event.data.type === 'LOCK_UPDATED') {
+      const { wallet, endTime } = event.data;
+      if (typeof endTime === 'number' && endTime > 0) {
+        const endTimeMs = endTime * 1000;
+        const updates: Record<string, unknown> = {
+          [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs,
+        };
+        if (typeof wallet === 'string' && wallet.trim().length >= 32) {
+          updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
+        }
+        chrome.storage?.local?.set?.(updates);
+        depositBarrier?.updateCooldown(endTimeMs);
+        try {
+          chrome.runtime?.sendMessage?.({
+            type: 'cooldown_lock_updated',
+            wallet,
+            endTime,
+          });
+        } catch {
+          // Ignore
+        }
+      }
+    }
+  };
+
+  window.addEventListener('message', onMessage);
+  return () => {
+    window.removeEventListener('message', onMessage);
+  };
+}
+
 async function boot(): Promise<void> {
   if (isExcludedDomain) {
     return;
@@ -518,6 +567,7 @@ async function boot(): Promise<void> {
 
   await startCoreCircuitBreaker();
   installEventDrivenTiltWatcher();
+  installCooldownPageBridge();
   installLoungeOverlay();
   installLocalGameBlocker();
 
@@ -576,6 +626,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({
         active: depositBarrier ? depositBarrier.isActive() : false,
         cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+      });
+      return true;
+
+    case 'get_cooldown_vault_state':
+      sendResponse({
+        active: depositBarrier ? depositBarrier.isActive() : false,
+        cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+        wallet: coreOptions?.cooldownWallet ?? null,
       });
       return true;
 

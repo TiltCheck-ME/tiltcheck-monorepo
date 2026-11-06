@@ -30,6 +30,7 @@ import {
   type BonusTrackerConfig,
   DEFAULT_BONUS_TRACKER_CONFIG,
   toggleSlugInList,
+  saveCooldownWallet,
 } from './popup-settings.js';
 import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
@@ -1130,6 +1131,11 @@ async function refreshGuardSettingsUi(): Promise<void> {
     }
   }
 
+  const cooldownWalletInput = document.getElementById('cooldown-wallet-input') as HTMLInputElement | null;
+  if (cooldownWalletInput && touch.cooldownWallet) {
+    cooldownWalletInput.value = touch.cooldownWallet;
+  }
+
   const audioToggle = document.getElementById('audio-alerts-toggle') as HTMLInputElement | null;
   if (audioToggle) {
     audioToggle.checked = touch.audioAlertsEnabled;
@@ -1188,6 +1194,31 @@ function initGuardSettingsPanel(): void {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveDepositBarrierEnabled(enabled);
       toast(enabled ? 'Deposit barrier enabled.' : 'Deposit barrier disabled.');
+    });
+  }
+
+  const btnSyncCooldown = document.getElementById('btn-sync-cooldown');
+  const cooldownWalletField = document.getElementById('cooldown-wallet-input') as HTMLInputElement | null;
+  if (btnSyncCooldown && cooldownWalletField) {
+    btnSyncCooldown.addEventListener('click', async () => {
+      const wallet = cooldownWalletField.value.trim();
+      if (!wallet || wallet.length < 32 || wallet.length > 44) {
+        toast('Enter a valid Solana address (32-44 characters).');
+        return;
+      }
+      btnSyncCooldown.textContent = 'Syncing...';
+      try {
+        await saveCooldownWallet(wallet);
+        chrome.runtime?.sendMessage?.({ type: 'sync_cooldown_wallet', wallet }, () => {
+          btnSyncCooldown.textContent = 'Synced';
+          toast('On-chain cooldown lock synced.');
+          setTimeout(() => {
+            btnSyncCooldown.textContent = 'Sync';
+          }, 2000);
+        });
+      } catch {
+        btnSyncCooldown.textContent = 'Sync';
+      }
     });
   }
 
