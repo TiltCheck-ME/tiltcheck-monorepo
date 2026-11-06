@@ -13,6 +13,8 @@ import {
   findRouteForHostname,
   triggerAutoVault,
   triggerCashoutNavigation,
+  buildCooldownVaultUrl,
+  triggerCooldownVaultNavigation,
 } from '../../src/cashout-router.js';
 import { type CashoutGoal } from '../../src/profit-lock.js';
 
@@ -215,5 +217,49 @@ describe('triggerAutoVault', () => {
     expect(result.method).toBe('api');
     expect(result.amount).toBe(25);
     expect(result.casinoName).toBe('stake');
+  });
+});
+
+describe('Cooldown Vault routing & deep linking', () => {
+  it('builds cooldown vault url with proper query parameters', () => {
+    const defaultUrl = buildCooldownVaultUrl();
+    expect(defaultUrl).toBe('https://tiltcheck.me/cooldown?source=extension');
+
+    const customUrl = buildCooldownVaultUrl({
+      casino: 'Stake.us',
+      amount: 150.5,
+      currency: 'usd',
+      scope: 'category',
+      durationSecs: 604800,
+    });
+    const parsed = new URL(customUrl);
+    expect(parsed.origin).toBe('https://tiltcheck.me');
+    expect(parsed.pathname).toBe('/cooldown');
+    expect(parsed.searchParams.get('source')).toBe('extension');
+    expect(parsed.searchParams.get('casino')).toBe('Stake.us');
+    expect(parsed.searchParams.get('amount')).toBe('150.50');
+    expect(parsed.searchParams.get('currency')).toBe('usd');
+    expect(parsed.searchParams.get('scope')).toBe('category');
+    expect(parsed.searchParams.get('duration')).toBe('604800');
+  });
+
+  it('triggers navigation to cooldown vault url', () => {
+    const fakeDoc = {
+      location: { href: 'https://stake.us' },
+    } as unknown as Document;
+
+    const navResult = triggerCooldownVaultNavigation(fakeDoc, { casino: 'Stake.us', amount: 200 });
+    expect(navResult.navigated).toBe(true);
+    expect(navResult.method).toBe('href');
+    expect(navResult.target).toContain('https://tiltcheck.me/cooldown');
+    expect(navResult.target).toContain('casino=Stake.us');
+    expect(navResult.target).toContain('amount=200.00');
+    expect(fakeDoc.location.href).toBe(navResult.target);
+  });
+
+  it('detectCashoutTarget provides cooldownVaultUrl with detected casino', () => {
+    const result = detectCashoutTarget(document, 'roobet.com');
+    expect(result.cooldownVaultUrl).toContain('https://tiltcheck.me/cooldown');
+    expect(result.cooldownVaultUrl).toContain('casino=Roobet');
   });
 });

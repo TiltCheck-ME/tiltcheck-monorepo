@@ -46,7 +46,13 @@ import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } fr
 import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
 import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
-import { detectCashoutTarget, triggerCashoutNavigation, triggerAutoVault } from './cashout-router.js';
+import {
+  detectCashoutTarget,
+  triggerCashoutNavigation,
+  triggerAutoVault,
+  triggerCooldownVaultNavigation,
+  type CooldownVaultOptions,
+} from './cashout-router.js';
 import {
   installStreakVolatilityTracker,
   type StreakVolatilityHandle,
@@ -632,6 +638,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           buttonLabel: info.buttonLabel,
           isSweepstakes: info.isSweepstakes,
           canClick: Boolean(info.clickTarget),
+          cooldownVaultUrl: info.cooldownVaultUrl,
         },
       });
       return true;
@@ -639,6 +646,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     case 'trigger_cashout_navigation': {
       const result = triggerCashoutNavigation(document);
+      sendResponse(result);
+      return true;
+    }
+
+    case 'trigger_cooldown_vault_navigation': {
+      const options = message.options as CooldownVaultOptions | undefined;
+      const result = triggerCooldownVaultNavigation(document, options);
       sendResponse(result);
       return true;
     }

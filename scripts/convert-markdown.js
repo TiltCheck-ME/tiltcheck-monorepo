@@ -770,6 +770,10 @@ function buildCooldownPage() {
           <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
           <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a tamper-proof self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
         </div>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">3. One-Click Cashier Handoff</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Playing on Stake, Roobet, or sweepstakes sites? The extension Cashier Router and Profit-Lock Ratchet bridge directly into this on-chain vault with your session casino pre-filled, letting you freeze access with zero custodial intermediaries.</p>
+        </div>
       </div>
     </div>
   </div>

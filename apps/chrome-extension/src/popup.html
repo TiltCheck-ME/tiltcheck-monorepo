@@ -1107,9 +1107,14 @@
     <div class="goals-progress-list" id="cashout-goals-progress-list">
       <!-- Populated dynamically via popup.ts -->
     </div>
-    <button type="button" class="btn-quick-cashout" id="btn-quick-cashout">
-      <span id="quick-cashout-label">One-Click Cashout &rarr;</span>
-    </button>
+    <div style="display:flex; gap:6px;">
+      <button type="button" class="btn-quick-cashout" id="btn-quick-cashout" style="flex:2;">
+        <span id="quick-cashout-label">One-Click Cashout &rarr;</span>
+      </button>
+      <button type="button" class="btn-quick-cashout" id="btn-vault-lock" style="flex:1; background:rgba(23,195,178,0.15); color:#17c3b2; border:1px solid #17c3b2;" title="Lock funds on Solana devnet via TiltCheck Cooldown Vault">
+        <span>Vault Lock &rarr;</span>
+      </button>
+    </div>
   </section>
 
   <!-- Auth gate (shown when logged out) -->

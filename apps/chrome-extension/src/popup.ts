@@ -43,6 +43,7 @@ import {
 import {
   calculateGoalsProgress,
   findRouteForHostname,
+  buildCooldownVaultUrl,
   type CasinoCashoutRoute,
 } from './cashout-router.js';
 import {
@@ -545,6 +546,18 @@ function renderGoalsProgressUI(
         triggerActiveTabCashout();
       });
       actionWrap.appendChild(lockBtn);
+
+      const solanaLockBtn = document.createElement('button');
+      solanaLockBtn.type = 'button';
+      solanaLockBtn.className = 'goal-action-btn';
+      solanaLockBtn.style.background = '#17c3b2';
+      solanaLockBtn.style.color = '#000000';
+      solanaLockBtn.textContent = 'Lock ->';
+      solanaLockBtn.title = 'Lock goal funds on Solana devnet via Cooldown Vault';
+      solanaLockBtn.addEventListener('click', () => {
+        triggerActiveTabCooldownVault(item.targetAmount);
+      });
+      actionWrap.appendChild(solanaLockBtn);
     }
 
     bottomRow.appendChild(statusBadge);
@@ -653,11 +666,46 @@ function triggerActiveTabAutoVault(amount: number): void {
   });
 }
 
+function triggerActiveTabCooldownVault(amount?: number): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    let casinoName = '';
+    if (tab?.url) {
+      try {
+        const parsed = new URL(tab.url);
+        const route = findRouteForHostname(parsed.hostname);
+        casinoName = route?.name || parsed.hostname.replace(/^www\./, '');
+      } catch {
+        // ignore
+      }
+    }
+
+    const targetUrl = buildCooldownVaultUrl({
+      casino: casinoName || undefined,
+      amount: typeof amount === 'number' && amount > 0 ? amount : undefined,
+    });
+
+    chrome.tabs.create({ url: targetUrl });
+    toast('Opening on-chain Cooldown Vault...');
+  });
+}
+
 function initCashoutRouterListeners(): void {
   const cashoutBtn = document.getElementById('btn-quick-cashout');
   if (cashoutBtn) {
     cashoutBtn.addEventListener('click', () => {
       triggerActiveTabCashout();
+    });
+  }
+
+  const vaultLockBtn = document.getElementById('btn-vault-lock');
+  if (vaultLockBtn) {
+    vaultLockBtn.addEventListener('click', () => {
+      chrome.storage.local.get([TILTCHECK_SESSION_PNL_KEY], (stored) => {
+        const pnlState = stored[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+        const amount = pnlState?.netPnl && pnlState.netPnl > 0 ? pnlState.netPnl : undefined;
+        triggerActiveTabCooldownVault(amount);
+      });
     });
   }
 

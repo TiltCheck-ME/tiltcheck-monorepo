@@ -322,6 +322,53 @@ export interface CashoutTargetResult {
   buttonLabel: string;
   isSweepstakes: boolean;
   casinoName: string | null;
+  cooldownVaultUrl: string;
+}
+
+export const TILTCHECK_COOLDOWN_VAULT_URL = 'https://tiltcheck.me/cooldown';
+
+export interface CooldownVaultOptions {
+  casino?: string;
+  amount?: number;
+  currency?: string;
+  scope?: 'all' | 'category' | 'game';
+  durationSecs?: number;
+  origin?: string;
+}
+
+export function buildCooldownVaultUrl(options?: CooldownVaultOptions): string {
+  const base = options?.origin || TILTCHECK_COOLDOWN_VAULT_URL;
+  try {
+    const url = new URL(base);
+    url.searchParams.set('source', 'extension');
+    if (options?.casino) url.searchParams.set('casino', options.casino);
+    if (typeof options?.amount === 'number' && Number.isFinite(options.amount)) {
+      url.searchParams.set('amount', options.amount.toFixed(2));
+    }
+    if (options?.currency) url.searchParams.set('currency', options.currency);
+    if (options?.scope) url.searchParams.set('scope', options.scope);
+    if (typeof options?.durationSecs === 'number' && Number.isFinite(options.durationSecs)) {
+      url.searchParams.set('duration', String(options.durationSecs));
+    }
+    return url.toString();
+  } catch {
+    return base;
+  }
+}
+
+export function triggerCooldownVaultNavigation(
+  doc: Document = document,
+  options?: CooldownVaultOptions,
+): NavigationResult {
+  const targetUrl = buildCooldownVaultUrl(options);
+  if (doc.location) {
+    doc.location.href = targetUrl;
+  }
+  return {
+    navigated: true,
+    method: 'href',
+    target: targetUrl,
+  };
 }
 
 export function detectCashoutTarget(
@@ -360,6 +407,9 @@ export function detectCashoutTarget(
   const buttonLabel = route?.buttonLabel || 'Cashier / Withdraw';
   const isSweepstakes = route?.isSweepstakes || false;
   const casinoName = route?.name || (hostname ? hostname.replace(/^www\./, '') : null);
+  const cooldownVaultUrl = buildCooldownVaultUrl({
+    casino: casinoName || undefined,
+  });
 
   return {
     route,
@@ -368,6 +418,7 @@ export function detectCashoutTarget(
     buttonLabel,
     isSweepstakes,
     casinoName,
+    cooldownVaultUrl,
   };
 }
 

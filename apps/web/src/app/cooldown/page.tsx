@@ -27,6 +27,8 @@ interface LockStatus {
 /** Pairs an API response with the original target key used to check it,
  *  so the Extend handler can derive the correct on-chain PDA. */
 interface ActiveLock {
+  pda?: string;
+  remainingText?: string;
   status: LockStatus;
   /** Raw target key passed to hashTarget() when the lock was set.
    *  Empty string for all-scope (uses zeroTarget() instead). */
@@ -131,6 +133,33 @@ export default function CooldownPage() {
   const [activeLocks, setActiveLocks] = useState<ActiveLock[]>([]);
   const [txStatus, setTxStatus] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [handoffSource, setHandoffSource] = useState<string | null>(null);
+  const [handoffCasino, setHandoffCasino] = useState<string | null>(null);
+  const [handoffAmount, setHandoffAmount] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const src = params.get('source');
+    const cas = params.get('casino');
+    const amt = params.get('amount');
+    const scp = params.get('scope');
+    const dur = params.get('duration');
+
+    if (src) setHandoffSource(src);
+    if (cas) setHandoffCasino(cas);
+    if (amt) setHandoffAmount(amt);
+
+    if (scp === 'all' || scp === 'category' || scp === 'game') {
+      setScope(scp);
+    }
+    if (dur) {
+      const durNum = parseInt(dur, 10);
+      if (!isNaN(durNum) && durNum > 0) {
+        setDurationSecs(durNum);
+      }
+    }
+  }, []);
 
   const connectWallet = useCallback(() => {
     setVisible(true);
@@ -146,10 +175,41 @@ export default function CooldownPage() {
       ...GAMES.map((g) => ({ promise: fetchLockStatus(w, g.key), targetKey: g.key })),
     ];
     const results = await Promise.allSettled(checksWithKeys.map((c) => c.promise));
+    const [{ hashTarget, zeroTarget, lockAddress, SCOPE_ALL: SA }, { PublicKey }] =
+      await Promise.all([
+        import('@tiltcheck/cooldown-sdk'),
+        import('@solana/web3.js'),
+      ]);
+    const ownerKey = new PublicKey(w);
     const active: ActiveLock[] = [];
     results.forEach((r, i) => {
       if (r.status === 'fulfilled' && r.value.locked) {
-        active.push({ status: r.value, targetKey: checksWithKeys[i]!.targetKey });
+        const item = checksWithKeys[i]!;
+        const scopeNum = r.value.scope === 'all' ? 0 : r.value.scope === 'category' ? 1 : 2;
+        const target = scopeNum === SA ? zeroTarget() : hashTarget(item.targetKey);
+        let pda = '';
+        try {
+          pda = lockAddress(ownerKey, scopeNum, target).toBase58();
+        } catch {
+          // ignore
+        }
+
+        let remainingText = '';
+        if (r.value.endTime) {
+          const diffSecs = r.value.endTime - Math.floor(Date.now() / 1000);
+          if (diffSecs > 0) {
+            const days = Math.floor(diffSecs / 86400);
+            const hours = Math.floor((diffSecs % 86400) / 3600);
+            remainingText = days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
+          }
+        }
+
+        active.push({
+          status: r.value,
+          targetKey: item.targetKey,
+          pda,
+          remainingText,
+        });
       }
     });
     setActiveLocks(active);
@@ -235,6 +295,46 @@ export default function CooldownPage() {
         Not a deposit. No keys. Solana wallet. Devnet. Casinos do not have to honor it. You do. Stronger only.
       </p>
 
+      {handoffSource && (
+        <div
+          style={{
+            background: 'rgba(23, 195, 178, 0.08)',
+            border: '1px solid rgba(23, 195, 178, 0.3)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '1.25rem',
+            textAlign: 'left',
+          }}
+        >
+          <div
+            style={{
+              color: '#17c3b2',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginBottom: '4px',
+            }}
+          >
+            Spotter Cashier Handoff
+          </div>
+          <div style={{ color: '#ffffff', fontSize: '0.875rem', lineHeight: 1.4 }}>
+            {handoffCasino ? (
+              <>
+                Securing session from <strong>{handoffCasino}</strong>.
+                {handoffAmount ? ` Session profits: $${handoffAmount}.` : ''}
+              </>
+            ) : (
+              <>
+                Securing browser casino session.
+                {handoffAmount ? ` Session profits: $${handoffAmount}.` : ''}
+              </>
+            )}
+            {' '}Sign the Solana timelock below to freeze access non-custodially.
+          </div>
+        </div>
+      )}
+
       {/* ── Connect wallet ── */}
       {!wallet ? (
         <button
@@ -265,10 +365,23 @@ export default function CooldownPage() {
                     <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{activeLock.status.scope}</span>
                     {activeLock.status.endTime && (
                       <span style={{ color: '#94a3b8', fontSize: '0.8rem', marginLeft: '0.75rem' }}>
-                        until {fmtDate(activeLock.status.endTime)}
+                        until {fmtDate(activeLock.status.endTime)} {activeLock.remainingText ? `(${activeLock.remainingText})` : ''}
                       </span>
                     )}
-                  </div>
+                    {activeLock.pda && (
+                      <div style={{ marginTop: '4px' }}>
+                        <a
+                          href={`https://explorer.solana.com/address/${activeLock.pda}?cluster=devnet`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: '#17c3b2', fontSize: '0.75rem', textDecoration: 'underline' }}
+                        >
+                          Verify PDA on Explorer ({activeLock.pda.slice(0, 4)}...{activeLock.pda.slice(-4)}) &rarr;
+                        </a>
+                      </div>
+                    )}
+
+                      </div>
                   {/* Extend only — no shorten button. Lock can only get stronger. */}
                   <button onClick={() => handleExtend(activeLock)} disabled={loading} style={btnStyle('#1e293b', true)}>
                     Extend +7d
