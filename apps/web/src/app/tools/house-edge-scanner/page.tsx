@@ -1,6 +1,5 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 "use client";
-
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 import React, { useState, useMemo } from 'react';
 import ToolPageHeader from '@/components/ToolPageHeader';
 import Link from 'next/link';

@@ -104,11 +104,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Cooldown SDK & User Dashboard
+      - name: Build Cooldown SDK & Database
         run: |
           pnpm --filter @tiltcheck/cooldown-sdk build
           pnpm --filter @tiltcheck/database build
-          pnpm --filter @tiltcheck/user-dashboard build
 
       - name: Run Anchor Devnet Smoke Test
         run: pnpm smoke:cooldown

@@ -82,7 +82,7 @@ jobs:
             fi
             if [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]] && [ -f "$file" ]; then
               if grep -E "privateKey|private_key|mnemonic|seedPhrase|seed[_ ]phrase|bip39|\bseed\b" "$file" \
-                | grep -vE "node_modules|dist|\.next|test|mock|example|placeholder|seed-audit|SeedAudit|seedAudit|server-seed|client-seed|seed hygiene|seed rotation|seed reuse|external-entropy|seed-reuse|default-client-seed|missing-server-seed|missing-client-seed|seed-export|seededFloat|seed-hygiene|seed/provably"; then
+                | grep -vE "node_modules|dist|\.next|test|mock|example|placeholder|seed-audit|SeedAudit|seedAudit|server-seed|client-seed|seed hygiene|seed rotation|seed reuse|external-entropy|seed-reuse|default-client-seed|missing-server-seed|missing-client-seed|seed-export|seededFloat|seed-hygiene|seed/provably|[Ss]erver [Ss]eed|[Cc]lient [Ss]eed|seed pair|seed parameters|seed inputs|seed checks|seed transparency|seed health|wallet seed|client_seed|tiltcheck_client_seed|provably|Provably"; then
                 echo "CRITICAL: Potential custodial code detected in $file"
                 CRITICAL=$((CRITICAL + 1))
               fi

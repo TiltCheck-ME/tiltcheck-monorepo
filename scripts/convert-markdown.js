@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the brakes homepage

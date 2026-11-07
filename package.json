@@ -67,7 +67,7 @@
     "crawl:emails:all": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts --all",
     "crawl:emails:schedule": "powershell -ExecutionPolicy Bypass -File scripts/register-email-crawler-task.ps1",
     "crawl:casinos": "tsx scripts/scrape-casinos.ts",
-    "build:pages": "node scripts/convert-markdown.js docs/tiltcheck out/docs",
+    "build:pages": "pnpm --filter @tiltcheck/intel-tools build && node scripts/convert-markdown.js docs/tiltcheck out/docs",
     "test:e2e": "playwright test",
     "test:e2e:extension": "playwright test tests/e2e/extension-e2e.spec.ts",
     "test:e2e:degens-trivia": "PLAYWRIGHT_DEGENS_LOCAL=1 playwright test tests/e2e/degens-activity-trivia.spec.ts",

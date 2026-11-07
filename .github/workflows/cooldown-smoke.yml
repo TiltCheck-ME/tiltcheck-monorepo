@@ -91,13 +91,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Database & User Dashboard
-        run: |
-          pnpm --filter @tiltcheck/database build
-          pnpm --filter @tiltcheck/user-dashboard build
+      - name: Build Database
+        run: pnpm --filter @tiltcheck/database build
 
       - name: Run User Dashboard Tests
-        run: pnpm --filter @tiltcheck/user-dashboard test
+        run: pnpm test:cooldown:dashboard
 
   chrome-extension-e2e:
     name: Verify Chrome Extension Packaging & Auto-Lock E2E

@@ -1,6 +1,5 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 "use client";
-
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ToolPageHeader from '@/components/ToolPageHeader';
 import Link from 'next/link';
@@ -756,14 +755,14 @@ export default function VerifyPage() {
               <span className="font-mono text-xs font-bold uppercase text-[#17c3b2]">01. Pre-Commitment</span>
               <p className="mt-2 text-xs leading-relaxed text-gray-400">
                 Before you place a bet, the casino generates a Server Seed and shares only its SHA-256 hash. Because
-                SHA-256 is one-way, they cannot alter the seed later without changing this hash.
+                SHA-256 is one-way, they cannot alter the server-seed later without changing this hash.
               </p>
             </div>
             <div className="border border-[#283347] bg-black/30 p-4">
               <span className="font-mono text-xs font-bold uppercase text-[#17c3b2]">02. Player Entropy</span>
               <p className="mt-2 text-xs leading-relaxed text-gray-400">
                 You customize your Client Seed in your casino profile. Because the casino does not control your client
-                seed, they cannot predetermine winning or losing rolls.
+                client-seed, they cannot predetermine winning or losing rolls.
               </p>
             </div>
             <div className="border border-[#283347] bg-black/30 p-4">

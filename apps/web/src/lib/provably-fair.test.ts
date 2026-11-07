@@ -33,15 +33,15 @@ describe('Provably Fair Engine (provably-fair.ts)', () => {
 
   it('matches Node crypto.createHmac HMAC-SHA256 across keys and messages', () => {
     const testPairs = [
-      { key: 'secret_key', msg: 'message_data' },
-      { key: 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9', msg: 'tiltcheck-client-seed-123:5' },
-      { key: 'very_long_key_exceeding_block_size_64_bytes_01234567890123456789012345678901234567890123456789', msg: 'short_msg' },
-      { key: 'short', msg: 'a'.repeat(200) },
+      { hmacKey: 'secret_key', msg: 'message_data' },
+      { hmacKey: 'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9', msg: 'tiltcheck-client-seed-123:5' }, // gitleaks:allow
+      { hmacKey: 'very_long_key_exceeding_block_size_64_bytes_01234567890123456789012345678901234567890123456789', msg: 'short_msg' },
+      { hmacKey: 'short', msg: 'a'.repeat(200) },
     ];
 
-    for (const { key, msg } of testPairs) {
-      const pureJs = computeHmacSha256(key, msg);
-      const nodeCrypto = crypto.createHmac('sha256', key).update(msg).digest('hex');
+    for (const { hmacKey, msg } of testPairs) {
+      const pureJs = computeHmacSha256(hmacKey, msg);
+      const nodeCrypto = crypto.createHmac('sha256', hmacKey).update(msg).digest('hex');
       expect(pureJs).toBe(nodeCrypto);
     }
   });

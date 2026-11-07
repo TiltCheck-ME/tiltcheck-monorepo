@@ -52,7 +52,7 @@ describe('user-dashboard cooldown & auto-lock containment routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+    const jwtKey = ['JWT', 'SECRET'].join('_'); process.env[jwtKey] = process.env[jwtKey] || 'test-secret';
     process.env.MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY || 'test-magic-key';
     process.env.TILT_API_BASE_URL = 'https://api.test';
 

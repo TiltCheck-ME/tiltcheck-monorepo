@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
 
 export type {
   CasinoRecord,
@@ -19,7 +19,13 @@ export type {
   WelcomeBonusFact,
 } from './operator-facts-types.js';
 
-export { GRADE_SCORE, normalizeQuery, slugifyCasinoName } from './grades.js';
+export {
+  GRADE_SCORE,
+  mapRawCasinos,
+  normalizeQuery,
+  slugifyCasinoName,
+  type RawCasino,
+} from './grades.js';
 export {
   applyListFilters,
   extractCasinoNameCandidate,
@@ -27,13 +33,8 @@ export {
   findCasinoByName,
   parseListFiltersFromText,
 } from './filters.js';
-export { loadCasinosFromMonorepo, mapRawCasinos } from './load-casinos.js';
 export {
   filterLiveOperatorFacts,
-  loadOperatorFactsFromMonorepo,
-  loadOperatorFactsFromPath,
-} from './load-operator-facts.js';
-export {
   STALE_AFTER_DAYS,
   getRedemptionAnswer,
   getVipCurrencyAnswer,

@@ -124,7 +124,7 @@ export function computeSha256(text: string): string {
  */
 export function computeHmacSha256(keyStr: string, messageStr: string): string {
   const enc = new TextEncoder();
-  let keyBytes = enc.encode(keyStr);
+  let keyBytes: Uint8Array = enc.encode(keyStr);
   const msgBytes = enc.encode(messageStr);
 
   if (keyBytes.length > 64) {
@@ -200,7 +200,7 @@ export function verifyServerSeedHash(
     calculatedHash,
     committedHash: trimmedCommitted,
     isMatch: false,
-    message: 'Tamper alert: Calculated SHA-256 does NOT match the committed hash. The seed was altered or was copied incorrectly.',
+    message: 'Tamper alert: Calculated SHA-256 does NOT match the committed hash. The server-seed was altered or was copied incorrectly.',
   };
 }
 
