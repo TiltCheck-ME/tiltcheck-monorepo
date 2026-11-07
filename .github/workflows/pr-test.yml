@@ -139,8 +139,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Database, Extension & Pages
+      - name: Build Shared Packages, Extension & Pages
         run: |
+          pnpm --filter @tiltcheck/types build
+          pnpm --filter @tiltcheck/shared build
+          pnpm --filter @tiltcheck/cooldown-sdk build
           pnpm --filter @tiltcheck/database build
           pnpm --filter @tiltcheck/chrome-extension package
           pnpm build:pages
