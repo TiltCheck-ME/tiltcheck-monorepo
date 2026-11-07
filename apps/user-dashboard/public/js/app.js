@@ -62,6 +62,17 @@ let profileState = {
 };
 let selectedVaultDuration = 14400000; // 4h default
 let vaultCountdownTimer = null;
+let cooldownVaultState = {
+    wallet: '',
+    locked: false,
+    scope: null,
+    endTime: null,
+    pda: null,
+    timeRemainingSecs: 0,
+    verifiedAt: null,
+    unlinked: true
+};
+let cooldownCountdownTimer = null;
 let onboardingSettings = {
     riskLevel: 'moderate',
     cooldownEnabled: true,
@@ -203,6 +214,7 @@ async function loadAllData() {
         loadSessionAnalytics(),
         loadActivity(),
         loadVaults(),
+        loadCooldownVaultStatus(),
         loadVaultApprovals(),
         loadExclusions(),
         loadWalletLock(),
@@ -593,6 +605,407 @@ async function loadVaults() {
             historyEl.innerHTML = '<div class="activity-empty">No vault history.</div>';
         }
     } catch (err) { console.error('[Vault]', err); }
+}
+
+// ============================================================
+// ON-CHAIN COOLDOWN VAULT (SOLANA TIMELOCK)
+// ============================================================
+function setCooldownStatusMsg(msg, isError = false) {
+    const el = document.getElementById('cooldownVaultStatusMsg');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = isError ? 'form-msg error' : 'form-msg success';
+    el.style.display = msg ? 'block' : 'none';
+}
+
+async function loadCooldownVaultStatus(walletOverride) {
+    if (!currentUser || !currentUser.discordId) return;
+    try {
+        const wallet = walletOverride
+            || cooldownVaultState.wallet
+            || currentUser?.degenIdentity?.primary_external_address
+            || currentUser?.degenIdentity?.magic_address
+            || localStorage.getItem('tiltcheck_cooldown_wallet')
+            || '';
+
+        const query = wallet ? `?wallet=${encodeURIComponent(wallet)}` : '';
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/cooldown-status${query}`);
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            setCooldownStatusMsg(errData.error || 'Failed to fetch on-chain cooldown status.', true);
+            return;
+        }
+        const data = await res.json();
+        cooldownVaultState = {
+            wallet: data.wallet || wallet || '',
+            locked: Boolean(data.locked),
+            scope: data.scope || null,
+            endTime: data.endTime || null,
+            pda: data.pda || null,
+            timeRemainingSecs: Number(data.timeRemainingSecs || 0),
+            verifiedAt: data.verifiedAt || Date.now(),
+            unlinked: Boolean(data.unlinked),
+            source: data.source || null,
+            activeAutoLock: data.activeAutoLock || null,
+            lastAutoLockEvent: data.lastAutoLockEvent || null
+        };
+        if (cooldownVaultState.wallet) {
+            localStorage.setItem('tiltcheck_cooldown_wallet', cooldownVaultState.wallet);
+        }
+        renderCooldownVaultCard();
+        loadAutoLockHistory();
+    } catch (err) {
+        console.error('[Cooldown Vault]', err);
+        setCooldownStatusMsg('Network error checking on-chain cooldown.', true);
+    }
+}
+
+async function loadAutoLockHistory() {
+    if (!currentUser || !currentUser.discordId) return;
+    const listEl = document.getElementById('autoLockEventsList');
+    if (!listEl) return;
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/auto-lock-history`);
+        if (!res.ok) return;
+        const data = await res.json();
+        renderAutoLockHistory(data.events || []);
+    } catch (err) {
+        console.error('[Auto-Lock History]', err);
+    }
+}
+
+function renderAutoLockHistory(events) {
+    const listEl = document.getElementById('autoLockEventsList');
+    if (!listEl) return;
+    if (!Array.isArray(events) || events.length === 0) {
+        listEl.innerHTML = '<div class="activity-empty">No automated tilt containment events recorded.</div>';
+        return;
+    }
+
+    listEl.innerHTML = events.map(event => {
+        const dateStr = new Date(event.createdAt || Date.now()).toLocaleString();
+        const durationHours = Math.round((event.duration || 86400) / 3600);
+        const isActive = event.activeUntil > Date.now();
+        const statusBadge = isActive
+            ? '<span class="vault-status-badge danger" style="font-size:0.65rem; padding:2px 6px;">CONTAINMENT ACTIVE</span>'
+            : '<span class="vault-status-badge unlocked" style="font-size:0.65rem; padding:2px 6px;">RESOLVED</span>';
+        const indicators = Array.isArray(event.indicators) && event.indicators.length > 0
+            ? event.indicators.map(ind => `<span style="font-size:0.7rem; font-family:var(--font-mono); background:rgba(255,255,255,0.06); padding:1px 5px; border-radius:3px;">${escapeHtml(ind)}</span>`).join(' ')
+            : '<span style="font-size:0.7rem; color:var(--text-muted);">Tilt cascade threshold</span>';
+
+        return `
+            <div class="safety-list-item" style="display:flex; justify-content:space-between; align-items:flex-start; padding:10px 12px; margin-bottom:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); border-radius:6px; gap:10px;">
+                <div style="flex:1;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                        <span style="font-weight:700; font-size:0.85rem; color:#fca5a5;">Critical Tilt Auto-Lock</span>
+                        <span style="font-size:0.75rem; font-family:var(--font-mono); color:#ef4444; font-weight:700;">Score ${Number(event.tiltRisk)}/100</span>
+                        ${statusBadge}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+                        ${dateStr} &bull; ${durationHours}h Containment Timelock
+                        ${event.wallet ? ` &bull; <code style="font-size:0.7rem;">${event.wallet.slice(0, 6)}...${event.wallet.slice(-4)}</code>` : ''}
+                    </div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                        <span style="font-size:0.7rem; color:var(--text-muted);">Signals:</span>
+                        ${indicators}
+                    </div>
+                </div>
+                ${isActive ? `
+                    <a href="https://tiltcheck.me/cooldown?source=auto_tilt${event.wallet ? `&wallet=${encodeURIComponent(event.wallet)}` : ''}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="white-space:nowrap;">
+                        Verify Lock
+                    </a>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function renderCooldownVaultCard() {
+    const walletInput = document.getElementById('cooldown-wallet-input');
+    const badge = document.getElementById('cooldown-status-badge');
+    const scopeVal = document.getElementById('cooldown-scope-val');
+    const pdaVal = document.getElementById('cooldown-pda-val');
+    const verifyLink = document.getElementById('cooldown-verify-link');
+    const extendBtn = document.getElementById('cooldown-extend-btn');
+    const lockNowBtn = document.getElementById('cooldown-lock-now-btn');
+    const autoTiltCallout = document.getElementById('auto-tilt-containment-callout');
+    const autoTiltDesc = document.getElementById('auto-tilt-containment-desc');
+
+    if (walletInput && !walletInput.value && cooldownVaultState.wallet) {
+        walletInput.value = cooldownVaultState.wallet;
+    }
+
+    if (badge) {
+        if (cooldownVaultState.locked) {
+            if (cooldownVaultState.source === 'auto_tilt') {
+                badge.textContent = 'LEVEL 3+ TILT LOCK';
+                badge.className = 'vault-status-badge danger';
+            } else {
+                badge.textContent = 'LOCKED';
+                badge.className = 'vault-status-badge locked';
+            }
+        } else {
+            badge.textContent = cooldownVaultState.unlinked ? 'NO WALLET LINKED' : 'NO ACTIVE LOCK';
+            badge.className = 'vault-status-badge unlocked';
+        }
+    }
+
+    if (autoTiltCallout) {
+        if (cooldownVaultState.source === 'auto_tilt' && cooldownVaultState.locked) {
+            autoTiltCallout.style.display = 'block';
+            if (autoTiltDesc && cooldownVaultState.activeAutoLock) {
+                const indicators = Array.isArray(cooldownVaultState.activeAutoLock.indicators) && cooldownVaultState.activeAutoLock.indicators.length > 0
+                    ? cooldownVaultState.activeAutoLock.indicators.join(', ')
+                    : 'drawdown cascade';
+                autoTiltDesc.textContent = `Critical tilt detected (Score ${cooldownVaultState.activeAutoLock.tiltRisk}/100, triggers: ${indicators}). 24h deposit containment active.`;
+            }
+        } else {
+            autoTiltCallout.style.display = 'none';
+        }
+    }
+
+    let resolvedScopeText = 'None';
+    if (cooldownVaultState.locked) {
+        if (!cooldownVaultState.scope || cooldownVaultState.scope === 'all') {
+            resolvedScopeText = 'All Gambling Sites';
+        } else if (typeof cooldownVaultState.scope === 'string' && cooldownVaultState.scope.startsWith('category:')) {
+            resolvedScopeText = `Category: ${cooldownVaultState.scope.replace('category:', '')}`;
+        } else if (typeof cooldownVaultState.scope === 'string' && cooldownVaultState.scope.startsWith('game:')) {
+            resolvedScopeText = `Game: ${cooldownVaultState.scope.replace('game:', '')}`;
+        } else {
+            resolvedScopeText = String(cooldownVaultState.scope);
+        }
+    }
+
+    if (scopeVal) {
+        scopeVal.textContent = resolvedScopeText;
+    }
+
+    // Safety tab cooldown widgets
+    const safetyBadge = document.getElementById('safety-cooldown-badge');
+    const safetyBanner = document.getElementById('safety-cooldown-banner');
+    const safetyStateVal = document.getElementById('safety-cooldown-state-val');
+    const safetyScopeVal = document.getElementById('safety-cooldown-scope-val');
+    const safetyExtendBtn = document.getElementById('safety-cooldown-extend-btn');
+    const safetyLockBtn = document.getElementById('safety-cooldown-lock-btn');
+    const safetyViewLink = document.getElementById('safety-cooldown-view-link');
+
+    if (safetyScopeVal) {
+        safetyScopeVal.textContent = resolvedScopeText;
+    }
+
+    if (safetyBadge) {
+        if (cooldownVaultState.locked) {
+            if (cooldownVaultState.source === 'auto_tilt') {
+                safetyBadge.textContent = 'LEVEL 3+ TILT LOCK';
+                safetyBadge.className = 'vault-status-badge danger';
+            } else {
+                safetyBadge.textContent = 'LOCKED';
+                safetyBadge.className = 'vault-status-badge locked';
+            }
+        } else {
+            safetyBadge.textContent = cooldownVaultState.unlinked ? 'NO WALLET LINKED' : 'NO ACTIVE LOCK';
+            safetyBadge.className = 'vault-status-badge unlocked';
+        }
+    }
+
+    if (safetyStateVal) {
+        if (cooldownVaultState.locked) {
+            safetyStateVal.textContent = cooldownVaultState.source === 'auto_tilt'
+                ? 'Active (Level 3+ Tilt Containment)'
+                : 'Active (Voluntary Timelock)';
+        } else {
+            safetyStateVal.textContent = 'Inactive';
+        }
+    }
+
+    if (safetyBanner) {
+        if (cooldownVaultState.locked) {
+            safetyBanner.style.display = 'block';
+            if (cooldownVaultState.source === 'auto_tilt') {
+                safetyBanner.className = 'cooldown-alert-banner danger';
+                safetyBanner.innerHTML = '<strong>Critical Tilt Containment Active:</strong> On-chain timelock engaged until <span id="safety-cooldown-ends-at-val">' + (cooldownVaultState.endTime ? new Date(cooldownVaultState.endTime * 1000).toLocaleString() : 'active duration') + '</span>. Browser deposit barriers and cashier interception armed across all supported sites.';
+            } else {
+                safetyBanner.className = 'cooldown-alert-banner warning';
+                safetyBanner.innerHTML = '<strong>Voluntary Timelock Active:</strong> Non-custodial self-exclusion running until <span id="safety-cooldown-ends-at-val">' + (cooldownVaultState.endTime ? new Date(cooldownVaultState.endTime * 1000).toLocaleString() : 'active duration') + '</span>. You signed on Solana devnet; house cannot bypass.';
+            }
+        } else {
+            safetyBanner.style.display = 'none';
+        }
+    }
+
+    if (pdaVal) {
+        if (cooldownVaultState.pda) {
+            pdaVal.textContent = cooldownVaultState.pda;
+            pdaVal.title = cooldownVaultState.pda;
+        } else {
+            pdaVal.textContent = cooldownVaultState.wallet ? 'Standard PDA' : 'Not derived (enter wallet)';
+        }
+    }
+
+    const encodedWallet = cooldownVaultState.wallet ? encodeURIComponent(cooldownVaultState.wallet) : '';
+    if (verifyLink) {
+        verifyLink.href = encodedWallet
+            ? `https://tiltcheck.me/cooldown?wallet=${encodedWallet}`
+            : 'https://tiltcheck.me/cooldown';
+    }
+
+    if (safetyViewLink) {
+        safetyViewLink.href = encodedWallet
+            ? `https://tiltcheck.me/cooldown?wallet=${encodedWallet}`
+            : 'https://tiltcheck.me/cooldown';
+    }
+
+    if (extendBtn && lockNowBtn) {
+        if (cooldownVaultState.locked) {
+            extendBtn.style.display = 'inline-block';
+            extendBtn.href = encodedWallet
+                ? `https://tiltcheck.me/cooldown?wallet=${encodedWallet}&extend=7`
+                : 'https://tiltcheck.me/cooldown?extend=7';
+            lockNowBtn.style.display = 'none';
+        } else {
+            extendBtn.style.display = 'none';
+            lockNowBtn.style.display = 'inline-block';
+            lockNowBtn.href = encodedWallet
+                ? `https://tiltcheck.me/cooldown?wallet=${encodedWallet}`
+                : 'https://tiltcheck.me/cooldown';
+        }
+    }
+
+    if (safetyExtendBtn && safetyLockBtn) {
+        if (cooldownVaultState.locked) {
+            safetyExtendBtn.style.display = 'inline-block';
+            safetyExtendBtn.href = encodedWallet
+                ? `https://tiltcheck.me/cooldown?wallet=${encodedWallet}&extend=7`
+                : 'https://tiltcheck.me/cooldown?extend=7';
+            safetyLockBtn.style.display = 'none';
+        } else {
+            safetyExtendBtn.style.display = 'none';
+            safetyLockBtn.style.display = 'inline-block';
+            safetyLockBtn.href = encodedWallet
+                ? `https://tiltcheck.me/cooldown?wallet=${encodedWallet}`
+                : 'https://tiltcheck.me/cooldown';
+        }
+    }
+
+    startCooldownCountdown(cooldownVaultState.endTime);
+}
+
+function startCooldownCountdown(endTimeSecs) {
+    if (cooldownCountdownTimer) {
+        clearInterval(cooldownCountdownTimer);
+        cooldownCountdownTimer = null;
+    }
+
+    const timerVal = document.getElementById('cooldown-timer-val');
+    const endsAtVal = document.getElementById('cooldown-ends-at-val');
+    const safetyTimerVal = document.getElementById('safety-cooldown-timer-val');
+    const safetyEndsAtVal = document.getElementById('safety-cooldown-ends-at-val');
+
+    if (!cooldownVaultState.locked || !endTimeSecs) {
+        if (timerVal) timerVal.textContent = '--:--:--';
+        if (endsAtVal) endsAtVal.textContent = cooldownVaultState.unlinked ? 'Link wallet to check lock' : 'No active on-chain lock';
+        if (safetyTimerVal) safetyTimerVal.textContent = '--:--:--';
+        if (safetyEndsAtVal) safetyEndsAtVal.textContent = cooldownVaultState.unlinked ? 'Link wallet to check lock' : 'No active on-chain lock';
+        return;
+    }
+
+    const endMs = Number(endTimeSecs) * 1000;
+    const update = () => {
+        const now = Date.now();
+        const diffSecs = Math.max(0, Math.floor((endMs - now) / 1000));
+        if (diffSecs <= 0) {
+            if (timerVal) timerVal.textContent = 'EXPIRED';
+            if (endsAtVal) endsAtVal.textContent = 'Lock period has ended';
+            if (safetyTimerVal) safetyTimerVal.textContent = 'EXPIRED';
+            if (safetyEndsAtVal) safetyEndsAtVal.textContent = 'Lock period has ended';
+            clearInterval(cooldownCountdownTimer);
+            cooldownCountdownTimer = null;
+            loadCooldownVaultStatus();
+            return;
+        }
+
+        const d = Math.floor(diffSecs / 86400);
+        const h = Math.floor((diffSecs % 86400) / 3600);
+        const m = Math.floor((diffSecs % 3600) / 60);
+        const s = diffSecs % 60;
+        const parts = [];
+        if (d > 0) parts.push(`${d}d`);
+        parts.push(`${String(h).padStart(2, '0')}h`);
+        parts.push(`${String(m).padStart(2, '0')}m`);
+        parts.push(`${String(s).padStart(2, '0')}s`);
+        const timeText = parts.join(' ');
+        const unlockText = `Unlocks on ${new Date(endMs).toLocaleString()}`;
+        if (timerVal) timerVal.textContent = timeText;
+        if (endsAtVal) endsAtVal.textContent = unlockText;
+        if (safetyTimerVal) safetyTimerVal.textContent = timeText;
+        if (safetyEndsAtVal) safetyEndsAtVal.textContent = unlockText;
+    };
+
+    update();
+    cooldownCountdownTimer = setInterval(update, 1000);
+}
+
+function setupCooldownVaultPanel() {
+    const syncBtn = document.getElementById('cooldown-wallet-sync-btn');
+    const saveBtn = document.getElementById('cooldown-wallet-save-btn');
+    const walletInput = document.getElementById('cooldown-wallet-input');
+
+    syncBtn?.addEventListener('click', async () => {
+        const val = walletInput?.value?.trim() || '';
+        if (!val) {
+            setCooldownStatusMsg('Please enter a Solana wallet address to sync.', true);
+            return;
+        }
+        setCooldownStatusMsg('Syncing on-chain state...');
+        await loadCooldownVaultStatus(val);
+        setCooldownStatusMsg('On-chain state synced.');
+    });
+
+    saveBtn?.addEventListener('click', async () => {
+        const val = walletInput?.value?.trim() || '';
+        if (!val) {
+            setCooldownStatusMsg('Please enter a Solana wallet address to save.', true);
+            return;
+        }
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        setCooldownStatusMsg('Saving linked wallet...');
+        try {
+            const res = await apiRequest('/api/auth/wallet/link', {
+                method: 'POST',
+                body: JSON.stringify({ address: val })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                setCooldownStatusMsg(data.error || 'Failed to save wallet link.', true);
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Wallet';
+                return;
+            }
+            localStorage.setItem('tiltcheck_cooldown_wallet', val);
+            setCooldownStatusMsg('Wallet saved as primary address.');
+            showNotification('Wallet linked successfully.', 'success');
+            await loadCooldownVaultStatus(val);
+        } catch (err) {
+            console.error('[Save Wallet]', err);
+            setCooldownStatusMsg('Failed to save wallet link.', true);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Wallet';
+        }
+    });
+
+    walletInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            syncBtn?.click();
+        }
+    });
+
+    document.getElementById('refresh-auto-lock-history-btn')?.addEventListener('click', () => {
+        loadAutoLockHistory();
+    });
 }
 
 function formatVaultUnlockMoment(value) {
@@ -1701,6 +2114,10 @@ function activateTab(tab) {
     const nextUrl = new URL(window.location.href);
     nextUrl.searchParams.set('tab', tab);
     window.history.replaceState({}, document.title, nextUrl);
+
+    if (tab === 'vault' && currentUser?.discordId) {
+        loadCooldownVaultStatus();
+    }
 }
 
 // ============================================================
@@ -1811,6 +2228,7 @@ function setupVaultPanel() {
     document.getElementById('vault-save-guardians-btn')?.addEventListener('click', saveVaultGuardians);
     document.getElementById('vault-initiate-withdrawal-btn')?.addEventListener('click', requestVaultWithdrawal);
     document.getElementById('vault-execute-withdrawal-btn')?.addEventListener('click', executeVaultWithdrawal);
+    setupCooldownVaultPanel();
 }
 
 function toggleStagedUnlockEditor(enabled) {
@@ -2520,6 +2938,11 @@ function initWebSocket() {
 
 function handleWsMessage(msg) {
     switch (msg.type) {
+        case 'auto_lock_triggered':
+            showNotification('Critical Tilt Auto-Lock Initiated. 24h deposit barrier armed.', 'danger');
+            loadCooldownVaultStatus();
+            loadAutoLockHistory();
+            break;
         case 'tilt.detected':
             showNotification('Tilt signal detected. Consider taking a break.', 'warning');
             loadTrustMetrics();

@@ -1,0 +1,129 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+name: Anchor Devnet & Cooldown Smoke Test
+
+on:
+  push:
+    branches:
+      - main
+      - degen-lounge
+    paths:
+      - 'packages/cooldown-sdk/**'
+      - 'programs/cooldown/**'
+      - 'apps/api/src/routes/cooldown.ts'
+      - 'apps/web/src/app/cooldown/**'
+      - 'apps/user-dashboard/src/index.ts'
+      - 'apps/user-dashboard/public/**'
+      - 'apps/user-dashboard/tests/**'
+      - 'apps/chrome-extension/**'
+      - 'tests/e2e/extension-e2e.spec.ts'
+      - 'scripts/smoke-anchor-devnet.ts'
+      - '.github/workflows/cooldown-smoke.yml'
+  pull_request:
+    branches:
+      - main
+      - degen-lounge
+    paths:
+      - 'packages/cooldown-sdk/**'
+      - 'programs/cooldown/**'
+      - 'apps/api/src/routes/cooldown.ts'
+      - 'apps/web/src/app/cooldown/**'
+      - 'apps/user-dashboard/src/index.ts'
+      - 'apps/user-dashboard/public/**'
+      - 'apps/user-dashboard/tests/**'
+      - 'apps/chrome-extension/**'
+      - 'tests/e2e/extension-e2e.spec.ts'
+      - 'scripts/smoke-anchor-devnet.ts'
+      - '.github/workflows/cooldown-smoke.yml'
+  schedule:
+    # Daily devnet deployment health heartbeat at 07:00 UTC
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  anchor-devnet-smoke:
+    name: Verify Anchor Devnet Deployment & Contracts
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cooldown SDK
+        run: pnpm --filter @tiltcheck/cooldown-sdk build
+
+      - name: Run Anchor Devnet Smoke Test
+        run: pnpm smoke:cooldown
+        env:
+          COOLDOWN_RPC_URL: 'https://api.devnet.solana.com'
+
+  dashboard-cooldown-suite:
+    name: Verify User Dashboard Timelock & Auto-Lock Suite
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Database
+        run: pnpm --filter @tiltcheck/database build
+
+      - name: Run User Dashboard Tests
+        run: pnpm test:cooldown:dashboard
+
+  chrome-extension-e2e:
+    name: Verify Chrome Extension Packaging & Auto-Lock E2E
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Extension Package & Cooldown Pages
+        run: |
+          pnpm --filter @tiltcheck/chrome-extension package
+          pnpm build:pages
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run Extension Playwright E2E Suite
+        run: pnpm test:e2e:extension

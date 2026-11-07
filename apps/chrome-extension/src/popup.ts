@@ -15,9 +15,50 @@ import {
   saveHourlyWage,
   saveRealityHudEnabled,
   saveDepositBarrierEnabled,
+  saveReverseWithdrawalShieldEnabled,
+  saveProfitLockEnabled,
+  saveProfitLockTrailingPercent,
+  saveCashoutGoalsEnabled,
+  saveCashoutGoals,
+  saveAudioAlertsEnabled,
+  saveAudioAlertsVolume,
+  toggleGoalInList,
+  addGoalToList,
+  removeGoalFromList,
+  type CashoutGoal,
+  saveBonusTrackerConfig,
+  type BonusTrackerConfig,
+  DEFAULT_BONUS_TRACKER_CONFIG,
   toggleSlugInList,
+  saveCooldownWallet,
+  saveAutoLockOnTilt,
+  saveAutoLockThreshold,
+  saveAutoLockDuration,
 } from './popup-settings.js';
+import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
+import {
+  generateSparklineSvg,
+  determineVelocityStatus,
+  TILTCHECK_SESSION_PNL_KEY,
+  type SessionPnlState,
+  DEFAULT_SESSION_PNL_STATE,
+} from './session-velocity.js';
+import {
+  calculateGoalsProgress,
+  findRouteForHostname,
+  buildCooldownVaultUrl,
+  type CasinoCashoutRoute,
+} from './cashout-router.js';
+import {
+  TILTCHECK_CASHOUT_GOALS_KEY,
+  sanitizeCashoutGoals,
+} from './profit-lock.js';
+import {
+  TILTCHECK_STREAK_VOLATILITY_KEY,
+  DEFAULT_STREAK_VOLATILITY_STATE,
+  type StreakVolatilityState,
+} from './streak-volatility.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -324,6 +365,466 @@ function formatDuration(startMs: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Session Net PnL & Velocity Radar
+// ---------------------------------------------------------------------------
+
+function formatPnl(val: number): string {
+  if (val > 0) return `+$${val.toFixed(2)}`;
+  if (val < 0) return `-$${Math.abs(val).toFixed(2)}`;
+  return '$0.00';
+}
+
+function updateSessionRadarUI(state: SessionPnlState): void {
+  const badge = document.getElementById('radar-badge');
+  const pnlVal = document.getElementById('radar-pnl-val');
+  const velVal = document.getElementById('radar-velocity-val');
+  const sparkWrap = document.getElementById('radar-sparkline-wrap');
+  const peakEl = document.getElementById('radar-stat-peak');
+  const lowEl = document.getElementById('radar-stat-low');
+
+  if (!badge || !pnlVal || !velVal || !sparkWrap) return;
+
+  const statusInfo = determineVelocityStatus(state.velocityPerMin, state.netPnl);
+
+  // Update status badge
+  badge.className = `radar-badge radar-${statusInfo.status.toLowerCase()}`;
+  badge.textContent = statusInfo.label;
+  badge.title = statusInfo.reason;
+
+  // Update Net PnL value & color
+  pnlVal.textContent = formatPnl(state.netPnl);
+  pnlVal.className = 'radar-pnl-val ' + (state.netPnl > 0 ? 'stat-pos' : state.netPnl < 0 ? 'stat-neg' : 'stat-neu');
+
+  // Update velocity readout
+  if (Math.abs(state.velocityPerMin) < 0.01) {
+    velVal.textContent = '0.00/min';
+    velVal.style.color = 'var(--muted)';
+  } else if (state.velocityPerMin > 0) {
+    velVal.textContent = `+$${state.velocityPerMin.toFixed(2)}/min`;
+    velVal.style.color = '#17c3b2';
+  } else {
+    velVal.textContent = `-$${Math.abs(state.velocityPerMin).toFixed(2)}/min`;
+    velVal.style.color = statusInfo.color;
+  }
+
+  // Update peak & low
+  if (peakEl) peakEl.textContent = formatPnl(state.peakPnl);
+  if (lowEl) lowEl.textContent = formatPnl(state.lowestPnl);
+
+  // Render SVG sparkline
+  sparkWrap.innerHTML = generateSparklineSvg(state.samples, 328, 70);
+}
+
+function loadSessionRadar(): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { type: 'get_session_pnl_state' }, (res) => {
+        if (!chrome.runtime.lastError && res && res.success && res.state) {
+          updateSessionRadarUI(res.state);
+          return;
+        }
+        fallbackLoadSessionRadarFromStorage();
+      });
+    } else {
+      fallbackLoadSessionRadarFromStorage();
+    }
+  });
+}
+
+function fallbackLoadSessionRadarFromStorage(): void {
+  chrome.storage.local.get([TILTCHECK_SESSION_PNL_KEY], (res) => {
+    const stored = res[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+    if (stored && Array.isArray(stored.samples)) {
+      updateSessionRadarUI(stored);
+    } else {
+      updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
+    }
+  });
+}
+
+function initSessionRadarListeners(): void {
+  const resetBtn = document.getElementById('btn-reset-radar');
+  if (!resetBtn) return;
+
+  resetBtn.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId) {
+        chrome.tabs.sendMessage(tabId, { type: 'reset_session_pnl' }, () => {
+          // tab might not be a casino tab, ignore error
+        });
+      }
+      chrome.storage.local.remove([TILTCHECK_SESSION_PNL_KEY], () => {
+        updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
+        toast('Session baseline reset.');
+      });
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Cashout Goals Progress & One-Click Cashout Router
+// ---------------------------------------------------------------------------
+
+let activeCashoutRoute: CasinoCashoutRoute | null = null;
+
+function renderGoalsProgressUI(
+  goals: readonly CashoutGoal[],
+  balance: number | null,
+  netPnl: number,
+): void {
+  const container = document.getElementById('cashout-goals-progress-list');
+  if (!container) return;
+
+  const items = calculateGoalsProgress(goals, balance, netPnl);
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    const emptyEl = document.createElement('div');
+    emptyEl.style.cssText = 'color: var(--muted); font-size: 10px; padding: 6px 0;';
+    emptyEl.textContent = 'No cashout goals active. Click Edit Goals to arm one.';
+    container.appendChild(emptyEl);
+    return;
+  }
+
+  for (const item of items) {
+    const itemEl = document.createElement('div');
+    itemEl.className = 'goal-progress-item' + (item.isAchieved ? ' goal-achieved' : '');
+
+    const metricText = item.metric === 'profit' ? 'profit' : 'bal';
+    const topRow = document.createElement('div');
+    topRow.className = 'goal-row-top';
+    topRow.innerHTML = `
+      <span class="goal-name">${item.name}</span>
+      <span class="goal-stats"><strong>$${item.currentAmount.toFixed(2)}</strong> / $${item.targetAmount.toFixed(2)} (${item.percent}%)</span>
+    `;
+
+    const track = document.createElement('div');
+    track.className = 'goal-track';
+    const fill = document.createElement('div');
+    fill.className = 'goal-fill' + (item.isAchieved ? ' goal-fill-achieved' : '');
+    fill.style.width = `${Math.min(100, item.percent)}%`;
+    track.appendChild(fill);
+
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'goal-row-bottom';
+
+    const statusBadge = document.createElement('span');
+    statusBadge.className = 'goal-status-badge' + (item.isAchieved ? ' badge-achieved' : '');
+    statusBadge.textContent = item.isAchieved
+      ? '100% FUNDED - CASHOUT NOW'
+      : `${item.metric.toUpperCase()} TARGET (${metricText})`;
+
+    const actionWrap = document.createElement('div');
+    actionWrap.style.cssText = 'display: flex; gap: 4px; align-items: center;';
+
+    if (item.linkUrl) {
+      const link = document.createElement('a');
+      link.href = item.linkUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'goal-action-btn';
+      link.textContent = 'Pay / Buy ->';
+      actionWrap.appendChild(link);
+    }
+
+    if (item.isAchieved) {
+      const vaultBtn = document.createElement('button');
+      vaultBtn.type = 'button';
+      vaultBtn.className = 'goal-action-btn';
+      vaultBtn.style.background = '#fbbf24';
+      vaultBtn.textContent = 'Vault ->';
+      vaultBtn.title = 'Vault target funds into casino safe';
+      vaultBtn.addEventListener('click', () => {
+        triggerActiveTabAutoVault(item.targetAmount);
+      });
+      actionWrap.appendChild(vaultBtn);
+
+      const lockBtn = document.createElement('button');
+      lockBtn.type = 'button';
+      lockBtn.className = 'goal-action-btn';
+      lockBtn.textContent = 'Cashier ->';
+      lockBtn.title = 'Open cashier to lock in this goal';
+      lockBtn.addEventListener('click', () => {
+        triggerActiveTabCashout();
+      });
+      actionWrap.appendChild(lockBtn);
+
+      const solanaLockBtn = document.createElement('button');
+      solanaLockBtn.type = 'button';
+      solanaLockBtn.className = 'goal-action-btn';
+      solanaLockBtn.style.background = '#17c3b2';
+      solanaLockBtn.style.color = '#000000';
+      solanaLockBtn.textContent = 'Lock ->';
+      solanaLockBtn.title = 'Lock goal funds on Solana devnet via Cooldown Vault';
+      solanaLockBtn.addEventListener('click', () => {
+        triggerActiveTabCooldownVault(item.targetAmount);
+      });
+      actionWrap.appendChild(solanaLockBtn);
+    }
+
+    bottomRow.appendChild(statusBadge);
+    bottomRow.appendChild(actionWrap);
+
+    itemEl.appendChild(topRow);
+    itemEl.appendChild(track);
+    itemEl.appendChild(bottomRow);
+
+    container.appendChild(itemEl);
+  }
+}
+
+function loadCashoutGoalsProgress(): void {
+  chrome.storage.local.get(
+    [TILTCHECK_CASHOUT_GOALS_KEY, TILTCHECK_SESSION_PNL_KEY],
+    (stored) => {
+      const goals = sanitizeCashoutGoals(stored[TILTCHECK_CASHOUT_GOALS_KEY]);
+      const pnlState = stored[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+      const balance = pnlState?.currentBalance ?? null;
+      const netPnl = pnlState?.netPnl ?? 0;
+
+      renderGoalsProgressUI(goals, balance, netPnl);
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        const labelEl = document.getElementById('quick-cashout-label');
+        if (!labelEl) return;
+
+        if (tab?.id) {
+          chrome.tabs.sendMessage(tab.id, { type: 'get_cashout_router_state' }, (res) => {
+            if (!chrome.runtime.lastError && res && res.success && res.info) {
+              const name = res.info.casinoName;
+              if (name) {
+                labelEl.textContent = `${res.info.buttonLabel} (${name}) ->`;
+                return;
+              }
+            }
+
+            if (tab?.url) {
+              try {
+                const parsedUrl = new URL(tab.url);
+                const route = findRouteForHostname(parsedUrl.hostname);
+                if (route) {
+                  activeCashoutRoute = route;
+                  labelEl.textContent = `${route.buttonLabel} (${route.name}) ->`;
+                  return;
+                }
+              } catch {
+                // Ignore URL parsing errors
+              }
+            }
+            labelEl.textContent = 'One-Click Cashout ->';
+          });
+        }
+      });
+    }
+  );
+}
+
+function triggerActiveTabCashout(): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'trigger_cashout_navigation' }, (res) => {
+        if (!chrome.runtime.lastError && res && res.navigated) {
+          toast(`Navigating to cashier (${res.method})...`);
+          return;
+        }
+
+        if (tab.url) {
+          try {
+            const parsed = new URL(tab.url);
+            const route = findRouteForHostname(parsed.hostname);
+            if (route?.cashierUrl) {
+              chrome.tabs.update(tab.id, { url: route.cashierUrl });
+              toast(`Redirecting to ${route.name} cashier...`);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+        }
+        toast('No active casino detected in current tab.', true);
+      });
+    }
+  });
+}
+
+function triggerActiveTabAutoVault(amount: number): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'trigger_auto_vault', amount }, (res) => {
+        if (!chrome.runtime.lastError && res && res.vaulted) {
+          toast(`Vaulted $${amount.toFixed(2)} to ${res.casinoName} safe!`);
+          loadSessionRadar();
+          loadCashoutGoalsProgress();
+          return;
+        }
+
+        toast(res?.error || 'Operator safe not detected. Opening cashier...', true);
+        triggerActiveTabCashout();
+      });
+    }
+  });
+}
+
+function triggerActiveTabCooldownVault(amount?: number): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    let casinoName = '';
+    if (tab?.url) {
+      try {
+        const parsed = new URL(tab.url);
+        const route = findRouteForHostname(parsed.hostname);
+        casinoName = route?.name || parsed.hostname.replace(/^www\./, '');
+      } catch {
+        // ignore
+      }
+    }
+
+    const targetUrl = buildCooldownVaultUrl({
+      casino: casinoName || undefined,
+      amount: typeof amount === 'number' && amount > 0 ? amount : undefined,
+    });
+
+    chrome.tabs.create({ url: targetUrl });
+    toast('Opening on-chain Cooldown Vault...');
+  });
+}
+
+function initCashoutRouterListeners(): void {
+  const cashoutBtn = document.getElementById('btn-quick-cashout');
+  if (cashoutBtn) {
+    cashoutBtn.addEventListener('click', () => {
+      triggerActiveTabCashout();
+    });
+  }
+
+  const vaultLockBtn = document.getElementById('btn-vault-lock');
+  if (vaultLockBtn) {
+    vaultLockBtn.addEventListener('click', () => {
+      chrome.storage.local.get([TILTCHECK_SESSION_PNL_KEY], (stored) => {
+        const pnlState = stored[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+        const amount = pnlState?.netPnl && pnlState.netPnl > 0 ? pnlState.netPnl : undefined;
+        triggerActiveTabCooldownVault(amount);
+      });
+    });
+  }
+
+  const editGoalsBtn = document.getElementById('btn-config-goals');
+  if (editGoalsBtn) {
+    editGoalsBtn.addEventListener('click', () => {
+      activateTab('block');
+      const panel = document.getElementById('cashout-goals-panel');
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Session Win-Streak & Cold-Run Volatility Tracker
+// ---------------------------------------------------------------------------
+
+function updateStreakVolatilityUI(state: StreakVolatilityState): void {
+  const badge = document.getElementById('streak-badge');
+  const currentVal = document.getElementById('streak-current-val');
+  const hitRateEl = document.getElementById('streak-hit-rate');
+  const maxDeadEl = document.getElementById('streak-max-dead');
+  const statusMsgEl = document.getElementById('streak-status-msg');
+
+  if (!badge || !currentVal || !hitRateEl || !maxDeadEl) return;
+
+  // Status badge & styling
+  if (state.isDueTrapActive) {
+    badge.className = 'streak-badge streak-trap';
+    badge.textContent = 'FALLACY TRAP';
+  } else if (state.streakAlertLevel === 'CRITICAL_COLD') {
+    badge.className = 'streak-badge streak-trap';
+    badge.textContent = 'EXTREME COLD';
+  } else if (state.consecutiveDeadSpins >= 10 || state.currentStreakType === 'COLD') {
+    badge.className = 'streak-badge streak-cold';
+    badge.textContent = `${state.consecutiveDeadSpins} DEAD SPINS`;
+  } else if (state.consecutiveWins >= 3 || state.currentStreakType === 'HOT') {
+    badge.className = 'streak-badge streak-hot';
+    badge.textContent = `HEATER (${state.consecutiveWins} W)`;
+  } else {
+    badge.className = 'streak-badge streak-neutral';
+    badge.textContent = state.totalSpins > 0 ? 'STEADY PACING' : 'TRACKING ACTIVE';
+  }
+
+  // Values
+  if (state.currentStreakType === 'COLD') {
+    currentVal.textContent = `${state.consecutiveDeadSpins} Dead Spins`;
+    currentVal.style.color = '#f97316';
+  } else if (state.currentStreakType === 'HOT') {
+    currentVal.textContent = `${state.consecutiveWins} Wins`;
+    currentVal.style.color = '#17c3b2';
+  } else {
+    currentVal.textContent = '0 Dead Spins';
+    currentVal.style.color = 'var(--text)';
+  }
+
+  hitRateEl.textContent = `${state.hitRate.toFixed(1)}%`;
+  maxDeadEl.textContent = `${state.maxDeadSpins} Spins`;
+
+  if (statusMsgEl) {
+    statusMsgEl.textContent = state.alertMessage || 'Pacing steady. Volatility telemetry normal.';
+  }
+}
+
+function loadStreakVolatility(): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (tabId) {
+      chrome.tabs.sendMessage(tabId, { type: 'get_streak_volatility_state' }, (res) => {
+        if (!chrome.runtime.lastError && res && typeof res.consecutiveDeadSpins === 'number') {
+          updateStreakVolatilityUI(res);
+          return;
+        }
+        fallbackLoadStreakVolatilityFromStorage();
+      });
+    } else {
+      fallbackLoadStreakVolatilityFromStorage();
+    }
+  });
+}
+
+function fallbackLoadStreakVolatilityFromStorage(): void {
+  chrome.storage.local.get([TILTCHECK_STREAK_VOLATILITY_KEY], (res) => {
+    const stored = res[TILTCHECK_STREAK_VOLATILITY_KEY] as StreakVolatilityState | undefined;
+    if (stored && typeof stored.consecutiveDeadSpins === 'number') {
+      updateStreakVolatilityUI(stored);
+    } else {
+      updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
+    }
+  });
+}
+
+function initStreakVolatilityListeners(): void {
+  const resetBtn = document.getElementById('btn-reset-streak');
+  if (!resetBtn) return;
+
+  resetBtn.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId) {
+        chrome.tabs.sendMessage(tabId, { type: 'reset_streak_volatility' }, () => {
+          // tab might not be a casino tab, ignore error
+        });
+      }
+      chrome.storage.local.remove([TILTCHECK_STREAK_VOLATILITY_KEY], () => {
+        updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
+        toast('Streak baseline reset.');
+      });
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Exclusions
 // ---------------------------------------------------------------------------
 
@@ -468,6 +969,95 @@ function renderSlugRegistry(): void {
   });
 }
 
+let currentGoals: CashoutGoal[] = [];
+let currentBonusConfig: BonusTrackerConfig = { ...DEFAULT_BONUS_TRACKER_CONFIG };
+
+function renderGoalsList(): void {
+  const container = document.getElementById('cashout-goals-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (currentGoals.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.color = 'rgba(160, 175, 190, 0.6)';
+    empty.style.fontSize = '11px';
+    empty.textContent = 'No cashout goals set. Add one below.';
+    container.appendChild(empty);
+    return;
+  }
+
+  for (const goal of currentGoals) {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.justifyContent = 'space-between';
+    row.style.padding = '6px 8px';
+    row.style.background = 'rgba(255, 255, 255, 0.04)';
+    row.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+    row.style.borderRadius = '4px';
+    row.style.fontSize = '12px';
+
+    const left = document.createElement('label');
+    left.style.display = 'flex';
+    left.style.alignItems = 'center';
+    left.style.gap = '6px';
+    left.style.cursor = 'pointer';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = goal.enabled;
+    checkbox.addEventListener('change', async () => {
+      currentGoals = toggleGoalInList(currentGoals, goal.id);
+      await saveCashoutGoals(currentGoals);
+      renderGoalsList();
+    });
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = goal.name;
+    if (!goal.enabled) {
+      nameSpan.style.opacity = '0.4';
+      nameSpan.style.textDecoration = 'line-through';
+    }
+
+    left.appendChild(checkbox);
+    left.appendChild(nameSpan);
+
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.alignItems = 'center';
+    right.style.gap = '8px';
+
+    const badge = document.createElement('span');
+    badge.style.fontFamily = 'var(--mono)';
+    badge.style.fontSize = '11px';
+    badge.style.fontWeight = '700';
+    badge.style.color = '#17c3b2';
+    badge.textContent = goal.metric === 'profit' ? '+' + '$' + goal.targetAmount : '$' + goal.targetAmount;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = 'x';
+    removeBtn.style.background = 'transparent';
+    removeBtn.style.border = 'none';
+    removeBtn.style.color = 'rgba(160, 175, 190, 0.6)';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.fontSize = '12px';
+    removeBtn.style.padding = '0 4px';
+    removeBtn.addEventListener('click', async () => {
+      currentGoals = removeGoalFromList(currentGoals, goal.id);
+      await saveCashoutGoals(currentGoals);
+      renderGoalsList();
+    });
+
+    right.appendChild(badge);
+    right.appendChild(removeBtn);
+
+    row.appendChild(left);
+    row.appendChild(right);
+    container.appendChild(row);
+  }
+}
+
 async function refreshGuardSettingsUi(): Promise<void> {
   const touch = await loadTouchGrassUiState();
   $<HTMLInputElement>('opt-in-checkbox').checked = touch.optIn;
@@ -489,6 +1079,51 @@ async function refreshGuardSettingsUi(): Promise<void> {
     depositToggle.checked = touch.depositBarrierEnabled;
   }
 
+  const reverseShieldToggle = document.getElementById('reverse-withdrawal-shield-toggle') as HTMLInputElement | null;
+  if (reverseShieldToggle) {
+    reverseShieldToggle.checked = touch.reverseWithdrawalShieldEnabled;
+  }
+
+  const profitLockToggle = document.getElementById('profit-lock-toggle') as HTMLInputElement | null;
+  if (profitLockToggle) {
+    profitLockToggle.checked = touch.profitLockEnabled;
+  }
+
+  const trailingSelect = document.getElementById('trailing-percent-select') as HTMLSelectElement | null;
+  if (trailingSelect) {
+    trailingSelect.value = String(touch.trailingPercent);
+  }
+
+  const goalsToggle = document.getElementById('cashout-goals-toggle') as HTMLInputElement | null;
+  if (goalsToggle) {
+    goalsToggle.checked = touch.goalsEnabled;
+  }
+
+  currentGoals = [...(touch.goals || [])];
+  renderGoalsList();
+
+  currentBonusConfig = touch.bonusConfig ? { ...touch.bonusConfig } : { ...DEFAULT_BONUS_TRACKER_CONFIG };
+  const bonusToggle = document.getElementById('bonus-tracker-toggle') as HTMLInputElement | null;
+  if (bonusToggle) {
+    bonusToggle.checked = currentBonusConfig.active;
+  }
+  const bonusNameInput = document.getElementById('bonus-name-input') as HTMLInputElement | null;
+  if (bonusNameInput) {
+    bonusNameInput.value = currentBonusConfig.bonusName;
+  }
+  const bonusTargetInput = document.getElementById('bonus-target-wager') as HTMLInputElement | null;
+  if (bonusTargetInput) {
+    bonusTargetInput.value = String(currentBonusConfig.targetWager);
+  }
+  const bonusMaxBetInput = document.getElementById('bonus-max-bet') as HTMLInputElement | null;
+  if (bonusMaxBetInput) {
+    bonusMaxBetInput.value = String(currentBonusConfig.maxBetLimit);
+  }
+  const bonusBlockToggle = document.getElementById('bonus-block-exceeded-toggle') as HTMLInputElement | null;
+  if (bonusBlockToggle) {
+    bonusBlockToggle.checked = currentBonusConfig.blockExceededBets;
+  }
+
   const cooldownStatus = document.getElementById('deposit-cooldown-status');
   if (cooldownStatus) {
     const isCooldown = touch.cooldownActiveUntil > Date.now();
@@ -496,6 +1131,30 @@ async function refreshGuardSettingsUi(): Promise<void> {
     if (isCooldown) {
       const remainingMins = Math.max(1, Math.ceil((touch.cooldownActiveUntil - Date.now()) / 60000));
       cooldownStatus.textContent = `Voluntary lock engaged (${remainingMins}m remaining).`;
+    }
+  }
+
+  const cooldownWalletInput = document.getElementById('cooldown-wallet-input') as HTMLInputElement | null;
+  if (cooldownWalletInput && touch.cooldownWallet) {
+    cooldownWalletInput.value = touch.cooldownWallet;
+  }
+
+  const autoLockToggle = document.getElementById('auto-lock-on-tilt-toggle') as HTMLInputElement | null;
+  if (autoLockToggle) {
+    autoLockToggle.checked = touch.autoLockOnTilt;
+  }
+
+  const audioToggle = document.getElementById('audio-alerts-toggle') as HTMLInputElement | null;
+  if (audioToggle) {
+    audioToggle.checked = touch.audioAlertsEnabled;
+  }
+
+  const audioVolumeSelect = document.getElementById('audio-volume-select') as HTMLSelectElement | null;
+  if (audioVolumeSelect) {
+    const formatted = touch.audioAlertsVolume.toFixed(2);
+    audioVolumeSelect.value = formatted;
+    if (!audioVolumeSelect.value) {
+      audioVolumeSelect.value = '0.25';
     }
   }
 
@@ -546,12 +1205,190 @@ function initGuardSettingsPanel(): void {
     });
   }
 
+  const btnSyncCooldown = document.getElementById('btn-sync-cooldown');
+  const cooldownWalletField = document.getElementById('cooldown-wallet-input') as HTMLInputElement | null;
+  if (btnSyncCooldown && cooldownWalletField) {
+    btnSyncCooldown.addEventListener('click', async () => {
+      const wallet = cooldownWalletField.value.trim();
+      if (!wallet || wallet.length < 32 || wallet.length > 44) {
+        toast('Enter a valid Solana address (32-44 characters).');
+        return;
+      }
+      btnSyncCooldown.textContent = 'Syncing...';
+      try {
+        await saveCooldownWallet(wallet);
+        chrome.runtime?.sendMessage?.({ type: 'sync_cooldown_wallet', wallet }, () => {
+          btnSyncCooldown.textContent = 'Synced';
+          toast('On-chain cooldown lock synced.');
+          setTimeout(() => {
+            btnSyncCooldown.textContent = 'Sync';
+          }, 2000);
+        });
+      } catch {
+        btnSyncCooldown.textContent = 'Sync';
+      }
+    });
+  }
+
+  const autoLockToggleInput = document.getElementById('auto-lock-on-tilt-toggle') as HTMLInputElement | null;
+  if (autoLockToggleInput) {
+    autoLockToggleInput.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveAutoLockOnTilt(enabled);
+      toast(enabled ? 'Tilt auto-lock armed.' : 'Tilt auto-lock disabled.');
+    });
+  }
+
+  const reverseShieldToggle = document.getElementById('reverse-withdrawal-shield-toggle') as HTMLInputElement | null;
+  if (reverseShieldToggle) {
+    reverseShieldToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveReverseWithdrawalShieldEnabled(enabled);
+      toast(enabled ? 'Reverse-withdrawal shield armed.' : 'Reverse-withdrawal shield disabled.');
+    });
+  }
+
+  const profitLockToggle = document.getElementById('profit-lock-toggle') as HTMLInputElement | null;
+  if (profitLockToggle) {
+    profitLockToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveProfitLockEnabled(enabled);
+      toast(enabled ? 'Profit-lock ratchet armed.' : 'Profit-lock ratchet disabled.');
+    });
+  }
+
+  const trailingSelect = document.getElementById('trailing-percent-select') as HTMLSelectElement | null;
+  if (trailingSelect) {
+    trailingSelect.addEventListener('change', async (e) => {
+      const val = Number((e.target as HTMLSelectElement).value);
+      await saveProfitLockTrailingPercent(val);
+      toast('Trailing floor set to ' + val + '% of peak profit.');
+    });
+  }
+
+  const goalsToggle = document.getElementById('cashout-goals-toggle') as HTMLInputElement | null;
+  if (goalsToggle) {
+    goalsToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveCashoutGoalsEnabled(enabled);
+      toast(enabled ? 'Reality cashout goals armed.' : 'Reality cashout goals disabled.');
+    });
+  }
+
+  const addGoalBtn = document.getElementById('add-goal-btn');
+  if (addGoalBtn) {
+    addGoalBtn.addEventListener('click', async () => {
+      const nameInput = document.getElementById('new-goal-name') as HTMLInputElement | null;
+      const amountInput = document.getElementById('new-goal-amount') as HTMLInputElement | null;
+      const name = nameInput?.value.trim() || '';
+      const amount = Number(amountInput?.value);
+
+      if (!name) {
+        toast('Enter a bill or item name.');
+        return;
+      }
+      if (!amount || amount <= 0) {
+        toast('Enter a valid dollar amount.');
+        return;
+      }
+
+      const newGoal: CashoutGoal = {
+        id: 'custom_' + Date.now(),
+        name,
+        targetAmount: Math.round(amount * 100) / 100,
+        metric: 'balance',
+        enabled: true,
+      };
+
+      currentGoals = addGoalToList(currentGoals, newGoal);
+      await saveCashoutGoals(currentGoals);
+      renderGoalsList();
+
+      if (nameInput) nameInput.value = '';
+      if (amountInput) amountInput.value = '';
+      toast('Goal "' + name + '" added.');
+    });
+  }
+
+  const bonusToggle = document.getElementById('bonus-tracker-toggle') as HTMLInputElement | null;
+  if (bonusToggle) {
+    bonusToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      currentBonusConfig.active = enabled;
+      await saveBonusTrackerConfig(currentBonusConfig);
+      toast(enabled ? 'Bonus playthrough tracker armed.' : 'Bonus playthrough tracker off.');
+    });
+  }
+
+  const bonusSaveBtn = document.getElementById('bonus-save-btn');
+  if (bonusSaveBtn) {
+    bonusSaveBtn.addEventListener('click', async () => {
+      const name = (document.getElementById('bonus-name-input') as HTMLInputElement)?.value.trim() || 'Deposit Bonus';
+      const target = Number((document.getElementById('bonus-target-wager') as HTMLInputElement)?.value) || 1000;
+      const maxBet = Number((document.getElementById('bonus-max-bet') as HTMLInputElement)?.value) || 5;
+      const block = (document.getElementById('bonus-block-exceeded-toggle') as HTMLInputElement)?.checked ?? true;
+
+      currentBonusConfig = {
+        ...currentBonusConfig,
+        active: true,
+        bonusName: name,
+        targetWager: Math.max(10, target),
+        maxBetLimit: Math.max(0.5, maxBet),
+        blockExceededBets: block,
+      };
+
+      if (bonusToggle) bonusToggle.checked = true;
+      await saveBonusTrackerConfig(currentBonusConfig);
+      toast('Bonus tracker armed (' + name + ').');
+    });
+  }
+
+  const bonusResetBtn = document.getElementById('bonus-reset-btn');
+  if (bonusResetBtn) {
+    bonusResetBtn.addEventListener('click', async () => {
+      currentBonusConfig.currentWagered = 0;
+      await saveBonusTrackerConfig(currentBonusConfig);
+      toast('Bonus wagering progress reset to $0.00.');
+    });
+  }
+
   const riskSlider = document.getElementById('risk-threshold-slider') as HTMLInputElement | null;
   if (riskSlider) {
     riskSlider.addEventListener('input', async (e) => {
       const value = Number((e.target as HTMLInputElement).value);
       syncRiskSliderUi(value);
       await saveRiskThreshold(value);
+    });
+  }
+
+  const audioToggle = document.getElementById('audio-alerts-toggle') as HTMLInputElement | null;
+  if (audioToggle) {
+    audioToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveAudioAlertsEnabled(enabled);
+      if (enabled) {
+        playAudioCue('click');
+      }
+      toast(enabled ? 'Spotter sound alerts enabled.' : 'Spotter sound alerts muted.');
+    });
+  }
+
+  const audioVolumeSelect = document.getElementById('audio-volume-select') as HTMLSelectElement | null;
+  if (audioVolumeSelect) {
+    audioVolumeSelect.addEventListener('change', async (e) => {
+      const vol = Number((e.target as HTMLSelectElement).value);
+      await saveAudioAlertsVolume(vol);
+      playAudioCue('heater_alert', vol);
+      toast('Alert volume set to ' + Math.round(vol * 100) + '%.');
+    });
+  }
+
+  const btnTestSound = document.getElementById('btn-test-sound');
+  if (btnTestSound) {
+    btnTestSound.addEventListener('click', () => {
+      const vol = Number(audioVolumeSelect?.value ?? 0.25);
+      playAudioCue('heater_alert', vol);
+      toast('Playing test audio cue.');
     });
   }
 
@@ -614,10 +1451,30 @@ function initGuardSettingsPanel(): void {
     const keys = Object.keys(changes);
     if (
       keys.some((k) =>
-        k.startsWith('tiltcheck_') && k !== 'activityFeed'
+        k.startsWith('tiltcheck_') && k !== 'activityFeed' && k !== TILTCHECK_SESSION_PNL_KEY
       )
     ) {
       void refreshGuardSettingsUi();
+    }
+    if (changes[TILTCHECK_SESSION_PNL_KEY]) {
+      const newVal = changes[TILTCHECK_SESSION_PNL_KEY].newValue as SessionPnlState | undefined;
+      if (newVal) {
+        updateSessionRadarUI(newVal);
+      } else {
+        updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
+      }
+      loadCashoutGoalsProgress();
+    }
+    if (changes[TILTCHECK_CASHOUT_GOALS_KEY]) {
+      loadCashoutGoalsProgress();
+    }
+    if (changes[TILTCHECK_STREAK_VOLATILITY_KEY]) {
+      const newVal = changes[TILTCHECK_STREAK_VOLATILITY_KEY].newValue as StreakVolatilityState | undefined;
+      if (newVal) {
+        updateStreakVolatilityUI(newVal);
+      } else {
+        updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
+      }
     }
   });
 }
@@ -632,6 +1489,11 @@ function activateTab(id: string) {
   document.querySelector(`.tab[data-tab="${id}"]`)!.classList.add('active');
   $(`panel-${id}`).classList.add('active');
 
+  if (id === 'status') {
+    loadSessionRadar();
+    loadCashoutGoalsProgress();
+    loadStreakVolatility();
+  }
   if (id === 'block') loadExclusions();
   if (id === 'vault') loadVaultRules();
 }
@@ -790,6 +1652,12 @@ async function init() {
   });
 
   initGuardSettingsPanel();
+  initSessionRadarListeners();
+  initCashoutRouterListeners();
+  initStreakVolatilityListeners();
+  loadSessionRadar();
+  loadCashoutGoalsProgress();
+  loadStreakVolatility();
 
   // Vault listeners
   initVaultListeners();

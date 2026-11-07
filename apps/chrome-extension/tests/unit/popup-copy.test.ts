@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,5 +38,46 @@ describe('popup guest-first copy', () => {
     expect(popupHtml).toContain('ncpgambling.org');
     expect(popupHtml).toContain('1-800-GAMBLER');
     expect(popupHtml).toContain('gamstop.co.uk');
+  });
+
+  it('renders Session Velocity Radar card and wires popup updates', () => {
+    expect(popupHtml).toContain('id="session-radar-card"');
+    expect(popupHtml).toContain('id="radar-sparkline-wrap"');
+    expect(popupHtml).toContain('id="radar-badge"');
+    expect(popupHtml).toContain('id="radar-velocity-val"');
+    expect(popupHtml).toContain('id="btn-reset-radar"');
+
+    expect(popupTs).toContain('generateSparklineSvg');
+    expect(popupTs).toContain('determineVelocityStatus');
+    expect(popupTs).toContain('loadSessionRadar');
+    expect(popupTs).toContain('updateSessionRadarUI');
+  });
+
+  it('renders Smart Cashout Goals Progress Card and One-Click Cashout button', () => {
+    expect(popupHtml).toContain('id="cashout-goals-progress-card"');
+    expect(popupHtml).toContain('id="cashout-goals-progress-list"');
+    expect(popupHtml).toContain('id="btn-quick-cashout"');
+    expect(popupHtml).toContain('id="quick-cashout-label"');
+    expect(popupHtml).toContain('id="btn-config-goals"');
+
+    expect(popupTs).toContain('calculateGoalsProgress');
+    expect(popupTs).toContain('loadCashoutGoalsProgress');
+    expect(popupTs).toContain('initCashoutRouterListeners');
+    expect(popupTs).toContain('triggerActiveTabCashout');
+    expect(popupTs).toContain('triggerActiveTabAutoVault');
+  });
+
+  it('renders Session Win-Streak & Volatility Spotter card and wires telemetry', () => {
+    expect(popupHtml).toContain('id="streak-volatility-card"');
+    expect(popupHtml).toContain('id="streak-badge"');
+    expect(popupHtml).toContain('id="streak-current-val"');
+    expect(popupHtml).toContain('id="streak-hit-rate"');
+    expect(popupHtml).toContain('id="streak-max-dead"');
+    expect(popupHtml).toContain('id="btn-reset-streak"');
+
+    expect(popupTs).toContain('TILTCHECK_STREAK_VOLATILITY_KEY');
+    expect(popupTs).toContain('updateStreakVolatilityUI');
+    expect(popupTs).toContain('loadStreakVolatility');
+    expect(popupTs).toContain('initStreakVolatilityListeners');
   });
 });

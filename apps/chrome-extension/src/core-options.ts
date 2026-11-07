@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Core circuit-breaker settings (chrome.storage.local).
@@ -6,6 +6,17 @@
  */
 
 import { TOUCH_GRASS_DURATION_MS } from './touch-grass-timeout.js';
+import {
+  DEFAULT_BONUS_TRACKER_CONFIG,
+  type BonusTrackerConfig,
+  sanitizeBonusConfig,
+  TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
+} from './bonus-tracker.js';
+import {
+  DEFAULT_CASHOUT_GOALS,
+  type CashoutGoal,
+  sanitizeCashoutGoals,
+} from './profit-lock.js';
 
 export const TILTCHECK_RISK_THRESHOLD_KEY = 'tiltcheck_risk_threshold';
 export const TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY = 'tiltcheck_touch_grass_duration_ms';
@@ -19,7 +30,22 @@ export const TILTCHECK_HOURLY_WAGE_KEY = 'tiltcheck_hourly_wage';
 export const TILTCHECK_REALITY_HUD_ENABLED_KEY = 'tiltcheck_reality_hud_enabled';
 export const TILTCHECK_REALITY_THRESHOLD_HOURS_KEY = 'tiltcheck_reality_threshold_hours';
 export const TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY = 'tiltcheck_deposit_barrier_enabled';
+export const TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY = 'tiltcheck_reverse_withdrawal_shield_enabled';
+export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
+export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
+export const TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY = 'tiltcheck_profit_lock_min_profit';
+export const TILTCHECK_CASHOUT_GOALS_ENABLED_KEY = 'tiltcheck_cashout_goals_enabled';
+export const TILTCHECK_CASHOUT_GOALS_KEY = 'tiltcheck_cashout_goals';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+export const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
+export const TILTCHECK_COOLDOWN_SOURCE_KEY = 'tiltcheck_cooldown_source';
+export const TILTCHECK_AUTO_LOCK_ON_TILT_KEY = 'tiltcheck_auto_lock_on_tilt';
+export const TILTCHECK_AUTO_LOCK_THRESHOLD_KEY = 'tiltcheck_auto_lock_threshold';
+export const TILTCHECK_AUTO_LOCK_DURATION_KEY = 'tiltcheck_auto_lock_duration';
+export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enabled';
+export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
+export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
+export type { BonusTrackerConfig };
 
 export type RiskProfile = 'conservative' | 'moderate' | 'degen';
 
@@ -42,7 +68,21 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_REALITY_HUD_ENABLED_KEY,
   TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
   TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+  TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY,
+  TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
+  TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
+  TILTCHECK_CASHOUT_GOALS_KEY,
+  TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_COOLDOWN_WALLET_KEY,
+  TILTCHECK_COOLDOWN_SOURCE_KEY,
+  TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
+  TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
+  TILTCHECK_AUTO_LOCK_DURATION_KEY,
+  TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
+  TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
 ] as const;
 
 export function normalizeRiskProfile(value: unknown, legacyRiskLevel?: unknown): RiskProfile {
@@ -72,6 +112,21 @@ export const DEFAULT_REALITY_THRESHOLD_HOURS = 2;
 export const MIN_REALITY_THRESHOLD_HOURS = 0.5;
 export const MAX_REALITY_THRESHOLD_HOURS = 24;
 export const DEFAULT_DEPOSIT_BARRIER_ENABLED = true;
+export const DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED = true;
+export const DEFAULT_PROFIT_LOCK_ENABLED = true;
+export const DEFAULT_TRAILING_PERCENT = 50;
+export const DEFAULT_MIN_PROFIT = 50;
+export const DEFAULT_CASHOUT_GOALS_ENABLED = true;
+export const DEFAULT_AUDIO_ALERTS_ENABLED = true;
+export const DEFAULT_AUDIO_ALERTS_VOLUME = 0.25;
+
+export const DEFAULT_AUTO_LOCK_ON_TILT = true;
+export const DEFAULT_AUTO_LOCK_THRESHOLD = 75;
+export const DEFAULT_AUTO_LOCK_DURATION = 86400;
+export const MIN_AUTO_LOCK_THRESHOLD = 50;
+export const MAX_AUTO_LOCK_THRESHOLD = 95;
+export const MIN_AUTO_LOCK_DURATION = 3600;
+export const MAX_AUTO_LOCK_DURATION = 2592000;
 
 const MIN_RISK_THRESHOLD = 50;
 const MAX_RISK_THRESHOLD = 100;
@@ -91,7 +146,21 @@ export interface CoreCircuitBreakerOptions {
   realityHudEnabled: boolean;
   realityThresholdHours: number;
   depositBarrierEnabled: boolean;
+  reverseWithdrawalShieldEnabled: boolean;
+  profitLockEnabled: boolean;
+  trailingPercent: number;
+  minProfit: number;
+  goalsEnabled: boolean;
+  goals: CashoutGoal[];
+  bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
+  cooldownWallet: string | null;
+  cooldownSource: string | null;
+  autoLockOnTilt: boolean;
+  autoLockThreshold: number;
+  autoLockDuration: number;
+  audioAlertsEnabled: boolean;
+  audioAlertsVolume: number;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
@@ -121,7 +190,21 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_REALITY_HUD_ENABLED_KEY,
       TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
       TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+      TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
+      TILTCHECK_PROFIT_LOCK_ENABLED_KEY,
+      TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY,
+      TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
+      TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
+      TILTCHECK_CASHOUT_GOALS_KEY,
+      TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
       TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+      TILTCHECK_COOLDOWN_WALLET_KEY,
+      TILTCHECK_COOLDOWN_SOURCE_KEY,
+      TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
+      TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
+      TILTCHECK_AUTO_LOCK_DURATION_KEY,
+      TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
+      TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
       'riskLevel',
     ]);
 
@@ -163,9 +246,70 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
     const depositBarrierOpt = stored[TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY];
     const depositBarrierEnabled = depositBarrierOpt === undefined ? DEFAULT_DEPOSIT_BARRIER_ENABLED : depositBarrierOpt === true;
 
+    const reverseWithdrawalShieldOpt = stored[TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY];
+    const reverseWithdrawalShieldEnabled =
+      reverseWithdrawalShieldOpt === undefined
+        ? DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED
+        : reverseWithdrawalShieldOpt === true;
+
+    const profitLockOpt = stored[TILTCHECK_PROFIT_LOCK_ENABLED_KEY];
+    const profitLockEnabled = profitLockOpt === undefined ? DEFAULT_PROFIT_LOCK_ENABLED : profitLockOpt === true;
+
+    const trailingPercent = clampInt(
+      stored[TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY],
+      10,
+      90,
+      DEFAULT_TRAILING_PERCENT
+    );
+
+    const minProfit = clampInt(
+      stored[TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY],
+      10,
+      10000,
+      DEFAULT_MIN_PROFIT
+    );
+
+    const goalsOpt = stored[TILTCHECK_CASHOUT_GOALS_ENABLED_KEY];
+    const goalsEnabled = goalsOpt === undefined ? DEFAULT_CASHOUT_GOALS_ENABLED : goalsOpt === true;
+
+    const goals = sanitizeCashoutGoals(stored[TILTCHECK_CASHOUT_GOALS_KEY]);
+    const bonusConfig = sanitizeBonusConfig(stored[TILTCHECK_BONUS_TRACKER_CONFIG_KEY]);
+
     const cooldownActiveUntil = typeof stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] === 'number' && Number.isFinite(stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       ? Math.max(0, stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY])
       : 0;
+
+    const rawWallet = stored[TILTCHECK_COOLDOWN_WALLET_KEY];
+    const cooldownWallet = typeof rawWallet === 'string' && rawWallet.trim().length >= 32 && rawWallet.trim().length <= 44 ? rawWallet.trim() : null;
+
+    const rawSource = stored[TILTCHECK_COOLDOWN_SOURCE_KEY];
+    const cooldownSource = typeof rawSource === 'string' && rawSource.trim().length > 0 ? rawSource.trim() : null;
+
+    const autoLockOnTiltOpt = stored[TILTCHECK_AUTO_LOCK_ON_TILT_KEY];
+    const autoLockOnTilt = autoLockOnTiltOpt === undefined ? DEFAULT_AUTO_LOCK_ON_TILT : autoLockOnTiltOpt === true;
+
+    const autoLockThreshold = clampInt(
+      stored[TILTCHECK_AUTO_LOCK_THRESHOLD_KEY],
+      MIN_AUTO_LOCK_THRESHOLD,
+      MAX_AUTO_LOCK_THRESHOLD,
+      DEFAULT_AUTO_LOCK_THRESHOLD
+    );
+
+    const autoLockDuration = clampInt(
+      stored[TILTCHECK_AUTO_LOCK_DURATION_KEY],
+      MIN_AUTO_LOCK_DURATION,
+      MAX_AUTO_LOCK_DURATION,
+      DEFAULT_AUTO_LOCK_DURATION
+    );
+
+    const audioAlertsEnabled = typeof stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY] === 'boolean'
+      ? stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]
+      : DEFAULT_AUDIO_ALERTS_ENABLED;
+
+    const rawAudioVol = stored[TILTCHECK_AUDIO_ALERTS_VOLUME_KEY];
+    const audioAlertsVolume = typeof rawAudioVol === 'number' && Number.isFinite(rawAudioVol)
+      ? Math.max(0, Math.min(1, rawAudioVol))
+      : DEFAULT_AUDIO_ALERTS_VOLUME;
 
     return {
       riskThreshold: clampInt(
@@ -185,7 +329,21 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       realityHudEnabled,
       realityThresholdHours,
       depositBarrierEnabled,
+      reverseWithdrawalShieldEnabled,
+      profitLockEnabled,
+      trailingPercent,
+      minProfit,
+      goalsEnabled,
+      goals,
+      bonusConfig,
       cooldownActiveUntil,
+      cooldownWallet,
+      cooldownSource,
+      autoLockOnTilt,
+      autoLockThreshold,
+      autoLockDuration,
+      audioAlertsEnabled,
+      audioAlertsVolume,
     };
   } catch {
     return {
@@ -198,7 +356,21 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       realityHudEnabled: DEFAULT_REALITY_HUD_ENABLED,
       realityThresholdHours: DEFAULT_REALITY_THRESHOLD_HOURS,
       depositBarrierEnabled: DEFAULT_DEPOSIT_BARRIER_ENABLED,
+      reverseWithdrawalShieldEnabled: DEFAULT_REVERSE_WITHDRAWAL_SHIELD_ENABLED,
+      profitLockEnabled: DEFAULT_PROFIT_LOCK_ENABLED,
+      trailingPercent: DEFAULT_TRAILING_PERCENT,
+      minProfit: DEFAULT_MIN_PROFIT,
+      goalsEnabled: DEFAULT_CASHOUT_GOALS_ENABLED,
+      goals: [...DEFAULT_CASHOUT_GOALS],
+      bonusConfig: { ...DEFAULT_BONUS_TRACKER_CONFIG },
       cooldownActiveUntil: 0,
+      cooldownWallet: null,
+      cooldownSource: null,
+      autoLockOnTilt: DEFAULT_AUTO_LOCK_ON_TILT,
+      autoLockThreshold: DEFAULT_AUTO_LOCK_THRESHOLD,
+      autoLockDuration: DEFAULT_AUTO_LOCK_DURATION,
+      audioAlertsEnabled: DEFAULT_AUDIO_ALERTS_ENABLED,
+      audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
     };
   }
 }

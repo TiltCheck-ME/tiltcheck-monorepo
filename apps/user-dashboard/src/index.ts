@@ -1536,6 +1536,202 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
   }
 });
 
+export interface AutoLockEventRecord {
+  id: string;
+  discordId: string;
+  wallet: string | null;
+  tiltRisk: number;
+  duration: number;
+  indicators: string[];
+  source: 'auto_tilt';
+  createdAt: number;
+  activeUntil: number;
+}
+
+const userAutoLockEvents = new Map<string, AutoLockEventRecord[]>();
+
+function recordAutoLockEvent(data: {
+  discordId: string;
+  wallet?: string | null;
+  tiltRisk?: number;
+  duration?: number;
+  indicators?: string[];
+}): AutoLockEventRecord {
+  const now = Date.now();
+  const duration = typeof data.duration === 'number' && data.duration > 0 ? data.duration : 86400;
+  const tiltRisk = typeof data.tiltRisk === 'number' ? Math.max(0, Math.min(100, data.tiltRisk)) : 75;
+  const record: AutoLockEventRecord = {
+    id: `ale-${now}-${Math.random().toString(36).substring(2, 7)}`,
+    discordId: data.discordId,
+    wallet: data.wallet && data.wallet.length >= 32 ? data.wallet.trim() : null,
+    tiltRisk,
+    duration,
+    indicators: Array.isArray(data.indicators) ? data.indicators : [],
+    source: 'auto_tilt',
+    createdAt: now,
+    activeUntil: now + duration * 1000,
+  };
+  const list = userAutoLockEvents.get(data.discordId) ?? [];
+  list.unshift(record);
+  if (list.length > 50) list.length = 50;
+  userAutoLockEvents.set(data.discordId, list);
+  return record;
+}
+
+function getAutoLockEvents(discordId: string): AutoLockEventRecord[] {
+  return userAutoLockEvents.get(discordId) ?? [];
+}
+
+function getActiveAutoLockEvent(discordId: string): AutoLockEventRecord | null {
+  const events = getAutoLockEvents(discordId);
+  const now = Date.now();
+  return events.find(e => e.activeUntil > now) ?? null;
+}
+
+function clearAutoLockEventsForTesting(): void {
+  userAutoLockEvents.clear();
+}
+
+app.get('/api/user/:discordId/cooldown-status', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    let walletAddress = typeof req.query.wallet === 'string' ? req.query.wallet.trim() : '';
+
+    if (!walletAddress) {
+      if (db.isConnected()) {
+        const identity = await db.getDegenIdentity(discordId).catch(() => null);
+        walletAddress = identity?.primary_external_address || identity?.magic_address || '';
+      }
+    }
+
+    const activeAutoLock = getActiveAutoLockEvent(discordId);
+    const lastAutoLock = getAutoLockEvents(discordId)[0] ?? null;
+
+    if (!walletAddress) {
+      res.json({
+        wallet: null,
+        locked: false,
+        scope: null,
+        endTime: null,
+        pda: null,
+        timeRemainingSecs: 0,
+        verifiedAt: Date.now(),
+        unlinked: true,
+        source: activeAutoLock ? 'auto_tilt' : null,
+        activeAutoLock: activeAutoLock ?? null,
+        lastAutoLockEvent: lastAutoLock ?? null,
+      });
+      return;
+    }
+
+    try {
+      new PublicKey(walletAddress);
+    } catch {
+      res.status(400).json({ error: 'wallet must be a Solana public key' });
+      return;
+    }
+
+    const apiPath = `/cooldown/check?wallet=${encodeURIComponent(walletAddress)}&verbose=true`;
+    const response = await requestCanonicalApi(req, apiPath);
+
+    if (response.status >= 400) {
+      sendCanonicalApiResponse(res, response);
+      return;
+    }
+
+    const statusData = (response.body ?? {}) as Record<string, unknown>;
+    const isLocked = Boolean(statusData.locked);
+    const isAutoTilt = Boolean(activeAutoLock || req.query.source === 'auto_tilt');
+
+    res.json({
+      wallet: walletAddress,
+      locked: isLocked,
+      scope: statusData.scope ?? null,
+      endTime: statusData.endTime ?? null,
+      pda: statusData.pda ?? null,
+      timeRemainingSecs: Number(statusData.timeRemainingSecs ?? 0),
+      verifiedAt: statusData.verifiedAt ?? Date.now(),
+      unlinked: false,
+      source: isAutoTilt ? 'auto_tilt' : (isLocked ? 'voluntary' : null),
+      activeAutoLock: activeAutoLock ?? null,
+      lastAutoLockEvent: lastAutoLock ?? null,
+    });
+  } catch (error) {
+    console.error('[Cooldown Status GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to fetch on-chain cooldown status') });
+  }
+});
+
+app.post('/api/user/:discordId/auto-lock-event', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const schema = z.object({
+      tiltRisk: z.number().min(0).max(100).optional().default(75),
+      duration: z.number().int().min(60).max(604800).optional().default(86400),
+      indicators: z.array(z.string()).optional().default([]),
+      wallet: z.string().nullable().optional(),
+    });
+
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid auto-lock event payload', details: parsed.error.issues });
+      return;
+    }
+
+    const { tiltRisk, duration, indicators, wallet } = parsed.data;
+    if (wallet && wallet.length > 0) {
+      try {
+        new PublicKey(wallet);
+      } catch {
+        res.status(400).json({ error: 'wallet must be a Solana public key' });
+        return;
+      }
+    }
+
+    const record = recordAutoLockEvent({
+      discordId,
+      tiltRisk,
+      duration,
+      indicators,
+      wallet: wallet ?? null,
+    });
+
+    broadcastToUser(discordId, {
+      type: 'auto_lock_triggered',
+      event: record,
+    });
+
+    res.status(201).json({
+      success: true,
+      event: record,
+    });
+  } catch (error) {
+    console.error('[Auto-Lock Event POST]', error);
+    res.status(500).json({ error: 'Failed to record auto-lock event' });
+  }
+});
+
+app.get('/api/user/:discordId/auto-lock-history', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const events = getAutoLockEvents(discordId);
+    res.json({
+      events,
+      total: events.length,
+      activeEvent: getActiveAutoLockEvent(discordId),
+    });
+  } catch (error) {
+    console.error('[Auto-Lock History GET]', error);
+    res.status(500).json({ error: 'Failed to retrieve auto-lock history' });
+  }
+});
+
 app.post('/api/user/:discordId/vault/guardians', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
@@ -2355,4 +2551,11 @@ if (isMainModule) {
   });
 }
 
-export { app, broadcastToUser };
+export { 
+  app, 
+  broadcastToUser, 
+  recordAutoLockEvent, 
+  getAutoLockEvents, 
+  getActiveAutoLockEvent, 
+  clearAutoLockEventsForTesting 
+};

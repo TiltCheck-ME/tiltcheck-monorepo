@@ -2210,3 +2210,38 @@ header {
     .safety-list-item,
     .setting-row { flex-direction: column; align-items: stretch; }
 }
+
+/* On-Chain Cooldown & Auto-Lock Enhancements */
+.vault-status-badge.danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.6);
+}
+
+.cooldown-alert-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.cooldown-alert-banner.danger {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fecaca;
+}
+
+.cooldown-alert-banner.warning {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fde68a;
+}
+
+.cooldown-alert-banner.idle {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+}

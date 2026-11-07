@@ -5,6 +5,8 @@
  * Non-custodial: client-side DOM throttling with zero custody of player funds.
  */
 
+import { playAudioCue } from './audio-alerts.js';
+
 export const PACE_LOCK_MS = 2000;
 export const PACE_TICK_MS = 250;
 export const PACE_TOAST_TEXT = "Pacing lock active. Let the last spin settle before firing again.";
@@ -145,6 +147,7 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
     event.preventDefault();
     event.stopPropagation();
     showToast();
+    playAudioCue('spin_brake');
   };
 
   const onDocumentClick = (event: Event): void => {

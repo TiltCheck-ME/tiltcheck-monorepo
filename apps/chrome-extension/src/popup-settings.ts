@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Popup bindings for core Touch Grass + Pro strategic filter storage keys.
@@ -12,13 +12,25 @@ import {
   MAX_HOURLY_WAGE,
   MIN_HOURLY_WAGE,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_COOLDOWN_WALLET_KEY,
   TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
+  TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_ENABLED_KEY,
+  TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY,
+  TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY,
+  TILTCHECK_CASHOUT_GOALS_ENABLED_KEY,
+  TILTCHECK_CASHOUT_GOALS_KEY,
   TILTCHECK_HOURLY_WAGE_KEY,
   TILTCHECK_REALITY_HUD_ENABLED_KEY,
   TILTCHECK_REALITY_THRESHOLD_HOURS_KEY,
   TILTCHECK_RISK_THRESHOLD_KEY,
   TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY,
   TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
+  TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
+  TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
+  TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
+  TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
+  TILTCHECK_AUTO_LOCK_DURATION_KEY,
   type CoreCircuitBreakerOptions,
 } from './core-options.js';
 import {
@@ -30,8 +42,17 @@ import {
   normalizeBlockedGamesList,
   TILTCHECK_BLOCKED_CATEGORIES_KEY,
   TILTCHECK_BLOCKED_GAMES_KEY,
+  TILTCHECK_GAME_BLOCK_OPT_IN_KEY,
 } from './pro/blocked-games-options.js';
 import { GAME_EXCLUSION_CATEGORIES, type GameCategory } from './exclusion-taxonomy.js';
+import { type CashoutGoal, DEFAULT_CASHOUT_GOALS, sanitizeCashoutGoals } from './profit-lock.js';
+import {
+  type BonusTrackerConfig,
+  DEFAULT_BONUS_TRACKER_CONFIG,
+  calculateTargetWager,
+  calculateBonusProgress,
+  saveBonusTrackerConfig as persistBonusConfig,
+} from './bonus-tracker.js';
 
 export const RISK_MIN = 50;
 export const RISK_MAX = 100;
@@ -49,7 +70,20 @@ export interface TouchGrassUiState {
   realityHudEnabled: boolean;
   realityThresholdHours: number;
   depositBarrierEnabled: boolean;
+  reverseWithdrawalShieldEnabled: boolean;
+  profitLockEnabled: boolean;
+  trailingPercent: number;
+  minProfit: number;
+  goalsEnabled: boolean;
+  goals: CashoutGoal[];
+  bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
+  cooldownWallet: string | null;
+  autoLockOnTilt: boolean;
+  autoLockThreshold: number;
+  autoLockDuration: number;
+  audioAlertsEnabled: boolean;
+  audioAlertsVolume: number;
 }
 
 export interface GameBlockUiState {
@@ -68,8 +102,34 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     realityHudEnabled: opts.realityHudEnabled,
     realityThresholdHours: opts.realityThresholdHours,
     depositBarrierEnabled: opts.depositBarrierEnabled,
+    reverseWithdrawalShieldEnabled: opts.reverseWithdrawalShieldEnabled,
+    profitLockEnabled: opts.profitLockEnabled,
+    trailingPercent: opts.trailingPercent,
+    minProfit: opts.minProfit,
+    goalsEnabled: opts.goalsEnabled,
+    goals: opts.goals,
+    bonusConfig: opts.bonusConfig,
     cooldownActiveUntil: opts.cooldownActiveUntil,
+    cooldownWallet: opts.cooldownWallet,
+    autoLockOnTilt: opts.autoLockOnTilt,
+    autoLockThreshold: opts.autoLockThreshold,
+    autoLockDuration: opts.autoLockDuration,
+    audioAlertsEnabled: opts.audioAlertsEnabled,
+    audioAlertsVolume: opts.audioAlertsVolume,
   };
+}
+
+export async function saveAudioAlertsEnabled(enabled: boolean): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]: enabled });
+  }
+}
+
+export async function saveAudioAlertsVolume(volume: number): Promise<void> {
+  const clamped = Math.max(0, Math.min(1, volume));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUDIO_ALERTS_VOLUME_KEY]: clamped });
+  }
 }
 
 export function clampHourlyWage(value: unknown): number {
@@ -90,6 +150,48 @@ export async function saveRealityHudEnabled(enabled: boolean): Promise<void> {
 
 export async function saveDepositBarrierEnabled(enabled: boolean): Promise<void> {
   await chrome.storage.local.set({ [TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY]: enabled });
+}
+
+export async function saveReverseWithdrawalShieldEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY]: enabled });
+}
+
+export async function saveProfitLockEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_PROFIT_LOCK_ENABLED_KEY]: enabled });
+}
+
+export async function saveProfitLockTrailingPercent(percent: number): Promise<void> {
+  const clamped = Math.min(90, Math.max(10, Math.round(percent)));
+  await chrome.storage.local.set({ [TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY]: clamped });
+}
+
+export async function saveProfitLockMinProfit(minProfit: number): Promise<void> {
+  const clamped = Math.max(10, Math.round(minProfit));
+  await chrome.storage.local.set({ [TILTCHECK_PROFIT_LOCK_MIN_PROFIT_KEY]: clamped });
+}
+
+export async function saveCashoutGoalsEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_CASHOUT_GOALS_ENABLED_KEY]: enabled });
+}
+
+export async function saveCashoutGoals(goals: CashoutGoal[]): Promise<void> {
+  await chrome.storage.local.set({ [TILTCHECK_CASHOUT_GOALS_KEY]: sanitizeCashoutGoals(goals) });
+}
+
+export function toggleGoalInList(goals: readonly CashoutGoal[], goalId: string): CashoutGoal[] {
+  return goals.map((g) => (g.id === goalId ? { ...g, enabled: !g.enabled } : g));
+}
+
+export function addGoalToList(goals: readonly CashoutGoal[], newGoal: CashoutGoal): CashoutGoal[] {
+  return [...goals, newGoal];
+}
+
+export async function saveBonusTrackerConfig(config: BonusTrackerConfig): Promise<void> {
+  await persistBonusConfig(config);
+}
+
+export function removeGoalFromList(goals: readonly CashoutGoal[], goalId: string): CashoutGoal[] {
+  return goals.filter((g) => g.id !== goalId);
 }
 
 export async function loadGameBlockUiState(): Promise<GameBlockUiState> {
@@ -187,4 +289,46 @@ export function riskLabel(threshold: number): string {
 }
 
 export { DEFAULT_RISK_THRESHOLD, DEFAULT_TOUCH_GRASS_DURATION_MS };
-export type { CoreCircuitBreakerOptions };
+export type { CoreCircuitBreakerOptions, CashoutGoal, BonusTrackerConfig };
+export { DEFAULT_BONUS_TRACKER_CONFIG, calculateTargetWager, calculateBonusProgress };
+export { DEFAULT_CASHOUT_GOALS };
+
+export async function saveAutoLockOnTilt(enabled: boolean): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUTO_LOCK_ON_TILT_KEY]: enabled });
+  }
+}
+
+export async function saveAutoLockThreshold(threshold: number): Promise<void> {
+  const clamped = Math.max(50, Math.min(95, Math.round(threshold)));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUTO_LOCK_THRESHOLD_KEY]: clamped });
+  }
+}
+
+export async function saveAutoLockDuration(duration: number): Promise<void> {
+  const clamped = Math.max(3600, Math.min(2592000, Math.round(duration)));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUTO_LOCK_DURATION_KEY]: clamped });
+  }
+}
+
+export async function saveCooldownWallet(wallet: string | null): Promise<string | null> {
+  const trimmed = typeof wallet === 'string' ? wallet.trim() : null;
+  const valid = trimmed && trimmed.length >= 32 && trimmed.length <= 44 ? trimmed : null;
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    if (valid) {
+      await chrome.storage.local.set({ [TILTCHECK_COOLDOWN_WALLET_KEY]: valid });
+    } else {
+      await chrome.storage.local.remove([TILTCHECK_COOLDOWN_WALLET_KEY]);
+    }
+  }
+  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+    try {
+      chrome.runtime.sendMessage({ type: 'sync_cooldown_wallet', wallet: valid });
+    } catch {
+      // Ignore runtime message failure in disconnected contexts
+    }
+  }
+  return valid;
+}

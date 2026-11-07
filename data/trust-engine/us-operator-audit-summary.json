@@ -1,0 +1,352 @@
+{
+  "timestamp": "2026-11-04",
+  "evaluatedOperators": 23,
+  "averageScore": 82,
+  "results": [
+    {
+      "slug": "draftkings-casino",
+      "name": "DraftKings Casino",
+      "category": "Regulated",
+      "grade": "A",
+      "score": 93,
+      "risk": "Low",
+      "network": {
+        "reachable": true,
+        "latencyMs": 50,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "fanduel-casino",
+      "name": "FanDuel Casino",
+      "category": "Regulated",
+      "grade": "A",
+      "score": 93,
+      "risk": "Low",
+      "network": {
+        "reachable": true,
+        "latencyMs": 4,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "betmgm",
+      "name": "BetMGM",
+      "category": "Regulated",
+      "grade": "A",
+      "score": 93,
+      "risk": "Low",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "caesars-casino",
+      "name": "Caesars Casino",
+      "category": "Regulated",
+      "grade": "A",
+      "score": 93,
+      "risk": "Low",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "betrivers",
+      "name": "BetRivers",
+      "category": "Regulated",
+      "grade": "A",
+      "score": 93,
+      "risk": "Low",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "chumba-casino",
+      "name": "Chumba Casino",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "pulsz",
+      "name": "Pulsz",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "wow-vegas",
+      "name": "WOW Vegas",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 4,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "high-5-casino",
+      "name": "High 5 Casino",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 81,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "stake-us",
+      "name": "Stake.us",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 81,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "mcluck",
+      "name": "McLuck",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "fortune-coins",
+      "name": "Fortune Coins",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "hello-millions",
+      "name": "Hello Millions",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "modo-casino",
+      "name": "Modo Casino",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "crown-coins-casino",
+      "name": "Crown Coins Casino",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "luckyland-slots",
+      "name": "LuckyLand Slots",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "global-poker",
+      "name": "Global Poker",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "zula-casino",
+      "name": "Zula Casino",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 1,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "funzpoints",
+      "name": "Funzpoints",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 79,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "funrize",
+      "name": "Funrize",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "real-prize",
+      "name": "Real Prize",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 78,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 2,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "jackpota",
+      "name": "Jackpota",
+      "category": "Sweeps",
+      "grade": "B+",
+      "score": 80,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 4,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    },
+    {
+      "slug": "nolimitcoins",
+      "name": "NoLimitCoins",
+      "category": "Sweeps",
+      "grade": "B",
+      "score": 78,
+      "risk": "Medium",
+      "network": {
+        "reachable": true,
+        "latencyMs": 3,
+        "sslValid": true,
+        "error": "fetch failed"
+      },
+      "compliant": true
+    }
+  ]
+}

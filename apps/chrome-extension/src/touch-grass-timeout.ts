@@ -11,6 +11,8 @@
  * origin-check-ping `{ source: 'TILTCHECK_TOUCH_GRASS', ready: true }` within 4s.
  */
 
+import { playAudioCue } from './audio-alerts.js';
+
 export const TOUCH_GRASS_DURATION_MS = 120_000;
 
 export const TOUCH_GRASS_HUB_ORIGIN = 'https://tiltcheck.me';
@@ -289,6 +291,7 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
     return;
   }
   overlayActive = true;
+  playAudioCue('cooldown_chime');
 
   blockBettingUI(true);
 

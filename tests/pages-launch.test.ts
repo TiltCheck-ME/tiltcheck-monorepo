@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -42,6 +42,8 @@ describe('GitHub Pages launch twin', () => {
     expect(convertMarkdown).toContain("dirHref(depth, 'nudges')");
     expect(convertMarkdown).toContain('buildNudgesPage');
     expect(convertMarkdown).toContain('buildCooldownPage');
+    expect(convertMarkdown).toContain('Terminal Cooldown (No Wallet Needed)');
+    expect(convertMarkdown).not.toContain('Offline Cryptographic Lock');
     expect(convertMarkdown).toContain('buildCasinosPage');
     expect(convertMarkdown).not.toContain('>Touch Grass<');
     expect(convertMarkdown).toContain('>Casinos</a>');
@@ -65,7 +67,7 @@ describe('GitHub Pages launch twin', () => {
     }
   });
 
-  it('renders audited evidence and RTP profiles for Stake, Roobet, and BC.Game', () => {
+  it('renders audited evidence and RTP profiles for Stake, Roobet, BC.Game, Shuffle, and audited operators', () => {
     expect(convertMarkdown).toContain('buildAuditedShowcase');
     expect(convertMarkdown).toContain('Stake, Roobet & BC.Game: The Receipts.');
     expect(convertMarkdown).toContain('data-audited');
@@ -75,16 +77,42 @@ describe('GitHub Pages launch twin', () => {
     );
     const audited = casinosData.filter((c: any) => c.audited);
     expect(audited.map((c: any) => c.name)).toEqual([
+      'Chumba Casino',
+      'Global Poker',
+      'LuckyLand Slots',
+      'Pulsz',
+      'WOW Vegas',
+      'High 5 Casino',
       'Stake.us',
+      'McLuck',
+      'Fortune Coins',
+      'Hello Millions',
+      'Modo Casino',
+      'Funrize',
+      'Zula Casino',
+      'Crown Coins Casino',
+      'Real Prize',
+      'Jackpota',
+      'NoLimitCoins',
+      'Funzpoints',
       'Roobet',
       'Stake.com',
+      'Rollbit',
+      'Gamdom',
       'BC.Game',
+      'Shuffle',
+      'Duelbits',
+      'DraftKings Casino',
+      'FanDuel Casino',
+      'BetMGM',
+      'Caesars Casino',
+      'BetRivers',
     ]);
 
     for (const c of audited) {
       expect(c.license).toBeTruthy();
       expect(c.rtpSummary).toMatch(/RTP/i);
-      expect(c.rtpOriginals).toMatch(/99\.00%|97\.00%/);
+      expect(c.rtpOriginals).toMatch(/99\.00%|97\.00%|99\.50%|95\.50%/);
       expect(c.rtpSlots).toBeTruthy();
       expect(c.evidence.length).toBeGreaterThanOrEqual(4);
       expect(c.vaultSupport).toBeTruthy();

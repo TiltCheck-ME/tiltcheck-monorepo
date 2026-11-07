@@ -278,5 +278,131 @@ describe('core content script contracts', () => {
         visible: expect.any(Boolean),
       })
     );
+
+    const reverseResponse = vi.fn();
+    listeners[0]!({ type: 'get_reverse_withdrawal_shield_state' }, null, reverseResponse);
+    expect(reverseResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+      })
+    );
+
+    const profitResponse = vi.fn();
+    listeners[0]!({ type: 'get_profit_lock_state' }, null, profitResponse);
+    expect(profitResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+        peak: expect.any(Number),
+      })
+    );
+
+    const bonusResponse = vi.fn();
+    listeners[0]!({ type: 'get_bonus_tracker_state' }, null, bonusResponse);
+    expect(bonusResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+      })
+    );
+
+    const radarResponse = vi.fn();
+    listeners[0]!({ type: 'get_session_pnl_state' }, null, radarResponse);
+    expect(radarResponse).toHaveBeenCalled();
+
+    const resetResponse = vi.fn();
+    listeners[0]!({ type: 'reset_session_pnl' }, null, resetResponse);
+    expect(resetResponse).toHaveBeenCalled();
+
+    const streakStateResponse = vi.fn();
+    listeners[0]!({ type: 'get_streak_volatility_state' }, null, streakStateResponse);
+    expect(streakStateResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        consecutiveDeadSpins: expect.any(Number),
+        hitRate: expect.any(Number),
+      })
+    );
+
+    const resetStreakResponse = vi.fn();
+    listeners[0]!({ type: 'reset_streak_volatility' }, null, resetStreakResponse);
+    expect(resetStreakResponse).toHaveBeenCalled();
+
+    const cashoutStateResponse = vi.fn();
+    listeners[0]!({ type: 'get_cashout_router_state' }, null, cashoutStateResponse);
+    expect(cashoutStateResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        info: expect.objectContaining({
+          buttonLabel: expect.any(String),
+        }),
+      })
+    );
+
+    const cashoutNavResponse = vi.fn();
+    listeners[0]!({ type: 'trigger_cashout_navigation' }, null, cashoutNavResponse);
+    expect(cashoutNavResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        navigated: expect.any(Boolean),
+      })
+    );
+
+    const vaultResponse = vi.fn();
+    const claimed = listeners[0]!({ type: 'trigger_auto_vault', amount: 50 }, null, vaultResponse);
+    expect(claimed).toBe(true);
+
+    const cooldownVaultResponse = vi.fn();
+    listeners[0]!({ type: 'get_cooldown_vault_state' }, null, cooldownVaultResponse);
+    expect(cooldownVaultResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: expect.any(Boolean),
+        cooldownUntil: expect.any(Number),
+      })
+    );
+  });
+
+  it('bridges cooldown page events into chrome.storage and runtime messages', async () => {
+    const { chromeMock } = createChromeMock();
+    const { installCooldownPageBridge } = await import('../../src/content.js');
+    const cleanup = installCooldownPageBridge();
+
+    const testWallet = '7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2';
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'WALLET_CONNECTED', wallet: testWallet },
+        source: window,
+      })
+    );
+    await flush();
+
+    expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tiltcheck_cooldown_wallet: testWallet,
+      })
+    );
+    expect(chromeMock.runtime.sendMessage).toHaveBeenCalledWith({
+      type: 'sync_cooldown_wallet',
+      wallet: testWallet,
+    });
+
+    const futureTime = Math.floor(Date.now() / 1000) + 7200;
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'LOCK_UPDATED', wallet: testWallet, endTime: futureTime },
+        source: window,
+      })
+    );
+    await flush();
+
+    expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tiltcheck_cooldown_active_until: futureTime * 1000,
+        tiltcheck_cooldown_wallet: testWallet,
+      })
+    );
+    expect(chromeMock.runtime.sendMessage).toHaveBeenCalledWith({
+      type: 'cooldown_lock_updated',
+      wallet: testWallet,
+      endTime: futureTime,
+    });
+
+    cleanup();
   });
 });

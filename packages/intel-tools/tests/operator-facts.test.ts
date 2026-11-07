@@ -1,6 +1,6 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
@@ -404,7 +404,11 @@ describe('IntelTools operatorFacts filtering', () => {
 
 describe('live operator facts coverage gate', () => {
   it('satisfies the priority coverage gate of at least 25 valid live records', () => {
-    const livePath = join(process.cwd(), 'data/trust-engine/operator-facts.live.json');
+    const candidates = [
+      join(process.cwd(), 'data/trust-engine/operator-facts.live.json'),
+      join(process.cwd(), '../../data/trust-engine/operator-facts.live.json'),
+    ];
+    const livePath = candidates.find((p) => existsSync(p)) ?? candidates[0];
     const records = loadOperatorFactsFromPath(livePath);
 
     expect(records.length).toBeGreaterThanOrEqual(25);

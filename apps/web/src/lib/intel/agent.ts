@@ -1,7 +1,8 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
 import { createDefaultIntelAgent, type IntelAgent } from '@tiltcheck/intel-agent';
-import { filterLiveOperatorFacts, loadOperatorFactsFromMonorepo, type CasinoRecord } from '@tiltcheck/intel-tools';
+import { filterLiveOperatorFacts, type CasinoRecord } from '@tiltcheck/intel-tools';
+import { loadOperatorFactsFromMonorepo } from '@tiltcheck/intel-tools/server';
 import { CASINOS } from '@/lib/casino-trust';
 
 let agentInstance: IntelAgent | null = null;

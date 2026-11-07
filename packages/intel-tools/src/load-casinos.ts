@@ -1,24 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
 
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { GRADE_SCORE, slugifyCasinoName } from './grades.js';
+import { mapRawCasinos, type RawCasino } from './grades.js';
 import type { CasinoRecord } from './types.js';
 
-interface RawCasino {
-  name: string;
-  grade: string;
-  risk: string;
-  category: string;
-}
-
-export function mapRawCasinos(raw: RawCasino[]): CasinoRecord[] {
-  return raw.map((casino) => ({
-    ...casino,
-    slug: slugifyCasinoName(casino.name),
-    score: GRADE_SCORE[casino.grade] ?? 40,
-  }));
-}
+export { mapRawCasinos, type RawCasino };
 
 export function loadCasinosFromMonorepo(monorepoRoot?: string): CasinoRecord[] {
   const root = monorepoRoot ?? resolve(process.cwd(), '../..');

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-06-01 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
 
 export const GRADE_SCORE: Record<string, number> = {
   'A+': 95, A: 90, 'A-': 85,
@@ -18,4 +18,19 @@ export function slugifyCasinoName(name: string): string {
 
 export function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
+}
+
+export interface RawCasino {
+  name: string;
+  grade: string;
+  risk: string;
+  category: string;
+}
+
+export function mapRawCasinos(raw: RawCasino[]) {
+  return raw.map((casino) => ({
+    ...casino,
+    slug: slugifyCasinoName(casino.name),
+    score: GRADE_SCORE[casino.grade] ?? 40,
+  }));
 }

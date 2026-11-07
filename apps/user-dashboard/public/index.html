@@ -224,12 +224,41 @@
               Browser shields here are dashboard-backed and enforced by the extension. Wallet-level self-exclusion is Cooldown — on-chain, you sign, no cancel in v1. Discord is the tactical radio for panic blocks and daily summaries.
             </p>
 
-            <div class="card" style="margin-bottom:1rem">
-              <h3 class="card-title">On-chain Cooldown</h3>
-              <p class="section-desc">
-                Not a dashboard toggle. Lock games, a category, or everything from your wallet. Devnet. You sign.
-              </p>
-              <a href="https://tiltcheck.me/cooldown" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Open Cooldown</a>
+            <div id="safety-cooldown-card" class="card" style="margin-bottom:1rem">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div>
+                  <h3 class="card-title" style="margin-bottom: 0.25rem">On-Chain Cooldown &amp; Timelock</h3>
+                  <p class="section-desc section-desc-inline" style="margin-bottom: 0">
+                    Non-custodial Solana Anchor PDA timelock. Self-exclusion signed directly from your wallet.
+                  </p>
+                </div>
+                <span id="safety-cooldown-badge" class="vault-status-badge unlocked">NO ACTIVE LOCK</span>
+              </div>
+
+              <!-- Real-time Active Lock / Auto-Lock Banner -->
+              <div id="safety-cooldown-banner" style="display:none; padding:12px 14px; border-radius:6px; margin:0.75rem 0; font-size:0.875rem;"></div>
+
+              <div class="safety-summary-stack" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin: 0.75rem 0;">
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Timelock State</span>
+                  <span id="safety-cooldown-state-val" class="safety-stat-value" style="font-size: 1rem;">Inactive</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Time Remaining</span>
+                  <span id="safety-cooldown-timer-val" class="safety-stat-value" style="font-size: 1rem; font-family: var(--font-mono);">--:--:--</span>
+                  <span id="safety-cooldown-ends-at-val" class="safety-stat-copy">No active lock</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Protection Scope</span>
+                  <span id="safety-cooldown-scope-val" class="safety-stat-value" style="font-size: 1rem;">None</span>
+                </div>
+              </div>
+
+              <div class="inline-action-row" style="margin-top:0.75rem; gap:0.5rem; flex-wrap:wrap;">
+                <a id="safety-cooldown-extend-btn" href="https://tiltcheck.me/cooldown?extend=7" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="display:none;">+7d Extend Lock</a>
+                <a id="safety-cooldown-lock-btn" href="https://tiltcheck.me/cooldown" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer">Initiate Lock</a>
+                <a id="safety-cooldown-view-link" href="https://tiltcheck.me/cooldown" class="btn btn-ghost btn-sm" target="_blank" rel="noopener noreferrer">Verify On-Chain</a>
+              </div>
             </div>
 
             <div class="card-row">
@@ -401,6 +430,112 @@
                 <span class="vault-label">USD</span>
               </div>
               <div id="profitGuardStatus" class="form-msg"></div>
+            </div>
+
+            <!-- ON-CHAIN VOLUNTARY COOLDOWN VAULT (SOLANA ANCHOR TIMELOCK) -->
+            <div id="cooldown-vault-card" class="card" style="margin-bottom: 1.5rem">
+              <div class="vault-status-header" style="justify-content: space-between; flex-wrap: wrap;">
+                <div>
+                  <h3 class="card-title" style="margin-bottom: 0.25rem">Voluntary Cooldown Vault (Solana On-Chain Timelock)</h3>
+                  <p class="section-desc section-desc-inline" style="margin-bottom: 0">
+                    Non-custodial, mathematically immutable Anchor program PDA timelock. Verifies cryptographic on-chain self-exclusion without custodian risk.
+                  </p>
+                </div>
+                <span id="cooldown-status-badge" class="vault-status-badge unlocked">NO ACTIVE LOCK</span>
+              </div>
+
+              <!-- Critical Tilt Auto-Lock Intervention Callout -->
+              <div id="auto-tilt-containment-callout" style="display:none; padding:12px 14px; margin:0.75rem 0; background:rgba(239, 68, 68, 0.12); border:1px solid rgba(239, 68, 68, 0.45); border-radius:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <strong style="color:#ef4444; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em;">Level 3+ Tilt Auto-Lock Containment</strong>
+                  <span style="font-size:0.65rem; font-family:var(--font-mono); background:rgba(239,68,68,0.25); color:#fca5a5; padding:2px 6px; border-radius:3px; font-weight:700;">CRITICAL INTERVENTION</span>
+                </div>
+                <p id="auto-tilt-containment-desc" style="margin:0; font-size:0.8rem; color:#e2e8f0; line-height:1.4;">
+                  Critical tilt signals triggered automatic 24-hour deposit barrier enforcement. On-chain Anchor timelock active.
+                </p>
+              </div>
+
+              <div class="form-group" style="margin-top: 1rem">
+                <label class="form-label" for="cooldown-wallet-input">Linked Solana Wallet (Devnet / Mainnet)</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                  <input
+                    type="text"
+                    id="cooldown-wallet-input"
+                    class="input"
+                    style="flex: 1; min-width: 280px; font-family: var(--font-mono); font-size: 0.85rem;"
+                    placeholder="Enter Solana wallet address (Base58)..."
+                    spellcheck="false"
+                  />
+                  <button id="cooldown-wallet-sync-btn" type="button" class="btn btn-secondary btn-sm">
+                    Sync On-Chain
+                  </button>
+                  <button id="cooldown-wallet-save-btn" type="button" class="btn btn-ghost btn-sm" title="Save as linked primary address">
+                    Save Wallet
+                  </button>
+                </div>
+              </div>
+
+              <div class="safety-summary-stack" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Protection Scope</span>
+                  <span id="cooldown-scope-val" class="safety-stat-value" style="font-size: 1rem;">None</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Time Remaining</span>
+                  <span id="cooldown-timer-val" class="safety-stat-value" style="font-size: 1rem; font-family: var(--font-mono);">--:--:--</span>
+                  <span id="cooldown-ends-at-val" class="safety-stat-copy">No active lock</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Anchor Program PDA</span>
+                  <span id="cooldown-pda-val" class="safety-stat-copy" style="font-family: var(--font-mono); font-size: 0.75rem; word-break: break-all;">Not derived</span>
+                </div>
+              </div>
+
+              <div class="inline-action-row" style="margin-top: 0.75rem; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <a
+                  id="cooldown-extend-btn"
+                  href="https://tiltcheck.me/cooldown?extend=7"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary btn-sm"
+                  style="display: none;"
+                >
+                  +7d Extend Lock
+                </a>
+                <a
+                  id="cooldown-lock-now-btn"
+                  href="https://tiltcheck.me/cooldown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary btn-sm"
+                >
+                  Initiate On-Chain Lock
+                </a>
+                <a
+                  id="cooldown-verify-link"
+                  href="https://tiltcheck.me/cooldown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-ghost btn-sm"
+                >
+                  Verify On Solana &amp; Web Vault
+                </a>
+              </div>
+              <div id="cooldownVaultStatusMsg" class="form-msg" style="margin-top: 0.5rem"></div>
+            </div>
+
+            <!-- TILT AUTO-LOCK CONTAINMENT EVENTS AUDIT -->
+            <div id="auto-lock-history-card" class="card" style="margin-bottom: 1.5rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                <h3 class="card-title" style="margin-bottom:0">Tilt Auto-Lock Containment Events</h3>
+                <button id="refresh-auto-lock-history-btn" type="button" class="btn btn-ghost btn-sm">Refresh</button>
+              </div>
+              <p class="section-desc section-desc-inline" style="margin-bottom:0.75rem">
+                Audit stream of automated deposit barriers and on-chain locks initiated when active play hit critical tilt thresholds.
+              </p>
+              <div id="autoLockEventsList" class="safety-list">
+                <div class="activity-empty">No automated tilt containment events recorded.</div>
+              </div>
             </div>
 
             <div class="card-row">
