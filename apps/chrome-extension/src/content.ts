@@ -34,6 +34,7 @@ import {
   type CoreCircuitBreakerOptions,
   TILTCHECK_COOLDOWN_WALLET_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_COOLDOWN_SOURCE_KEY,
 } from './core-options.js';
 
 import { installSpinPaceLock, type PaceLockHandle, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
@@ -366,7 +367,7 @@ function syncDepositBarrier(opts: CoreCircuitBreakerOptions): void {
         depositBarrier = null;
       }
     }
-    depositBarrier?.updateCooldown(opts.cooldownActiveUntil);
+    depositBarrier?.updateCooldown(opts.cooldownActiveUntil, opts.cooldownSource);
     depositBarrier?.updateEnabled(opts.depositBarrierEnabled);
   } else if (depositBarrier) {
     depositBarrier.stop();
@@ -530,17 +531,20 @@ export function installCooldownPageBridge(): () => void {
         }
       }
     } else if (event.data.type === 'LOCK_UPDATED') {
-      const { wallet, endTime } = event.data;
+      const { wallet, endTime, source } = event.data;
       if (typeof endTime === 'number' && endTime > 0) {
         const endTimeMs = endTime * 1000;
         const updates: Record<string, unknown> = {
           [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs,
         };
+        if (typeof source === 'string') {
+          updates[TILTCHECK_COOLDOWN_SOURCE_KEY] = source;
+        }
         if (typeof wallet === 'string' && wallet.trim().length >= 32) {
           updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
         }
         chrome.storage?.local?.set?.(updates);
-        depositBarrier?.updateCooldown(endTimeMs);
+        depositBarrier?.updateCooldown(endTimeMs, typeof source === 'string' ? source : null);
         try {
           chrome.runtime?.sendMessage?.({
             type: 'cooldown_lock_updated',
@@ -626,6 +630,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({
         active: depositBarrier ? depositBarrier.isActive() : false,
         cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+        source: depositBarrier ? depositBarrier.getCooldownSource() : null,
       });
       return true;
 
@@ -633,6 +638,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({
         active: depositBarrier ? depositBarrier.isActive() : false,
         cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+        source: depositBarrier ? depositBarrier.getCooldownSource() : null,
         wallet: coreOptions?.cooldownWallet ?? null,
       });
       return true;

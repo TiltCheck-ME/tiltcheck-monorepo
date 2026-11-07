@@ -60,6 +60,9 @@ describe('popup-settings helpers', () => {
       calculateBonusProgress,
       saveAudioAlertsEnabled,
       saveAudioAlertsVolume,
+      saveAutoLockOnTilt,
+      saveAutoLockThreshold,
+      saveAutoLockDuration,
     } = await import('../../src/popup-settings.js');
     (globalThis as unknown as { chrome: unknown }).chrome = {
       storage: {
@@ -146,5 +149,20 @@ describe('popup-settings helpers', () => {
 
     await saveAudioAlertsVolume(-0.2);
     expect(storage['tiltcheck_audio_alerts_volume']).toBe(0);
+
+    await saveAutoLockOnTilt(true);
+    expect(storage['tiltcheck_auto_lock_on_tilt']).toBe(true);
+
+    await saveAutoLockThreshold(80);
+    expect(storage['tiltcheck_auto_lock_threshold']).toBe(80);
+
+    await saveAutoLockThreshold(20);
+    expect(storage['tiltcheck_auto_lock_threshold']).toBe(50); // clamped to min 50
+
+    await saveAutoLockDuration(86400);
+    expect(storage['tiltcheck_auto_lock_duration']).toBe(86400);
+
+    await saveAutoLockDuration(500);
+    expect(storage['tiltcheck_auto_lock_duration']).toBe(3600); // clamped to min 3600s
   });
 });

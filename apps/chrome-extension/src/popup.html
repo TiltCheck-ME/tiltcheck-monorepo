@@ -1243,6 +1243,15 @@
       <div id="cooldown-wallet-note" style="font-size:10px; color:#64748b; margin-top:5px; line-height:1.4;">
         Syncs real-time locks from <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">tiltcheck.me/cooldown</a>.
       </div>
+      <div style="margin-top:8px; border-top:1px solid #1e293b; padding-top:8px;">
+        <label class="guard-opt-row" for="auto-lock-on-tilt-toggle" style="margin-bottom:4px; display:flex; align-items:center; gap:6px; font-size:11px; color:#cbd5e1; cursor:pointer;">
+          <input type="checkbox" id="auto-lock-on-tilt-toggle" />
+          <span>Auto-lock on Level 3+ tilt (Score &ge; 75)</span>
+        </label>
+        <div style="font-size:10px; color:#64748b; line-height:1.4;">
+          When active tilt reaches critical threshold, immediately triggers 24h deposit containment and prompts non-custodial on-chain lock.
+        </div>
+      </div>
     </div>
   </section>
 

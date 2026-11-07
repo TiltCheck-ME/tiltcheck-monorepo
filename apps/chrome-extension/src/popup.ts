@@ -31,6 +31,9 @@ import {
   DEFAULT_BONUS_TRACKER_CONFIG,
   toggleSlugInList,
   saveCooldownWallet,
+  saveAutoLockOnTilt,
+  saveAutoLockThreshold,
+  saveAutoLockDuration,
 } from './popup-settings.js';
 import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
@@ -1136,6 +1139,11 @@ async function refreshGuardSettingsUi(): Promise<void> {
     cooldownWalletInput.value = touch.cooldownWallet;
   }
 
+  const autoLockToggle = document.getElementById('auto-lock-on-tilt-toggle') as HTMLInputElement | null;
+  if (autoLockToggle) {
+    autoLockToggle.checked = touch.autoLockOnTilt;
+  }
+
   const audioToggle = document.getElementById('audio-alerts-toggle') as HTMLInputElement | null;
   if (audioToggle) {
     audioToggle.checked = touch.audioAlertsEnabled;
@@ -1219,6 +1227,15 @@ function initGuardSettingsPanel(): void {
       } catch {
         btnSyncCooldown.textContent = 'Sync';
       }
+    });
+  }
+
+  const autoLockToggleInput = document.getElementById('auto-lock-on-tilt-toggle') as HTMLInputElement | null;
+  if (autoLockToggleInput) {
+    autoLockToggleInput.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveAutoLockOnTilt(enabled);
+      toast(enabled ? 'Tilt auto-lock armed.' : 'Tilt auto-lock disabled.');
     });
   }
 

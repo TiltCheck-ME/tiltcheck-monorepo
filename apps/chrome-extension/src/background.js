@@ -10,6 +10,7 @@ const API_BASE = 'https://api.tiltcheck.me';
 
 const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
 const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
+const TILTCHECK_COOLDOWN_SOURCE_KEY = 'tiltcheck_cooldown_source';
 const ALARM_COOLDOWN_SYNC = 'tiltcheck_cooldown_sync';
 
 let currentStreamAbortController = null;
@@ -345,6 +346,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     sendResponse({ success: false, error: 'Invalid endTime' });
     return false;
+  }
+
+  if (message.type === 'trigger_tilt_auto_lock') {
+    const wallet = typeof message.wallet === 'string' && message.wallet.trim().length >= 32 ? message.wallet.trim() : null;
+    const duration = typeof message.duration === 'number' && message.duration > 0 ? message.duration : 86400;
+    const tiltRisk = typeof message.tiltRisk === 'number' ? message.tiltRisk : 75;
+    const indicators = Array.isArray(message.indicators) ? message.indicators : [];
+    const endTimeMs = Date.now() + duration * 1000;
+
+    const updates = {
+      [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs,
+      [TILTCHECK_COOLDOWN_SOURCE_KEY]: 'auto_tilt',
+      tiltcheck_last_auto_lock: {
+        timestamp: Date.now(),
+        tiltRisk,
+        indicators,
+        duration,
+        wallet,
+      },
+    };
+    if (wallet) {
+      updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet;
+    }
+    chrome.storage?.local?.set?.(updates);
+
+    if (message.openPrompt !== false) {
+      const query = new URLSearchParams();
+      if (wallet) query.set('wallet', wallet);
+      query.set('scope', 'all');
+      query.set('duration', String(duration));
+      query.set('source', 'auto_tilt');
+      const targetUrl = `https://tiltcheck.me/cooldown?${query.toString()}`;
+      chrome.tabs?.create?.({ url: targetUrl });
+    }
+
+    sendResponse({ success: true, activeUntil: endTimeMs, wallet });
+    return true;
   }
 
   if (message.type === 'get_cooldown_sync_state') {

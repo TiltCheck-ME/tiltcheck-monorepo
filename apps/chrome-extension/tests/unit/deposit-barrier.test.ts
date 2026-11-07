@@ -394,4 +394,36 @@ describe('in-session Cooldown Timer HUD', () => {
     expect(handle.isHudVisible()).toBe(false);
     expect(document.getElementById(COOLDOWN_HUD_ID)).toBeNull();
   });
+
+  it('renders critical Tilt Auto-Lock badge and message when source is auto_tilt', () => {
+    const handle = installDepositBarrier(document);
+    const futureTime = Date.now() + 86400 * 1000;
+    handle.updateCooldown(futureTime, 'auto_tilt');
+
+    expect(handle.isHudVisible()).toBe(true);
+    expect(handle.getCooldownSource()).toBe('auto_tilt');
+    const hud = document.getElementById(COOLDOWN_HUD_ID);
+    expect(hud?.textContent).toContain('Tilt Auto-Lock Active');
+    expect(hud?.textContent).toContain('Level 3+ Tilt Lockout');
+    expect(hud?.innerHTML).toContain('Confirm On-Chain');
+
+    // Test minimize
+    const toggleBtn = hud?.querySelector('.tiltcheck-cooldown-toggle') as HTMLButtonElement | null;
+    toggleBtn?.click();
+    expect(hud?.textContent).toContain('TILT LOCK:');
+
+    // Test deposit click interception alert message
+    const depositBtn = document.createElement('button');
+    depositBtn.setAttribute('data-test', 'cashier-button');
+    depositBtn.textContent = 'Cashier';
+    document.body.appendChild(depositBtn);
+
+    depositBtn.click();
+    const alert = document.getElementById(ALERT_ID);
+    expect(alert).not.toBeNull();
+    expect(alert?.textContent).toContain('Level 3+ tilt auto-lock engaged');
+
+    depositBtn.remove();
+    handle.stop();
+  });
 });

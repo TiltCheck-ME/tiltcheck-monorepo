@@ -38,6 +38,10 @@ export const TILTCHECK_CASHOUT_GOALS_ENABLED_KEY = 'tiltcheck_cashout_goals_enab
 export const TILTCHECK_CASHOUT_GOALS_KEY = 'tiltcheck_cashout_goals';
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
 export const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
+export const TILTCHECK_COOLDOWN_SOURCE_KEY = 'tiltcheck_cooldown_source';
+export const TILTCHECK_AUTO_LOCK_ON_TILT_KEY = 'tiltcheck_auto_lock_on_tilt';
+export const TILTCHECK_AUTO_LOCK_THRESHOLD_KEY = 'tiltcheck_auto_lock_threshold';
+export const TILTCHECK_AUTO_LOCK_DURATION_KEY = 'tiltcheck_auto_lock_duration';
 export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enabled';
 export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
 export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
@@ -72,6 +76,11 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_CASHOUT_GOALS_KEY,
   TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_COOLDOWN_WALLET_KEY,
+  TILTCHECK_COOLDOWN_SOURCE_KEY,
+  TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
+  TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
+  TILTCHECK_AUTO_LOCK_DURATION_KEY,
   TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
   TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
 ] as const;
@@ -111,6 +120,14 @@ export const DEFAULT_CASHOUT_GOALS_ENABLED = true;
 export const DEFAULT_AUDIO_ALERTS_ENABLED = true;
 export const DEFAULT_AUDIO_ALERTS_VOLUME = 0.25;
 
+export const DEFAULT_AUTO_LOCK_ON_TILT = true;
+export const DEFAULT_AUTO_LOCK_THRESHOLD = 75;
+export const DEFAULT_AUTO_LOCK_DURATION = 86400;
+export const MIN_AUTO_LOCK_THRESHOLD = 50;
+export const MAX_AUTO_LOCK_THRESHOLD = 95;
+export const MIN_AUTO_LOCK_DURATION = 3600;
+export const MAX_AUTO_LOCK_DURATION = 2592000;
+
 const MIN_RISK_THRESHOLD = 50;
 const MAX_RISK_THRESHOLD = 100;
 const MIN_DURATION_MS = 30_000;
@@ -137,6 +154,11 @@ export interface CoreCircuitBreakerOptions {
   goals: CashoutGoal[];
   bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
+  cooldownWallet: string | null;
+  cooldownSource: string | null;
+  autoLockOnTilt: boolean;
+  autoLockThreshold: number;
+  autoLockDuration: number;
   audioAlertsEnabled: boolean;
   audioAlertsVolume: number;
 }
@@ -176,6 +198,13 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_CASHOUT_GOALS_KEY,
       TILTCHECK_BONUS_TRACKER_CONFIG_KEY,
       TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+      TILTCHECK_COOLDOWN_WALLET_KEY,
+      TILTCHECK_COOLDOWN_SOURCE_KEY,
+      TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
+      TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
+      TILTCHECK_AUTO_LOCK_DURATION_KEY,
+      TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
+      TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
       'riskLevel',
     ]);
 
@@ -253,6 +282,26 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
     const rawWallet = stored[TILTCHECK_COOLDOWN_WALLET_KEY];
     const cooldownWallet = typeof rawWallet === 'string' && rawWallet.trim().length >= 32 && rawWallet.trim().length <= 44 ? rawWallet.trim() : null;
 
+    const rawSource = stored[TILTCHECK_COOLDOWN_SOURCE_KEY];
+    const cooldownSource = typeof rawSource === 'string' && rawSource.trim().length > 0 ? rawSource.trim() : null;
+
+    const autoLockOnTiltOpt = stored[TILTCHECK_AUTO_LOCK_ON_TILT_KEY];
+    const autoLockOnTilt = autoLockOnTiltOpt === undefined ? DEFAULT_AUTO_LOCK_ON_TILT : autoLockOnTiltOpt === true;
+
+    const autoLockThreshold = clampInt(
+      stored[TILTCHECK_AUTO_LOCK_THRESHOLD_KEY],
+      MIN_AUTO_LOCK_THRESHOLD,
+      MAX_AUTO_LOCK_THRESHOLD,
+      DEFAULT_AUTO_LOCK_THRESHOLD
+    );
+
+    const autoLockDuration = clampInt(
+      stored[TILTCHECK_AUTO_LOCK_DURATION_KEY],
+      MIN_AUTO_LOCK_DURATION,
+      MAX_AUTO_LOCK_DURATION,
+      DEFAULT_AUTO_LOCK_DURATION
+    );
+
     const audioAlertsEnabled = typeof stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY] === 'boolean'
       ? stored[TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]
       : DEFAULT_AUDIO_ALERTS_ENABLED;
@@ -289,6 +338,10 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       bonusConfig,
       cooldownActiveUntil,
       cooldownWallet,
+      cooldownSource,
+      autoLockOnTilt,
+      autoLockThreshold,
+      autoLockDuration,
       audioAlertsEnabled,
       audioAlertsVolume,
     };
@@ -312,6 +365,10 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       bonusConfig: { ...DEFAULT_BONUS_TRACKER_CONFIG },
       cooldownActiveUntil: 0,
       cooldownWallet: null,
+      cooldownSource: null,
+      autoLockOnTilt: DEFAULT_AUTO_LOCK_ON_TILT,
+      autoLockThreshold: DEFAULT_AUTO_LOCK_THRESHOLD,
+      autoLockDuration: DEFAULT_AUTO_LOCK_DURATION,
       audioAlertsEnabled: DEFAULT_AUDIO_ALERTS_ENABLED,
       audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
     };

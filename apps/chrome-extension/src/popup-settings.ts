@@ -27,6 +27,9 @@ import {
   TILTCHECK_TOUCH_GRASS_OPT_IN_KEY,
   TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
   TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
+  TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
+  TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
+  TILTCHECK_AUTO_LOCK_DURATION_KEY,
   type CoreCircuitBreakerOptions,
 } from './core-options.js';
 import {
@@ -75,6 +78,9 @@ export interface TouchGrassUiState {
   bonusConfig: BonusTrackerConfig;
   cooldownActiveUntil: number;
   cooldownWallet: string | null;
+  autoLockOnTilt: boolean;
+  autoLockThreshold: number;
+  autoLockDuration: number;
   audioAlertsEnabled: boolean;
   audioAlertsVolume: number;
 }
@@ -104,6 +110,9 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     bonusConfig: opts.bonusConfig,
     cooldownActiveUntil: opts.cooldownActiveUntil,
     cooldownWallet: opts.cooldownWallet,
+    autoLockOnTilt: opts.autoLockOnTilt,
+    autoLockThreshold: opts.autoLockThreshold,
+    autoLockDuration: opts.autoLockDuration,
     audioAlertsEnabled: opts.audioAlertsEnabled,
     audioAlertsVolume: opts.audioAlertsVolume,
   };
@@ -282,6 +291,26 @@ export { DEFAULT_RISK_THRESHOLD, DEFAULT_TOUCH_GRASS_DURATION_MS };
 export type { CoreCircuitBreakerOptions, CashoutGoal, BonusTrackerConfig };
 export { DEFAULT_BONUS_TRACKER_CONFIG, calculateTargetWager, calculateBonusProgress };
 export { DEFAULT_CASHOUT_GOALS };
+
+export async function saveAutoLockOnTilt(enabled: boolean): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUTO_LOCK_ON_TILT_KEY]: enabled });
+  }
+}
+
+export async function saveAutoLockThreshold(threshold: number): Promise<void> {
+  const clamped = Math.max(50, Math.min(95, Math.round(threshold)));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUTO_LOCK_THRESHOLD_KEY]: clamped });
+  }
+}
+
+export async function saveAutoLockDuration(duration: number): Promise<void> {
+  const clamped = Math.max(3600, Math.min(2592000, Math.round(duration)));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_AUTO_LOCK_DURATION_KEY]: clamped });
+  }
+}
 
 export async function saveCooldownWallet(wallet: string | null): Promise<string | null> {
   const trimmed = typeof wallet === 'string' ? wallet.trim() : null;

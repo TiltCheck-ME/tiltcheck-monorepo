@@ -234,4 +234,48 @@ describe('background service worker', () => {
       { periodInMinutes: 5 },
     );
   });
+
+  it('handles trigger_tilt_auto_lock and creates cooldown prompt tab', async () => {
+    const { chromeMock, runtimeListeners, storageData } = setupChromeMock();
+    await import('../../src/background.js');
+
+    const listener = runtimeListeners[0]!;
+    const testWallet = '7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2';
+    const autoLockRes = vi.fn();
+
+    const keep = listener(
+      {
+        type: 'trigger_tilt_auto_lock',
+        wallet: testWallet,
+        duration: 86400,
+        tiltRisk: 82,
+        indicators: ['rage_betting', 'chasing_losses'],
+        openPrompt: true,
+      },
+      {},
+      autoLockRes,
+    );
+
+    expect(keep).toBe(true);
+    expect(autoLockRes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        wallet: testWallet,
+      })
+    );
+    expect(storageData['tiltcheck_cooldown_wallet']).toBe(testWallet);
+    expect(storageData['tiltcheck_cooldown_source']).toBe('auto_tilt');
+    expect(storageData['tiltcheck_last_auto_lock']).toEqual(
+      expect.objectContaining({
+        tiltRisk: 82,
+        duration: 86400,
+        wallet: testWallet,
+      })
+    );
+    expect(chromeMock.tabs.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: expect.stringContaining('https://tiltcheck.me/cooldown?'),
+      })
+    );
+  });
 });
