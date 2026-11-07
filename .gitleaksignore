@@ -1,0 +1,3 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+# Provably-fair HMAC-SHA256 test key fixture in unit test
+1cbe91e9dbcc1c18764f77441f6c26f1d3a0874a:apps/web/src/lib/provably-fair.test.ts:generic-api-key:37
