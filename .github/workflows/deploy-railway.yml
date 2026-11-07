@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 name: Deploy Services to Railway
 
 on:
@@ -97,10 +97,37 @@ jobs:
               - *shared
               - 'apps/cloudflared/**'
 
+  verify-contracts:
+    name: Verify Anchor Devnet & Cooldown Contracts
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cooldown SDK
+        run: pnpm --filter @tiltcheck/cooldown-sdk build
+
+      - name: Run Anchor Devnet Smoke Test
+        run: pnpm smoke:cooldown
+        env:
+          COOLDOWN_RPC_URL: 'https://api.devnet.solana.com'
+
   build-and-push:
     name: Build ${{ matrix.service }}
     runs-on: ubuntu-24.04
-    needs: changes
+    needs: [changes, verify-contracts]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true' || needs.changes.outputs['discord-bot'] == 'true' || needs.changes.outputs['justthetip-bot'] == 'true' || needs.changes.outputs['dad-bot'] == 'true' || needs.changes.outputs['trust-rollup'] == 'true' || needs.changes.outputs['control-room'] == 'true' || needs.changes.outputs['game-arena'] == 'true' || needs.changes.outputs['user-dashboard'] == 'true' || needs.changes.outputs.activity == 'true' || needs.changes.outputs.cloudflared == 'true'
     strategy:
       fail-fast: false

@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 name: Validate Changed Packages (PR)
 
 on:
@@ -9,9 +9,10 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-24.04
-    name: Detect E2E-Relevant Changes
+    name: Detect Changed Subsystems
     outputs:
       e2e: ${{ steps.filter.outputs.e2e }}
+      cooldown: ${{ steps.filter.outputs.cooldown }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v4
@@ -30,6 +31,17 @@ jobs:
               - 'packages/**'
               - 'modules/**'
               - 'pnpm-lock.yaml'
+            cooldown:
+              - 'packages/cooldown-sdk/**'
+              - 'programs/cooldown/**'
+              - 'apps/api/src/routes/cooldown.ts'
+              - 'apps/web/src/app/cooldown/**'
+              - 'apps/user-dashboard/src/index.ts'
+              - 'apps/user-dashboard/public/**'
+              - 'apps/chrome-extension/**'
+              - 'scripts/smoke-anchor-devnet.ts'
+              - '.github/workflows/cooldown-smoke.yml'
+              - '.github/workflows/pr-test.yml'
 
   validate-changed:
     runs-on: ubuntu-24.04
@@ -66,6 +78,36 @@ jobs:
 
       - name: Run tests on changed packages
         run: pnpm --filter="...[origin/main]" --filter="!." --if-present test
+
+  cooldown-smoke:
+    runs-on: ubuntu-24.04
+    name: Cooldown Devnet Smoke Test
+    needs: changes
+    if: needs.changes.outputs.cooldown == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cooldown SDK
+        run: pnpm --filter @tiltcheck/cooldown-sdk build
+
+      - name: Run Anchor Devnet Smoke Test
+        run: pnpm smoke:cooldown
+        env:
+          COOLDOWN_RPC_URL: 'https://api.devnet.solana.com'
 
   e2e:
     runs-on: ubuntu-24.04
