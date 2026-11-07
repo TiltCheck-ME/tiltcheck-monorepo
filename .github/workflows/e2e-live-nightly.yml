@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-17
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 name: E2E Live Nightly
 
 on:
@@ -27,6 +27,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Database, Extension & Pages
+        run: |
+          pnpm --filter @tiltcheck/database build
+          pnpm --filter @tiltcheck/chrome-extension package
+          pnpm build:pages
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
 
@@ -34,5 +40,3 @@ jobs:
         run: pnpm test:e2e
         env:
           BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://tiltcheck.me' }}
-
-

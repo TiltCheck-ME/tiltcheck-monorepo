@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+      - degen-lounge
 
 jobs:
   changes:
@@ -38,7 +39,9 @@ jobs:
               - 'apps/web/src/app/cooldown/**'
               - 'apps/user-dashboard/src/index.ts'
               - 'apps/user-dashboard/public/**'
+              - 'apps/user-dashboard/tests/**'
               - 'apps/chrome-extension/**'
+              - 'tests/e2e/extension-e2e.spec.ts'
               - 'scripts/smoke-anchor-devnet.ts'
               - '.github/workflows/cooldown-smoke.yml'
               - '.github/workflows/pr-test.yml'
@@ -101,13 +104,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Cooldown SDK
-        run: pnpm --filter @tiltcheck/cooldown-sdk build
+      - name: Build Cooldown SDK & User Dashboard
+        run: |
+          pnpm --filter @tiltcheck/cooldown-sdk build
+          pnpm --filter @tiltcheck/database build
+          pnpm --filter @tiltcheck/user-dashboard build
 
       - name: Run Anchor Devnet Smoke Test
         run: pnpm smoke:cooldown
         env:
           COOLDOWN_RPC_URL: 'https://api.devnet.solana.com'
+
+      - name: Run User Dashboard Cooldown Tests
+        run: pnpm test:cooldown:dashboard
 
   e2e:
     runs-on: ubuntu-24.04
@@ -130,6 +139,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build Database, Extension & Pages
+        run: |
+          pnpm --filter @tiltcheck/database build
+          pnpm --filter @tiltcheck/chrome-extension package
+          pnpm build:pages
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps

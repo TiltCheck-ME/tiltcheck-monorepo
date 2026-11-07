@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - degen-lounge
     paths:
       - 'packages/cooldown-sdk/**'
       - 'programs/cooldown/**'
@@ -12,12 +13,15 @@ on:
       - 'apps/web/src/app/cooldown/**'
       - 'apps/user-dashboard/src/index.ts'
       - 'apps/user-dashboard/public/**'
+      - 'apps/user-dashboard/tests/**'
       - 'apps/chrome-extension/**'
+      - 'tests/e2e/extension-e2e.spec.ts'
       - 'scripts/smoke-anchor-devnet.ts'
       - '.github/workflows/cooldown-smoke.yml'
   pull_request:
     branches:
       - main
+      - degen-lounge
     paths:
       - 'packages/cooldown-sdk/**'
       - 'programs/cooldown/**'
@@ -25,7 +29,9 @@ on:
       - 'apps/web/src/app/cooldown/**'
       - 'apps/user-dashboard/src/index.ts'
       - 'apps/user-dashboard/public/**'
+      - 'apps/user-dashboard/tests/**'
       - 'apps/chrome-extension/**'
+      - 'tests/e2e/extension-e2e.spec.ts'
       - 'scripts/smoke-anchor-devnet.ts'
       - '.github/workflows/cooldown-smoke.yml'
   schedule:
@@ -64,3 +70,62 @@ jobs:
         run: pnpm smoke:cooldown
         env:
           COOLDOWN_RPC_URL: 'https://api.devnet.solana.com'
+
+  dashboard-cooldown-suite:
+    name: Verify User Dashboard Timelock & Auto-Lock Suite
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Database & User Dashboard
+        run: |
+          pnpm --filter @tiltcheck/database build
+          pnpm --filter @tiltcheck/user-dashboard build
+
+      - name: Run User Dashboard Tests
+        run: pnpm --filter @tiltcheck/user-dashboard test
+
+  chrome-extension-e2e:
+    name: Verify Chrome Extension Packaging & Auto-Lock E2E
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Extension Package & Cooldown Pages
+        run: |
+          pnpm --filter @tiltcheck/chrome-extension package
+          pnpm build:pages
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run Extension Playwright E2E Suite
+        run: pnpm test:e2e:extension
