@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { DISCORD_INVITE_URL } from '@/lib/site-links';
+import { DISCORD_INVITE_URL, KOFI_URL } from '@/lib/site-links';
 
 const CONTACT_TOPICS = [
   'Instant Redeem / Processor partnership',
@@ -123,7 +123,7 @@ export default function ContactPage() {
             {' '}
             Just want to tip the build?{' '}
             <a
-              href="https://ko-fi.com/jmenichole0"
+              href={KOFI_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#17c3b2] hover:underline"

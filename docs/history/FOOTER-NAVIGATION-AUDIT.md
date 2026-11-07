@@ -189,7 +189,7 @@ The footer has 4 sections:
 |------------|------|--------|--------|
 | made for degens by degens | `https://jmenichole.github.io/Portfolio/` | External | ✅ Connected |
 | jmenichole | `https://github.com/jmenichole` | External | ✅ Connected |
-| Support | `https://ko-fi.com/jmenichole0` | External | ✅ Connected |
+| Support | `https://ko-fi.com/jmenichole7` | External | ✅ Connected |
 
 ---
 
@@ -385,7 +385,7 @@ Several pages link to `/dashboard` assuming it's a static HTML file:
       <p>
         Built by <a href="https://github.com/jmenichole" target="_blank" rel="noopener">jmenichole</a> • 
         TiltCheck Ecosystem © 2024–2025 • 
-        <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener">Support</a>
+        <a href="https://ko-fi.com/jmenichole7" target="_blank" rel="noopener">Support</a>
       </p>
     </div>
   </div>

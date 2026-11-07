@@ -6,7 +6,7 @@
 
 export const SITE_URL = 'https://tiltcheck.me';
 export const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
-export const KOFI_URL = 'https://ko-fi.com/jmenichole0';
+export const KOFI_URL = 'https://ko-fi.com/jmenichole7';
 export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`;
 
 export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];

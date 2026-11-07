@@ -486,6 +486,14 @@ See `SECURITY.md` for reporting vulnerabilities.
 
 ---
 
+## Support & Community
+
+- **Support on Ko-fi:** <https://ko-fi.com/jmenichole7>
+- **Discord Community:** <https://discord.gg/gdBsEJfCar>
+- **Public Hub:** <https://tiltcheck.me>
+
+---
+
 ## Contact
 
 **Founder:** jmenichole  

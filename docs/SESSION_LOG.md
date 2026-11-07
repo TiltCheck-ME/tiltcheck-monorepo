@@ -15,6 +15,7 @@ Prepared and verified the TiltCheck browser extension for direct submission to t
 - Production ZIP Packaging: Built and verified apps/chrome-extension/tiltcheck-extension.zip containing root manifest and required assets with zero sourcemap leakage (164 KB).
 - Store Listing & Privacy Declarations: Authored comprehensive Chrome Web Store publishing guide in apps/chrome-extension/docs/publishing.md with single-purpose declarations, permission justifications, data usage attestations, and exact store listing copy adhering to brand guidelines (zero emojis, non-custodial guarantee).
 - Test Verification: Re-verified unit suite (272/272 passing) and Playwright browser E2E suite (6/6 passing).
+- Ko-fi Support Link Synchronization: Updated official Ko-fi tipping link to https://ko-fi.com/jmenichole7 across site-links, Pages product data, collab and about pages, README.md, and created .github/FUNDING.yml with GitHub Sponsors button integration.
 
 ## 2026-11-06 — feat(ecosystem): on-chain solana devnet cooldown timelocks, tilt auto-lock containment, and e2e ci automation
 
