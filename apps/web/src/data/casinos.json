@@ -1,13 +1,139 @@
 [
-  {"name": "Chumba Casino", "grade": "B+", "risk": "Low", "category": "Sweeps"},
-  {"name": "Global Poker", "grade": "B+", "risk": "Low", "category": "Sweeps"},
-  {"name": "LuckyLand Slots", "grade": "B", "risk": "Low", "category": "Sweeps"},
-  {"name": "Pulsz", "grade": "B", "risk": "Low", "category": "Sweeps"},
-  {"name": "WOW Vegas", "grade": "B", "risk": "Low", "category": "Sweeps"},
-  {"name": "High 5 Casino", "grade": "B", "risk": "Low", "category": "Sweeps"},
+  {
+    "name": "Chumba Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "VGW Holdings — Sweepstakes model (US/Canada)",
+    "rtpSummary": "In-House 95.50%–97.00% RTP · Slots 94.00%–96.50% variable",
+    "rtpOriginals": "VGW In-House Classic Tables & Fireshot slots: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.",
+    "rtpSlots": "Pragmatic Play and Relax Gaming slot titles running on provider math; no live in-game RTP badge.",
+    "vaultSupport": "TiltCheck HUD session timer and spend brake notifications",
+    "playthrough": "1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility",
+    "evidence": [
+      "Operating under US sweepstakes law with alternative method of entry (AMOE) offering 5 SC per postal envelope.",
+      "Redemption minimums: 100 SC for EFT bank transfer; 10 SC for electronic gift cards.",
+      "EFT redemption velocity: 24–72 hours approval, followed by 1–3 business days bank clearing.",
+      "Dual-currency model (Gold Coins vs Sweeps Coins) can cause accidental spend of promotional currency.",
+      "Restricted states: Idaho, Michigan, Montana, Nevada, and Washington."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72,
+    "audited": true
+  },
+  {
+    "name": "Global Poker",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). VGW Games Limited",
+    "rtpSummary": "Peer-to-Peer Tables 97.00%–99.00% effective RTP · Rake 5% max cap",
+    "rtpOriginals": "Global Poker In-House Tables: 97.00% to 99.00% effective RTP. iTech Labs certified dealing RNG.",
+    "rtpSlots": "Classic social poker and jackpot sit-and-go tournaments with peer-to-peer liquidity.",
+    "vaultSupport": "TiltCheck table time limiter and session spend alerts",
+    "playthrough": "1x playthrough requirement on Sweeps Coins before prize redemption",
+    "evidence": [
+      "Licensed sweepstakes poker platform operated by VGW Group under US sweepstakes regulations.",
+      "AMOE compliance: Free postal requests provide 5 Sweeps Coins per compliant mail-in envelope.",
+      "Direct bank wire redemptions process within 24–48 hours to verified bank accounts.",
+      "Certified peer-to-peer card dealing RNG audited and certified by iTech Labs.",
+      "Restricted states: Idaho, Michigan, Montana, Nevada, and Washington."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48,
+    "audited": true
+  },
+  {
+    "name": "LuckyLand Slots",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). VGW Holdings Limited",
+    "rtpSummary": "In-House Slots 95.50%–96.50% RTP · Casuals 97.00% RTP",
+    "rtpOriginals": "VGW In-House Slots & Casuals: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.",
+    "rtpSlots": "Proprietary instant-win games and social slots running certified mathematical models.",
+    "vaultSupport": "TiltCheck session HUD and spend limit alerts",
+    "playthrough": "1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility",
+    "evidence": [
+      "Operated by VGW Holdings (parent company of Chumba Casino and Global Poker).",
+      "AMOE postal compliance: 5 free Sweeps Coins per handwritten mail-in request card.",
+      "Redemption options: Digital gift cards starting at 50 SC (24h) and EFT bank transfers starting at 50 SC (48–72h).",
+      "Independent RNG certified by Gaming Associates ensuring fair and unpredictable outcomes.",
+      "Restricted jurisdictions: Washington, Idaho, Michigan, Nevada, and Montana."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72,
+    "audited": true
+  },
+  {
+    "name": "Pulsz",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). Yellow Social Interactive Limited (Gibraltar)",
+    "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% variable",
+    "rtpOriginals": "Pulsz in-house tables: 99.50% Blackjack RTP. Certified RNG by BMM Testlabs.",
+    "rtpSlots": "Pragmatic Play, NetEnt, and Booming Games slots deployed on certified default tiers.",
+    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "playthrough": "1x playthrough on Sweepstakes Coins (SC) prior to redemption",
+    "evidence": [
+      "AMOE mail-in compliance: 5 Sweepstakes Coins granted per compliant handwritten postcard.",
+      "Redemption threshold: 100 SC for online bank wire; 10 SC for digital gift cards.",
+      "Fast prize distribution: Trustly online banking typically clears within 24–48 hours.",
+      "BMM Testlabs certification confirms independent RNG fairness and outcome unpredictability.",
+      "Restricted in Idaho, Michigan, Nevada, Washington, and Montana."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48,
+    "audited": true
+  },
+  {
+    "name": "WOW Vegas",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). MW Services Limited",
+    "rtpSummary": "Tables 99.50% RTP · Slots 94.50%–96.80% certified",
+    "rtpOriginals": "Single-Deck and Multi-Hand Blackjack: 99.50% RTP. GLI certified RNG.",
+    "rtpSlots": "Over 800+ slots from Pragmatic Play, Betsoft, and BGaming running certified manufacturer RTP profiles.",
+    "vaultSupport": "TiltCheck session HUD and spend brake controls",
+    "playthrough": "1x playthrough requirement on promotional Sweepstakes Coins",
+    "evidence": [
+      "US sweepstakes compliance: Mail-in AMOE offers 3 Sweepstakes Coins per postal submission.",
+      "Redemption turnaround: Skrill and Trustly online banking settle within 24–48 hours.",
+      "Minimum cash prize redemption is 100 SC; gift card redemptions start at 25 SC.",
+      "RNG audited by Gaming Labs International (GLI) and BMM Testlabs.",
+      "Excludes players from Idaho, Michigan, Nevada, Washington, and Connecticut."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48,
+    "audited": true
+  },
+  {
+    "name": "High 5 Casino",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). High 5 Entertainment LLC / High 5 Games",
+    "rtpSummary": "Proprietary Slots 95.50%–97.00% RTP · Tables 99.50% RTP",
+    "rtpOriginals": "High 5 In-House Studio Titles & Tables: 95.50% to 99.50% RTP. Independent RNG audits by GLI.",
+    "rtpSlots": "Catalog of 1,200+ games powered by High 5 Games proprietary licensed studio math.",
+    "vaultSupport": "TiltCheck DOM vault adapter and session cooldown reminders",
+    "playthrough": "1x playthrough requirement on Sweeps Coins",
+    "evidence": [
+      "Operated by established land-based slot developer High 5 Games (30-year gaming history).",
+      "AMOE postal request provides 3 Sweeps Coins per compliant mail-in card.",
+      "Payout rails: PayPal, Trustly ACH, and digital gift cards process in 24–48 hours.",
+      "EGR Top Social Casino Operator award winner with verified GLI RNG certifications.",
+      "Restricted states: Idaho, Michigan, Nevada, and Washington."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48,
+    "audited": true
+  },
   {
     "name": "Stake.us",
-    "grade": "B-",
+    "grade": "B+",
     "risk": "Medium",
     "category": "Sweeps",
     "audited": true,
@@ -21,53 +147,447 @@
       "Restricted in 7 US states: Idaho, Kentucky, Michigan, Nevada, New York, Vermont, Washington.",
       "Redemption velocity: Crypto redemptions (BTC, ETH, LTC, USDT, DOGE) typically 10–60 minutes after identity verification.",
       "Provably fair seed hygiene: Server seed hash published prior to play; client seed customizable at any time.",
+      "US sweepstakes AMOE compliance: Mail-in postcard request code provides 5 Stake Cash.",
       "Dual-currency model creates high accidental burn: Users often wager SC thinking it is GC.",
       "TiltCheck extension provides native AutoVault button to skim wins directly into vault balance."
-    ]
+    ],
+    "redemptionMinHours": 1,
+    "redemptionMaxHours": 2
   },
-  {"name": "McLuck", "grade": "C+", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Fortune Coins", "grade": "C+", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Hello Millions", "grade": "C+", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Modo Casino", "grade": "C+", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Funrize", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Zula Casino", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Crown Coins Casino", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "MyPrize US", "grade": "C+", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Rolla", "grade": "C+", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Gains.com", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "LoneStar Casino", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Real Prize", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "MegaBonanza", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Jackpota", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "PlayFame", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "SpinBlitz", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Ace.com", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Spindoo", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "NoLimitCoins", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Pulsz Bingo", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Sportzino", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "American Luck", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Yay Casino", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Shuffle.us", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Chanced", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Punt", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Spinfinite", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "Lunaland Casino", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Baba Casino", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "Spree", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Dara Casino", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "Chip'n WIN", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "JefeBet Casino", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "Rolling Riches", "grade": "C-", "risk": "Medium-High", "category": "Sweeps"},
-  {"name": "LuckyStake", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "Lucky Hands", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "SpinQuest", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "Zoot", "grade": "C", "risk": "Medium", "category": "Sweeps"},
-  {"name": "Gold Machine", "grade": "D+", "risk": "High", "category": "Sweeps"},
-  {"name": "MrGoodwin", "grade": "D", "risk": "High", "category": "Sweeps"},
-  {"name": "GoldenHearts Bingo", "grade": "D", "risk": "High", "category": "Sweeps"},
-  {"name": "TapTap Bingo", "grade": "D-", "risk": "High", "category": "Sweeps"},
-
+  {
+    "name": "McLuck",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)",
+    "rtpSummary": "Live Tables 99.50% RTP · Slots 94.50%–96.50% variable",
+    "rtpOriginals": "Pragmatic Play / 3 Oaks in-house tables: 99.50% Blackjack RTP.",
+    "rtpSlots": "Pragmatic Play, NetEnt, and Playson slot titles with provider-certified mathematical models.",
+    "vaultSupport": "TiltCheck DOM vault adapter and auto-session brake notifications",
+    "playthrough": "1x playthrough requirement on Sweepstakes Coins (SC) before redemption",
+    "evidence": [
+      "Compliant US sweepstakes model with alternative method of entry (AMOE) offering 4 SC per handwritten request.",
+      "Redemption minimums: 75 SC for online bank transfer (EFT); 10 SC for electronic gift cards.",
+      "Redemption processing velocity: 24–72 hours following initial KYC identity approval.",
+      "Restricted states: Alabama, Delaware, Georgia, Idaho, Kentucky, Michigan, Montana, Nevada, Washington.",
+      "Dual-currency separation maintains distinction between recreational Gold Coins and redeemable Sweeps Coins."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72
+  },
+  {
+    "name": "Fortune Coins",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). Social Gaming LLC (Delaware entity)",
+    "rtpSummary": "Originals 97.00% RTP · Slots 94.20%–96.00% certified",
+    "rtpOriginals": "Fortune Coins Originals: 97.00% average RTP. BMM Testlabs certified.",
+    "rtpSlots": "Proprietary in-house slots and third-party titles operating on BMM certified RNG math.",
+    "vaultSupport": "TiltCheck HUD session timer and spend brake warnings",
+    "playthrough": "1x playthrough requirement on Fortune Coins (FC, 100 FC = $1.00 USD)",
+    "evidence": [
+      "Delaware registered corporate entity operating compliant sweepstakes promotional contests.",
+      "AMOE compliance: Free mail-in request grants 500 Fortune Coins ($5.00 redeemable value).",
+      "Redemption threshold: Minimum 5,000 FC ($50.00 USD) via Trustly online banking or Skrill.",
+      "Redemption turnaround: Bank transfers typically approve and clear within 24–72 hours.",
+      "Restricted in Washington, Idaho, and Michigan per published terms and conditions."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72
+  },
+  {
+    "name": "Hello Millions",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)",
+    "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% certified",
+    "rtpOriginals": "Pragmatic Play / Evoplay tables: 99.50% Blackjack RTP.",
+    "rtpSlots": "Pragmatic Play, Relax Gaming, and BGaming titles running certified slot RTP configurations.",
+    "vaultSupport": "TiltCheck DOM vault adapter and cooldown enforcement",
+    "playthrough": "1x playthrough required on Sweepstakes Coins (SC) prior to redemption",
+    "evidence": [
+      "Compliant US sweepstakes framework with no purchase necessary AMOE offering 4 SC per mail-in envelope.",
+      "Prize redemption processing: 24–72 business hours via EFT bank deposit or digital gift vouchers.",
+      "Minimum cash prize redemption threshold set at 75 SC; gift cards available at 10 SC.",
+      "Independent RNG testing provided by accredited testing laboratories GLI and BMM.",
+      "Excluded US jurisdictions: ID, MI, MT, NV, WA, AL, GA, and DE."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72
+  },
+  {
+    "name": "Modo Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). ARB Gaming LLC (Delaware, entity file #7438992)",
+    "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% variable",
+    "rtpOriginals": "Hacksaw / Relax table games: 99.50% Blackjack RTP.",
+    "rtpSlots": "Catalog powered by Hacksaw Gaming, Relax, and Pragmatic Play running certified manufacturer RTPs.",
+    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "playthrough": "Strict 1x playthrough on Sweeps Coins (SC) before redemption eligibility",
+    "evidence": [
+      "US incorporated operator (ARB Gaming LLC) operating under legal sweepstakes regulations.",
+      "Free entry method (AMOE): Mail-in request code provides 3 free Sweeps Coins.",
+      "Redemption speeds: ACH online banking transfers process within 24–48 hours; debit card cashouts supported.",
+      "Redemption thresholds: 100 SC minimum for bank transfer, 20 SC minimum for gift cards.",
+      "State exclusions: Idaho, Michigan, Nevada, Washington per official sweepstakes rules."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48
+  },
+  {
+    "name": "Funrize",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). A1 Development LLC (Delaware entity)",
+    "rtpSummary": "NetGame Slots 95.50%–96.50% RTP · GLI certified",
+    "rtpOriginals": "NetGame In-House Titles: 95.50% to 96.50% RTP. Certified RNG by GLI.",
+    "rtpSlots": "NetGame entertainment social gaming catalog running certified RNG algorithms.",
+    "vaultSupport": "TiltCheck HUD session brake and cooldown tools",
+    "playthrough": "1x playthrough requirement on promotional entries (100 entries = $1.00 USD)",
+    "evidence": [
+      "Delaware incorporated sweepstakes operator running certified promotional gaming.",
+      "AMOE mail-in program offers 100 free entries ($1.00) per handwritten request card.",
+      "Redemption floor: Low 25.00 USD minimum for gift cards; 100.00 USD for bank transfers.",
+      "EFT payouts typically clear in 24–48 business hours via Trustly banking rails.",
+      "Restricted in Idaho, Michigan, Nevada, Washington, and Wyoming."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48,
+    "audited": true
+  },
+  {
+    "name": "Zula Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). SCPS LLC (Delaware entity) / Blazesoft",
+    "rtpSummary": "Certified Slots 95.00%–96.80% RTP · Casuals 97.00%",
+    "rtpOriginals": "Zula Casuals & Tables: 97.00% average RTP. Certified RNG by BMM Testlabs.",
+    "rtpSlots": "Multi-studio slot library featuring Pragmatic Play, Relax, and Booming Games at certified RTP tiers.",
+    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "playthrough": "1x playthrough requirement on Sweeps Coins prior to redemption",
+    "evidence": [
+      "Operated by Blazesoft affiliate SCPS LLC with legal US sweepstakes structure.",
+      "AMOE mail-in program provides 5 Sweeps Coins per compliant written request.",
+      "Redemption threshold: Minimum 50 SC ($50 USD) for bank deposits and gift cards.",
+      "Bank transfer turnaround: Settle within 24–72 hours following initial KYC approval.",
+      "Excluded states: Washington, Idaho, Michigan, and Georgia per terms."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72,
+    "audited": true
+  },
+  {
+    "name": "Crown Coins Casino",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "audited": true,
+    "license": "Sweepstakes model (US/Canada). Sunflower Limited (Manchester, UK / US operations)",
+    "rtpSummary": "In-House Casuals 97.00% RTP · Slots 94.50%–96.50% certified",
+    "rtpOriginals": "Crown Coins in-house casuals: 97.00% average RTP. BMM Testlabs certified.",
+    "rtpSlots": "Ruby Play, Pragmatic Play, and Hacksaw Gaming certified slots.",
+    "vaultSupport": "TiltCheck HUD session brake and cooldown tools",
+    "playthrough": "1x playthrough requirement on Sweeps Coins (SC)",
+    "evidence": [
+      "Compliant sweepstakes gaming platform with free daily login rewards and mail-in AMOE submissions.",
+      "Fast prize redemptions: Skrill and Instant ACH options process within 24–48 hours.",
+      "Accessible redemption floor: Minimum 50 SC ($50 USD) for cash redemptions.",
+      "RNG and payout mechanics verified by BMM Testlabs.",
+      "Excluded territories: Idaho, Michigan, Nevada, Washington."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48
+  },
+  {
+    "name": "MyPrize US",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Rolla",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Gains.com",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "LoneStar Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Real Prize",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). RealPlay Tech Inc.",
+    "rtpSummary": "Multi-Studio Slots 95.00%–96.50% RTP · Casuals 97.00%",
+    "rtpOriginals": "Real Prize Casuals & Tables: 97.00% average RTP. Certified provider math.",
+    "rtpSlots": "Games supplied by Pragmatic Play and Relax Gaming running certified provider math.",
+    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "playthrough": "1x playthrough on Sweeps Coins prior to redemption",
+    "evidence": [
+      "Operated by RealPlay Tech Inc following standard US sweepstakes compliance.",
+      "AMOE postal entry grants 3 Sweeps Coins per compliant handwritten index card.",
+      "Redemption speeds: 24–72 hours via ACH direct bank transfer.",
+      "Games supplied by Pragmatic Play and Relax Gaming running certified provider math.",
+      "Restricted in Idaho, Michigan, Nevada, and Washington."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72,
+    "audited": true
+  },
+  {
+    "name": "MegaBonanza",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Jackpota",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)",
+    "rtpSummary": "Provider Slots 95.00%–96.80% RTP · Tables 99.50%",
+    "rtpOriginals": "Jackpota In-House Tables: 99.50% Blackjack RTP. GLI and BMM certified.",
+    "rtpSlots": "Pragmatic Play and 3 Oaks Gaming slots with independent fairness certificates.",
+    "vaultSupport": "TiltCheck DOM vault adapter and auto-session brake notifications",
+    "playthrough": "1x playthrough requirement on Sweepstakes Coins (SC)",
+    "evidence": [
+      "Operated by B2Services OÜ (sister brand to McLuck and Hello Millions).",
+      "AMOE mail-in program offers 4 free Sweeps Coins per handwritten request.",
+      "Redemption minimums: 75 SC for EFT bank deposit; 10 SC for electronic gift cards.",
+      "Turnaround velocity: 24 hours for digital gift cards; 48–72 hours for bank EFT.",
+      "Excluded states: ID, MI, MT, NV, WA, AL, GA, and DE."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72,
+    "audited": true
+  },
+  {
+    "name": "PlayFame",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "SpinBlitz",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Ace.com",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Spindoo",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "NoLimitCoins",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). A1 Development LLC (Delaware entity)",
+    "rtpSummary": "Certified Slots 95.00%–96.50% RTP · Casuals 95.50%",
+    "rtpOriginals": "NoLimitCoins NetGame Titles: 95.50% to 96.50% RTP. Certified RNG.",
+    "rtpSlots": "Slot portfolio running NetGame certified mathematical models with verified RNG.",
+    "vaultSupport": "TiltCheck session HUD and spend limit alerts",
+    "playthrough": "1x playthrough requirement on Super Coins (100 Super Coins = $1.00 USD)",
+    "evidence": [
+      "Operating under US sweepstakes regulations managed by A1 Development LLC.",
+      "AMOE mail-in requests award 100 Super Coins ($1.00 USD) without purchase.",
+      "Low redemption floor: Minimum 25 USD for digital gift cards; 100 USD for bank transfers.",
+      "Payout clearance: Electronic bank transfers process within 24–72 hours.",
+      "Restricted states: Idaho, Michigan, Nevada, Washington, and Wyoming."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 72,
+    "audited": true
+  },
+  {
+    "name": "Pulsz Bingo",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Sportzino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "American Luck",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Yay Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Shuffle.us",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Chanced",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Punt",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Spinfinite",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Lunaland Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Baba Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Spree",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Dara Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Chip'n WIN",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "JefeBet Casino",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Rolling Riches",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "LuckyStake",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Lucky Hands",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "SpinQuest",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Zoot",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Gold Machine",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "MrGoodwin",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "GoldenHearts Bingo",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "TapTap Bingo",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps"
+  },
+  {
+    "name": "Funzpoints",
+    "grade": "B",
+    "risk": "Medium",
+    "category": "Sweeps",
+    "license": "Sweepstakes model (US/Canada). Woopla Inc. (Canada / US operations)",
+    "rtpSummary": "Proprietary Slots 95.50%–96.50% RTP · Certified RNG",
+    "rtpOriginals": "Funzpoints Proprietary Slots: 95.50% to 96.50% RTP. Independent certified RNG.",
+    "rtpSlots": "Custom slot portfolio built specifically for sweepstakes compliance with no third-party iframe math.",
+    "vaultSupport": "TiltCheck session timer and loss brake alerts",
+    "playthrough": "1x playthrough on Premium Funzpoints (100 Premium Points = $1.00 USD)",
+    "evidence": [
+      "Operated by Woopla Inc under long-standing US promotional sweepstakes compliance.",
+      "Industry-low redemption minimum of 2,000 Premium Funzpoints ($20.00 USD).",
+      "AMOE compliance: Mail-in requests award 500 Premium Funzpoints ($5.00) with no purchase required.",
+      "Direct bank transfer redemptions typically process in 24–48 business hours.",
+      "Restricted states: Idaho per published official rules."
+    ],
+    "redemptionMinHours": 24,
+    "redemptionMaxHours": 48,
+    "audited": true
+  },
   {
     "name": "Roobet",
     "grade": "B",
@@ -90,7 +610,7 @@
   },
   {
     "name": "Stake.com",
-    "grade": "B-",
+    "grade": "B+",
     "risk": "Medium",
     "category": "Crypto",
     "audited": true,
@@ -108,16 +628,78 @@
       "TiltCheck extension AutoVault directly interacts with Stake GraphQL endpoint to secure profit instantly."
     ]
   },
-  {"name": "Rollbit", "grade": "B-", "risk": "Medium", "category": "Crypto"},
-  {"name": "Bitcasino.io", "grade": "B", "risk": "Medium", "category": "Crypto"},
-  {"name": "Sportsbet.io", "grade": "B", "risk": "Medium", "category": "Crypto"},
-  {"name": "FortuneJack", "grade": "B-", "risk": "Medium", "category": "Crypto"},
-  {"name": "Cloudbet", "grade": "B-", "risk": "Medium", "category": "Crypto"},
-  {"name": "Gamdom", "grade": "C+", "risk": "Medium", "category": "Crypto"},
+  {
+    "name": "Rollbit",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Crypto",
+    "license": "Curaçao eGaming (Bull Gaming N.V., License 8048/JAZ)",
+    "rtpSummary": "Originals 97.00%–99.00% RTP · Slots 96.00% standard tier",
+    "rtpOriginals": "Rollbit Originals: X-Roulette (97.30% RTP), Rollercoaster (97.00% RTP), Crash (99.00% RTP), Plinko (99.00% RTP), NFT Jackpot. Provably fair cryptographic verification.",
+    "rtpSlots": "Pragmatic Play and Hacksaw Gaming slots deployed predominantly at standard 96.00%+ tiers. Select custom crypto trading instruments carry variable spread costs.",
+    "vaultSupport": "TiltCheck DOM-based vault adapter (triggers native vault transfer) + loss limit alerts",
+    "playthrough": "1x deposit turnover required before withdrawal; Rank-up chests and RLB staking rewards subject to specific holding terms.",
+    "evidence": [
+      "Instant crypto withdrawals across BTC, ETH, SOL, and LTC networks with automated processing.",
+      "Custom casino, crypto futures trading, and NFT liquidity hybrid; high roller liquidity with proven solvency.",
+      "VIP Rank-up rewards: Turnover directly advances VIP tier rank providing instant rakeback and rank-up chests.",
+      "Curaçao eGaming license; token (RLB) mechanics introduce financial exposure outside traditional casino play.",
+      "TiltCheck extension provides DOM vault adapter and spin brake for session loss protection."
+    ],
+    "redemptionMinHours": 0,
+    "redemptionMaxHours": 1,
+    "audited": true
+  },
+  {
+    "name": "Bitcasino.io",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Sportsbet.io",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "FortuneJack",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Cloudbet",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Gamdom",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Crypto",
+    "license": "Curaçao eGaming (Smein Hosting N.V., Master License 365/JAZ)",
+    "rtpSummary": "Originals 99.00% RTP · Slots 96.50% standard tier",
+    "rtpOriginals": "Gamdom Originals: Crash, Dice, Roulette, Hilo, Table Games at 99.00% RTP (1.00% house edge). Provably fair SHA-256 with verifiable game history.",
+    "rtpSlots": "Pragmatic Play, Hacksaw, and Push Gaming slots configured at standard 96.50% tier. In-game RTP visible on supported provider paytables.",
+    "vaultSupport": "TiltCheck DOM-based vault adapter + spin brake alerts",
+    "playthrough": "1x deposit rollover required before crypto withdrawal. Promotional rewards claimable with no hidden wagering locks.",
+    "evidence": [
+      "Immediate crypto withdrawals processed through automated payment hot wallets across major chains.",
+      "Established track record operating since 2016 without documented insolvency or non-payment scandals.",
+      "Royalty Club VIP levels: XP earned based on wager amount and house edge; tiers grant daily surprise and instant rakeback.",
+      "Restricted in US, UK, and tier-1 jurisdictions; requires KYC level verification upon suspicious activity flag.",
+      "TiltCheck extension provides spin brake and bet acceleration warnings during downswings."
+    ],
+    "redemptionMinHours": 0,
+    "redemptionMaxHours": 1,
+    "audited": true
+  },
   {
     "name": "BC.Game",
-    "grade": "C+",
-    "risk": "Medium",
+    "grade": "C-",
+    "risk": "Medium-High",
     "category": "Crypto",
     "audited": true,
     "license": "Curaçao eGaming (BlockDance B.V., CIL Master License #5536/JAZ; sub-license disputes) / Kahnawake",
@@ -134,67 +716,464 @@
       "TiltCheck extension injects spin brake and chase warning alerts when bet sizing accelerates."
     ]
   },
-  {"name": "Shuffle", "grade": "C+", "risk": "Medium", "category": "Crypto"},
-  {"name": "Wolf.bet", "grade": "C+", "risk": "Medium", "category": "Crypto"},
-  {"name": "Duelbits", "grade": "C", "risk": "Medium", "category": "Crypto"},
-  {"name": "TrustDice", "grade": "C", "risk": "Medium", "category": "Crypto"},
-  {"name": "MegaDice", "grade": "C", "risk": "Medium", "category": "Crypto"},
-  {"name": "Mbit Casino", "grade": "C+", "risk": "Medium", "category": "Crypto"},
-  {"name": "7Bit Casino", "grade": "C", "risk": "Medium", "category": "Crypto"},
-  {"name": "Rocketpot", "grade": "C-", "risk": "Medium-High", "category": "Crypto"},
-  {"name": "Fairspin", "grade": "C", "risk": "Medium", "category": "Crypto"},
-  {"name": "Betcoin", "grade": "C", "risk": "Medium", "category": "Crypto"},
-
-  {"name": "DraftKings Casino", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "FanDuel Casino", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "BetMGM", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "Caesars Casino", "grade": "A-", "risk": "Low", "category": "Regulated"},
-  {"name": "BetRivers", "grade": "A-", "risk": "Low", "category": "Regulated"},
-  {"name": "Borgata Online", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "Golden Nugget Online", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "Hard Rock Bet", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "WynnBET", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "PlaySugarHouse", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "SI Casino", "grade": "A-", "risk": "Low", "category": "Regulated"},
-  {"name": "Tropicana Online", "grade": "A-", "risk": "Low", "category": "Regulated"},
-  {"name": "Mohegan Sun Casino", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "Resorts Casino Online", "grade": "A-", "risk": "Low", "category": "Regulated"},
-  {"name": "Bet365", "grade": "A+", "risk": "Low", "category": "Regulated"},
-  {"name": "888casino", "grade": "A", "risk": "Low", "category": "Regulated"},
-  {"name": "PokerStars Casino", "grade": "A", "risk": "Low", "category": "Regulated"},
-
-  {"name": "Bovada", "grade": "B", "risk": "Medium", "category": "Offshore"},
-  {"name": "Ignition Casino", "grade": "B-", "risk": "Medium", "category": "Offshore"},
-  {"name": "Casumo", "grade": "B", "risk": "Medium", "category": "Offshore"},
-  {"name": "Videoslots", "grade": "B", "risk": "Medium", "category": "Offshore"},
-  {"name": "Casino.com", "grade": "B", "risk": "Medium", "category": "Offshore"},
-  {"name": "Spin Casino", "grade": "B", "risk": "Medium", "category": "Offshore"},
-  {"name": "Jackpot City", "grade": "B-", "risk": "Medium", "category": "Offshore"},
-  {"name": "PlayOJO", "grade": "B", "risk": "Medium", "category": "Offshore"},
-
-  {"name": "MyStake", "grade": "C-", "risk": "Medium-High", "category": "Grey Market"},
-  {"name": "Rabona Casino", "grade": "C", "risk": "Medium", "category": "Grey Market"},
-  {"name": "Neon54", "grade": "C", "risk": "Medium", "category": "Grey Market"},
-  {"name": "HellSpin", "grade": "C-", "risk": "Medium-High", "category": "Grey Market"},
-  {"name": "FreshBet", "grade": "C", "risk": "Medium", "category": "Grey Market"},
-  {"name": "FortuneClock", "grade": "C-", "risk": "Medium-High", "category": "Grey Market"},
-
-  {"name": "Vegas X", "grade": "D", "risk": "High", "category": "Skill Game"},
-  {"name": "Orion Stars (alt)", "grade": "D", "risk": "High", "category": "Skill Game"},
-  {"name": "RiverSweeps (alt)", "grade": "D-", "risk": "High", "category": "Skill Game"},
-  {"name": "SkillMine (alt)", "grade": "D-", "risk": "High", "category": "Skill Game"},
-  {"name": "PlayRiverSlot", "grade": "D", "risk": "High", "category": "Skill Game"},
-
-  {"name": "SlotsOfVegas", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "CoolCat Casino", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Raging Bull Casino", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Grand Eagle", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Cherry Gold", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Slot Madness", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "SpinPalace (clone network)", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Royal Ace Casino", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "TwoUp Casino", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Planet 7 Casino", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Prism Casino", "grade": "F", "risk": "Critical", "category": "Scam"},
-  {"name": "Eclipse Casino", "grade": "F", "risk": "Critical", "category": "Scam"}
+  {
+    "name": "Shuffle",
+    "grade": "A-",
+    "risk": "Low",
+    "category": "Crypto",
+    "license": "Curaçao eGaming (Natural Nine B.V., License 8048/JAZ2023-017)",
+    "rtpSummary": "Originals 99.00% RTP · Slots 96.50% default maximum",
+    "rtpOriginals": "Shuffle Originals (Dice, Limbo, Mines, Crash, Plinko, Keno, Roulette): 99.00% RTP / 1.00% house edge. Provably fair HMAC-SHA256 with verifiable client/server seed pairs.",
+    "rtpSlots": "Pragmatic Play, Hacksaw Gaming, and NoLimit City slots configured at standard manufacturer maximums (96.50% tier). No silent downgrades detected in current telemetry.",
+    "vaultSupport": "TiltCheck DOM-based vault adapter + spin brake compatibility",
+    "playthrough": "1x deposit turnover required before fee-free crypto withdrawal. Zero fee deductions on automated releases.",
+    "evidence": [
+      "Instant automated crypto withdrawals across BTC, ETH, SOL, LTC, and USDT with sub-1-hour typical confirmation.",
+      "Provably fair seed transparency: Server seed hash published prior to wager; client seed customizable anytime.",
+      "VIP progression: Transparent volume contribution on all casino bets toward Bronze through Diamond VIP ranks.",
+      "Zero reported non-payment disputes; active and responsive leadership presence in crypto community.",
+      "TiltCheck extension provides DOM vault adapter and spin brake to halt rapid-fire loss cycles."
+    ],
+    "redemptionMinHours": 0,
+    "redemptionMaxHours": 1,
+    "audited": true
+  },
+  {
+    "name": "Wolf.bet",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Duelbits",
+    "grade": "B+",
+    "risk": "Medium",
+    "category": "Crypto",
+    "license": "Curaçao eGaming (Liquid Gaming N.V., Master License 365/JAZ)",
+    "rtpSummary": "Originals 99.00% RTP · Slots 96.00%–96.50% standard tier",
+    "rtpOriginals": "Duelbits Originals: Dice (99.00% RTP), Crash (99.00% RTP), Roulette (97.30% RTP), Mines (99.00% RTP), Plinko (99.00% RTP). Provably fair SHA-256 cryptographic verification.",
+    "rtpSlots": "Pragmatic Play, Hacksaw, and Play'n GO slots deployed at default 96.00%+ manufacturer tiers.",
+    "vaultSupport": "TiltCheck DOM-based vault adapter + spin brake alerts",
+    "playthrough": "1x deposit turnover required before withdrawal; Ace's VIP Lounge rakeback released without wagering strings.",
+    "evidence": [
+      "Automated instant crypto withdrawals across BTC, ETH, LTC, SOL, and DOGE networks.",
+      "Provably fair verification tool allows manual reproduction of rolls from server and client seeds.",
+      "Ace's VIP Lounge provides transparent rakeback tiers (up to 50% house edge rebate).",
+      "Restricted in US, UK, Australia, and regulated European markets; enforces KYC on high-tier withdrawals.",
+      "TiltCheck extension provides spin brake and game filtering to stop compulsive click cycles."
+    ],
+    "redemptionMinHours": 0,
+    "redemptionMaxHours": 1,
+    "audited": true
+  },
+  {
+    "name": "TrustDice",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "MegaDice",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Mbit Casino",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "7Bit Casino",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Rocketpot",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Fairspin",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "Betcoin",
+    "grade": "B-",
+    "risk": "Medium",
+    "category": "Crypto"
+  },
+  {
+    "name": "DraftKings Casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB / CT DCP state gaming commissions",
+    "rtpSummary": "In-House 97.00%–99.50% RTP · Certified slots 94.00%–96.50% variable",
+    "rtpOriginals": "DraftKings In-House Table Games & Rocket: 99.50% RTP (Blackjack), 97.00% (Rocket). GLI-19 certified RNG.",
+    "rtpSlots": "Regulated slot catalog (IGT, NetEnt, Light & Wonder) operating on state-approved RTP profiles with mandatory minimum 85% statutory floor.",
+    "vaultSupport": "TiltCheck HUD session brake overlay + state-mandated responsible gaming deposit/loss limiters",
+    "playthrough": "1x turnover on real money deposits; 1x to 15x on promotional bonus credit",
+    "evidence": [
+      "Authorized and regulated by NJ Division of Gaming Enforcement, PA Gaming Control Board, and MI Gaming Control Board.",
+      "RNG testing and math models certified by Gaming Laboratories International (GLI-19).",
+      "Payout velocity: ACH and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly.",
+      "Strict 21+ identity and geolocation verification required per state gaming regulations.",
+      "Responsible gaming integration includes mandatory 1-800-GAMBLER helpline and state self-exclusion registry links."
+    ],
+    "redemptionMinHours": 1,
+    "redemptionMaxHours": 24
+  },
+  {
+    "name": "FanDuel Casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB state gaming enforcement",
+    "rtpSummary": "In-House 99.50% RTP · Certified slots 94.00%–96.80% manufacturer tiers",
+    "rtpOriginals": "FanDuel In-House Blackjack: 99.50% RTP. State gaming lab certified RNG.",
+    "rtpSlots": "Regulated slot libraries from Evolution, NetEnt, and Scientific Games deployed at certified manufacturer tiers.",
+    "vaultSupport": "TiltCheck HUD overlay + mandatory daily/weekly deposit and session limit controls",
+    "playthrough": "Clean 1x playthrough requirement on Play-It-Again refund promotions and site credit",
+    "evidence": [
+      "Operating under active state casino licenses in New Jersey, Pennsylvania, Michigan, and West Virginia.",
+      "All games certified fair by accredited independent testing labs under state regulatory oversight.",
+      "Automated banking rails via VIP Preferred ACH, PayPal, and retail partner casino cage pick-up within 1–24 hours.",
+      "Real-time state geolocation boundary enforcement blocks unapproved multi-state play.",
+      "Mandatory state self-exclusion and player cool-off limits integrated into account settings."
+    ],
+    "redemptionMinHours": 1,
+    "redemptionMaxHours": 24
+  },
+  {
+    "name": "BetMGM",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB — MGM Resorts International & Entain plc",
+    "rtpSummary": "Exclusive Tables 99.50% RTP · Slots 94.10%–96.20% certified profiles",
+    "rtpOriginals": "BetMGM Exclusive Blackjack: 99.50% RTP. GLI certified RNG.",
+    "rtpSlots": "Exclusive BetMGM progressive slots and studio games audited by Gaming Laboratories International.",
+    "vaultSupport": "GameSense responsible gaming framework + TiltCheck session HUD brake",
+    "playthrough": "15x playthrough on standard welcome bonuses; 1x on real money bankroll",
+    "evidence": [
+      "Fully licensed and regulated by NJ DGE, PA PGCB, MI MGCB, and WV Lottery Commission.",
+      "Instant physical cage redemption available at Borgata Hotel Casino (Atlantic City) and MGM Grand properties.",
+      "Electronic ACH bank transfers clear in 24–48 hours following standard security approval.",
+      "Integrated with the American Gaming Association recognized GameSense responsible gaming program.",
+      "Mandatory 21+ geolocation fencing with hardware-level boundary verification."
+    ],
+    "redemptionMinHours": 1,
+    "redemptionMaxHours": 48
+  },
+  {
+    "name": "Caesars Casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB — Caesars Entertainment Inc.",
+    "rtpSummary": "Classic Tables 99.50% RTP · Slots 94.00%–96.50% variable",
+    "rtpOriginals": "Caesars In-House Classic Blackjack: 99.50% RTP. State tested RNG.",
+    "rtpSlots": "Caesars branded slots and third-party catalogs governed by state gaming division RNG regulations.",
+    "vaultSupport": "Caesars RG limit tools + TiltCheck session cooldown notifications",
+    "playthrough": "1x to 15x rollover requirements depending on selected game category",
+    "evidence": [
+      "Licensed by Tier-1 US state gaming authorities with rigorous financial and AML audits.",
+      "Instant cash pickup at Caesars, Harrah's, and Tropicana physical casino cages.",
+      "VIP Preferred ACH and online banking payments processed within 24–48 business hours.",
+      "Comprehensive RG limiters: daily deposit, spending, and time limits with enforceable cool-off intervals.",
+      "Audited RTP payouts compliant with state gaming control board publication standards."
+    ],
+    "redemptionMinHours": 1,
+    "redemptionMaxHours": 48
+  },
+  {
+    "name": "BetRivers",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated",
+    "audited": true,
+    "license": "NJ DGE / PA PGCB / MI MGCB / WV LCB / IL IGB — Rush Street Interactive",
+    "rtpSummary": "Single-Deck Tables 99.50% RTP · Slots standard 95.00%–96.50%",
+    "rtpOriginals": "Rush Street Single-Deck Blackjack: 99.50% RTP. GLI tested RNG.",
+    "rtpSlots": "Multi-provider catalog featuring certified RTP configurations without unannounced stealth downgrades.",
+    "vaultSupport": "RushPay automated payout approval + TiltCheck HUD spend brake",
+    "playthrough": "1x industry-leading playthrough requirement on all bonus credits",
+    "evidence": [
+      "Regulated by premier state gaming commissions with public monthly revenue and tax reporting.",
+      "RushPay automated withdrawal processing approves over 80% of cashout requests instantly.",
+      "Clean 1x playthrough on all promotional offers with no hidden rollover multiplier locks.",
+      "Independent RNG validation conducted by GLI and BMM Testlabs across all interactive titles.",
+      "Active integration with state problem gambling councils and self-exclusion directories."
+    ],
+    "redemptionMinHours": 1,
+    "redemptionMaxHours": 24
+  },
+  {
+    "name": "Borgata Online",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Golden Nugget Online",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Hard Rock Bet",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "WynnBET",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "PlaySugarHouse",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "SI Casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Tropicana Online",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Mohegan Sun Casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Resorts Casino Online",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Bet365",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "888casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "PokerStars Casino",
+    "grade": "A",
+    "risk": "Low",
+    "category": "Regulated"
+  },
+  {
+    "name": "Bovada",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "Ignition Casino",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "Casumo",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "Videoslots",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "Casino.com",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "Spin Casino",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "Jackpot City",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "PlayOJO",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Offshore"
+  },
+  {
+    "name": "MyStake",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Grey Market"
+  },
+  {
+    "name": "Rabona Casino",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Grey Market"
+  },
+  {
+    "name": "Neon54",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Grey Market"
+  },
+  {
+    "name": "HellSpin",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Grey Market"
+  },
+  {
+    "name": "FreshBet",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Grey Market"
+  },
+  {
+    "name": "FortuneClock",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Grey Market"
+  },
+  {
+    "name": "Vegas X",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Skill Game"
+  },
+  {
+    "name": "Orion Stars (alt)",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Skill Game"
+  },
+  {
+    "name": "RiverSweeps (alt)",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Skill Game"
+  },
+  {
+    "name": "SkillMine (alt)",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Skill Game"
+  },
+  {
+    "name": "PlayRiverSlot",
+    "grade": "C-",
+    "risk": "Medium-High",
+    "category": "Skill Game"
+  },
+  {
+    "name": "SlotsOfVegas",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "CoolCat Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Raging Bull Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Grand Eagle",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Cherry Gold",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Slot Madness",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "SpinPalace (clone network)",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Royal Ace Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "TwoUp Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Planet 7 Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Prism Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  },
+  {
+    "name": "Eclipse Casino",
+    "grade": "F",
+    "risk": "Critical",
+    "category": "Scam"
+  }
 ]

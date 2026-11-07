@@ -13,6 +13,8 @@ export type {
   WelcomeBonusFact,
 } from './operator-facts-types.js';
 
+export { filterLiveOperatorFacts } from './operator-facts.js';
+
 export function loadOperatorFactsFromPath(jsonPath: string): OperatorFactRecord[] {
   const raw = JSON.parse(readFileSync(jsonPath, 'utf8')) as OperatorFactsFile;
   return raw.operators;
@@ -22,8 +24,4 @@ export function loadOperatorFactsFromMonorepo(monorepoRoot?: string): OperatorFa
   const root = monorepoRoot ?? resolve(process.cwd(), '../..');
   const jsonPath = resolve(root, 'data/trust-engine/operator-facts.live.json');
   return loadOperatorFactsFromPath(jsonPath);
-}
-
-export function filterLiveOperatorFacts(records: OperatorFactRecord[]): OperatorFactRecord[] {
-  return records.filter((record) => record.status === 'live');
 }

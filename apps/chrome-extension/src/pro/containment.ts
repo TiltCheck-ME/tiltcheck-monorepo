@@ -12,6 +12,7 @@ export const TILTCHECK_SAFETY_ROOT_IDS = [
   'tiltcheck-redeem-nudge',
   'tiltcheck-sidebar',
   'tiltcheck-mobile-license-hud',
+  'tiltcheck-cooldown-hud',
 ] as const;
 
 export function isInsideTiltcheckSafetyRoot(node: Node | null): boolean {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 import { Request, Response, NextFunction } from 'express';
 
 /**
@@ -11,6 +11,11 @@ import { Request, Response, NextFunction } from 'express';
 export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
   // Skip CSRF check for GET, HEAD, OPTIONS (safe methods)
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    return next();
+  }
+
+  // Skip CSRF check for public non-custodial cooldown registry routes
+  if (req.path === '/cooldown' || req.path.startsWith('/cooldown/')) {
     return next();
   }
 

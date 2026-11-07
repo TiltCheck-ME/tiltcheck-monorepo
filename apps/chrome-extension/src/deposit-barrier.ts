@@ -9,10 +9,31 @@
 import { isTouchGrassActive } from './touch-grass-timeout.js';
 
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
+export const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
+export const TILTCHECK_COOLDOWN_SOURCE_KEY = 'tiltcheck_cooldown_source';
 export const TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY = 'tiltcheck_deposit_barrier_enabled';
 
 export const ALERT_ID = 'tiltcheck-deposit-barrier-alert';
 export const ALERT_DISMISS_MS = 4000;
+
+export const COOLDOWN_HUD_ID = 'tiltcheck-cooldown-hud';
+
+export function formatCooldownRemaining(diffSecs: number): string {
+  if (diffSecs <= 0) return '0s';
+  const days = Math.floor(diffSecs / 86400);
+  const hours = Math.floor((diffSecs % 86400) / 3600);
+  const mins = Math.floor((diffSecs % 3600) / 60);
+  const secs = Math.floor(diffSecs % 60);
+
+  if (days > 0) {
+    return `${days}d ${hours}h ${mins}m left`;
+  }
+  if (hours > 0) {
+    return `${hours}h ${mins}m ${secs}s left`;
+  }
+  return `${mins}m ${secs}s left`;
+}
+
 
 export const DEPOSIT_SELECTORS: readonly string[] = [
   '[data-test="cashier-button"]',
@@ -37,14 +58,23 @@ const DEPOSIT_TEXT_REGEX = /\b(deposit|cashier|add\s+funds|buy\s+crypto|buy\s+co
 const EXCLUDED_TEXT_REGEX = /\b(withdraw|withdrawal|redeem|redemption|vault|tip|send|transfer|history|statement|retirer|auszahlung|retirada)\b/i;
 
 let inMemoryCooldownActiveUntil = 0;
+let inMemoryCooldownSource: string | null = null;
 let inMemoryBarrierEnabled = true;
 
 export function getCooldownActiveUntil(): number {
   return inMemoryCooldownActiveUntil;
 }
 
+export function getCooldownSource(): string | null {
+  return inMemoryCooldownSource;
+}
+
 export function setInMemoryCooldownActiveUntil(timestamp: number): void {
   inMemoryCooldownActiveUntil = Math.max(0, timestamp);
+}
+
+export function setInMemoryCooldownSource(source: string | null): void {
+  inMemoryCooldownSource = source;
 }
 
 export function setInMemoryBarrierEnabled(enabled: boolean): void {
@@ -66,11 +96,16 @@ export async function loadCooldownActiveUntil(): Promise<number> {
   try {
     const stored = await chrome.storage.local.get([
       TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+      TILTCHECK_COOLDOWN_SOURCE_KEY,
       TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY,
     ]);
     const val = stored[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY];
     if (typeof val === 'number' && Number.isFinite(val)) {
       inMemoryCooldownActiveUntil = Math.max(0, val);
+    }
+    const sourceVal = stored[TILTCHECK_COOLDOWN_SOURCE_KEY];
+    if (typeof sourceVal === 'string' && sourceVal.length > 0) {
+      inMemoryCooldownSource = sourceVal;
     }
     const enabledVal = stored[TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY];
     if (typeof enabledVal === 'boolean') {
@@ -138,15 +173,128 @@ export interface DepositBarrierHandle {
   stop: () => void;
   isActive: (now?: number) => boolean;
   getCooldownActiveUntil: () => number;
-  updateCooldown: (timestamp: number) => void;
+  getCooldownSource: () => string | null;
+  updateCooldown: (timestamp: number, source?: string | null) => void;
   updateEnabled: (enabled: boolean) => void;
+  isHudVisible: () => boolean;
 }
 
 export function installDepositBarrier(doc: Document = document): DepositBarrierHandle {
-  void loadCooldownActiveUntil();
+  void loadCooldownActiveUntil().then(() => { renderOrUpdateCooldownHud(); });
 
   let alertTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let hudIntervalId: ReturnType<typeof setInterval> | null = null;
+  let isHudMinimized = false;
   let stopped = false;
+
+  const removeCooldownHud = () => {
+    if (hudIntervalId !== null) {
+      clearInterval(hudIntervalId);
+      hudIntervalId = null;
+    }
+    const hudEl = doc.getElementById(COOLDOWN_HUD_ID);
+    if (hudEl) {
+      hudEl.remove();
+    }
+  };
+
+  const renderOrUpdateCooldownHud = () => {
+    if (stopped) {
+      removeCooldownHud();
+      return;
+    }
+
+    const now = Date.now();
+    const cooldownUntil = getCooldownActiveUntil();
+
+    if (cooldownUntil <= now || !inMemoryBarrierEnabled) {
+      removeCooldownHud();
+      return;
+    }
+
+    const diffSecs = Math.max(0, Math.floor((cooldownUntil - now) / 1000));
+    if (diffSecs === 0) {
+      removeCooldownHud();
+      return;
+    }
+
+    let hudEl = doc.getElementById(COOLDOWN_HUD_ID);
+    if (!hudEl) {
+      hudEl = doc.createElement('div');
+      hudEl.id = COOLDOWN_HUD_ID;
+      hudEl.setAttribute('role', 'region');
+      hudEl.setAttribute('aria-label', 'TiltCheck On-Chain Cooldown HUD');
+      hudEl.style.cssText = [
+        'position: fixed',
+        'bottom: 1.25rem',
+        'left: 1.25rem',
+        'z-index: 2147483640',
+        'background: rgba(15, 17, 21, 0.96)',
+        'border: 1px solid #17c3b2',
+        'border-radius: 8px',
+        'padding: 10px 14px',
+        'font-family: ui-monospace, SF Mono, Menlo, Consolas, monospace',
+        'color: #ffffff',
+        'box-shadow: 0 4px 20px rgba(0, 0, 0, 0.75), 0 0 10px rgba(23, 195, 178, 0.2)',
+        'min-width: 240px',
+        'max-width: 320px',
+        'box-sizing: border-box',
+        'backdrop-filter: blur(8px)',
+        'transition: all 0.2s ease',
+      ].join(';');
+
+      (doc.body ?? doc.documentElement).appendChild(hudEl);
+    }
+
+    const isAutoTilt = inMemoryCooldownSource === 'auto_tilt';
+    if (isHudMinimized) {
+      hudEl.style.padding = '6px 10px';
+      hudEl.style.minWidth = 'auto';
+      hudEl.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 700; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'};">${isAutoTilt ? 'TILT LOCK' : 'LOCK'}: ${formatCooldownRemaining(diffSecs)}</span>
+          <button type="button" class="tiltcheck-cooldown-toggle" style="background: transparent; border: none; color: #94a3b8; font-family: inherit; font-size: 12px; cursor: pointer; padding: 0 2px;">+</button>
+        </div>
+      `;
+      const expandBtn = hudEl.querySelector('.tiltcheck-cooldown-toggle');
+      expandBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isHudMinimized = false;
+        renderOrUpdateCooldownHud();
+      });
+    } else {
+      hudEl.style.padding = '10px 14px';
+      hudEl.style.minWidth = '240px';
+      hudEl.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <span style="font-size: 10px; font-weight: 800; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-transform: uppercase; letter-spacing: 0.05em;">${isAutoTilt ? 'Tilt Auto-Lock Active' : 'Vault Lock Active'}</span>
+          <button type="button" class="tiltcheck-cooldown-toggle" style="background: transparent; border: none; color: #94a3b8; font-family: inherit; font-size: 14px; cursor: pointer; line-height: 1; padding: 0 2px;" title="Minimize">-</button>
+        </div>
+        <div class="cooldown-timer-val" style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 2px 0 4px 0;">
+          ${formatCooldownRemaining(diffSecs)}
+        </div>
+        <div style="font-size: 10px; color: ${isAutoTilt ? '#fca5a5' : '#94a3b8'}; margin-bottom: 8px; line-height: 1.3;">
+          ${isAutoTilt ? 'Level 3+ Tilt Lockout (Cashier Blocked)' : 'Deposit Barrier Engaged (Cashier Blocked)'}
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; font-size: 10px;">
+          <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-decoration: underline; font-weight: 600;">${isAutoTilt ? 'Confirm On-Chain &rarr;' : 'Verify PDA &rarr;'}</a>
+          <a href="https://tiltcheck.me/cooldown?extend=7" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">Extend +7d &rarr;</a>
+        </div>
+      `;
+      const minimizeBtn = hudEl.querySelector('.tiltcheck-cooldown-toggle');
+      minimizeBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isHudMinimized = true;
+        renderOrUpdateCooldownHud();
+      });
+    }
+
+    if (hudIntervalId === null) {
+      hudIntervalId = setInterval(() => {
+        renderOrUpdateCooldownHud();
+      }, 1000);
+    }
+  };
 
   const showAlert = (message: string) => {
     let alertEl = doc.getElementById(ALERT_ID);
@@ -217,7 +365,11 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
 
     if (cooldownUntil > now) {
       const remainingMins = Math.max(1, Math.ceil((cooldownUntil - now) / 60000));
-      message = `Deposit Barrier Active: Voluntary lock engaged (${remainingMins}m remaining). Don't reload. Step away.`;
+      if (inMemoryCooldownSource === 'auto_tilt') {
+        message = `Deposit Barrier Active: Level 3+ tilt auto-lock engaged (${remainingMins}m remaining). Cool down and protect your capital.`;
+      } else {
+        message = `Deposit Barrier Active: Voluntary lock engaged (${remainingMins}m remaining). Don't reload. Step away.`;
+      }
     } else {
       message = "Deposit Barrier Active: You locked the door. Don't dig the hole deeper. Wait out the timer.";
     }
@@ -237,11 +389,18 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
       } else {
         inMemoryCooldownActiveUntil = 0;
       }
+      renderOrUpdateCooldownHud();
+    }
+    if (TILTCHECK_COOLDOWN_SOURCE_KEY in changes) {
+      const val = changes[TILTCHECK_COOLDOWN_SOURCE_KEY]?.newValue;
+      inMemoryCooldownSource = typeof val === 'string' && val.length > 0 ? val : null;
+      renderOrUpdateCooldownHud();
     }
     if (TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY in changes) {
       const val = changes[TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY]?.newValue;
       if (typeof val === 'boolean') {
         inMemoryBarrierEnabled = val;
+        renderOrUpdateCooldownHud();
       }
     }
   };
@@ -266,6 +425,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
       clearTimeout(alertTimeoutId);
       alertTimeoutId = null;
     }
+    removeCooldownHud();
     const alertEl = doc.getElementById(ALERT_ID);
     if (alertEl) {
       alertEl.remove();
@@ -276,11 +436,18 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     stop,
     isActive: (now?: number) => isDepositBarrierActive(now),
     getCooldownActiveUntil,
-    updateCooldown: (timestamp: number) => {
+    getCooldownSource: () => inMemoryCooldownSource,
+    updateCooldown: (timestamp: number, source?: string | null) => {
       inMemoryCooldownActiveUntil = Math.max(0, timestamp);
+      if (source !== undefined) {
+        inMemoryCooldownSource = source;
+      }
+      renderOrUpdateCooldownHud();
     },
     updateEnabled: (enabled: boolean) => {
       inMemoryBarrierEnabled = enabled;
+      renderOrUpdateCooldownHud();
     },
+    isHudVisible: () => doc.getElementById(COOLDOWN_HUD_ID) !== null,
   };
 }

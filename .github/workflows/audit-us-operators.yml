@@ -1,0 +1,85 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
+name: US Operator Trust Audit
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Audit execution mode (check or write)'
+        required: true
+        default: 'check'
+        type: choice
+        options:
+          - check
+          - write
+      category:
+        description: 'Target operator category filter'
+        required: false
+        default: 'All'
+        type: choice
+        options:
+          - All
+          - Regulated
+          - Sweeps
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  audit-us-operators:
+    name: Audit US Operators
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.29.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run verification audit (check mode)
+        if: ${{ github.event.inputs.mode == 'check' }}
+        run: pnpm audit:us-operators:check
+
+      - name: Run update audit (write mode)
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.mode == 'write' }}
+        run: |
+          pnpm audit:us-operators:write
+          node scripts/convert-markdown.js
+          pnpm vitest run tests/pages-launch.test.ts packages/intel-tools/tests/ tests/audit-us-operators.test.ts
+
+      - name: Detect changes and create pull request
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.mode == 'write' }}
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            branch="ops/audit-us-operators-$(date -u +%Y%m%d)"
+            git checkout -b "$branch"
+            git add apps/web/src/data/casinos.json data/trust-engine/operator-facts.live.json data/trust-engine/us-operator-audit-summary.json out/
+            git commit -m "audit(trust): refresh popular US operator trust receipts [skip ci]"
+            git push origin "$branch" --force
+            gh pr create \
+              --title "audit(trust): weekly US operator trust receipts refresh" \
+              --body "Automated trust verification refreshed evidence, RTP profiles, and redemption bounds for popular US Regulated and Sweepstakes operators." \
+              --head "$branch" \
+              --base main || true
+          else
+            echo "No drift detected across audited US operators."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

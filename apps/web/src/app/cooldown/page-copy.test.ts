@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 import { readFileSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
@@ -33,5 +33,13 @@ describe('Cooldown page copy', () => {
       'Switch your wallet to Solana devnet and try again. Cooldown only signs a lock on devnet — no SOL moves.',
     );
     expect(source).toContain('walletTxErrorMessage');
+  });
+
+  it('handles source=auto_tilt deep-link with critical alert banner and pre-filled 24h duration', () => {
+    expect(source).toContain('auto-tilt-alert-banner');
+    expect(source).toContain('Critical Tilt Intervention: 24h Auto-Lock Triggered');
+    expect(source).toContain('LEVEL 3+ TILT');
+    expect(source).toContain('Sign 24h Tilt Lock');
+    expect(source).toContain('AUTO_TILT_HANDOFF_RENDERED');
   });
 });

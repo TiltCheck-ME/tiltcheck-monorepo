@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
@@ -47,7 +47,7 @@ export const INSTALL_MOVES = [
   },
   {
     title: 'Slow the next click',
-    body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.',
+    body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Sideload zip is live.',
   },
 ];
 export const INSTALL_STEPS = [
@@ -82,9 +82,28 @@ export const AUTOVAULT_PAGE = {
   ],
   fine: 'Direct API vaulting on Stake.us and Stake.com via session cookie. Vault nudge dialogs on supported rooms. TiltCheck never sees passwords or holds funds.',
 };
+export const RTP_SCANNER_PAGE = {
+  eyebrow: "RTP Forensics & Downgrade Scanner",
+  title: "Live Slot RTP Downgrade Scanner",
+  punch: "Providers ship games with up to 5 certified return-to-player tiers (e.g. 96.5% down to 88.0%). Shady casinos quietly pick the lowest tier without telling the player.",
+  fine: "Certified tiers sourced from GLI, eCOGRA, and BMM lab test reports. Compare your casino deployment against manufacturer baselines.",
+};
+export const VERIFY_PAGE = {
+  eyebrow: "Provably Fair Cryptographic Audit",
+  title: "Provably Fair HMAC-SHA256 Seed Verifier",
+  punch: "Paste server seed, client seed, and nonce to mathematically recompute and audit casino outcomes (Dice, Limbo, Crash, Roulette, Plinko, Mines) client-side. Independent of casino servers.",
+  fine: "Single-bet cryptographic verification confirms round mathematics. Always verify pre-commitment hashes before trusting seeds.",
+};
+
+export const HOUSE_EDGE_PAGE = {
+  eyebrow: "RTP Forensics & Loyalty Economics",
+  title: "House Edge & Comp Point Scanner",
+  punch: "Calculate VIP milestone true cost, expected losses, and comp reward return ratios. See exactly how much the house pockets while you chase loyalty tiers.",
+  fine: "Loyalty mathematical models based on public casino VIP terms. Expected loss = Effective Wager * House Edge.",
+};
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
+  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
   'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
 ];
@@ -243,6 +262,34 @@ export const EXTENSION_SIGNALS = [
     title: 'DOM Deposit Barrier',
     body: 'Catches you reaching for the wallet. Cashier and reload clicks are intercepted and blocked during Touch Grass timeouts and active Cooldowns.',
   },
+  {
+    title: 'Reverse-Withdrawal Shield',
+    body: 'Cashier protection. Disarms cancel payout and reverse redemption buttons on pending transactions so you cannot undo cashouts during late-night tilt.',
+  },
+  {
+    title: 'Profit-Lock & Reality Goals',
+    body: 'Locks a trailing profit floor (50% default) when ahead, backing it with an escalating 60-second brake and real-world utility toasts (bills, rent, gas).',
+  },
+  {
+    title: 'Bonus Tracker & Max-Bet Alarm',
+    body: 'Tracks promotional rollover wagering with an in-page progress HUD and intercepts over-limit stakes before bonus winnings are voided by the operator.',
+  },
+  {
+    title: 'Session Velocity Radar',
+    body: 'Real-time rolling loss velocity ($/min) with vector sparkline momentum and alert bands (Steady, Drain, Bleed, Cliff-Dive) right in the extension popup.',
+  },
+  {
+    title: 'One-Click Cashout Router',
+    body: 'Deep-links straight to the native cashier and redemption portals across 21+ crypto and sweeps operators, plus visual progress bars towards real-world bills.',
+  },
+  {
+    title: 'In-Session Auto-Vaulting',
+    body: 'Non-custodial safe deposits (e.g. Stake Vault) triggered automatically or via one click when cashout goals and ratchet floors are hit.',
+  },
+  {
+    title: 'Win-Streak & Volatility Spotter',
+    body: 'Live dead-spin runs, personal hit rates, and heater streaks. Intercepts Gambler\'s Fallacy ("I\'m Due") stake escalations with immediate Cashier exit ramps before tilt kicks in.',
+  },
 ];
 
 export const GRADING_STEPS = [
@@ -271,6 +318,13 @@ export const TOOL_REGISTRY = [
     title: 'Offline-First CLI Suite',
     description: 'Provably fair HMAC-SHA256 verifier, slot RTP downgrade calculator, operator trust audit, and Ed25519 voluntary cooldown tokens.',
     status: 'live',
+  },
+  {
+    href: "/tools/rtp-scanner",
+    label: "SLOT RTP SCANNER",
+    title: "Live Slot RTP Downgrade Scanner",
+    description: "Inspect multi-tier RTP downgrades (96.5% vs 94.2% vs 88.5%) and calculate the hidden Greed Tax per operator.",
+    status: "live",
   },
   {
     href: '/tools/verify',
@@ -457,5 +511,47 @@ export const CORE_BRAKES = [
     title: "DOM Deposit Barrier",
     body: "Freezes cashier and deposit triggers across Stake, Roobet, and sweepstakes frontends when you are tilted or on a Cooldown. Stops you from digging the hole deeper.",
     status: "Hard stop on reload",
+  },
+  {
+    num: "05",
+    title: "Reverse-Withdrawal Shield",
+    body: "Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
+    status: "Active cashier guard",
+  },
+  {
+    num: "06",
+    title: "Profit-Lock & Reality Goals",
+    body: "Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.",
+    status: "Trailing floor + goal alerts",
+  },
+  {
+    num: "07",
+    title: "Bonus Playthrough & Max-Bet Traps",
+    body: "Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).",
+    status: "Live HUD + trap interceptor",
+  },
+  {
+    num: "08",
+    title: "Session Velocity Radar & Sparkline",
+    body: "Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.",
+    status: "Rolling velocity telemetry",
+  },
+  {
+    num: "09",
+    title: "One-Click Cashout Router & Goal Bars",
+    body: "Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.",
+    status: "21+ operator deep links",
+  },
+  {
+    num: "10",
+    title: "In-Session Auto-Vaulting",
+    body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
+    status: "Non-custodial safe deposits",
+  },
+  {
+    num: "11",
+    title: "Session Win-Streak & Volatility Spotter",
+    body: "Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ('I'm Due') stake escalations with immediate Cashier exit ramps before tilt sets in.",
+    status: "Live streak & fallacy telemetry",
   },
 ];

@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 -->
 
 # TiltCheck Agent Directory
 
@@ -42,6 +42,7 @@ Located in .github/agents/ and .github/workflows/
 | CI/CD Validator | .github/agents/ci-cd-validator.yml | Validates GitHub Actions and pipelines. |
 | TiltCheck Agent | .github/agents/tiltcheck-agent.yaml | General monorepo task orchestrator. |
 | Scribe Agent | .github/agents/scribe-agent.md | Enforces Zero-Drift policy and project laws. |
+| Anchor Devnet Smoke | .github/workflows/cooldown-smoke.yml | **NEW:** Automated verification of Solana Devnet Anchor program deployment and cross-surface contract sync. |
 
 ## 4. Deployment Reality (GHCR -> Railway)
 This repo does not ship an active tracked GCP deploy workflow. Container services build in GitHub Actions, publish to GHCR, and redeploy on Railway. Non-Railway surfaces either deploy through Cloudflare Workers or stay manual/browser-asset paths.

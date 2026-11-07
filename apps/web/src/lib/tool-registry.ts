@@ -58,6 +58,13 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     status: 'live',
   },
   {
+    href: '/tools/rtp-scanner',
+    label: 'SLOT RTP SCANNER',
+    title: 'Live Slot RTP Downgrade Scanner',
+    description: 'Inspect multi-tier RTP downgrades (96.5% vs 94.2% vs 88.5%) and calculate the hidden Greed Tax per operator.',
+    status: 'live',
+  },
+  {
     href: 'https://github.com/TiltCheck-ME/tiltcheck-monorepo/tree/main/packages/cli',
     label: 'OFFLINE CLI',
     title: 'Offline-First CLI Suite',
@@ -81,8 +88,8 @@ export const TOOL_REGISTRY: ToolEntry[] = [
   {
     href: '/tools/house-edge-scanner',
     label: 'THE DELTA ENGINE',
-    title: 'House Edge Calculator',
-    description: 'Claimed payout vs what you got — rigged-session confidence score.',
+    title: 'House Edge & Comp Point Scanner',
+    description: 'Calculate VIP milestone true cost, wager-to-reward ratios, and slot house-edge tax.',
     status: 'live',
   },
   {

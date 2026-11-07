@@ -1,6 +1,36 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 -->
 
 # Session Log
+
+## 2026-11-06 — feat(ecosystem): on-chain solana devnet cooldown timelocks, tilt auto-lock containment, and e2e ci automation
+
+Implemented and unified end-to-end on-chain Solana Devnet Cooldown Timelocks and automated tilt containment:
+- Solana Devnet Anchor Program Integration (`programs/cooldown`, `packages/cooldown-sdk`, `scripts/smoke-anchor-devnet.ts`):
+  - Verified live deployment of Anchor Timelock Program (`7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2`) on Solana Devnet.
+  - Implemented 5-stage comprehensive smoke test verifying PDA derivations, instruction discriminators (`set_lock`, `extend_lock`), binary layout decoding, and cross-surface event contracts (21/21 checks passing).
+- API Gateway & Real-Time Lock Status (`apps/api`):
+  - Real-time SSE lock stream (`GET /cooldown/stream`) and REST cache verification endpoint (`GET /cooldown/check`).
+- Chrome Extension Auto-Lock Containment (`apps/chrome-extension`):
+  - Auto-locks extension controls and activates deposit barrier upon Level 3+ tilt detection or voluntary timelock.
+  - Integrated 24h cooldown timer, auto-lock toggle, Solana wallet synchronizer, and immediate deep-linking to web intervention.
+- Web & Dashboard Synchronized Intervention (`apps/web`, `apps/user-dashboard`):
+  - Auto-tilt intervention banner with dynamic wallet detection on `/cooldown`.
+  - Dual-tab live status cards on Safety and Vault tabs in User Dashboard with second-by-second countdowns and real-time WebSocket containment reporting.
+  - Resolved Turbopack browser chunking boundary by cleanly isolating filesystem loaders in `@tiltcheck/intel-tools/server`.
+- CI Automation & Brand Law Compliance (`.github/workflows`):
+  - Added parallel Anchor devnet smoke, dashboard cooldown test, and Playwright extension E2E jobs in `cooldown-smoke.yml` and `pr-test.yml`.
+  - Enforced 100% Brand Law compliance: 0 hardcoded secrets, 0 custodial keys, compliant copyright headers, and 0 emojis across all modified files.
+
+## 2026-11-04 — feat(extension,web): Phase 6 In-Session Defense Suite & Volatility Spotter
+
+Completed Phase 6 expansion of the browser extension defense suite and synchronized marketing mirrors:
+- Reverse-Withdrawal Shield: Neutralizes reverse cashout and cancel payout triggers on pending withdrawals across 21+ crypto and sweeps operators.
+- Profit-Lock Ratchet & Tangible Goals: Implemented trailing profit floors with 2-stage interventions (soft warning escalating to 60s hard locks) and progress tracking toward real-world bills.
+- Bonus Playthrough & Max-Bet Trap Alarm: Live in-page rollover progress HUD and max-bet limit interceptor.
+- Session Net PnL Mini-Sparkline & Velocity Radar: Calculates loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and dynamic SVG vector momentum graphs.
+- One-Click Cashout Router & In-Session Auto-Vault: Integrated 21-operator cashier deep links and non-custodial safe deposits (Stake Vault) directly from the browser session.
+- Session Win-Streak & Volatility Spotter: Pure mathematical engine tracking consecutive dead spins, heater runs, and hit rates; detects Gambler's Fallacy ("I'm Due") stake escalations with immediate Cashier exit ramps.
+- Web & Docs Synchronization: Expanded core brakes registry from #04 to #11 in scripts/pages-product-data.mjs and home-launch-copy.ts, updated extension explainers, and rebuilt Pages static mirror with 100% test pass.
 
 ## 2026-11-04 — feat(web): live site redesign & Discord bots archival
 

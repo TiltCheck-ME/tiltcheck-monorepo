@@ -9,6 +9,10 @@ import type {
 
 export const STALE_AFTER_DAYS = 90;
 
+export function filterLiveOperatorFacts(records: OperatorFactRecord[]): OperatorFactRecord[] {
+  return records.filter((record) => record.status === 'live');
+}
+
 export type FactAnswer<T> =
   | { kind: 'hit'; record: OperatorFactRecord; payload: T; stale: boolean }
   | { kind: 'miss'; record: OperatorFactRecord }

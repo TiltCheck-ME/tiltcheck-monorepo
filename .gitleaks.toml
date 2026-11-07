@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
 
 title = "TiltCheck Gitleaks Overrides"
 
@@ -25,4 +25,15 @@ paths = [
 regexTarget = "line"
 regexes = [
   '''"key":\s*"[A-Z0-9]+(?:-[A-Z0-9]+)+"''',
+]
+
+[[allowlists]]
+description = "Allow test HMAC-SHA256 fixtures in provably fair unit tests"
+condition = "AND"
+paths = [
+  '''^apps/web/src/lib/provably-fair\.test\.ts$''',
+]
+regexTarget = "line"
+regexes = [
+  '''b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9''',
 ]

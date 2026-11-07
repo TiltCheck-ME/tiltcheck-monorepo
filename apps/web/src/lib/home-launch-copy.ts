@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
 
 export const HOME_LAUNCH = {
   h1: ['House always wins?', 'FUCK THAT.'],
@@ -33,7 +33,7 @@ export const HOME_LAUNCH = {
     },
     {
       title: 'Slow the next click',
-      body: 'Chrome on the casino tab. After a spin, the bet button is dead for two seconds. Games you name stop clicking. Wage-hour HUD tracks torched shifts. Deposit barrier blocks re-ups. Sideload zip is live.',
+      body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Sideload zip is live.',
     },
   ] as const,
   hud: {
@@ -51,7 +51,7 @@ export const HOME_LAUNCH = {
   } as const,
   honesty: [
     'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes 2s spin brake, game filters, reality wage HUD, and deposit barrier.',
+    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
     'Browser filters are your list. Not an operator account close. Turn the extension off and play continues.',
     'AutoVault is two casinos. We do not fake a vault button everywhere.',
   ],
@@ -83,5 +83,47 @@ export const CORE_BRAKES = [
     title: "DOM Deposit Barrier",
     body: "Freezes cashier and deposit triggers across Stake, Roobet, and sweepstakes frontends when you are tilted or on a Cooldown. Stops you from digging the hole deeper.",
     status: "Hard stop on reload",
+  },
+  {
+    num: "05",
+    title: "Reverse-Withdrawal Shield",
+    body: "Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
+    status: "Active cashier guard",
+  },
+  {
+    num: "06",
+    title: "Profit-Lock & Reality Goals",
+    body: "Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.",
+    status: "Trailing floor + goal alerts",
+  },
+  {
+    num: "07",
+    title: "Bonus Playthrough & Max-Bet Traps",
+    body: "Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).",
+    status: "Live HUD + trap interceptor",
+  },
+  {
+    num: "08",
+    title: "Session Velocity Radar & Sparkline",
+    body: "Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.",
+    status: "Rolling velocity telemetry",
+  },
+  {
+    num: "09",
+    title: "One-Click Cashout Router & Goal Bars",
+    body: "Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.",
+    status: "21+ operator deep links",
+  },
+  {
+    num: "10",
+    title: "In-Session Auto-Vaulting",
+    body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
+    status: "Non-custodial safe deposits",
+  },
+  {
+    num: "11",
+    title: "Session Win-Streak & Volatility Spotter",
+    body: "Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ('I'm Due') stake escalations with immediate Cashier exit ramps before tilt sets in.",
+    status: "Live streak & fallacy telemetry",
   },
 ];

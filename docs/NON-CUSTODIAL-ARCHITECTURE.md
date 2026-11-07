@@ -1,8 +1,12 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 -->
+
 # Non-Custodial Architecture for TiltCheck
 
 ## Overview
 
 TiltCheck must be **100% non-custodial** - the bot/service NEVER holds user funds or private keys. Users always maintain complete control of their assets.
+
+For the on-chain Anchor smart contract timelock and voluntary self-exclusion specification, see the [Non-Custodial On-Chain Voluntary Cooldown Vault Specification](file:///c:/Users/jmeni/tiltcheck-monorepo/docs/NON-CUSTODIAL-COOLDOWN-VAULT.md).
 
 ---
 

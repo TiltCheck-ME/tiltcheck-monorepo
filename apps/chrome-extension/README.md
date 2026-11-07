@@ -16,6 +16,13 @@ Default **Core** install (what players get from the web zip at `https://tiltchec
 - **Strategic Game Filters**: Real-time risk badges and house-edge awareness for high-variance formats (Chicken, Mines, Plinko, and low-RTP slots).
 - **Reality-Grounding Wage-Hour HUD**: Injects a clean session drawdown tracker converting losses directly into equivalent real-world working hours ($25/hr baseline default, customizable in settings) so credits feel like actual labor.
 - **DOM Deposit Barrier**: Intercepts and blocks cashier and deposit button clicks across casino frontends when a player is in an active cooldown or Touch Grass timeout, preventing reflexive tilt re-ups.
+- **Reverse-Withdrawal Shield**: Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.
+- **Profit-Lock & Reality Goals**: Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.
+- **Bonus Playthrough & Max-Bet Traps**: Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).
+- **Session Velocity Radar & Sparkline**: Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.
+- **One-Click Cashout Router & Goal Bars**: Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.
+- **In-Session Auto-Vaulting**: Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.
+- **Session Win-Streak & Volatility Spotter**: Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ("I'm Due") stake escalations with immediate Cashier exit ramps before tilt sets in.
 - **Touch Grass Timeout**: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.
 - **Stake.us AutoVault**: Non-custodial vaulting with direct GraphQL routing (`https://stake.us/_api/graphql`) utilizing browser session cookies without third-party API exposure.
 - **SusLink URL Protection**: Bounces critically suspicious casino URLs and phishing domains before page execution.
@@ -128,7 +135,7 @@ Full redirect URI list, popup wiring, and failure cases: [docs/discord-oauth.md]
 
 ## Version
 
-**Current Version:** 1.2.2 (see `manifest.json`)
+**Current Version:** 1.2.3 (see `manifest.json`)
 
 ---
 

@@ -226,7 +226,7 @@ export default function CasinosPage() {
                         <div className="text-4xl font-black" style={{ color: scoreColor }}>{displayGrade}</div>
                         <p className="text-[11px] font-mono text-gray-500">{displayScore}/100</p>
                         <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-gray-600">
-                          {live ? 'Live overlay' : `Curated ${casino.grade}`}
+                          {live ? 'Live overlay' : (casino.audited ? `Audited ${displayGrade}` : `Calculated ${displayGrade}`)}
                         </p>
                       </div>
                     </div>
@@ -239,7 +239,7 @@ export default function CasinosPage() {
                         {displayRisk} risk
                       </span>
                       <span className="border border-[#283347] px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
-                        {live ? 'Live score matched' : 'Curated baseline'}
+                        {live ? 'Live score matched' : (casino.audited ? 'Audited receipts' : 'Calculated grade')}
                       </span>
                       {live && (
                         <span className="border border-[#17c3b2]/30 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2]">
@@ -303,7 +303,6 @@ export default function CasinosPage() {
                             <dd className="text-right text-gray-300 font-mono text-xs">{casino.vaultSupport}</dd>
                           </div>
                         )}
-                        </div>
                       </dl>
                       {previewViolations.length > 0 ? (
                         <ul className="mt-3 space-y-1.5 text-xs text-gray-400 leading-relaxed list-disc list-inside">

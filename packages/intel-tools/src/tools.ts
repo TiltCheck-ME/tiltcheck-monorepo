@@ -1,7 +1,7 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
 
 import { applyListFilters, findCasinoByName } from './filters.js';
-import { filterLiveOperatorFacts } from './load-operator-facts.js';
+import { filterLiveOperatorFacts } from './operator-facts.js';
 import {
   getRedemptionAnswer,
   getVipCurrencyAnswer,

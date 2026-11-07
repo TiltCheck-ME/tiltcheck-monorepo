@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 
 /**
  * Core content script — pace-locks spins and provides event-driven Touch Grass timeouts.
@@ -32,6 +32,9 @@ import {
   CORE_CIRCUIT_BREAKER_STORAGE_KEYS,
   loadCoreCircuitBreakerOptions,
   type CoreCircuitBreakerOptions,
+  TILTCHECK_COOLDOWN_WALLET_KEY,
+  TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+  TILTCHECK_COOLDOWN_SOURCE_KEY,
 } from './core-options.js';
 
 import { installSpinPaceLock, type PaceLockHandle, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
@@ -42,6 +45,27 @@ import { triggerTouchGrassTimeout, TOUCH_GRASS_DURATION_MS } from './touch-grass
 import { installLocalGameBlocker } from './pro/local-game-blocker.js';
 import { installRealityHud, type RealityHudHandle } from './reality-hud.js';
 import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barrier.js';
+import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } from './reverse-withdrawal-shield.js';
+import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
+import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
+import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
+import {
+  detectCashoutTarget,
+  triggerCashoutNavigation,
+  triggerAutoVault,
+  triggerCooldownVaultNavigation,
+  type CooldownVaultOptions,
+} from './cashout-router.js';
+import {
+  installStreakVolatilityTracker,
+  type StreakVolatilityHandle,
+  DEFAULT_STREAK_VOLATILITY_STATE,
+} from './streak-volatility.js';
+import {
+  loadAudioAlertsConfig,
+  setAudioAlertsConfigSync,
+  TILTCHECK_AUDIO_ALERTS_CONFIG_KEY,
+} from './audio-alerts.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -65,6 +89,11 @@ let heaterNudge: HeaterHandle | null = null;
 let chaseWarning: ChaseHandle | null = null;
 let realityHud: RealityHudHandle | null = null;
 let depositBarrier: DepositBarrierHandle | null = null;
+let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
+let profitLock: ProfitLockHandle | null = null;
+let bonusTracker: BonusTrackerHandle | null = null;
+let sessionRadar: SessionVelocityHandle | null = null;
+let streakTracker: StreakVolatilityHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -269,14 +298,22 @@ function installCoreOptionsListener(): void {
 
 
       const coreKeyTouched = CORE_CIRCUIT_BREAKER_STORAGE_KEYS.some((k) => k in changes);
+      const audioKeyTouched = TILTCHECK_AUDIO_ALERTS_CONFIG_KEY in changes;
 
-      if (coreKeyTouched) {
+      if (coreKeyTouched || audioKeyTouched) {
 
         void refreshCoreOptions().then((opts) => {
 
+          setAudioAlertsConfigSync({
+            enabled: opts.audioAlertsEnabled,
+            volume: opts.audioAlertsVolume,
+          });
           syncPaceLock(opts.enforcementEnabled);
           syncRealityHud(opts);
           syncDepositBarrier(opts);
+          syncReverseWithdrawalShield(opts);
+          syncProfitLock(opts);
+          syncBonusTracker(opts);
 
         });
 
@@ -330,11 +367,76 @@ function syncDepositBarrier(opts: CoreCircuitBreakerOptions): void {
         depositBarrier = null;
       }
     }
-    depositBarrier?.updateCooldown(opts.cooldownActiveUntil);
+    depositBarrier?.updateCooldown(opts.cooldownActiveUntil, opts.cooldownSource);
     depositBarrier?.updateEnabled(opts.depositBarrierEnabled);
   } else if (depositBarrier) {
     depositBarrier.stop();
     depositBarrier = null;
+  }
+}
+
+function syncReverseWithdrawalShield(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.reverseWithdrawalShieldEnabled;
+  if (shouldRun) {
+    if (!reverseWithdrawalShield) {
+      try {
+        reverseWithdrawalShield = installReverseWithdrawalShield(document);
+      } catch {
+        reverseWithdrawalShield = null;
+      }
+    }
+    reverseWithdrawalShield?.updateEnabled(opts.reverseWithdrawalShieldEnabled);
+  } else if (reverseWithdrawalShield) {
+    reverseWithdrawalShield.stop();
+    reverseWithdrawalShield = null;
+  }
+}
+
+function syncProfitLock(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && (opts.profitLockEnabled || opts.goalsEnabled);
+  if (shouldRun) {
+    if (!profitLock) {
+      try {
+        profitLock = installProfitLock(document, {
+          profitLockEnabled: opts.profitLockEnabled,
+          trailingPercent: opts.trailingPercent,
+          minProfit: opts.minProfit,
+          goalsEnabled: opts.goalsEnabled,
+          goals: opts.goals,
+        });
+      } catch {
+        profitLock = null;
+      }
+    } else {
+      profitLock.updateOptions({
+        profitLockEnabled: opts.profitLockEnabled,
+        trailingPercent: opts.trailingPercent,
+        minProfit: opts.minProfit,
+        goalsEnabled: opts.goalsEnabled,
+        goals: opts.goals,
+      });
+    }
+  } else if (profitLock) {
+    profitLock.stop();
+    profitLock = null;
+  }
+}
+
+function syncBonusTracker(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.bonusConfig?.active;
+  if (shouldRun) {
+    if (!bonusTracker) {
+      try {
+        bonusTracker = installBonusTracker(document, opts.bonusConfig);
+      } catch {
+        bonusTracker = null;
+      }
+    } else {
+      bonusTracker.updateConfig(opts.bonusConfig);
+    }
+  } else if (bonusTracker) {
+    bonusTracker.stop();
+    bonusTracker = null;
   }
 }
 
@@ -382,12 +484,84 @@ function syncPaceLock(enabled: boolean): void {
 
 async function startCoreCircuitBreaker(): Promise<void> {
   await waitForDocumentEnd();
+  await loadAudioAlertsConfig();
   const opts = await refreshCoreOptions();
+  setAudioAlertsConfigSync({
+    enabled: opts.audioAlertsEnabled,
+    volume: opts.audioAlertsVolume,
+  });
   installCoreOptionsListener();
   (window as TiltCheckWindow).__tiltcheckCoreShieldActive = true;
   syncPaceLock(opts.enforcementEnabled);
   syncRealityHud(opts);
   syncDepositBarrier(opts);
+  syncReverseWithdrawalShield(opts);
+  syncProfitLock(opts);
+  syncBonusTracker(opts);
+  if (!sessionRadar) {
+    try {
+      sessionRadar = installSessionVelocityRadar(document);
+    } catch {
+      sessionRadar = null;
+    }
+  }
+  if (!streakTracker) {
+    try {
+      streakTracker = installStreakVolatilityTracker(document);
+    } catch {
+      streakTracker = null;
+    }
+  }
+}
+
+
+export function installCooldownPageBridge(): () => void {
+  const onMessage = (event: MessageEvent) => {
+    if (event.source !== window || !event.data || event.data.source !== 'TILTCHECK_COOLDOWN_PAGE') {
+      return;
+    }
+    if (event.data.type === 'WALLET_CONNECTED' && typeof event.data.wallet === 'string') {
+      const wallet = event.data.wallet.trim();
+      if (wallet.length >= 32 && wallet.length <= 44) {
+        chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_WALLET_KEY]: wallet });
+        try {
+          chrome.runtime?.sendMessage?.({ type: 'sync_cooldown_wallet', wallet });
+        } catch {
+          // Extension context disconnected in tests
+        }
+      }
+    } else if (event.data.type === 'LOCK_UPDATED') {
+      const { wallet, endTime, source } = event.data;
+      if (typeof endTime === 'number' && endTime > 0) {
+        const endTimeMs = endTime * 1000;
+        const updates: Record<string, unknown> = {
+          [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs,
+        };
+        if (typeof source === 'string') {
+          updates[TILTCHECK_COOLDOWN_SOURCE_KEY] = source;
+        }
+        if (typeof wallet === 'string' && wallet.trim().length >= 32) {
+          updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
+        }
+        chrome.storage?.local?.set?.(updates);
+        depositBarrier?.updateCooldown(endTimeMs, typeof source === 'string' ? source : null);
+        try {
+          chrome.runtime?.sendMessage?.({
+            type: 'cooldown_lock_updated',
+            wallet,
+            endTime,
+          });
+        } catch {
+          // Ignore
+        }
+      }
+    }
+  };
+
+  window.addEventListener('message', onMessage);
+  return () => {
+    window.removeEventListener('message', onMessage);
+  };
 }
 
 async function boot(): Promise<void> {
@@ -397,6 +571,7 @@ async function boot(): Promise<void> {
 
   await startCoreCircuitBreaker();
   installEventDrivenTiltWatcher();
+  installCooldownPageBridge();
   installLoungeOverlay();
   installLocalGameBlocker();
 
@@ -455,6 +630,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({
         active: depositBarrier ? depositBarrier.isActive() : false,
         cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+        source: depositBarrier ? depositBarrier.getCooldownSource() : null,
+      });
+      return true;
+
+    case 'get_cooldown_vault_state':
+      sendResponse({
+        active: depositBarrier ? depositBarrier.isActive() : false,
+        cooldownUntil: depositBarrier ? depositBarrier.getCooldownActiveUntil() : 0,
+        source: depositBarrier ? depositBarrier.getCooldownSource() : null,
+        wallet: coreOptions?.cooldownWallet ?? null,
       });
       return true;
 
@@ -464,6 +649,86 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         baseline: realityHud ? realityHud.getBaseline() : null,
       });
       return true;
+
+    case 'get_reverse_withdrawal_shield_state':
+      sendResponse({
+        active: reverseWithdrawalShield !== null,
+      });
+      return true;
+
+    case 'get_profit_lock_state':
+      sendResponse({
+        active: profitLock !== null,
+        baseline: profitLock ? profitLock.getBaseline() : null,
+        peak: profitLock ? profitLock.getPeak() : 0,
+        floor: profitLock ? profitLock.getFloor() : null,
+        softWarningActive: profitLock ? profitLock.isSoftWarningActive() : false,
+        hardGuardTriggered: profitLock ? profitLock.isHardGuardTriggered() : false,
+      });
+      return true;
+
+    case 'get_bonus_tracker_state':
+      sendResponse({
+        active: bonusTracker !== null,
+        config: bonusTracker ? bonusTracker.getConfig() : null,
+        progress: bonusTracker ? bonusTracker.getProgress() : null,
+      });
+      return true;
+
+    case 'get_session_pnl_state':
+      sendResponse(sessionRadar ? sessionRadar.getState() : null);
+      return true;
+
+    case 'reset_session_pnl':
+      sendResponse(sessionRadar ? sessionRadar.reset() : null);
+      return true;
+
+    case 'get_streak_volatility_state':
+      sendResponse(streakTracker ? streakTracker.getState() : DEFAULT_STREAK_VOLATILITY_STATE);
+      return true;
+
+    case 'reset_streak_volatility':
+      sendResponse(streakTracker ? streakTracker.reset() : DEFAULT_STREAK_VOLATILITY_STATE);
+      return true;
+
+    case 'get_cashout_router_state': {
+      const info = detectCashoutTarget(document);
+      sendResponse({
+        success: true,
+        info: {
+          isCasinoTab: Boolean(info.route || info.clickTarget),
+          casinoName: info.casinoName,
+          cashierUrl: info.cashierUrl,
+          buttonLabel: info.buttonLabel,
+          isSweepstakes: info.isSweepstakes,
+          canClick: Boolean(info.clickTarget),
+          cooldownVaultUrl: info.cooldownVaultUrl,
+        },
+      });
+      return true;
+    }
+
+    case 'trigger_cashout_navigation': {
+      const result = triggerCashoutNavigation(document);
+      sendResponse(result);
+      return true;
+    }
+
+    case 'trigger_cooldown_vault_navigation': {
+      const options = message.options as CooldownVaultOptions | undefined;
+      const result = triggerCooldownVaultNavigation(document, options);
+      sendResponse(result);
+      return true;
+    }
+
+    case 'trigger_auto_vault': {
+      const amount = typeof message.amount === 'number' && Number.isFinite(message.amount) ? message.amount : 0;
+      const currency = typeof message.currency === 'string' ? message.currency : 'usd';
+      triggerAutoVault(amount, currency, document).then((res) => {
+        sendResponse(res);
+      });
+      return true;
+    }
 
     default:
       return false;

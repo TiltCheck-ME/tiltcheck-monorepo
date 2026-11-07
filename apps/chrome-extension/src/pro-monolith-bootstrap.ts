@@ -51,6 +51,7 @@ import { GameBlocker } from './game-blocker.js';
 import { installLocalGameBlocker, LocalGameBlocker } from './pro/local-game-blocker.js';
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './pro/containment.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
+import { checkAndTriggerAutoLock } from './tilt-auto-lock.js';
 import type { CasinoVerification } from './license-verifier.js';
 import {
   attachMarketingSiteStorageListener,
@@ -1156,6 +1157,23 @@ function startTiltMonitoring() {
         indicators,
       });
     }
+
+    // Automated on-chain lock trigger on high tilt (Level 3+ / score >= 75)
+    void checkAndTriggerAutoLock({
+      tiltRisk,
+      indicators,
+    }).then((result) => {
+      if (result?.triggered) {
+        triggerTouchGrassTimeout(`High Tilt Auto-Lock Engaged: Score ${tiltRisk}/100. 24h deposit barrier active.`);
+        notifySupportIntervention('tilt_auto_lock', {
+          message: `High tilt auto-lock engaged at score ${tiltRisk}/100.`,
+          risk: tiltRisk,
+          indicators,
+          duration: result.duration,
+          wallet: result.wallet,
+        });
+      }
+    });
 
     const generated = tiltDetector.generateInterventions();
     if (generated.length > 0) {

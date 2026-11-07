@@ -63,9 +63,9 @@ export default function Home() {
           ))}
         </ol>
       </section>
-      <section className="landing-brakes" aria-label="The 4 In-Session Brakes">
+      <section className="landing-brakes" aria-label="The In-Session Brakes & Guards">
         <p className="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
-        <h2 className="landing-brakes__title">THE 4 IN-SESSION BRAKES</h2>
+        <h2 className="landing-brakes__title">THE IN-SESSION BRAKES &amp; GUARDS</h2>
         <ul className="landing-brakes__list">
           {CORE_BRAKES.map((b) => (
             <li key={b.num} className="landing-brake">

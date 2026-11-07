@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -24,6 +24,34 @@ const coreSignals = [
   {
     title: "DOM deposit barrier",
     body: "Catches the panic reload. Cashier and deposit button clicks are intercepted and blocked during Touch Grass timeouts and active voluntary Cooldown locks.",
+  },
+  {
+    title: "Reverse-withdrawal shield",
+    body: "Blocks cancel cashout and reverse redemption buttons while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
+  },
+  {
+    title: "Profit-lock & reality goals",
+    body: "Locks in a trailing profit floor once you are ahead. Triggers a soft warning escalating to a 60-second brake if unacted upon, plus real-world goal toasts (power bills, groceries, gas) to ground credits in real life.",
+  },
+  {
+    title: "Bonus playthrough & max-bet traps",
+    body: "In-page rollover progress HUD tracks promotional wagering targets in real time. Flags max-bet violations (e.g. $5.00 limit) and can intercept clicks before bonus winnings are forfeited.",
+  },
+  {
+    title: "Session velocity radar & sparkline",
+    body: "Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.",
+  },
+  {
+    title: "One-click cashout router",
+    body: "Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.",
+  },
+  {
+    title: "In-session auto-vaulting",
+    body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
+  },
+  {
+    title: "Win-streak & volatility spotter",
+    body: "Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ('I'm Due') stake escalations with immediate Cashier exit ramps before tilt sets in.",
   },
 ];
 

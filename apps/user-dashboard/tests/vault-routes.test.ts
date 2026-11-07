@@ -367,4 +367,112 @@ describe('user-dashboard safety control routes', () => {
       }),
     );
   });
+
+  it('returns on-chain cooldown vault status for specified wallet query parameter', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      locked: true,
+      scope: 'all',
+      endTime: 1780000000,
+      pda: '7XYZ1111111111111111111111111111111111111111',
+      timeRemainingSecs: 86400,
+      verifiedAt: 1714000000000,
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const { app } = await import('../src/index.js');
+    const res = await request(app)
+      .get('/api/user/u1/cooldown-status?wallet=11111111111111111111111111111111')
+      .set('Authorization', 'Bearer test-token');
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.test/cooldown/check?wallet=11111111111111111111111111111111&verbose=true',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    expect(res.body.locked).toBe(true);
+    expect(res.body.wallet).toBe('11111111111111111111111111111111');
+    expect(res.body.scope).toBe('all');
+    expect(res.body.timeRemainingSecs).toBe(86400);
+    expect(res.body.unlinked).toBe(false);
+  });
+
+  it('falls back to linked DegenIdentity wallet when query parameter is omitted', async () => {
+    databaseMock.db.getDegenIdentity.mockResolvedValueOnce({
+      discord_id: 'u1',
+      primary_external_address: '11111111111111111111111111111111',
+    } as any);
+
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      locked: false,
+      scope: null,
+      endTime: null,
+      pda: 'PDA111111111111111111111111111111111111111',
+      timeRemainingSecs: 0,
+      verifiedAt: 1714000000000,
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const { app } = await import('../src/index.js');
+    const res = await request(app)
+      .get('/api/user/u1/cooldown-status')
+      .set('Authorization', 'Bearer test-token');
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.test/cooldown/check?wallet=11111111111111111111111111111111&verbose=true',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    expect(res.body.locked).toBe(false);
+    expect(res.body.wallet).toBe('11111111111111111111111111111111');
+    expect(res.body.unlinked).toBe(false);
+  });
+
+  it('returns unlinked state when user has no linked wallet and no query parameter', async () => {
+    databaseMock.db.getDegenIdentity.mockResolvedValueOnce(null);
+
+    const { app } = await import('../src/index.js');
+    const res = await request(app)
+      .get('/api/user/u1/cooldown-status')
+      .set('Authorization', 'Bearer test-token');
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(res.body.unlinked).toBe(true);
+    expect(res.body.wallet).toBeNull();
+    expect(res.body.locked).toBe(false);
+  });
+
+  it('rejects invalid Solana wallet format with 400', async () => {
+    const { app } = await import('../src/index.js');
+    const res = await request(app)
+      .get('/api/user/u1/cooldown-status?wallet=invalid-public-key!')
+      .set('Authorization', 'Bearer test-token');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('wallet must be a Solana public key');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('handles upstream canonical API error gracefully', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ error: 'RPC unavailable' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const { app } = await import('../src/index.js');
+    const res = await request(app)
+      .get('/api/user/u1/cooldown-status?wallet=11111111111111111111111111111111')
+      .set('Authorization', 'Bearer test-token');
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe('RPC unavailable');
+  });
 });
