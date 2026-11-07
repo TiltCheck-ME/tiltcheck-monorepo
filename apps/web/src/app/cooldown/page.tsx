@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
 'use client';
 
 /**
@@ -136,6 +136,7 @@ export default function CooldownPage() {
   const [handoffSource, setHandoffSource] = useState<string | null>(null);
   const [handoffCasino, setHandoffCasino] = useState<string | null>(null);
   const [handoffAmount, setHandoffAmount] = useState<string | null>(null);
+  const [handoffWallet, setHandoffWallet] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -145,8 +146,24 @@ export default function CooldownPage() {
     const amt = params.get('amount');
     const scp = params.get('scope');
     const dur = params.get('duration');
+    const wal = params.get('wallet');
 
-    if (src) setHandoffSource(src);
+    if (wal) setHandoffWallet(wal.trim());
+
+    if (src === 'auto_tilt') {
+      setHandoffSource('auto_tilt');
+      setScope('all');
+      setDurationSecs(86_400);
+      if (typeof window !== 'undefined') {
+        window.postMessage(
+          { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'AUTO_TILT_HANDOFF_RENDERED', wallet: wal ? wal.trim() : null },
+          '*'
+        );
+      }
+    } else if (src) {
+      setHandoffSource(src);
+    }
+
     if (cas) setHandoffCasino(cas);
     if (amt) setHandoffAmount(amt);
 
@@ -354,7 +371,63 @@ export default function CooldownPage() {
         Not a deposit. No keys. Solana wallet. Devnet. Casinos do not have to honor it. You do. Stronger only.
       </p>
 
-      {handoffSource && (
+      {handoffSource === 'auto_tilt' ? (
+        <div
+          id="auto-tilt-alert-banner"
+          style={{
+            background: 'rgba(239, 68, 68, 0.10)',
+            border: '1px solid rgba(239, 68, 68, 0.45)',
+            borderRadius: '8px',
+            padding: '14px 16px',
+            marginBottom: '1.25rem',
+            textAlign: 'left',
+            boxShadow: '0 0 16px rgba(239, 68, 68, 0.15)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '6px',
+            }}
+          >
+            <div
+              style={{
+                color: '#ef4444',
+                fontSize: '0.75rem',
+                fontWeight: 900,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Critical Tilt Intervention: 24h Auto-Lock Triggered
+            </div>
+            <span
+              style={{
+                fontSize: '0.65rem',
+                fontFamily: 'monospace',
+                padding: '2px 6px',
+                borderRadius: '3px',
+                background: 'rgba(239, 68, 68, 0.2)',
+                color: '#fca5a5',
+                fontWeight: 700,
+              }}
+            >
+              LEVEL 3+ TILT
+            </span>
+          </div>
+          <div style={{ color: '#ffffff', fontSize: '0.875rem', lineHeight: 1.4, marginBottom: '6px' }}>
+            High tilt signals were detected during active play. The extension has initiated in-session deposit barriers.
+            Sign the Solana Devnet timelock below to freeze access on-chain and prevent chasing.
+          </div>
+          {handoffWallet && (
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+              Configured Cooldown Wallet: <code style={{ color: '#38bdf8' }}>{handoffWallet}</code>
+            </div>
+          )}
+        </div>
+      ) : handoffSource ? (
         <div
           style={{
             background: 'rgba(23, 195, 178, 0.08)',
@@ -392,17 +465,24 @@ export default function CooldownPage() {
             {' '}Sign the Solana timelock below to freeze access non-custodially.
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* ── Connect wallet ── */}
       {!wallet ? (
-        <button
-          onClick={connectWallet}
-          disabled={connecting}
-          style={btnStyle('#17c3b2')}
-        >
-          {connecting ? 'Opening wallets...' : 'SIGN WITH WALLET'}
-        </button>
+        <>
+          <button
+            onClick={connectWallet}
+            disabled={connecting}
+            style={btnStyle('#17c3b2')}
+          >
+            {connecting ? 'Opening wallets...' : 'SIGN WITH WALLET'}
+          </button>
+          {handoffWallet && (
+            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem', marginBottom: '1rem' }}>
+              Connect target wallet <code style={{ color: '#38bdf8' }}>{handoffWallet.slice(0, 6)}...{handoffWallet.slice(-4)}</code> to complete on-chain lock.
+            </p>
+          )}
+        </>
       ) : (
         <p style={{ fontSize: '0.8rem', color: '#8fa197', marginBottom: '1.5rem' }}>
           Connected: <code style={{ color: '#d7e0d8' }}>{wallet.slice(0, 8)}...{wallet.slice(-6)}</code>
@@ -499,7 +579,14 @@ export default function CooldownPage() {
             )}
 
             {/* Duration picker */}
-            <label style={labelStyle}>Duration</label>
+            <label style={labelStyle}>
+              Duration
+              {handoffSource === 'auto_tilt' && (
+                <span style={{ color: '#ef4444', fontSize: '0.75rem', marginLeft: '0.5rem', fontWeight: 700 }}>
+                  (24h Recommended for Tilt Cooldown)
+                </span>
+              )}
+            </label>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
               {DURATIONS.map((d) => (
                 <button
@@ -533,7 +620,7 @@ export default function CooldownPage() {
               disabled={loading || !wallet}
               style={btnStyle('#dc2626')}
             >
-              {loading ? 'Signing...' : 'Sign and Lock'}
+              {loading ? 'Signing...' : handoffSource === 'auto_tilt' ? 'Sign 24h Tilt Lock' : 'Sign and Lock'}
             </button>
 
             {txStatus && (

@@ -751,6 +751,29 @@ function buildCooldownPage() {
     <h1>Cooldown</h1>
     <p class="cooldown-punch">Sign a lock so 3am-you cannot put the stack back.</p>
     <p class="cooldown-fine">Not a deposit. No keys. Solana wallet. Devnet. Casinos do not have to honor it. You do. Stronger only.</p>
+    <div id="auto-tilt-alert-banner" style="display:none; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.25rem; text-align: left; box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Critical Tilt Intervention: 24h Auto-Lock Triggered</span>
+        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">LEVEL 3+ TILT</span>
+      </div>
+      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">High tilt signals were detected during active play. The extension has initiated in-session deposit barriers. Sign the Solana Devnet timelock below to freeze access on-chain and prevent chasing.</p>
+      <div id="auto-tilt-wallet" style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;"></div>
+    </div>
+    <script>
+      (function() {
+        if (typeof window === 'undefined') return;
+        var p = new URLSearchParams(window.location.search);
+        if (p.get('source') === 'auto_tilt') {
+          var b = document.getElementById('auto-tilt-alert-banner');
+          if (b) b.style.display = 'block';
+          var w = p.get('wallet');
+          if (w) {
+            var el = document.getElementById('auto-tilt-wallet');
+            if (el) el.textContent = 'Configured Cooldown Wallet: ' + w;
+          }
+        }
+      })();
+    </script>
     <ol class="cooldown-steps">
       <li>Connect a Solana wallet you hold. Exodus is out.</li>
       <li>Pick the scope: everything, a category, or one game.</li>
