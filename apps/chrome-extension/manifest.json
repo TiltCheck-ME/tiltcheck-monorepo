@@ -1,41 +1,104 @@
 {
-    "manifest_version": 3,
-    "name": "TiltCheck: The Degen's HUD",
-    "description": "Real-time tilt detection and profit guards. For degens, by degens.",
-    "version": "1.0.0",
-    "icons": {
-        "16": "icons/icon16.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
+  "manifest_version": 3,
+  "name": "TiltCheck",
+  "version": "1.2.3",
+  "description": "Core guardrail: 2-second spin brake and custom game filters on supported casino tabs. Read-only. No wallet keys.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "notifications",
+    "alarms",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "https://*.stake.com/*",
+    "https://*.stake.us/*",
+    "https://*.roobet.com/*",
+    "https://*.bc.game/*",
+    "https://*.rollbit.com/*",
+    "https://*.shuffle.com/*",
+    "https://*.gamdom.com/*",
+    "https://*.csgoempire.com/*",
+    "https://*.tiltcheck.me/*",
+    "https://api.tiltcheck.me/*",
+    "https://*.magic.link/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me https://*.magic.link; frame-src https://*.magic.link"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "TiltCheck Guards",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.stake.com/*",
+        "https://*.stake.us/*",
+        "https://*.roobet.com/*",
+        "https://*.bc.game/*",
+        "https://*.rollbit.com/*",
+        "https://*.shuffle.com/*",
+        "https://*.gamdom.com/*",
+        "https://*.csgoempire.com/*",
+        "https://tiltcheck.me/*",
+        "https://*.tiltcheck.me/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end"
     },
-    "action": {
-        "default_popup": "popup.html",
-        "default_icon": {
-            "16": "icons/icon16.png",
-            "48": "icons/icon48.png"
-        }
-    },
-    "permissions": [
-        "storage",
-        "activeTab",
-        "identity",
-        "notifications",
-        "alarms"
-    ],
-    "host_permissions": [
-        "<all_urls>"
-    ],
-    "background": {
-        "service_worker": "background.js"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
-    ]
+    {
+      "matches": [
+        "https://*.stake.com/*",
+        "https://*.stake.us/*",
+        "https://*.roobet.com/*",
+        "https://*.bc.game/*",
+        "https://*.rollbit.com/*",
+        "https://*.shuffle.com/*",
+        "https://*.gamdom.com/*",
+        "https://*.csgoempire.com/*",
+        "https://tiltcheck.me/*",
+        "https://*.tiltcheck.me/*"
+      ],
+      "js": [
+        "page-bridge.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "auth-bridge.html",
+        "auth-bridge.js",
+        "warning.html",
+        "pro-monolith-bootstrap.js",
+        "icons/*"
+      ],
+      "matches": [
+        "https://*.stake.com/*",
+        "https://*.stake.us/*",
+        "https://*.roobet.com/*",
+        "https://*.bc.game/*",
+        "https://*.rollbit.com/*",
+        "https://*.shuffle.com/*",
+        "https://*.gamdom.com/*",
+        "https://*.csgoempire.com/*",
+        "https://tiltcheck.me/*",
+        "https://*.tiltcheck.me/*"
+      ]
+    }
+  ]
 }

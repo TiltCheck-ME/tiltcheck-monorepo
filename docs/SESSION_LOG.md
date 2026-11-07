@@ -1,6 +1,20 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-07 -->
 
 # Session Log
+
+## 2026-11-07 — feat(extension): chrome web store submission readiness, manifest v3 permission pruning, and publishing guide
+
+Prepared and verified the TiltCheck browser extension for direct submission to the Chrome Web Store:
+- PR #708 Merge: Squash-merged PR #708 into main with 18/18 checks passing, integrating Solana on-chain cooldowns, auto-lock containment, and E2E automation into production.
+- Manifest V3 Review Compliance:
+  - Pruned unused identity permission to eliminate OAuth review friction.
+  - Removed local network permissions (127.0.0.1, localhost) to satisfy Google security policies.
+  - Removed unapproved root key privacy_policy_url from manifest.json.
+  - Scoped web_accessible_resources matches strictly to supported casino and TiltCheck domains rather than broad wildcards.
+  - Updated default lounge base URL in lounge-overlay.ts to https://activity.tiltcheck.me.
+- Production ZIP Packaging: Built and verified apps/chrome-extension/tiltcheck-extension.zip containing root manifest and required assets with zero sourcemap leakage (164 KB).
+- Store Listing & Privacy Declarations: Authored comprehensive Chrome Web Store publishing guide in apps/chrome-extension/docs/publishing.md with single-purpose declarations, permission justifications, data usage attestations, and exact store listing copy adhering to brand guidelines (zero emojis, non-custodial guarantee).
+- Test Verification: Re-verified unit suite (272/272 passing) and Playwright browser E2E suite (6/6 passing).
 
 ## 2026-11-06 — feat(ecosystem): on-chain solana devnet cooldown timelocks, tilt auto-lock containment, and e2e ci automation
 

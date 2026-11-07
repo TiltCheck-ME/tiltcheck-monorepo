@@ -19,7 +19,7 @@ type LoungeState = {
 };
 
 function defaultLoungeUrl(): string {
-  return 'http://127.0.0.1:3004';
+  return 'https://activity.tiltcheck.me';
 }
 
 async function loungeBase(): Promise<string> {

@@ -3,12 +3,10 @@
   "name": "TiltCheck",
   "version": "1.2.3",
   "description": "Core guardrail: 2-second spin brake and custom game filters on supported casino tabs. Read-only. No wallet keys.",
-  "privacy_policy_url": "https://tiltcheck.me/privacy",
   "permissions": [
     "storage",
     "tabs",
     "activeTab",
-    "identity",
     "notifications",
     "alarms",
     "webNavigation"
@@ -24,9 +22,7 @@
     "https://*.csgoempire.com/*",
     "https://*.tiltcheck.me/*",
     "https://api.tiltcheck.me/*",
-    "https://*.magic.link/*",
-    "http://127.0.0.1:3004/*",
-    "http://localhost:3004/*"
+    "https://*.magic.link/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me https://*.magic.link; frame-src https://*.magic.link"
@@ -91,7 +87,18 @@
         "pro-monolith-bootstrap.js",
         "icons/*"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "https://*.stake.com/*",
+        "https://*.stake.us/*",
+        "https://*.roobet.com/*",
+        "https://*.bc.game/*",
+        "https://*.rollbit.com/*",
+        "https://*.shuffle.com/*",
+        "https://*.gamdom.com/*",
+        "https://*.csgoempire.com/*",
+        "https://tiltcheck.me/*",
+        "https://*.tiltcheck.me/*"
+      ]
     }
   ]
 }

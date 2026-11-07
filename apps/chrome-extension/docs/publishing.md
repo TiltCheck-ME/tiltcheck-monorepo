@@ -1,204 +1,161 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-07 -->
 
-# TiltGuard Chrome Extension — Publishing Guide
+# Chrome Web Store Publishing & Submission Guide
 
----
-
-## Prerequisites
-
-- Google Developer account ($5 one-time registration fee)
-- Production build of the extension
-- Marketing assets (icons, screenshots)
-- Privacy policy hosted at a public URL
+This guide details everything required to submit the TiltCheck browser extension to the Google Chrome Web Store Developer Dashboard.
 
 ---
 
-## Preparation
+## 1. Quick File Reference
 
-### Required Assets
-
-| Asset              | Size       | Format    |
-|--------------------|------------|-----------|
-| Store icon         | 128x128    | PNG       |
-| Small promo tile   | 440x280    | PNG/JPEG  |
-| Large promo tile   | 920x680    | PNG/JPEG  |
-| Marquee promo tile | 1400x560   | PNG/JPEG  |
-| Screenshots        | 1280x800 or 640x400 | PNG/JPEG |
-
-### Store Listing Content
-
-**Title** (max 45 characters):
-```
-TiltCheck: The Degen's HUD
-```
-
-**Summary** (max 132 characters):
-```
-Real-time tilt detection, surgical game blocking, and profit protection for serious casino players.
-```
-
-**Description** (detailed — no emojis per brand policy):
-```
-TiltGuard keeps you in control at the casino.
-
-TILT DETECTION
-- Detects rage betting patterns
-- Identifies loss chasing behavior
-- Monitors erratic clicking
-- Alerts on bet escalation above session average
-- Duration warnings after 1+ hour sessions
-
-SESSION TRACKING
-- Real-time bet counting
-- Profit/loss tracking
-- RTP calculation
-- Session duration timer
-- P/L graph updated on every bet
-
-VAULT INTEGRATION
-- Smart vault recommendations
-- Stop-loss alerts at 50% drawdown
-- Real-world spending comparisons
-- One-click balance protection
-
-SURGICAL SELF-EXCLUSION
-- Block specific games or entire categories (crash, slots, live dealer, bonus buys)
-- Set via Discord slash commands (/block-game)
-- Full-page overlay enforced at the DOM level
-- Your own note is shown back to you when a block fires
-
-LICENSE VERIFICATION
-- Automatic casino license checking
-- Multi-jurisdiction support
-- Red flag detection
-
-Privacy-focused. All betting data processed locally. No data sent without explicit consent.
-
-Made for Degens. By Degens.
-```
-
-**Category**: Productivity
-
-**Language**: English (United States)
-
-### Privacy Policy
-
-Host a privacy policy at `https://tiltcheck.me/privacy` covering:
-
-- Data collected
-- How data is used
-- Local vs. server-side storage
-- Third-party services (Discord OAuth, Solana RPC)
-- User rights and data deletion
+* **Production ZIP Archive:** `apps/chrome-extension/tiltcheck-extension.zip`
+  * Automatically created via: `pnpm --filter @tiltcheck/chrome-extension package`
+  * Contains root `manifest.json`, compiled scripts, `popup.html`, `warning.html`, and `icons/`.
+  * Verified: 0 sourcemap leaks, 0 local development permissions.
+* **Store Icon (128x128):** `apps/chrome-extension/src/icons/icon128.png`
+* **Developer Console:** [https://chrome.google.com/webstore/devconsole](https://chrome.google.com/webstore/devconsole)
+* **Privacy Policy URL:** `https://tiltcheck.me/privacy`
 
 ---
 
-## Packaging
+## 2. Chrome Web Store Listing Copy
 
-### 1. Create Production Build
+Copy and paste these exact values into the Developer Console store listing fields.
 
-```bash
-NODE_ENV=production pnpm -C apps/chrome-extension build
+### Item Details
+* **Extension Name:**
+  ```text
+  TiltCheck: Non-Custodial Casino Guardrails
+  ```
+* **Short Description (118/132 characters):**
+  ```text
+  Non-custodial casino guardrails: 2-second spin brakes, deposit containment, profit lock, and on-chain cooldown timelocks.
+  ```
+* **Detailed Description (Zero emojis, Brand Law compliant):**
+  ```text
+  TiltCheck provides real-time harm reduction, tilt protection, and non-custodial voluntary cooldowns for players on supported crypto and sweepstakes gaming platforms.
+
+  CORE FEATURES
+
+  1. SPIN PACE LOCK
+  - Enforces an automated 2-second delay between spin inputs.
+  - Prevents rapid-fire mechanical autoplay and impulsive bet clicks.
+
+  2. REVERSE-WITHDRAWAL SHIELD
+  - Intercepts accidental or impulsive "Cancel Withdrawal" clicks in casino cashiers.
+  - Keeps won funds queued for payout rather than returned to play balance.
+
+  3. PROFIT-LOCK RATCHET & REALITY GOALS
+  - Automatically locks in a designated floor once session profit targets are reached.
+  - Provides instant cashout navigation buttons when profit goals are hit.
+
+  4. SESSION VELOCITY & TILT DETECTION
+  - Tracks bet frequency, rapid escalation, and cold-run loss volatility in real time.
+  - Alerts on erratic behavior and escalation above player averages.
+  - Automatically triggers a 24-hour local deposit barrier when high tilt (Level 3+) is detected.
+
+  5. ON-CHAIN SOLANA COOLDOWN TIMELOCK
+  - Direct integration with the TiltCheck on-chain voluntary timelock program on Solana.
+  - Immutable self-exclusion: once signed client-side by your wallet, timelocks cannot be shortened or bypassed by anyone, including TiltCheck.
+  - Real-time synchronization via Server-Sent Events (SSE).
+
+  6. PHISHING & MALICIOUS MIRROR GUARD
+  - Scans casino URLs against the verified SusLink database.
+  - Blocks malicious mirror sites and fake phishing domains before page navigation completes.
+
+  NON-CUSTODIAL & PRIVACY COMMITMENT
+  - TiltCheck is strictly non-custodial. We never ask for, transmit, or store private keys, seed phrases, or passwords.
+  - All session tracking and speed brakes execute locally in your browser.
+  - We do not sell user data, track browsing outside supported gaming tabs, or use advertising analytics.
+  ```
+
+* **Category:** `Productivity`
+* **Language:** `English (United States)`
+* **Official Website:** `https://tiltcheck.me`
+
+---
+
+## 3. Privacy Practices Disclosures
+
+Google requires precise justifications for all requested permissions and host permissions. Use the exact declarations below:
+
+### Single Purpose Declaration
+```text
+To provide real-time responsible gaming brakes, session tilt detection, deposit barriers, and on-chain voluntary cooldown timelocks on supported online casino websites.
 ```
 
-### 2. Verify manifest.json
+### Permission Justifications
+* **`storage`:**
+  ```text
+  Required to store player preferences locally (spin delay preferences, profit lock targets, and voluntary cooldown timestamps) in chrome.storage.local.
+  ```
+* **`tabs`:**
+  ```text
+  Required to detect when a supported casino tab is active in order to mount the pace lock and session reality HUD.
+  ```
+* **`activeTab`:**
+  ```text
+  Required to open the quick settings and cooldown status popup on the currently focused casino page.
+  ```
+* **`notifications`:**
+  ```text
+  Required to display instant desktop alerts when session loss velocity spikes or an on-chain cooldown timelock triggers.
+  ```
+* **`alarms`:**
+  ```text
+  Required to run scheduled background checks verifying the expiration status of active cooldown timelocks.
+  ```
+* **`webNavigation`:**
+  ```text
+  Required to intercept page navigation before loading known phishing domains or malicious casino mirror sites.
+  ```
 
-Confirm the manifest in `dist/manifest.json` matches the expected shape. The current active manifest:
-
-```json
-{
-  "manifest_version": 3,
-  "name": "TiltCheck: The Degen's HUD",
-  "version": "1.0.0",
-  "description": "Real-time tilt detection and profit guards. For degens, by degens.",
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png"
-    }
-  },
-  "permissions": ["storage", "activeTab", "identity", "notifications", "alarms"],
-  "host_permissions": ["<all_urls>"],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["content.js"]
-  }]
-}
+### Host Permissions Justification
+```text
+Host permissions are strictly restricted to supported casino domains (Stake, Roobet, BC.Game, Shuffle, Rollbit, Gamdom, CSGOEmpire) to read game state and intercept deposit clicks during active cooldowns, and the TiltCheck API gateway (https://api.tiltcheck.me) for on-chain cooldown verification.
 ```
 
-IMPORTANT: `popup.html` is declared in the manifest but does not exist in the current build output. This will cause a Chrome Web Store review rejection. Create `popup.html` before submitting, or remove the `default_popup` key and rely solely on the sidebar approach.
+### Data Usage Attestation Checklist
+* **Personally Identifiable Information:** No
+* **Health Information:** No
+* **Financial and Payment Information:** No (Extension is 100% non-custodial and never touches funds)
+* **Authentication Information:** Only user Discord ID if voluntarily linked; otherwise anonymous local storage.
+* **Personal Communications:** No
+* **Location:** No
+* **Web History:** No (Only active tab domains checked locally or against safety API)
+* **User Activity:** Yes (Click velocity and session wager amounts processed locally for tilt detection)
+* **Website Content:** No
 
-### 3. Create ZIP Package
-
-```bash
-# From apps/chrome-extension/
-Compress-Archive -Path dist\* -DestinationPath tiltguard-store.zip
-```
-
----
-
-## Publishing
-
-### 1. Access Developer Dashboard
-
-Go to: https://chrome.google.com/webstore/devconsole
-
-### 2. Create New Item
-
-1. Click "New Item".
-2. Upload the ZIP package.
-3. Fill in store listing details.
-4. Add screenshots and promotional images.
-5. Set privacy policy URL.
-6. Configure distribution options.
-
-### 3. Submit for Review
-
-1. Review all information.
-2. Click "Submit for Review".
-3. Review typically takes 1–3 business days.
+### Three Mandatory Developer Certifications (Check all 3 boxes):
+1. I confirm that data is not sold to third parties.
+2. I confirm that data is not used or transferred for purposes unrelated to the item's core functionality.
+3. I confirm that data is not used or transferred to determine creditworthiness or for lending purposes.
 
 ---
 
-## Post-Publishing
+## 4. Visual Assets Checklist
 
-### Updating the Extension
+Before submitting, upload the required images in the Store Listing tab:
 
-1. Increment version in `src/manifest.json` and `manifest.json`.
-2. Build a new package.
-3. Upload to the Developer Dashboard.
-4. Submit for review.
-
-### Monitoring
-
-- Review user ratings and comments.
-- Monitor crash reports in the Developer Dashboard.
-- Check usage statistics.
+| Asset | Dimensions | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| **Store Icon** | 128x128 PNG | Ready | Use `apps/chrome-extension/src/icons/icon128.png`. |
+| **Screenshots** | 1280x800 PNG | Ready to capture | At least 1 screenshot is required (up to 5 allowed). Recommended: Extension popup with Cooldown Status, Spin Brake active HUD on Stake/Roobet, and Profit Lock settings. |
+| **Small Promo Tile** | 440x280 PNG | Optional/Recommended | Clean banner featuring the TiltCheck logo and "Non-Custodial Casino Guardrails". |
+| **Marquee Banner** | 1400x560 PNG | Optional | For featured placement consideration on the Chrome Web Store. |
 
 ---
 
-## Version History
+## 5. Step-by-Step Submission Procedure
 
-| Version | Date       | Changes          |
-|---------|------------|------------------|
-| 1.0.0   | Unreleased | Initial release  |
-
----
-
-## Support
-
-For publishing issues:
-
-- Chrome Web Store policies: https://developer.chrome.com/docs/webstore/program-policies/
-- Extension guidelines: https://developer.chrome.com/docs/extensions/
-- Contact: jme@tiltcheck.me
-
+1. Navigate to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
+2. Click **Add new item**.
+3. Drag and drop `apps/chrome-extension/tiltcheck-extension.zip`.
+4. Fill in the **Store Listing** tab using the copy from Section 2.
+5. Upload the 128x128 store icon and at least 1 screenshot (1280x800).
+6. Fill in the **Privacy Practices** tab using the exact justifications and attestations from Section 3.
+7. Enter the Privacy Policy URL: `https://tiltcheck.me/privacy`.
+8. Under **Distribution**, select:
+   * Visibility: **Public**
+   * Regions: **All regions** (or your target jurisdictions)
+9. Click **Submit for review**. Review typically completes within 24 to 72 hours.
