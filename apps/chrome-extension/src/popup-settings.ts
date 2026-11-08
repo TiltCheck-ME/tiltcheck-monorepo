@@ -90,6 +90,8 @@ export interface TouchGrassUiState {
   autoLockDuration: number;
   audioAlertsEnabled: boolean;
   audioAlertsVolume: number;
+  defaultBetBreakerEnabled: boolean;
+  baseStakeThreshold: number;
 }
 
 export interface GameBlockUiState {
@@ -122,6 +124,8 @@ export async function loadTouchGrassUiState(): Promise<TouchGrassUiState> {
     autoLockDuration: opts.autoLockDuration,
     audioAlertsEnabled: opts.audioAlertsEnabled,
     audioAlertsVolume: opts.audioAlertsVolume,
+    defaultBetBreakerEnabled: opts.defaultBetBreakerEnabled,
+    baseStakeThreshold: opts.baseStakeThreshold,
   };
 }
 

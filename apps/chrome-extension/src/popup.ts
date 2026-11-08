@@ -36,6 +36,8 @@ import {
   saveAutoLockDuration,
   saveOnboardingCompleted,
   loadOnboardingCompleted,
+  saveDefaultBetBreakerEnabled,
+  saveBaseStakeThreshold,
 } from './popup-settings.js';
 import { DEFAULT_CASHOUT_GOALS } from './profit-lock.js';
 import { playAudioCue } from './audio-alerts.js';
@@ -1502,13 +1504,15 @@ function initGuardSettingsPanel(): void {
 
   const baseStakeInput = document.getElementById('base-stake-threshold-input') as HTMLInputElement | null;
   if (baseStakeInput) {
-    baseStakeInput.addEventListener('change', async () => {
+    const handleBaseStakeChange = async () => {
       const val = Number(baseStakeInput.value);
       if (val > 0) {
         await saveBaseStakeThreshold(val);
         toast(`Base stake threshold set to ${val.toFixed(2)}.`);
       }
-    });
+    };
+    baseStakeInput.addEventListener('change', handleBaseStakeChange);
+    baseStakeInput.addEventListener('blur', handleBaseStakeChange);
   }
 
   const wageInput = document.getElementById('hourly-wage-input') as HTMLInputElement | null;
@@ -2064,7 +2068,7 @@ async function init() {
   // Activity refresh
   $('btn-refresh-feed').addEventListener('click', loadFeed);
   $('btn-clear-feed')?.addEventListener('click', async () => {
-    await clearActivityFeed();
+    await chrome.storage.local.set({ activityFeed: [] });
     loadFeed();
     toast('Activity feed cleared.');
   });
