@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -2389,4 +2389,60 @@ export interface UserSettingsEnvelope {
   userId: string;
   etag: string;
   settings: UserSettingsDocument;
+}
+
+// ============================================
+// Client Seed Manager Types (Issue #539)
+// ============================================
+
+export type ClientSeedFormat = 'alphanumeric' | 'hex' | 'uuid' | 'readable';
+
+export type ClientSeedHygieneStatus = 'strong' | 'acceptable' | 'weak' | 'compromised';
+
+export interface ClientSeedMetadata {
+  seed: string;
+  format: ClientSeedFormat;
+  entropyBits: number;
+  hygieneStatus: ClientSeedHygieneStatus;
+  hygieneNotes: string[];
+  createdAt: number;
+  site: string;
+  source: 'on-device-csprng' | 'imported' | 'user-defined';
+  rotationCount: number;
+}
+
+export interface ClientSeedRotationHistoryEntry {
+  id: string;
+  seed: string;
+  format: ClientSeedFormat;
+  site: string;
+  createdAt: number;
+  retiredAt: number;
+  wagerCountEstimate?: number;
+  reason?: 'manual-rotation' | 'periodic-rotation' | 'hygiene-upgrade' | 'tilt-interception';
+}
+
+export interface SiteSeedState {
+  site: string;
+  currentSeed: ClientSeedMetadata;
+  history: ClientSeedRotationHistoryEntry[];
+  lastRotatedAt: number;
+}
+
+export interface ClientSeedApplyResult {
+  detectable: boolean;
+  selector?: string;
+  applied: boolean;
+  requiresUserConfirmation: boolean;
+  confirmed?: boolean;
+  previousValue?: string;
+  newValue?: string;
+  site: string;
+  message?: string;
+}
+
+export interface ClientSeedGenerateOptions {
+  format?: ClientSeedFormat;
+  length?: number;
+  customPrefix?: string;
 }

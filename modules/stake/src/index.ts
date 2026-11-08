@@ -20,3 +20,9 @@ export type {
   WagerRequirement,
   StakeApiErrorResponse,
 } from './types.js';
+export {
+  StakeSeedManager,
+  generateStrongClientSeed,
+  evaluateSeedHygiene,
+  calculateSeedEntropy,
+} from './seed.js';

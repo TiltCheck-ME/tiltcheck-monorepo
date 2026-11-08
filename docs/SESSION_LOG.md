@@ -1,6 +1,32 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-07 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
 
 # Session Log
+
+## 2026-11-08 — feat(fairness,extension): Issue #539 Client Seed Manager (on-device CSPRNG, rotation, per-site persistence, best-effort DOM apply)
+
+Implemented full cross-surface Client Seed Manager (Issue #539) across core packages, Stake module, browser extension, and web verification tools:
+- Non-Custodial On-Device CSPRNG & Hygiene Engine (`packages/shared/src/seed-manager.ts`, `packages/types/src/index.ts`):
+  - Added cryptographic seed generation using `globalThis.crypto.getRandomValues` across `alphanumeric` (16/32-char rejection-sampled), `hex` (32/64-char), `uuid` (v4), and `readable` formats.
+  - Implemented `calculateSeedEntropy` estimating Shannon entropy bits with repetitive/sequential character penalties.
+  - Implemented `evaluateSeedHygiene` detecting known default casino seeds (`clientseed`, `default`, `12345`, `stake`, etc.), short seeds, and low-variance runs with tiered statuses (`strong`, `acceptable`, `weak`, `compromised`).
+  - Implemented `ClientSeedManager` core class providing per-site seed isolation, automatic initial seed provisioning, rotation tracking with 50-entry history caps, and clipboard copy helpers.
+  - Added comprehensive test suite in `packages/shared/tests/seed-manager.test.ts` (24/24 passing).
+- Stake Dedicated Module (`modules/stake/src/seed.ts`, `modules/stake/src/index.ts`):
+  - Created `StakeSeedManager` inheriting `ClientSeedManager` with default site `stake` and Stake-specific helpers (`getStakeSeed`, `rotateStakeSeed`, `applyToStakePage`).
+  - Added unit test suite in `modules/stake/tests/seed.test.ts` (3/3 passing).
+- Chrome Browser Extension Integration (`apps/chrome-extension`):
+  - Created `ChromeStorageSeedAdapter` in `src/seed-manager-extension.ts` providing Promise-based `chrome.storage.local` persistence with `localStorage` and memory fallbacks.
+  - Added `Client Seed Manager` UI panel to extension popup (`popup.html` and `popup.ts`) featuring active seed display, real-time entropy/hygiene badge, one-click copy, on-device rotation button, collapsible history drawer, and site badge.
+  - Implemented best-effort "Apply to Page" utility in `content.ts` with strict user confirmation requirement before mutating DOM inputs (`input[name="clientSeed"]`, Stake data-test selectors).
+  - Added unit test suite in `tests/unit/seed-manager-extension.test.ts` (6/6 passing); verified full extension suite (272/272 passing across 37 files) and re-packaged `tiltcheck-extension.zip`.
+- Web Tools Integration (`apps/web/src/app/tools/verify/page.tsx`):
+  - Integrated interactive Client Seed Manager into the Provably Fair Bet Verifier.
+  - Added real-time dynamic seed hygiene alerts (`[COMPROMISED SEED ALERT]`, `[WEAK SEED WARNING]`, `[HIGH ENTROPY CLIENT SEED]`).
+  - Added multi-casino selector (Stake, BC.Game, Roobet, Shuffle, Default), format switcher, rotation button, and history review drawer directly below the Client Seed input.
+  - Updated `apps/web/src/app/tools/verify/verify-page.test.ts` (7/7 passing).
+- Full Monorepo Verification:
+  - 226 test files passed, 1,542 tests passed, 0 failures.
+
 
 ## 2026-11-07 — fix(tests,game-arena): monorepo test suite bug fixes, game arena lifecycle cleanup, and config schema validation
 

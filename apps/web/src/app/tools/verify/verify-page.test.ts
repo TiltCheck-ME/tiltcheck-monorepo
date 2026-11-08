@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
@@ -41,6 +41,16 @@ describe('Provably Fair Bet Verifier Page (apps/web/src/app/tools/verify/page.ts
     expect(sourceCode).toContain('02. Player Entropy');
     expect(sourceCode).toContain('03. Deterministic Nonce');
     expect(sourceCode).toContain('04. Post-Session Reveal');
+  });
+
+  it('features on-device Client Seed Manager with site rotation and hygiene audit (Issue #539)', () => {
+    expect(sourceCode).toContain('ClientSeedManager');
+    expect(sourceCode).toContain('Seed Manager');
+    expect(sourceCode).toContain('ON-DEVICE CSPRNG');
+    expect(sourceCode).toContain('[Rotate New Seed]');
+    expect(sourceCode).toContain('evaluateSeedHygiene');
+    expect(sourceCode).toContain('COMPROMISED SEED ALERT');
+    expect(sourceCode).toContain('HIGH ENTROPY CLIENT SEED');
   });
 
   it('contains zero emojis across the file to uphold TiltCheck brand laws', () => {

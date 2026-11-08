@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import {
   addCustomSlug,
@@ -59,6 +59,10 @@ import {
   DEFAULT_STREAK_VOLATILITY_STATE,
   type StreakVolatilityState,
 } from './streak-volatility.js';
+import {
+  extensionSeedManager,
+  normalizeSiteKey,
+} from './seed-manager-extension.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -822,6 +826,198 @@ function initStreakVolatilityListeners(): void {
       });
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Client Seed Manager (Issue #539)
+// ---------------------------------------------------------------------------
+
+let currentSiteSeed = 'default';
+let activeSeedValue = '';
+
+async function detectActiveTabSite(): Promise<string> {
+  return new Promise((resolve) => {
+    try {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const url = tabs[0]?.url;
+        if (url) {
+          try {
+            const host = new URL(url).hostname;
+            resolve(normalizeSiteKey(host));
+            return;
+          } catch {
+            // Ignore URL parse error
+          }
+        }
+        resolve('stake');
+      });
+    } catch {
+      resolve('stake');
+    }
+  });
+}
+
+async function loadSeedManagerState(): Promise<void> {
+  const site = await detectActiveTabSite();
+  currentSiteSeed = site;
+
+  const siteBadge = document.getElementById('seed-site-badge');
+  if (siteBadge) {
+    siteBadge.textContent = site.toUpperCase();
+  }
+
+  const meta = await extensionSeedManager.getActiveSeed(site);
+  activeSeedValue = meta.seed;
+
+  const display = document.getElementById('active-client-seed-display') as HTMLInputElement | null;
+  if (display) {
+    display.value = meta.seed;
+  }
+
+  const hygieneBadge = document.getElementById('seed-hygiene-badge');
+  if (hygieneBadge) {
+    hygieneBadge.textContent = `${meta.hygieneStatus.toUpperCase()} • ${meta.entropyBits} BITS`;
+    if (meta.hygieneStatus === 'strong') {
+      hygieneBadge.style.color = '#34d399';
+      hygieneBadge.style.background = 'rgba(52,211,153,0.15)';
+    } else if (meta.hygieneStatus === 'acceptable') {
+      hygieneBadge.style.color = '#fbbf24';
+      hygieneBadge.style.background = 'rgba(251,191,36,0.15)';
+    } else {
+      hygieneBadge.style.color = '#ef4444';
+      hygieneBadge.style.background = 'rgba(239,68,68,0.15)';
+    }
+  }
+
+  const countLabel = document.getElementById('seed-rotation-count-label');
+  if (countLabel) {
+    countLabel.textContent = `${meta.rotationCount} rotations`;
+  }
+}
+
+function initSeedManagerPanel(): void {
+  const copyBtn = document.getElementById('btn-copy-client-seed');
+  const rotateBtn = document.getElementById('btn-rotate-client-seed');
+  const applyBtn = document.getElementById('btn-apply-seed-page');
+  const confirmApplyBtn = document.getElementById('btn-confirm-apply-seed');
+  const cancelApplyBtn = document.getElementById('btn-cancel-apply-seed');
+  const confirmBox = document.getElementById('seed-apply-confirmation-box');
+  const statusMsg = document.getElementById('seed-apply-status-msg');
+  const toggleHistoryBtn = document.getElementById('btn-toggle-seed-history');
+  const historyDrawer = document.getElementById('seed-history-drawer');
+  const historyList = document.getElementById('seed-history-list');
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      if (!activeSeedValue) return;
+      try {
+        await navigator.clipboard.writeText(activeSeedValue);
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = originalText || 'Copy Seed';
+        }, 1500);
+      } catch {
+        toast('Failed to copy seed to clipboard', true);
+      }
+    });
+  }
+
+  if (rotateBtn) {
+    rotateBtn.addEventListener('click', async () => {
+      try {
+        const { newSeed } = await extensionSeedManager.rotateSeed(currentSiteSeed, {
+          format: 'alphanumeric',
+          length: 32,
+          reason: 'manual-rotation',
+        });
+        activeSeedValue = newSeed.seed;
+        await loadSeedManagerState();
+        toast('New client seed generated on-device');
+      } catch {
+        toast('Seed rotation failed', true);
+      }
+    });
+  }
+
+  if (applyBtn && confirmBox) {
+    applyBtn.addEventListener('click', () => {
+      confirmBox.style.display = 'block';
+      if (statusMsg) statusMsg.style.display = 'none';
+    });
+  }
+
+  if (cancelApplyBtn && confirmBox) {
+    cancelApplyBtn.addEventListener('click', () => {
+      confirmBox.style.display = 'none';
+    });
+  }
+
+  if (confirmApplyBtn && confirmBox) {
+    confirmApplyBtn.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs[0]?.id;
+        if (!tabId) {
+          toast('No active browser tab found', true);
+          confirmBox.style.display = 'none';
+          return;
+        }
+
+        chrome.tabs.sendMessage(
+          tabId,
+          {
+            type: 'apply_client_seed_to_page',
+            seed: activeSeedValue,
+            confirmed: true,
+          },
+          (res) => {
+            confirmBox.style.display = 'none';
+            if (statusMsg) {
+              statusMsg.style.display = 'block';
+              if (res && res.applied) {
+                statusMsg.style.color = '#17c3b2';
+                statusMsg.textContent = res.message || 'Seed applied to page input.';
+                toast('Client seed applied to page.');
+              } else {
+                statusMsg.style.color = '#fbbf24';
+                statusMsg.textContent = res?.message || 'Could not find client seed field on this page.';
+              }
+            }
+          }
+        );
+      });
+    });
+  }
+
+  if (toggleHistoryBtn && historyDrawer && historyList) {
+    toggleHistoryBtn.addEventListener('click', async () => {
+      const isVisible = historyDrawer.style.display === 'block';
+      if (isVisible) {
+        historyDrawer.style.display = 'none';
+        toggleHistoryBtn.textContent = 'View Rotation History';
+      } else {
+        historyDrawer.style.display = 'block';
+        toggleHistoryBtn.textContent = 'Hide Rotation History';
+
+        const history = await extensionSeedManager.getHistory(currentSiteSeed);
+        if (history.length === 0) {
+          historyList.innerHTML = '<div style="padding:4px 0;">No previous rotations recorded.</div>';
+        } else {
+          historyList.innerHTML = history
+            .slice(0, 10)
+            .map(
+              (item) => `
+              <div style="padding:4px 0; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.seed}</span>
+                <span style="color:#64748b; font-size:8px;">${new Date(item.retiredAt).toLocaleTimeString()}</span>
+              </div>
+            `
+            )
+            .join('');
+        }
+      }
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1655,6 +1851,8 @@ async function init() {
   initSessionRadarListeners();
   initCashoutRouterListeners();
   initStreakVolatilityListeners();
+  initSeedManagerPanel();
+  loadSeedManagerState();
   loadSessionRadar();
   loadCashoutGoalsProgress();
   loadStreakVolatility();

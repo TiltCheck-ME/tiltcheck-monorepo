@@ -1,11 +1,14 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ToolPageHeader from '@/components/ToolPageHeader';
 import Link from 'next/link';
-import { auditSeedHealth } from '@tiltcheck/shared';
+import { auditSeedHealth, ClientSeedManager, evaluateSeedHygiene, calculateSeedEntropy } from '@tiltcheck/shared';
 import { FairnessService } from '@tiltcheck/shared/fairness';
 import type {
+  ClientSeedFormat,
+  ClientSeedMetadata,
+  ClientSeedRotationHistoryEntry,
   SeedAuditAlgorithmReference,
   SeedAuditSingleBetVerificationInput,
   SeedAuditSingleBetVerificationResult,
@@ -74,6 +77,56 @@ export default function VerifyPage() {
   const [hashWasFetched, setHashWasFetched] = useState(false);
 
   const fairness = useMemo(() => new FairnessService(), []);
+
+  // Seed Manager States (Issue #539)
+  const seedManager = useMemo(() => new ClientSeedManager({ defaultSite: 'stake' }), []);
+  const [selectedSeedSite, setSelectedSeedSite] = useState<'stake' | 'bcgame' | 'roobet' | 'shuffle' | 'default'>('stake');
+  const [seedFormat, setSeedFormat] = useState<ClientSeedFormat>('alphanumeric');
+  const [siteSeedMeta, setSiteSeedMeta] = useState<ClientSeedMetadata | null>(null);
+  const [siteSeedHistory, setSiteSeedHistory] = useState<ClientSeedRotationHistoryEntry[]>([]);
+  const [showSeedHistory, setShowSeedHistory] = useState(false);
+  const [copiedSeedToast, setCopiedSeedToast] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    seedManager.getActiveSeed(selectedSeedSite).then((meta) => {
+      if (isMounted) setSiteSeedMeta(meta);
+    });
+    seedManager.getHistory(selectedSeedSite).then((hist) => {
+      if (isMounted) setSiteSeedHistory(hist);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [seedManager, selectedSeedSite]);
+
+  const activeInputHygiene = useMemo(() => {
+    return evaluateSeedHygiene(clientSeed);
+  }, [clientSeed]);
+
+  const handleRotateSiteSeed = async () => {
+    const len = seedFormat === 'hex' ? 64 : 32;
+    const { newSeed } = await seedManager.rotateSeed(selectedSeedSite, {
+      format: seedFormat,
+      length: len,
+      reason: 'manual-rotation',
+    });
+    setSiteSeedMeta(newSeed);
+    setClientSeed(newSeed.seed);
+    const hist = await seedManager.getHistory(selectedSeedSite);
+    setSiteSeedHistory(hist);
+  };
+
+  const handleCopySiteSeed = async (text: string) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedSeedToast(true);
+      setTimeout(() => setCopiedSeedToast(false), 2000);
+    } catch {
+      // Fallback
+    }
+  };
 
   // Compute Provably Fair math client-side
   const pfResult: ProvablyFairResult | null = useMemo(() => {
@@ -449,6 +502,128 @@ export default function VerifyPage() {
                   aria-label="Client Seed"
                   className="w-full border border-[#283347] bg-black p-3 font-mono text-sm text-white outline-none focus:border-[#17c3b2]"
                 />
+
+                {/* Seed Hygiene Feedback */}
+                {clientSeed.trim() && (
+                  <div
+                    className={`mt-2 border p-2 font-mono text-[11px] leading-relaxed ${
+                      activeInputHygiene.status === 'compromised'
+                        ? 'border-[#ef4444]/60 bg-[#ef4444]/10 text-[#ef4444]'
+                        : activeInputHygiene.status === 'weak'
+                          ? 'border-[#fbbf24]/60 bg-[#fbbf24]/10 text-[#fbbf24]'
+                          : 'border-[#17c3b2]/40 bg-[#17c3b2]/5 text-[#17c3b2]'
+                    }`}
+                  >
+                    <span className="font-bold uppercase tracking-wider">
+                      [{activeInputHygiene.status === 'compromised'
+                        ? 'COMPROMISED SEED ALERT'
+                        : activeInputHygiene.status === 'weak'
+                          ? 'WEAK SEED WARNING'
+                          : 'HIGH ENTROPY CLIENT SEED'}]
+                    </span>{' '}
+                    {activeInputHygiene.notes[0]}
+                  </div>
+                )}
+
+                {/* Seed Manager Tool (Issue #539) */}
+                <div className="mt-3 border border-[#283347] bg-black/60 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#283347] pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-gray-300">
+                        Seed Manager
+                      </span>
+                      <span className="border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-[#17c3b2]">
+                        ON-DEVICE CSPRNG
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {(['stake', 'bcgame', 'roobet', 'shuffle', 'default'] as const).map((site) => (
+                        <button
+                          key={site}
+                          type="button"
+                          onClick={() => setSelectedSeedSite(site)}
+                          className={`px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                            selectedSeedSite === site
+                              ? 'bg-[#17c3b2] text-black'
+                              : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          {site}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-gray-400">Format:</span>
+                      {(['alphanumeric', 'hex', 'readable'] as const).map((fmt) => (
+                        <button
+                          key={fmt}
+                          type="button"
+                          onClick={() => setSeedFormat(fmt)}
+                          className={`px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase ${
+                            seedFormat === fmt ? 'border border-[#17c3b2] text-[#17c3b2]' : 'text-gray-500 hover:text-gray-300'
+                          }`}
+                        >
+                          {fmt}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleRotateSiteSeed}
+                        className="border border-[#17c3b2] bg-[#17c3b2]/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#17c3b2] transition-colors hover:bg-[#17c3b2] hover:text-black"
+                      >
+                        [Rotate New Seed]
+                      </button>
+                      {siteSeedMeta && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopySiteSeed(siteSeedMeta.seed)}
+                          className="border border-[#283347] bg-black px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#17c3b2] hover:text-white"
+                        >
+                          {copiedSeedToast ? '[Copied!]' : '[Copy Active]'}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowSeedHistory(!showSeedHistory)}
+                        className="font-mono text-[10px] text-gray-400 underline hover:text-white"
+                      >
+                        {showSeedHistory ? 'Hide History' : `History (${siteSeedHistory.length})`}
+                      </button>
+                    </div>
+                  </div>
+
+                  {showSeedHistory && (
+                    <div className="mt-3 border-t border-[#283347] pt-2">
+                      <div className="mb-1 text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                        Rotation History for {selectedSeedSite.toUpperCase()}:
+                      </div>
+                      {siteSeedHistory.length === 0 ? (
+                        <p className="font-mono text-[10px] text-gray-500">No previous rotations recorded yet.</p>
+                      ) : (
+                        <div className="max-h-24 space-y-1 overflow-y-auto font-mono text-[10px]">
+                          {siteSeedHistory.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between border-b border-[#283347]/50 py-0.5 text-gray-300"
+                            >
+                              <span className="truncate pr-2 font-mono text-gray-400">{item.seed}</span>
+                              <span className="shrink-0 text-[9px] text-gray-500">
+                                {new Date(item.retiredAt).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
               </div>
 
               {/* Nonce & House Edge */}

@@ -48,6 +48,10 @@
     "./community-casinos": {
       "types": "./dist/community-casinos.d.ts",
       "import": "./dist/community-casinos.js"
+    },
+    "./seed-manager": {
+      "types": "./dist/seed-manager.d.ts",
+      "import": "./dist/seed-manager.js"
     }
   }
 }

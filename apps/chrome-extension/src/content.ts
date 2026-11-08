@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 
 /**
  * Core content script — pace-locks spins and provides event-driven Touch Grass timeouts.
@@ -66,6 +66,10 @@ import {
   setAudioAlertsConfigSync,
   TILTCHECK_AUDIO_ALERTS_CONFIG_KEY,
 } from './audio-alerts.js';
+import {
+  extensionSeedManager,
+  normalizeSiteKey,
+} from './seed-manager-extension.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -727,6 +731,42 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       triggerAutoVault(amount, currency, document).then((res) => {
         sendResponse(res);
       });
+      return true;
+    }
+
+    case 'get_client_seed_state': {
+      const site = normalizeSiteKey(window.location.hostname);
+      extensionSeedManager.getActiveSeed(site).then((metadata) => {
+        const detection = extensionSeedManager.detectPageSeedInput(document, site);
+        sendResponse({
+          success: true,
+          site,
+          metadata,
+          detection,
+        });
+      });
+      return true;
+    }
+
+    case 'rotate_client_seed': {
+      const site = normalizeSiteKey(window.location.hostname);
+      extensionSeedManager.rotateSeed(site, message.options).then((res) => {
+        sendResponse({
+          success: true,
+          site,
+          newSeed: res.newSeed,
+          retiredSeed: res.retiredSeed,
+        });
+      });
+      return true;
+    }
+
+    case 'apply_client_seed_to_page': {
+      const site = normalizeSiteKey(window.location.hostname);
+      const seed = typeof message.seed === 'string' ? message.seed : '';
+      const confirmed = message.confirmed === true;
+      const res = extensionSeedManager.applySeedToPage(document, seed, site, { confirmed });
+      sendResponse(res);
       return true;
     }
 

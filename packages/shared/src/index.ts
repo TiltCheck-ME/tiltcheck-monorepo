@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 // v0.1.0 — 2026-02-25
 
 /**
@@ -87,3 +87,17 @@ export {
   normalizeCasinoName,
   type CommunityDefaultCasino,
 } from './community-casinos.js';
+
+// Client Seed Manager exports (Issue #539)
+export {
+  ClientSeedManager,
+  MemorySeedStorageAdapter,
+  LocalStorageSeedStorageAdapter,
+  generateStrongClientSeed,
+  calculateSeedEntropy,
+  evaluateSeedHygiene,
+  createSeedMetadata,
+  normalizeSiteKey,
+  KNOWN_SITE_SEED_SELECTORS,
+  type SeedStorageAdapter,
+} from './seed-manager.js';

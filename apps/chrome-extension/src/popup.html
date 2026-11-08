@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1335,6 +1335,56 @@
       <div style="display:flex; gap:6px; margin-top:4px;">
         <button type="button" id="bonus-save-btn" class="icon-btn" style="flex:1; width:auto; padding:6px 10px; font-size:11px; font-weight:700; background:rgba(23,195,178,0.15); color:#17c3b2; border:1px solid #17c3b2;">Save & Arm</button>
         <button type="button" id="bonus-reset-btn" class="icon-btn" style="width:auto; padding:6px 10px; font-size:11px;">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="guard-panel" id="client-seed-manager-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <h3 style="margin-bottom:0;">Client Seed Manager</h3>
+      <span id="seed-site-badge" style="font-size:10px; padding:2px 6px; border-radius:3px; background:rgba(23,195,178,0.15); color:#17c3b2; font-weight:700; text-transform:uppercase;">STAKE</span>
+    </div>
+    <p class="guard-policy">
+      On-device cryptographic seed generator and rotator. Prevent predictable seed bias across casino sessions without trusting operator defaults.
+    </p>
+
+    <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.35); border:1px solid #1e293b; border-radius:6px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em;">Active Client Seed</span>
+        <span id="seed-hygiene-badge" style="font-size:10px; padding:2px 6px; border-radius:3px; background:rgba(52,211,153,0.15); color:#34d399; font-weight:700;">STRONG &bull; 192 BITS</span>
+      </div>
+
+      <div style="position:relative; margin-bottom:8px;">
+        <input type="text" id="active-client-seed-display" readonly style="width:100%; font-family:monospace; font-size:11px; padding:6px 8px; background:#080a0e; border:1px solid #283347; border-radius:4px; color:#17c3b2;" value="Loading seed..." />
+      </div>
+
+      <div style="display:flex; gap:6px; margin-bottom:8px;">
+        <button id="btn-copy-client-seed" type="button" class="btn btn-ghost" style="flex:1; padding:5px 8px; font-size:11px; font-weight:600;">Copy Seed</button>
+        <button id="btn-rotate-client-seed" type="button" class="btn btn-primary" style="flex:1; padding:5px 8px; font-size:11px; font-weight:600; background:var(--teal); color:#000;">Rotate Seed</button>
+      </div>
+
+      <div id="seed-apply-page-wrap" style="border-top:1px solid #1e293b; padding-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:#cbd5e1;">Apply to Active Casino Tab</span>
+          <button id="btn-apply-seed-page" type="button" class="btn btn-ghost" style="padding:4px 8px; font-size:10px;">Apply to Page</button>
+        </div>
+        <div id="seed-apply-confirmation-box" style="display:none; margin-top:8px; padding:8px; background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); border-radius:4px;">
+          <div style="font-size:11px; color:#fbbf24; font-weight:600; margin-bottom:4px;">Confirm Seed Update</div>
+          <div style="font-size:10px; color:#cbd5e1; margin-bottom:8px;">This will insert your active seed into the page input. Subsequent bets will derive from this seed.</div>
+          <div style="display:flex; gap:6px;">
+            <button id="btn-confirm-apply-seed" type="button" class="btn btn-primary" style="padding:3px 8px; font-size:10px; background:#fbbf24; color:#000; font-weight:700;">Confirm &amp; Apply</button>
+            <button id="btn-cancel-apply-seed" type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:10px;">Cancel</button>
+          </div>
+        </div>
+        <div id="seed-apply-status-msg" style="display:none; font-size:10px; margin-top:5px; color:#17c3b2;"></div>
+      </div>
+
+      <div style="margin-top:8px; border-top:1px solid #1e293b; padding-top:6px; display:flex; justify-content:space-between; align-items:center;">
+        <button id="btn-toggle-seed-history" type="button" style="background:none; border:none; color:var(--muted); font-size:10px; cursor:pointer; text-decoration:underline;">View Rotation History</button>
+        <span id="seed-rotation-count-label" style="font-size:10px; color:#64748b;">0 rotations</span>
+      </div>
+      <div id="seed-history-drawer" style="display:none; margin-top:8px; max-height:100px; overflow-y:auto; font-family:monospace; font-size:9px; color:#94a3b8; border-top:1px dashed #283347; padding-top:6px;">
+        <div id="seed-history-list">No previous rotations recorded.</div>
       </div>
     </div>
   </section>
