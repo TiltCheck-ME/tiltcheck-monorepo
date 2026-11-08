@@ -22,6 +22,7 @@ import { readBalance } from './reality-hud.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
 import { playAudioCue } from './audio-alerts.js';
+import { recordActivityFeedEvent } from './activity-feed.js';
 
 export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
 export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
@@ -590,6 +591,7 @@ export function installProfitLock(
         if (!unlockedGoalIds.has(goal.id) && isGoalUnlocked(goal, current, baselineBalance)) {
           unlockedGoalIds.add(goal.id);
           showGoalToast(doc, goal, current);
+          void recordActivityFeedEvent(`Cashout goal reached: ${goal.name} ($${goal.targetAmount})`, 'info');
         }
       }
     }
@@ -607,6 +609,7 @@ export function installProfitLock(
       if (currentFloor !== null && current <= currentFloor) {
         if (!softWarningAcknowledged) {
           // Stage 1: Soft Warning Modal
+          void recordActivityFeedEvent(`Profit lock alert: balance fell to ratchet floor ($${currentFloor.toFixed(2)})`, 'warn');
           showSoftWarningModal(doc, {
             baseline: baselineBalance,
             peak: peakBalance,

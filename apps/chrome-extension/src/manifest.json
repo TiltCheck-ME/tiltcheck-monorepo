@@ -51,6 +51,7 @@
       "js": [
         "content.js"
       ],
+      "all_frames": true,
       "run_at": "document_end"
     },
     {
@@ -70,6 +71,7 @@
         "page-bridge.js"
       ],
       "world": "MAIN",
+      "all_frames": true,
       "run_at": "document_end"
     }
   ],

@@ -326,9 +326,73 @@ function openDashboardTab(tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'pro
 // Tilt / Session status
 // ---------------------------------------------------------------------------
 
+async function updateSessionStatusPill(): Promise<void> {
+  const pill = document.getElementById('session-pill');
+  const pillText = document.getElementById('session-pill-text');
+  if (!pill || !pillText) return;
+
+  try {
+    const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+    });
+    const activeTab = tabs[0];
+    const tabUrl = activeTab?.url || '';
+
+    const casinoMatch = tabUrl.match(
+      /https?:\/\/(?:[a-zA-Z0-9-]+\.)*(stake\.(?:com|us)|roobet\.com|bc\.game|rollbit\.com|shuffle\.com|gamdom\.com|csgoempire\.com)/i
+    );
+    const casinoDomain = casinoMatch ? casinoMatch[1] : null;
+
+    const stored = await new Promise<PopupStorageSnapshot>((resolve) => {
+      chrome.storage.local.get(
+        [TILTCHECK_STREAK_VOLATILITY_KEY, TILTCHECK_SESSION_PNL_KEY],
+        (res) => resolve(res as PopupStorageSnapshot)
+      );
+    });
+
+    const streakState = stored[TILTCHECK_STREAK_VOLATILITY_KEY] as StreakVolatilityState | undefined;
+    const pnlState = stored[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+
+    const hasLiveSpins =
+      (streakState && streakState.totalSpins > 0) ||
+      (pnlState && Array.isArray(pnlState.samples) && pnlState.samples.length > 0);
+
+    const isRecentlyActive =
+      (pnlState && pnlState.lastUpdated > 0 && Date.now() - pnlState.lastUpdated < 15 * 60 * 1000) ||
+      (streakState && streakState.lastUpdated > 0 && Date.now() - streakState.lastUpdated < 15 * 60 * 1000);
+
+    if (casinoDomain) {
+      const base = casinoDomain.replace(/\.(com|us|game)$/i, '');
+      const siteName = base.charAt(0).toUpperCase() + base.slice(1);
+      pill.className = 'status-pill pill-active';
+      if (hasLiveSpins || isRecentlyActive) {
+        pillText.textContent = `Live (${siteName})`;
+      } else {
+        pillText.textContent = `Guards on (${siteName})`;
+      }
+      return;
+    }
+
+    if (hasLiveSpins && isRecentlyActive) {
+      pill.className = 'status-pill pill-active';
+      pillText.textContent = 'Live Session';
+      return;
+    }
+
+    pill.className = 'status-pill pill-idle';
+    pillText.textContent = 'Standby';
+  } catch {
+    pill.className = 'status-pill pill-idle';
+    pillText.textContent = 'Standby';
+  }
+}
+
 async function loadStatus() {
   const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) return;
+  if (!linkedDiscordId) {
+    void updateSessionStatusPill();
+    return;
+  }
 
   try {
     const token = await getToken();
@@ -338,7 +402,10 @@ async function loadStatus() {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      void updateSessionStatusPill();
+      return;
+    }
     const data = await res.json();
 
     const score: number = data.tiltScore ?? 0;
@@ -362,12 +429,11 @@ async function loadStatus() {
       pillText.textContent = 'Live';
       $('stat-session').textContent = formatDuration(data.sessionStart);
     } else {
-      pill.className = 'status-pill pill-idle';
-      pillText.textContent = 'No session';
+      void updateSessionStatusPill();
       $('stat-session').textContent = '--';
     }
   } catch {
-    // Status unavailable — not fatal
+    void updateSessionStatusPill();
   }
 }
 
@@ -435,8 +501,9 @@ function loadSessionRadar(): void {
     const tabId = tabs[0]?.id;
     if (tabId) {
       chrome.tabs.sendMessage(tabId, { type: 'get_session_pnl_state' }, (res) => {
-        if (!chrome.runtime.lastError && res && res.success && res.state) {
-          updateSessionRadarUI(res.state);
+        const state = (res && typeof res === 'object' && 'samples' in res) ? (res as SessionPnlState) : (res?.state as SessionPnlState | undefined);
+        if (!chrome.runtime.lastError && state && Array.isArray(state.samples)) {
+          updateSessionRadarUI(state);
           return;
         }
         fallbackLoadSessionRadarFromStorage();
@@ -1661,6 +1728,9 @@ function initGuardSettingsPanel(): void {
     ) {
       void refreshGuardSettingsUi();
     }
+    if (changes.activityFeed) {
+      loadFeed();
+    }
     if (changes[TILTCHECK_SESSION_PNL_KEY]) {
       const newVal = changes[TILTCHECK_SESSION_PNL_KEY].newValue as SessionPnlState | undefined;
       if (newVal) {
@@ -1669,6 +1739,7 @@ function initGuardSettingsPanel(): void {
         updateSessionRadarUI(DEFAULT_SESSION_PNL_STATE);
       }
       loadCashoutGoalsProgress();
+      void updateSessionStatusPill();
     }
     if (changes[TILTCHECK_CASHOUT_GOALS_KEY]) {
       loadCashoutGoalsProgress();
@@ -1680,6 +1751,7 @@ function initGuardSettingsPanel(): void {
       } else {
         updateStreakVolatilityUI(DEFAULT_STREAK_VOLATILITY_STATE);
       }
+      void updateSessionStatusPill();
     }
   });
 }
@@ -1735,9 +1807,13 @@ async function init() {
   await loadAuth();
   renderAuthState();
   attachAuthStorageSync();
+  void updateSessionStatusPill();
+  loadFeed();
 
   if (userId && userData?.discordId) {
     loadStatus();
+  } else {
+    void updateSessionStatusPill();
   }
 
   // Detach window listener
@@ -1872,6 +1948,11 @@ async function init() {
 
   // Activity refresh
   $('btn-refresh-feed').addEventListener('click', loadFeed);
+  $('btn-clear-feed')?.addEventListener('click', async () => {
+    await clearActivityFeed();
+    loadFeed();
+    toast('Activity feed cleared.');
+  });
 
   // Settings gear opens Guards tab (local circuit breaker + strategic filters)
   $('btn-settings').addEventListener('click', () => {
@@ -1933,8 +2014,18 @@ function describeVaultRule(r: VaultRule): string {
 }
 
 async function loadVaultRules() {
+  // Always load session total from storage
+  chrome.storage.local.get(['vaultSessionTotal'], (d: PopupStorageSnapshot) => {
+    vaultSessionTotal = d.vaultSessionTotal ?? 0;
+    $('vault-session-total').textContent = `$${vaultSessionTotal.toFixed(2)}`;
+  });
+
   const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) return;
+  if (!linkedDiscordId) {
+    hide('vault-loading');
+    show('vault-empty');
+    return;
+  }
   show('vault-loading');
   hide('vault-rule-list');
   try {
@@ -1952,12 +2043,6 @@ async function loadVaultRules() {
     hide('vault-loading');
     show('vault-rule-list');
   }
-
-  // Load session total from storage
-  chrome.storage.local.get(['vaultSessionTotal'], (d: PopupStorageSnapshot) => {
-    vaultSessionTotal = d.vaultSessionTotal ?? 0;
-    $('vault-session-total').textContent = `$${vaultSessionTotal.toFixed(2)}`;
-  });
 }
 
 function renderVaultRules() {

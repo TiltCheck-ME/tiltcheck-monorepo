@@ -1728,7 +1728,10 @@
 <div id="panel-activity" class="panel">
   <div class="section-head">
     <span class="section-title">Recent Events</span>
-    <button class="btn btn-ghost" id="btn-refresh-feed" style="padding:5px 10px; font-size:11px">Refresh</button>
+    <div style="display:flex; gap:6px;">
+      <button class="btn btn-ghost" id="btn-clear-feed" style="padding:5px 10px; font-size:11px">Clear</button>
+      <button class="btn btn-ghost" id="btn-refresh-feed" style="padding:5px 10px; font-size:11px">Refresh</button>
+    </div>
   </div>
   <div id="feed" class="feed">
     <div class="feed-item">No activity recorded this session.</div>

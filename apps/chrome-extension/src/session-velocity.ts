@@ -15,6 +15,7 @@
  */
 
 import { readBalance } from './reality-hud.js';
+import { findSpinControl } from './spin-pace-lock.js';
 
 export type VelocityStatus = 'STEADY' | 'DRAIN' | 'BLEED' | 'CLIFF-DIVE';
 
@@ -310,7 +311,7 @@ export function installSessionVelocityRadar(
   if (isEnabled) {
     doc.addEventListener('click', (e) => {
       const target = e.target as HTMLElement | null;
-      if (target && target.closest(SPIN_CONTROL_SELECTOR)) {
+      if (target && (findSpinControl(target) || target.closest(SPIN_CONTROL_SELECTOR))) {
         onSpinClick();
       }
     }, true);

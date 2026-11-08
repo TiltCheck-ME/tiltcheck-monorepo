@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * spin-pace-lock.ts
  * Pacing circuit breaker for rapid betting / slot spin clicks.
@@ -6,6 +6,7 @@
  */
 
 import { playAudioCue } from './audio-alerts.js';
+import { recordActivityFeedEvent } from './activity-feed.js';
 
 export const PACE_LOCK_MS = 2000;
 export const PACE_TICK_MS = 250;
@@ -13,11 +14,57 @@ export const PACE_TOAST_TEXT = "Pacing lock active. Let the last spin settle bef
 export const PACE_HOST_ID = 'tiltcheck-pace-host';
 
 export const SPIN_CONTROL_SELECTOR = [
-  'button[class*="bet"]',
-  'button[class*="spin"]',
+  'button[data-test*="bet"]',
+  'button[data-test*="play"]',
+  'button[data-test*="spin"]',
+  '[data-test="bet-button"]',
+  '[data-test="play-button"]',
+  '[data-test="spin-button"]',
+  '[data-testid*="bet"]',
+  '[data-testid*="spin"]',
+  '[data-testid*="play"]',
+  'button[class*="bet" i]',
+  'button[class*="spin" i]',
+  'button[class*="play" i]',
   '[data-action="bet"]',
   '[data-action="spin"]',
+  'button[aria-label*="spin" i]',
+  'button[aria-label*="bet" i]',
+  'button[aria-label*="play" i]',
+  '.game-controls button',
+  '#spin-button',
+  '.play-btn',
+  '.spin-btn',
 ].join(', ');
+
+export function findSpinControl(target: Element): HTMLElement | null {
+  if (!(target instanceof Element)) return null;
+
+  const selectorMatch = target.closest<HTMLElement>(SPIN_CONTROL_SELECTOR);
+  if (selectorMatch) return selectorMatch;
+
+  const button = target.closest<HTMLElement>('button, [role="button"], input[type="button"], input[type="submit"]');
+  if (!button) return null;
+
+  const dataTest = (button.getAttribute('data-test') || button.getAttribute('data-testid') || '').toLowerCase();
+  if (dataTest.includes('bet') || dataTest.includes('spin') || dataTest.includes('play') || dataTest.includes('roll')) {
+    return button;
+  }
+
+  const aria = (button.getAttribute('aria-label') || button.getAttribute('title') || '').toLowerCase();
+  if (aria.includes('spin') || aria.includes('bet') || aria.includes('play') || aria.includes('roll')) {
+    return button;
+  }
+
+  const text = (button.textContent || '').trim().toLowerCase();
+  if (/^(bet|spin|play|start|roll|deal|double|split|hit|stand)(\s+.*)?$/i.test(text) && text.length <= 25) {
+    if (!text.includes('history') && !text.includes('slip') && !text.includes('rules') && !text.includes('detail') && !text.includes('sport')) {
+      return button;
+    }
+  }
+
+  return null;
+}
 
 export type PaceLockHandle = {
   stop: () => void;
@@ -71,8 +118,13 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
   shadow.append(style, chip, toast);
   doc.body.append(host);
 
-  const matches = (): HTMLElement[] =>
-    Array.from(doc.querySelectorAll<HTMLElement>(SPIN_CONTROL_SELECTOR));
+  const matches = (): HTMLElement[] => {
+    const list = Array.from(doc.querySelectorAll<HTMLElement>(SPIN_CONTROL_SELECTOR));
+    if (anchor instanceof HTMLElement && !list.includes(anchor)) {
+      list.push(anchor);
+    }
+    return list;
+  };
 
   const showToast = (): void => {
     toast.style.display = 'block';
@@ -141,6 +193,7 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
       clearInterval(tickId);
     }
     tickId = setInterval(applyLockVisuals, PACE_TICK_MS);
+    void recordActivityFeedEvent('Spin brake locked spin button (2s cooldown enforced)', 'info');
   };
 
   const swallow = (event: Event): void => {
@@ -148,12 +201,13 @@ export function installSpinPaceLock(doc: Document = document): PaceLockHandle {
     event.stopPropagation();
     showToast();
     playAudioCue('spin_brake');
+    void recordActivityFeedEvent('Rapid spin click blocked by 2s pace brake', 'warn');
   };
 
   const onDocumentClick = (event: Event): void => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const spin = target.closest(SPIN_CONTROL_SELECTOR);
+    const spin = findSpinControl(target);
     if (!spin) return;
     if (Date.now() < lockUntil) {
       swallow(event);

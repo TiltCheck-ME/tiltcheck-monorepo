@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-08 — fix(extension): spin lock selectors, live session pill detection, and activity feed telemetry
+
+- Stake & Modern Casino Spin Detection: Expanded SPIN_CONTROL_SELECTOR in spin-pace-lock.ts to cover Stake Originals and modern provider buttons (data-test="bet-button", data-test="play-button", data-testid="bet-button", button[aria-label*="spin" i], button[aria-label*="bet" i], button[aria-label*="play" i]). Added unified findSpinControl() heuristic with text content detection (Bet, Spin, Play, Roll, Deal) so the 2-second pace brake, velocity radar, and streak tracker engage accurately across Stake.us, Stake.com, Roobet, and BC.Game.
+- Iframe Slot Game Coverage: Added all_frames: true to content_scripts in manifest.json, enabling content script injection and click throttling within same-origin/subdomain slot iframes.
+- Dynamic Session Status Header Pill: Replaced static "No session" status with live browser tab and telemetry awareness (updateSessionStatusPill). Checks active casino tab and local telemetry: displays "Live (Stake)" when spins are actively flowing, "Guards on (Stake)" when monitoring on a supported casino tab, and "Standby" when idle.
+- Persistent Activity Feed System: Implemented activity-feed.ts (recordActivityFeedEvent, getActivityFeed, clearActivityFeed) backed by chrome.storage.local. Hooked telemetry into spin brake enforcement (locked/blocked clicks), casino monitoring boot, cold streak warnings, Gambler's Fallacy traps, reality HUD alerts, cashout goal achievements, and seed rotation. Added Clear feed button (#btn-clear-feed) in popup.html.
+- Vault Panel Fallback & Radar Unwrapping: Resolved empty void in Vault panel when unlinked by showing informative fallback card; fixed radar response unwrapping in popup.ts.
+- Tested & Packaged: Added unit tests in spin-pace-lock.test.ts and activity-feed.test.ts; all 39 test files passed (286/286 tests); packaged updated tiltcheck-extension.zip (442 KB).
+
 ## 2026-11-08 — feat(extension): sweepstakes Gold Coins filter & onboarding tutorial wizard
 
 - Gold Coins / Play Money Suppression: Implemented isPlayMoneyBalance() in reality-hud.ts and updated readBalance() to recognize Gold Coins (GC), free play, and demo credits. Prevents sweepstakes token balances (e.g. 100,000 GC on Stake.us) from falsely triggering real-money cashout goals, soft warning modals, or fake drawdown calculations.

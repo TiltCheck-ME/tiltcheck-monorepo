@@ -15,6 +15,8 @@ import { readBalance } from './reality-hud.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
 import { CASINO_SELECTORS } from './extractor.js';
 import { playAudioCue } from './audio-alerts.js';
+import { findSpinControl } from './spin-pace-lock.js';
+import { recordActivityFeedEvent } from './activity-feed.js';
 
 export const STREAK_SPIN_SELECTOR = [
   'button[data-test="spin-button"]',
@@ -463,6 +465,13 @@ export function installStreakVolatilityTracker(
         const prevState = state;
         state = recordSpinOutcome(state, currentBet, balanceBefore, balanceAfter);
         dispatchStreakAudioCue(prevState, state);
+        if (state.consecutiveDeadSpins === DEAD_SPIN_WARN_THRESHOLD && prevState.consecutiveDeadSpins < DEAD_SPIN_WARN_THRESHOLD) {
+          void recordActivityFeedEvent(`Cold streak: ${state.consecutiveDeadSpins} dead spins reached`, 'warn');
+        } else if (state.isDueTrapActive && !prevState.isDueTrapActive) {
+          void recordActivityFeedEvent(`Fallacy trap: ${state.consecutiveDeadSpins} dead spins with stake escalated`, 'danger');
+        } else if (state.consecutiveWins === WIN_STREAK_ALERT_THRESHOLD && prevState.consecutiveWins < WIN_STREAK_ALERT_THRESHOLD) {
+          void recordActivityFeedEvent(`Heater alert: ${state.consecutiveWins} consecutive wins`, 'info');
+        }
         lastKnownBalance = balanceAfter;
         persist();
         updateDomBadge();
@@ -472,7 +481,7 @@ export function installStreakVolatilityTracker(
 
   const onDocClick = (e: MouseEvent) => {
     const target = e.target;
-    if (target instanceof Element && target.closest(STREAK_SPIN_SELECTOR)) {
+    if (target instanceof Element && (findSpinControl(target) || target.closest(STREAK_SPIN_SELECTOR))) {
       handleSpinClick();
     }
   };

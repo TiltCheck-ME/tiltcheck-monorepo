@@ -240,4 +240,46 @@ describe('installSpinPaceLock', () => {
     expect(handle.lockUntil()).toBe(0);
     expect(button.disabled).toBe(false);
   });
+
+  it('locks Stake Originals data-test="bet-button" for 2000ms', async () => {
+    const button = document.createElement('button');
+    button.setAttribute('data-test', 'bet-button');
+    button.innerHTML = '<span>Bet</span>';
+    document.body.appendChild(button);
+
+    const handle = install();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await startLockAfterClick();
+
+    expect(handle.lockUntil()).toBe(Date.now() + PACE_LOCK_MS);
+    expect(button.disabled).toBe(true);
+    expect(chip()?.textContent).toBe('2');
+  });
+
+  it('locks button with text heuristic "Play" without explicit spin classes', async () => {
+    const button = document.createElement('button');
+    button.className = 'variant-action-hash123';
+    button.textContent = 'Play';
+    document.body.appendChild(button);
+
+    const handle = install();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await startLockAfterClick();
+
+    expect(handle.lockUntil()).toBe(Date.now() + PACE_LOCK_MS);
+    expect(button.disabled).toBe(true);
+  });
+
+  it('does not lock navigation button like "Bet History"', async () => {
+    const button = document.createElement('button');
+    button.textContent = 'Bet History';
+    document.body.appendChild(button);
+
+    const handle = install();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await startLockAfterClick();
+
+    expect(handle.lockUntil()).toBe(0);
+    expect(button.disabled).toBe(false);
+  });
 });

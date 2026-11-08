@@ -70,6 +70,7 @@ import {
   extensionSeedManager,
   normalizeSiteKey,
 } from './seed-manager-extension.js';
+import { recordActivityFeedEvent } from './activity-feed.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -121,6 +122,7 @@ export function handleRapidClickTilt(target: Element): boolean {
 
   if (clickTimestamps.length >= RAPID_CLICK_BURST_COUNT) {
     clickTimestamps = [];
+    void recordActivityFeedEvent('Rapid clicking burst detected: pacing advisory', 'warn');
     const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
     triggerTouchGrassTimeout(
       "Rapid clicking detected. Turbo mashing only speeds up the house edge. Step back and breathe.",
@@ -461,7 +463,8 @@ function syncPaceLock(enabled: boolean): void {
           () => (paceLock ? paceLock.lockUntil() : 0),
           (stake, lastLossStake) => {
             if (stake >= lastLossStake * 1.5) {
-              const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
+              void recordActivityFeedEvent('Loss chasing detected: stake ramped after loss', 'danger');
+    const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
               triggerTouchGrassTimeout(
                 "You are down on consecutive spins and ramping stake size. You're chasing, not on a heater. Step back.",
                 duration
@@ -574,6 +577,11 @@ async function boot(): Promise<void> {
   }
 
   await startCoreCircuitBreaker();
+  const siteKey = normalizeSiteKey(hostname);
+  const friendlySite = siteKey ? siteKey.charAt(0).toUpperCase() + siteKey.slice(1) : hostname;
+  if (!hostname.includes('tiltcheck.me') && !hostname.includes('localhost')) {
+    void recordActivityFeedEvent(`TiltCheck guardrails active on ${friendlySite}`, 'info');
+  }
   installEventDrivenTiltWatcher();
   installCooldownPageBridge();
   installLoungeOverlay();
@@ -729,6 +737,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const amount = typeof message.amount === 'number' && Number.isFinite(message.amount) ? message.amount : 0;
       const currency = typeof message.currency === 'string' ? message.currency : 'usd';
       triggerAutoVault(amount, currency, document).then((res) => {
+        if (res && res.success) {
+          void recordActivityFeedEvent(`Auto-vault triggered: locked $${amount.toFixed(2)} to safety`, 'info');
+        }
         sendResponse(res);
       });
       return true;
@@ -751,6 +762,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     case 'rotate_client_seed': {
       const site = normalizeSiteKey(window.location.hostname);
       extensionSeedManager.rotateSeed(site, message.options).then((res) => {
+        void recordActivityFeedEvent(`Client seed rotated on-device (${site})`, 'info');
         sendResponse({
           success: true,
           site,
