@@ -226,6 +226,7 @@ function footerHtml(depth) {
     <div class="site-footer__links">
       <a href="${dirHref(depth, 'autovault')}">AutoVault</a>
       <a href="${dirHref(depth, 'nudges')}">Nudges</a>
+      <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
@@ -1697,6 +1698,86 @@ function buildLoginPage() {
   });
 }
 
+function buildPrivacyPage() {
+  const content = `${productHero({
+    eyebrow: 'Legal / Privacy',
+    title: 'Privacy Policy',
+    lede: 'Minimum data to run the product. Strictly non-custodial. No private keys, no ad-tech, no resale. Version 1.2.',
+    actionsHtml: '<a class="hero-actions__secondary-link" href="' + href('docs', 'index.html') + '">Back to Home</a>',
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">01. What we collect</h2>
+        <ul class="public-page-list">
+          <li><strong>Discord ID and username</strong> if you voluntarily connect your Discord account for community identity and role sync.</li>
+          <li><strong>Solana wallet public address</strong> only when you voluntarily link a wallet to set on-chain cooldown timelocks.</li>
+          <li><strong>Local session metrics:</strong> Bet frequencies, spin pace timestamps, and profit thresholds processed locally in your browser memory for tilt detection and speed braking.</li>
+          <li><strong>Crash and error telemetry:</strong> Sanitized error logs (without PII) to diagnose extension performance and stability.</li>
+        </ul>
+      </div>
+
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">02. What we never collect</h2>
+        <ul class="public-page-list">
+          <li><strong>Private keys, seed phrases, or wallet passwords.</strong> TiltCheck is 100% non-custodial.</li>
+          <li><strong>Payment card numbers, banking details, or financial credentials.</strong></li>
+          <li><strong>Government ID, KYC documents, or legal names.</strong></li>
+          <li><strong>Browsing history:</strong> We never track tabs or navigation outside supported online gaming domains.</li>
+          <li><strong>Keystrokes, passwords, or unrelated page content.</strong></li>
+        </ul>
+      </div>
+
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">03. Chrome Extension Sandbox & Single Purpose</h2>
+        <div class="public-page-card__copy">
+          <p>The TiltCheck browser extension operates strictly within the browser sandbox with zero external local daemons or terminal requirements.</p>
+          <p>Its single purpose is responsible gaming harm reduction: enforcing a configurable 2-second spin delay, providing client-side entropy verification for provably fair seeds, blocking accidental withdrawal cancellations, and enforcing voluntary cooldown timelocks.</p>
+          <p>All bet pacing and tilt analysis run locally on-device. No gameplay session logs are sold, rented, or transmitted to third parties.</p>
+        </div>
+      </div>
+
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">04. How we use data</h2>
+        <p class="public-page-card__copy">Data is used solely to provide and power TiltCheck safety features (tilt scoring, session pacing, auto-vault rules, and voluntary timelocks). We do not sell data to third parties, ad networks, data brokers, or casino operators. We never use data to determine creditworthiness or for lending.</p>
+      </div>
+
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">05. Data retention and deletion</h2>
+        <ul class="public-page-list">
+          <li><strong>Local extension storage:</strong> Cleared immediately upon clicking "Reset Data" in settings or uninstalling the extension.</li>
+          <li><strong>On-chain cooldowns:</strong> Public Solana blockchain transactions are immutable and permanent by design.</li>
+          <li><strong>Account data:</strong> Retained until deletion is requested. Send deletion requests to <a href="mailto:privacy@tiltcheck.me" style="color:var(--teal)">privacy@tiltcheck.me</a> with subject line "Delete My Data".</li>
+        </ul>
+      </div>
+
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">06. Third-party integrations</h2>
+        <div class="public-page-card__copy">
+          <p>Discord handles voluntary OAuth identity. The Solana network records trustless cooldown transactions. We do not use Google Analytics, Meta Pixel, or commercial advertising SDKs.</p>
+        </div>
+      </div>
+
+      <div class="public-page-card" style="margin-bottom: 1.5rem;">
+        <h2 class="public-page-card__title">07. Contact</h2>
+        <div class="public-page-card__copy">
+          <p>For privacy inquiries, security audits, or data rights requests, email <a href="mailto:privacy@tiltcheck.me" style="color:var(--teal)">privacy@tiltcheck.me</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>`;
+
+  return shell({
+    title: 'Privacy Policy | TiltCheck',
+    description: 'TiltCheck Privacy Policy. Non-custodial, client-side responsible gaming harm reduction. Zero ad-tech, zero data sales.',
+    depth: 'docs',
+    current: 'privacy',
+    body: content,
+  });
+}
+
 function run() {
   if (!fs.existsSync(sourceRoot)) {
     console.error('Source directory missing:', sourceRoot);
@@ -1734,6 +1815,10 @@ function run() {
   const casinos = JSON.parse(
     fs.readFileSync(path.join(repoRoot, 'apps/web/src/data/casinos.json'), 'utf8'),
   );
+  const privacyDir = path.join(siteRoot, 'privacy');
+  fs.mkdirSync(privacyDir, { recursive: true });
+  fs.writeFileSync(path.join(privacyDir, 'index.html'), buildPrivacyPage());
+
   const casinosDir = path.join(siteRoot, 'casinos');
   fs.mkdirSync(casinosDir, { recursive: true });
   fs.writeFileSync(path.join(casinosDir, 'index.html'), buildCasinosPage(casinos));

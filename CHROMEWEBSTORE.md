@@ -111,7 +111,6 @@ Provide these exact justifications when prompted in the Chrome Developer Dashboa
 | `storage` | permissions | Required to store player safety configurations (spin brake delays, profit lock thresholds, active cooldown timestamps, and client seed state) locally on-device via chrome.storage.local. |
 | `tabs` | permissions | Required to detect when a supported casino domain tab is active and to establish local message routing with the in-tab guardrail HUD without reading cross-tab browsing history. |
 | `activeTab` | permissions | Required to open the quick settings, cooldown verification status, and seed rotation controls on the currently focused casino tab. |
-| `notifications` | permissions | Required to display urgent desktop notifications when high tilt volatility spikes or when an on-chain cooldown timelock triggers. |
 | `alarms` | permissions | Required to run periodic background checks verifying the expiration status and on-chain synchronization of active cooldown timelocks. |
 | `webNavigation` | permissions | Required to intercept navigations to supported casino domains in order to mount guardrails immediately upon page transition and block confirmed phishing mirrors. |
 | `host_permissions` | host_permissions | Host permissions are strictly restricted to supported casino domains (Stake, Roobet, BC.Game, Shuffle, Rollbit, Gamdom, CSGOEmpire) to mount responsible gaming guardrails and to the official TiltCheck API gateway (https://api.tiltcheck.me) for on-chain cooldown status verification and phishing threat intelligence. |

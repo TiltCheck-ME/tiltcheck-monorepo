@@ -101,10 +101,6 @@ To provide real-time responsible gaming brakes, session tilt detection, deposit 
   ```text
   Required to open the quick settings, cooldown verification status, and seed rotation controls on the currently focused casino tab.
   ```
-* **`notifications`:**
-  ```text
-  Required to display urgent desktop notifications when high tilt volatility spikes or when an on-chain cooldown timelock triggers.
-  ```
 * **`alarms`:**
   ```text
   Required to run periodic background checks verifying the expiration status and on-chain synchronization of active cooldown timelocks.

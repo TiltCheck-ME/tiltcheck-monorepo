@@ -2042,82 +2042,14 @@ async function init() {
       }
     });
   });
-  $('btn-magic-login').addEventListener('click', async () => {
+  $('btn-magic-login').addEventListener('click', () => {
     const email = ($<HTMLInputElement>('magic-email')).value.trim();
     if (!email) {
       toast('Enter your email first.', true);
       return;
     }
-
-    const button = $<HTMLButtonElement>('btn-magic-login');
-    button.disabled = true;
-    button.textContent = 'Connecting...';
-
-    try {
-      const configResponse = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/magic/config`).catch(() => null);
-      if (!configResponse || !configResponse.ok) {
-        chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
-        toast('Redirecting to TiltCheck web login...');
-        return;
-      }
-      const config = await configResponse.json().catch(() => null) as { enabled?: boolean; publishableKey?: string | null } | null;
-      if (!config?.enabled || !config.publishableKey) {
-        chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
-        toast('Redirecting to TiltCheck web login...');
-        return;
-      }
-
-      const { Magic } = await import('magic-sdk');
-      const magic = new Magic(config.publishableKey);
-      const didToken = await magic.auth.loginWithMagicLink({ email });
-      const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/magic/login`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ didToken }),
-      });
-      const payload = await response.json().catch(() => null) as {
-        token?: string;
-        user?: {
-          id: string;
-          email?: string | null;
-          discordId?: string | null;
-          displayName?: string | null;
-        };
-        error?: string;
-      } | null;
-
-      if (!response.ok || !payload?.token || !payload.user?.id) {
-        throw new Error(payload?.error || 'Magic sign-in failed.');
-      }
-
-      const nextUser: UserData = {
-        id: payload.user.id,
-        username: payload.user.displayName || payload.user.email || payload.user.id.slice(0, 10),
-        email: payload.user.email || null,
-        discordId: payload.user.discordId || null,
-      };
-
-      await chrome.storage.local.set({
-        authToken: payload.token,
-        tiltguard_user_id: payload.user.id,
-        userData: nextUser,
-      });
-
-      userId = payload.user.id;
-      userData = nextUser;
-      renderAuthState();
-      loadFeed();
-      toast(payload.user.discordId ? 'Signed in.' : 'Signed in.');
-    } catch (error) {
-      chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
-      toast('Redirecting to TiltCheck web login...');
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Connect with Email';
-    }
+    chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
+    toast('Redirecting to TiltCheck web login...');
   });
 
   // Dashboard
