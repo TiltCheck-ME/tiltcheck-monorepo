@@ -308,19 +308,7 @@ async function performLogout(): Promise<void> {
   );
 }
 
-function openDashboardTab(tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'profile') {
-  if (tab === 'vault') {
-    chrome.tabs.create({ url: 'https://tiltcheck.me/autovault/' });
-    return;
-  }
-  if (tab === 'safety') {
-    chrome.tabs.create({ url: 'https://tiltcheck.me/nudges/' });
-    return;
-  }
-  if (tab === 'buddies') {
-    chrome.tabs.create({ url: 'https://tiltcheck.me/collab/' });
-    return;
-  }
+function openDashboardTab(_tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'profile') {
   chrome.tabs.create({ url: 'https://tiltcheck.me/dashboard/' });
 }
 
