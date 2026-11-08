@@ -1104,7 +1104,7 @@ function initSeedManagerPanel(): void {
                 toast('Client seed applied to page.');
               } else {
                 statusMsg.style.color = '#fbbf24';
-                statusMsg.textContent = res?.message || 'Could not find client seed field on this page.';
+                statusMsg.textContent = res?.message || 'Open casino Fairness modal first, then click Apply (or copy seed).';
               }
             }
           }
@@ -1310,21 +1310,31 @@ function renderGoalsList(): void {
     row.style.display = 'flex';
     row.style.alignItems = 'center';
     row.style.justifyContent = 'space-between';
-    row.style.padding = '6px 8px';
+    row.style.padding = '7px 10px';
     row.style.background = 'rgba(255, 255, 255, 0.04)';
     row.style.border = '1px solid rgba(255, 255, 255, 0.08)';
-    row.style.borderRadius = '4px';
+    row.style.borderRadius = '6px';
     row.style.fontSize = '12px';
+    row.style.gap = '8px';
 
     const left = document.createElement('label');
     left.style.display = 'flex';
     left.style.alignItems = 'center';
-    left.style.gap = '6px';
+    left.style.gap = '8px';
     left.style.cursor = 'pointer';
+    left.style.flex = '1';
+    left.style.minWidth = '0';
+    left.style.margin = '0';
+    left.style.textTransform = 'none';
+    left.style.letterSpacing = 'normal';
+    left.style.color = '#f1f5f9';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = goal.enabled;
+    checkbox.style.flexShrink = '0';
+    checkbox.style.margin = '0';
+    checkbox.style.accentColor = 'var(--teal)';
     checkbox.addEventListener('change', async () => {
       currentGoals = toggleGoalInList(currentGoals, goal.id);
       await saveCashoutGoals(currentGoals);
@@ -1333,8 +1343,13 @@ function renderGoalsList(): void {
 
     const nameSpan = document.createElement('span');
     nameSpan.textContent = goal.name;
+    nameSpan.style.whiteSpace = 'nowrap';
+    nameSpan.style.overflow = 'hidden';
+    nameSpan.style.textOverflow = 'ellipsis';
+    nameSpan.style.fontSize = '12px';
+    nameSpan.style.fontWeight = '500';
+    nameSpan.style.color = goal.enabled ? '#e2e8f0' : '#64748b';
     if (!goal.enabled) {
-      nameSpan.style.opacity = '0.4';
       nameSpan.style.textDecoration = 'line-through';
     }
 
@@ -1345,6 +1360,7 @@ function renderGoalsList(): void {
     right.style.display = 'flex';
     right.style.alignItems = 'center';
     right.style.gap = '8px';
+    right.style.flexShrink = '0';
 
     const badge = document.createElement('span');
     badge.style.fontFamily = 'var(--mono)';
