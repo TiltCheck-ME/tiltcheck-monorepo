@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Slot RTP Downgrade Scanner | TiltCheck</title>
+<meta name="description" content="Inspect multi-tier RTP downgrades and calculate the hidden casino Greed Tax per session."/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles/base.css"/>
+
+</head>
+<body>
+<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="../index.html"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="../extension.html">Extension</a>
+    <a href="../casinos/">Casinos</a>
+    <a href="../cooldown/">Cooldown</a>
+    <a class="site-nav__discord" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
+  </div>
+</nav>
+<main class="cooldown-page">
+  <div class="cooldown-panel" style="max-width: 840px; text-align: left;">
+    <p class="brand-eyebrow">RTP Forensics &amp; Downgrade Scanner</p>
+    <h1>Live Slot RTP Downgrade Scanner</h1>
+    <p class="cooldown-punch">Providers ship games with up to 5 certified return-to-player tiers (e.g. 96.5% down to 88.0%). Shady casinos quietly pick the lowest tier without telling the player.</p>
+    
+    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Select Slot Title</label>
+        <select id="slotSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace;" onchange="onSlotChange()">
+          <option value="gates-of-olympus">Gates of Olympus (Pragmatic Play) - Max 96.50%</option><option value="gates-of-olympus-1000">Gates of Olympus 1000 (Pragmatic Play) - Max 96.50%</option><option value="sweet-bonanza">Sweet Bonanza (Pragmatic Play) - Max 96.51%</option><option value="sweet-bonanza-1000">Sweet Bonanza 1000 (Pragmatic Play) - Max 96.51%</option><option value="big-bass-bonanza">Big Bass Bonanza (Pragmatic Play) - Max 96.71%</option><option value="starlight-princess">Starlight Princess (Pragmatic Play) - Max 96.50%</option><option value="sugar-rush">Sugar Rush (Pragmatic Play) - Max 96.50%</option><option value="the-dog-house">The Dog House (Pragmatic Play) - Max 96.51%</option><option value="wolf-gold">Wolf Gold (Pragmatic Play) - Max 96.01%</option><option value="chaos-crew">Chaos Crew (Hacksaw Gaming) - Max 96.01%</option><option value="stick-em">Stick Em (Hacksaw Gaming) - Max 96.10%</option><option value="wanted-dead-or-a-wild">Wanted Dead or a Wild (Hacksaw Gaming) - Max 96.38%</option><option value="mental">Mental (Hacksaw Gaming) - Max 96.00%</option><option value="book-of-dead">Book of Dead (Play&#39;n GO) - Max 96.21%</option><option value="fire-joker">Fire Joker (Play&#39;n GO) - Max 96.15%</option><option value="reactoonz">Reactoonz (Play&#39;n GO) - Max 96.51%</option><option value="starburst">Starburst (NetEnt) - Max 96.09%</option><option value="dead-or-alive-2">Dead or Alive 2 (NetEnt) - Max 96.82%</option><option value="gonzos-quest">Gonzo&#39;s Quest (NetEnt) - Max 95.97%</option><option value="tombstone-rip">Tombstone RIP (NoLimit City) - Max 96.12%</option><option value="nolimit-mental">Mental (NoLimit City) - Max 96.00%</option><option value="san-quentin">San Quentin (NoLimit City) - Max 96.26%</option><option value="east-coast-vs-west-coast">East Coast vs West Coast (NoLimit City) - Max 96.06%</option><option value="jammin-jars-2">Jammin&#39; Jars 2 (Push Gaming) - Max 96.40%</option><option value="fat-banker">Fat Banker (Push Gaming) - Max 96.20%</option><option value="bonanza">Bonanza (BTG (Big Time Gaming)) - Max 96.00%</option><option value="extra-chilli">Extra Chilli (BTG (Big Time Gaming)) - Max 96.27%</option><option value="money-train-3">Money Train 3 (Relax Gaming) - Max 96.00%</option><option value="money-train-4">Money Train 4 (Relax Gaming) - Max 96.00%</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Bet Per Spin ($)</label>
+          <input id="scanBet" type="number" step="0.5" value="1.0" min="0.1" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace;" oninput="updateScanCalc()"/>
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Spin Count</label>
+          <input id="scanSpins" type="number" step="100" value="1000" min="10" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace;" oninput="updateScanCalc()"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Selected Deployed Tier</label>
+        <select id="tierSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #f4a261; padding: 0.5rem; font-family: monospace;" onchange="updateScanCalc()">
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1rem; border-top: 1px solid #283347; padding-top: 1rem;">
+        <div style="background: rgba(255,255,255,0.03); padding: 0.75rem; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 10px; font-family: monospace; color: #a0afbe; text-transform: uppercase;">Wager Volume</div>
+          <div id="resWager" style="font-size: 1.1rem; font-family: monospace; font-weight: bold; color: #fff;">$1,000.00</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); padding: 0.75rem; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 10px; font-family: monospace; color: #17c3b2; text-transform: uppercase;">Loss at Max RTP</div>
+          <div id="resMaxLoss" style="font-size: 1.1rem; font-family: monospace; font-weight: bold; color: #17c3b2;">-$35.00</div>
+        </div>
+        <div style="background: rgba(230,57,70,0.1); padding: 0.75rem; border: 1px solid rgba(230,57,70,0.3);">
+          <div style="font-size: 10px; font-family: monospace; color: #e63946; text-transform: uppercase; font-weight: bold;">Hidden Greed Tax</div>
+          <div id="resTax" style="font-size: 1.25rem; font-family: monospace; font-weight: 800; color: #e63946;">-$20.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family: monospace; font-size: 12px; color: #a0afbe; line-height: 1.6; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 6px;">
+      <strong style="color: #17c3b2;">HOW TO VERIFY LIVE IN-GAME:</strong> Open the slot on your casino tab. Click the (i) or (?) menu button and navigate to the final rules page. Gaming regulators legally mandate that the game declare its specific active return-to-player percentage on that rules slide.
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <a class="btn btn-primary" href="../downloads/tiltcheck-extension.zip" download>DOWNLOAD EXTENSION BRAKES</a>
+    </div>
+  </div>
+</main>
+<script>
+var gamesData = [{"slug":"gates-of-olympus","title":"Gates of Olympus","provider":"Pragmatic Play","maxRtp":96.5,"tiers":[96.5,94.5,92,88.13]},{"slug":"gates-of-olympus-1000","title":"Gates of Olympus 1000","provider":"Pragmatic Play","maxRtp":96.5,"tiers":[96.5,94,90]},{"slug":"sweet-bonanza","title":"Sweet Bonanza","provider":"Pragmatic Play","maxRtp":96.51,"tiers":[96.51,94.51,92,88]},{"slug":"sweet-bonanza-1000","title":"Sweet Bonanza 1000","provider":"Pragmatic Play","maxRtp":96.51,"tiers":[96.51,94,90]},{"slug":"big-bass-bonanza","title":"Big Bass Bonanza","provider":"Pragmatic Play","maxRtp":96.71,"tiers":[96.71,94.5,92]},{"slug":"starlight-princess","title":"Starlight Princess","provider":"Pragmatic Play","maxRtp":96.5,"tiers":[96.5,94.5,92,88]},{"slug":"sugar-rush","title":"Sugar Rush","provider":"Pragmatic Play","maxRtp":96.5,"tiers":[96.5,94.5,92]},{"slug":"the-dog-house","title":"The Dog House","provider":"Pragmatic Play","maxRtp":96.51,"tiers":[96.51,94.5,92]},{"slug":"wolf-gold","title":"Wolf Gold","provider":"Pragmatic Play","maxRtp":96.01,"tiers":[96.01,94,92]},{"slug":"chaos-crew","title":"Chaos Crew","provider":"Hacksaw Gaming","maxRtp":96.01,"tiers":[96.01,94,92]},{"slug":"stick-em","title":"Stick Em","provider":"Hacksaw Gaming","maxRtp":96.1,"tiers":[96.1,94]},{"slug":"wanted-dead-or-a-wild","title":"Wanted Dead or a Wild","provider":"Hacksaw Gaming","maxRtp":96.38,"tiers":[96.38,94,92]},{"slug":"mental","title":"Mental","provider":"Hacksaw Gaming","maxRtp":96,"tiers":[96,94]},{"slug":"book-of-dead","title":"Book of Dead","provider":"Play'n GO","maxRtp":96.21,"tiers":[96.21]},{"slug":"fire-joker","title":"Fire Joker","provider":"Play'n GO","maxRtp":96.15,"tiers":[96.15]},{"slug":"reactoonz","title":"Reactoonz","provider":"Play'n GO","maxRtp":96.51,"tiers":[96.51]},{"slug":"starburst","title":"Starburst","provider":"NetEnt","maxRtp":96.09,"tiers":[96.09]},{"slug":"dead-or-alive-2","title":"Dead or Alive 2","provider":"NetEnt","maxRtp":96.82,"tiers":[96.82,94]},{"slug":"gonzos-quest","title":"Gonzo's Quest","provider":"NetEnt","maxRtp":95.97,"tiers":[95.97]},{"slug":"tombstone-rip","title":"Tombstone RIP","provider":"NoLimit City","maxRtp":96.12,"tiers":[96.12,94]},{"slug":"nolimit-mental","title":"Mental","provider":"NoLimit City","maxRtp":96,"tiers":[96,94]},{"slug":"san-quentin","title":"San Quentin","provider":"NoLimit City","maxRtp":96.26,"tiers":[96.26,94]},{"slug":"east-coast-vs-west-coast","title":"East Coast vs West Coast","provider":"NoLimit City","maxRtp":96.06,"tiers":[96.06,94]},{"slug":"jammin-jars-2","title":"Jammin' Jars 2","provider":"Push Gaming","maxRtp":96.4,"tiers":[96.4]},{"slug":"fat-banker","title":"Fat Banker","provider":"Push Gaming","maxRtp":96.2,"tiers":[96.2,94]},{"slug":"bonanza","title":"Bonanza","provider":"BTG (Big Time Gaming)","maxRtp":96,"tiers":[96,94]},{"slug":"extra-chilli","title":"Extra Chilli","provider":"BTG (Big Time Gaming)","maxRtp":96.27,"tiers":[96.27,94]},{"slug":"money-train-3","title":"Money Train 3","provider":"Relax Gaming","maxRtp":96,"tiers":[96,94,92]},{"slug":"money-train-4","title":"Money Train 4","provider":"Relax Gaming","maxRtp":96,"tiers":[96,94,92]}];
+
+function onSlotChange() {
+  var sel = document.getElementById("slotSelect");
+  var slug = sel.value;
+  var game = gamesData.find(function(g) { return g.slug === slug; });
+  if (!game) return;
+  var tierSelect = document.getElementById("tierSelect");
+  tierSelect.innerHTML = "";
+  game.tiers.forEach(function(t, idx) {
+    var opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t.toFixed(2) + "%" + (idx === 0 ? " (Max Certified)" : " (Lowered Tier)");
+    tierSelect.appendChild(opt);
+  });
+  if (game.tiers.length > 1) {
+    tierSelect.selectedIndex = 1;
+  }
+  updateScanCalc();
+}
+
+function updateScanCalc() {
+  var sel = document.getElementById("slotSelect");
+  var slug = sel.value;
+  var game = gamesData.find(function(g) { return g.slug === slug; });
+  if (!game) return;
+
+  var bet = parseFloat(document.getElementById("scanBet").value) || 1.0;
+  var spins = parseInt(document.getElementById("scanSpins").value) || 1000;
+  var tierSelect = document.getElementById("tierSelect");
+  var deployedRtp = parseFloat(tierSelect.value) || game.maxRtp;
+
+  var wager = bet * spins;
+  var maxEdge = (100 - game.maxRtp) / 100;
+  var depEdge = (100 - deployedRtp) / 100;
+
+  var maxLoss = wager * maxEdge;
+  var depLoss = wager * depEdge;
+  var greedTax = depLoss - maxLoss;
+
+  document.getElementById("resWager").textContent = "$" + wager.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById("resMaxLoss").textContent = "-$" + maxLoss.toFixed(2);
+  document.getElementById("resTax").textContent = greedTax > 0 ? "-$" + greedTax.toFixed(2) : "$0.00";
+}
+window.addEventListener("DOMContentLoaded", onSlotChange);
+</script>
+<footer class="site-footer">
+  <nav class="site-footer__more" aria-label="More tools">
+    <p class="site-footer__more-label">Also</p>
+    <div class="site-footer__links">
+      <a href="../autovault/">AutoVault</a>
+      <a href="../nudges/">Nudges</a>
+      <a href="../privacy/">Privacy Policy</a>
+    </div>
+  </nav>
+  <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
+  <span class="site-footer__tag">Made for Degens. By Degens.</span>
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+</footer>
+</body>
+</html>
