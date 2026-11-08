@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
 
 # TiltCheck Agent Directory
 
@@ -166,3 +166,11 @@ The web app (Next.js) reads `NEXT_PUBLIC_*` vars from the root `.env` at build/d
 - **Lint:** `pnpm lint` (pre-existing warnings/errors on main are expected)
 - **Test:** `pnpm test` (runs root vitest config; builds `@tiltcheck/database` first)
 - **Trust engine smoke test:** `pnpm trust:start` (builds trust-engines then runs startup verification)
+
+### Chrome extension development & packaging gotchas
+
+- **Packaging workflow:** Run `pnpm --filter @tiltcheck/chrome-extension package`. This runs `vitest --run`, builds `./dist`, and outputs the packaged zip to both `apps/chrome-extension/tiltcheck-extension.zip` and `apps/web/public/downloads/tiltcheck-extension.zip`.
+- **Dual currency checks:** Always test that telemetry and reality HUD distinguish Gold Coins (GC) from Sweeps Cash (SC).
+- **Stake modal query params:** Always format Stake cashier links as `?modal=wallet&tab=withdraw` (or `tab=redeem`), not `tab=wallet&modal=withdraw`.
+- **Windows CRLF & pwsh:** Avoid bash-only `&` call syntax in pwsh. For file regex replacements on Windows, use Node.js one-liners (`node -e '...'`) to ensure CRLF line endings match cleanly.
+

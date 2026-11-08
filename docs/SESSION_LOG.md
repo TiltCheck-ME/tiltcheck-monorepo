@@ -2,6 +2,12 @@
 
 # Session Log
 
+## 2026-11-08 — docs(rules): persist extension invariants and sweepstakes domain guardrails
+
+- Codified Sweepstakes Domain Invariants: Updated .cursor/rules/frontend-extension-safety.mdc with critical invariants: Gold Coins (GC) vs Sweeps Coins (SC) dual-currency alert suppression, slot iframe penetration (all_frames: true), Default Bet Breaker bankroll protection on page reloads, and Stake cashier query parameter formatting (?modal=wallet&tab=withdraw|redeem).
+- Codified UI & Component Standards: Established zero unwired controls invariant for popup elements and standardized semantic iconography (24x24 viewBox mechanical gear for settings, help circle for guides).
+- Updated Monorepo Agent Directory: Expanded AGENTS.md with Chrome extension packaging runbook (pnpm test + pnpm package) and Windows PowerShell/CRLF execution conventions.
+
 ## 2026-11-08 — fix(extension): wire tutorial wizard to help icon and replace settings icon with gear
 
 - Help Icon Tutorial Wizard: Implemented initOnboardingWizard() in popup.ts and bound click listener to #btn-tutorial, allowing users to open the 4-step interactive Onboarding Guide modal (#onboarding-overlay) at any time. Configured step navigation, real-time goal template checkboxes, master toggle persistence, and one-click guardarm checklist (saveTouchGrassOptIn, saveRealityHudEnabled, saveAudioAlertsEnabled, saveHourlyWage, saveOnboardingCompleted).
