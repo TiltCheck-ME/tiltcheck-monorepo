@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-08 — docs(store): Chrome Web Store Developer Review Readiness & Packaging Audit
+
+- Audited and packaged production release of TiltCheck Chrome Extension (v1.2.3).
+- Verified package file apps/chrome-extension/tiltcheck-extension.zip (414 KB) and mirror apps/web/public/downloads/tiltcheck-extension.zip.
+- Confirmed 0 sourcemap leaks, 0 dev artifacts, 0 unapproved permissions.
+- Created CHROMEWEBSTORE.md in root as single source of truth for store copy, permissions justifications, and privacy disclosures.
+- Synchronized apps/chrome-extension/docs/publishing.md with latest Client Seed Manager features.
+- Verified test suite: 38 test files passed, 278 tests passed, 0 failures in @tiltcheck/chrome-extension.
+
 ## 2026-11-08 — feat(fairness,extension): Issue #539 Client Seed Manager (on-device CSPRNG, rotation, per-site persistence, best-effort DOM apply)
 
 Implemented full cross-surface Client Seed Manager (Issue #539) across core packages, Stake module, browser extension, and web verification tools:

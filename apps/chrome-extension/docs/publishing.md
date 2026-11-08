@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-07 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
 
 # Chrome Web Store Publishing & Submission Guide
 
@@ -25,41 +25,45 @@ Copy and paste these exact values into the Developer Console store listing field
 ### Item Details
 * **Extension Name:**
   ```text
-  TiltCheck: Non-Custodial Casino Guardrails
+  TiltCheck
   ```
-* **Short Description (118/132 characters):**
+* **Short Description (120/132 characters):**
   ```text
-  Non-custodial casino guardrails: 2-second spin brakes, deposit containment, profit lock, and on-chain cooldown timelocks.
+  Non-custodial casino guardrails: 2-second spin brakes, deposit containment, profit lock, client seed hygiene, and cooldowns.
   ```
 * **Detailed Description (Zero emojis, Brand Law compliant):**
   ```text
-  TiltCheck provides real-time harm reduction, tilt protection, and non-custodial voluntary cooldowns for players on supported crypto and sweepstakes gaming platforms.
+  TiltCheck provides real-time harm reduction, tilt protection, provably fair client seed hygiene, and non-custodial voluntary cooldowns for players on supported crypto and sweepstakes gaming platforms.
 
   CORE FEATURES
 
-  1. SPIN PACE LOCK
-  - Enforces an automated 2-second delay between spin inputs.
-  - Prevents rapid-fire mechanical autoplay and impulsive bet clicks.
+  1. SPIN PACE BRAKE
+  - Enforces a configurable 2-second delay between spin inputs.
+  - Prevents rapid-fire autoplay loops and impulsive bet clicks during high-volatility sessions.
 
   2. REVERSE-WITHDRAWAL SHIELD
   - Intercepts accidental or impulsive "Cancel Withdrawal" clicks in casino cashiers.
   - Keeps won funds queued for payout rather than returned to play balance.
 
   3. PROFIT-LOCK RATCHET & REALITY GOALS
-  - Automatically locks in a designated floor once session profit targets are reached.
+  - Automatically tracks session profit targets and secures a designated floor once target thresholds are reached.
   - Provides instant cashout navigation buttons when profit goals are hit.
 
-  4. SESSION VELOCITY & TILT DETECTION
+  4. CLIENT SEED MANAGER & FAIRNESS HYGIENE
+  - Generates cryptographically secure, high-entropy client seeds directly on-device using browser CSPRNG.
+  - Evaluates Shannon entropy, detects stale seed compromise patterns, and facilitates safe seed rotation for provably fair verification without exposing player entropy.
+
+  5. SESSION VELOCITY & TILT DETECTION
   - Tracks bet frequency, rapid escalation, and cold-run loss volatility in real time.
   - Alerts on erratic behavior and escalation above player averages.
   - Automatically triggers a 24-hour local deposit barrier when high tilt (Level 3+) is detected.
 
-  5. ON-CHAIN SOLANA COOLDOWN TIMELOCK
+  6. ON-CHAIN SOLANA COOLDOWN TIMELOCK
   - Direct integration with the TiltCheck on-chain voluntary timelock program on Solana.
   - Immutable self-exclusion: once signed client-side by your wallet, timelocks cannot be shortened or bypassed by anyone, including TiltCheck.
   - Real-time synchronization via Server-Sent Events (SSE).
 
-  6. PHISHING & MALICIOUS MIRROR GUARD
+  7. PHISHING & MALICIOUS MIRROR GUARD
   - Scans casino URLs against the verified SusLink database.
   - Blocks malicious mirror sites and fake phishing domains before page navigation completes.
 
@@ -81,38 +85,38 @@ Google requires precise justifications for all requested permissions and host pe
 
 ### Single Purpose Declaration
 ```text
-To provide real-time responsible gaming brakes, session tilt detection, deposit barriers, and on-chain voluntary cooldown timelocks on supported online casino websites.
+To provide real-time responsible gaming brakes, session tilt detection, deposit containment, provably fair client seed hygiene, and on-chain voluntary cooldown timelocks on supported online casino websites.
 ```
 
 ### Permission Justifications
 * **`storage`:**
   ```text
-  Required to store player preferences locally (spin delay preferences, profit lock targets, and voluntary cooldown timestamps) in chrome.storage.local.
+  Required to store player safety configurations (spin brake delays, profit lock thresholds, active cooldown timestamps, and client seed state) locally on-device via chrome.storage.local.
   ```
 * **`tabs`:**
   ```text
-  Required to detect when a supported casino tab is active in order to mount the pace lock and session reality HUD.
+  Required to detect when a supported casino domain tab is active and to establish local message routing with the in-tab guardrail HUD without reading cross-tab browsing history.
   ```
 * **`activeTab`:**
   ```text
-  Required to open the quick settings and cooldown status popup on the currently focused casino page.
+  Required to open the quick settings, cooldown verification status, and seed rotation controls on the currently focused casino tab.
   ```
 * **`notifications`:**
   ```text
-  Required to display instant desktop alerts when session loss velocity spikes or an on-chain cooldown timelock triggers.
+  Required to display urgent desktop notifications when high tilt volatility spikes or when an on-chain cooldown timelock triggers.
   ```
 * **`alarms`:**
   ```text
-  Required to run scheduled background checks verifying the expiration status of active cooldown timelocks.
+  Required to run periodic background checks verifying the expiration status and on-chain synchronization of active cooldown timelocks.
   ```
 * **`webNavigation`:**
   ```text
-  Required to intercept page navigation before loading known phishing domains or malicious casino mirror sites.
+  Required to intercept navigations to supported casino domains in order to mount guardrails immediately upon page transition and block confirmed phishing mirrors.
   ```
 
 ### Host Permissions Justification
 ```text
-Host permissions are strictly restricted to supported casino domains (Stake, Roobet, BC.Game, Shuffle, Rollbit, Gamdom, CSGOEmpire) to read game state and intercept deposit clicks during active cooldowns, and the TiltCheck API gateway (https://api.tiltcheck.me) for on-chain cooldown verification.
+Host permissions are strictly restricted to supported casino domains (Stake, Roobet, BC.Game, Shuffle, Rollbit, Gamdom, CSGOEmpire) to mount responsible gaming guardrails and to the official TiltCheck API gateway (https://api.tiltcheck.me) for on-chain cooldown status verification and phishing threat intelligence.
 ```
 
 ### Data Usage Attestation Checklist
