@@ -46,9 +46,9 @@ describe('RTP & Downgrade Inspection (rtp command)', () => {
   });
 
   it('surfaces unverified RTP warning for non-audited operator', () => {
-    const report = buildOperatorRtpReport('Chumba Casino', casinos, providers);
+    const report = buildOperatorRtpReport('MyPrize US', casinos, providers);
 
-    expect(report.matchedName).toBe('Chumba Casino');
+    expect(report.matchedName).toBe('MyPrize US');
     expect(report.audited).toBe(false);
     expect(report.downgradeWarnings.some((w) => w.includes('WARNING: This operator has not undergone independent'))).toBe(true);
   });

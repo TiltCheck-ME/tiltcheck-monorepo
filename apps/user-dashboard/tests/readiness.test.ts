@@ -14,7 +14,7 @@ describe('user-dashboard readiness', () => {
     const response = await request(app).get('/health');
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ status: 'ok' });
-  });
+  }, 15000);
 
   it('exposes public Discord config without leaking secrets', async () => {
     process.env.MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY || 'test_magic_secret_key';

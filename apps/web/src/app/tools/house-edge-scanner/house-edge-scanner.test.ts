@@ -9,7 +9,7 @@ describe('House Edge & Comp Point Scanner Page (apps/web/src/app/tools/house-edg
   const sourceCode = fs.readFileSync(filePath, 'utf-8');
 
   it('declares use client directive and exports HouseEdgeScannerPage default', () => {
-    expect(sourceCode).toMatch(/^"use client";/);
+    expect(sourceCode).toMatch(/(?:^|\n)"use client";/);
     expect(sourceCode).toContain('export default function HouseEdgeScannerPage()');
   });
 

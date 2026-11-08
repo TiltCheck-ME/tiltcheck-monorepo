@@ -8,6 +8,8 @@ process.env.GOOGLE_GENAI_API_KEY = process.env.GOOGLE_GENAI_API_KEY || process.e
 
 // Email ingest: avoid 429 flakes on RGaaS route tests (production default is stricter).
 process.env.EMAIL_INGEST_RATE_LIMIT_MAX = process.env.EMAIL_INGEST_RATE_LIMIT_MAX || '10000';
+process.env.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'test-admin-password-mock';
+process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session-secret-must-be-32-chars-long';
 
 // Global test setup for API tests
 // Suppress console output in tests unless debugging

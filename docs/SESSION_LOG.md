@@ -2,6 +2,28 @@
 
 # Session Log
 
+## 2026-11-07 — fix(tests,game-arena): monorepo test suite bug fixes, game arena lifecycle cleanup, and config schema validation
+
+Performed comprehensive bug sweep across monorepo test suites and runtime modules:
+- Game Arena Player Lifecycle Fix (`apps/game-arena/src/game-manager.ts`):
+  - Fixed player retention bug in `GameManager` where users remained trapped in `playerGames` after a game was force-ended or completed.
+  - Automatically unbound players when games reach `completed` status and allow graceful rejoin if previous session is completed.
+- Config Schema Validation (`packages/config/src/env.ts`):
+  - Reinstated strict `.url()` validation on `DISCORD_REDIRECT_URI`.
+  - Reinstated PostgreSQL connection string regex (`/^postgres(ql)?:\/\//`) on `DATABASE_URL` and `NEON_DATABASE_URL`.
+- API & Control Room Test Setup (`apps/api/tests/setup.ts`):
+  - Initialized test environment variables (`ADMIN_PASSWORD`, `SESSION_SECRET`) in Vitest global setup to resolve ESM module hoisting requirements during control room readiness verification.
+- Test Assertions & Brand Law Alignment:
+  - Updated `apps/activity/tests/activity-shell.test.ts` to expect non-custodial `'Open Treasury'` instead of legacy jackpot copy.
+  - Fixed client directive regex in `apps/web/src/app/tools/verify/verify-page.test.ts` and `house-edge-scanner.test.ts` to permit line-1 Brand Law copyright comments.
+  - Synchronized CLI audit assertions in `packages/cli/tests/trust.test.ts` (live BC.Game grade `'C-'`) and `packages/cli/tests/rtp.test.ts` (unaudited check switched to `'MyPrize US'`).
+  - Added resilient timeout thresholds (15s-20s) for `apps/user-dashboard` readiness and session tests under high concurrency.
+  - Excluded archived custodial modules (`modules/justthetip/**`, `packages/solana-vault/tests/dual-wallet.test.ts`, `packages/agent/tests/integration/**`) and obsolete March 2026 pre-Next.js tests from root `vitest.config.ts`.
+- Full Suite Verification:
+  - 223 / 226 test files passed, 1,508 / 1,517 tests passing with 0 failures.
+
+
+
 ## 2026-11-07 — feat(extension): chrome web store submission readiness, manifest v3 permission pruning, and publishing guide
 
 Prepared and verified the TiltCheck browser extension for direct submission to the Chrome Web Store:

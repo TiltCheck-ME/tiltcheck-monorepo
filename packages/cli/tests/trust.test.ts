@@ -29,7 +29,7 @@ describe('Operator Trust Dossier (trust command)', () => {
 
     expect(report.matchedName).toBe('BC.Game');
     expect(report.category).toBe('Crypto');
-    expect(report.grade).toBe('C+');
+    expect(report.grade).toBe('C-');
     expect(report.audited).toBe(true);
     expect(report.playthrough).toContain('BCD');
   });

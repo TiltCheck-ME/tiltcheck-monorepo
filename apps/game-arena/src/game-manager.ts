@@ -393,7 +393,12 @@ export class GameManager {
       return;
     }
     if (existingGameId && existingGameId !== gameId) {
-      throw new Error('Leave your current game before joining another');
+      const prevGame = this.games.get(existingGameId);
+      if (!prevGame || prevGame.status === 'completed') {
+        this.playerGames.delete(userId);
+      } else {
+        throw new Error('Leave your current game before joining another');
+      }
     }
 
     const lobbyInfo = this.games.get(gameId);
@@ -698,6 +703,13 @@ export class GameManager {
     }
 
     lobbyInfo.status = 'completed';
+
+    // Free tracked players from this ended game
+    for (const [pUserId, playerGameId] of this.playerGames.entries()) {
+      if (playerGameId === gameId) {
+        this.playerGames.delete(pUserId);
+      }
+    }
 
     // Try to end underlying DA&D game state if present
     if (lobbyInfo.type === 'dad') {

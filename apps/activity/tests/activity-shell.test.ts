@@ -80,7 +80,7 @@ describe('activity shell play state', () => {
     expect(container.textContent).toContain('Lobby');
     expect(container.textContent).toContain('Party Loop');
     expect(container.textContent).toContain('Funding + test path');
-    expect(container.textContent).toContain('Open Jackpot Funding');
+    expect(container.textContent).toContain('Open Treasury');
   });
 
   it('moves the play shell from lobby to live round to post-round', () => {

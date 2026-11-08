@@ -42,7 +42,7 @@ export const serviceJwtConfigSchema = z.object({
 export const discordConfigSchema = z.object({
   DISCORD_CLIENT_ID: z.string().optional(),
   DISCORD_CLIENT_SECRET: z.string().optional(),
-  DISCORD_REDIRECT_URI: z.string().optional(),
+  DISCORD_REDIRECT_URI: z.string().url('DISCORD_REDIRECT_URI must be a valid URL').optional(),
   DISCORD_BOT_TOKEN: z.string().optional(),
 });
 
@@ -50,8 +50,8 @@ export const discordConfigSchema = z.object({
  * Neon/PostgreSQL Database Configuration Schema
  */
 export const databaseConfigSchema = z.object({
-  DATABASE_URL: z.string().optional(),
-  NEON_DATABASE_URL: z.string().optional(),
+  DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, 'DATABASE_URL must be a valid PostgreSQL connection string').optional(),
+  NEON_DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, 'NEON_DATABASE_URL must be a valid PostgreSQL connection string').optional(),
   DATABASE_SSL: z.string().default('true').transform((val: string) => val === 'true'),
   DATABASE_POOL_SIZE: z.string().default('10').transform((val: string) => parseInt(val, 10) || 10),
 });

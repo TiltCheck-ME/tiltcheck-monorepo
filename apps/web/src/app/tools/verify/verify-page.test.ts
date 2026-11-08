@@ -9,7 +9,7 @@ describe('Provably Fair Bet Verifier Page (apps/web/src/app/tools/verify/page.ts
   const sourceCode = fs.readFileSync(filePath, 'utf-8');
 
   it('declares use client directive and exports VerifyPage default', () => {
-    expect(sourceCode).toMatch(/^"use client";/);
+    expect(sourceCode).toMatch(/(?:^|\n)"use client";/);
     expect(sourceCode).toContain('export default function VerifyPage()');
   });
 

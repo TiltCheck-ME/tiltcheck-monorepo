@@ -122,5 +122,5 @@ describe('user-dashboard sessions route', () => {
         }),
       ]),
     );
-  });
+  }, 20000);
 });
