@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 
 /**
  * Core circuit-breaker settings (chrome.storage.local).
@@ -44,6 +44,8 @@ export const TILTCHECK_AUTO_LOCK_THRESHOLD_KEY = 'tiltcheck_auto_lock_threshold'
 export const TILTCHECK_AUTO_LOCK_DURATION_KEY = 'tiltcheck_auto_lock_duration';
 export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enabled';
 export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
+export const TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY = 'tiltcheck_default_bet_breaker_enabled';
+export const TILTCHECK_BASE_STAKE_THRESHOLD_KEY = 'tiltcheck_base_stake_threshold';
 export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
 export type { BonusTrackerConfig };
 
@@ -83,6 +85,8 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_AUTO_LOCK_DURATION_KEY,
   TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
   TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
+  TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY,
+  TILTCHECK_BASE_STAKE_THRESHOLD_KEY,
 ] as const;
 
 export function normalizeRiskProfile(value: unknown, legacyRiskLevel?: unknown): RiskProfile {
@@ -119,6 +123,11 @@ export const DEFAULT_MIN_PROFIT = 50;
 export const DEFAULT_CASHOUT_GOALS_ENABLED = true;
 export const DEFAULT_AUDIO_ALERTS_ENABLED = true;
 export const DEFAULT_AUDIO_ALERTS_VOLUME = 0.25;
+
+export const DEFAULT_DEFAULT_BET_BREAKER_ENABLED = true;
+export const DEFAULT_BASE_STAKE_THRESHOLD = 0.50;
+export const MIN_BASE_STAKE_THRESHOLD = 0.01;
+export const MAX_BASE_STAKE_THRESHOLD = 1000.0;
 
 export const DEFAULT_AUTO_LOCK_ON_TILT = true;
 export const DEFAULT_AUTO_LOCK_THRESHOLD = 75;
@@ -161,6 +170,8 @@ export interface CoreCircuitBreakerOptions {
   autoLockDuration: number;
   audioAlertsEnabled: boolean;
   audioAlertsVolume: number;
+  defaultBetBreakerEnabled: boolean;
+  baseStakeThreshold: number;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
@@ -205,6 +216,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_AUTO_LOCK_DURATION_KEY,
       TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
       TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
+      TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY,
+      TILTCHECK_BASE_STAKE_THRESHOLD_KEY,
       'riskLevel',
     ]);
 
@@ -311,6 +324,16 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       ? Math.max(0, Math.min(1, rawAudioVol))
       : DEFAULT_AUDIO_ALERTS_VOLUME;
 
+    const defaultBetBreakerOpt = stored[TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY];
+    const defaultBetBreakerEnabled = defaultBetBreakerOpt === undefined ? DEFAULT_DEFAULT_BET_BREAKER_ENABLED : defaultBetBreakerOpt === true;
+
+    const baseStakeThreshold = clampFloat(
+      stored[TILTCHECK_BASE_STAKE_THRESHOLD_KEY],
+      MIN_BASE_STAKE_THRESHOLD,
+      MAX_BASE_STAKE_THRESHOLD,
+      DEFAULT_BASE_STAKE_THRESHOLD
+    );
+
     return {
       riskThreshold: clampInt(
         stored[TILTCHECK_RISK_THRESHOLD_KEY],
@@ -344,6 +367,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       autoLockDuration,
       audioAlertsEnabled,
       audioAlertsVolume,
+      defaultBetBreakerEnabled,
+      baseStakeThreshold,
     };
   } catch {
     return {
@@ -371,6 +396,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       autoLockDuration: DEFAULT_AUTO_LOCK_DURATION,
       audioAlertsEnabled: DEFAULT_AUDIO_ALERTS_ENABLED,
       audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
+      defaultBetBreakerEnabled: DEFAULT_DEFAULT_BET_BREAKER_ENABLED,
+      baseStakeThreshold: DEFAULT_BASE_STAKE_THRESHOLD,
     };
   }
 }

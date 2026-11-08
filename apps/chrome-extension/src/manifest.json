@@ -22,7 +22,18 @@
     "https://*.csgoempire.com/*",
     "https://*.tiltcheck.me/*",
     "https://api.tiltcheck.me/*",
-    "https://*.magic.link/*"
+    "https://*.magic.link/*",
+    "https://*.crowncoinscasino.com/*",
+    "https://*.lonestarcasino.com/*",
+    "https://*.realprize.com/*",
+    "https://*.pulsz.com/*",
+    "https://*.mcluck.com/*",
+    "https://*.chumbacasino.com/*",
+    "https://*.wowvegas.com/*",
+    "https://*.high5casino.com/*",
+    "https://*.fortunecoins.com/*",
+    "https://*.zulacasino.com/*",
+    "https://*.sportzino.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me https://*.magic.link; frame-src https://*.magic.link"
@@ -46,7 +57,18 @@
         "https://*.gamdom.com/*",
         "https://*.csgoempire.com/*",
         "https://tiltcheck.me/*",
-        "https://*.tiltcheck.me/*"
+        "https://*.tiltcheck.me/*",
+        "https://*.crowncoinscasino.com/*",
+        "https://*.lonestarcasino.com/*",
+        "https://*.realprize.com/*",
+        "https://*.pulsz.com/*",
+        "https://*.mcluck.com/*",
+        "https://*.chumbacasino.com/*",
+        "https://*.wowvegas.com/*",
+        "https://*.high5casino.com/*",
+        "https://*.fortunecoins.com/*",
+        "https://*.zulacasino.com/*",
+        "https://*.sportzino.com/*"
       ],
       "js": [
         "content.js"
@@ -65,7 +87,18 @@
         "https://*.gamdom.com/*",
         "https://*.csgoempire.com/*",
         "https://tiltcheck.me/*",
-        "https://*.tiltcheck.me/*"
+        "https://*.tiltcheck.me/*",
+        "https://*.crowncoinscasino.com/*",
+        "https://*.lonestarcasino.com/*",
+        "https://*.realprize.com/*",
+        "https://*.pulsz.com/*",
+        "https://*.mcluck.com/*",
+        "https://*.chumbacasino.com/*",
+        "https://*.wowvegas.com/*",
+        "https://*.high5casino.com/*",
+        "https://*.fortunecoins.com/*",
+        "https://*.zulacasino.com/*",
+        "https://*.sportzino.com/*"
       ],
       "js": [
         "page-bridge.js"
@@ -99,7 +132,18 @@
         "https://*.gamdom.com/*",
         "https://*.csgoempire.com/*",
         "https://tiltcheck.me/*",
-        "https://*.tiltcheck.me/*"
+        "https://*.tiltcheck.me/*",
+        "https://*.crowncoinscasino.com/*",
+        "https://*.lonestarcasino.com/*",
+        "https://*.realprize.com/*",
+        "https://*.pulsz.com/*",
+        "https://*.mcluck.com/*",
+        "https://*.chumbacasino.com/*",
+        "https://*.wowvegas.com/*",
+        "https://*.high5casino.com/*",
+        "https://*.fortunecoins.com/*",
+        "https://*.zulacasino.com/*",
+        "https://*.sportzino.com/*"
       ]
     }
   ]

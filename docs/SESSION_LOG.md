@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-08 — feat(extension): sweepstakes domain whitelisting, default bet breaker, and UI polish
+
+- Sweepstakes Casino Whitelist: Added Crown Coins (crowncoinscasino.com), LoneStar (lonestarcasino.com), Real Prize (realprize.com), Pulsz (pulsz.com), McLuck (mcluck.com), Chumba (chumbacasino.com), WOW Vegas (wowvegas.com), High 5 (high5casino.com), Fortune Coins (fortunecoins.com), Zula (zulacasino.com), and Sportzino (sportzino.com) to manifest.json (host_permissions, content_scripts with all_frames: true, and web_accessible_resources). Resolves inactive spin lock and telemetry on sweepstakes slot games.
+- Default Bet Breaker (Option A: Hard Intercept on First Spin): Implemented default-bet-breaker.ts and default-bet-breaker.test.ts to protect bankroll against inflated default stakes ($1.00, $2.00) on game reloads. Arms on game/page load and SPA route switches; blocks the first spin if stake > baseStakeThreshold (default $0.50); displays an unblockable HUD modal with [Confirm $X.XX] and [Drop to Minimum] (auto-decrements stake down to minimum). Added settings toggle and threshold input in popup Guards panel.
+- Gold Coins (GC) Suppression: Enhanced isPlayMoneyActive() in reality-hud.ts and readBalance() to inspect sweepstakes casino active currency mode toggles (GC vs SC) across Crown Coins, LoneStar, Real Prize, and Stake.us. Prevents Gold Coins token balances (e.g. 100,000 GC) from falsely triggering real-money cashout goal alerts or profit-lock warnings.
+- Layout & Flex Pinning: Updated popup.html body styling with flex column layout and footer margin-top: auto, eliminating the empty black void below the footer on the Vault and compact tabs. Added default empty state for Vault rules.
+- Live Status Pill & Routing: Expanded updateSessionStatusPill() in popup.ts with domain recognition for Crown Coins, LoneStar, Real Prize, and sweepstakes platforms. Hardened openDashboardTab() with trailing-slash URLs (https://tiltcheck.me/autovault/, /nudges/, /collab/, /dashboard/) to eliminate 404s on GitHub Pages.
+- Tested & Packaged: Added 7 unit tests in default-bet-breaker.test.ts; all 40 test files passed (293/293 tests, 100% pass rate); packaged updated tiltcheck-extension.zip (447 KB).
+
 ## 2026-11-08 — fix(extension): spin lock selectors, live session pill detection, and activity feed telemetry
 
 - Stake & Modern Casino Spin Detection: Expanded SPIN_CONTROL_SELECTOR in spin-pace-lock.ts to cover Stake Originals and modern provider buttons (data-test="bet-button", data-test="play-button", data-testid="bet-button", button[aria-label*="spin" i], button[aria-label*="bet" i], button[aria-label*="play" i]). Added unified findSpinControl() heuristic with text content detection (Bet, Spin, Play, Roll, Deal) so the 2-second pace brake, velocity radar, and streak tracker engage accurately across Stake.us, Stake.com, Roobet, and BC.Game.

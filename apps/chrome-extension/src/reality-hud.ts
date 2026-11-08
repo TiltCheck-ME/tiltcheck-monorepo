@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * reality-hud.ts
  * Reality-Grounding Wage-Hour Equivalence HUD.
@@ -88,7 +88,44 @@ export function parseMoney(text: string | null): number | null {
   return Number(matches[0]);
 }
 
+export function isPlayMoneyActive(doc?: Document | null): boolean {
+  if (!doc) return false;
+
+  const gcActiveSelectors = [
+    '[data-active-currency="gc" i]',
+    '[data-currency="gc" i][aria-selected="true"]',
+    '[data-currency="gc" i][class*="active" i]',
+    '[data-currency="gc" i][class*="selected" i]',
+    'button[class*="active" i][class*="gold" i]',
+    'button[class*="selected" i][class*="gold" i]',
+    '.currency-switch [class*="active" i]:not([class*="sweeps" i]):not([class*="sc" i])',
+    '[data-testid*="currency-toggle" i][data-mode="gc" i]',
+    '[data-testid*="currency-toggle" i][data-mode="gold" i]',
+    '[aria-label*="Gold Coin" i][aria-pressed="true"]',
+    '[aria-label*="Gold Coin" i][aria-checked="true"]',
+    '[aria-label*="GC" i][aria-pressed="true"]',
+    '[aria-label*="GC" i][aria-checked="true"]',
+  ];
+
+  for (const sel of gcActiveSelectors) {
+    if (doc.querySelector(sel)) return true;
+  }
+
+  const toggles = doc.querySelectorAll('[role="switch"][aria-checked="true"], [role="tab"][aria-selected="true"], [data-state="active"], button[class*="active" i], div[class*="active" i][class*="toggle" i]');
+  for (const t of toggles) {
+    const text = (t.textContent || '').trim();
+    if (/^(GC|Gold\s*Coins?)$/i.test(text)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function isPlayMoneyBalance(rawText: string | null, el?: Element | null): boolean {
+  if (el && isPlayMoneyActive(el.ownerDocument || (typeof document !== 'undefined' ? document : null))) {
+    return true;
+  }
   if (rawText) {
     if (/\b(GC|Gold\s*Coins?|Fun|Demo|Play\s*Money|Credits?)\b/i.test(rawText)) {
       return true;
@@ -129,6 +166,9 @@ export function isPlayMoneyBalance(rawText: string | null, el?: Element | null):
 }
 
 export function readBalance(doc: Document): number | null {
+  if (isPlayMoneyActive(doc)) {
+    return null;
+  }
   const hostname = doc.location?.hostname ?? '';
   const entry = CASINO_SELECTORS.find(
     (item) => (hostname && hostname.includes(item.domain)) || item.domain === '*'

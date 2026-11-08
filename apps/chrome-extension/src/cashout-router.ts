@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 
 /**
  * cashout-router.ts
@@ -251,6 +251,32 @@ export const CASINO_CASHOUT_ROUTES: readonly CasinoCashoutRoute[] = [
     domSelectors: [
       'a[href*="redemption"]',
       'button[data-testid="redeem"]',
+    ],
+  },
+  {
+    id: 'crowncoins',
+    name: 'Crown Coins',
+    domainMatches: ['crowncoinscasino.com'],
+    cashierUrl: 'https://crowncoinscasino.com/redemption',
+    buttonLabel: 'Redeem Sweeps Coins',
+    isSweepstakes: true,
+    domSelectors: [
+      'a[href*="redemption"]',
+      'button[data-testid="redeem"]',
+      'button[aria-label*="Redeem"]',
+    ],
+  },
+  {
+    id: 'lonestar',
+    name: 'LoneStar Casino',
+    domainMatches: ['lonestarcasino.com'],
+    cashierUrl: 'https://lonestarcasino.com/redemption',
+    buttonLabel: 'Redeem Sweeps Coins',
+    isSweepstakes: true,
+    domSelectors: [
+      'a[href*="redemption"]',
+      'button[data-testid="redeem"]',
+      'button[aria-label*="Redeem"]',
     ],
   },
   {

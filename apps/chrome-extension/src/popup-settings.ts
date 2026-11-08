@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 
 /**
  * Popup bindings for core Touch Grass + Pro strategic filter storage keys.
@@ -31,6 +31,12 @@ import {
   TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
   TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
   TILTCHECK_AUTO_LOCK_DURATION_KEY,
+  TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY,
+  TILTCHECK_BASE_STAKE_THRESHOLD_KEY,
+  DEFAULT_DEFAULT_BET_BREAKER_ENABLED,
+  DEFAULT_BASE_STAKE_THRESHOLD,
+  MIN_BASE_STAKE_THRESHOLD,
+  MAX_BASE_STAKE_THRESHOLD,
   type CoreCircuitBreakerOptions,
 } from './core-options.js';
 import {
@@ -348,4 +354,36 @@ export async function loadOnboardingCompleted(): Promise<boolean> {
     return stored[TILTCHECK_ONBOARDING_COMPLETED_KEY] === true;
   }
   return false;
+}
+
+export async function saveDefaultBetBreakerEnabled(enabled: boolean): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY]: enabled });
+  }
+}
+
+export async function loadDefaultBetBreakerEnabled(): Promise<boolean> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const stored = await chrome.storage.local.get([TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY]);
+    return stored[TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY] !== false;
+  }
+  return DEFAULT_DEFAULT_BET_BREAKER_ENABLED;
+}
+
+export async function saveBaseStakeThreshold(amount: number): Promise<void> {
+  const clamped = Math.max(MIN_BASE_STAKE_THRESHOLD, Math.min(MAX_BASE_STAKE_THRESHOLD, amount));
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_BASE_STAKE_THRESHOLD_KEY]: clamped });
+  }
+}
+
+export async function loadBaseStakeThreshold(): Promise<number> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const stored = await chrome.storage.local.get([TILTCHECK_BASE_STAKE_THRESHOLD_KEY]);
+    const val = stored[TILTCHECK_BASE_STAKE_THRESHOLD_KEY];
+    if (typeof val === 'number' && Number.isFinite(val)) {
+      return Math.max(MIN_BASE_STAKE_THRESHOLD, Math.min(MAX_BASE_STAKE_THRESHOLD, val));
+    }
+  }
+  return DEFAULT_BASE_STAKE_THRESHOLD;
 }

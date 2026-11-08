@@ -38,6 +38,12 @@
       overflow-x: hidden;
       overflow-y: auto;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel.active {
+      display: block;
+      flex: 1 0 auto;
     }
 
     body.standalone-window {
@@ -542,6 +548,7 @@
 
     /* --- FOOTER --- */
     .footer {
+      margin-top: auto;
       text-align: center;
       padding: 10px 16px;
       border-top: 1px solid var(--border);
@@ -1417,6 +1424,21 @@
     <p class="guard-note">Core is this 2s spin lock. Fullscreen Touch Grass (~2 min) is Pro monolith only. Wallet lock lives on <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color:var(--teal);">tiltcheck.me/cooldown</a> — you sign, we never hold keys.</p>
   </section>
 
+  <section class="guard-panel" id="default-bet-breaker-panel">
+    <h3>Default Bet Breaker</h3>
+    <p class="guard-policy">
+      Blocks the first spin on game load or page reload if the default house stake exceeds your base threshold.
+    </p>
+    <label class="guard-opt-row" for="default-bet-breaker-toggle">
+      <input type="checkbox" id="default-bet-breaker-toggle" checked />
+      <span>Intercept spins when game default stake exceeds your base threshold.</span>
+    </label>
+    <div class="form-row" style="margin-top:8px;">
+      <label for="base-stake-threshold-input">Base Stake Threshold (USD)</label>
+      <input type="number" id="base-stake-threshold-input" min="0.01" max="1000" step="0.10" value="0.50" />
+    </div>
+  </section>
+
   <section class="guard-panel" id="reality-hud-panel">
     <h3>Reality HUD</h3>
     <p class="guard-policy">
@@ -1713,7 +1735,7 @@
 
   <!-- Rule list -->
   <div id="vault-rule-list"></div>
-  <div class="empty-state" id="vault-empty" style="display:none">
+  <div class="empty-state" id="vault-empty">
     <strong>No vault rules set.</strong>
     Manage rules in the dashboard, then let the extension enforce them while you play.
   </div>

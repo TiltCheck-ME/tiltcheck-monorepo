@@ -308,18 +308,18 @@ async function performLogout(): Promise<void> {
 
 function openDashboardTab(tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'profile') {
   if (tab === 'vault') {
-    chrome.tabs.create({ url: 'https://tiltcheck.me/autovault' });
+    chrome.tabs.create({ url: 'https://tiltcheck.me/autovault/' });
     return;
   }
   if (tab === 'safety') {
-    chrome.tabs.create({ url: 'https://tiltcheck.me/nudges' });
+    chrome.tabs.create({ url: 'https://tiltcheck.me/nudges/' });
     return;
   }
   if (tab === 'buddies') {
-    chrome.tabs.create({ url: 'https://tiltcheck.me/collab' });
+    chrome.tabs.create({ url: 'https://tiltcheck.me/collab/' });
     return;
   }
-  chrome.tabs.create({ url: `${EXT_CONFIG.DASHBOARD_URL}?tab=${tab}` });
+  chrome.tabs.create({ url: 'https://tiltcheck.me/dashboard/' });
 }
 
 // ---------------------------------------------------------------------------
@@ -333,13 +333,25 @@ async function updateSessionStatusPill(): Promise<void> {
 
   try {
     const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+      const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
+      if (isStandaloneWindow) {
+        chrome.tabs.query({ active: true, lastFocusedWindow: false }, (allTabs) => {
+          const candidate = allTabs?.find(t => t.url && !t.url.startsWith('chrome-extension://') && !t.url.startsWith('chrome://'));
+          if (candidate) {
+            resolve([candidate]);
+          } else {
+            chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+          }
+        });
+      } else {
+        chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+      }
     });
     const activeTab = tabs[0];
     const tabUrl = activeTab?.url || '';
 
     const casinoMatch = tabUrl.match(
-      /https?:\/\/(?:[a-zA-Z0-9-]+\.)*(stake\.(?:com|us)|roobet\.com|bc\.game|rollbit\.com|shuffle\.com|gamdom\.com|csgoempire\.com)/i
+      /https?:\/\/(?:[a-zA-Z0-9-]+\.)*(stake\.(?:com|us)|roobet\.com|bc\.game|rollbit\.com|shuffle\.com|gamdom\.com|csgoempire\.com|crowncoinscasino\.com|lonestarcasino\.com|realprize\.com|pulsz\.com|mcluck\.com|chumbacasino\.com|wowvegas\.com|high5casino\.com|fortunecoins\.com|zulacasino\.com|sportzino\.com)/i
     );
     const casinoDomain = casinoMatch ? casinoMatch[1] : null;
 
@@ -362,8 +374,31 @@ async function updateSessionStatusPill(): Promise<void> {
       (streakState && streakState.lastUpdated > 0 && Date.now() - streakState.lastUpdated < 15 * 60 * 1000);
 
     if (casinoDomain) {
-      const base = casinoDomain.replace(/\.(com|us|game)$/i, '');
-      const siteName = base.charAt(0).toUpperCase() + base.slice(1);
+      let siteName = 'Casino';
+      const clean = casinoDomain.toLowerCase();
+      if (clean.includes('crowncoins')) siteName = 'Crown Coins';
+      else if (clean.includes('lonestar')) siteName = 'LoneStar';
+      else if (clean.includes('realprize')) siteName = 'Real Prize';
+      else if (clean.includes('stake.us')) siteName = 'Stake.us';
+      else if (clean.includes('stake.com')) siteName = 'Stake';
+      else if (clean.includes('roobet')) siteName = 'Roobet';
+      else if (clean.includes('bc.game')) siteName = 'BC.Game';
+      else if (clean.includes('rollbit')) siteName = 'Rollbit';
+      else if (clean.includes('shuffle')) siteName = 'Shuffle';
+      else if (clean.includes('gamdom')) siteName = 'Gamdom';
+      else if (clean.includes('csgoempire')) siteName = 'CSGOEmpire';
+      else if (clean.includes('pulsz')) siteName = 'Pulsz';
+      else if (clean.includes('mcluck')) siteName = 'McLuck';
+      else if (clean.includes('chumba')) siteName = 'Chumba';
+      else if (clean.includes('wowvegas')) siteName = 'WOW Vegas';
+      else if (clean.includes('high5')) siteName = 'High 5';
+      else if (clean.includes('fortunecoins')) siteName = 'Fortune Coins';
+      else if (clean.includes('zula')) siteName = 'Zula';
+      else if (clean.includes('sportzino')) siteName = 'Sportzino';
+      else {
+        const base = casinoDomain.replace(/\.(com|us|game|casino)$/i, '');
+        siteName = base.charAt(0).toUpperCase() + base.slice(1);
+      }
       pill.className = 'status-pill pill-active';
       if (hasLiveSpins || isRecentlyActive) {
         pillText.textContent = `Live (${siteName})`;
@@ -1411,6 +1446,14 @@ async function refreshGuardSettingsUi(): Promise<void> {
     cooldownWalletInput.value = touch.cooldownWallet;
   }
 
+  const defaultBetToggle = document.getElementById('default-bet-breaker-toggle') as HTMLInputElement | null;
+  if (defaultBetToggle) {
+    defaultBetToggle.checked = touch.defaultBetBreakerEnabled;
+  }
+  const baseStakeInput = document.getElementById('base-stake-threshold-input') as HTMLInputElement | null;
+  if (baseStakeInput) {
+    baseStakeInput.value = touch.baseStakeThreshold.toFixed(2);
+  }
   const autoLockToggle = document.getElementById('auto-lock-on-tilt-toggle') as HTMLInputElement | null;
   if (autoLockToggle) {
     autoLockToggle.checked = touch.autoLockOnTilt;
@@ -1447,6 +1490,26 @@ function initGuardSettingsPanel(): void {
     setTouchGrassControlsEnabled(enabled);
     toast(enabled ? 'Spin brake armed.' : 'Spin brake off.');
   });
+
+  const defaultBetToggle = document.getElementById('default-bet-breaker-toggle') as HTMLInputElement | null;
+  if (defaultBetToggle) {
+    defaultBetToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveDefaultBetBreakerEnabled(enabled);
+      toast(enabled ? 'Default bet breaker armed.' : 'Default bet breaker off.');
+    });
+  }
+
+  const baseStakeInput = document.getElementById('base-stake-threshold-input') as HTMLInputElement | null;
+  if (baseStakeInput) {
+    baseStakeInput.addEventListener('change', async () => {
+      const val = Number(baseStakeInput.value);
+      if (val > 0) {
+        await saveBaseStakeThreshold(val);
+        toast(`Base stake threshold set to ${val.toFixed(2)}.`);
+      }
+    });
+  }
 
   const wageInput = document.getElementById('hourly-wage-input') as HTMLInputElement | null;
   if (wageInput) {

@@ -48,6 +48,7 @@ import { installDepositBarrier, type DepositBarrierHandle } from './deposit-barr
 import { installReverseWithdrawalShield, type ReverseWithdrawalShieldHandle } from './reverse-withdrawal-shield.js';
 import { installProfitLock, type ProfitLockHandle } from './profit-lock.js';
 import { installBonusTracker, type BonusTrackerHandle } from './bonus-tracker.js';
+import { installDefaultBetBreaker, type DefaultBetBreakerHandle } from './default-bet-breaker.js';
 import { installSessionVelocityRadar, type SessionVelocityHandle } from './session-velocity.js';
 import {
   detectCashoutTarget,
@@ -99,6 +100,7 @@ let profitLock: ProfitLockHandle | null = null;
 let bonusTracker: BonusTrackerHandle | null = null;
 let sessionRadar: SessionVelocityHandle | null = null;
 let streakTracker: StreakVolatilityHandle | null = null;
+let defaultBetBreaker: DefaultBetBreakerHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
@@ -320,6 +322,7 @@ function installCoreOptionsListener(): void {
           syncReverseWithdrawalShield(opts);
           syncProfitLock(opts);
           syncBonusTracker(opts);
+          syncDefaultBetBreaker(opts);
 
         });
 
@@ -336,6 +339,30 @@ function installCoreOptionsListener(): void {
 }
 
 
+
+function syncDefaultBetBreaker(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && opts.defaultBetBreakerEnabled;
+  if (shouldRun) {
+    if (!defaultBetBreaker) {
+      try {
+        defaultBetBreaker = installDefaultBetBreaker(document, {
+          enabled: opts.defaultBetBreakerEnabled,
+          baseStakeThreshold: opts.baseStakeThreshold,
+        });
+      } catch {
+        defaultBetBreaker = null;
+      }
+    } else {
+      defaultBetBreaker.updateOptions({
+        enabled: opts.defaultBetBreakerEnabled,
+        baseStakeThreshold: opts.baseStakeThreshold,
+      });
+    }
+  } else if (defaultBetBreaker) {
+    defaultBetBreaker.stop();
+    defaultBetBreaker = null;
+  }
+}
 
 function syncRealityHud(opts: CoreCircuitBreakerOptions): void {
   const shouldRun = opts.enforcementEnabled && opts.realityHudEnabled;
@@ -505,6 +532,7 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncReverseWithdrawalShield(opts);
   syncProfitLock(opts);
   syncBonusTracker(opts);
+  syncDefaultBetBreaker(opts);
   if (!sessionRadar) {
     try {
       sessionRadar = installSessionVelocityRadar(document);
@@ -677,6 +705,21 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         softWarningActive: profitLock ? profitLock.isSoftWarningActive() : false,
         hardGuardTriggered: profitLock ? profitLock.isHardGuardTriggered() : false,
       });
+      return true;
+
+    case 'get_default_bet_breaker_state':
+      sendResponse({
+        active: defaultBetBreaker !== null,
+        armed: defaultBetBreaker ? defaultBetBreaker.isArmed() : false,
+        baseStakeThreshold: defaultBetBreaker ? defaultBetBreaker.getOptions().baseStakeThreshold : 0.50,
+      });
+      return true;
+
+    case 'reset_default_bet_breaker':
+      if (defaultBetBreaker) {
+        defaultBetBreaker.reset();
+      }
+      sendResponse({ success: true });
       return true;
 
     case 'get_bonus_tracker_state':
