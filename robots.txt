@@ -1,0 +1,6 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+User-agent: *
+Allow: /
+
+Sitemap: https://tiltcheck.me/sitemap.xml
+Host: https://tiltcheck.me
