@@ -34,5 +34,5 @@ jobs:
           SENTRY_PROJECT: tiltcheck-api
         with:
           environment: production
-          version: tiltcheck-api@${{ github.sha }}
+          release: tiltcheck-api@${{ github.sha }}
           set_commits: auto
