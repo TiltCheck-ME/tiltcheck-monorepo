@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-08 — fix(extension): popup window detach, auth bridge flow hardening, and dashboard 404 routing
+
+- Fixed popup height void: Reduced default popup min-height from 480px to 380px and adjusted width to 390px, eliminating excessive empty black voids on compact tabs (Vault, Activity).
+- Added Detached Standalone Window Mode: Added pop-out button (#btn-detach-window) in header triggering chrome.windows.create({ type: 'popup', width: 440, height: 720 }) allowing users to have an unconstrained, freely resizable OS desktop window.
+- Hardened Auth Bridge & Web Fallback: Updated auth-bridge.html with official obsidian styling and brand shield; eliminated popup-blocker suppression by binding authorization to user action; added connecting states and automatic redirection fallback to https://tiltcheck.me/login.
+- Eliminated 404s on Vault & Dashboard Links: Replaced non-existent dashboard.tiltcheck.me routes with live production paths (https://tiltcheck.me/autovault and https://tiltcheck.me/dashboard); updated scripts/convert-markdown.js to generate /dashboard/ hub and /vault/ redirect pages.
+- Header Logo Brand Refresh: Replaced legacy [TC] text mark in popup.html with official glowing brand shield icon (icons/icon48.png).
+- Tested & Packaged: Updated background.test.ts assertions; verified 100% test pass rate (38/38 test suites, 278/278 tests); packaged tiltcheck-extension.zip (428 KB).
+
 ## 2026-11-08 — fix(extension): high-resolution brand shield icon upgrade & CWS promo asset generation
 
 - Replaced legacy 501-byte blocky TC pixel placeholder with high-resolution TiltCheck brand shield.

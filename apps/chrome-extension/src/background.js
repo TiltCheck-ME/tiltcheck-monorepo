@@ -1,10 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-05
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 /**
  * MV3 service worker.
  * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
  */
 
-const VAULT_URL_BASE = 'https://tiltcheck.me/vault';
+const VAULT_URL_BASE = 'https://tiltcheck.me/autovault';
 const ALLOWED_AUTH_ORIGINS = new Set(['https://api.tiltcheck.me']);
 const API_BASE = 'https://api.tiltcheck.me';
 

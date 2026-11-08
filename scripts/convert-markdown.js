@@ -892,6 +892,64 @@ function buildAutovaultPage() {
   });
 }
 
+function buildDashboardPage() {
+  const depth = 'docs';
+  const content = `<main class="cooldown-page">
+  <div class="cooldown-panel" style="max-width: 720px;">
+    <p class="brand-eyebrow">DASHBOARD HUB</p>
+    <h1>TiltCheck Control Surface</h1>
+    <p class="cooldown-punch">Non-custodial gaming guardrails, profit locks, and verified fair play tools.</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; text-align: left;">
+      <a href="${href(depth, 'autovault')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">AutoVault &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Configure profit-lock rules and voluntary bankroll containment.</p>
+      </a>
+
+      <a href="${href(depth, 'cooldown')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">On-Chain Cooldown &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Immutable Solana voluntary exclusion timelocks. You sign, zero custody.</p>
+      </a>
+
+      <a href="${href(depth, 'tools/verify')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Client Seed Verifier &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">CSPRNG generation, Shannon entropy analyzer, and provably fair audit.</p>
+      </a>
+
+      <a href="${href(depth, 'nudges')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Pacing &amp; Nudges &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">2-second spin brakes, loss velocity limits, and Reality HUD alerts.</p>
+      </a>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <a class="btn btn-primary" href="${href(depth, 'downloads/tiltcheck-extension.zip')}" download>GET CHROME EXTENSION</a>
+    </div>
+  </div>
+  <script>
+    (function() {
+      var p = new URLSearchParams(window.location.search);
+      var tab = p.get('tab');
+      if (tab === 'vault') {
+        window.location.replace('../autovault/');
+      } else if (tab === 'safety') {
+        window.location.replace('../nudges/');
+      } else if (tab === 'buddies') {
+        window.location.replace('../collab/');
+      }
+    })();
+  </script>
+</main>`;
+
+  return shell({
+    title: 'Dashboard | TiltCheck',
+    description: 'TiltCheck user dashboard hub and safety control surface.',
+    depth: 'docs',
+    current: 'dashboard',
+    body: content,
+  });
+}
+
 function buildAutovaultRedirect() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1708,6 +1766,13 @@ function run() {
   fs.mkdirSync(verifyDir, { recursive: true });
   fs.writeFileSync(path.join(verifyDir, "index.html"), buildVerifyDirectRedirect());
 
+  const dashboardDir = path.join(siteRoot, 'dashboard');
+  fs.mkdirSync(dashboardDir, { recursive: true });
+  fs.writeFileSync(path.join(dashboardDir, 'index.html'), buildDashboardPage());
+
+  const vaultDir = path.join(siteRoot, 'vault');
+  fs.mkdirSync(vaultDir, { recursive: true });
+  fs.writeFileSync(path.join(vaultDir, 'index.html'), buildAutovaultRedirect());
   const autovaultDir = path.join(siteRoot, 'autovault');
   fs.mkdirSync(autovaultDir, { recursive: true });
   fs.writeFileSync(path.join(autovaultDir, 'index.html'), buildAutovaultPage());

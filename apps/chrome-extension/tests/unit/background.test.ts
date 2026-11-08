@@ -148,7 +148,7 @@ describe('background service worker', () => {
     expect(immediate).toBe(false);
     expect(chromeMock.tabs.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        url: 'https://tiltcheck.me/vault?amount=25',
+        url: 'https://tiltcheck.me/autovault?amount=25',
       }),
     );
     expect(vaultResponse).toHaveBeenCalledWith({ success: true });

@@ -304,11 +304,19 @@ async function performLogout(): Promise<void> {
 }
 
 function openDashboardTab(tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'profile') {
-  const dashboardUrl = new URL(EXT_CONFIG.DASHBOARD_URL);
-  if (tab !== 'profile') {
-    dashboardUrl.searchParams.set('tab', tab);
+  if (tab === 'vault') {
+    chrome.tabs.create({ url: 'https://tiltcheck.me/autovault' });
+    return;
   }
-  chrome.tabs.create({ url: dashboardUrl.toString() });
+  if (tab === 'safety') {
+    chrome.tabs.create({ url: 'https://tiltcheck.me/nudges' });
+    return;
+  }
+  if (tab === 'buddies') {
+    chrome.tabs.create({ url: 'https://tiltcheck.me/collab' });
+    return;
+  }
+  chrome.tabs.create({ url: `${EXT_CONFIG.DASHBOARD_URL}?tab=${tab}` });
 }
 
 // ---------------------------------------------------------------------------
@@ -1731,6 +1739,22 @@ async function init() {
     loadStatus();
   }
 
+  // Detach window listener
+  const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
+  if (isStandaloneWindow) {
+    document.body.classList.add('standalone-window');
+    const detachBtn = document.getElementById('btn-detach-window');
+    if (detachBtn) detachBtn.style.display = 'none';
+  }
+  $('btn-detach-window')?.addEventListener('click', () => {
+    chrome.windows.create({
+      url: chrome.runtime.getURL('popup.html?mode=window'),
+      type: 'popup',
+      width: 440,
+      height: 720,
+    });
+    window.close();
+  });
   // Tabs
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -1742,21 +1766,19 @@ async function init() {
 
   // Auth
   $('btn-login').addEventListener('click', () => {
-    // Route through auth-bridge so opener_origin is set to the extension origin.
-    // Directly opening the login URL from a popup context strips the opener and
-    // causes "Missing trusted extension origin" at the OAuth callback.
     const authUrl = getDiscordLoginUrl('extension');
+    const button = $<HTMLButtonElement>('btn-login');
+    button.disabled = true;
+    button.textContent = 'Connecting...';
+
     chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+      button.disabled = false;
+      button.textContent = 'Log in with Discord';
       if (chrome.runtime.lastError || !response?.success) {
-        // Fall back to opening the sidebar on the active casino tab
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]?.id) {
-            chrome.tabs.sendMessage(tabs[0].id, { type: 'open_sidebar' }).catch(() => {});
-          }
-        });
-        toast('Could not open Discord login. Retry, or use email below. Sidebar HUD is Pro, not this zip.', true);
+        chrome.tabs.create({ url: 'https://tiltcheck.me/login' });
+        toast('Opening TiltCheck login portal...');
       } else {
-        toast('Discord sign-in tab opened. Complete login there, then this popup updates automatically.');
+        toast('Discord sign-in tab opened.');
       }
     });
   });
@@ -1769,13 +1791,20 @@ async function init() {
 
     const button = $<HTMLButtonElement>('btn-magic-login');
     button.disabled = true;
-    button.innerHTML = '<div class="spinner"></div>';
+    button.textContent = 'Connecting...';
 
     try {
-      const configResponse = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/magic/config`);
+      const configResponse = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/magic/config`).catch(() => null);
+      if (!configResponse || !configResponse.ok) {
+        chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
+        toast('Redirecting to TiltCheck web login...');
+        return;
+      }
       const config = await configResponse.json().catch(() => null) as { enabled?: boolean; publishableKey?: string | null } | null;
-      if (!configResponse.ok || !config?.enabled || !config.publishableKey) {
-        throw new Error('Magic sign-in is not configured.');
+      if (!config?.enabled || !config.publishableKey) {
+        chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
+        toast('Redirecting to TiltCheck web login...');
+        return;
       }
 
       const { Magic } = await import('magic-sdk');
@@ -1821,9 +1850,10 @@ async function init() {
       userData = nextUser;
       renderAuthState();
       loadFeed();
-      toast(payload.user.discordId ? 'Signed in.' : 'Signed in. Discord-only tools stay hidden on site accounts.');
+      toast(payload.user.discordId ? 'Signed in.' : 'Signed in.');
     } catch (error) {
-      toast(error instanceof Error ? error.message : 'Magic sign-in failed.', true);
+      chrome.tabs.create({ url: `https://tiltcheck.me/login?email=${encodeURIComponent(email)}` });
+      toast('Redirecting to TiltCheck web login...');
     } finally {
       button.disabled = false;
       button.textContent = 'Connect with Email';
