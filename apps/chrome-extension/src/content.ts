@@ -604,6 +604,12 @@ async function boot(): Promise<void> {
     return;
   }
 
+  const isTiltCheckSite = hostname === 'tiltcheck.me' || hostname.endsWith('.tiltcheck.me');
+  if (isTiltCheckSite) {
+    installCooldownPageBridge();
+    return;
+  }
+
   await startCoreCircuitBreaker();
   const siteKey = normalizeSiteKey(hostname);
   const friendlySite = siteKey ? siteKey.charAt(0).toUpperCase() + siteKey.slice(1) : hostname;
