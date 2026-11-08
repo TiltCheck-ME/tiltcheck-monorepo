@@ -17,6 +17,7 @@ package-lock.json
 *.txt
 !**/README.txt
 !apps/web/public/llms.txt
+!**/robots.txt
 
 # AI chat logs and exports
 *chat-export*
