@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * @vitest-environment jsdom
  * cashout-router.test.ts
@@ -50,6 +50,13 @@ describe('detectCashoutTarget and DOM triggers', () => {
     document.body.innerHTML = '';
   });
 
+  it('resolves Stake.us cashier URL with modal=wallet&tab=redeem', () => {
+    const result = detectCashoutTarget(document, 'stake.us');
+    expect(result.route?.id).toBe('stake_us');
+    expect(result.cashierUrl).toBe('https://stake.us/?modal=wallet&tab=redeem');
+    expect(result.buttonLabel).toBe('Redeem Sweeps Cash');
+  });
+
   it('detects route and clicks DOM target if selector matches', () => {
     const walletBtn = document.createElement('button');
     walletBtn.setAttribute('data-test', 'wallet-button');
@@ -58,7 +65,7 @@ describe('detectCashoutTarget and DOM triggers', () => {
     const result = detectCashoutTarget(document, 'stake.com');
     expect(result.route?.id).toBe('stake');
     expect(result.clickTarget).toBe(walletBtn);
-    expect(result.cashierUrl).toBe('https://stake.com/?tab=wallet&modal=withdraw');
+    expect(result.cashierUrl).toBe('https://stake.com/?modal=wallet&tab=withdraw');
     expect(result.buttonLabel).toBe('Cashier / Withdraw');
   });
 
