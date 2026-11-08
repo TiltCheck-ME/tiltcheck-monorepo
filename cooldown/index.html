@@ -2,35 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Cooldown | On-chain wallet lock | TiltCheck</title>
-<meta name="description" content="Sign a lock so 3am-you cannot put the stack back. Not a deposit. Solana wallet. Devnet."/>
+<title>Cooldown | Self-Enforced On-Chain Lock | TiltCheck</title>
+<meta name="description" content="Take a break on your own terms. Non-custodial on-chain timelock with Solana wallet that automatically locks casino cashiers and spin buttons."/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#06080b"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="../styles/icon.png"/>
 <link rel="stylesheet" href="../styles/base.css"/>
 
 </head>
 <body>
 <nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="../index.html"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <a class="site-nav__brand" href="../index.html"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>TiltCheck</a>
   <div class="site-nav__links">
     <a href="../extension.html">Extension</a>
+    <a href="../tools/">Tools</a>
     <a href="../casinos/">Casinos</a>
     <a href="../cooldown/" aria-current="page">Cooldown</a>
+    <a href="../tip/">Tip Jar</a>
     <a class="site-nav__discord" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
   </div>
 </nav>
 <main class="cooldown-page">
   <div class="cooldown-panel">
-    <h1>Cooldown</h1>
-    <p class="cooldown-punch">Sign a lock so 3am-you cannot put the stack back.</p>
-    <p class="cooldown-fine">Not a deposit. No keys. Solana wallet. Devnet. Casinos do not have to honor it. You do. Stronger only.</p>
+    <h1>Self-Enforced Cooldown</h1>
+    <p class="cooldown-punch">Take a break on your own terms before tilt takes over.</p>
+    <p class="cooldown-fine">100% non-custodial. No deposits. No funds held. Sign an on-chain timelock with any Solana wallet to lock the casino cashier and slot spin buttons.</p>
     <div id="auto-tilt-alert-banner" style="display:none; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.25rem; text-align: left; box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Critical Tilt Intervention: 24h Auto-Lock Triggered</span>
-        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">LEVEL 3+ TILT</span>
+        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Tilt Intervention Triggered</span>
+        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">ACTIVE INTERVENTION</span>
       </div>
-      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">High tilt signals were detected during active play. The extension has initiated in-session deposit barriers. Sign the Solana Devnet timelock below to freeze access on-chain and prevent chasing.</p>
+      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">Rapid losses or high spin velocity were detected during your session. The extension has engaged in-session brakes. Set a cooldown below to enforce your break.</p>
       <div id="auto-tilt-wallet" style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;"></div>
     </div>
     <script>
@@ -49,27 +52,27 @@
       })();
     </script>
     <ol class="cooldown-steps">
-      <li>Connect a Solana wallet you hold. Exodus is out.</li>
-      <li>Pick the scope: everything, a category, or one game.</li>
-      <li>Pick how long. Stronger locks only. No SOL moves.</li>
+      <li><strong>Connect any Solana wallet</strong> (Phantom, Backpack, Solflare, etc.). No SOL or tokens are ever spent or transferred.</li>
+      <li><strong>Select your cooldown duration</strong> (24 hours, 3 days, 7 days, or 30 days). Once signed, you cannot cancel the timer early.</li>
+      <li><strong>Automatic in-browser enforcement</strong>. The TiltCheck extension locks casino cashier buttons and disables spin triggers until your cooldown expires.</li>
     </ol>
     <div class="cooldown-how" style="margin-top: 2rem; border-top: 1px solid #283347; padding-top: 1.5rem;">
-      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How To Enforce Your Lock</h2>
+      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How It Protects Your Bankroll</h2>
       <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
           <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. In-Browser Guard (Extension)</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">Install the TiltCheck browser extension. Active voluntary locks engage the DOM Deposit Barrier across cashier pages and deaden spin buttons on high-risk games.</p>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">Install the TiltCheck browser extension. Active voluntary locks engage the Deposit Barrier across cashier pages and deaden spin buttons on high-risk games.</p>
           <a class="btn btn-primary" href="../extension.html">Get the extension</a>
         </div>
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
           <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Terminal Cooldown (No Wallet Needed)</h3>
           <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Don't want to connect a crypto wallet? Set a local break timer directly from your terminal:</p>
           <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
-          <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a tamper-proof self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
+          <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a local self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
         </div>
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">3. One-Click Cashier Handoff</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Playing on Stake, Roobet, or sweepstakes sites? The extension Cashier Router and Profit-Lock Ratchet bridge directly into this on-chain vault with your session casino pre-filled, letting you freeze access with zero custodial intermediaries.</p>
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">3. Reverse-Withdrawal &amp; Cashier Protection</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Cashing out on Stake, Roobet, or sweepstakes sites? The extension automatically blocks 'Cancel Withdrawal' buttons while payouts clear so settled wins never feed back to the house.</p>
         </div>
       </div>
     </div>
@@ -77,8 +80,12 @@
 </main>
 <footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
-    <p class="site-footer__more-label">Also</p>
+    <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
+      <a href="../tools/">All Tools</a>
+      <a href="../rtp-scanner/">RTP Scanner</a>
+      <a href="../house-edge-scanner/">House Edge</a>
+      <a href="../verify/">Bet Verifier</a>
       <a href="../autovault/">AutoVault</a>
       <a href="../nudges/">Nudges</a>
       <a href="../tip/">Tip Jar</a>
