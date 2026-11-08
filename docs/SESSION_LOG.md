@@ -2,6 +2,16 @@
 
 # Session Log
 
+## 2026-11-08 — fix(extension): high-resolution brand shield icon upgrade & CWS promo asset generation
+
+- Replaced legacy 501-byte blocky TC pixel placeholder with high-resolution TiltCheck brand shield.
+- Rendered anti-aliased, multi-resolution icons (icon16.png, icon48.png, icon128.png) using Lanczos downsampling from 1024x1024 master artwork with obsidian squircle backing, glowing teal border, and golden backlight.
+- Generated Chrome Web Store collateral in apps/chrome-extension/promo/:
+  - Small Promo Tile (440x280 PNG) with dark gradient, shield mark, and brand typography.
+  - Marquee Promo Tile (1400x560 PNG) with full feature highlights and editorial layout.
+- Updated generate-icons.py and generate-icons.js with line-1 copyright headers.
+- Rebuilt and packaged tiltcheck-extension.zip (437 KB); 38 test files, 278 tests passed.
+
 ## 2026-11-08 — docs(store): Chrome Web Store Developer Review Readiness & Packaging Audit
 
 - Audited and packaged production release of TiltCheck Chrome Extension (v1.2.3).

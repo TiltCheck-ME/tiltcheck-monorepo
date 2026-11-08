@@ -87,13 +87,13 @@ OFFICIAL CHANNELS
 
 | Asset | Dimensions | Status | Location / Notes |
 | :--- | :--- | :--- | :--- |
-| **Store Icon** [REQUIRED] | 128x128 PNG | Ready | `apps/chrome-extension/src/icons/icon128.png` |
+| **Store Icon** [REQUIRED] | 128x128 PNG | Ready | `apps/chrome-extension/src/icons/icon128.png` (High-res obsidian shield badge) |
 | **Screenshot 1** [REQUIRED] | 1280x800 PNG | Ready to capture | Active extension popup displaying Cooldown Status, Spin Brake toggle, and Seed Hygiene indicator. |
 | **Screenshot 2** [RECOMMENDED] | 1280x800 PNG | Ready to capture | In-game overlay on Stake/Roobet showing the 2-second Spin Brake cooldown in effect. |
 | **Screenshot 3** [RECOMMENDED] | 1280x800 PNG | Ready to capture | Client Seed Manager showing CSPRNG generation, Shannon entropy score, and "Apply to Page" action. |
 | **Screenshot 4** [RECOMMENDED] | 1280x800 PNG | Ready to capture | Profit Lock Ratchet and Session Loss velocity limits configuration screen. |
-| **Small Promo Tile** [RECOMMENDED] | 440x280 PNG | Optional | Clean branded graphic: TiltCheck shield logo with "Non-Custodial Casino Guardrails". |
-| **Marquee Promo Tile** | 1400x560 PNG | Optional | Promotional header for Chrome Web Store editorial showcase consideration. |
+| **Small Promo Tile** [RECOMMENDED] | 440x280 PNG | Ready | `apps/chrome-extension/promo/promo-small-440x280.png` |
+| **Marquee Promo Tile** | 1400x560 PNG | Ready | `apps/chrome-extension/promo/promo-marquee-1400x560.png` |
 
 ### Screenshot Guidance
 1. Ensure all screenshots are crisp 1280x800 (or 640x400) PNG images without OS taskbars or personal bookmarks visible.

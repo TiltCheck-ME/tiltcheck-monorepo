@@ -143,10 +143,10 @@ Before submitting, upload the required images in the Store Listing tab:
 
 | Asset | Dimensions | Status | Notes |
 | :--- | :--- | :--- | :--- |
-| **Store Icon** | 128x128 PNG | Ready | Use `apps/chrome-extension/src/icons/icon128.png`. |
+| **Store Icon** | 128x128 PNG | Ready | Use `apps/chrome-extension/src/icons/icon128.png` (High-res obsidian shield badge). |
 | **Screenshots** | 1280x800 PNG | Ready to capture | At least 1 screenshot is required (up to 5 allowed). Recommended: Extension popup with Cooldown Status, Spin Brake active HUD on Stake/Roobet, and Profit Lock settings. |
-| **Small Promo Tile** | 440x280 PNG | Optional/Recommended | Clean banner featuring the TiltCheck logo and "Non-Custodial Casino Guardrails". |
-| **Marquee Banner** | 1400x560 PNG | Optional | For featured placement consideration on the Chrome Web Store. |
+| **Small Promo Tile** | 440x280 PNG | Ready | Use `apps/chrome-extension/promo/promo-small-440x280.png`. |
+| **Marquee Banner** | 1400x560 PNG | Ready | Use `apps/chrome-extension/promo/promo-marquee-1400x560.png`. |
 
 ---
 
