@@ -133,7 +133,7 @@ These agents are available as GitHub Copilot custom agents within the repository
 
 ### Monorepo overview
 
-pnpm v10.29.1 workspace managed by Turborepo. Node 20. All packages are ESM (`"type": "module"`).
+pnpm v10.29.1 workspace managed by Turborepo. Node 22 LTS. All packages are ESM (`"type": "module"`).
 Standard commands are in root `package.json` scripts; see the README "Getting Started" section.
 
 ### Starting services

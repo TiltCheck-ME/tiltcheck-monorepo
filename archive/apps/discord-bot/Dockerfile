@@ -1,6 +1,6 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck Discord Bot - High-Speed Production Container
-FROM node:20 AS base
+FROM node:22 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 RUN test -f apps/discord-bot/dist/bootstrap.js || (echo 'BUILD ERROR: apps/discord-bot/dist/bootstrap.js not produced' && exit 1)
 # [PHASE 3] Production Runtime
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

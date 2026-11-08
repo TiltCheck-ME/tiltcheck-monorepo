@@ -3,7 +3,7 @@
 # Multi-stage build: Node.js builds the Vite app, nginx serves the static output.
 
 # ── Stage 1: Build ────────────────────────────────────────────────────────────
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true

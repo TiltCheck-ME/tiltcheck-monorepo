@@ -1,6 +1,6 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck User Dashboard - High-Speed Express Implementation
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
@@ -18,7 +18,7 @@ RUN pnpm --filter @tiltcheck/auth build
 RUN pnpm --filter @tiltcheck/user-dashboard... build
 RUN test -f apps/user-dashboard/dist/index.js || (echo 'BUILD ERROR: apps/user-dashboard/dist/index.js not produced' && exit 1)
 # [PHASE 3] Production Runtime
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 
 COPY --from=build /app/apps/user-dashboard/dist ./apps/user-dashboard/dist

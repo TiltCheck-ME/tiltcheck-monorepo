@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * reverse-withdrawal-shield.ts
  * DOM Reverse-Withdrawal Shield (Cashier Protection).
@@ -104,6 +104,12 @@ export function isCancelWithdrawalTarget(target: Element): boolean {
         CANCEL_WITHDRAWAL_SELECTORS.join(', ')
     ) ?? target;
 
+  const text = (container.textContent ?? '').trim();
+  const textLower = text.toLowerCase();
+  if (textLower.includes('shield') || textLower.includes('tiltcheck')) {
+    return false;
+  }
+
   // 1. Selector match
   for (const selector of CANCEL_WITHDRAWAL_SELECTORS) {
     try {
@@ -138,7 +144,6 @@ export function isCancelWithdrawalTarget(target: Element): boolean {
   }
 
   // 4. Explicit text pattern match
-  const text = (container.textContent ?? '').trim();
   if (EXPLICIT_TEXT_REGEX.test(text) || SLUG_REGEX.test(text)) {
     return true;
   }

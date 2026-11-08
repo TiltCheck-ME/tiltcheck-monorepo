@@ -1,7 +1,7 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck API root Dockerfile - lockfile-stable monorepo build.
 
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
 RUN pnpm --filter @tiltcheck/api build
 RUN pnpm --filter @tiltcheck/api --prod deploy /app/out
 
-FROM node:20-slim AS runtime
+FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001

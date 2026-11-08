@@ -2,7 +2,7 @@
 # TiltCheck Web (Landing Page) - Production Container
 # Built for GitHub Actions -> GHCR -> Railway deploys in the monorepo
 
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.34.4 --activate && apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
@@ -27,7 +27,7 @@ ENV NODE_ENV=production
 RUN pnpm --filter web build
 
 # [PHASE 3] Production Surface
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0

@@ -1,6 +1,6 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck Game Arena - High-Speed Multiplayer Container
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/game-arena...
 RUN pnpm --filter @tiltcheck/game-arena... build
 RUN test -f apps/game-arena/dist/server.js || (echo 'BUILD ERROR: apps/game-arena/dist/server.js not produced' && exit 1)
 # [PHASE 3] Production Runtime
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

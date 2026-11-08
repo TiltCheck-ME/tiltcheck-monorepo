@@ -2,7 +2,7 @@
 # Channel Watcher — Railway container
 # Uses Node 20 slim + Playwright Chromium (headless, no display needed)
 
-FROM node:20-slim
+FROM node:22-slim
 
 # Chromium runtime dependencies for Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \

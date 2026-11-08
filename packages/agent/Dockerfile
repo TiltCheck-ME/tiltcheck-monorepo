@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Build stage
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /workspace
 
@@ -27,7 +27,7 @@ COPY tsconfig.json ./
 RUN npm run build
 
 # Runtime stage
-FROM node:20-slim AS runtime
+FROM node:22-slim AS runtime
 
 WORKDIR /workspace
 

@@ -1,6 +1,6 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 # DAD Bot - Production Container
-FROM node:20 AS base
+FROM node:22 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
@@ -20,7 +20,7 @@ RUN pnpm --filter @tiltcheck/dad-bot deploy --prod --legacy /deploy/dad-bot
 # Copy built dist over the deploy dir (deploy only copies src files)
 RUN cp -r /app/apps/dad-bot/dist /deploy/dad-bot/dist
 
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

@@ -4,7 +4,7 @@ stages:
 
 deploy_script_checks:
   stage: verify
-  image: node:20
+  image: node:22
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "push"'
@@ -16,7 +16,7 @@ deploy_script_checks:
 
 devx_duo_autofix:
   stage: duo-agent
-  image: node:20
+  image: node:22
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$RUN_DUO_AGENT == "1"'
@@ -59,7 +59,7 @@ devx_duo_autofix:
 
 devx_duo_docs_agent:
   stage: duo-agent
-  image: node:20
+  image: node:22
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "push" && $DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION == "1"'

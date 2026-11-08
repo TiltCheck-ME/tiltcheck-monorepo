@@ -31,6 +31,8 @@ const isDiscordAuthRoute = pathname.startsWith('/auth/discord');
 
 const isExcludedDomain =
   isDomain(hostname, 'discord.com') ||
+  isDomain(hostname, 'tiltcheck.me') ||
+  hostname === 'tiltcheck.me' ||
   (hostname === 'localhost' && window.location.port === '3333') ||
   (hostname === 'localhost' && window.location.port === '3001' && isDiscordAuthRoute) ||
   (isDomain(hostname, 'api.tiltcheck.me') && isDiscordAuthRoute);
