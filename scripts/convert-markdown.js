@@ -1796,7 +1796,7 @@ function buildTipPage() {
     <div class="landing-shell">
       <div class="public-page-section-heading">
         <span class="brand-eyebrow">Solana Network</span>
-        <h2 class="public-page-section-heading__title">Tip via Phantom, Solflare, or Backpack</h2>
+        <h2 class="public-page-section-heading__title">Tip via Any Solana Wallet</h2>
       </div>
 
       <div style="background:#0c0f14; border:1px solid rgba(23,195,178,0.25); border-radius:12px; padding:24px; max-width:640px; margin:0 auto 32px;">

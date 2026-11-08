@@ -226,7 +226,7 @@ async function run() {
     features: [
       '<strong>On-Chain Cooldown Timelock:</strong> Cryptographically locked self-exclusion.',
       '<strong>Non-Custodial Tip Jar:</strong> Free and open-source harm reduction funded by voluntary tips.',
-      '<strong>Solana Pay & SPL Support:</strong> Direct integration with Phantom and Solflare.',
+      '<strong>Solana Pay & SPL Support:</strong> Direct support for any Solana wallet.',
       '<strong>Zero Feature Gating:</strong> All safety controls remain 100% free forever.'
     ],
     scriptToRun: `
