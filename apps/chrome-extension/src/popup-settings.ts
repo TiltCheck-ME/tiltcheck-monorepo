@@ -332,3 +332,20 @@ export async function saveCooldownWallet(wallet: string | null): Promise<string 
   }
   return valid;
 }
+
+
+export const TILTCHECK_ONBOARDING_COMPLETED_KEY = 'tiltcheck_onboarding_completed';
+
+export async function saveOnboardingCompleted(completed = true): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_ONBOARDING_COMPLETED_KEY]: completed });
+  }
+}
+
+export async function loadOnboardingCompleted(): Promise<boolean> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const stored = await chrome.storage.local.get([TILTCHECK_ONBOARDING_COMPLETED_KEY]);
+    return stored[TILTCHECK_ONBOARDING_COMPLETED_KEY] === true;
+  }
+  return false;
+}

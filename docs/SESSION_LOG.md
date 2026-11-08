@@ -2,6 +2,14 @@
 
 # Session Log
 
+## 2026-11-08 — feat(extension): sweepstakes Gold Coins filter & onboarding tutorial wizard
+
+- Gold Coins / Play Money Suppression: Implemented isPlayMoneyBalance() in reality-hud.ts and updated readBalance() to recognize Gold Coins (GC), free play, and demo credits. Prevents sweepstakes token balances (e.g. 100,000 GC on Stake.us) from falsely triggering real-money cashout goals, soft warning modals, or fake drawdown calculations.
+- Extreme Currency Jump Protection: Added safeguard in profit-lock.ts to prevent instant multi-order-of-magnitude balance jumps from firing simultaneous goal unlocks.
+- Clean Relatable Default Lifelines: Removed external sponsor URLs and low thresholds ( Spotify,  trash bags); replaced with clean real-world lifelines (Dinner , Gas , Groceries , Power Bill , Rent ) with empty linkUrl targets.
+- Interactive Onboarding Setup Wizard: Built 4-step wizard (#onboarding-overlay) covering Zero-Custody philosophy, Sweeps Cash vs Gold Coins explanation, customizable goal selector, and guardrail checklist. Automatically launches on first run and can be re-opened anytime via #btn-tutorial in the popup header.
+- Verified & Packaged: Added unit tests for isPlayMoneyBalance() and onboarding persistence; 38/38 test suites passed (279/279 tests); packaged tiltcheck-extension.zip (430 KB).
+
 ## 2026-11-08 — style(extension): neurocognitive visual refresh (PMC12289795 selective visual attention & calm saliency)
 
 - Applied neurocognitive design principles from PMC12289795 (Klein et al., July 2025, Selective Visual Attention in ADHD) to eliminate false-alarm attentional capture and visual clutter in the extension popup.

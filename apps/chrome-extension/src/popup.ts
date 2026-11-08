@@ -34,7 +34,10 @@ import {
   saveAutoLockOnTilt,
   saveAutoLockThreshold,
   saveAutoLockDuration,
+  saveOnboardingCompleted,
+  loadOnboardingCompleted,
 } from './popup-settings.js';
+import { DEFAULT_CASHOUT_GOALS } from './profit-lock.js';
 import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
 import {
@@ -1884,6 +1887,8 @@ async function init() {
   loadSessionRadar();
   loadCashoutGoalsProgress();
   loadStreakVolatility();
+
+  initOnboardingWizard();
 
   // Vault listeners
   initVaultListeners();

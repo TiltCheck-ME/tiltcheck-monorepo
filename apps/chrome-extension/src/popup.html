@@ -1050,6 +1050,172 @@
     .btn-quick-cashout:active {
       transform: translateY(0);
     }
+
+    /* --- ONBOARDING WIZARD MODAL --- */
+    .onboarding-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(8, 10, 14, 0.96);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 14px;
+      font-family: var(--font);
+      box-sizing: border-box;
+    }
+    .onboarding-card {
+      background: #0d1117;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 12px;
+      padding: 18px 16px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8);
+      margin: auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .onboarding-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .onboarding-step-indicator {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .step-dot.active {
+      background: var(--teal);
+      transform: scale(1.2);
+    }
+    .onboarding-close-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 4px;
+      transition: color 0.15s;
+    }
+    .onboarding-close-btn:hover { color: var(--text); }
+    .onboarding-step {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .onboarding-step h2 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #f8fafc;
+      margin: 0;
+    }
+    .onboarding-tagline {
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: var(--muted);
+      margin: 0;
+    }
+    .onboarding-features {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 6px 0;
+    }
+    .feature-item {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #cbd5e1;
+    }
+    .feature-item strong {
+      color: var(--teal);
+      display: inline;
+      margin-right: 4px;
+    }
+    .onboarding-badge-icon {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(23, 195, 178, 0.12);
+      border: 1px solid rgba(23, 195, 178, 0.25);
+      color: var(--teal);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .onboarding-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .onboarding-actions .btn {
+      flex: 1;
+    }
+    .wizard-goal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 175px;
+      overflow-y: auto;
+      margin: 4px 0;
+    }
+    .wizard-goal-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .wizard-goal-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .wizard-goal-amt-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .wizard-goal-amt-input {
+      width: 55px;
+      background: #080a0e;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: #f1f5f9;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 5px;
+      text-align: right;
+    }
+    .wizard-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 6px 0;
+    }
   </style>
 </head>
 <body>
@@ -1064,6 +1230,12 @@
       <span class="dot"></span>
       <span id="session-pill-text">No session</span>
     </span>
+    <button class="icon-btn" id="btn-tutorial" title="Onboarding Tutorial & Guide">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/>
+        <path d="M6 7.5a2 2 0 1 1 2.5 1.9c-.5.3-.5.9-.5 1.6M8 13.5h.01"/>
+      </svg>
+    </button>
     <button class="icon-btn" id="btn-detach-window" title="Pop out into resizable window">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10 2h4v4M14 2L8 8M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3"/>
@@ -1564,6 +1736,115 @@
 </div>
 
 <div class="footer">Made for Degens. By Degens.</div>
+<!-- ===== ONBOARDING WIZARD MODAL ===== -->
+<div id="onboarding-overlay" class="onboarding-overlay" style="display:none;">
+  <div class="onboarding-card">
+    <div class="onboarding-header">
+      <div class="onboarding-step-indicator">
+        <span class="step-dot active" data-step="1"></span>
+        <span class="step-dot" data-step="2"></span>
+        <span class="step-dot" data-step="3"></span>
+        <span class="step-dot" data-step="4"></span>
+      </div>
+      <button type="button" class="onboarding-close-btn" id="btn-close-onboarding" title="Close Guide">&times;</button>
+    </div>
+
+    <!-- Step 1: Welcome & Philosophy -->
+    <div class="onboarding-step" id="onboarding-step-1">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="icons/icon48.png" width="36" height="36" style="border-radius:8px;" alt="TiltCheck Shield" />
+        <div>
+          <h2>Welcome to TiltCheck</h2>
+          <p class="onboarding-tagline">Non-custodial responsible gaming guardrails for degens.</p>
+        </div>
+      </div>
+      <div class="onboarding-features">
+        <div class="feature-item">
+          <strong>Zero Custody:</strong> We never hold keys, passwords, or casino funds. 100% on-device harm reduction.
+        </div>
+        <div class="feature-item">
+          <strong>2s Spin Brake:</strong> Breaks the rapid-spin trance between clicks so you stay grounded.
+        </div>
+        <div class="feature-item">
+          <strong>On-Device Telemetry:</strong> PnL velocity, streak tracking, and CSPRNG client seed rotation.
+        </div>
+      </div>
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-primary" id="btn-step-1-next">Get Started &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Currency & Play Mode -->
+    <div class="onboarding-step" id="onboarding-step-2" style="display:none;">
+      <div class="onboarding-badge-icon">SWEEPS VS GOLD COINS</div>
+      <h2>Currency &amp; Play Mode</h2>
+      <p class="onboarding-tagline">Smart balance detection for sweepstakes &amp; crypto casinos.</p>
+      <div class="onboarding-features">
+        <div class="feature-item">
+          <strong>Sweeps / Real Cash (SC):</strong> Actively monitored for cashout goals, trailing profit locks, and reality checks.
+        </div>
+        <div class="feature-item">
+          <strong>Gold Coins (GC) / Free Play:</strong> Automatically recognized as social play tokens. Real-world cashout alerts and alarms pause so free play never triggers false alarms.
+        </div>
+      </div>
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-ghost" id="btn-step-2-back">&larr; Back</button>
+        <button type="button" class="btn btn-primary" id="btn-step-2-next">Set My Goals &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Cashout Goals Setup -->
+    <div class="onboarding-step" id="onboarding-step-3" style="display:none;">
+      <h2>Reality Cashout Goals</h2>
+      <p class="onboarding-tagline">Tired of running $50 up to $500 only to give it all back? Pick real-world lifelines to lock in:</p>
+      
+      <label class="guard-opt-row" style="margin-bottom:8px;">
+        <input type="checkbox" id="wizard-goals-enabled-toggle" checked />
+        <span>Enable Reality Cashout Goal Toasts</span>
+      </label>
+
+      <div class="wizard-goal-list" id="wizard-goal-list">
+        <!-- Dynamically rendered templates -->
+      </div>
+
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-ghost" id="btn-step-3-back">&larr; Back</button>
+        <button type="button" class="btn btn-primary" id="btn-step-3-next">Next: Guardrails &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Guardrails Checklist -->
+    <div class="onboarding-step" id="onboarding-step-4" style="display:none;">
+      <h2>Active Guardrails</h2>
+      <p class="onboarding-tagline">Configure the protections that keep your head in the game:</p>
+      
+      <div class="wizard-checklist">
+        <label class="guard-opt-row">
+          <input type="checkbox" id="wizard-spin-lock-toggle" checked />
+          <span><strong>2-Second Spin Brake:</strong> Pause after each click to prevent rage-spinning.</span>
+        </label>
+        <label class="guard-opt-row">
+          <input type="checkbox" id="wizard-reality-hud-toggle" checked />
+          <span><strong>Reality HUD:</strong> Translates session losses into hours of real labor.</span>
+        </label>
+        <div style="margin: 4px 0 8px 24px;">
+          <label style="font-size:10px; color:#94a3b8; margin-bottom:2px;">Your Hourly Wage (USD)</label>
+          <input type="number" id="wizard-hourly-wage-input" value="25" min="5" max="2000" style="width:100px; padding:4px 8px; font-size:11px;" />
+        </div>
+        <label class="guard-opt-row">
+          <input type="checkbox" id="wizard-sound-alerts-toggle" checked />
+          <span><strong>Spotter Sound Cues:</strong> Synthesized browser audio for tilt &amp; pacing.</span>
+        </label>
+      </div>
+
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-ghost" id="btn-step-4-back">&larr; Back</button>
+        <button type="button" class="btn btn-primary" id="btn-finish-onboarding">Arm Shield &amp; Finish &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="popup.js"></script>

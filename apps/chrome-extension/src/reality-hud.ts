@@ -88,6 +88,46 @@ export function parseMoney(text: string | null): number | null {
   return Number(matches[0]);
 }
 
+export function isPlayMoneyBalance(rawText: string | null, el?: Element | null): boolean {
+  if (rawText) {
+    if (/\b(GC|Gold\s*Coins?|Fun|Demo|Play\s*Money|Credits?)\b/i.test(rawText)) {
+      return true;
+    }
+  }
+  if (el) {
+    const aria = (el.getAttribute('aria-label') || '') + ' ' + (el.getAttribute('title') || '');
+    if (/\b(GC|Gold\s*Coins?|Fun|Demo|Play\s*Money)\b/i.test(aria)) {
+      return true;
+    }
+
+    const parent = el.closest('[data-test="currency-select"], [data-test="balance"], button, [class*="balance"], [class*="wallet"], [class*="currency"]');
+    if (parent) {
+      const parentText = parent.textContent || '';
+      if (/\b(GC|Gold\s*Coins?|Fun|Demo|Play\s*Money)\b/i.test(parentText)) {
+        return true;
+      }
+      if (parent.querySelector('img[alt*="Gold" i], img[src*="gold" i], svg[class*="gold" i], [data-currency="gc" i], [data-test*="gold" i]')) {
+        return true;
+      }
+    }
+
+    const doc = el.ownerDocument;
+    if (doc) {
+      const activeCurrencyBtn = doc.querySelector('[data-test="currency-select"], [class*="active-currency"], [class*="selected-currency"]');
+      if (activeCurrencyBtn) {
+        const btnText = activeCurrencyBtn.textContent || '';
+        if (/\b(GC|Gold\s*Coins?)\b/i.test(btnText)) {
+          return true;
+        }
+        if (activeCurrencyBtn.querySelector('img[alt*="Gold" i], [class*="gold" i]')) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 export function readBalance(doc: Document): number | null {
   const hostname = doc.location?.hostname ?? '';
   const entry = CASINO_SELECTORS.find(
@@ -98,6 +138,9 @@ export function readBalance(doc: Document): number | null {
     const elements = doc.querySelectorAll(selector);
     for (const el of elements) {
       const raw = el.getAttribute('data-value') || el.getAttribute('value') || el.textContent;
+      if (isPlayMoneyBalance(raw, el)) {
+        continue;
+      }
       const parsed = parseMoney(raw);
       if (parsed !== null) return parsed;
     }
@@ -106,6 +149,9 @@ export function readBalance(doc: Document): number | null {
   const fallbackElements = doc.querySelectorAll('[data-balance], [data-test="balance"], .balance, [class*="balance-value"], [class*="balance"]');
   for (const fallback of fallbackElements) {
     const raw = fallback.getAttribute('data-value') || fallback.getAttribute('value') || fallback.textContent;
+    if (isPlayMoneyBalance(raw, fallback)) {
+      continue;
+    }
     const parsed = parseMoney(raw);
     if (parsed !== null) return parsed;
   }

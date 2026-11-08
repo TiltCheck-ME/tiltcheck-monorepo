@@ -242,6 +242,22 @@ describe('installRealityHud DOM behavior', () => {
     expect(readBalance(document)).toBe(250);
   });
 
+  it('detects and suppresses Gold Coins and play money in readBalance', async () => {
+    const { readBalance, isPlayMoneyBalance } = await import('../../src/reality-hud.js');
+    expect(isPlayMoneyBalance('100,000.00 GC')).toBe(true);
+    expect(isPlayMoneyBalance('5,000 Gold Coins')).toBe(true);
+    expect(isPlayMoneyBalance('25,000 DEMO')).toBe(true);
+    expect(isPlayMoneyBalance('$25.00')).toBe(false);
+
+    const gcContainer = document.createElement('div');
+    gcContainer.className = 'balance-value';
+    gcContainer.textContent = '100,000.00 GC';
+    document.body.appendChild(gcContainer);
+
+    // Should return null so real-money cashout goals are not falsely triggered
+    expect(readBalance(document)).toBeNull();
+  });
+
   it('handles negative drawdown in formatRealityMessage without producing double minus', () => {
     expect(formatRealityMessage(-50, 2)).toBe('Session Drawdown: -$50.00 (2.0 hrs of work torched). Step back.');
   });

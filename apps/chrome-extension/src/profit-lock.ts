@@ -52,18 +52,10 @@ export interface CashoutGoal {
 
 export const DEFAULT_CASHOUT_GOALS: readonly CashoutGoal[] = [
   {
-    id: 'spotify',
-    name: 'Spotify Premium (1 Mo)',
-    targetAmount: 11,
-    linkUrl: 'https://www.spotify.com',
-    metric: 'balance',
-    enabled: true,
-  },
-  {
-    id: 'trash_bags',
-    name: 'Trash Bags & Essentials',
-    targetAmount: 15,
-    linkUrl: 'https://www.amazon.com',
+    id: 'dinner',
+    name: 'Dinner with Friends',
+    targetAmount: 40,
+    linkUrl: '',
     metric: 'balance',
     enabled: true,
   },
@@ -76,16 +68,24 @@ export const DEFAULT_CASHOUT_GOALS: readonly CashoutGoal[] = [
     enabled: true,
   },
   {
+    id: 'groceries',
+    name: 'Groceries & Essentials',
+    targetAmount: 100,
+    linkUrl: '',
+    metric: 'balance',
+    enabled: true,
+  },
+  {
     id: 'power_bill',
-    name: 'Power Bill',
-    targetAmount: 250,
+    name: 'Utility / Power Bill',
+    targetAmount: 200,
     linkUrl: '',
     metric: 'balance',
     enabled: true,
   },
   {
     id: 'rent_car',
-    name: 'Rent / Car Payment',
+    name: 'Rent / Major Bill',
     targetAmount: 600,
     linkUrl: '',
     metric: 'profit',
@@ -564,6 +564,13 @@ export function installProfitLock(
     if (stopped || current < 0) return;
 
     if (baselineBalance === null) {
+      baselineBalance = current;
+      peakBalance = current;
+      return;
+    }
+
+    // Protection against sudden massive currency switches (e.g. from $20 to 1,000,000 GC if DOM detector missed it)
+    if (current > baselineBalance * 20 && current > 5000 && peakBalance < 1000) {
       baselineBalance = current;
       peakBalance = current;
       return;

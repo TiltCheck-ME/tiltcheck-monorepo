@@ -63,6 +63,8 @@ describe('popup-settings helpers', () => {
       saveAutoLockOnTilt,
       saveAutoLockThreshold,
       saveAutoLockDuration,
+      saveOnboardingCompleted,
+      loadOnboardingCompleted,
     } = await import('../../src/popup-settings.js');
     (globalThis as unknown as { chrome: unknown }).chrome = {
       storage: {
@@ -164,5 +166,8 @@ describe('popup-settings helpers', () => {
 
     await saveAutoLockDuration(500);
     expect(storage['tiltcheck_auto_lock_duration']).toBe(3600); // clamped to min 3600s
+
+    await saveOnboardingCompleted(true);
+    expect(storage['tiltcheck_onboarding_completed']).toBe(true);
   });
 });
