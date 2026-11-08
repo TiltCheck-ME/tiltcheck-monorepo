@@ -1077,9 +1077,16 @@
       align-items: center;
       justify-content: flex-start;
       overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       padding: 16px 14px;
       font-family: var(--font);
       box-sizing: border-box;
+    }
+    .onboarding-overlay::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
     }
     .onboarding-card {
       background: #0d1117;
@@ -1799,7 +1806,7 @@
       </div>
       <div style="display:flex; align-items:center; gap:6px;">
         <input type="text" id="tip-solana-address" readonly value="DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1" style="font-family:ui-monospace, monospace; font-size:10px; background:#141822; color:#e2e8f0; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:6px 8px; flex:1; min-width:0;" />
-        <button type="button" class="btn btn-primary" id="btn-copy-tip-address" style="white-space:nowrap; padding:6px 14px; font-size:11px; flex-shrink:0; width:auto;">Copy</button>
+        <button type="button" class="btn btn-primary" id="btn-copy-tip-address" style="white-space:nowrap; padding:6px 14px; font-size:11px; flex:none; width:auto !important;">Copy</button>
       </div>
       <div id="tip-copy-status" style="font-size:10px; color:#17c3b2; margin-top:4px; min-height:14px; font-weight:600;"></div>
     </div>
