@@ -1875,17 +1875,30 @@ function initOnboardingWizard(): void {
   function openWizard(startStep = 1) {
     showStep(startStep);
     overlay.style.display = 'flex';
+    document.body.classList.add('has-modal');
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    overlay.scrollTop = 0;
   }
 
   function closeWizard() {
     overlay.style.display = 'none';
+    document.body.classList.remove('has-modal');
   }
 
-  btnTutorial?.addEventListener('click', () => {
+  btnTutorial?.addEventListener('click', (e) => {
+    e.preventDefault();
     openWizard(1);
   });
 
-  btnClose?.addEventListener('click', closeWizard);
+  btnClose?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeWizard();
+  });
+
+  stepDots.forEach((dot, idx) => {
+    dot.addEventListener('click', () => showStep(idx + 1));
+  });
 
   // Step navigation
   document.getElementById('btn-step-1-next')?.addEventListener('click', () => showStep(2));
@@ -1994,19 +2007,45 @@ async function init() {
   // Detach window listener
   const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
   if (isStandaloneWindow) {
+    document.documentElement.classList.add('standalone-window');
     document.body.classList.add('standalone-window');
     const detachBtn = document.getElementById('btn-detach-window');
     if (detachBtn) detachBtn.style.display = 'none';
   }
-  $('btn-detach-window')?.addEventListener('click', () => {
-    chrome.windows.create({
-      url: chrome.runtime.getURL('popup.html?mode=window'),
-      type: 'popup',
-      width: 440,
-      height: 720,
+  const detachBtn = document.getElementById('btn-detach-window');
+  if (detachBtn) {
+    detachBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = chrome.runtime.getURL('popup.html?mode=window');
+      try {
+        if (typeof chrome !== 'undefined' && chrome.windows?.create) {
+          chrome.windows.create(
+            {
+              url,
+              type: 'popup',
+              width: 440,
+              height: 720,
+              focused: true,
+            },
+            (newWin) => {
+              if (chrome.runtime.lastError || !newWin) {
+                chrome.tabs.create({ url });
+              }
+              window.close();
+            }
+          );
+        } else {
+          chrome.tabs.create({ url });
+          window.close();
+        }
+      } catch {
+        chrome.tabs.create({ url });
+        window.close();
+      }
     });
-    window.close();
-  });
+  }
+
+  initOnboardingWizard();
   // Tabs
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -2076,8 +2115,6 @@ async function init() {
   loadCashoutGoalsProgress();
   loadStreakVolatility();
 
-  initOnboardingWizard();
-
   // Vault listeners
   initVaultListeners();
   loadFeed();
@@ -2086,7 +2123,11 @@ async function init() {
   activateTab(userId ? 'status' : 'block');
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  void init();
+}
 
 
 // ---------------------------------------------------------------------------
