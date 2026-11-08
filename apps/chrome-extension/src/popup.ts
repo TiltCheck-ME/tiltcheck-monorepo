@@ -1820,6 +1820,126 @@ function initGuardSettingsPanel(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Onboarding Wizard
+// ---------------------------------------------------------------------------
+
+function initOnboardingWizard(): void {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (!overlay) return;
+
+  const btnTutorial = document.getElementById('btn-tutorial');
+  const btnClose = document.getElementById('btn-close-onboarding');
+
+  const stepDots = overlay.querySelectorAll('.step-dot');
+  const stepPanels = [
+    document.getElementById('onboarding-step-1'),
+    document.getElementById('onboarding-step-2'),
+    document.getElementById('onboarding-step-3'),
+    document.getElementById('onboarding-step-4'),
+  ];
+
+  let currentStep = 1;
+
+  function renderWizardGoals() {
+    const container = document.getElementById('wizard-goal-list');
+    if (!container) return;
+    container.innerHTML = currentGoals.map(goal => `
+      <label class="guard-opt-row" style="margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+        <span>
+          <input type="checkbox" class="wizard-goal-toggle" data-id="${goal.id}" ${goal.enabled !== false ? 'checked' : ''} />
+          <strong style="margin-left:6px;">${goal.name}</strong>
+        </span>
+        <span style="font-family:var(--mono); font-size:11px; color:#17c3b2;">${goal.targetAmount.toFixed(2)}</span>
+      </label>
+    `).join('');
+
+    container.querySelectorAll('.wizard-goal-toggle').forEach(el => {
+      el.addEventListener('change', async (e) => {
+        const id = (e.target as HTMLElement).dataset['id'];
+        if (id) {
+          currentGoals = toggleGoalInList(currentGoals, id);
+          await saveCashoutGoals(currentGoals);
+          renderGoalsList();
+        }
+      });
+    });
+  }
+
+  function showStep(stepNum: number) {
+    currentStep = Math.max(1, Math.min(4, stepNum));
+    stepPanels.forEach((panel, idx) => {
+      if (panel) {
+        panel.style.display = idx + 1 === currentStep ? 'block' : 'none';
+      }
+    });
+    stepDots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx + 1 === currentStep);
+    });
+    if (currentStep === 3) {
+      renderWizardGoals();
+    }
+  }
+
+  function openWizard(startStep = 1) {
+    showStep(startStep);
+    overlay.style.display = 'flex';
+  }
+
+  function closeWizard() {
+    overlay.style.display = 'none';
+  }
+
+  btnTutorial?.addEventListener('click', () => {
+    openWizard(1);
+  });
+
+  btnClose?.addEventListener('click', closeWizard);
+
+  // Step navigation
+  document.getElementById('btn-step-1-next')?.addEventListener('click', () => showStep(2));
+  document.getElementById('btn-step-2-back')?.addEventListener('click', () => showStep(1));
+  document.getElementById('btn-step-2-next')?.addEventListener('click', () => showStep(3));
+  document.getElementById('btn-step-3-back')?.addEventListener('click', () => showStep(2));
+  document.getElementById('btn-step-3-next')?.addEventListener('click', () => showStep(4));
+  document.getElementById('btn-step-4-back')?.addEventListener('click', () => showStep(3));
+
+  // Goal master toggle in step 3
+  const goalsEnabledToggle = document.getElementById('wizard-goals-enabled-toggle') as HTMLInputElement | null;
+  if (goalsEnabledToggle) {
+    goalsEnabledToggle.addEventListener('change', async (e) => {
+      const enabled = (e.target as HTMLInputElement).checked;
+      await saveCashoutGoalsEnabled(enabled);
+      toast(enabled ? 'Cashout goals enabled.' : 'Cashout goals off.');
+    });
+  }
+
+  // Finish button in step 4
+  document.getElementById('btn-finish-onboarding')?.addEventListener('click', async () => {
+    const spinLock = (document.getElementById('wizard-spin-lock-toggle') as HTMLInputElement)?.checked ?? true;
+    const realityHud = (document.getElementById('wizard-reality-hud-toggle') as HTMLInputElement)?.checked ?? true;
+    const soundAlerts = (document.getElementById('wizard-sound-alerts-toggle') as HTMLInputElement)?.checked ?? true;
+    const wage = Number((document.getElementById('wizard-hourly-wage-input') as HTMLInputElement)?.value) || 25;
+
+    await saveTouchGrassOptIn(spinLock);
+    await saveRealityHudEnabled(realityHud);
+    await saveAudioAlertsEnabled(soundAlerts);
+    await saveHourlyWage(wage);
+    await saveOnboardingCompleted(true);
+
+    void refreshGuardSettingsUi();
+    closeWizard();
+    toast('TiltCheck guardrails armed.');
+  });
+
+  // Auto-launch on first run if never completed
+  void loadOnboardingCompleted().then((completed) => {
+    if (!completed) {
+      openWizard(1);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Tabs
 // ---------------------------------------------------------------------------
 

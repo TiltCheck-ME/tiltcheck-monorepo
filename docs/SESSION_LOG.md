@@ -2,6 +2,12 @@
 
 # Session Log
 
+## 2026-11-08 — fix(extension): wire tutorial wizard to help icon and replace settings icon with gear
+
+- Help Icon Tutorial Wizard: Implemented initOnboardingWizard() in popup.ts and bound click listener to #btn-tutorial, allowing users to open the 4-step interactive Onboarding Guide modal (#onboarding-overlay) at any time. Configured step navigation, real-time goal template checkboxes, master toggle persistence, and one-click guardarm checklist (saveTouchGrassOptIn, saveRealityHudEnabled, saveAudioAlertsEnabled, saveHourlyWage, saveOnboardingCompleted).
+- Settings Icon Redesign: Replaced the 8-ray sun/brightness SVG on #btn-settings with standard, crisp Feather mechanical gear icon (circle cx="12" cy="12" r="3" and 6-tooth cog path on a 24x24 viewBox), eliminating visual confusion with display brightness. Updated all header action icons to 24x24 viewBox for line-weight harmony.
+- Verified & Packaged: All 40 unit test files passed (294/294 tests, 100% pass rate); packaged updated tiltcheck-extension.zip (448 KB).
+
 ## 2026-11-08 — feat(extension): sweepstakes domain whitelisting, default bet breaker, and UI polish
 
 - Sweepstakes Casino Whitelist: Added Crown Coins (crowncoinscasino.com), LoneStar (lonestarcasino.com), Real Prize (realprize.com), Pulsz (pulsz.com), McLuck (mcluck.com), Chumba (chumbacasino.com), WOW Vegas (wowvegas.com), High 5 (high5casino.com), Fortune Coins (fortunecoins.com), Zula (zulacasino.com), and Sportzino (sportzino.com) to manifest.json (host_permissions, content_scripts with all_frames: true, and web_accessible_resources). Resolves inactive spin lock and telemetry on sweepstakes slot games.
