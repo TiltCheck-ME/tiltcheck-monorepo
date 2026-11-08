@@ -1,18 +1,7 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 name: Deploy Services to Railway
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/**'
-      - '!apps/web/**'
-      - 'packages/**'
-      - 'modules/**'
-      - '.dockerignore'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/deploy-railway.yml'
   workflow_dispatch:
 
 permissions:
@@ -251,7 +240,12 @@ jobs:
 
       - name: Redeploy ${{ matrix.service }} on Railway
         if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
+        continue-on-error: true
         run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "RAILWAY_TOKEN secret not configured or decommissioned — skipping Railway redeploy."
+            exit 0
+          fi
           ENV_ID="3558050f-0c00-4ba7-8763-e960a1ecaf96"
           SVC_ID="${{ matrix.railway_service_id }}"
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
