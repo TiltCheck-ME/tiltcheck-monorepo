@@ -2,6 +2,12 @@
 
 # Session Log
 
+## 2026-11-08 — feat(architecture): prune dead apps, purge magic link auth, and establish zero-cost baseline
+
+- Monorepo Pruning: Moved 6 dead/archived apps (justthetip-bot, dad-bot, discord-bot, degens-activity, tiltcheck-activity, mobile-wrapper) to archive/apps/, completely removing them from pnpm workspace discovery, active test runs, and Turborepo builds (-103 unused dependencies).
+- Zero-Cost Auth Consolidation: Purged Magic.link (@magic-sdk/admin) and orphaned routes (/auth/magic/*) from @tiltcheck/api. Implemented native Solana Wallet SIWS (/auth/solana/challenge, /auth/solana/verify) backed by @tiltcheck/auth and @tiltcheck/db, standardizing auth on Discord OAuth + Solana signatures at $0/mo.
+- Zero-Cost Infrastructure Blueprint: Created render.yaml declaring a 1-click free web service deployment for @tiltcheck/api. Updated .env.example with templates for Neon Serverless Postgres and Upstash Serverless Redis.
+
 ## 2026-11-08 — feat(sentry): wire release tracking, commit associations, and critical email alerts
 
 - Release Tracking Pipeline: Configured .github/workflows/sentry-release.yml using getsentry/action-release@v3 targeting tiltcheck-api@${{ github.sha }} on push to main with full commit history (fetch-depth: 0) for automated suspect commit identification and deployment markers.

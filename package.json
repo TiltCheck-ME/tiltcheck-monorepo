@@ -1,5 +1,5 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08",
   "name": "tiltcheck-monorepo",
   "version": "0.1.0",
   "private": true,
@@ -14,8 +14,7 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --recursive dev",
-    "dev:core": "pnpm --filter @tiltcheck/api --filter web --filter @tiltcheck/discord-bot --parallel dev",
-    "discord:setup": "pnpm --filter @tiltcheck/discord-bot run deploy:commands",
+    "dev:core": "pnpm --filter @tiltcheck/api --filter web --parallel dev",
     "build": "pnpm -r build",
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
     "test": "pnpm --filter @tiltcheck/database build && vitest --run",
@@ -70,7 +69,6 @@
     "build:pages": "pnpm --filter @tiltcheck/intel-tools build && node scripts/convert-markdown.js docs/tiltcheck out/docs",
     "test:e2e": "playwright test",
     "test:e2e:extension": "playwright test tests/e2e/extension-e2e.spec.ts",
-    "test:e2e:degens-trivia": "PLAYWRIGHT_DEGENS_LOCAL=1 playwright test tests/e2e/degens-activity-trivia.spec.ts",
     "test:cooldown:dashboard": "pnpm --filter @tiltcheck/user-dashboard test tests/cooldown-routes.test.ts",
     "docs:pages": "node scripts/convert-markdown.js docs/tiltcheck out/docs && mkdir -p out/styles && cp scripts/pages-assets/styles/base.css out/styles/base.css"
   },

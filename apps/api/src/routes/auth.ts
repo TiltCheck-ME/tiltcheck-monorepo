@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -7,7 +7,7 @@
 import { Router, type Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
-import { Magic } from '@magic-sdk/admin';
+
 import {
   getDiscordAuthUrl,
   verifyDiscordOAuth,
@@ -20,6 +20,8 @@ import {
   derivePkceCodeChallengeS256,
   createToken,
   verifyToken,
+  verifySolanaSignature,
+  generateNonce,
   type DiscordOAuthConfig,
   type JWTConfig,
 } from '@tiltcheck/auth';
@@ -30,6 +32,7 @@ import {
   createUser,
   updateUser,
   findUserById,
+  findUserByWallet,
 } from '@tiltcheck/db';
 import { 
   ValidationError, 
@@ -239,17 +242,16 @@ const activityTokenLimiter = rateLimit({
   message: { error: 'Too many activity auth attempts', code: 'RATE_LIMIT_EXCEEDED' },
 });
 
-function getMagicAdmin(): Magic | null {
-  const secret = process.env.MAGIC_SECRET_KEY?.trim();
-  if (!secret) {
-    return null;
+const solanaChallenges = new Map<string, { nonce: string; expiresAt: number }>();
+
+function generateSolanaChallenge(publicKey?: string): { challenge: string; nonce: string } {
+  const nonce = generateNonce();
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  if (publicKey) {
+    solanaChallenges.set(publicKey, { nonce, expiresAt });
   }
-
-  return new Magic(secret);
-}
-
-function getMagicPublishableKey(): string | null {
-  return process.env.MAGIC_PUBLISHABLE_KEY?.trim() || null;
+  const challenge = `Sign this message to authenticate with TiltCheck.\nNonce: ${nonce}`;
+  return { challenge, nonce };
 }
 
 function normalizeEmail(email: string | null | undefined): string | null {
@@ -536,91 +538,106 @@ router.post('/login', authLimiter, async (req, res) => {
 });
 
 /**
- * GET /auth/magic/config
- * Returns whether Magic auth is enabled and the publishable client key.
+ * GET /auth/solana/challenge
+ * Request a signing challenge and nonce for Solana wallet authentication
  */
-router.get('/magic/config', (_req, res) => {
-  const publishableKey = getMagicPublishableKey();
-  const enabled = Boolean(getMagicAdmin() && publishableKey);
-
+router.get('/solana/challenge', (req, res) => {
+  const publicKey = typeof req.query?.publicKey === 'string' ? req.query.publicKey.trim() : undefined;
+  const { challenge, nonce } = generateSolanaChallenge(publicKey);
   res.json({
-    enabled,
-    publishableKey: enabled ? publishableKey : null,
+    challenge,
+    nonce,
+    expiresInSeconds: 300,
   });
 });
 
 /**
- * POST /auth/magic/login
- * Verify a Magic DID token and issue the standard TiltCheck JWT/session.
+ * POST /auth/solana/verify
+ * Verify a signed Solana message and issue a standard session JWT
  */
-router.post('/magic/login', authLimiter, async (req, res) => {
-  const didToken = typeof req.body?.didToken === 'string' ? req.body.didToken.trim() : '';
-  if (!didToken) {
-    res.status(400).json({ error: 'Magic DID token is required', code: 'MISSING_DID_TOKEN' });
-    return;
-  }
+router.post('/solana/verify', authLimiter, async (req, res) => {
+  const publicKey = typeof req.body?.publicKey === 'string' ? req.body.publicKey.trim() : '';
+  const signature = typeof req.body?.signature === 'string' ? req.body.signature.trim() : '';
+  const message = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
 
-  const magicAdmin = getMagicAdmin();
-  if (!magicAdmin) {
-    res.status(503).json({ error: 'Magic auth is not configured', code: 'SERVICE_UNAVAILABLE' });
+  if (!publicKey || !signature || !message) {
+    res.status(400).json({
+      error: 'publicKey, signature, and message are required',
+      code: 'MISSING_VERIFICATION_PAYLOAD',
+    });
     return;
   }
 
   try {
-    const metadata = await magicAdmin.users.getMetadataByToken(didToken);
-    const email = normalizeEmail(metadata.email);
+    const verification = await verifySolanaSignature({
+      publicKey,
+      signature,
+      message,
+    });
 
-    if (!email) {
-      res.status(400).json({ error: 'Magic identity must include an email', code: 'INVALID_MAGIC_IDENTITY' });
+    if (!verification.valid) {
+      res.status(400).json({
+        error: verification.error || 'Invalid Solana signature',
+        code: 'INVALID_SIGNATURE',
+      });
       return;
     }
 
-    let user = await findUserByEmail(email);
+    let user = await findUserByWallet(publicKey);
     if (!user) {
       user = await createUser({
-        email,
+        wallet_address: publicKey,
         roles: ['user'],
       });
     }
 
     if (!user) {
-      res.status(500).json({ error: 'Failed to provision user', code: 'USER_PROVISION_FAILED' });
+      res.status(500).json({
+        error: 'Failed to provision user wallet',
+        code: 'USER_PROVISION_FAILED',
+      });
       return;
     }
 
     await updateUser(user.id, { last_login_at: new Date() });
 
     const roles = Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : ['user'];
-    const token = await generateJWT(user.id, user.email || email, roles);
+    const token = await generateJWT(user.id, user.email || `${publicKey.slice(0, 8)}@solana.tiltcheck.me`, roles);
     const jwtConfig = getJWTConfig();
     const { cookie } = await createSession(user.id, jwtConfig, {
       type: 'user',
       roles,
       discordId: user.discord_id || undefined,
       discordUsername: user.discord_username || undefined,
-      walletAddress: user.wallet_address || undefined,
+      walletAddress: publicKey,
     });
 
     res.setHeader('Set-Cookie', cookie);
-    logActivationMilestone(req, 'auth_success', 'api-magic-login', user.id, {
-      authMethod: 'magic',
+    logActivationMilestone(req, 'auth_success', 'api-solana-verify', user.id, {
+      authMethod: 'solana',
       hasDiscordLinked: Boolean(user.discord_id),
     });
+
+    const truncated = `${publicKey.slice(0, 4)}...${publicKey.slice(-4)}`;
     res.json({
       success: true,
       token,
       user: {
         id: user.id,
-        email: user.email || email,
+        email: user.email || null,
         roles,
         discordId: user.discord_id || null,
         discordUsername: user.discord_username || null,
-        displayName: getDisplayName(user.email || email, user.discord_username),
+        walletAddress: publicKey,
+        displayName: user.discord_username || truncated,
       },
     });
   } catch (error) {
-    console.error('[Auth] Magic login error:', error);
-    res.status(400).json({ error: 'Invalid Magic token', code: 'INVALID_MAGIC_TOKEN' });
+    console.error('[Auth] Solana verify error:', error);
+    res.status(400).json({
+      error: 'Signature verification failed',
+      code: 'VERIFICATION_ERROR',
+    });
   }
 });
 

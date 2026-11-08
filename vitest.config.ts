@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +23,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       '**/.turbo/**',
+      'archive/**',
       'apps/web/.next/**',
       'tests/e2e/**',
       'modules/justthetip/**',

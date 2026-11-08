@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -24,17 +24,11 @@ vi.mock('@tiltcheck/auth', () => ({
   generateOAuthState: vi.fn(() => 'mock-state'),
   generatePkceCodeVerifier: vi.fn(() => MOCK_PKCE_VERIFIER),
   derivePkceCodeChallengeS256: vi.fn(() => MOCK_PKCE_CHALLENGE),
+  verifySolanaSignature: vi.fn(),
+  generateNonce: vi.fn(() => 'mock-nonce-123'),
 }));
 
-const mockGetMetadataByToken = vi.fn();
 
-vi.mock('@magic-sdk/admin', () => ({
-  Magic: class {
-    users = {
-      getMetadataByToken: mockGetMetadataByToken,
-    };
-  },
-}));
 
 vi.mock('@tiltcheck/db', () => ({
   findOrCreateUserByDiscord: vi.fn(),
@@ -43,6 +37,7 @@ vi.mock('@tiltcheck/db', () => ({
   createUser: vi.fn(),
   updateUser: vi.fn(),
   findUserById: vi.fn(),
+  findUserByWallet: vi.fn(),
 }));
 
 vi.mock('../../src/middleware/auth.js', () => ({
@@ -57,8 +52,8 @@ vi.mock('../../src/middleware/auth.js', () => ({
 
 import { authRouter } from '../../src/routes/auth.js';
 import { getDiscordConfig } from '../../src/routes/auth.utils.js';
-import { createSession, exchangeDiscordCode, getDiscordAuthUrl, verifyDiscordOAuth, verifySessionCookie } from '@tiltcheck/auth';
-import { createUser, findOrCreateUserByDiscord, findUserByDiscordId, findUserByEmail, findUserById, updateUser } from '@tiltcheck/db';
+import { createSession, exchangeDiscordCode, getDiscordAuthUrl, verifyDiscordOAuth, verifySessionCookie, verifySolanaSignature } from '@tiltcheck/auth';
+import { createUser, findOrCreateUserByDiscord, findUserByDiscordId, findUserByEmail, findUserById, updateUser, findUserByWallet } from '@tiltcheck/db';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -479,19 +474,14 @@ describe('Auth callback state/source validation', () => {
     expect(response.headers.location).toBe('/beta-tester');
   });
 
-  it('returns Magic config only when both keys are configured', async () => {
-    let response = await request(app).get('/auth/magic/config');
-
+  it('returns Solana signing challenge and nonce on GET /auth/solana/challenge', async () => {
+    const response = await request(app).get('/auth/solana/challenge?publicKey=sol-pubkey-1');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ enabled: false, publishableKey: null });
-
-    process.env.MAGIC_SECRET_KEY = 'magic-secret';
-    process.env.MAGIC_PUBLISHABLE_KEY = 'pk_live_magic';
-
-    response = await request(app).get('/auth/magic/config');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ enabled: true, publishableKey: 'pk_live_magic' });
+    expect(response.body).toMatchObject({
+      challenge: expect.stringContaining('mock-nonce-123'),
+      nonce: 'mock-nonce-123',
+      expiresInSeconds: 300,
+    });
   });
 
   it('sanitizes embedded whitespace in Discord redirect env values', () => {
@@ -502,16 +492,15 @@ describe('Auth callback state/source validation', () => {
     expect(config.redirectUri).toBe('https://api.tiltcheck.me/auth/discord/callback');
   });
 
-  it('logs in an existing user with Magic and issues the standard JWT', async () => {
-    process.env.MAGIC_SECRET_KEY = 'magic-secret';
-    mockGetMetadataByToken.mockResolvedValueOnce({ email: 'magic@example.com' });
-    vi.mocked(findUserByEmail).mockResolvedValueOnce({
-      id: 'user-magic-1',
-      email: 'magic@example.com',
+  it('verifies Solana signature and logs in user on POST /auth/solana/verify', async () => {
+    vi.mocked(verifySolanaSignature).mockResolvedValueOnce({ valid: true, publicKey: 'sol-pubkey-1' } as any);
+    vi.mocked(findUserByWallet).mockResolvedValueOnce({
+      id: 'user-sol-1',
+      wallet_address: 'sol-pubkey-1',
       roles: ['user'],
+      email: null,
       discord_id: null,
       discord_username: null,
-      wallet_address: null,
     } as any);
     vi.mocked(updateUser).mockResolvedValueOnce(undefined as any);
     vi.mocked(createSession).mockResolvedValueOnce({
@@ -520,16 +509,18 @@ describe('Auth callback state/source validation', () => {
     } as any);
 
     const response = await request(app)
-      .post('/auth/magic/login')
-      .send({ didToken: 'magic-did-token' });
+      .post('/auth/solana/verify')
+      .send({
+        publicKey: 'sol-pubkey-1',
+        signature: 'valid-sig',
+        message: 'Sign this message',
+      });
 
     expect(response.status).toBe(200);
-    expect(mockGetMetadataByToken).toHaveBeenCalledWith('magic-did-token');
     expect(response.body.token).toBe('mock-jwt-token');
     expect(response.body.user).toMatchObject({
-      id: 'user-magic-1',
-      email: 'magic@example.com',
-      displayName: 'magic',
+      id: 'user-sol-1',
+      walletAddress: 'sol-pubkey-1',
     });
     expect(response.headers['set-cookie']).toBeDefined();
   });
@@ -570,17 +561,19 @@ describe('Auth callback state/source validation', () => {
     });
   });
 
-  it('rejects Magic login when the identity does not include an email', async () => {
-    process.env.MAGIC_SECRET_KEY = 'magic-secret';
-    mockGetMetadataByToken.mockResolvedValueOnce({ email: null });
+  it('rejects invalid Solana signature on POST /auth/solana/verify', async () => {
+    vi.mocked(verifySolanaSignature).mockResolvedValueOnce({ valid: false, error: 'Bad signature' } as any);
 
     const response = await request(app)
-      .post('/auth/magic/login')
-      .send({ didToken: 'magic-did-token' });
+      .post('/auth/solana/verify')
+      .send({
+        publicKey: 'sol-pubkey-1',
+        signature: 'invalid-sig',
+        message: 'Sign this message',
+      });
 
     expect(response.status).toBe(400);
-    expect(response.body.code).toBe('INVALID_MAGIC_IDENTITY');
-    expect(createUser).not.toHaveBeenCalled();
+    expect(response.body.code).toBe('INVALID_SIGNATURE');
   });
 
   it('accepts a callback state that is in the server-side registry even when the oauth_state cookie is absent', async () => {
