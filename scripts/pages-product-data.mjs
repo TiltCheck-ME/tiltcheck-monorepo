@@ -22,12 +22,12 @@ export const SITE_ONE_LINER =
   'Brakes for people who already gamble: slow the next spin, block the game that rinses you, lock the wallet you signed, and check if the casino is sus. We never hold your keys.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
-  'We never ask for your casino password or wallet seed. You sign a Cooldown. Download the extension zip directly or build from source.';
-export const CTA_READY = true;
-export const CTA_LABEL = 'DOWNLOAD THE ZIP';
-export const CTA_GATED_LABEL = 'CHROME ZIP NOT ON THIS SITE';
+  'We never ask for your casino password or wallet seed. You sign a Cooldown. All extension guardrails run 100% locally in your browser.';
+export const CTA_READY = false;
+export const CTA_LABEL = 'ADD TO CHROME';
+export const CTA_GATED_LABEL = 'CHROME WEB STORE (PENDING REVIEW)';
 export const CTA_GATED_HINT =
-  'The public zip is not up yet. Wallet lock and casino lookup work now. If you are building the extension, load unpacked dist from the repo.';
+  'Submitted to Google Chrome Web Store. Official 1-click install link will be live here upon store approval.';
 export const SECONDARY_CTAS = [
   { label: "DON'T FEED THE HOUSE", href: 'cooldown/', primary: true },
   { label: 'IS THIS CASINO SUS?', href: 'casinos/', primary: false },
@@ -36,8 +36,8 @@ export const TERTIARY_LINK = {
   label: 'How the Chrome brakes work',
   href: 'extension.html',
 };
-export const INSTALL_EYEBROW = 'How it works';
-export const INSTALL_TITLE = 'Three moves. None of them are a lecture.';
+export const INSTALL_EYEBROW = 'Store Submission Status';
+export const INSTALL_TITLE = 'Official Chrome Web Store Listing In Progress';
 export const INSTALL_MOVES = [
   {
     title: 'Look up the house',
@@ -49,16 +49,16 @@ export const INSTALL_MOVES = [
   },
   {
     title: 'Slow the next click',
-    body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Sideload zip is live.',
+    body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Extension submitted for Chrome Web Store review.',
   },
 ];
 export const INSTALL_STEPS = [
-  'Download the extension zip directly from this site and extract the folder.',
-  'In Chrome, Brave, or Edge, navigate to chrome://extensions and switch on Developer mode (top right).',
-  'Click "Load unpacked" and select the extracted folder. Pin the extension to your toolbar and spin with brakes.',
+  'Extension Packaged & Tested: Manifest V3 build is bundled, audited for zero external dependencies, and submitted to the Chrome Web Store Developer Dashboard.',
+  'Google Store Review: Reviewers audit permissions (storage, tabs, activeTab, alarms, webNavigation) and single-purpose responsible gaming compliance.',
+  'Official 1-Click Install: Once approved, the direct Chrome Web Store link will be published here for instant 1-click installation with automatic updates.',
 ];
 export const INSTALL_NOTE =
-  'Wallet lock, casino trust lookup, and direct browser extension zip download are live. Sideload via chrome://extensions Developer mode. Store listing coming later.';
+  'No sideloading or developer flags required. Voluntary on-chain Cooldown timelocks, RTP downgrade forensics, provably fair seed audits, and casino trust lookups are live right now on this site.';
 export const HUD = {
   spin: 'SPIN',
   countdown: '2s',
@@ -78,7 +78,7 @@ export const AUTOVAULT_PAGE = {
   punch:
     'Stake.us, Stake.com, and supported rooms. Hit a heater? AutoVault moves your cut straight into the casino vault so you don’t rinse it back.',
   steps: [
-    'Install the TiltCheck browser extension from the direct download on this site.',
+    'Install the TiltCheck browser extension once the Chrome Web Store listing is approved.',
     'Open the extension on your casino tab and set your skim percentage (e.g. 10%) and big-win threshold.',
     'Play normally. When a win hits, AutoVault moves that slice straight into your vault. Zero logins, zero servers, 100% in your browser.',
   ],
@@ -105,7 +105,7 @@ export const HOUSE_EDGE_PAGE = {
 };
 export const LAUNCH_HONESTY = [
   'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-  'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
+  'The Chrome extension has been submitted to the Chrome Web Store and is pending review. Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
   'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
 ];
@@ -130,7 +130,7 @@ export const HOW_IT_WORKS = [
   {
     step: '01',
     title: 'Install',
-    body: 'Download the extension zip directly, unpack it, and load unpacked in chrome://extensions. Set a Cooldown lock and check Trust intel. No private keys.',
+    body: 'TiltCheck runs client-side in your browser. Set a voluntary Cooldown timelock and inspect Trust intel. No private keys, zero custody.',
     note: 'One install. Two minutes.',
   },
   {
@@ -478,15 +478,15 @@ export const TOUCH_GRASS_TRIVIA = [
   },
   {
     id: 'tg-zip',
-    question: 'The Chrome zip on tiltcheck.me is…',
+    question: 'The TiltCheck extension is…',
     choices: [
-      { key: 'A', text: 'A public download in the hero' },
-      { key: 'B', text: 'In the Chrome Web Store' },
-      { key: 'C', text: 'Not on this site. Devs load unpacked dist' },
-      { key: 'D', text: 'Required before casino lookup works' },
+      { key: 'A', text: 'A direct zip file download' },
+      { key: 'B', text: 'Under review for the Chrome Web Store' },
+      { key: 'C', text: 'An executable you install on Windows' },
+      { key: 'D', text: 'A mobile app' },
     ],
-    answer: 'C',
-    explanation: 'Gated on purpose. Wallet lock and casino lookup work without the zip.',
+    answer: 'B',
+    explanation: 'TiltCheck is a client-side Manifest V3 browser extension currently undergoing official Chrome Web Store review.',
   },
 ];
 

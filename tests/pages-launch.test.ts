@@ -1,9 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CTA_READY,
+  CTA_GATED_LABEL,
   SECONDARY_CTAS,
   SITE_DOPAMINE,
   SITE_KICKER,
@@ -18,7 +19,7 @@ const convertMarkdown = readFileSync(
 
 describe('GitHub Pages launch twin', () => {
   it('locks brakes hero copy to the Next twin', () => {
-    expect(CTA_READY).toBe(true);
+    expect(CTA_READY).toBe(false);
     expect(SITE_DOPAMINE).toBe("The math isn't rigged. Your dopamine is.");
     expect(SITE_KICKER).toMatch(/thinking you are due/i);
     expect(SECONDARY_CTAS).toHaveLength(2);
@@ -54,14 +55,15 @@ describe('GitHub Pages launch twin', () => {
     expect(convertMarkdown).not.toMatch(/lounge/i);
   });
 
-  it('emits a live zip download when sideload is ungated', () => {
-    expect(convertMarkdown).toContain(
-      'href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP',
-    );
+  it('emits a gated status CTA when store listing is pending review', () => {
+    expect(convertMarkdown).toContain('gated-zip-cta');
+    expect(convertMarkdown).toContain('CTA_GATED_LABEL');
+    expect(CTA_GATED_LABEL).toBe('CHROME WEB STORE (PENDING REVIEW)');
     const extensionHtmlPath = path.join(process.cwd(), 'out/extension.html');
     if (existsSync(extensionHtmlPath)) {
       const extensionHtml = readFileSync(extensionHtmlPath, 'utf8');
-      expect(extensionHtml).toContain(
+      expect(extensionHtml).toContain('CHROME WEB STORE (PENDING REVIEW)');
+      expect(extensionHtml).not.toContain(
         'href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP',
       );
     }

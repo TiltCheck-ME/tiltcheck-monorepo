@@ -122,7 +122,7 @@ function buildShowcaseHtml({ badge, title, highlightWord, description, features,
     flex-shrink: 0;
   }
   .frame-side {
-    width: 380px;
+    width: 390px;
     height: 600px;
     background: #080a0e;
     border-radius: 14px;
@@ -162,7 +162,7 @@ function buildShowcaseHtml({ badge, title, highlightWord, description, features,
 }
 
 async function run() {
-  console.log('Capturing Chrome Web Store 1280x800 screenshots...');
+  console.log('Capturing Chrome Web Store 1280x800 screenshots (Full 5-shot set)...');
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({
     viewport: { width: 1280, height: 800 },
@@ -183,7 +183,7 @@ async function run() {
       '<strong>100% Non-Custodial:</strong> Runs strictly in your browser with zero keys.'
     ],
   }), { waitUntil: 'load' });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1000);
   await page.screenshot({ path: path.join(outDir, 'screenshot-1-guards.png'), type: 'png' });
 
   // 2. Screenshot 2: Velocity Radar & Momentum
@@ -208,16 +208,88 @@ async function run() {
               const statusTab = iframe.contentDocument.querySelector('[data-tab="status"]');
               if (statusTab) statusTab.click();
             }
-          }, 400);
+          }, 300);
         });
       </script>
     `
   }), { waitUntil: 'load' });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1000);
   await page.screenshot({ path: path.join(outDir, 'screenshot-2-radar.png'), type: 'png' });
 
-  // 3. Screenshot 3: Cooldown & Tip Jar
-  console.log('Generating Screenshot 3: Non-Custodial Tip Jar...');
+  // 3. Screenshot 3: Sweeps vs Gold Coins Currency Awareness (Wizard Step 2)
+  console.log('Generating Screenshot 3: Sweeps vs Gold Coins Mode...');
+  await page.setContent(buildShowcaseHtml({
+    badge: 'Sweepstakes & Crypto Intelligence',
+    title: 'Sweeps (SC) vs',
+    highlightWord: 'Gold Coins (GC)',
+    description: 'Smart balance detection that distinguishes redeemable real-money Sweeps Coins from play-money Gold Coins. Zero false alarms during social free-play.',
+    features: [
+      '<strong>Dual-Currency Detection:</strong> Automatically senses active currency toggles.',
+      '<strong>Zero False Alarms:</strong> Loss velocity and alerts pause in play-money mode.',
+      '<strong>Sweepstakes Rooms:</strong> Stake.us, Crown Coins, Pulsz, Chumba, McLuck, WOW Vegas.',
+      '<strong>100% Client-Side:</strong> Evaluates active session state with zero account credentials.'
+    ],
+    scriptToRun: `
+      <script>
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            const iframe = document.getElementById('ext-frame');
+            if (iframe && iframe.contentDocument) {
+              const tutorialBtn = iframe.contentDocument.getElementById('btn-tutorial');
+              if (tutorialBtn) tutorialBtn.click();
+              setTimeout(() => {
+                const nextBtn = iframe.contentDocument.getElementById('btn-step-1-next');
+                if (nextBtn) nextBtn.click();
+              }, 200);
+            }
+          }, 300);
+        });
+      </script>
+    `
+  }), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: path.join(outDir, 'screenshot-3-sweeps-currency.png'), type: 'png' });
+
+  // 4. Screenshot 4: Reality Cashout Goals (Wizard Step 3)
+  console.log('Generating Screenshot 4: Reality Cashout Goals...');
+  await page.setContent(buildShowcaseHtml({
+    badge: 'Neurocognitive Anchoring',
+    title: 'Reality Goals &',
+    highlightWord: 'Tangible Lifelines',
+    description: 'Break the dopamine trance by converting abstract numbers into tangible everyday expenses like dinner with friends, a tank of gas, groceries, and rent.',
+    features: [
+      '<strong>Tangible Bill Toasts:</strong> Visual alerts when wins cover groceries or power bills.',
+      '<strong>Profit-Lock Ratchet:</strong> Locks in trailing floors when your target is hit.',
+      '<strong>One-Click Cashier Handoff:</strong> Deep links to native redemption screens.',
+      '<strong>Customizable Milestones:</strong> Configure your personal dollar goals in seconds.'
+    ],
+    scriptToRun: `
+      <script>
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            const iframe = document.getElementById('ext-frame');
+            if (iframe && iframe.contentDocument) {
+              const tutorialBtn = iframe.contentDocument.getElementById('btn-tutorial');
+              if (tutorialBtn) tutorialBtn.click();
+              setTimeout(() => {
+                const step1Next = iframe.contentDocument.getElementById('btn-step-1-next');
+                if (step1Next) step1Next.click();
+                setTimeout(() => {
+                  const step2Next = iframe.contentDocument.getElementById('btn-step-2-next');
+                  if (step2Next) step2Next.click();
+                }, 200);
+              }, 200);
+            }
+          }, 300);
+        });
+      </script>
+    `
+  }), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: path.join(outDir, 'screenshot-4-reality-goals.png'), type: 'png' });
+
+  // 5. Screenshot 5: On-Chain Cooldown & Tip Jar
+  console.log('Generating Screenshot 5: Non-Custodial Tip Jar...');
   await page.setContent(buildShowcaseHtml({
     badge: 'Solana Cooldown & Support',
     title: 'Self-Exclusion &',
@@ -238,16 +310,16 @@ async function run() {
               const tipBtn = iframe.contentDocument.getElementById('btn-tip-jar');
               if (tipBtn) tipBtn.click();
             }
-          }, 400);
+          }, 300);
         });
       </script>
     `
   }), { waitUntil: 'load' });
-  await page.waitForTimeout(1200);
-  await page.screenshot({ path: path.join(outDir, 'screenshot-3-cooldown-tipjar.png'), type: 'png' });
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: path.join(outDir, 'screenshot-5-cooldown-tipjar.png'), type: 'png' });
 
   await browser.close();
-  console.log('Successfully generated all screenshots in:', outDir);
+  console.log('Successfully generated all 5 screenshots in:', outDir);
 }
 
 run().catch((err) => {

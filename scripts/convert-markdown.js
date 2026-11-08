@@ -472,7 +472,7 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: 'Browser extension',
     title: 'TiltCheck lives in the casino tab.',
-    lede: 'Chrome Core watches supported casino tabs: 2s spin brake, strategic game filters, reality wage HUD, and deposit barrier. Read-only. Zero custody. Download the zip directly.',
+    lede: 'Chrome Core watches supported casino tabs: 2s spin brake, strategic game filters, reality wage HUD, and deposit barrier. Read-only. Zero custody. Extension submitted for Chrome Web Store review.',
     actionsHtml: actions,
   })}
 <main class="product-main">
@@ -895,7 +895,7 @@ function buildAutovaultPage() {
     <ol class="cooldown-steps">${steps}</ol>
     <p class="cooldown-fine">${escapeHtml(AUTOVAULT_PAGE.fine)}</p>
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, 'downloads/tiltcheck-extension.zip')}" download>DOWNLOAD THE EXTENSION</a>
+      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">EXTENSION STATUS</a>
     </div>
   </div>
 </main>`;
@@ -940,7 +940,7 @@ function buildDashboardPage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, 'downloads/tiltcheck-extension.zip')}" download>GET CHROME EXTENSION</a>
+      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">EXTENSION STATUS</a>
     </div>
   </div>
   <script>
@@ -1057,7 +1057,7 @@ function buildRtpScannerPage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "downloads/tiltcheck-extension.zip")}" download>DOWNLOAD EXTENSION BRAKES</a>
+      <a class="btn btn-primary" href="${href(depth, "extension.html")}">EXTENSION STATUS</a>
     </div>
   </div>
 </main>
@@ -1222,7 +1222,7 @@ function buildVerifyPage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "downloads/tiltcheck-extension.zip")}" download>DOWNLOAD EXTENSION BRAKES</a>
+      <a class="btn btn-primary" href="${href(depth, "extension.html")}">EXTENSION STATUS</a>
     </div>
   </div>
 </main>
@@ -1458,7 +1458,7 @@ function buildHouseEdgePage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "downloads/tiltcheck-extension.zip")}" download>DOWNLOAD EXTENSION BRAKES</a>
+      <a class="btn btn-primary" href="${href(depth, "extension.html")}">EXTENSION STATUS</a>
     </div>
   </div>
 </main>

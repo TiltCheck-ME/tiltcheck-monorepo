@@ -7,21 +7,21 @@ export const HOME_LAUNCH = {
     'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.',
   lede:
     'Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets.',
-  ctaReady: true,
-  ctaLabel: 'DOWNLOAD THE ZIP',
-  ctaGatedLabel: 'CHROME ZIP NOT ON THIS SITE',
+  ctaReady: false,
+  ctaLabel: 'ADD TO CHROME',
+  ctaGatedLabel: 'CHROME WEB STORE (PENDING REVIEW)',
   ctaHref: '/downloads/tiltcheck-extension.zip',
   ctaGatedHint:
-    'The public zip is not up yet. Wallet lock and casino lookup work now. If you are building the extension, load unpacked dist from the repo.',
+    'Submitted to Google Chrome Web Store. Official 1-click install link will be live here upon store approval.',
   secondaryCtas: [
     { label: "DON'T FEED THE HOUSE", href: '/cooldown' },
     { label: 'IS THIS CASINO SUS?', href: '/casinos' },
   ] as const,
   tertiaryLink: { label: 'How the Chrome brakes work', href: '/extension' } as const,
   privacy:
-    'We never ask for your casino password or wallet seed. You sign a Cooldown. Download the extension zip directly or build from source.',
-  installEyebrow: 'How it works',
-  installTitle: 'Three moves. None of them are a lecture.',
+    'We never ask for your casino password or wallet seed. You sign a Cooldown. All extension guardrails run 100% locally in your browser.',
+  installEyebrow: 'Store Submission Status',
+  installTitle: 'Official Chrome Web Store Listing In Progress',
   installMoves: [
     {
       title: 'Look up the house',
@@ -33,7 +33,7 @@ export const HOME_LAUNCH = {
     },
     {
       title: 'Slow the next click',
-      body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Sideload zip is live.',
+      body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Extension submitted for Chrome Web Store review.',
     },
   ] as const,
   hud: {
@@ -51,7 +51,7 @@ export const HOME_LAUNCH = {
   } as const,
   honesty: [
     'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-    'The Chrome extension is a direct zip download on this site (sideload via Developer mode; Web Store listing later). Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
+    'The Chrome extension has been submitted to the Chrome Web Store and is pending review. Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
     'Browser filters are your list. Not an operator account close. Turn the extension off and play continues.',
     'AutoVault is two casinos. We do not fake a vault button everywhere.',
   ],
