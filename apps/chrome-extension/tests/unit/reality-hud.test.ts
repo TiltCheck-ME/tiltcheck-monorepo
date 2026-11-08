@@ -258,6 +258,18 @@ describe('installRealityHud DOM behavior', () => {
     expect(readBalance(document)).toBeNull();
   });
 
+  it('detects Stake.us Gold Coins via coin-toggle and suppresses real-money balance', async () => {
+    const { readBalance } = await import('../../src/reality-hud.js');
+    document.body.innerHTML = `
+      <div data-testid="coin-toggle">
+        <svg><use href="#gold-coin"></use></svg>
+        <span>Gold Coins</span>
+      </div>
+      <div class="balance-value">1,000.00</div>
+    `;
+    expect(readBalance(document)).toBeNull();
+  });
+
   it('handles negative drawdown in formatRealityMessage without producing double minus', () => {
     expect(formatRealityMessage(-50, 2)).toBe('Session Drawdown: -$50.00 (2.0 hrs of work torched). Step back.');
   });

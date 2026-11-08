@@ -91,6 +91,12 @@ export function parseMoney(text: string | null): number | null {
 export function isPlayMoneyActive(doc?: Document | null): boolean {
   if (!doc) return false;
 
+  const search = (doc.location?.search || '').toLowerCase();
+  const href = (doc.location?.href || '').toLowerCase();
+  if (search.includes('tab=topup') || href.includes('tab=topup')) {
+    return true;
+  }
+
   const gcActiveSelectors = [
     '[data-active-currency="gc" i]',
     '[data-currency="gc" i][aria-selected="true"]',
@@ -109,6 +115,26 @@ export function isPlayMoneyActive(doc?: Document | null): boolean {
 
   for (const sel of gcActiveSelectors) {
     if (doc.querySelector(sel)) return true;
+  }
+
+  const coinToggles = doc.querySelectorAll('[data-testid="coin-toggle"], [data-testid="balance-toggle"]');
+  for (const ct of coinToggles) {
+    const text = (ct.textContent || '').trim();
+    if (/\b(GC|Gold\s*Coins?)\b/i.test(text)) return true;
+    const useEl = ct.querySelector('use');
+    const hrefAttr = useEl?.getAttribute('href') || useEl?.getAttribute('xlink:href') || '';
+    if (/gold|gc/i.test(hrefAttr)) return true;
+    const svg = ct.querySelector('svg, img');
+    const aria = (svg?.getAttribute('aria-label') || '') + ' ' + (svg?.getAttribute('alt') || '') + ' ' + (svg?.getAttribute('class') || '');
+    if (/gold|gc/i.test(aria)) return true;
+  }
+
+  const walletModal = doc.querySelector('[data-testid="wallet-modal"], [class*="modal"]');
+  if (walletModal) {
+    const mText = (walletModal.textContent || '');
+    if (/\bGold\s*Coins\b/i.test(mText) && !/\b(Stake\s*Cash|Sweeps\s*Coins?)\b/i.test(mText)) {
+      return true;
+    }
   }
 
   const toggles = doc.querySelectorAll('[role="switch"][aria-checked="true"], [role="tab"][aria-selected="true"], [data-state="active"], button[class*="active" i], div[class*="active" i][class*="toggle" i]');
@@ -140,23 +166,23 @@ export function isPlayMoneyBalance(rawText: string | null, el?: Element | null):
     const parent = el.closest('[data-test="currency-select"], [data-test="balance"], button, [class*="balance"], [class*="wallet"], [class*="currency"]');
     if (parent) {
       const parentText = parent.textContent || '';
-      if (/\b(GC|Gold\s*Coins?|Fun|Demo|Play\s*Money)\b/i.test(parentText)) {
+      if (/\b(GC|Gold\s*Coins?|Fun|Demo|Play\s*Money|Top\s*Up)\b/i.test(parentText)) {
         return true;
       }
-      if (parent.querySelector('img[alt*="Gold" i], img[src*="gold" i], svg[class*="gold" i], [data-currency="gc" i], [data-test*="gold" i]')) {
+      if (parent.querySelector('img[alt*="Gold" i], img[src*="gold" i], svg[class*="gold" i], [data-currency="gc" i], [data-test*="gold" i], use[href*="gc" i], use[href*="gold" i]')) {
         return true;
       }
     }
 
     const doc = el.ownerDocument;
     if (doc) {
-      const activeCurrencyBtn = doc.querySelector('[data-test="currency-select"], [class*="active-currency"], [class*="selected-currency"]');
+      const activeCurrencyBtn = doc.querySelector('[data-test="currency-select"], [class*="active-currency"], [class*="selected-currency"], [data-testid="coin-toggle"], [data-testid="balance-toggle"]');
       if (activeCurrencyBtn) {
         const btnText = activeCurrencyBtn.textContent || '';
         if (/\b(GC|Gold\s*Coins?)\b/i.test(btnText)) {
           return true;
         }
-        if (activeCurrencyBtn.querySelector('img[alt*="Gold" i], [class*="gold" i]')) {
+        if (activeCurrencyBtn.querySelector('img[alt*="Gold" i], [class*="gold" i], use[href*="gc" i], use[href*="gold" i]')) {
           return true;
         }
       }

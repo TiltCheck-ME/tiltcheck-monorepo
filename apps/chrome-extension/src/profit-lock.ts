@@ -23,6 +23,7 @@ import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
 import { playAudioCue } from './audio-alerts.js';
 import { recordActivityFeedEvent } from './activity-feed.js';
+import { getGoalRealityCheck, getRatchetFloorCopy } from './degen-reality-copy.js';
 
 export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
 export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
@@ -428,7 +429,7 @@ function showGoalToast(doc: Document, goal: CashoutGoal, balance: number): void 
   toast.innerHTML = `
     <div class="tiltcheck-toast-tag">${metricLabel}</div>
     <div class="tiltcheck-toast-title">${goal.name} ($${goal.targetAmount.toFixed(2)})</div>
-    <div class="tiltcheck-toast-desc">Current balance is $${balance.toFixed(2)}. Turn electronic casino chips into real-world peace of mind.</div>
+    <div class="tiltcheck-toast-desc">${getGoalRealityCheck(goal, balance)}</div>
     <div class="tiltcheck-toast-actions">
       ${actionButtonHtml}
       <button type="button" class="tiltcheck-toast-btn-subtle tiltcheck-goal-dismiss-btn">Dismiss</button>
@@ -504,12 +505,12 @@ export function showSoftWarningModal(
         </div>
       </div>
       <div class="tiltcheck-modal-body">
-        You ran your balance up to <strong>$${data.peak.toFixed(2)}</strong>. You have hit your protected floor at <strong>$${data.floor.toFixed(2)}</strong>.
-        Cash out now while you are still ahead. If you continue spinning below this floor, a 60-second hard brake will be engaged.
+        You ran the bag up to <strong>$${data.peak.toFixed(2)}</strong> and gave back down to your protected floor at <strong>$${data.floor.toFixed(2)}</strong>. The heater is cooling off.
+        99% of degens rage-spin right here until the account reads zero. Cash out now while you are ahead. If you continue spinning below this floor, a 60-second hard brake will be engaged.
       </div>
       <div class="tiltcheck-modal-actions">
-        <button type="button" class="tiltcheck-modal-btn-cashout" id="tiltcheck-modal-cashout-btn">Cash Out at Cashier &rarr;</button>
-        <button type="button" class="tiltcheck-modal-btn-ack" id="tiltcheck-modal-ack-btn">I acknowledge the risk (Next spin arms Hard Guard)</button>
+        <button type="button" class="tiltcheck-modal-btn-cashout" id="tiltcheck-modal-cashout-btn">Lock In Profit at Cashier &rarr;</button>
+        <button type="button" class="tiltcheck-modal-btn-ack" id="tiltcheck-modal-ack-btn">I know I am risking it (Next spin drops Hard Brake)</button>
       </div>
     </div>
   `;
@@ -567,6 +568,13 @@ export function installProfitLock(
     if (baselineBalance === null) {
       baselineBalance = current;
       peakBalance = current;
+      if (opts.goalsEnabled) {
+        for (const goal of opts.goals) {
+          if (isGoalUnlocked(goal, current, current)) {
+            unlockedGoalIds.add(goal.id);
+          }
+        }
+      }
       return;
     }
 
@@ -587,15 +595,20 @@ export function installProfitLock(
 
     // 1. Evaluate Reality Cashout Goals
     if (opts.goalsEnabled) {
+      const newlyUnlocked: CashoutGoal[] = [];
       for (const goal of opts.goals) {
         if (!unlockedGoalIds.has(goal.id) && isGoalUnlocked(goal, current, baselineBalance)) {
           unlockedGoalIds.add(goal.id);
-          showGoalToast(doc, goal, current);
-          void recordActivityFeedEvent(`Cashout goal reached: ${goal.name} ($${goal.targetAmount})`, 'info');
+          newlyUnlocked.push(goal);
         }
       }
+      if (newlyUnlocked.length > 0) {
+        newlyUnlocked.sort((a, b) => b.targetAmount - a.targetAmount);
+        const topGoal = newlyUnlocked[0]!;
+        showGoalToast(doc, topGoal, current);
+        void recordActivityFeedEvent(`Cashout goal reached: ${topGoal.name} ($${topGoal.targetAmount})`, 'info');
+      }
     }
-
     // 2. Evaluate Ratchet Floor
     if (opts.profitLockEnabled) {
       const calculatedFloor = computeRatchetFloor(
