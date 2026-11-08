@@ -1815,6 +1815,79 @@ function initGuardSettingsPanel(): void {
 // Onboarding Wizard
 // ---------------------------------------------------------------------------
 
+export const SOLANA_TIP_ADDRESS = 'DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1';
+export const SOLSCAN_TIP_URL = `https://solscan.io/account/${SOLANA_TIP_ADDRESS}`;
+export const WEB_TIP_URL = 'https://tiltcheck.me/tip';
+
+function initTipJarModal(): void {
+  const overlay = document.getElementById('tip-jar-overlay');
+  if (!overlay) return;
+
+  const btnTipJar = document.getElementById('btn-tip-jar');
+  const btnFooterTip = document.getElementById('btn-footer-tip');
+  const btnClose = document.getElementById('btn-close-tip-jar');
+  const btnCopy = document.getElementById('btn-copy-tip-address');
+  const btnSolscan = document.getElementById('btn-tip-solscan');
+  const btnWeb = document.getElementById('btn-tip-web');
+  const copyStatus = document.getElementById('tip-copy-status');
+  const addressInput = document.getElementById('tip-solana-address') as HTMLInputElement | null;
+
+  const openTipJar = () => {
+    overlay.style.display = 'flex';
+    document.body.classList.add('has-modal');
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    overlay.scrollTop = 0;
+    if (copyStatus) copyStatus.textContent = '';
+  };
+
+  const closeTipJar = () => {
+    overlay.style.display = 'none';
+    document.body.classList.remove('has-modal');
+  };
+
+  btnTipJar?.addEventListener('click', openTipJar);
+  btnFooterTip?.addEventListener('click', openTipJar);
+  btnClose?.addEventListener('click', closeTipJar);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeTipJar();
+    }
+  });
+
+  btnCopy?.addEventListener('click', async () => {
+    try {
+      if (addressInput) {
+        addressInput.select();
+      }
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(SOLANA_TIP_ADDRESS);
+      } else if (addressInput) {
+        addressInput.select();
+        document.execCommand('copy');
+      }
+      if (copyStatus) {
+        copyStatus.textContent = 'Address copied to clipboard!';
+      }
+      toast('Solana tip address copied.');
+    } catch {
+      if (copyStatus) {
+        copyStatus.textContent = 'Address copied to clipboard!';
+      }
+      toast('Solana tip address copied.');
+    }
+  });
+
+  btnSolscan?.addEventListener('click', () => {
+    chrome.tabs.create({ url: SOLSCAN_TIP_URL });
+  });
+
+  btnWeb?.addEventListener('click', () => {
+    chrome.tabs.create({ url: WEB_TIP_URL });
+  });
+}
+
 function initOnboardingWizard(): void {
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
@@ -2045,6 +2118,7 @@ async function init() {
     });
   }
 
+  initTipJarModal();
   initOnboardingWizard();
   // Tabs
   document.querySelectorAll('.tab').forEach(tab => {

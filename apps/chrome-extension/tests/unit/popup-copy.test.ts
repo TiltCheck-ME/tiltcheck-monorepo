@@ -80,4 +80,19 @@ describe('popup guest-first copy', () => {
     expect(popupTs).toContain('loadStreakVolatility');
     expect(popupTs).toContain('initStreakVolatilityListeners');
   });
+
+  it('renders Tip Jar button, modal, and non-custodial Solana wallet address', () => {
+    expect(popupHtml).toContain('id="btn-tip-jar"');
+    expect(popupHtml).toContain('id="btn-footer-tip"');
+    expect(popupHtml).toContain('id="tip-jar-overlay"');
+    expect(popupHtml).toContain('id="tip-solana-address"');
+    expect(popupHtml).toContain('DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1');
+    expect(popupHtml).toContain('id="btn-copy-tip-address"');
+    expect(popupHtml).toContain('id="btn-tip-solscan"');
+    expect(popupHtml).toContain('id="btn-tip-web"');
+
+    expect(popupTs).toContain('SOLANA_TIP_ADDRESS');
+    expect(popupTs).toContain('DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1');
+    expect(popupTs).toContain('initTipJarModal');
+  });
 });

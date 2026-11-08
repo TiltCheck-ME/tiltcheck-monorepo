@@ -488,7 +488,9 @@ See `SECURITY.md` for reporting vulnerabilities.
 
 ## Support & Community
 
+- **Solana Tip Jar (SOL / USDC / SPL):** `DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1`
 - **Support on Ko-fi:** <https://ko-fi.com/jmenichole7>
+- **Tip & Transparency Page:** <https://tiltcheck.me/tip>
 - **Discord Community:** <https://discord.gg/gdBsEJfCar>
 - **Public Hub:** <https://tiltcheck.me>
 

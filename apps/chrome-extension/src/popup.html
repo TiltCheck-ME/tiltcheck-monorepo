@@ -1242,6 +1242,11 @@
       <span class="dot"></span>
       <span id="session-pill-text">No session</span>
     </span>
+    <button class="icon-btn" id="btn-tip-jar" title="Tip Jar: Support TiltCheck">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </button>
     <button class="icon-btn" id="btn-tutorial" title="Onboarding Tutorial &amp; Guide">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"/>
@@ -1768,7 +1773,48 @@
   </div>
 </div>
 
-<div class="footer">Made for Degens. By Degens.</div>
+<div class="footer">
+  <span>Made for Degens. By Degens.</span>
+  <span style="opacity:0.3; margin:0 6px;">|</span>
+  <button type="button" id="btn-footer-tip" style="background:none; border:none; color:var(--teal); font-family:inherit; font-size:11px; cursor:pointer; padding:0; text-decoration:none;">Tip Jar</button>
+</div>
+<!-- ===== TIP JAR MODAL ===== -->
+<div id="tip-jar-overlay" class="onboarding-overlay" style="display:none;">
+  <div class="onboarding-card" style="max-width:340px; text-align:left; position:relative;">
+    <button type="button" class="onboarding-close-btn" id="btn-close-tip-jar" title="Close Tip Jar">&times;</button>
+    <div class="onboarding-badge-icon" style="border-color:#17c3b2; color:#17c3b2; margin-bottom:12px;">NON-CUSTODIAL TIP JAR</div>
+    <h2 style="font-size:18px; margin:0 0 6px 0; color:#fff;">Support TiltCheck</h2>
+    <p class="onboarding-tagline" style="margin-bottom:14px;">
+      TiltCheck is 100% free and open-source. When degens hit a heater, throw a tip to keep our servers running and spotter guardrails free for everyone.
+    </p>
+
+    <div style="background:#0c0f14; border:1px solid rgba(23,195,178,0.25); border-radius:8px; padding:12px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:11px; font-weight:700; color:#17c3b2; text-transform:uppercase; letter-spacing:0.06em;">Solana (SOL / USDC / SPL)</span>
+        <span style="font-size:10px; color:#64748b; font-family:var(--mono);">Mainnet</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input type="text" id="tip-solana-address" readonly value="DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1" style="font-family:ui-monospace, monospace; font-size:10px; background:#141822; color:#e2e8f0; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:6px 8px; flex:1; min-width:0;" />
+        <button type="button" class="btn btn-primary" id="btn-copy-tip-address" style="white-space:nowrap; padding:6px 10px; font-size:11px; flex-shrink:0;">Copy</button>
+      </div>
+      <div id="tip-copy-status" style="font-size:10px; color:#17c3b2; margin-top:4px; min-height:14px; font-weight:600;"></div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <button type="button" class="btn btn-ghost" id="btn-tip-solscan" style="flex:1; font-size:11px; padding:7px 8px; justify-content:center;">
+        View Solscan &rarr;
+      </button>
+      <button type="button" class="btn btn-ghost" id="btn-tip-web" style="flex:1; font-size:11px; padding:7px 8px; justify-content:center;">
+        Web Tip Page &rarr;
+      </button>
+    </div>
+
+    <p style="font-size:9.5px; color:#64748b; line-height:1.35; margin:0; text-align:center;">
+      Pure client-side harm reduction. Voluntary tipping does not alter odds, unlock features, or compromise non-custodial protection.
+    </p>
+  </div>
+</div>
+
 <!-- ===== ONBOARDING WIZARD MODAL ===== -->
 <div id="onboarding-overlay" class="onboarding-overlay" style="display:none;">
   <div class="onboarding-card">

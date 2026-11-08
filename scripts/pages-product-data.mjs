@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
@@ -8,6 +8,8 @@ export const SITE_URL = 'https://tiltcheck.me';
 export const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
 export const KOFI_URL = 'https://ko-fi.com/jmenichole7';
 export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`;
+export const SOLANA_TIP_WALLET = 'DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1';
+export const SOLSCAN_TIP_URL = `https://solscan.io/account/${SOLANA_TIP_WALLET}`;
 
 export const SITE_H1_LINES = ['House always wins?', 'FUCK THAT.'];
 export const SITE_HERO_HEADLINE = 'House always wins? FUCK THAT.';

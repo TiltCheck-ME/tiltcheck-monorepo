@@ -22,6 +22,8 @@ import {
   SITE_URL,
   DISCORD_URL,
   KOFI_URL,
+  SOLANA_TIP_WALLET,
+  SOLSCAN_TIP_URL,
   SITE_H1_LINES,
   SITE_DOPAMINE,
   SITE_KICKER,
@@ -226,6 +228,7 @@ function footerHtml(depth) {
     <div class="site-footer__links">
       <a href="${dirHref(depth, 'autovault')}">AutoVault</a>
       <a href="${dirHref(depth, 'nudges')}">Nudges</a>
+      <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
       <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
     </div>
   </nav>
@@ -1779,6 +1782,90 @@ function buildPrivacyPage() {
 }
 
 
+
+function buildTipPage() {
+  const content = `${productHero({
+    eyebrow: 'Non-Custodial Tip Jar',
+    title: 'Keep TiltCheck Free',
+    lede: 'TiltCheck runs 100% free and open-source. When degens hit a heater, throw a tip to keep our RPC nodes running and real-time guardrails free for everyone.',
+    actionsHtml: `<button type="button" class="btn btn-primary" id="btn-copy-sol" onclick="copySolTip()">Copy Solana Address</button>
+    <a class="hero-actions__secondary-link" href="${SOLSCAN_TIP_URL}" target="_blank" rel="noopener noreferrer">View on Solscan &rarr;</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Solana Network</span>
+        <h2 class="public-page-section-heading__title">Tip via Phantom, Solflare, or Backpack</h2>
+      </div>
+
+      <div style="background:#0c0f14; border:1px solid rgba(23,195,178,0.25); border-radius:12px; padding:24px; max-width:640px; margin:0 auto 32px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:12px; font-weight:700; color:#17c3b2; text-transform:uppercase; letter-spacing:0.08em;">Solana (SOL / USDC / SPL)</span>
+          <span style="font-size:11px; color:#64748b; font-family:ui-monospace, monospace;">Mainnet-Beta</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+          <input type="text" id="sol-address-input" readonly value="${SOLANA_TIP_WALLET}" style="font-family:ui-monospace, monospace; font-size:12px; background:#141822; color:#e2e8f0; border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:10px 12px; flex:1; min-width:0;" />
+          <button type="button" class="btn btn-primary" onclick="copySolTip()" style="white-space:nowrap; padding:10px 18px; font-size:12px;">Copy</button>
+        </div>
+        <div id="copy-status" style="font-size:12px; color:#17c3b2; min-height:18px; font-weight:600;"></div>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.08); margin-top:16px; padding-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <span style="font-size:12px; color:#94a3b8;">Prefer card or fiat?</span>
+          <a href="${KOFI_URL}" target="_blank" rel="noopener noreferrer" style="color:#17c3b2; font-size:12px; font-weight:600; text-decoration:none;">Support on Ko-fi &rarr;</a>
+        </div>
+      </div>
+
+      <div class="public-page-grid public-page-grid--2" style="max-width:760px; margin:0 auto;">
+        <article class="public-page-card">
+          <p class="public-page-card__eyebrow">100% Non-Custodial</p>
+          <h3 class="public-page-card__title">Zero Fund Custody</h3>
+          <p class="public-page-card__copy">TiltCheck never holds player casino bankrolls, deposits, or private keys. Tipping is purely voluntary and client-side.</p>
+        </article>
+        <article class="public-page-card">
+          <p class="public-page-card__eyebrow">Zero Gated Guardrails</p>
+          <h3 class="public-page-card__title">Free for Every Degen</h3>
+          <p class="public-page-card__copy">Every spin brake, streak radar, reverse-withdrawal shield, and auto-vault rule remains 100% free and ungated whether you tip or not.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+function copySolTip() {
+  var input = document.getElementById('sol-address-input');
+  var status = document.getElementById('copy-status');
+  if (input) {
+    input.select();
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(input.value).then(function() {
+        if (status) status.textContent = 'Address copied to clipboard!';
+        setTimeout(function() { if (status) status.textContent = ''; }, 3000);
+      }).catch(function() {
+        input.select();
+        document.execCommand('copy');
+        if (status) status.textContent = 'Address copied to clipboard!';
+        setTimeout(function() { if (status) status.textContent = ''; }, 3000);
+      });
+    } else {
+      input.select();
+      document.execCommand('copy');
+      if (status) status.textContent = 'Address copied to clipboard!';
+      setTimeout(function() { if (status) status.textContent = ''; }, 3000);
+    }
+  }
+}
+</script>`;
+
+  return shell({
+    title: 'Tip Jar | TiltCheck',
+    description: 'Support TiltCheck open-source harm reduction. Voluntary Solana tips keep our guardrails free for every degen.',
+    depth: 'docs',
+    current: 'tip',
+    body: content,
+  });
+}
+
 function buildPagesSitemapXml(docsEntries) {
   const today = '2026-11-08';
   const pages = [
@@ -1791,6 +1878,7 @@ function buildPagesSitemapXml(docsEntries) {
     { loc: `${SITE_URL}/house-edge-scanner/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/verify/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/autovault/`, changefreq: 'weekly', priority: '0.7' },
+    { loc: `${SITE_URL}/tip/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/dashboard/`, changefreq: 'weekly', priority: '0.7' },
     { loc: `${SITE_URL}/privacy/`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${SITE_URL}/docs/`, changefreq: 'weekly', priority: '0.7' },
@@ -1868,6 +1956,10 @@ function run() {
   const privacyDir = path.join(siteRoot, 'privacy');
   fs.mkdirSync(privacyDir, { recursive: true });
   fs.writeFileSync(path.join(privacyDir, 'index.html'), buildPrivacyPage());
+
+  const tipDir = path.join(siteRoot, 'tip');
+  fs.mkdirSync(tipDir, { recursive: true });
+  fs.writeFileSync(path.join(tipDir, 'index.html'), buildTipPage());
 
   const casinosDir = path.join(siteRoot, 'casinos');
   fs.mkdirSync(casinosDir, { recursive: true });
