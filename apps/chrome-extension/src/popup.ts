@@ -524,9 +524,7 @@ function renderGoalsProgressUI(
 
     const statusBadge = document.createElement('span');
     statusBadge.className = 'goal-status-badge' + (item.isAchieved ? ' badge-achieved' : '');
-    statusBadge.textContent = item.isAchieved
-      ? '100% FUNDED - CASHOUT NOW'
-      : `${item.metric.toUpperCase()} TARGET (${metricText})`;
+    statusBadge.textContent = item.isAchieved ? '100% funded - cash out' : `${item.metric === 'profit' ? 'Profit target' : 'Balance target'}`;
 
     const actionWrap = document.createElement('div');
     actionWrap.style.cssText = 'display: flex; gap: 4px; align-items: center;';
@@ -765,7 +763,7 @@ function updateStreakVolatilityUI(state: StreakVolatilityState): void {
     badge.textContent = `HEATER (${state.consecutiveWins} W)`;
   } else {
     badge.className = 'streak-badge streak-neutral';
-    badge.textContent = state.totalSpins > 0 ? 'STEADY PACING' : 'TRACKING ACTIVE';
+    badge.textContent = state.totalSpins > 0 ? 'Steady Pacing' : 'Tracking Active';
   }
 
   // Values
@@ -884,7 +882,7 @@ async function loadSeedManagerState(): Promise<void> {
 
   const hygieneBadge = document.getElementById('seed-hygiene-badge');
   if (hygieneBadge) {
-    hygieneBadge.textContent = `${meta.hygieneStatus.toUpperCase()} • ${meta.entropyBits} BITS`;
+    hygieneBadge.textContent = `${meta.hygieneStatus.charAt(0).toUpperCase() + meta.hygieneStatus.slice(1)} · ${meta.entropyBits} bits`;
     if (meta.hygieneStatus === 'strong') {
       hygieneBadge.style.color = '#34d399';
       hygieneBadge.style.background = 'rgba(52,211,153,0.15)';

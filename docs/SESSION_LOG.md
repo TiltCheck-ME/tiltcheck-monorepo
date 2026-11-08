@@ -2,6 +2,14 @@
 
 # Session Log
 
+## 2026-11-08 — style(extension): neurocognitive visual refresh (PMC12289795 selective visual attention & calm saliency)
+
+- Applied neurocognitive design principles from PMC12289795 (Klein et al., July 2025, Selective Visual Attention in ADHD) to eliminate false-alarm attentional capture and visual clutter in the extension popup.
+- Calm-by-Default Saliency Matrix: Nominal status badges (radar-steady, streak-neutral, devnet sync) transitioned from saturated neon accents to low-chroma slate (#94a3b8 / rgba(148,163,184,0.10)), preserving vibrant color singletons exclusively for true risk states (drain, bleed, cliff-dive, fallacy trap, voluntary timelock).
+- De-Cluttered Borders & Surfaces: Softened --border token from 0.10 to 0.065; eliminated harsh red borders (border: 1px solid rgba(255, 74, 74, 0.22)) from peacetime guard configuration cards; replaced high-vibration dashed borders in policy cards with calm subtle fills (rgba(0,0,0,0.20)).
+- Typographic Sentence-Case Hierarchy: Replaced aggressive all-caps text blocks and monospace body text in .guard-panel, tabs, sparkline placeholders, and goal badges with proportional sans-serif in clean sentence case, reducing reading fatigue under dopamine depletion.
+- Re-tested & Packaged: 38/38 unit test suites passed (278/278 tests); packaged updated tiltcheck-extension.zip (428 KB).
+
 ## 2026-11-08 — fix(extension): popup window detach, auth bridge flow hardening, and dashboard 404 routing
 
 - Fixed popup height void: Reduced default popup min-height from 480px to 380px and adjusted width to 390px, eliminating excessive empty black voids on compact tabs (Vault, Activity).
