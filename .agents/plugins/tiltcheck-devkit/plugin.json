@@ -1,0 +1,14 @@
+{
+  "name": "tiltcheck-devkit",
+  "displayName": "TiltCheck DevKit",
+  "version": "1.0.0",
+  "description": "TiltCheck ecosystem development kit: Chrome extension engineering, modern web best practices, and sweepstakes casino guardrails.",
+  "author": "TiltCheck Ecosystem",
+  "homepage": "https://tiltcheck.me",
+  "repository": "https://github.com/TiltCheck-ME/tiltcheck-monorepo",
+  "suggestedPrompts": [
+    "Audit Chrome extension content scripts for sweepstakes dual-currency compliance",
+    "Package and verify TiltCheck Chrome extension archive for release",
+    "Review modern web UI components against calm-saliency guidelines"
+  ]
+}

@@ -2,6 +2,12 @@
 
 # Session Log
 
+## 2026-11-08 — feat(plugin): package workspace customizations into tiltcheck-devkit plugin
+
+- Unified Customizations into Workspace Plugin: Created .agents/plugins/tiltcheck-devkit/ containing plugin.json (version 1.0.0), README.md, rules/AGENTS.md, and encapsulated skills (chrome-extensions, modern-web-guidance).
+- Consolidated Guardrails & Domain Invariants: Merged brand laws (zero emojis, non-custodial architecture, copyright headers), casino sweepstakes invariants (SC/GC mode detection, slot iframe penetration, Default Bet Breaker, Stake cashier routing), and extension UI/packaging runbooks into plugin rules.
+- Live Language Server Discovery: Verified dynamic discovery via language server RPC GetAllPlugins (customization://tiltcheck-devkit), eliminating loose unversioned files under .agents/skills/.
+
 ## 2026-11-08 — docs(rules): persist extension invariants and sweepstakes domain guardrails
 
 - Codified Sweepstakes Domain Invariants: Updated .cursor/rules/frontend-extension-safety.mdc with critical invariants: Gold Coins (GC) vs Sweeps Coins (SC) dual-currency alert suppression, slot iframe penetration (all_frames: true), Default Bet Breaker bankroll protection on page reloads, and Stake cashier query parameter formatting (?modal=wallet&tab=withdraw|redeem).
