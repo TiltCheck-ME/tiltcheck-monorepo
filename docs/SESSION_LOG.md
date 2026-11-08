@@ -2,6 +2,12 @@
 
 # Session Log
 
+## 2026-11-08 — feat(sentry): provision tiltcheck-api project and verify live error ingestion
+
+- Sentry Project Provisioning: Connected via Sentry MCP to organization tiltcheck and provisioned new project tiltcheck-api (Platform: Node.js, Project ID: 4512396248809472).
+- Configuration: Set live SENTRY_DSN in local .env, wiring SentryMonitor.init('api', process.env.SENTRY_DSN) in apps/api/src/index.ts.
+- End-to-End Verification: Booted Express API gateway on port 8080, triggered test exception through the application's real middleware and error handler, and verified successful ingestion in Sentry (TILTCHECK-API-1 with full source context stack trace). Cleaned up test endpoint and resolved verification issue.
+
 ## 2026-11-08 — feat(plugin): package workspace customizations into tiltcheck-devkit plugin
 
 - Unified Customizations into Workspace Plugin: Created .agents/plugins/tiltcheck-devkit/ containing plugin.json (version 1.0.0), README.md, rules/AGENTS.md, and encapsulated skills (chrome-extensions, modern-web-guidance).
