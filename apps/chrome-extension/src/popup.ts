@@ -936,26 +936,49 @@ function initStreakVolatilityListeners(): void {
 let currentSiteSeed = 'default';
 let activeSeedValue = '';
 
-async function detectActiveTabSite(): Promise<string> {
+async function getTargetCasinoTab(): Promise<chrome.tabs.Tab | undefined> {
   return new Promise((resolve) => {
     try {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const url = tabs[0]?.url;
-        if (url) {
-          try {
-            const host = new URL(url).hostname;
-            resolve(normalizeSiteKey(host));
+      const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
+      if (isStandaloneWindow) {
+        chrome.tabs.query({ lastFocusedWindow: false }, (allTabs) => {
+          const casino = allTabs?.find((t) => t.url && t.url.match(/https?:\/\/(?:[a-zA-Z0-9-]+\.)*(stake\.(?:com|us)|roobet\.com|bc\.game|rollbit\.com|shuffle\.com|gamdom\.com|csgoempire\.com|crowncoinscasino\.com|lonestarcasino\.com|realprize\.com|pulsz\.com|mcluck\.com|chumbacasino\.com|wowvegas\.com|high5casino\.com|fortunecoins\.com|zulacasino\.com|sportzino\.com)/i));
+          if (casino) {
+            resolve(casino);
             return;
-          } catch {
-            // Ignore URL parse error
           }
-        }
-        resolve('stake');
-      });
+          const nonExt = allTabs?.find((t) => t.url && !t.url.startsWith('chrome-extension://') && !t.url.startsWith('chrome://'));
+          if (nonExt) {
+            resolve(nonExt);
+            return;
+          }
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => resolve(tabs?.[0]));
+        });
+      } else {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => resolve(tabs?.[0]));
+      }
     } catch {
-      resolve('stake');
+      resolve(undefined);
     }
   });
+}
+
+async function detectActiveTabSite(): Promise<string> {
+  const tab = await getTargetCasinoTab();
+  if (tab?.url) {
+    try {
+      const parsed = new URL(tab.url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        const site = normalizeSiteKey(parsed.hostname);
+        if (site && site !== 'default' && !site.includes('.')) {
+          return site;
+        }
+      }
+    } catch {
+      // Ignore URL parse error
+    }
+  }
+  return 'stake';
 }
 
 async function loadSeedManagerState(): Promise<void> {
@@ -1055,29 +1078,29 @@ function initSeedManagerPanel(): void {
   }
 
   if (confirmApplyBtn && confirmBox) {
-    confirmApplyBtn.addEventListener('click', () => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tabId = tabs[0]?.id;
-        if (!tabId) {
-          toast('No active browser tab found', true);
-          confirmBox.style.display = 'none';
-          return;
-        }
+    confirmApplyBtn.addEventListener('click', async () => {
+      const tab = await getTargetCasinoTab();
+      const tabId = tab?.id;
+      if (!tabId) {
+        toast('No active casino tab found', true);
+        confirmBox.style.display = 'none';
+        return;
+      }
 
-        chrome.tabs.sendMessage(
-          tabId,
-          {
-            type: 'apply_client_seed_to_page',
-            seed: activeSeedValue,
-            confirmed: true,
-          },
-          (res) => {
-            confirmBox.style.display = 'none';
-            if (statusMsg) {
-              statusMsg.style.display = 'block';
-              if (res && res.applied) {
-                statusMsg.style.color = '#17c3b2';
-                statusMsg.textContent = res.message || 'Seed applied to page input.';
+      chrome.tabs.sendMessage(
+        tabId,
+        {
+          type: 'apply_client_seed_to_page',
+          seed: activeSeedValue,
+          confirmed: true,
+        },
+        (res) => {
+          confirmBox.style.display = 'none';
+          if (statusMsg) {
+            statusMsg.style.display = 'block';
+            if (res && res.applied) {
+              statusMsg.style.color = '#17c3b2';
+              statusMsg.textContent = res.message || 'Seed applied to page input.';
                 toast('Client seed applied to page.');
               } else {
                 statusMsg.style.color = '#fbbf24';
@@ -1086,7 +1109,6 @@ function initSeedManagerPanel(): void {
             }
           }
         );
-      });
     });
   }
 
