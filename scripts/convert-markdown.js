@@ -1,6 +1,6 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
  * GitHub Pages site builder for TiltCheck.
  * - `/` is the brakes homepage
@@ -1778,6 +1778,56 @@ function buildPrivacyPage() {
   });
 }
 
+
+function buildPagesSitemapXml(docsEntries) {
+  const today = '2026-11-08';
+  const pages = [
+    { loc: `${SITE_URL}/`, changefreq: 'daily', priority: '1.0' },
+    { loc: `${SITE_URL}/extension`, changefreq: 'weekly', priority: '0.9' },
+    { loc: `${SITE_URL}/casinos/`, changefreq: 'weekly', priority: '0.9' },
+    { loc: `${SITE_URL}/cooldown/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/nudges/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/rtp-scanner/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/house-edge-scanner/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/verify/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/autovault/`, changefreq: 'weekly', priority: '0.7' },
+    { loc: `${SITE_URL}/dashboard/`, changefreq: 'weekly', priority: '0.7' },
+    { loc: `${SITE_URL}/privacy/`, changefreq: 'monthly', priority: '0.5' },
+    { loc: `${SITE_URL}/docs/`, changefreq: 'weekly', priority: '0.7' },
+  ];
+
+  for (const doc of docsEntries) {
+    pages.push({
+      loc: `${SITE_URL}/docs/${doc.slug}.html`,
+      changefreq: 'monthly',
+      priority: '0.6',
+    });
+  }
+
+  const urls = pages
+    .map(
+      (p) => `  <url>\n    <loc>${p.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`
+    )
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+}
+
+function buildPagesRobotsTxt() {
+  return `# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+User-agent: *
+Allow: /
+
+Sitemap: ${SITE_URL}/sitemap.xml
+Host: ${SITE_URL}
+`;
+}
+
 function run() {
   if (!fs.existsSync(sourceRoot)) {
     console.error('Source directory missing:', sourceRoot);
@@ -1898,6 +1948,19 @@ function run() {
 
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
   fs.writeFileSync(path.join(siteRoot, 'CNAME'), 'tiltcheck.me\n');
+
+  fs.writeFileSync(path.join(siteRoot, 'sitemap.xml'), buildPagesSitemapXml(indexEntries));
+  fs.writeFileSync(path.join(siteRoot, 'robots.txt'), buildPagesRobotsTxt());
+
+  const sitemapXsl = path.join(repoRoot, 'apps/web/public/sitemap.xsl');
+  if (fs.existsSync(sitemapXsl)) {
+    fs.copyFileSync(sitemapXsl, path.join(siteRoot, 'sitemap.xsl'));
+  }
+
+  const llmsTxt = path.join(repoRoot, 'apps/web/public/llms.txt');
+  if (fs.existsSync(llmsTxt)) {
+    fs.copyFileSync(llmsTxt, path.join(siteRoot, 'llms.txt'));
+  }
 
   console.log(`Built Pages site: ${files.length} specs + single-page home → ${siteRoot}`);
 }
