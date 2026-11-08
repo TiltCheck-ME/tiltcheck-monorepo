@@ -194,9 +194,6 @@ importers:
 
   apps/api:
     dependencies:
-      '@magic-sdk/admin':
-        specifier: ^2.8.2
-        version: 2.8.2(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
       '@solana/web3.js':
         specifier: 1.98.4
         version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
@@ -354,9 +351,6 @@ importers:
       '@tiltcheck/utils':
         specifier: workspace:*
         version: link:../../packages/utils
-      magic-sdk:
-        specifier: ^33.6.3
-        version: 33.6.3
     devDependencies:
       '@types/chrome':
         specifier: ^0.1.38
