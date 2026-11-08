@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Tip Jar | TiltCheck</title>
+<meta name="description" content="Support TiltCheck open-source harm reduction. Voluntary Solana tips keep our guardrails free for every degen."/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#06080b"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles/base.css"/>
+
+</head>
+<body>
+<nav class="site-nav" aria-label="Primary">
+  <a class="site-nav__brand" href="../index.html"><span class="site-nav__mark" aria-hidden="true">TC</span>TiltCheck</a>
+  <div class="site-nav__links">
+    <a href="../extension.html">Extension</a>
+    <a href="../casinos/">Casinos</a>
+    <a href="../cooldown/">Cooldown</a>
+    <a class="site-nav__discord" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
+  </div>
+</nav>
+<header class="product-hero">
+  <div class="landing-shell">
+    <span class="brand-eyebrow">Non-Custodial Tip Jar</span>
+    <h1 class="product-hero__title">Keep TiltCheck Free</h1>
+    <p class="product-hero__lede">TiltCheck runs 100% free and open-source. When degens hit a heater, throw a tip to keep our RPC nodes running and real-time guardrails free for everyone.</p>
+    <div class="hero-actions hero-actions--start"><button type="button" class="btn btn-primary" id="btn-copy-sol" onclick="copySolTip()">Copy Solana Address</button>
+    <a class="hero-actions__secondary-link" href="https://solscan.io/account/DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1" target="_blank" rel="noopener noreferrer">View on Solscan &rarr;</a></div>
+  </div>
+</header>
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Solana Network</span>
+        <h2 class="public-page-section-heading__title">Tip via Phantom, Solflare, or Backpack</h2>
+      </div>
+
+      <div style="background:#0c0f14; border:1px solid rgba(23,195,178,0.25); border-radius:12px; padding:24px; max-width:640px; margin:0 auto 32px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:12px; font-weight:700; color:#17c3b2; text-transform:uppercase; letter-spacing:0.08em;">Solana (SOL / USDC / SPL)</span>
+          <span style="font-size:11px; color:#64748b; font-family:ui-monospace, monospace;">Mainnet-Beta</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+          <input type="text" id="sol-address-input" readonly value="DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1" style="font-family:ui-monospace, monospace; font-size:12px; background:#141822; color:#e2e8f0; border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:10px 12px; flex:1; min-width:0;" />
+          <button type="button" class="btn btn-primary" onclick="copySolTip()" style="white-space:nowrap; padding:10px 18px; font-size:12px;">Copy</button>
+        </div>
+        <div id="copy-status" style="font-size:12px; color:#17c3b2; min-height:18px; font-weight:600;"></div>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.08); margin-top:16px; padding-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <span style="font-size:12px; color:#94a3b8;">Prefer card or fiat?</span>
+          <a href="https://ko-fi.com/jmenichole7" target="_blank" rel="noopener noreferrer" style="color:#17c3b2; font-size:12px; font-weight:600; text-decoration:none;">Support on Ko-fi &rarr;</a>
+        </div>
+      </div>
+
+      <div class="public-page-grid public-page-grid--2" style="max-width:760px; margin:0 auto;">
+        <article class="public-page-card">
+          <p class="public-page-card__eyebrow">100% Non-Custodial</p>
+          <h3 class="public-page-card__title">Zero Fund Custody</h3>
+          <p class="public-page-card__copy">TiltCheck never holds player casino bankrolls, deposits, or private keys. Tipping is purely voluntary and client-side.</p>
+        </article>
+        <article class="public-page-card">
+          <p class="public-page-card__eyebrow">Zero Gated Guardrails</p>
+          <h3 class="public-page-card__title">Free for Every Degen</h3>
+          <p class="public-page-card__copy">Every spin brake, streak radar, reverse-withdrawal shield, and auto-vault rule remains 100% free and ungated whether you tip or not.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+function copySolTip() {
+  var input = document.getElementById('sol-address-input');
+  var status = document.getElementById('copy-status');
+  if (input) {
+    input.select();
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(input.value).then(function() {
+        if (status) status.textContent = 'Address copied to clipboard!';
+        setTimeout(function() { if (status) status.textContent = ''; }, 3000);
+      }).catch(function() {
+        input.select();
+        document.execCommand('copy');
+        if (status) status.textContent = 'Address copied to clipboard!';
+        setTimeout(function() { if (status) status.textContent = ''; }, 3000);
+      });
+    } else {
+      input.select();
+      document.execCommand('copy');
+      if (status) status.textContent = 'Address copied to clipboard!';
+      setTimeout(function() { if (status) status.textContent = ''; }, 3000);
+    }
+  }
+}
+</script>
+<footer class="site-footer">
+  <nav class="site-footer__more" aria-label="More tools">
+    <p class="site-footer__more-label">Also</p>
+    <div class="site-footer__links">
+      <a href="../autovault/">AutoVault</a>
+      <a href="../nudges/">Nudges</a>
+      <a href="../tip/">Tip Jar</a>
+      <a href="../privacy/">Privacy Policy</a>
+    </div>
+  </nav>
+  <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
+  <span class="site-footer__tag">Made for Degens. By Degens.</span>
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+</footer>
+</body>
+</html>
