@@ -1,0 +1,38 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+name: Sentry Release Tracking
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'modules/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/sentry-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sentry-release:
+    name: Create Sentry Release & Track Commits
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: tiltcheck
+          SENTRY_PROJECT: tiltcheck-api
+        with:
+          environment: production
+          version: tiltcheck-api@${{ github.sha }}
+          set_commits: auto

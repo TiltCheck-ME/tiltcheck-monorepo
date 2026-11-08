@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * Sentry Error Tracking Integration
  * 
@@ -46,10 +46,12 @@ export class SentryMonitor {
       console.warn('[Sentry] DSN not provided – Sentry is disabled');
       return;
     }
+    const release = process.env.SENTRY_RELEASE || (process.env.GIT_COMMIT_SHA ? `${serviceName}@${process.env.GIT_COMMIT_SHA}` : undefined);
     Sentry.init({
       dsn: resolvedDsn,
       environment: process.env.NODE_ENV ?? 'development',
       serverName: serviceName,
+      release,
       tracesSampleRate: 1.0,
     });
   }

@@ -2,6 +2,13 @@
 
 # Session Log
 
+## 2026-11-08 — feat(sentry): wire release tracking, commit associations, and critical email alerts
+
+- Release Tracking Pipeline: Configured .github/workflows/sentry-release.yml using getsentry/action-release@v3 targeting tiltcheck-api@${{ github.sha }} on push to main with full commit history (fetch-depth: 0) for automated suspect commit identification and deployment markers.
+- Runtime Release Tagging: Updated packages/monitoring/src/sentry.ts to bind release tag into Sentry.init() using SENTRY_RELEASE or serviceName@GIT_COMMIT_SHA.
+- Critical Alert Workflow: Created high-priority alert rule TiltCheck API - Critical 5xx & Regressions Alert (Rule ID: 6310448) via Sentry Workflow Engine API, dispatching immediate email notifications to j.chapman7@yahoo.com on high-priority crashes, 5xx errors, and regressions.
+- Architecture Alignment: Clarified deployment reality during grill-me interview confirming Docker/VPS stack execution model and complete retirement of legacy Railway service definitions.
+
 ## 2026-11-08 — feat(sentry): provision tiltcheck-api project and verify live error ingestion
 
 - Sentry Project Provisioning: Connected via Sentry MCP to organization tiltcheck and provisioned new project tiltcheck-api (Platform: Node.js, Project ID: 4512396248809472).
