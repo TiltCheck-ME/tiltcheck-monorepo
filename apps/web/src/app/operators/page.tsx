@@ -18,7 +18,7 @@ const OPERATOR_BENEFITS = [
   },
   {
     title: 'Breathalyzer and RG signals',
-    body: 'Detect loss-chasing velocity, streak pressure, and intervention moments before a session goes fully cooked.',
+    body: 'Detect loss-chasing speed, streak pressure, and intervention moments before a session goes fully cooked.',
   },
   {
     title: 'Sandbox first',

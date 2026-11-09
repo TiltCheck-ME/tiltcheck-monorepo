@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 import Link from 'next/link';
 import BrandTagline from '@/components/BrandTagline';
 import JsonLd from '@/components/JsonLd';
@@ -63,9 +63,9 @@ export default function Home() {
           ))}
         </ol>
       </section>
-      <section className="landing-brakes" aria-label="The In-Session Brakes & Guards">
-        <p className="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
-        <h2 className="landing-brakes__title">THE IN-SESSION BRAKES &amp; GUARDS</h2>
+      <section className="landing-brakes" aria-label="What the extension does">
+        <p className="landing-brakes__eyebrow">ON THE CASINO TAB</p>
+        <h2 className="landing-brakes__title">THE ANNOYING STUFF. ON PURPOSE.</h2>
         <ul className="landing-brakes__list">
           {CORE_BRAKES.map((b) => (
             <li key={b.num} className="landing-brake">

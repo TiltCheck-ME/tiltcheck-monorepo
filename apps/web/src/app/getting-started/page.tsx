@@ -35,7 +35,7 @@ const paths = [
 
 const steps = [
   { n: '1', title: 'Lock', body: 'On-chain Cooldown at /cooldown. Chrome zip is not on this site yet — sideload dist if you are building it.' },
-  { n: '2', title: 'Set rules', body: 'On-chain Cooldown at /cooldown. Dashboard shields and vault rules after Discord.' },
+  { n: '2', title: 'Set rules', body: 'Sign a Touch Grass lock at /cooldown. Vault rules live in the dashboard after Discord login.' },
   { n: '3', title: 'Play once', body: 'Open a supported session. TiltCheck reads the tab, not your keys.' },
 ];
 

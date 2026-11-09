@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -50,6 +50,7 @@ import {
   resolveExtensionPostMessageTargetForCallback,
   isExtensionOAuthCallbackSurface,
 } from './auth.utils.js';
+import { isTiltCheckStaff } from '../lib/staff-role.js';
 
 
 const router = Router();
@@ -1362,6 +1363,7 @@ router.get('/me', async (req, res) => {
               roles: user.roles,
               type: 'user',
               isAdmin: user.roles.includes('admin'),
+              isStaff: await isTiltCheckStaff(user.discord_id),
             });
             return;
           }
@@ -1396,6 +1398,7 @@ router.get('/me', async (req, res) => {
         roles: user.roles,
         type: session.type,
         isAdmin: user.roles.includes('admin') || session.type === 'admin',
+        isStaff: await isTiltCheckStaff(user.discord_id),
       });
       return;
     }
@@ -1408,6 +1411,7 @@ router.get('/me', async (req, res) => {
       walletAddress: session.walletAddress,
       roles: session.roles,
       isAdmin: session.type === 'admin',
+      isStaff: await isTiltCheckStaff(session.discordId),
     });
   } catch (error) {
     console.error('[Auth] Get me error:', error);

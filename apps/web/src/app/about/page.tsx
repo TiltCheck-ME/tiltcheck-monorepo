@@ -28,7 +28,7 @@ export default function AboutPage() {
         title="Built by a player. Shipped like defense."
         description={
           <p>
-            Built after too many 3 a.m. loss streaks — better math, guardrails, and receipts instead of pep talks.
+            Built after too many 3 a.m. loss streaks — better math, friction, and receipts instead of pep talks.
           </p>
         }
         actions={
@@ -83,7 +83,7 @@ export default function AboutPage() {
 
             <article className="public-page-card">
               <p className="public-page-card__eyebrow">Product</p>
-              <h2 className="public-page-card__title">Read-only guardrail + trust layer</h2>
+              <h2 className="public-page-card__title">Read-only nudges + casino receipts</h2>
               <p className="public-page-card__copy">
                 Not a casino or bank. Watches sessions, checks payout claims, helps players exit with evidence.
               </p>

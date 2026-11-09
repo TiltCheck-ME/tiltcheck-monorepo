@@ -56,7 +56,7 @@ export default function CommunityVaultStrip() {
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-black tracking-tighter text-white">{totalUsers}</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mt-1">Degens protected</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mt-1">Degens vaulting</span>
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-black tracking-tighter text-[#17c3b2]">{weeklySol} SOL</span>

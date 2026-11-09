@@ -1,10 +1,14 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 /**
  * Static product catalog for GitHub Pages twin (no API).
  * Keep hero/install copy in lockstep with apps/web/src/lib/home-launch-copy.ts.
+ *
+ * Voice: TiltCheck talks shit and adds friction. It does not save, shield, or guard anyone.
+ * The player does the work. No store-review status, roadmap, or dev notes in public copy.
  */
 
 export const SITE_URL = 'https://tiltcheck.me';
+export const API_URL = 'https://api.tiltcheck.me';
 export const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
 export const KOFI_URL = 'https://ko-fi.com/jmenichole7';
 export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`;
@@ -17,72 +21,59 @@ export const SITE_DOPAMINE = "The math isn't rigged. Your dopamine is.";
 export const SITE_KICKER =
   'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.';
 export const SITE_LEDE =
-  'Brakes for degens who still play. Slow the next spin. Block the game that rinses you. Sign a Cooldown so 3am-you cannot put the stack back on the table until the timer ends. Look up sus casinos before you deposit. We never hold your keys or take bets.';
+  'Degen-built tools that talk shit and add friction. Two seconds between spins. Games you swore off stop clicking. A Touch Grass lock you sign yourself so 3am-you has to wait it out. A sus check before you deposit. You still drive. We just heckle from the passenger seat. No keys. No bets.';
 export const SITE_ONE_LINER =
-  'Brakes for people who already gamble: slow the next spin, block the game that rinses you, lock the wallet you signed, and check if the casino is sus. We never hold your keys.';
+  'Degen-built tools that heckle you mid-session: a pause between spins, a block list for the games that rinse you, a Touch Grass lock you sign yourself, and a sus check on the casino. We never hold your keys.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
-  'We never ask for your casino password or wallet seed. You sign a Cooldown. All extension guardrails run 100% locally in your browser.';
+  'We never ask for your casino password or wallet seed. You sign your own Touch Grass lock. The extension runs in your browser, not on our servers.';
 export const CTA_READY = false;
 export const CTA_LABEL = 'ADD TO CHROME';
-export const CTA_GATED_LABEL = 'CHROME WEB STORE (PENDING REVIEW)';
-export const CTA_GATED_HINT =
-  'Submitted to Google Chrome Web Store. Official 1-click install link will be live here upon store approval.';
+export const CTA_GATED_LABEL = 'EXTENSION: NOT PUBLIC YET';
+export const CTA_GATED_HINT = 'Hop in the Discord to hear when it drops.';
 export const SECONDARY_CTAS = [
   { label: "DON'T FEED THE HOUSE", href: 'cooldown/', primary: true },
   { label: 'IS THIS CASINO SUS?', href: 'casinos/', primary: false },
 ];
 export const TERTIARY_LINK = {
-  label: 'How the Chrome brakes work',
+  label: 'What the extension does',
   href: 'extension.html',
 };
-export const INSTALL_EYEBROW = 'Store Submission Status';
-export const INSTALL_TITLE = 'Official Chrome Web Store Listing In Progress';
+export const INSTALL_EYEBROW = 'How it works';
+export const INSTALL_TITLE = 'Three moves. All yours.';
 export const INSTALL_MOVES = [
   {
     title: 'Look up the house',
-    body: 'Trust scores are receipts — payout stories, licenses, scam reports — not a vibe rank.',
+    body: 'Receipts, not vibes: payout stories, licenses, scam reports. Check the casino before it checks your balance.',
   },
   {
     title: "Don't feed it",
-    body: 'Sign a Cooldown. The win stays off the table until the timer ends. Stronger locks only. You sign. We never hold keys. Casinos do not have to honor it. You do.',
+    body: "Sign a Touch Grass lock. The win stays off the table until the timer runs out. You sign it. You honor it. Casinos don't have to. We never hold keys.",
   },
   {
     title: 'Slow the next click',
-    body: 'Chrome on the casino tab. Two seconds between spins, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter. Extension submitted for Chrome Web Store review.',
+    body: 'The extension sits on the casino tab and gets in your way: two seconds between spins, your blocked games stop clicking, losses shown in hours of your actual job. Annoying on purpose.',
   },
 ];
-export const INSTALL_STEPS = [
-  'Extension Packaged & Tested: Manifest V3 build is bundled, audited for zero external dependencies, and submitted to the Chrome Web Store Developer Dashboard.',
-  'Google Store Review: Reviewers audit permissions (storage, tabs, activeTab, alarms, webNavigation) and single-purpose responsible gaming compliance.',
-  'Official 1-Click Install: Once approved, the direct Chrome Web Store link will be published here for instant 1-click installation with automatic updates.',
-];
 export const INSTALL_NOTE =
-  'No sideloading or developer flags required. Voluntary on-chain Cooldown timelocks, RTP downgrade forensics, provably fair seed audits, and casino trust lookups are live right now on this site.';
-export const HUD = {
-  spin: 'SPIN',
-  countdown: '2s',
-  chip: 'On your list',
-  lock: 'Cooldown signed',
-  lockMeta: 'devnet',
-};
+  'Live on this site right now, no extension needed: Touch Grass locks, the RTP scanner, the bet verifier, and casino trust lookups.';
 export const VAULT = {
   title: 'AutoVault — skim the win on the sites we actually support.',
-  body: 'Stake.us and supported rooms. AutoVault moves your profit into your vault so the hit is not sitting in playable balance.',
+  body: 'Stake.us and supported rooms. AutoVault moves your cut into your own casino vault so the hit is not sitting in playable balance.',
   ctaLabel: 'AUTOVAULT',
   href: 'autovault/',
 };
 export const AUTOVAULT_PAGE = {
-  eyebrow: 'In-Session Win Protection',
+  eyebrow: 'Skim the win',
   title: 'Skim the hit.',
   punch:
-    'Stake.us, Stake.com, and supported rooms. Hit a heater? AutoVault moves your cut straight into the casino vault so you don’t rinse it back.',
+    'Stake.us, Stake.com, and supported rooms. Hit a heater? AutoVault moves your cut into the casino vault before you talk yourself into one more spin.',
   steps: [
-    'Install the TiltCheck browser extension once the Chrome Web Store listing is approved.',
+    'Grab the TiltCheck extension when it goes public. Ask in the Discord.',
     'Open the extension on your casino tab and set your skim percentage (e.g. 10%) and big-win threshold.',
-    'Play normally. When a win hits, AutoVault moves that slice straight into your vault. Zero logins, zero servers, 100% in your browser.',
+    'Play normally. When a win hits, AutoVault moves that slice into your vault. No logins, no servers, all in your browser.',
   ],
-  fine: 'Direct API vaulting on Stake.us and Stake.com via session cookie. Vault nudge dialogs on supported rooms. TiltCheck never sees passwords or holds funds.',
+  fine: 'Vaults on Stake.us and Stake.com with your own signed-in session. Vault nudges on supported rooms. TiltCheck never sees passwords or holds funds.',
 };
 export const RTP_SCANNER_PAGE = {
   eyebrow: "RTP Forensics & Downgrade Scanner",
@@ -90,6 +81,7 @@ export const RTP_SCANNER_PAGE = {
   punch: "Providers ship games with up to 5 certified return-to-player tiers (e.g. 96.5% down to 88.0%). Shady casinos quietly pick the lowest tier without telling the player.",
   fine: "Certified tiers sourced from GLI, eCOGRA, and BMM lab test reports. Compare your casino deployment against manufacturer baselines.",
 };
+
 export const VERIFY_PAGE = {
   eyebrow: "Provably Fair Cryptographic Audit",
   title: "Provably Fair HMAC-SHA256 Seed Verifier",
@@ -103,194 +95,58 @@ export const HOUSE_EDGE_PAGE = {
   punch: "Calculate VIP milestone true cost, expected losses, and comp reward return ratios. See exactly how much the house pockets while you chase loyalty tiers.",
   fine: "Loyalty mathematical models based on public casino VIP terms. Expected loss = Effective Wager * House Edge.",
 };
+
 export const LAUNCH_HONESTY = [
-  'This is live: casino lookup, browser brakes, and Cooldown on Solana’s test network (devnet). Mainnet is later.',
-  'The Chrome extension has been submitted to the Chrome Web Store and is pending review. Includes two seconds spin brake, game filters, reality wage HUD, deposit barrier, reverse-withdrawal shield, profit-lock ratchet, bonus tracker, velocity radar, one-click cashout router, and streak volatility spotter.',
-  'Browser filters are your list. They are not an operator account close. Turn the extension off and play continues.',
+  'Live now: casino lookup, the extension tricks, and Touch Grass locks on Solana’s test network (devnet). Mainnet is later.',
+  'None of this works unless you let it. Turn the extension off and play continues. That part is on you.',
+  'Your game list lives in your browser. It is not a casino account ban.',
   'AutoVault is two casinos. We do not fake a vault button everywhere.',
-];
-
-/** Plain-English pitch for cold visitors — sits under the hero. */
-export const WHAT_IT_IS = {
-  eyebrow: 'What this is',
-  title: 'Brakes for the session. Not another casino.',
-  paragraphs: [
-    'Online casinos are built to keep you spinning. TiltCheck sits in your browser tab as a read-only audit layer: it watches pacing and session behavior, pairs that with public trust signals, and pushes you to cash out or stop when your own rules say so.',
-    'We never ask for wallet keys. We never hold your money. We are not a casino, not an affiliate ranking farm, and not therapy — we are the brakes you install before tilt writes the next chapter.',
-  ],
-  bullets: [
-    'Browser extension that watches supported casino tabs in real time',
-    'Public casino trust grades so you can look up an operator before you deposit',
-    'Tools to verify bets, scan shady domains, and check house-edge claims',
-    'Optional vault / profit-lock flows so wins are harder to spin back',
-  ],
-};
-
-export const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Install',
-    body: 'TiltCheck runs client-side in your browser. Set a voluntary Cooldown timelock and inspect Trust intel. No private keys, zero custody.',
-    note: 'One install. Two minutes.',
-  },
-  {
-    step: '02',
-    title: 'Watch',
-    body: 'Compares live click-speed, bet pacing, and session events to your guardrails and known pressure patterns.',
-    note: 'Flags sus spirals while you are still in the session.',
-  },
-  {
-    step: '03',
-    title: 'Exit',
-    body: 'When the line is crossed: warning, cash-out push, or hard stop — whatever you configured. Proof over emotion.',
-    note: 'You set the rules. We enforce them.',
-  },
-];
-
-export const CORE_JOBS = [
-  {
-    step: '01',
-    title: 'Kill the Auto-Pilot',
-    description:
-      'Rapid clicking, loss chasing, Martingale ladders — the bot mode you slip into after three bad spins. We track pacing and wake you up.',
-  },
-  {
-    step: '02',
-    title: 'Read the Room',
-    description:
-      'Pressure loops, sus session dynamics, and “im due” energy in real time — while the tab is still open, not in a postmortem.',
-  },
-  {
-    step: '03',
-    title: 'Enforce the Exit',
-    description:
-      'Profit targets and loss limits you chose ahead of time. Not a polite toast. A real stop before you give the heater back.',
-  },
-];
-
-export const PROBLEM_SIGNALS = [
-  {
-    title: 'Tilt detection',
-    body: 'Know when you hit The Loop — Auto-Pilot patterns before the bankroll pays tuition.',
-  },
-  {
-    title: 'Casino trust grades',
-    body: 'Letter grades and risk labels for sweeps, crypto, regulated, and known scam names — community-curated, not casino-sponsored.',
-  },
-  {
-    title: 'Receipts over vibes',
-    body: 'Recompute a bet from seeds, check claimed RTP vs what you got, scan domains before you click a “support” link.',
-  },
-  {
-    title: 'Lock the win',
-    body: 'Vault / AutoVault flows make profit harder to spin back when the next bonus screen starts whispering.',
-  },
-];
-
-export const FEATURE_CARDS = [
-  {
-    eyebrow: 'Extension',
-    title: 'The actual product',
-    description:
-      'Chrome extension that watches your live casino session. Install this first if you want the brakes — everything else is support gear.',
-    href: 'extension.html',
-    cta: 'How to install',
-  },
-  {
-    eyebrow: 'Casino trust',
-    title: 'Who are you depositing with?',
-    description:
-      'Browse curated operator grades (A through F), risk, and category. Open a full proof page on tiltcheck.me when you need license and scam lanes.',
-    href: 'casinos.html',
-    cta: 'Browse casinos',
-  },
-  {
-    eyebrow: 'Toolkit',
-    title: 'Math and scam tools',
-    description:
-      'Bet verifier, house-edge calculator, geo-laws, phishing shield, shadow-ban log. Interactive runs live on tiltcheck.me — this page is the map.',
-    href: 'tools.html',
-    cta: 'See tools',
-  },
-];
-
-export const FAQS = [
-  {
-    question: 'Do you see my wallet key or hold my money?',
-    answer:
-      'No. Never. The extension is read-only on casino tabs. No custodial wallets. If someone asks for your seed phrase “for TiltCheck,” that is a scam.',
-  },
-  {
-    question: 'Is TiltCheck a casino or a tipster?',
-    answer:
-      'Neither. We do not take bets, sell picks, or rank casinos for affiliate kickbacks. We are an audit / guardrail layer for people who already play.',
-  },
-  {
-    question: 'What problem does the extension solve?',
-    answer:
-      'You know the spiral: three losses, bet size climbs, “im due,” deposit again. TiltCheck watches pacing and enforces the exit you set when you were still sober about it.',
-  },
-  {
-    question: 'What is a casino trust grade?',
-    answer:
-      'A curated letter grade plus risk label for an operator (sweeps, crypto, regulated, scam, etc.). It is a starting point — open the live proof page for license, domain, and issue lanes.',
-  },
-  {
-    question: 'Why does this GitHub Pages site exist?',
-    answer:
-      'Shareable static twin when the main app host is down or you just need the pitch + directory. Interactive tools and dashboards still live on tiltcheck.me.',
-  },
-  {
-    question: 'Crisis or addiction help?',
-    answer:
-      'TiltCheck is brakes, not therapy. Call 1-800-GAMBLER or visit ncpg.org.',
-  },
 ];
 
 export const EXTENSION_SIGNALS = [
   {
-    title: '2s Spin Pace Lock',
-    body: 'Machine zone friction. After every spin, the bet button deadens for two seconds. No turbo mashing into dead rolls.',
+    title: '2-Second Spin Pause',
+    body: 'After every spin the bet button naps for two seconds. No turbo-mashing into dead rolls.',
   },
   {
-    title: 'Strategic Game Filters',
-    body: 'Arm your personal blacklist. Chicken, Mines, Plinko, or high-bleed slots stop clicking the second you put them on your list.',
+    title: 'Game Filters',
+    body: 'Make your own block list. Chicken, Mines, Plinko, or the slots that rinse you stop clicking the second they are on it.',
   },
   {
-    title: 'Reality Wage HUD',
-    body: 'Translates session drawdown into hours of real-world labor torched ($25/hr baseline). A blunt terminal reminder before you blow a full shift.',
+    title: 'Reality Wage Clock',
+    body: 'Turns your session losses into hours of real work torched ($25/hr default). A blunt reminder before you blow a whole shift.',
   },
   {
-    title: 'DOM Deposit Barrier',
-    body: 'Catches you reaching for the wallet. Cashier and reload clicks are intercepted and blocked during Touch Grass timeouts and active Cooldowns.',
+    title: 'Deposit Speed Bump',
+    body: 'Reaching for the wallet during a Touch Grass lock? Cashier and reload buttons go dead until the timer runs out.',
   },
   {
-    title: 'Reverse-Withdrawal Shield',
-    body: 'Cashier protection. Disarms cancel payout and reverse redemption buttons on pending transactions so you cannot undo cashouts during late-night tilt.',
+    title: 'Cancel-Withdrawal Blocker',
+    body: 'Hides "cancel withdrawal" while a cashout is pending, so late-night you has to work harder to undo it.',
   },
   {
-    title: 'Profit-Lock & Reality Goals',
-    body: 'Locks a trailing profit floor (50% default) when ahead, backing it with an escalating 60-second brake and real-world utility toasts (bills, rent, gas).',
+    title: 'Profit Floor & Real Goals',
+    body: 'Marks a profit floor when you are up (50% default). Slide toward it and you get a warning, then a 60-second pause, plus what the money is really for: rent, bills, gas.',
   },
   {
-    title: 'Bonus Tracker & Max-Bet Alarm',
-    body: 'Tracks promotional rollover wagering with an in-page progress HUD and intercepts over-limit stakes before bonus winnings are voided by the operator.',
+    title: 'Bonus Rollover & Max-Bet Alarm',
+    body: 'Shows how much rollover is left and yells before one oversized bet gets your bonus voided.',
   },
   {
-    title: 'Session Velocity Radar',
-    body: 'Real-time rolling loss velocity ($/min) with vector sparkline momentum and alert bands (Steady, Drain, Bleed, Cliff-Dive) right in the extension popup.',
+    title: 'Loss Speed Meter',
+    body: 'How fast you are losing, in dollars per minute, with bands from Steady to Cliff-Dive, right in the popup.',
   },
   {
-    title: 'One-Click Cashout Router',
-    body: 'Deep-links straight to the native cashier and redemption portals across 21+ crypto and sweeps operators, plus visual progress bars towards real-world bills.',
+    title: 'One-Click Cashout Links',
+    body: 'Jumps straight to the cashier on 21+ crypto and sweeps casinos, with progress bars toward real bills.',
   },
   {
-    title: 'In-Session Auto-Vaulting',
-    body: 'Non-custodial safe deposits (e.g. Stake Vault) triggered automatically or via one click when cashout goals and ratchet floors are hit.',
+    title: 'Mid-Session Auto-Vault',
+    body: 'Moves a cut into the casino vault (like Stake Vault) when you hit your goal. Your account, your money.',
   },
   {
-    title: 'Win-Streak & Volatility Spotter',
-    body: 'Live dead-spin runs, personal hit rates, and heater streaks. Intercepts Gambler\'s Fallacy ("I\'m Due") stake escalations with immediate Cashier exit ramps before tilt kicks in.',
+    title: 'Streak & "I\'m Due" Spotter',
+    body: 'Counts dead spins and heater streaks. Raise your bet because you are "due" and it calls you out and points at the cashier.',
   },
 ];
 
@@ -316,197 +172,109 @@ export const GRADING_STEPS = [
 export const TOOL_REGISTRY = [
   {
     href: '/extension',
-    label: 'CORE BRAKE',
-    title: '2-Second Spin Pace Lock',
-    description: 'Enforces a strict 2000ms delay between spins to kill auto-pilot turbo mashing and restore friction.',
+    label: 'SPIN PAUSE',
+    title: '2-Second Spin Pause',
+    description: 'Two seconds between spins. Kills turbo-mashing and puts a little friction back.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'CASHIER SHIELD',
-    title: 'Reverse-Withdrawal Shield',
-    description: 'Disarms cancel payout and reverse redemption triggers on pending withdrawals so settled hits never feed back to the house.',
+    label: 'CASHOUT',
+    title: 'Cancel-Withdrawal Blocker',
+    description: 'Hides the cancel button on pending withdrawals so a settled win is harder to throw back.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'SESSION RADAR',
-    title: 'Session Velocity Radar',
-    description: 'Calculates rolling loss velocity ($/min) with vector sparkline momentum and alert bands (Steady, Drain, Bleed, Cliff-Dive).',
+    label: 'LOSS SPEED',
+    title: 'Loss Speed Meter',
+    description: 'Dollars lost per minute, with bands from Steady to Cliff-Dive. Ugly, honest, fast.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'HEATER GUARD',
-    title: 'Streak Volatility Tracker',
-    description: 'Monitors dead-spin runs, personal hit rates, and flags Gambler\'s Fallacy ("I\'m Due") stake escalations in real time.',
+    label: "I'M DUE",
+    title: 'Streak Spotter',
+    description: 'Tracks dead spins and heater streaks, and calls you out when "I\'m due" starts sizing your bets.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'CASHIER GUARD',
-    title: 'DOM Deposit Barrier',
-    description: 'Catches you reaching for the wallet. Cashier and reload clicks are intercepted and blocked during active cooldowns.',
+    label: 'DEPOSITS',
+    title: 'Deposit Speed Bump',
+    description: 'Cashier and reload buttons go dead while your Touch Grass lock is running.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'BANKROLL DEFENSE',
+    label: 'BET SIZE',
     title: 'Default Bet Breaker',
-    description: 'Detects when slot providers initialize games with inflated default stakes ($1-$2 vs $0.10-$0.20) and warns before spin one.',
+    description: 'Spots slots that open at $1-$2 a spin instead of $0.10-$0.20 and warns you before spin one.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'SWEEPS AWARENESS',
-    title: 'Dual-Currency Reality HUD',
-    description: 'Real-time session clock and net tracker that distinguishes Sweeps Coins (SC, 1:1 USD) from play-money Gold Coins (GC).',
+    label: 'SWEEPS',
+    title: 'Sweeps Coin Reality Check',
+    description: 'Session clock and net tracker that keeps Sweeps Coins (SC, real money) separate from Gold Coins (play money).',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'SENSORY GROUNDING',
-    title: 'Calibrated Audio Alerts',
-    description: 'Subtle, low-latency audio clicks for high-speed spins to provide reality checks without loud jarring panic.',
+    label: 'SOUND',
+    title: 'Spin Sound Check',
+    description: 'A quiet click when you are spinning too fast. A reality check, not an air horn.',
     status: 'live',
   },
   {
     href: '/rtp-scanner/',
-    label: 'FORENSIC SCANNER',
+    label: 'RTP',
     title: 'Slot RTP Downgrade Scanner',
-    description: 'Inspect multi-tier RTP downgrades (96.5% vs 94.2% vs 88.5%) and calculate the hidden Greed Tax per operator.',
+    description: 'Same slot, worse odds: see which payout setting a casino picked (96.5% vs 94.2% vs 88.5%) and what that costs you.',
     status: 'live',
   },
   {
     href: '/house-edge-scanner/',
-    label: 'LOYALTY AUDIT',
+    label: 'VIP MATH',
     title: 'House Edge & Comp Calculator',
-    description: 'Calculate expected losses and true wagering cost for VIP loyalty levels. Receipts over marketing promises.',
+    description: 'What that VIP tier really costs you in expected losses. Receipts over marketing.',
     status: 'live',
   },
   {
     href: '/verify/',
     label: 'THE RECEIPT',
-    title: 'HMAC-SHA256 Seed Verifier',
-    description: 'Recompute single-bet cryptographic outcomes (Dice, Crash, Plinko, Limbo, Mines) client-side from seeds.',
+    title: 'Bet Verifier',
+    description: 'Paste the seeds and check a Dice, Crash, Plinko, Limbo, or Mines result yourself.',
     status: 'live',
   },
   {
     href: '/autovault/',
-    label: 'WIN PROTECTION',
-    title: 'AutoVault Profit Skimmer',
-    description: 'Automatically moves a configurable cut of heater wins straight into your casino vault before you give it back.',
+    label: 'SKIM THE WIN',
+    title: 'AutoVault',
+    description: 'Moves a cut of a heater into your casino vault before you give it back.',
     status: 'live',
   },
   {
     href: '/cooldown/',
-    label: 'ON-CHAIN LOCK',
-    title: 'Solana Cooldown Timelock',
-    description: 'Sign an immutable timelock with any Solana wallet to synchronize hard in-browser cashier and spin lockouts.',
+    label: 'TOUCH GRASS',
+    title: 'Touch Grass Lock',
+    description: 'Sign a timer with any Solana wallet. Cashier and spin buttons stay dead in the extension until it runs out. No SOL moves.',
     status: 'live',
   },
   {
     href: '/tip/',
-    label: 'COMMUNITY',
-    title: 'Non-Custodial Tip Jar',
-    description: 'Voluntary tipping in SOL/SPL to keep TiltCheck open-source, serverless, and 100% free for all players.',
+    label: 'TIP JAR',
+    title: 'Tip Jar',
+    description: 'Hit a heater? Toss some SOL to keep TiltCheck free. Totally optional.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'GAME FILTER',
-    title: 'Local Game Blocker',
-    description: 'Client-side blacklist for predatory slot providers and high-bleed game categories.',
+    label: 'BLOCK LIST',
+    title: 'Game Blocker',
+    description: 'Your own block list for the providers and game types that rinse you.',
     status: 'live',
   },
-  {
-    href: 'https://github.com/TiltCheck-ME/tiltcheck-monorepo/tree/main/packages/cli',
-    label: 'OFFLINE CLI',
-    title: 'Offline CLI Harm Reduction',
-    description: 'Terminal-based bet verifier, slot RTP audit, and local 7-day cooldown token without any wallet or browser.',
-    status: 'live',
-  },
-];
-
-export const TOUCH_GRASS = {
-  title: 'Touch Grass',
-  lede: 'Casino tab is cooked. Sit at a table that is not a spin.',
-  idleSoon: 'No drop running. Play a practice table or wait. soon™',
-  triviaPane: 'Live Trivia',
-  dadPane: 'Degens Against Decency',
-  dadDiscordOnly:
-    'Practice prompts and offline cards. Reset your headspace before touching a casino tab again.',
-  triviaNote: 'Offline questions from the bank. Pick one. Reveal. Next. Instant in-browser grounding.',
-};
-
-export const TOUCH_GRASS_TRIVIA = [
-  {
-    id: 'tg-due',
-    question: 'You just lost four in a row and said you are due. What actually happened?',
-    choices: [
-      { key: 'A', text: 'The universe owes you a heater' },
-      { key: 'B', text: 'Gambler’s fallacy. The next spin does not remember you' },
-      { key: 'C', text: 'Variance is illegal in your state' },
-      { key: 'D', text: 'The house paused to let you catch up' },
-    ],
-    answer: 'B',
-    explanation: 'Independence. The slot is not keeping a tab. You are.',
-  },
-  {
-    id: 'tg-house',
-    question: 'Chasing the loss, chasing the win, thinking you are due. That is…',
-    choices: [
-      { key: 'A', text: 'Bankroll science' },
-      { key: 'B', text: 'A skill edge' },
-      { key: 'C', text: 'Feeding the house' },
-      { key: 'D', text: 'Risk-free because you almost had it' },
-    ],
-    answer: 'C',
-    explanation: 'That loop is the product. Lock or walk. Do not send the stack back.',
-  },
-  {
-    id: 'tg-cooldown',
-    question: 'A TiltCheck Cooldown is which of these?',
-    choices: [
-      { key: 'A', text: 'A deposit we hold for you' },
-      { key: 'B', text: 'A signed Solana lock. No keys. No SOL moved' },
-      { key: 'C', text: 'Self-exclusion at the casino' },
-      { key: 'D', text: 'A Phantom-only feature' },
-    ],
-    answer: 'B',
-    explanation: 'You sign. We never hold keys. Casinos do not have to honor it. You do.',
-  },
-  {
-    id: 'tg-zip',
-    question: 'The TiltCheck extension is…',
-    choices: [
-      { key: 'A', text: 'A direct zip file download' },
-      { key: 'B', text: 'Under review for the Chrome Web Store' },
-      { key: 'C', text: 'An executable you install on Windows' },
-      { key: 'D', text: 'A mobile app' },
-    ],
-    answer: 'B',
-    explanation: 'TiltCheck is a client-side Manifest V3 browser extension currently undergoing official Chrome Web Store review.',
-  },
-];
-
-export const TOUCH_GRASS_DAD_PROMPTS = [
-  "I'm not tilted, I'm just _____.",
-  "The last time I said I'm due, I actually _____.",
-  'Bankroll management, according to me, is _____.',
-  'I cashed out once. Then I _____.',
-  'The house is not the problem. The problem is _____.',
-];
-
-export const TOUCH_GRASS_DAD_CARDS = [
-  'one more spin, no cap',
-  'a heater that was actually variance',
-  'rinsing what was left of rent',
-  'wen win, except never',
-  "the gambler's fallacy with extra steps",
-  'locking in after already being cooked',
-  'soon™, said the bonus terms',
-  'blaming the slot, never the session',
 ];
 
 export const INSTALL_SURFACES = [
@@ -526,69 +294,69 @@ export const INSTALL_SURFACES = [
 
 export const CORE_BRAKES = [
   {
-    num: "01",
-    title: "2s Spin Brake",
-    body: "Locks the bet button for two seconds after every single spin. You cannot spam auto-spin into a blackout. Your balance actually catches up before you fire again.",
-    status: "Enforced by default",
+    num: '01',
+    title: '2-Second Spin Pause',
+    body: 'After every spin the bet button naps for two seconds. Auto-spinning into a blackout gets a lot harder, and you actually see what just happened.',
+    status: 'On by default',
   },
   {
-    num: "02",
-    title: "Strategic Game Filters",
-    body: "Puts blunt warning badges right on Mines, Chicken, Plinko, and high-house-edge slots. Shows you the mathematical trap before you drop your stack.",
-    status: "Live game scan",
+    num: '02',
+    title: 'Game Filters',
+    body: 'Warning badges on Mines, Chicken, Plinko, and the high-edge slots. Put the ones that rinse you on your list and they stop clicking.',
+    status: 'Your list',
   },
   {
-    num: "03",
-    title: "Reality Wage Clock",
-    body: "Translates casino chips into your actual hourly day-job wage ($25/hr default). Seeing 12 hours of labor torched hits different than numbers on a screen.",
-    status: "Configurable wage",
+    num: '03',
+    title: 'Reality Wage Clock',
+    body: 'Shows your losses in hours of your real job ($25/hr default). Twelve shifts torched hits different than a number on a screen.',
+    status: 'Set your wage',
   },
   {
-    num: "04",
-    title: "DOM Deposit Barrier",
-    body: "Freezes cashier and deposit triggers across Stake, Roobet, and sweepstakes frontends when you are tilted or on a Cooldown. Stops you from digging the hole deeper.",
-    status: "Hard stop on reload",
+    num: '04',
+    title: 'Deposit Speed Bump',
+    body: 'While your Touch Grass lock is running, the cashier and deposit buttons go dead. Digging deeper now takes extra steps and a long look in the mirror.',
+    status: 'During a lock',
   },
   {
-    num: "05",
-    title: "Reverse-Withdrawal Shield",
-    body: "Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
-    status: "Active cashier guard",
+    num: '05',
+    title: 'Cancel-Withdrawal Blocker',
+    body: 'Hides the "cancel withdrawal" button while a cashout is pending, so 3am-you has to work harder to un-cash-out.',
+    status: 'While cashouts clear',
   },
   {
-    num: "06",
-    title: "Profit-Lock & Reality Goals",
-    body: "Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.",
-    status: "Trailing floor + goal alerts",
+    num: '06',
+    title: 'Profit Floor & Real Goals',
+    body: 'Up big? It marks a floor. Slide toward it and you get a warning, then a 60-second pause, plus a reminder of what that money is: power bill, groceries, gas.',
+    status: 'Warning, then pause',
   },
   {
-    num: "07",
-    title: "Bonus Playthrough & Max-Bet Traps",
-    body: "Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).",
-    status: "Live HUD + trap interceptor",
+    num: '07',
+    title: 'Bonus Rollover & Max-Bet Alarm',
+    body: "Tracks how much rollover you have left and yells if one bet breaks the casino's max-bet rule (like $5) before they void your bonus.",
+    status: 'Rollover tracker',
   },
   {
-    num: "08",
-    title: "Session Velocity Radar & Sparkline",
-    body: "Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.",
-    status: "Rolling velocity telemetry",
+    num: '08',
+    title: 'Loss Speed Meter',
+    body: 'How fast you are losing, in dollars per minute: Steady, Drain, Bleed, Cliff-Dive. Right there in the popup, no math required.',
+    status: '$ per minute',
   },
   {
-    num: "09",
-    title: "One-Click Cashout Router & Goal Bars",
-    body: "Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.",
-    status: "21+ operator deep links",
+    num: '09',
+    title: 'One-Click Cashout Links',
+    body: 'Jumps straight to the cashier on 21+ crypto and sweeps casinos, with progress bars toward the bills you actually have.',
+    status: '21+ casinos',
   },
   {
-    num: "10",
-    title: "In-Session Auto-Vaulting",
-    body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
-    status: "Non-custodial safe deposits",
+    num: '10',
+    title: 'Mid-Session Auto-Vault',
+    body: "Hit your goal and it moves a cut into the casino's own vault (like Stake Vault). Your account, your money. We never touch it.",
+    status: 'Your vault',
   },
   {
-    num: "11",
-    title: "Session Win-Streak & Volatility Spotter",
-    body: "Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ('I'm Due') stake escalations with immediate Cashier exit ramps before tilt sets in.",
-    status: "Live streak & fallacy telemetry",
+    num: '11',
+    title: "Streak & \"I'm Due\" Spotter",
+    body: "Counts dead spins and heater streaks. Start raising bets because you're \"due\" and it calls you out and points at the cashier.",
+    status: 'Calls you out',
   },
 ];

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-29 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 
 /** Honest public tool status — install = DM-ready mobile setup pages. */
 export type ToolStatus = 'install' | 'live' | 'beta' | 'soon';
@@ -52,44 +52,37 @@ export const INSTALL_SURFACES: InstallSurface[] = [
 export const TOOL_REGISTRY: ToolEntry[] = [
   {
     href: '/cooldown',
-    label: 'COOLDOWN',
-    title: 'On-chain wallet lock',
-    description: 'Lock your wallet from games, a category, or everything. You sign. Devnet. Operators are not required to honor it.',
+    label: 'TOUCH GRASS',
+    title: 'Touch Grass lock',
+    description: 'Lock your wallet out of a game, a category, or everything for a while. You sign it. Devnet. Casinos do not have to honor it. You do.',
     status: 'live',
   },
   {
     href: '/tools/rtp-scanner',
     label: 'SLOT RTP SCANNER',
-    title: 'Live Slot RTP Downgrade Scanner',
-    description: 'Inspect multi-tier RTP downgrades (96.5% vs 94.2% vs 88.5%) and calculate the hidden Greed Tax per operator.',
-    status: 'live',
-  },
-  {
-    href: 'https://github.com/TiltCheck-ME/tiltcheck-monorepo/tree/main/packages/cli',
-    label: 'OFFLINE CLI',
-    title: 'Offline-First CLI Suite',
-    description: 'Provably fair HMAC-SHA256 verifier, slot RTP downgrade calculator, operator trust audit, and Ed25519 voluntary cooldown tokens.',
+    title: 'Slot RTP Downgrade Scanner',
+    description: 'Same slot, worse odds: see which payout setting a casino picked (96.5% vs 94.2% vs 88.5%) and the hidden Greed Tax it costs you.',
     status: 'live',
   },
   {
     href: '/tools/verify',
     label: 'THE RECEIPT',
     title: 'Manual Bet Verifier',
-    description: 'Recompute one bet from seeds/outcomes — no trusting the casino.',
+    description: 'Paste the seeds and check one bet yourself. No trusting the casino.',
     status: 'live',
   },
   {
     href: '/tools/domain-verifier',
-    label: 'PHISHING SHIELD',
+    label: 'SCAM LINK CHECK',
     title: 'Domain + Email Verifier',
     description: 'Scan domains and emails for scam signals before you click.',
     status: 'live',
   },
   {
     href: '/tools/house-edge-scanner',
-    label: 'THE DELTA ENGINE',
+    label: 'VIP MATH',
     title: 'House Edge & Comp Point Scanner',
-    description: 'Calculate VIP milestone true cost, wager-to-reward ratios, and slot house-edge tax.',
+    description: 'What that VIP tier really costs you, and how little comes back.',
     status: 'live',
   },
   {
@@ -156,7 +149,7 @@ export const REPORT_REGISTRY: ReportEntry[] = [
     href: '/casinos',
     label: 'TRUST DIRECTORY',
     title: 'Casino Trust Scores',
-    description: 'Public proof pages, license checks, Instant Redeem badges where enabled.',
+    description: 'Public proof pages and license checks for each casino.',
     cadence: 'Live',
   },
   {
@@ -177,7 +170,7 @@ export const REPORT_REGISTRY: ReportEntry[] = [
     href: '/intel/scanner',
     label: 'BONUS SCANNER',
     title: 'Bonus Drop Scanner',
-    description: 'Automated bonus-code and promo surface checks.',
+    description: 'Bonus codes and promos, checked on a schedule.',
     cadence: 'Weekly',
   },
   {
@@ -191,7 +184,7 @@ export const REPORT_REGISTRY: ReportEntry[] = [
     href: '/blog',
     label: 'INTEL FEED',
     title: 'Degen Intel Blog',
-    description: 'Automated variance and RTP anomaly writeups — public record pending full launch.',
+    description: 'Variance and RTP weirdness, written up so you do not have to.',
     cadence: '72h',
   },
 ];

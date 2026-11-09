@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 
 export const PUBLIC_NAV = {
   downloadHref: '/extension',
@@ -8,6 +8,6 @@ export const PUBLIC_NAV = {
   links: [
     { href: '/extension', label: 'Extension' },
     { href: '/casinos', label: 'Casinos' },
-    { href: '/cooldown', label: 'Cooldown' },
+    { href: '/cooldown', label: 'Touch Grass' },
   ],
 } as const;

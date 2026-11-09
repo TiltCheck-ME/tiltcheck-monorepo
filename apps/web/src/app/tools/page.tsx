@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 import React from "react";
 import Link from "next/link";
 import BrandTagline from "@/components/BrandTagline";
+import StaffOnly from "@/components/StaffOnly";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import {
   INSTALL_SURFACES,
@@ -51,21 +52,21 @@ export default function ToolsIndexPage() {
     <main className="public-page public-page--tight text-white">
       <PublicPageHero
         compact
-        eyebrow="Player dash"
+        eyebrow="Degen-built tools"
         title="Tools + intel. One index."
         description={
           <p>
-            Wallet lock is Cooldown. Session lock is the zip. Everything else here is optional:
-            live web tools, automated report feeds, and DM install links for AutoVault.
+            Friction, receipts, and a little trash talk. Touch Grass locks your wallet for a while. The extension
+            annoys you on the casino tab. Everything else is here when you want the math.
           </p>
         }
         actions={
           <div className="public-page-hero__actions">
             <Link href="/cooldown" className="btn btn-primary">
-              Set a Cooldown lock
+              Touch Grass
             </Link>
             <Link href="/extension" className="btn btn-secondary">
-              Install extension
+              The extension
             </Link>
             <Link href="/casinos" className="btn btn-outline-partner">
               Check casino trust
@@ -78,12 +79,9 @@ export default function ToolsIndexPage() {
         <div className="landing-shell">
           <PublicPageSectionHeader
             compact
-            eyebrow="Player // DM install"
-            title="AutoVault setup links — never post these in casino chat."
+            eyebrow="Phone setup"
+            title="AutoVault setup links. Send in DMs, never casino chat."
           />
-          <p className="tools-dash-section-label tools-dash-section-label--player" style={{ marginBottom: "1rem" }}>
-            Player tools
-          </p>
           <div className="public-page-grid public-page-grid--2">
             {INSTALL_SURFACES.map((item) => (
               <Link key={item.href} href={item.href} className="block h-full">
@@ -91,7 +89,7 @@ export default function ToolsIndexPage() {
                   <div className="mb-4 flex items-start justify-between gap-4">
                     <p className="public-page-card__eyebrow">{item.label}</p>
                     <span className="inline-block rounded-full border border-[color:var(--tc-accent)]/45 bg-[color:var(--tc-accent)]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--tc-accent)]">
-                      DM READY
+                      PHONE
                     </span>
                   </div>
                   <h3 className="public-page-card__title text-white">{item.title}</h3>
@@ -105,7 +103,7 @@ export default function ToolsIndexPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader compact eyebrow={`Live // ${live.length}`} title="Open and run." />
+          <PublicPageSectionHeader compact eyebrow={`Live // ${live.length}`} title="Open it. Use it." />
           <div className="public-page-grid public-page-grid--2">
             {live.map((tool) => (
               <ToolCard key={tool.href} tool={tool} />
@@ -115,43 +113,28 @@ export default function ToolsIndexPage() {
       </section>
 
       {beta.length > 0 && (
-        <section className="public-page-section px-4">
-          <div className="landing-shell">
-            <PublicPageSectionHeader
-              compact
-              eyebrow={`Beta // ${beta.length}`}
-              title="Dashboard or power-user flows."
-              description={
-                <p>
-                  Extension for live guardrails. Dashboard for durable rules. Install links above for in-tab AutoVault.
-                </p>
-              }
-            />
-            <div className="public-page-grid public-page-grid--2">
-              {beta.map((tool) => (
-                <ToolCard key={tool.href} tool={tool} />
-              ))}
+        <StaffOnly label="Staff only: beta tools">
+          <section className="public-page-section px-4">
+            <div className="landing-shell">
+              <PublicPageSectionHeader compact eyebrow={`Beta // ${beta.length}`} title="Not public yet." />
+              <div className="public-page-grid public-page-grid--2">
+                {beta.map((tool) => (
+                  <ToolCard key={tool.href} tool={tool} />
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </StaffOnly>
       )}
 
       <section className="public-page-section px-4" id="reports">
         <div className="landing-shell">
           <PublicPageSectionHeader
             compact
-            eyebrow={`Reports // ${REPORT_REGISTRY.length}`}
-            title="Automated intel feeds."
-            description={
-              <p>
-                These are read-only report surfaces — trust scores, drift logs, scam registry, bonus scanner.
-                No wallet. No cashout.
-              </p>
-            }
+            eyebrow="Receipts"
+            title="Stuff to read before you deposit."
+            description={<p>Trust scores, payout drift, scam lists, bonus drops. Just reading. No wallet needed.</p>}
           />
-          <p className="tools-dash-section-label tools-dash-section-label--reports" style={{ marginBottom: "1rem" }}>
-            Automation reports
-          </p>
           <div className="public-page-grid public-page-grid--3">
             {REPORT_REGISTRY.map((report) => (
               <Link key={report.href} href={report.href} className="block h-full">
@@ -169,51 +152,53 @@ export default function ToolsIndexPage() {
         </div>
       </section>
 
-      <section className="public-page-section px-4" id="partners">
-        <div className="landing-shell">
-          <PublicPageSectionHeader
-            compact
-            eyebrow="Partners // B2B only"
-            title="Processors and operators — not player cashout."
-            description={
-              <p>
-                Instant Redeem is a partner API. Players see badges on{" "}
-                <Link href="/casinos" className="text-[color:var(--tc-accent)] hover:underline">
-                  /casinos
+      <StaffOnly label="Staff only: partner / B2B">
+        <section className="public-page-section px-4" id="partners">
+          <div className="landing-shell">
+            <PublicPageSectionHeader
+              compact
+              eyebrow="Partners // B2B only"
+              title="Processors and operators — not player cashout."
+              description={
+                <p>
+                  Instant Redeem is a partner API. Players see badges on{" "}
+                  <Link href="/casinos" className="text-[color:var(--tc-accent)] hover:underline">
+                    /casinos
+                  </Link>
+                  ; operators integrate here.
+                </p>
+              }
+            />
+            <p className="tools-dash-section-label tools-dash-section-label--partner" style={{ marginBottom: "1rem" }}>
+              Partner links
+            </p>
+            <div className="public-page-grid public-page-grid--3">
+              {PARTNER_LINKS.map((link) => (
+                <Link key={link.href} href={link.href} className="block h-full">
+                  <div className="public-page-card public-page-card--partner h-full transition-colors hover:border-[color:var(--tc-accent-2)]/45">
+                    <p className="public-page-card__eyebrow">{link.label}</p>
+                    <h3 className="public-page-card__title text-white">{link.title}</h3>
+                    <p className="public-page-card__copy text-gray-400">{link.description}</p>
+                  </div>
                 </Link>
-                ; operators integrate here.
-              </p>
-            }
-          />
-          <p className="tools-dash-section-label tools-dash-section-label--partner" style={{ marginBottom: "1rem" }}>
-            Partner links
-          </p>
-          <div className="public-page-grid public-page-grid--3">
-            {PARTNER_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="block h-full">
-                <div className="public-page-card public-page-card--partner h-full transition-colors hover:border-[color:var(--tc-accent-2)]/45">
-                  <p className="public-page-card__eyebrow">{link.label}</p>
-                  <h3 className="public-page-card__title text-white">{link.title}</h3>
-                  <p className="public-page-card__copy text-gray-400">{link.description}</p>
-                </div>
-              </Link>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </StaffOnly>
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
           <div className="public-page-cta-band">
             <p className="public-page-cta-band__copy">
-              No cap — if you only do one thing, set a Cooldown lock. The zip is the 2s spin lock. Everything else is backup armor.
+              No cap: if you only do one thing, sign a Touch Grass lock. Then go outside. The casino will still be there. Sadly.
             </p>
             <div className="public-page-cta-band__actions">
               <Link href="/cooldown" className="btn btn-primary">
-                Set a Cooldown lock
+                Touch Grass
               </Link>
               <Link href="/extension" className="btn btn-secondary">
-                Install extension
+                The extension
               </Link>
               <Link href="/ask" className="btn btn-secondary">
                 Ask intel

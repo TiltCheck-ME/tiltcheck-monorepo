@@ -1,6 +1,6 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 import { describe, expect, it } from 'vitest';
-import { HOME_LAUNCH } from './home-launch-copy';
+import { CORE_BRAKES, HOME_LAUNCH } from './home-launch-copy';
 import { SITE_ONE_LINER, SITE_OG_SUBLINE, SITE_SEO_TITLE } from './site-copy';
 import { TOOL_REGISTRY } from './tool-registry';
 
@@ -13,9 +13,9 @@ describe('HOME_LAUNCH', () => {
     expect(HOME_LAUNCH.kicker).toBe(
       'Chasing the loss, chasing the win, thinking you are due. That is feeding the house.',
     );
-    expect(HOME_LAUNCH.lede).toMatch(/Brakes for degens who still play/i);
-    expect(HOME_LAUNCH.lede).toMatch(/Sign a Cooldown/i);
-    expect(HOME_LAUNCH.lede).toMatch(/stack back on the table/i);
+    expect(HOME_LAUNCH.lede).toMatch(/talk shit and add friction/i);
+    expect(HOME_LAUNCH.lede).toMatch(/Touch Grass lock/i);
+    expect(HOME_LAUNCH.lede).toMatch(/3am-you/i);
     expect(HOME_LAUNCH.lede).not.toMatch(/weasel/i);
     expect(HOME_LAUNCH.lede).not.toMatch(/Pro only/i);
   });
@@ -27,11 +27,11 @@ describe('HOME_LAUNCH', () => {
       { label: 'IS THIS CASINO SUS?', href: '/casinos' },
     ]);
     expect(HOME_LAUNCH.tertiaryLink).toEqual({
-      label: 'How the Chrome brakes work',
+      label: 'What the extension does',
       href: '/extension',
     });
-    expect(HOME_LAUNCH.privacy).toMatch(/You sign a Cooldown/i);
-    expect(HOME_LAUNCH.privacy).toMatch(/run 100% locally/i);
+    expect(HOME_LAUNCH.privacy).toMatch(/You sign your own Touch Grass lock/i);
+    expect(HOME_LAUNCH.privacy).toMatch(/runs in your browser/i);
   });
 
   it('names how-it-works moves without weasel', () => {
@@ -40,7 +40,7 @@ describe('HOME_LAUNCH', () => {
       "Don't feed it",
       'Slow the next click',
     ]);
-    expect(HOME_LAUNCH.installMoves[1]?.body).toMatch(/Sign a Cooldown/i);
+    expect(HOME_LAUNCH.installMoves[1]?.body).toMatch(/Sign a Touch Grass lock/i);
     expect(HOME_LAUNCH.installMoves[2]?.body).toMatch(/two seconds/i);
     expect(homeBlob).not.toContain('weasel');
     expect(homeBlob).not.toContain('self-exclusion');
@@ -56,6 +56,17 @@ describe('HOME_LAUNCH', () => {
     expect(HOME_LAUNCH.honesty.join(' ')).toMatch(/two casinos/i);
     expect(HOME_LAUNCH.honesty.join(' ')).not.toMatch(/lounge/i);
     expect(homeBlob).not.toContain('lounge');
+  });
+
+  it('keeps store-review status and staff jargon out of public copy', () => {
+    const blob = JSON.stringify({ HOME_LAUNCH, CORE_BRAKES }).toLowerCase();
+    for (const banned of ['web store', 'pending review', 'store review', 'submitted', 'listing']) {
+      expect(blob).not.toContain(banned);
+    }
+    for (const jargon of [/\bhud\b/, /\bdom\b/, /velocity/, /router/, /shield/, /armory/, /\bguards?\b/, /protect/]) {
+      expect(blob).not.toMatch(jargon);
+    }
+    expect(HOME_LAUNCH.installEyebrow).toBe('How it works');
   });
 
   it('does not call Cooldown self-exclusion in the pitch', () => {

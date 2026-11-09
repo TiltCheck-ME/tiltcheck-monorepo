@@ -1,6 +1,14 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 -->
 
 # Session Log
+
+## 2026-11-09 — feat(web): voice + staff-gating pass (web app and tiltcheck.me Pages twin)
+
+- Staff gating: new `isStaff` flag on `GET /auth/me` (apps/api/src/lib/staff-role.ts). Checks the Discord "TiltCheck Team" role (1488256012807966751) in guild 1488253239643078787 with DISCORD_BOT_TOKEN (or TILT_DISCORD_BOT_TOKEN), caches 10 min (2 min for non-staff), fails closed. Web: `<StaffOnly>` + `useIsStaff` render nothing unless the API says isStaff === true. Pages twin: `staffOnly()` blocks ship `hidden` and are revealed by a tiny /auth/me script.
+- Removed every public Chrome Web Store review/submission mention. Extension CTA now reads "EXTENSION: NOT PUBLIC YET" and points to Discord.
+- Voice: no save/protect/shield/guard framing. Hero, CTAs, tool and extension copy rewritten short and degen. Jargon (HUD, DOM, velocity, router, shield, armory, guard) replaced with plain words. "Cooldown" product naming in UI copy is now "Touch Grass" (routes unchanged).
+- Home: removed the duplicate TiltCheck wordmark under the nav; tightened the "How it works" section spacing.
+- Tools: beta list and partner/B2B links moved to StaffOnly; offline CLI card removed from the player list.
 
 ## 2026-11-08 — feat(architecture): prune dead apps, purge magic link auth, and establish zero-cost baseline
 

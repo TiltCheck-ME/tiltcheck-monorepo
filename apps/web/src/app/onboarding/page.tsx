@@ -79,17 +79,17 @@ const RISK_CONFIG: Record<string, { label: string; color: string; description: s
   conservative: {
     label: 'CONSERVATIVE',
     color: '#17c3b2',
-    description: 'Hard guardrails. Auto-cooldown on. TiltCheck will step in before you spiral.',
+    description: 'Max friction. Auto Touch Grass on. TiltCheck gets loud early. Stopping is still you.',
   },
   moderate: {
     label: 'MODERATE',
     color: '#fbbf24',
-    description: 'Standard guardrails. Warnings fire, nudges happen, you make the final call.',
+    description: 'Normal friction. Warnings fire, nudges happen, you make the final call.',
   },
   degen: {
     label: 'DEGEN',
     color: '#ef4444',
-    description: 'Minimal guardrails. You see the data. You decide. No hand-holding.',
+    description: 'Barely any friction. You see the data. You decide. No hand-holding.',
   },
 };
 
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
         {step === 'quiz' && (
           <section>
             <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Risk quiz</h1>
-            <p className="text-sm text-gray-400 mb-6">Three questions. Sets default guardrail intensity.</p>
+            <p className="text-sm text-gray-400 mb-6">Three questions. Sets how loud TiltCheck gets.</p>
 
             <div className="mb-4">
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-1">
@@ -464,7 +464,7 @@ export default function OnboardingPage() {
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2] mb-3">Done</p>
             <h1 className="text-2xl font-black uppercase tracking-tight mb-3">You are in.</h1>
             <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
-              Guardrails set. Dashboard has session data, buddies, and vault rules.
+              You're set. Dashboard has session data, buddies, and vault rules.
             </p>
 
             <div className="rounded-2xl border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-6 mb-6 inline-block">

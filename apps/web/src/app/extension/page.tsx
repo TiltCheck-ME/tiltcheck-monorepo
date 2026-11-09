@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -6,60 +6,59 @@ import JsonLd from "@/components/JsonLd";
 import { softwareApplicationJsonLd } from "@/lib/structured-data";
 import BrandTagline from "@/components/BrandTagline";
 import GatedZipCta from "@/components/GatedZipCta";
-import { HOME_LAUNCH } from "@/lib/home-launch-copy";
+import StaffOnly from "@/components/StaffOnly";
 
 const coreSignals = [
   {
-    title: "Two-second spin brake",
-    body: "You hit bet. The button is dead for two seconds. A click during that window does not place another bet. Breaks the machine zone autopilot so you see the result before sending the next one.",
+    title: "2-second spin pause",
+    body: "You hit bet. The button naps for two seconds. Clicking during the nap does nothing. You actually see the result before you fire the next one.",
   },
   {
-    title: "Strategic game filters",
-    body: "You name the games that wreck you. Chicken, mines, crash, plinko — those tiles stop clicking. Slots stay playable until you add them. Your browser, not an operator account close.",
+    title: "Game filters",
+    body: "You name the games that wreck you. Chicken, Mines, Crash, Plinko: those tiles stop clicking. Slots stay playable until you add them. Your browser, not a casino account ban.",
   },
   {
-    title: "Reality wage HUD",
-    body: "Translates session drawdowns into hours of real-world labor torched ($25/hr baseline). A blunt terminal reminder before you blow an entire work shift.",
+    title: "Reality wage clock",
+    body: "Turns your session losses into hours of real work torched ($25/hr default). A blunt reminder before you blow a whole shift.",
   },
   {
-    title: "DOM deposit barrier",
-    body: "Catches the panic reload. Cashier and deposit button clicks are intercepted and blocked during Touch Grass timeouts and active voluntary Cooldown locks.",
+    title: "Deposit speed bump",
+    body: "Catches the panic reload. Cashier and deposit buttons go dead while your Touch Grass lock is running.",
   },
   {
-    title: "Reverse-withdrawal shield",
-    body: "Blocks cancel cashout and reverse redemption buttons while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.",
+    title: "Cancel-withdrawal blocker",
+    body: "Hides the cancel button while a withdrawal is pending, so 3am-you has to work harder to throw the win back.",
   },
   {
-    title: "Profit-lock & reality goals",
-    body: "Locks in a trailing profit floor once you are ahead. Triggers a soft warning escalating to a 60-second brake if unacted upon, plus real-world goal toasts (power bills, groceries, gas) to ground credits in real life.",
+    title: "Profit floor & real goals",
+    body: "Up big? It marks a floor. Slide toward it and you get a warning, then a 60-second pause, plus what the money is really for: power bill, groceries, gas.",
   },
   {
-    title: "Bonus playthrough & max-bet traps",
-    body: "In-page rollover progress HUD tracks promotional wagering targets in real time. Flags max-bet violations (e.g. $5.00 limit) and can intercept clicks before bonus winnings are forfeited.",
+    title: "Bonus rollover & max-bet alarm",
+    body: "Shows how much rollover is left and yells before one oversized bet (like over a $5 limit) gets your bonus voided.",
   },
   {
-    title: "Session velocity radar & sparkline",
-    body: "Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.",
+    title: "Loss speed meter",
+    body: "How fast you are losing, in dollars per minute, with bands from Steady to Cliff-Dive. Right there in the popup.",
   },
   {
-    title: "One-click cashout router",
-    body: "Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.",
+    title: "One-click cashout links",
+    body: "Jumps straight to the cashier on 21+ crypto and sweeps casinos, with progress bars toward the bills you actually have.",
   },
   {
-    title: "In-session auto-vaulting",
-    body: "Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.",
+    title: "Mid-session auto-vault",
+    body: "Hit your goal and it moves a cut into the casino's own vault (like Stake Vault). Your account, your money. We never touch it.",
   },
   {
-    title: "Win-streak & volatility spotter",
-    body: "Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ('I'm Due') stake escalations with immediate Cashier exit ramps before tilt sets in.",
+    title: "Streak & \"I'm due\" spotter",
+    body: "Counts dead spins and heater streaks. Start raising bets because you're \"due\" and it calls you out and points at the cashier.",
   },
 ];
 
 const notThis = [
-  "It does not play for you, cash you out, or hold wallet keys (non-custodial).",
-  "It does not require accounts, sign-ins, or cloud servers — runs 100% locally in your browser tab.",
-  "It is not a casino ban and not GAMSTOP. Turn the extension off and the overlay is gone.",
-  "It is distributed as a direct sideload zip on this site (Web Store listing later).",
+  "It does not play for you, cash you out, or hold wallet keys.",
+  "It does not need an account or our servers. It runs in your browser tab.",
+  "It is not a casino ban and not GAMSTOP. Turn the extension off and it is gone. The rest is on you.",
 ];
 
 export default function ExtensionPage() {
@@ -68,15 +67,15 @@ export default function ExtensionPage() {
       <JsonLd data={softwareApplicationJsonLd()} />
       <PublicPageHero
         compact
-        eyebrow="Browser extension // Core"
+        eyebrow="Browser extension"
         title="It sits on the casino tab and gets in your way. On purpose."
         description={
           <p>
-            Install it on Chrome. Open Stake, Roobet, BC.Game, or the other listed casinos. After a spin, the bet button sleeps for two seconds. Games you put on your list stop clicking. We never see your password or keys. For a wallet lock you cannot toggle off in settings, use{' '}
+            Chrome on Stake, Roobet, BC.Game, and the other listed casinos. After a spin, the bet button naps for two seconds. Games on your list stop clicking. We never see your password or keys. Want a lock you can&apos;t just toggle off? Sign a{' '}
             <Link href="/cooldown" className="text-[#17c3b2] underline-offset-2 hover:underline">
-              Cooldown
-            </Link>
-            .
+              Touch Grass
+            </Link>{' '}
+            lock.
           </p>
         }
         actions={
@@ -91,18 +90,44 @@ export default function ExtensionPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
+          <PublicPageSectionHeader compact eyebrow="Why install" title="You already know the spiral." />
+          <p className="public-page-card__copy max-w-2xl">
+            Three losses. Bet size climbs. &ldquo;I&apos;m due.&rdquo; Another deposit. The extension&apos;s job is to notice that
+            pacing while the tab is still open and push the exit you set when you were still thinking straight.
+          </p>
+          <p className="public-page-card__copy max-w-2xl mt-4">
+            It does not place bets for you. It does not &ldquo;beat the house.&rdquo; It just gets in the way at 2am, when
+            the session feels immortal. Stopping is still your move.
+          </p>
+        </div>
+      </section>
+
+      <section className="public-page-section px-4">
+        <div className="landing-shell">
           <div className="public-page-card public-page-card--accent">
-            <p className="public-page-card__eyebrow">On the casino tab</p>
-            <h2 className="public-page-card__title">How you use it</h2>
-            <ol className="public-page-list">
-              <li>Download the extension zip directly from this page and extract the folder.</li>
-              <li>In Chrome, Brave, or Edge, navigate to chrome://extensions and switch on Developer mode (top right).</li>
-              <li>Click &ldquo;Load unpacked&rdquo; and select the extracted folder. Open your casino tab and play with brakes.</li>
-            </ol>
+            <p className="public-page-card__eyebrow">Getting it</p>
+            <h2 className="public-page-card__title">Not public yet.</h2>
             <p className="public-page-card__copy">
-              This enforces browser-level guardrails on the active casino tab. To cryptographically lock a wallet address, use Cooldown.
+              No download link right now. Hop in the{' '}
+              <a
+                href="https://discord.gg/gdBsEJfCar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#17c3b2] underline-offset-2 hover:underline"
+              >
+                Discord
+              </a>{' '}
+              and you&apos;ll hear first. Touch Grass locks, the RTP scanner, the bet verifier, and casino lookups work on
+              this site right now.
             </p>
           </div>
+          <StaffOnly label="Staff only: sideload test install">
+            <ol className="public-page-list">
+              <li>Download the extension zip and extract the folder.</li>
+              <li>In Chrome, Brave, or Edge, open chrome://extensions and switch on Developer mode.</li>
+              <li>Click &ldquo;Load unpacked&rdquo;, pick the extracted folder, then open a casino tab.</li>
+            </ol>
+          </StaffOnly>
         </div>
       </section>
 
@@ -129,8 +154,8 @@ export default function ExtensionPage() {
             ))}
           </ul>
           <p className="mt-6 max-w-2xl text-sm text-gray-500 leading-relaxed">
-            No extra HUD. No cashout button. If you want a lock the casino cannot ignore, that is not this
-            extension — that is a real self-exclusion register or GAMSTOP, which we are not.
+            Want a lock the casino can&apos;t ignore? That&apos;s a real self-exclusion register or GAMSTOP, not us. We
+            just make the bad idea take a few more clicks.
           </p>
           <p className="mt-8">
             <BrandTagline />

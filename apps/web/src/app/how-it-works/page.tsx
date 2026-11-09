@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 import JsonLd from "@/components/JsonLd";
@@ -8,20 +8,20 @@ const workflowSteps = [
   {
     step: "01",
     title: "Install",
-    body: "Read-only extension watches click pacing and session events. No wallet keys. Sideload beta — not Chrome Web Store yet.",
-    note: "One install. Lives in your browser tab.",
+    body: "The extension sits on the casino tab and watches how fast you click and bet. Read-only. No wallet keys.",
+    note: "Lives in your browser tab.",
   },
   {
     step: "02",
     title: "Watch",
-    body: "Core mode flags fast-click / risk heuristics. Full bet-tilt HUD and deeper session cues need Pro features enabled.",
-    note: "Flags sus pacing before tilt takes over.",
+    body: "Clicking faster, betting bigger, chasing? It notices and says so, out loud and a little rude.",
+    note: "It talks. You decide.",
   },
   {
     step: "03",
     title: "Exit",
-    body: "Core locks the spin button for two seconds. Fullscreen Touch Grass (~2 min) is Pro only. Dashboard shields and on-chain Cooldown are the wallet-level brakes you pre-commit to.",
-    note: "Proof over emotion.",
+    body: "Two seconds between spins. Your blocked games stop clicking. Want more? Sign a Touch Grass lock ahead of time and the cashier stays dead until it runs out.",
+    note: "Stopping is still your move.",
   },
 ];
 
@@ -33,12 +33,7 @@ const faqs = [
   {
     question: "What is payout drift?",
     answer:
-      "Same slot, quieter returns than advertised. When sample size supports it, TiltCheck surfaces forensic cues — not lab-grade RTP claims from one weird spin.",
-  },
-  {
-    question: "Is Instant Redeem a TiltCheck cashout?",
-    answer:
-      "No. Instant Redeem is a partner cashier product. We badge who enables it and orchestrate the API. The processor or operator holds funds. Sandbox mocks money by default.",
+      "Same slot, quieter returns than advertised. Once there are enough spins to mean something, TiltCheck points it out. Not from one weird spin.",
   },
   {
     question: "When do I get evidence?",
@@ -57,16 +52,16 @@ export default function HowItWorksPage() {
       <PublicPageHero
         compact
         eyebrow="How it works"
-        title="Watch. Explain. Enforce."
+        title="Watch. Heckle. Your move."
         description={
           <p>
-            Read-only guardrail for live sessions — behavioral spirals, payout drift, and the exits you already set.
+            We notice the spiral, talk shit about it, and add friction. Stopping is on you.
           </p>
         }
         actions={
           <>
-            <Link href="/extension" className="btn btn-primary" data-text="INSTALL THE EXTENSION">
-              INSTALL THE EXTENSION
+            <Link href="/extension" className="btn btn-primary" data-text="THE EXTENSION">
+              THE EXTENSION
             </Link>
             <a
               href="https://discord.gg/gdBsEJfCar"
