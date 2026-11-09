@@ -7,7 +7,6 @@ import { useAuth } from '../hooks/useAuth';
 import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
 import DiscordIcon from './DiscordIcon';
 import { PUBLIC_NAV } from '@/lib/public-nav';
-import { DISCORD_INVITE_URL } from '@/lib/site-links';
 
 const DASHBOARD_URL = getDashboardHandoffUrl('/dashboard');
 const LOGIN_URL = getWebLoginRedirect('/dashboard');
@@ -61,6 +60,24 @@ const Nav = () => {
     );
   };
 
+  // Discord icon signs in with Discord (same as CollectClock); signed-in users go to their dashboard.
+  const DiscordLink = ({ className }: { className: string }) => {
+    const label = user ? 'Open your dashboard' : 'Sign in with Discord';
+    return (
+      <a
+        href={user ? DASHBOARD_URL : LOGIN_URL}
+        onClick={close}
+        className={className}
+        aria-label={label}
+        title={label}
+        style={{ color: '#5865F2' }}
+        data-funnel-event="nav_discord_login_click"
+      >
+        <DiscordIcon size={18} />
+      </a>
+    );
+  };
+
   const DesktopLinks = () => (
     <>
       {PUBLIC_NAV.links.map((link) => (
@@ -97,17 +114,7 @@ const Nav = () => {
       >
         {PUBLIC_NAV.downloadLabel}
       </Link>
-      <a
-        href={DISCORD_INVITE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={close}
-        className="nav-sidebar-link nav-discord-link"
-        aria-label={PUBLIC_NAV.discordLabel}
-        title={PUBLIC_NAV.discordLabel}
-      >
-        <DiscordIcon size={18} />
-      </a>
+      <DiscordLink className="nav-sidebar-link nav-discord-link" />
     </>
   );
 
@@ -126,16 +133,7 @@ const Nav = () => {
         </nav>
 
         <div className="nav-desktop-actions">
-          <a
-            href={DISCORD_INVITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="nav-desktop-link nav-discord-link"
-            aria-label={PUBLIC_NAV.discordLabel}
-            title={PUBLIC_NAV.discordLabel}
-          >
-            <DiscordIcon size={18} />
-          </a>
+          <DiscordLink className="nav-desktop-link nav-discord-link" />
           <AuthButton />
         </div>
 
