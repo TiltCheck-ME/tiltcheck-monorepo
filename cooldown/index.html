@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Cooldown | Self-Enforced On-Chain Lock | TiltCheck</title>
-<meta name="description" content="Take a break on your own terms. Non-custodial on-chain timelock with Solana wallet that automatically locks casino cashiers and spin buttons."/>
+<title>Touch Grass | Sign a timer, go outside | TiltCheck</title>
+<meta name="description" content="Sign a Touch Grass timer with any Solana wallet. The extension keeps cashier and spin buttons dead until it runs out. Not a deposit. No keys."/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#06080b"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
@@ -18,22 +18,22 @@
     <a href="../extension.html">Extension</a>
     <a href="../tools/">Tools</a>
     <a href="../casinos/">Casinos</a>
-    <a href="../cooldown/" aria-current="page">Cooldown</a>
+    <a href="../cooldown/" aria-current="page">Touch Grass</a>
     <a href="../tip/">Tip Jar</a>
     <a class="site-nav__discord" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
   </div>
 </nav>
 <main class="cooldown-page">
   <div class="cooldown-panel">
-    <h1>Self-Enforced Cooldown</h1>
-    <p class="cooldown-punch">Take a break on your own terms before tilt takes over.</p>
-    <p class="cooldown-fine">100% non-custodial. No deposits. No funds held. Sign an on-chain timelock with any Solana wallet to lock the casino cashier and slot spin buttons.</p>
+    <h1>Touch Grass</h1>
+    <p class="cooldown-punch">Sign a timer. Go outside. The casino will still be there. Sadly.</p>
+    <p class="cooldown-fine">Not a deposit. We never hold funds or keys. Sign a timer with any Solana wallet and the extension keeps the cashier and spin buttons dead until it runs out. Casinos do not have to honor it. You do.</p>
     <div id="auto-tilt-alert-banner" style="display:none; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.25rem; text-align: left; box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Tilt Intervention Triggered</span>
-        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">ACTIVE INTERVENTION</span>
+        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Tilt check</span>
+        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">YOUR CALL</span>
       </div>
-      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">Rapid losses or high spin velocity were detected during your session. The extension has engaged in-session brakes. Set a cooldown below to enforce your break.</p>
+      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">Fast spins and faster losses. The extension slowed things down. Want a real break? Sign a Touch Grass lock below.</p>
       <div id="auto-tilt-wallet" style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;"></div>
     </div>
     <script>
@@ -46,33 +46,36 @@
           var w = p.get('wallet');
           if (w) {
             var el = document.getElementById('auto-tilt-wallet');
-            if (el) el.textContent = 'Configured Cooldown Wallet: ' + w;
+            if (el) el.textContent = 'Touch Grass wallet: ' + w;
           }
         }
       })();
     </script>
     <ol class="cooldown-steps">
       <li><strong>Connect any Solana wallet</strong> (Phantom, Backpack, Solflare, etc.). No SOL or tokens are ever spent or transferred.</li>
-      <li><strong>Select your cooldown duration</strong> (24 hours, 3 days, 7 days, or 30 days). Once signed, you cannot cancel the timer early.</li>
-      <li><strong>Automatic in-browser enforcement</strong>. The TiltCheck extension locks casino cashier buttons and disables spin triggers until your cooldown expires.</li>
+      <li><strong>Pick how long you touch grass</strong> (24 hours, 3 days, 7 days, or 30 days). Once signed, you cannot cancel the timer early.</li>
+      <li><strong>The extension does the nagging</strong>. Cashier and spin buttons stay dead until the timer runs out.</li>
     </ol>
     <div class="cooldown-how" style="margin-top: 2rem; border-top: 1px solid #283347; padding-top: 1.5rem;">
-      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How It Protects Your Bankroll</h2>
+      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How it works</h2>
       <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. In-Browser Guard (Extension)</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">Install the TiltCheck browser extension. Active voluntary locks engage the Deposit Barrier across cashier pages and deaden spin buttons on high-risk games.</p>
-          <a class="btn btn-primary" href="../extension.html">Get the extension</a>
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. The extension</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">While your lock is running, the extension kills the cashier and deposit buttons and deadens spins on the games you blocked.</p>
+          <a class="btn btn-primary" href="../extension.html">What the extension does</a>
         </div>
-        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Terminal Cooldown (No Wallet Needed)</h3>
+        <div class="staff-only" data-staff-only hidden>
+  <span class="staff-only__label">Staff only: CLI</span>
+  <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">Terminal Cooldown (No Wallet Needed)</h3>
           <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Don't want to connect a crypto wallet? Set a local break timer directly from your terminal:</p>
           <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
           <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a local self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
         </div>
+</div>
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">3. Reverse-Withdrawal &amp; Cashier Protection</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Cashing out on Stake, Roobet, or sweepstakes sites? The extension automatically blocks 'Cancel Withdrawal' buttons while payouts clear so settled wins never feed back to the house.</p>
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Cancel-withdrawal blocker</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Cashing out on Stake, Roobet, or a sweeps site? The extension hides 'Cancel Withdrawal' while the payout clears, so undoing it takes real effort.</p>
         </div>
       </div>
     </div>
@@ -96,5 +99,23 @@
   <span class="site-footer__tag">Made for Degens. By Degens.</span>
   © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 </footer>
+<script>
+(function () {
+  var blocks = document.querySelectorAll('[data-staff-only]');
+  if (!blocks.length || !window.fetch) return;
+  var headers = {};
+  try {
+    var t = window.localStorage.getItem('tc_token');
+    if (t) headers.Authorization = 'Bearer ' + t;
+  } catch (e) {}
+  fetch('https://api.tiltcheck.me/auth/me', { credentials: 'include', headers: headers })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (me) {
+      if (!me || me.isStaff !== true) return;
+      for (var i = 0; i < blocks.length; i++) blocks[i].hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>
 </body>
 </html>
