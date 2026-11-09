@@ -990,6 +990,15 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
+    // Community roles: Tilted + Degen (+ OG before 2027) in the TiltCheck Discord. Fire-and-forget.
+    if (result.tokens?.accessToken) {
+      fetch('https://collectclock-api.j-chapman7.workers.dev/roles/app', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ app: 'tiltcheck', access_token: result.tokens.accessToken }),
+      }).catch(() => {});
+    }
+
     const authenticatedUser = await resolveAuthenticatedUser(req);
     const existingDiscordUser = await findUserByDiscordId(result.user.id);
 
