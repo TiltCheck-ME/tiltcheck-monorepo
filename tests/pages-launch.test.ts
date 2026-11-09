@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -46,7 +46,9 @@ describe('GitHub Pages launch twin', () => {
     expect(convertMarkdown).toContain('Terminal Cooldown (No Wallet Needed)');
     expect(convertMarkdown).not.toContain('Offline Cryptographic Lock');
     expect(convertMarkdown).toContain('buildCasinosPage');
-    expect(convertMarkdown).not.toContain('>Touch Grass<');
+    expect(convertMarkdown).toContain('>Touch Grass</a>');
+    expect(convertMarkdown).not.toContain('brand-wordmark');
+    expect(convertMarkdown).toContain('data-staff-only');
     expect(convertMarkdown).toContain('>Casinos</a>');
     expect(convertMarkdown).toContain('site-footer__more');
     expect(convertMarkdown).not.toMatch(/Bonuses/i);
@@ -55,14 +57,16 @@ describe('GitHub Pages launch twin', () => {
     expect(convertMarkdown).not.toMatch(/lounge/i);
   });
 
-  it('emits a gated status CTA when store listing is pending review', () => {
+  it('emits a gated CTA with no store-review status', () => {
     expect(convertMarkdown).toContain('gated-zip-cta');
     expect(convertMarkdown).toContain('CTA_GATED_LABEL');
-    expect(CTA_GATED_LABEL).toBe('CHROME WEB STORE (PENDING REVIEW)');
+    expect(CTA_GATED_LABEL).toBe('EXTENSION: NOT PUBLIC YET');
+    expect(convertMarkdown).not.toMatch(/web store/i);
     const extensionHtmlPath = path.join(process.cwd(), 'out/extension.html');
     if (existsSync(extensionHtmlPath)) {
       const extensionHtml = readFileSync(extensionHtmlPath, 'utf8');
-      expect(extensionHtml).toContain('CHROME WEB STORE (PENDING REVIEW)');
+      expect(extensionHtml).toContain('EXTENSION: NOT PUBLIC YET');
+      expect(extensionHtml).not.toMatch(/web store|pending review/i);
       expect(extensionHtml).not.toContain(
         'href="downloads/tiltcheck-extension.zip" download>DOWNLOAD THE ZIP',
       );

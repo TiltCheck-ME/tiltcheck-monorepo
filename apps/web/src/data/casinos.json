@@ -8,12 +8,12 @@
     "rtpSummary": "In-House 95.50%–97.00% RTP · Slots 94.00%–96.50% variable",
     "rtpOriginals": "VGW In-House Classic Tables & Fireshot slots: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.",
     "rtpSlots": "Pragmatic Play and Relax Gaming slot titles running on provider math; no live in-game RTP badge.",
-    "vaultSupport": "TiltCheck HUD session timer and spend brake notifications",
+    "vaultSupport": "TiltCheck session timer and spend brake notifications",
     "playthrough": "1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility",
     "evidence": [
       "Operating under US sweepstakes law with alternative method of entry (AMOE) offering 5 SC per postal envelope.",
       "Redemption minimums: 100 SC for EFT bank transfer; 10 SC for electronic gift cards.",
-      "EFT redemption velocity: 24–72 hours approval, followed by 1–3 business days bank clearing.",
+      "EFT redemption speed: 24–72 hours approval, followed by 1–3 business days bank clearing.",
       "Dual-currency model (Gold Coins vs Sweeps Coins) can cause accidental spend of promotional currency.",
       "Restricted states: Idaho, Michigan, Montana, Nevada, and Washington."
     ],
@@ -52,7 +52,7 @@
     "rtpSummary": "In-House Slots 95.50%–96.50% RTP · Casuals 97.00% RTP",
     "rtpOriginals": "VGW In-House Slots & Casuals: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.",
     "rtpSlots": "Proprietary instant-win games and social slots running certified mathematical models.",
-    "vaultSupport": "TiltCheck session HUD and spend limit alerts",
+    "vaultSupport": "TiltCheck session timer and spend limit alerts",
     "playthrough": "1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility",
     "evidence": [
       "Operated by VGW Holdings (parent company of Chumba Casino and Global Poker).",
@@ -74,7 +74,7 @@
     "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% variable",
     "rtpOriginals": "Pulsz in-house tables: 99.50% Blackjack RTP. Certified RNG by BMM Testlabs.",
     "rtpSlots": "Pragmatic Play, NetEnt, and Booming Games slots deployed on certified default tiers.",
-    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "vaultSupport": "TiltCheck auto-vault and session timer",
     "playthrough": "1x playthrough on Sweepstakes Coins (SC) prior to redemption",
     "evidence": [
       "AMOE mail-in compliance: 5 Sweepstakes Coins granted per compliant handwritten postcard.",
@@ -96,7 +96,7 @@
     "rtpSummary": "Tables 99.50% RTP · Slots 94.50%–96.80% certified",
     "rtpOriginals": "Single-Deck and Multi-Hand Blackjack: 99.50% RTP. GLI certified RNG.",
     "rtpSlots": "Over 800+ slots from Pragmatic Play, Betsoft, and BGaming running certified manufacturer RTP profiles.",
-    "vaultSupport": "TiltCheck session HUD and spend brake controls",
+    "vaultSupport": "TiltCheck session timer and spend brake controls",
     "playthrough": "1x playthrough requirement on promotional Sweepstakes Coins",
     "evidence": [
       "US sweepstakes compliance: Mail-in AMOE offers 3 Sweepstakes Coins per postal submission.",
@@ -118,7 +118,7 @@
     "rtpSummary": "Proprietary Slots 95.50%–97.00% RTP · Tables 99.50% RTP",
     "rtpOriginals": "High 5 In-House Studio Titles & Tables: 95.50% to 99.50% RTP. Independent RNG audits by GLI.",
     "rtpSlots": "Catalog of 1,200+ games powered by High 5 Games proprietary licensed studio math.",
-    "vaultSupport": "TiltCheck DOM vault adapter and session cooldown reminders",
+    "vaultSupport": "TiltCheck vault button and Touch Grass reminders",
     "playthrough": "1x playthrough requirement on Sweeps Coins",
     "evidence": [
       "Operated by established land-based slot developer High 5 Games (30-year gaming history).",
@@ -141,11 +141,11 @@
     "rtpSummary": "Originals 99.00% RTP · Slots 94.50%–96.50% variable",
     "rtpOriginals": "Stake Originals (Dice, Crash, Plinko, Mines, Limbo, Hilo, Keno, Roulette): 99.00% RTP / 1.00% house edge. Video Poker: 99.17% RTP. Blackjack: 99.50% RTP (0.50% house edge). Provably fair HMAC-SHA256 seed pairs.",
     "rtpSlots": "Pragmatic Play and Hacksaw Gaming slots deployed at standard 96.50% tier or lowered 94.50% tier depending on game title. No live RTP display inside game iframe.",
-    "vaultSupport": "Native GraphQL session API (createVaultDeposit) + TiltCheck DOM fallback button",
+    "vaultSupport": "Native GraphQL session API (createVaultDeposit) + TiltCheck fallback vault button",
     "playthrough": "1x playthrough required on Stake Cash (SC) before redemption. Gold Coins (GC) have zero monetary value.",
     "evidence": [
       "Restricted in 7 US states: Idaho, Kentucky, Michigan, Nevada, New York, Vermont, Washington.",
-      "Redemption velocity: Crypto redemptions (BTC, ETH, LTC, USDT, DOGE) typically 10–60 minutes after identity verification.",
+      "Redemption speed: Crypto redemptions (BTC, ETH, LTC, USDT, DOGE) typically 10–60 minutes after identity verification.",
       "Provably fair seed hygiene: Server seed hash published prior to play; client seed customizable at any time.",
       "US sweepstakes AMOE compliance: Mail-in postcard request code provides 5 Stake Cash.",
       "Dual-currency model creates high accidental burn: Users often wager SC thinking it is GC.",
@@ -164,12 +164,12 @@
     "rtpSummary": "Live Tables 99.50% RTP · Slots 94.50%–96.50% variable",
     "rtpOriginals": "Pragmatic Play / 3 Oaks in-house tables: 99.50% Blackjack RTP.",
     "rtpSlots": "Pragmatic Play, NetEnt, and Playson slot titles with provider-certified mathematical models.",
-    "vaultSupport": "TiltCheck DOM vault adapter and auto-session brake notifications",
+    "vaultSupport": "TiltCheck vault button and auto-session brake notifications",
     "playthrough": "1x playthrough requirement on Sweepstakes Coins (SC) before redemption",
     "evidence": [
       "Compliant US sweepstakes model with alternative method of entry (AMOE) offering 4 SC per handwritten request.",
       "Redemption minimums: 75 SC for online bank transfer (EFT); 10 SC for electronic gift cards.",
-      "Redemption processing velocity: 24–72 hours following initial KYC identity approval.",
+      "Redemption processing speed: 24–72 hours following initial KYC identity approval.",
       "Restricted states: Alabama, Delaware, Georgia, Idaho, Kentucky, Michigan, Montana, Nevada, Washington.",
       "Dual-currency separation maintains distinction between recreational Gold Coins and redeemable Sweeps Coins."
     ],
@@ -186,7 +186,7 @@
     "rtpSummary": "Originals 97.00% RTP · Slots 94.20%–96.00% certified",
     "rtpOriginals": "Fortune Coins Originals: 97.00% average RTP. BMM Testlabs certified.",
     "rtpSlots": "Proprietary in-house slots and third-party titles operating on BMM certified RNG math.",
-    "vaultSupport": "TiltCheck HUD session timer and spend brake warnings",
+    "vaultSupport": "TiltCheck session timer and spend brake warnings",
     "playthrough": "1x playthrough requirement on Fortune Coins (FC, 100 FC = $1.00 USD)",
     "evidence": [
       "Delaware registered corporate entity operating compliant sweepstakes promotional contests.",
@@ -208,7 +208,7 @@
     "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% certified",
     "rtpOriginals": "Pragmatic Play / Evoplay tables: 99.50% Blackjack RTP.",
     "rtpSlots": "Pragmatic Play, Relax Gaming, and BGaming titles running certified slot RTP configurations.",
-    "vaultSupport": "TiltCheck DOM vault adapter and cooldown enforcement",
+    "vaultSupport": "TiltCheck vault button and Touch Grass lock support",
     "playthrough": "1x playthrough required on Sweepstakes Coins (SC) prior to redemption",
     "evidence": [
       "Compliant US sweepstakes framework with no purchase necessary AMOE offering 4 SC per mail-in envelope.",
@@ -230,7 +230,7 @@
     "rtpSummary": "Table Games 99.50% RTP · Slots 94.50%–96.50% variable",
     "rtpOriginals": "Hacksaw / Relax table games: 99.50% Blackjack RTP.",
     "rtpSlots": "Catalog powered by Hacksaw Gaming, Relax, and Pragmatic Play running certified manufacturer RTPs.",
-    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "vaultSupport": "TiltCheck auto-vault and session timer",
     "playthrough": "Strict 1x playthrough on Sweeps Coins (SC) before redemption eligibility",
     "evidence": [
       "US incorporated operator (ARB Gaming LLC) operating under legal sweepstakes regulations.",
@@ -251,7 +251,7 @@
     "rtpSummary": "NetGame Slots 95.50%–96.50% RTP · GLI certified",
     "rtpOriginals": "NetGame In-House Titles: 95.50% to 96.50% RTP. Certified RNG by GLI.",
     "rtpSlots": "NetGame entertainment social gaming catalog running certified RNG algorithms.",
-    "vaultSupport": "TiltCheck HUD session brake and cooldown tools",
+    "vaultSupport": "TiltCheck spin pause and Touch Grass lock",
     "playthrough": "1x playthrough requirement on promotional entries (100 entries = $1.00 USD)",
     "evidence": [
       "Delaware incorporated sweepstakes operator running certified promotional gaming.",
@@ -273,7 +273,7 @@
     "rtpSummary": "Certified Slots 95.00%–96.80% RTP · Casuals 97.00%",
     "rtpOriginals": "Zula Casuals & Tables: 97.00% average RTP. Certified RNG by BMM Testlabs.",
     "rtpSlots": "Multi-studio slot library featuring Pragmatic Play, Relax, and Booming Games at certified RTP tiers.",
-    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "vaultSupport": "TiltCheck auto-vault and session timer",
     "playthrough": "1x playthrough requirement on Sweeps Coins prior to redemption",
     "evidence": [
       "Operated by Blazesoft affiliate SCPS LLC with legal US sweepstakes structure.",
@@ -296,7 +296,7 @@
     "rtpSummary": "In-House Casuals 97.00% RTP · Slots 94.50%–96.50% certified",
     "rtpOriginals": "Crown Coins in-house casuals: 97.00% average RTP. BMM Testlabs certified.",
     "rtpSlots": "Ruby Play, Pragmatic Play, and Hacksaw Gaming certified slots.",
-    "vaultSupport": "TiltCheck HUD session brake and cooldown tools",
+    "vaultSupport": "TiltCheck spin pause and Touch Grass lock",
     "playthrough": "1x playthrough requirement on Sweeps Coins (SC)",
     "evidence": [
       "Compliant sweepstakes gaming platform with free daily login rewards and mail-in AMOE submissions.",
@@ -341,7 +341,7 @@
     "rtpSummary": "Multi-Studio Slots 95.00%–96.50% RTP · Casuals 97.00%",
     "rtpOriginals": "Real Prize Casuals & Tables: 97.00% average RTP. Certified provider math.",
     "rtpSlots": "Games supplied by Pragmatic Play and Relax Gaming running certified provider math.",
-    "vaultSupport": "TiltCheck DOM auto-vault integration and session HUD",
+    "vaultSupport": "TiltCheck auto-vault and session timer",
     "playthrough": "1x playthrough on Sweeps Coins prior to redemption",
     "evidence": [
       "Operated by RealPlay Tech Inc following standard US sweepstakes compliance.",
@@ -369,13 +369,13 @@
     "rtpSummary": "Provider Slots 95.00%–96.80% RTP · Tables 99.50%",
     "rtpOriginals": "Jackpota In-House Tables: 99.50% Blackjack RTP. GLI and BMM certified.",
     "rtpSlots": "Pragmatic Play and 3 Oaks Gaming slots with independent fairness certificates.",
-    "vaultSupport": "TiltCheck DOM vault adapter and auto-session brake notifications",
+    "vaultSupport": "TiltCheck vault button and auto-session brake notifications",
     "playthrough": "1x playthrough requirement on Sweepstakes Coins (SC)",
     "evidence": [
       "Operated by B2Services OÜ (sister brand to McLuck and Hello Millions).",
       "AMOE mail-in program offers 4 free Sweeps Coins per handwritten request.",
       "Redemption minimums: 75 SC for EFT bank deposit; 10 SC for electronic gift cards.",
-      "Turnaround velocity: 24 hours for digital gift cards; 48–72 hours for bank EFT.",
+      "Turnaround speed: 24 hours for digital gift cards; 48–72 hours for bank EFT.",
       "Excluded states: ID, MI, MT, NV, WA, AL, GA, and DE."
     ],
     "redemptionMinHours": 24,
@@ -415,7 +415,7 @@
     "rtpSummary": "Certified Slots 95.00%–96.50% RTP · Casuals 95.50%",
     "rtpOriginals": "NoLimitCoins NetGame Titles: 95.50% to 96.50% RTP. Certified RNG.",
     "rtpSlots": "Slot portfolio running NetGame certified mathematical models with verified RNG.",
-    "vaultSupport": "TiltCheck session HUD and spend limit alerts",
+    "vaultSupport": "TiltCheck session timer and spend limit alerts",
     "playthrough": "1x playthrough requirement on Super Coins (100 Super Coins = $1.00 USD)",
     "evidence": [
       "Operating under US sweepstakes regulations managed by A1 Development LLC.",
@@ -598,7 +598,7 @@
     "rtpSummary": "Originals 97.00%–99.00% RTP · Slots 91.20%–96.50% variable",
     "rtpOriginals": "Roobet Originals: Crash (dynamic curve, ~97.00%–99.00% RTP), Roulette (97.30% RTP), Dice (99.00% RTP), Mines (97.00%–99.00% RTP), Towers (97.50% RTP). Provably fair HMAC-SHA256.",
     "rtpSlots": "Multi-tier RTP deployment: Pragmatic Play slots deployed at 96.50% or 94.50% tier; Play'n GO slots deployed at reduced tiers (94.20% and 91.20% vs 96.20% default max). Push Gaming and Hacksaw variable by title.",
-    "vaultSupport": "TiltCheck DOM-based vault adapter (identifies Iron Bank / vault interface elements)",
+    "vaultSupport": "TiltCheck vault button (identifies Iron Bank / vault interface elements)",
     "playthrough": "1x deposit turnover required before withdrawal; promotional rewards subject to variable rollover.",
     "evidence": [
       "Blocked in US, UK, Australia, Germany, Netherlands, Spain; aggressive VPN detection can result in account lock.",
@@ -637,14 +637,14 @@
     "rtpSummary": "Originals 97.00%–99.00% RTP · Slots 96.00% standard tier",
     "rtpOriginals": "Rollbit Originals: X-Roulette (97.30% RTP), Rollercoaster (97.00% RTP), Crash (99.00% RTP), Plinko (99.00% RTP), NFT Jackpot. Provably fair cryptographic verification.",
     "rtpSlots": "Pragmatic Play and Hacksaw Gaming slots deployed predominantly at standard 96.00%+ tiers. Select custom crypto trading instruments carry variable spread costs.",
-    "vaultSupport": "TiltCheck DOM-based vault adapter (triggers native vault transfer) + loss limit alerts",
+    "vaultSupport": "TiltCheck vault button (triggers native vault transfer) + loss limit alerts",
     "playthrough": "1x deposit turnover required before withdrawal; Rank-up chests and RLB staking rewards subject to specific holding terms.",
     "evidence": [
       "Instant crypto withdrawals across BTC, ETH, SOL, and LTC networks with automated processing.",
       "Custom casino, crypto futures trading, and NFT liquidity hybrid; high roller liquidity with proven solvency.",
       "VIP Rank-up rewards: Turnover directly advances VIP tier rank providing instant rakeback and rank-up chests.",
       "Curaçao eGaming license; token (RLB) mechanics introduce financial exposure outside traditional casino play.",
-      "TiltCheck extension provides DOM vault adapter and spin brake for session loss protection."
+      "TiltCheck extension adds a vault button and the 2-second spin pause."
     ],
     "redemptionMinHours": 0,
     "redemptionMaxHours": 1,
@@ -683,7 +683,7 @@
     "rtpSummary": "Originals 99.00% RTP · Slots 96.50% standard tier",
     "rtpOriginals": "Gamdom Originals: Crash, Dice, Roulette, Hilo, Table Games at 99.00% RTP (1.00% house edge). Provably fair SHA-256 with verifiable game history.",
     "rtpSlots": "Pragmatic Play, Hacksaw, and Push Gaming slots configured at standard 96.50% tier. In-game RTP visible on supported provider paytables.",
-    "vaultSupport": "TiltCheck DOM-based vault adapter + spin brake alerts",
+    "vaultSupport": "TiltCheck vault button + spin brake alerts",
     "playthrough": "1x deposit rollover required before crypto withdrawal. Promotional rewards claimable with no hidden wagering locks.",
     "evidence": [
       "Immediate crypto withdrawals processed through automated payment hot wallets across major chains.",
@@ -706,7 +706,7 @@
     "rtpSummary": "Originals 99.00% RTP · Slots 92.00%–96.50% variable",
     "rtpOriginals": "BC Originals (Classic Dice, Crash, Limbo, HashDice, Plinko, Keno): 99.00% RTP (1.00% house edge). Provably fair cryptographic verification supported.",
     "rtpSlots": "Enormous catalog of 8,000+ slots across 60+ providers. Extensive deployment of lower RTP tiers (92% and 94% tiers common on Pragmatic Play and Hacksaw titles).",
-    "vaultSupport": "TiltCheck DOM-based vault adapter (triggers native vault deposit prompt)",
+    "vaultSupport": "TiltCheck vault button (triggers native vault deposit prompt)",
     "playthrough": "Predatory promo mechanics: BCD (BC Dollar) locked reward requires ~500x wager turnover (Unlock = Wager * 1% * 20% = 0.2% return).",
     "evidence": [
       "Predatory reward unlocking: Advertised 300%+ deposit matches are delivered in locked BCD that releases at only 0.2% per wager.",
@@ -725,14 +725,14 @@
     "rtpSummary": "Originals 99.00% RTP · Slots 96.50% default maximum",
     "rtpOriginals": "Shuffle Originals (Dice, Limbo, Mines, Crash, Plinko, Keno, Roulette): 99.00% RTP / 1.00% house edge. Provably fair HMAC-SHA256 with verifiable client/server seed pairs.",
     "rtpSlots": "Pragmatic Play, Hacksaw Gaming, and NoLimit City slots configured at standard manufacturer maximums (96.50% tier). No silent downgrades detected in current telemetry.",
-    "vaultSupport": "TiltCheck DOM-based vault adapter + spin brake compatibility",
+    "vaultSupport": "TiltCheck vault button + spin brake compatibility",
     "playthrough": "1x deposit turnover required before fee-free crypto withdrawal. Zero fee deductions on automated releases.",
     "evidence": [
       "Instant automated crypto withdrawals across BTC, ETH, SOL, LTC, and USDT with sub-1-hour typical confirmation.",
       "Provably fair seed transparency: Server seed hash published prior to wager; client seed customizable anytime.",
       "VIP progression: Transparent volume contribution on all casino bets toward Bronze through Diamond VIP ranks.",
       "Zero reported non-payment disputes; active and responsive leadership presence in crypto community.",
-      "TiltCheck extension provides DOM vault adapter and spin brake to halt rapid-fire loss cycles."
+      "TiltCheck extension adds a vault button and the 2-second spin pause to slow rapid-fire spins."
     ],
     "redemptionMinHours": 0,
     "redemptionMaxHours": 1,
@@ -753,7 +753,7 @@
     "rtpSummary": "Originals 99.00% RTP · Slots 96.00%–96.50% standard tier",
     "rtpOriginals": "Duelbits Originals: Dice (99.00% RTP), Crash (99.00% RTP), Roulette (97.30% RTP), Mines (99.00% RTP), Plinko (99.00% RTP). Provably fair SHA-256 cryptographic verification.",
     "rtpSlots": "Pragmatic Play, Hacksaw, and Play'n GO slots deployed at default 96.00%+ manufacturer tiers.",
-    "vaultSupport": "TiltCheck DOM-based vault adapter + spin brake alerts",
+    "vaultSupport": "TiltCheck vault button + spin brake alerts",
     "playthrough": "1x deposit turnover required before withdrawal; Ace's VIP Lounge rakeback released without wagering strings.",
     "evidence": [
       "Automated instant crypto withdrawals across BTC, ETH, LTC, SOL, and DOGE networks.",
@@ -818,12 +818,12 @@
     "rtpSummary": "In-House 97.00%–99.50% RTP · Certified slots 94.00%–96.50% variable",
     "rtpOriginals": "DraftKings In-House Table Games & Rocket: 99.50% RTP (Blackjack), 97.00% (Rocket). GLI-19 certified RNG.",
     "rtpSlots": "Regulated slot catalog (IGT, NetEnt, Light & Wonder) operating on state-approved RTP profiles with mandatory minimum 85% statutory floor.",
-    "vaultSupport": "TiltCheck HUD session brake overlay + state-mandated responsible gaming deposit/loss limiters",
+    "vaultSupport": "TiltCheck session overlay + state-mandated responsible gaming deposit/loss limiters",
     "playthrough": "1x turnover on real money deposits; 1x to 15x on promotional bonus credit",
     "evidence": [
       "Authorized and regulated by NJ Division of Gaming Enforcement, PA Gaming Control Board, and MI Gaming Control Board.",
       "RNG testing and math models certified by Gaming Laboratories International (GLI-19).",
-      "Payout velocity: ACH and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly.",
+      "Payout speed: ACH and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly.",
       "Strict 21+ identity and geolocation verification required per state gaming regulations.",
       "Responsible gaming integration includes mandatory 1-800-GAMBLER helpline and state self-exclusion registry links."
     ],
@@ -840,7 +840,7 @@
     "rtpSummary": "In-House 99.50% RTP · Certified slots 94.00%–96.80% manufacturer tiers",
     "rtpOriginals": "FanDuel In-House Blackjack: 99.50% RTP. State gaming lab certified RNG.",
     "rtpSlots": "Regulated slot libraries from Evolution, NetEnt, and Scientific Games deployed at certified manufacturer tiers.",
-    "vaultSupport": "TiltCheck HUD overlay + mandatory daily/weekly deposit and session limit controls",
+    "vaultSupport": "TiltCheck session overlay + mandatory daily/weekly deposit and session limit controls",
     "playthrough": "Clean 1x playthrough requirement on Play-It-Again refund promotions and site credit",
     "evidence": [
       "Operating under active state casino licenses in New Jersey, Pennsylvania, Michigan, and West Virginia.",
@@ -862,7 +862,7 @@
     "rtpSummary": "Exclusive Tables 99.50% RTP · Slots 94.10%–96.20% certified profiles",
     "rtpOriginals": "BetMGM Exclusive Blackjack: 99.50% RTP. GLI certified RNG.",
     "rtpSlots": "Exclusive BetMGM progressive slots and studio games audited by Gaming Laboratories International.",
-    "vaultSupport": "GameSense responsible gaming framework + TiltCheck session HUD brake",
+    "vaultSupport": "GameSense responsible gaming framework + TiltCheck session timer and spin pause",
     "playthrough": "15x playthrough on standard welcome bonuses; 1x on real money bankroll",
     "evidence": [
       "Fully licensed and regulated by NJ DGE, PA PGCB, MI MGCB, and WV Lottery Commission.",
@@ -884,7 +884,7 @@
     "rtpSummary": "Classic Tables 99.50% RTP · Slots 94.00%–96.50% variable",
     "rtpOriginals": "Caesars In-House Classic Blackjack: 99.50% RTP. State tested RNG.",
     "rtpSlots": "Caesars branded slots and third-party catalogs governed by state gaming division RNG regulations.",
-    "vaultSupport": "Caesars RG limit tools + TiltCheck session cooldown notifications",
+    "vaultSupport": "Caesars RG limit tools + TiltCheck Touch Grass reminders",
     "playthrough": "1x to 15x rollover requirements depending on selected game category",
     "evidence": [
       "Licensed by Tier-1 US state gaming authorities with rigorous financial and AML audits.",
@@ -906,7 +906,7 @@
     "rtpSummary": "Single-Deck Tables 99.50% RTP · Slots standard 95.00%–96.50%",
     "rtpOriginals": "Rush Street Single-Deck Blackjack: 99.50% RTP. GLI tested RNG.",
     "rtpSlots": "Multi-provider catalog featuring certified RTP configurations without unannounced stealth downgrades.",
-    "vaultSupport": "RushPay automated payout approval + TiltCheck HUD spend brake",
+    "vaultSupport": "RushPay automated payout approval + TiltCheck spend alerts",
     "playthrough": "1x industry-leading playthrough requirement on all bonus credits",
     "evidence": [
       "Regulated by premier state gaming commissions with public monthly revenue and tax reporting.",

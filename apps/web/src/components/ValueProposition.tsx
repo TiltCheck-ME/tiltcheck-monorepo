@@ -106,7 +106,7 @@ export default function ValueProposition() {
           <span className="brand-eyebrow">One product. Two sides of the market.</span>
           <h2 className="vp-title">TiltCheck breaks The Loop. For players who know the feeling.</h2>
           <p className="vp-lead">
-            TiltCheck is a shared audit surface. Players use it to kill Auto-Pilot mode and protect bankrolls. Platforms use it to show their numbers don't lie.
+            TiltCheck is a shared audit surface. Players use it to snap out of auto-pilot and keep more of their bankroll. Platforms use it to show their numbers don't lie.
           </p>
 
           <ul className="vp-signal-list">

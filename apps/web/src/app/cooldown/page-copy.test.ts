@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 import { readFileSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
@@ -30,7 +30,7 @@ describe('Cooldown page copy', () => {
 
   it('shows devnet guidance when wallet send errors have no message', () => {
     expect(source).toContain(
-      'Switch your wallet to Solana devnet and try again. Cooldown only signs a lock on devnet — no SOL moves.',
+      'Switch your wallet to Solana devnet and try again. Touch Grass only signs a lock on devnet — no SOL moves.',
     );
     expect(source).toContain('walletTxErrorMessage');
   });

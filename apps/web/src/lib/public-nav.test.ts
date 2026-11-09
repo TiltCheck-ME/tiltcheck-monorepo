@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 import { readFileSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { PUBLIC_NAV } from './public-nav';
 
 describe('PUBLIC_NAV', () => {
-  it('lists extension, casinos, and Cooldown', () => {
+  it('lists extension, casinos, and Touch Grass (the /cooldown lock)', () => {
     expect(PUBLIC_NAV.links.map((link) => link.href)).toEqual([
       '/extension',
       '/casinos',
@@ -14,7 +14,7 @@ describe('PUBLIC_NAV', () => {
     ]);
     expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Nudges');
     expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Trust intel');
-    expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Touch Grass');
+    expect(PUBLIC_NAV.links.map((link) => link.label)).toEqual(['Extension', 'Casinos', 'Touch Grass']);
     expect(PUBLIC_NAV.links.map((link) => link.label)).not.toContain('Bonuses');
     expect(PUBLIC_NAV.downloadHref).toBe('/extension');
     expect(PUBLIC_NAV.downloadLabel).toBe('Extension');

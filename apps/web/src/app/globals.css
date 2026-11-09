@@ -2144,33 +2144,46 @@ body.degen-background > .wallet-adapter-modal {
 }
 
 .landing-moves__title {
-  margin: 0.4rem 0 0;
-  max-width: 16ch;
-  font-size: clamp(2rem, 4vw, 3.1rem);
-  line-height: 0.92;
+  margin: 0.5rem 0 0;
+  max-width: 22ch;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  line-height: 1;
 }
 
 .landing-moves__list {
   list-style: none;
-  margin: 1.75rem 0 0;
+  margin: 1.5rem 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem 1.5rem;
+  gap: 1.5rem 2rem;
+  align-items: start;
 }
 
 .landing-move {
-  display: grid;
-  gap: 0.45rem;
-  padding: 1.1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 0 0;
   border-top: 2px solid #17c3b2;
 }
 
 .landing-move__num {
   font-family: var(--font-display), "Big Shoulders", sans-serif;
-  font-size: 1.8rem;
+  font-size: 1.25rem;
   font-weight: 800;
+  line-height: 1;
   color: #17c3b2;
+}
+
+.landing-move__title {
+  margin: 0;
+  font-size: clamp(1.15rem, 1.05rem + 0.4vw, 1.4rem);
+  line-height: 1.1;
+}
+
+.landing-move p {
+  max-width: 36ch;
 }
 
 .landing-move p,
@@ -4134,4 +4147,26 @@ body.degen-background > .wallet-adapter-modal {
   .landing-why-no-bot__grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Staff-only blocks (<StaffOnly>): only rendered for the TiltCheck Team role. */
+.staff-only {
+  position: relative;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px dashed rgba(255, 176, 32, 0.45);
+  border-radius: 8px;
+}
+
+.staff-only__label {
+  position: absolute;
+  top: -0.6rem;
+  left: 0.75rem;
+  padding: 0 0.5rem;
+  background: #06080b;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffb020;
 }

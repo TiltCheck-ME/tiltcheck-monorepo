@@ -21,7 +21,7 @@ const TEST_TARGETS = [
   { label: 'Trust scores — grading vs your experience', val: 'trust' },
   { label: 'Extension — install, run quietly, no session breaks', val: 'extension' },
   { label: 'Discord bot — /audit, /rtp, /trust', val: 'bot' },
-  { label: 'Phishing Shield — scam domains you actually see', val: 'phishing' },
+  { label: 'Scam Link Check — scam domains you actually see', val: 'phishing' },
 ];
 
 const TEST_SETUP = [

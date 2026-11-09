@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -20,6 +20,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {
   SITE_URL,
+  API_URL,
   DISCORD_URL,
   KOFI_URL,
   SOLANA_TIP_WALLET,
@@ -39,18 +40,11 @@ import {
   TERTIARY_LINK,
   INSTALL_EYEBROW,
   INSTALL_TITLE,
-  INSTALL_STEPS,
   INSTALL_MOVES,
   INSTALL_NOTE,
   VAULT,
   AUTOVAULT_PAGE,
   LAUNCH_HONESTY,
-  WHAT_IT_IS,
-  HOW_IT_WORKS,
-  CORE_JOBS,
-  PROBLEM_SIGNALS,
-  FEATURE_CARDS,
-  FAQS,
   EXTENSION_SIGNALS,
   GRADING_STEPS,
   TOOL_REGISTRY,
@@ -220,7 +214,7 @@ function navHtml(depth, current) {
     <a href="${href(depth, 'extension.html')}"${extensionCurrent}>Extension</a>
     <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
     <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>Casinos</a>
-    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>Cooldown</a>
+    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>Touch Grass</a>
     <a href="${dirHref(depth, 'tip')}"${tipCurrent}>Tip Jar</a>
     <a class="site-nav__discord" href="${DISCORD_URL}" rel="noopener noreferrer" aria-label="Discord" title="Discord">${DISCORD_ICON}</a>
   </div>
@@ -248,6 +242,37 @@ function footerHtml(depth) {
 </footer>`;
 }
 
+/**
+ * Staff-only block for the static site. Hidden by default (fail closed); the staff script
+ * below reveals it only when api.tiltcheck.me/auth/me says isStaff === true
+ * (Discord "TiltCheck Team" role). Hidden, not secret: never put real secrets in here.
+ */
+function staffOnly(innerHtml, label = 'Staff only') {
+  return `<div class="staff-only" data-staff-only hidden>
+  <span class="staff-only__label">${escapeHtml(label)}</span>
+  ${innerHtml}
+</div>`;
+}
+
+const STAFF_REVEAL_SCRIPT = `<script>
+(function () {
+  var blocks = document.querySelectorAll('[data-staff-only]');
+  if (!blocks.length || !window.fetch) return;
+  var headers = {};
+  try {
+    var t = window.localStorage.getItem('tc_token');
+    if (t) headers.Authorization = 'Bearer ' + t;
+  } catch (e) {}
+  fetch('${API_URL}/auth/me', { credentials: 'include', headers: headers })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (me) {
+      if (!me || me.isStaff !== true) return;
+      for (var i = 0; i < blocks.length; i++) blocks[i].hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>`;
+
 function shell({ title, description, depth, current, body, extraHead = '' }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -266,6 +291,7 @@ ${extraHead}
 ${navHtml(depth, current)}
 ${body}
 ${footerHtml(depth)}
+${body.includes('data-staff-only') ? STAFF_REVEAL_SCRIPT : ''}
 </body>
 </html>`;
 }
@@ -362,7 +388,6 @@ function buildRootLanding() {
   const content = `<main class="landing-page">
   <section class="landing-hero" aria-label="TiltCheck">
     <div class="landing-hero__copy">
-      <p class="brand-wordmark">Tilt<span>Check</span></p>
       <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
       <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
       <p class="landing-hero__kicker">${escapeHtml(SITE_KICKER)}</p>
@@ -380,9 +405,9 @@ function buildRootLanding() {
     <h2 class="landing-moves__title">${escapeHtml(INSTALL_TITLE)}</h2>
     <ol class="landing-moves__list">${moves}</ol>
   </section>
-  <section class="landing-brakes" aria-label="The In-Session Brakes & Guards">
-    <p class="landing-brakes__eyebrow">ACTIVE IN-SESSION DEFENSE</p>
-    <h2 class="landing-brakes__title">THE IN-SESSION BRAKES &amp; GUARDS</h2>
+  <section class="landing-brakes" aria-label="What the extension does">
+    <p class="landing-brakes__eyebrow">ON THE CASINO TAB</p>
+    <h2 class="landing-brakes__title">THE ANNOYING STUFF. ON PURPOSE.</h2>
     <ul class="landing-brakes__list">${brakes}</ul>
     <div class="landing-calc">
       <div class="landing-calc__inputs">
@@ -396,7 +421,7 @@ function buildRootLanding() {
         </div>
       </div>
       <div class="landing-calc__banner">
-        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK INTERCEPT</span>
+        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK</span>
         <p class="landing-calc__banner-lead">Session Down: <span id="calcLossText">-$300.00</span> (<span id="calcHoursText" style="color:#f4a261;">12.0 hours</span> of labor torched)</p>
         <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
       </div>
@@ -467,12 +492,12 @@ function buildExtensionPage() {
 
   const actions = `
     ${zipCtaHtml()}
-    <a class="hero-actions__secondary-link" href="cooldown/">Set a Cooldown lock</a>`;
+    <a class="hero-actions__secondary-link" href="cooldown/">Sign a Touch Grass lock</a>`;
 
   const content = `${productHero({
     eyebrow: 'Browser extension',
     title: 'TiltCheck lives in the casino tab.',
-    lede: 'Chrome Core watches supported casino tabs: 2s spin brake, strategic game filters, reality wage HUD, and deposit barrier. Read-only. Zero custody. Extension submitted for Chrome Web Store review.',
+    lede: 'It sits on the casino tab and gets in your way: two seconds between spins, your block list, losses in hours of your real job, and a dead cashier button while you touch grass. Read-only. We never hold your money.',
     actionsHtml: actions,
   })}
 <main class="product-main">
@@ -489,9 +514,9 @@ function buildExtensionPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card">
-        <p class="public-page-card__eyebrow">${escapeHtml(INSTALL_EYEBROW)}</p>
-        <h2 class="public-page-card__title">${escapeHtml(INSTALL_TITLE)}</h2>
-        <ol class="public-page-list">${INSTALL_STEPS.map((step) => `<li>${escapeHtml(step)}</li>`).join('\n')}</ol>
+        <p class="public-page-card__eyebrow">Getting it</p>
+        <h2 class="public-page-card__title">Not public yet.</h2>
+        <p class="public-page-card__copy">No download link right now. Hop in the <a href="${DISCORD_URL}" rel="noopener noreferrer">TiltCheck Discord</a> and you will hear first.</p>
         <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
     </div>
@@ -499,7 +524,7 @@ function buildExtensionPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Core</span>
+        <span class="brand-eyebrow">On the tab</span>
         <h2 class="public-page-section-heading__title">What it does.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${signals}</div>
@@ -509,7 +534,7 @@ function buildExtensionPage() {
 
   return shell({
     title: 'Extension | TiltCheck',
-    description: 'Install the TiltCheck Chrome extension — read-only session guardrail that watches tilt and enforces your exit rules.',
+    description: 'The TiltCheck Chrome extension: two seconds between spins, your own game block list, and losses in hours of your real job. Annoying on purpose.',
     depth: 'root',
     current: 'extension',
     body: content,
@@ -568,7 +593,7 @@ function buildAuditedShowcase(auditedCasinos) {
         '        <dd>' + escapeHtml(c.rtpSlots || 'Variable / unverified') + '</dd>\n' +
         '      </div>\n' +
         '      <div class="audit-card__spec">\n' +
-        '        <dt>Guardrail Compatibility</dt>\n' +
+        '        <dt>Extension Support</dt>\n' +
         '        <dd>' + escapeHtml(c.vaultSupport || 'None') + '</dd>\n' +
         '      </div>\n' +
         '      <div class="audit-card__spec">\n' +
@@ -644,7 +669,7 @@ function buildCasinosPage(casinos) {
           '        <span class="stat-value">' + escapeHtml(c.rtpSlots || 'N/A') + '</span>\n' +
           '      </div>\n' +
           '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Guardrail Support</span>\n' +
+          '        <span class="stat-label">Extension Support</span>\n' +
           '        <span class="stat-value">' + escapeHtml(c.vaultSupport || 'N/A') + '</span>\n' +
           '      </div>\n' +
           '      <div class="casino-card__stat">\n' +
@@ -765,15 +790,15 @@ function buildCooldownPage() {
   const depth = 'docs';
   const content = `<main class="cooldown-page">
   <div class="cooldown-panel">
-    <h1>Self-Enforced Cooldown</h1>
-    <p class="cooldown-punch">Take a break on your own terms before tilt takes over.</p>
-    <p class="cooldown-fine">100% non-custodial. No deposits. No funds held. Sign an on-chain timelock with any Solana wallet to lock the casino cashier and slot spin buttons.</p>
+    <h1>Touch Grass</h1>
+    <p class="cooldown-punch">Sign a timer. Go outside. The casino will still be there. Sadly.</p>
+    <p class="cooldown-fine">Not a deposit. We never hold funds or keys. Sign a timer with any Solana wallet and the extension keeps the cashier and spin buttons dead until it runs out. Casinos do not have to honor it. You do.</p>
     <div id="auto-tilt-alert-banner" style="display:none; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.25rem; text-align: left; box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Tilt Intervention Triggered</span>
-        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">ACTIVE INTERVENTION</span>
+        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Tilt check</span>
+        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">YOUR CALL</span>
       </div>
-      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">Rapid losses or high spin velocity were detected during your session. The extension has engaged in-session brakes. Set a cooldown below to enforce your break.</p>
+      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">Fast spins and faster losses. The extension slowed things down. Want a real break? Sign a Touch Grass lock below.</p>
       <div id="auto-tilt-wallet" style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;"></div>
     </div>
     <script>
@@ -786,33 +811,33 @@ function buildCooldownPage() {
           var w = p.get('wallet');
           if (w) {
             var el = document.getElementById('auto-tilt-wallet');
-            if (el) el.textContent = 'Configured Cooldown Wallet: ' + w;
+            if (el) el.textContent = 'Touch Grass wallet: ' + w;
           }
         }
       })();
     </script>
     <ol class="cooldown-steps">
       <li><strong>Connect any Solana wallet</strong> (Phantom, Backpack, Solflare, etc.). No SOL or tokens are ever spent or transferred.</li>
-      <li><strong>Select your cooldown duration</strong> (24 hours, 3 days, 7 days, or 30 days). Once signed, you cannot cancel the timer early.</li>
-      <li><strong>Automatic in-browser enforcement</strong>. The TiltCheck extension locks casino cashier buttons and disables spin triggers until your cooldown expires.</li>
+      <li><strong>Pick how long you touch grass</strong> (24 hours, 3 days, 7 days, or 30 days). Once signed, you cannot cancel the timer early.</li>
+      <li><strong>The extension does the nagging</strong>. Cashier and spin buttons stay dead until the timer runs out.</li>
     </ol>
     <div class="cooldown-how" style="margin-top: 2rem; border-top: 1px solid #283347; padding-top: 1.5rem;">
-      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How It Protects Your Bankroll</h2>
+      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How it works</h2>
       <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. In-Browser Guard (Extension)</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">Install the TiltCheck browser extension. Active voluntary locks engage the Deposit Barrier across cashier pages and deaden spin buttons on high-risk games.</p>
-          <a class="btn btn-primary" href="${href(depth, 'extension.html')}">Get the extension</a>
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. The extension</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">While your lock is running, the extension kills the cashier and deposit buttons and deadens spins on the games you blocked.</p>
+          <a class="btn btn-primary" href="${href(depth, 'extension.html')}">What the extension does</a>
         </div>
-        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Terminal Cooldown (No Wallet Needed)</h3>
+        ${staffOnly(`<div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">Terminal Cooldown (No Wallet Needed)</h3>
           <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Don't want to connect a crypto wallet? Set a local break timer directly from your terminal:</p>
           <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
           <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a local self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
-        </div>
+        </div>`, 'Staff only: CLI')}
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">3. Reverse-Withdrawal &amp; Cashier Protection</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Cashing out on Stake, Roobet, or sweepstakes sites? The extension automatically blocks 'Cancel Withdrawal' buttons while payouts clear so settled wins never feed back to the house.</p>
+          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Cancel-withdrawal blocker</h3>
+          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Cashing out on Stake, Roobet, or a sweeps site? The extension hides 'Cancel Withdrawal' while the payout clears, so undoing it takes real effort.</p>
         </div>
       </div>
     </div>
@@ -820,9 +845,9 @@ function buildCooldownPage() {
 </main>`;
 
   return shell({
-    title: 'Cooldown | Self-Enforced On-Chain Lock | TiltCheck',
+    title: 'Touch Grass | Sign a timer, go outside | TiltCheck',
     description:
-      'Take a break on your own terms. Non-custodial on-chain timelock with Solana wallet that automatically locks casino cashiers and spin buttons.',
+      'Sign a Touch Grass timer with any Solana wallet. The extension keeps cashier and spin buttons dead until it runs out. Not a deposit. No keys.',
     depth: 'docs',
     current: 'cooldown',
     body: content,
@@ -895,7 +920,7 @@ function buildAutovaultPage() {
     <ol class="cooldown-steps">${steps}</ol>
     <p class="cooldown-fine">${escapeHtml(AUTOVAULT_PAGE.fine)}</p>
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">EXTENSION STATUS</a>
+      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
     </div>
   </div>
 </main>`;
@@ -913,34 +938,34 @@ function buildDashboardPage() {
   const depth = 'docs';
   const content = `<main class="cooldown-page">
   <div class="cooldown-panel" style="max-width: 720px;">
-    <p class="brand-eyebrow">DASHBOARD HUB</p>
-    <h1>TiltCheck Control Surface</h1>
-    <p class="cooldown-punch">Non-custodial gaming guardrails, profit locks, and verified fair play tools.</p>
+    <p class="brand-eyebrow">DASHBOARD</p>
+    <h1>Your TiltCheck stuff</h1>
+    <p class="cooldown-punch">Your tools in one spot: skim the win, touch grass, check the math.</p>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; text-align: left;">
       <a href="${href(depth, 'autovault')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
         <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">AutoVault &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Configure profit-lock rules and voluntary bankroll containment.</p>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Set how much of a win gets moved to your vault.</p>
       </a>
 
       <a href="${href(depth, 'cooldown')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">On-Chain Cooldown &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Immutable Solana voluntary exclusion timelocks. You sign, zero custody.</p>
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Touch Grass &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Sign a timer with your Solana wallet. You sign it. We never hold anything.</p>
       </a>
 
       <a href="${href(depth, 'tools/verify')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Client Seed Verifier &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">CSPRNG generation, Shannon entropy analyzer, and provably fair audit.</p>
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Bet Verifier &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Paste the seeds, check the bet yourself.</p>
       </a>
 
       <a href="${href(depth, 'nudges')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
         <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Pacing &amp; Nudges &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">2-second spin brakes, loss velocity limits, and Reality HUD alerts.</p>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Two-second spin pauses, loss-speed warnings, and reality checks.</p>
       </a>
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">EXTENSION STATUS</a>
+      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
     </div>
   </div>
   <script>
@@ -960,7 +985,7 @@ function buildDashboardPage() {
 
   return shell({
     title: 'Dashboard | TiltCheck',
-    description: 'TiltCheck user dashboard hub and safety control surface.',
+    description: 'Your TiltCheck tools in one spot.',
     depth: 'docs',
     current: 'dashboard',
     body: content,
@@ -1057,7 +1082,7 @@ function buildRtpScannerPage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "extension.html")}">EXTENSION STATUS</a>
+      <a class="btn btn-primary" href="${href(depth, "extension.html")}">THE EXTENSION</a>
     </div>
   </div>
 </main>
@@ -1222,7 +1247,7 @@ function buildVerifyPage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "extension.html")}">EXTENSION STATUS</a>
+      <a class="btn btn-primary" href="${href(depth, "extension.html")}">THE EXTENSION</a>
     </div>
   </div>
 </main>
@@ -1458,7 +1483,7 @@ function buildHouseEdgePage() {
     </div>
 
     <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "extension.html")}">EXTENSION STATUS</a>
+      <a class="btn btn-primary" href="${href(depth, "extension.html")}">THE EXTENSION</a>
     </div>
   </div>
 </main>
@@ -1644,18 +1669,18 @@ function buildToolsPage() {
   ).join('\n');
 
   const content = `${productHero({
-    eyebrow: 'TiltCheck Armory',
+    eyebrow: 'Degen-built tools',
     title: 'The Anti-Tilt Toolkit',
-    lede: 'Every session guardrail, forensic scanner, and non-custodial protection tool in the TiltCheck ecosystem. Zero login required. Zero fund custody.',
-    actionsHtml: `<a class="btn btn-primary" href="${href(depth, 'extension.html')}">Install Extension</a>
-    <a class="hero-actions__secondary-link" href="${dirHref(depth, 'cooldown')}">Set a Cooldown</a>`,
+    lede: 'Friction, receipts, and a little trash talk. Every tool we built, in one place. No login. We never hold your money. The willpower part is still on you.',
+    actionsHtml: `<a class="btn btn-primary" href="${href(depth, 'extension.html')}">The Extension</a>
+    <a class="hero-actions__secondary-link" href="${dirHref(depth, 'cooldown')}">Touch Grass</a>`,
   })}
 <main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Active Protection</span>
-        <h2 class="public-page-section-heading__title">The Complete Armory</h2>
+        <span class="brand-eyebrow">Everything</span>
+        <h2 class="public-page-section-heading__title">Pick your poison.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${tools}</div>
     </div>
@@ -1663,8 +1688,8 @@ function buildToolsPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Direct Setups</span>
-        <h2 class="public-page-section-heading__title">AutoVault Setups</h2>
+        <span class="brand-eyebrow">Phone setup</span>
+        <h2 class="public-page-section-heading__title">AutoVault on your phone.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${install}</div>
     </div>
@@ -1672,8 +1697,8 @@ function buildToolsPage() {
 </main>`;
 
   return shell({
-    title: 'Tools | Anti-Tilt Armory & Forensic Scanners | TiltCheck',
-    description: 'Complete TiltCheck tool suite — spin pace lock, reverse-withdrawal shield, velocity radar, RTP downgrade scanner, and HMAC seed verifier.',
+    title: 'Tools | The Anti-Tilt Toolkit | TiltCheck',
+    description: 'Every TiltCheck tool: two-second spin pause, cancel-withdrawal blocker, loss speed meter, RTP downgrade scanner, and bet verifier.',
     depth: 'docs',
     current: 'tools',
     body: content,
@@ -1738,7 +1763,7 @@ function buildPrivacyPage() {
       <div class="public-page-card" style="margin-bottom: 1.5rem;">
         <h2 class="public-page-card__title">02. What we never collect</h2>
         <ul class="public-page-list">
-          <li><strong>Private keys, seed phrases, or wallet passwords.</strong> TiltCheck is 100% non-custodial.</li>
+          <li><strong>Private keys, wallet recovery phrases, or wallet passwords.</strong> TiltCheck is 100% non-custodial.</li>
           <li><strong>Payment card numbers, banking details, or financial credentials.</strong></li>
           <li><strong>Government ID, KYC documents, or legal names.</strong></li>
           <li><strong>Browsing history:</strong> We never track tabs or navigation outside supported online gaming domains.</li>
@@ -1801,7 +1826,7 @@ function buildTipPage() {
   const content = `${productHero({
     eyebrow: 'Non-Custodial Tip Jar',
     title: 'Keep TiltCheck Free',
-    lede: 'TiltCheck runs 100% free and open-source. When degens hit a heater, throw a tip to keep our RPC nodes running and real-time guardrails free for everyone.',
+    lede: 'TiltCheck is free. Hit a heater? Toss a tip to keep the servers on and the tools free for every degen. Totally optional.',
     actionsHtml: `<button type="button" class="btn btn-primary" id="btn-copy-sol" onclick="copySolTip()">Copy Solana Address</button>
     <a class="hero-actions__secondary-link" href="${SOLSCAN_TIP_URL}" target="_blank" rel="noopener noreferrer">View on Solscan &rarr;</a>`,
   })}
@@ -1837,9 +1862,9 @@ function buildTipPage() {
           <p class="public-page-card__copy">TiltCheck never holds player casino bankrolls, deposits, or private keys. Tipping is purely voluntary and client-side.</p>
         </article>
         <article class="public-page-card">
-          <p class="public-page-card__eyebrow">Zero Gated Guardrails</p>
+          <p class="public-page-card__eyebrow">Nothing paywalled</p>
           <h3 class="public-page-card__title">Free for Every Degen</h3>
-          <p class="public-page-card__copy">Every spin brake, streak radar, reverse-withdrawal shield, and auto-vault rule remains 100% free and ungated whether you tip or not.</p>
+          <p class="public-page-card__copy">Spin pause, streak spotter, cancel-withdrawal blocker, AutoVault: all free whether you tip or not.</p>
         </article>
       </div>
     </div>
@@ -1873,7 +1898,7 @@ function copySolTip() {
 
   return shell({
     title: 'Tip Jar | TiltCheck',
-    description: 'Support TiltCheck open-source harm reduction. Voluntary Solana tips keep our guardrails free for every degen.',
+    description: 'Tip TiltCheck in SOL. Optional. Keeps the tools free for every degen.',
     depth: 'docs',
     current: 'tip',
     body: content,

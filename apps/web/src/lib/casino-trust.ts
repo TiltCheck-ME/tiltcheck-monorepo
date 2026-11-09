@@ -326,7 +326,7 @@ export const GRADING_METHODOLOGY_STEPS = [
   },
   {
     title: 'Fact-driven pillar metrics',
-    body: 'Pillars are calculated directly from verified redemption velocity, provably fair cryptography, certified slot RTP tiers, playthrough rules, and TiltCheck extension guardrail compatibility.',
+    body: 'Pillars are calculated directly from how fast they actually pay out, provably fair checks, certified slot RTP tiers, playthrough rules, and whether the TiltCheck extension works there.',
   },
   {
     title: 'Documented issues & receipts',

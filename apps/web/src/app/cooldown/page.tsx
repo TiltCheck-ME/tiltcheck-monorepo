@@ -67,7 +67,7 @@ function fmtDate(unix: number): string {
 }
 
 const EMPTY_WALLET_TX_ERROR =
-  'Switch your wallet to Solana devnet and try again. Cooldown only signs a lock on devnet — no SOL moves.';
+  'Switch your wallet to Solana devnet and try again. Touch Grass only signs a lock on devnet — no SOL moves.';
 
 function walletTxErrorMessage(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
@@ -363,7 +363,7 @@ export default function CooldownPage() {
   return (
     <main className="cooldown-page">
       <div className="cooldown-panel">
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.25rem' }}>Cooldown</h1>
+      <h1 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.25rem' }}>Touch Grass</h1>
       <p style={{ color: '#e8eee8', marginBottom: '0.7rem', fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.4 }}>
         Sign a lock so 3am-you cannot put the stack back.
       </p>
@@ -418,12 +418,12 @@ export default function CooldownPage() {
             </span>
           </div>
           <div style={{ color: '#ffffff', fontSize: '0.875rem', lineHeight: 1.4, marginBottom: '6px' }}>
-            High tilt signals were detected during active play. The extension has initiated in-session deposit barriers.
-            Sign the Solana Devnet timelock below to freeze access on-chain and prevent chasing.
+            Fast spins, faster losses. The extension already made the deposit button annoying.
+            Want a real break? Sign a 24h Touch Grass lock below. Your call.
           </div>
           {handoffWallet && (
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontFamily: 'monospace' }}>
-              Configured Cooldown Wallet: <code style={{ color: '#38bdf8' }}>{handoffWallet}</code>
+              Touch Grass wallet: <code style={{ color: '#38bdf8' }}>{handoffWallet}</code>
             </div>
           )}
         </div>
@@ -583,7 +583,7 @@ export default function CooldownPage() {
               Duration
               {handoffSource === 'auto_tilt' && (
                 <span style={{ color: '#ef4444', fontSize: '0.75rem', marginLeft: '0.5rem', fontWeight: 700 }}>
-                  (24h Recommended for Tilt Cooldown)
+                  (24h is the move if you're tilted)
                 </span>
               )}
             </label>

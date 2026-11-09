@@ -299,7 +299,7 @@ export default function CasinosPage() {
                         )}
                         {casino.vaultSupport && (
                           <div className="flex justify-between gap-3">
-                            <dt className="text-gray-500 shrink-0">Guardrails</dt>
+                            <dt className="text-gray-500 shrink-0">Extension support</dt>
                             <dd className="text-right text-gray-300 font-mono text-xs">{casino.vaultSupport}</dd>
                           </div>
                         )}

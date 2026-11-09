@@ -145,8 +145,8 @@ export default function DomainVerifierPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <ToolPageHeader
         centered
-        eyebrow="LinkGuard"
-        title="Phishing Shield"
+        eyebrow="Scam check"
+        title="Scam Link Check"
         description="Scan a casino domain or paste a marketing email — license, links, bonus signals."
       />
 

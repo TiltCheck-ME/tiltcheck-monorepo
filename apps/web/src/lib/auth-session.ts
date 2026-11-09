@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 */
 
 export type AuthSession = {
   userId: string;
@@ -8,6 +8,8 @@ export type AuthSession = {
   walletAddress?: string | null;
   roles: string[];
   isAdmin: boolean;
+  /** True only when the API confirmed the TiltCheck Team Discord role. Fails closed. */
+  isStaff: boolean;
   username: string;
 };
 
@@ -62,6 +64,7 @@ export async function fetchAuthSession(
     walletAddress: data.walletAddress ?? null,
     roles: Array.isArray(data.roles) ? data.roles : [],
     isAdmin: Boolean(data.isAdmin),
+    isStaff: data.isStaff === true,
     username:
       data.discordUsername?.trim() ||
       data.username?.trim() ||
