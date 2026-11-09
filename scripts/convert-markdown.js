@@ -516,7 +516,7 @@ function buildExtensionPage() {
       <article class="public-page-card">
         <p class="public-page-card__eyebrow">Getting it</p>
         <h2 class="public-page-card__title">Not public yet.</h2>
-        <p class="public-page-card__copy">No download link right now. Hop in the <a href="${DISCORD_URL}" rel="noopener noreferrer">Discord</a> and you will hear first.</p>
+        <p class="public-page-card__copy">No download link right now. Hop in the <a href="${DISCORD_URL}" rel="noopener noreferrer">TiltCheck Discord</a> and you will hear first.</p>
         <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
       </article>
     </div>
@@ -524,7 +524,7 @@ function buildExtensionPage() {
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Core</span>
+        <span class="brand-eyebrow">On the tab</span>
         <h2 class="public-page-section-heading__title">What it does.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${signals}</div>
@@ -827,7 +827,7 @@ function buildCooldownPage() {
         <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
           <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. The extension</h3>
           <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">While your lock is running, the extension kills the cashier and deposit buttons and deadens spins on the games you blocked.</p>
-          <a class="btn btn-primary" href="${href(depth, 'extension.html')}">Get the extension</a>
+          <a class="btn btn-primary" href="${href(depth, 'extension.html')}">What the extension does</a>
         </div>
         ${staffOnly(`<div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
           <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">Terminal Cooldown (No Wallet Needed)</h3>
