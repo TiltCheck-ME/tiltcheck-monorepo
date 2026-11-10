@@ -81,6 +81,7 @@
         <button type="button" class="btn btn-primary" id="btn-wallet-connect" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
           <span>Connect Solana Wallet</span>
         </button>
+        <div id="wallet-connect-notice" style="display: none; margin-top: 10px; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.45;"></div>
         <div id="wallet-connected-row" style="display: none; background: rgba(0,0,0,0.5); border: 1px solid #1e293b; border-radius: 8px; padding: 10px 14px; align-items: center; justify-content: space-between;">
           <div>
             <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Connected</span>
@@ -135,26 +136,72 @@
 
         var btnConnect = document.getElementById('btn-wallet-connect');
         var btnDisconnect = document.getElementById('btn-wallet-disconnect');
+        var connectNotice = document.getElementById('wallet-connect-notice');
         var connectedRow = document.getElementById('wallet-connected-row');
         var addressDisplay = document.getElementById('wallet-address-display');
         var btnSign = document.getElementById('btn-sign-cooldown-lock');
         var feedback = document.getElementById('cooldown-sign-feedback');
 
         function getProvider() {
-          if ('phantom' in window && window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
-            return window.phantom.solana;
-          }
-          if ('solana' in window) {
-            return window.solana;
-          }
-          if ('solflare' in window) {
-            return window.solflare;
+          if (window.phantom && window.phantom.solana) return window.phantom.solana;
+          if (window.solflare && window.solflare.isSolflare) return window.solflare;
+          if (window.backpack && window.backpack.isBackpack) return window.backpack;
+          if (window.coinbaseSolana) return window.coinbaseSolana;
+          if (window.solana) return window.solana;
+          if (window.solflare) return window.solflare;
+          if (window.backpack) return window.backpack;
+          return null;
+        }
+
+        async function resolveProvider(timeoutMs) {
+          var p = getProvider();
+          if (p) return p;
+          var start = Date.now();
+          while (Date.now() - start < (timeoutMs || 800)) {
+            await new Promise(function(r) { setTimeout(r, 60); });
+            p = getProvider();
+            if (p) return p;
           }
           return null;
         }
 
+        function applyLocalLock() {
+          var nowSec = Math.floor(Date.now() / 1000);
+          var endTimeSec = nowSec + (selectedHours * 3600);
+          var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
+
+          window.postMessage({
+            source: 'TILTCHECK_COOLDOWN_PAGE',
+            type: 'LOCK_UPDATED',
+            wallet: 'in_browser_lockout',
+            endTime: endTimeSec,
+            source: 'local_browser_session'
+          }, '*');
+
+          try {
+            localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
+            localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
+          } catch (e) {}
+
+          if (connectNotice) connectNotice.style.display = 'none';
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(23, 195, 178, 0.12)';
+            feedback.style.border = '1px solid #17c3b2';
+            feedback.style.color = '#ffffff';
+            feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed (In-Browser)</strong><br/>' +
+              'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + ' Days' : selectedHours + 'h') + ')<br/>' +
+              '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has engaged your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
+          }
+          if (btnSign) {
+            btnSign.disabled = true;
+            btnSign.textContent = 'Lock Active until ' + new Date(endTimeSec * 1000).toLocaleDateString();
+          }
+        }
+
         function updateConnectedUI(pubkey) {
           currentWallet = pubkey;
+          if (connectNotice) connectNotice.style.display = 'none';
           if (pubkey) {
             if (btnConnect) btnConnect.style.display = 'none';
             if (connectedRow) connectedRow.style.display = 'flex';
@@ -169,7 +216,11 @@
               wallet: pubkey
             }, '*');
           } else {
-            if (btnConnect) btnConnect.style.display = 'block';
+            if (btnConnect) {
+              btnConnect.style.display = 'block';
+              btnConnect.disabled = false;
+              btnConnect.innerHTML = '<span>Connect Solana Wallet</span>';
+            }
             if (connectedRow) connectedRow.style.display = 'none';
             if (addressDisplay) addressDisplay.textContent = '';
             if (btnSign) {
@@ -180,29 +231,75 @@
         }
 
         btnConnect && btnConnect.addEventListener('click', async function() {
-          var provider = getProvider();
+          btnConnect.disabled = true;
+          var originalHtml = '<span>Connect Solana Wallet</span>';
+          btnConnect.innerHTML = '<span>Detecting Solana Wallet...</span>';
+          if (connectNotice) connectNotice.style.display = 'none';
+
+          var provider = await resolveProvider(900);
           if (!provider) {
-            if (feedback) {
-              feedback.style.display = 'block';
-              feedback.style.background = 'rgba(239, 68, 68, 0.15)';
-              feedback.style.border = '1px solid #ef4444';
-              feedback.style.color = '#fca5a5';
-              feedback.innerHTML = 'No Solana wallet extension detected (Phantom/Solflare). You can install Phantom, or use the <strong>1-Click Emergency Cooldown</strong> directly inside the TiltCheck Chrome extension without any crypto wallet.';
+            btnConnect.disabled = false;
+            btnConnect.innerHTML = originalHtml;
+            if (connectNotice) {
+              connectNotice.style.display = 'block';
+              connectNotice.style.background = 'rgba(239, 68, 68, 0.12)';
+              connectNotice.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+              connectNotice.style.color = '#fca5a5';
+              connectNotice.innerHTML = '<strong style="color: #ef4444; display: block; margin-bottom: 4px;">No Solana Wallet Detected</strong>' +
+                'TiltCheck could not detect a Solana browser extension (Phantom, Solflare, Backpack).<br/>' +
+                '<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">' +
+                '  <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Install Phantom</a>' +
+                '  <button type="button" id="btn-no-wallet-lock" style="background: rgba(23,195,178,0.2); border: 1px solid #17c3b2; color: #17c3b2; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Lock In-Browser (No Wallet)</button>' +
+                '</div>';
+
+              var btnNoWallet = document.getElementById('btn-no-wallet-lock');
+              if (btnNoWallet) {
+                btnNoWallet.addEventListener('click', function() {
+                  applyLocalLock();
+                });
+              }
             }
             return;
           }
+
           try {
+            btnConnect.innerHTML = '<span>Awaiting Wallet Approval...</span>';
             var resp = await provider.connect();
-            var key = resp.publicKey ? resp.publicKey.toString() : (provider.publicKey ? provider.publicKey.toString() : null);
+            var pubKey = (resp && resp.publicKey) ? resp.publicKey : (provider.publicKey || null);
+            var key = null;
+            if (pubKey) {
+              if (typeof pubKey.toBase58 === 'function') {
+                key = pubKey.toBase58();
+              } else if (typeof pubKey.toString === 'function') {
+                key = pubKey.toString();
+              } else {
+                key = String(pubKey);
+              }
+            }
+            if (!key) {
+              throw new Error('Wallet connected but no public address returned.');
+            }
             updateConnectedUI(key);
             if (feedback) feedback.style.display = 'none';
           } catch (err) {
-            if (feedback) {
-              feedback.style.display = 'block';
-              feedback.style.background = 'rgba(239, 68, 68, 0.15)';
-              feedback.style.border = '1px solid #ef4444';
-              feedback.style.color = '#fca5a5';
-              feedback.textContent = 'Connection rejected or cancelled.';
+            btnConnect.disabled = false;
+            btnConnect.innerHTML = originalHtml;
+            if (connectNotice) {
+              connectNotice.style.display = 'block';
+              connectNotice.style.background = 'rgba(239, 68, 68, 0.12)';
+              connectNotice.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+              connectNotice.style.color = '#fca5a5';
+              connectNotice.innerHTML = '<strong style="color: #ef4444; display: block; margin-bottom: 4px;">Connection Cancelled</strong>' +
+                'Wallet connection request was cancelled or rejected.<br/>' +
+                '<div style="margin-top: 8px;">' +
+                '  <button type="button" id="btn-fallback-lock" style="background: rgba(23,195,178,0.2); border: 1px solid #17c3b2; color: #17c3b2; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Lock In-Browser (No Wallet)</button>' +
+                '</div>';
+              var btnFallback = document.getElementById('btn-fallback-lock');
+              if (btnFallback) {
+                btnFallback.addEventListener('click', function() {
+                  applyLocalLock();
+                });
+              }
             }
           }
         });
@@ -241,7 +338,13 @@
             btnSign.textContent = 'Awaiting Wallet Signature...';
 
             var encoded = new TextEncoder().encode(messageText);
-            await provider.signMessage(encoded, 'utf8');
+            if (typeof provider.signMessage === 'function') {
+              try {
+                await provider.signMessage(encoded, 'utf8');
+              } catch (e1) {
+                await provider.signMessage(encoded);
+              }
+            }
 
             window.postMessage({
               source: 'TILTCHECK_COOLDOWN_PAGE',
@@ -251,13 +354,18 @@
               source: 'solana_web_wallet'
             }, '*');
 
+            try {
+              localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
+              localStorage.setItem('tiltcheck_cooldown_wallet', currentWallet);
+            } catch (e) {}
+
             if (feedback) {
               feedback.style.display = 'block';
               feedback.style.background = 'rgba(23, 195, 178, 0.12)';
               feedback.style.border = '1px solid #17c3b2';
               feedback.style.color = '#ffffff';
               feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed</strong><br/>' +
-                'Expires: <strong>' + expiryDateStr + '</strong><br/>' +
+                'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + ' Days' : selectedHours + 'h') + ')<br/>' +
                 'Cryptographic commitment signed by ' + currentWallet.substring(0, 8) + '...<br/>' +
                 '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has received your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
             }
@@ -287,6 +395,16 @@
             }
           });
         }
+
+        // Auto-detect previously connected wallet
+        setTimeout(function() {
+          var p = getProvider();
+          if (p && p.publicKey) {
+            var pubKey = p.publicKey;
+            var key = typeof pubKey.toBase58 === 'function' ? pubKey.toBase58() : (typeof pubKey.toString === 'function' ? pubKey.toString() : String(pubKey));
+            if (key) updateConnectedUI(key);
+          }
+        }, 350);
       })();
     </script>
     <div class="cooldown-how" style="margin-top: 2rem; border-top: 1px solid #283347; padding-top: 1.5rem;">
