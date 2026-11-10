@@ -1,0 +1,19 @@
+{
+  "name": "TiltCheck TimeCheck",
+  "short_name": "TimeCheck",
+  "description": "Pre-session limits and reality timer for casino players.",
+  "start_url": "/gate/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06080b",
+  "theme_color": "#17c3b2",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

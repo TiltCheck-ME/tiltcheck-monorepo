@@ -18,6 +18,7 @@ import fs from 'fs';
 import { calculateCasinoTrust } from '@tiltcheck/intel-tools';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getGatePageBody } from './build-gate-page.mjs';
 import {
   SITE_URL,
   API_URL,
@@ -211,11 +212,11 @@ function navHtml(depth, current) {
   return `<nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="${homeHref}"${homeCurrent}>${shieldLogoSvg}TiltCheck</a>
   <div class="site-nav__links">
+    <a href="${dirHref(depth, 'gate')}"${current === 'gate' ? ' aria-current="page"' : ''} style="color:#17c3b2; font-weight:700;">TimeCheck</a>
     <a href="${href(depth, 'extension.html')}"${extensionCurrent}>Extension</a>
     <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
-    <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>Casinos</a>
-    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>Touch Grass</a>
-    <a href="${dirHref(depth, 'tip')}"${tipCurrent}>Tip Jar</a>
+    <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
+    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
     <a class="site-nav__discord" href="${DISCORD_URL}" rel="noopener noreferrer" aria-label="Discord" title="Discord">${DISCORD_ICON}</a>
   </div>
 </nav>`;
@@ -227,11 +228,13 @@ function footerHtml(depth) {
     <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
       <a href="${dirHref(depth, 'tools')}">All Tools</a>
-      <a href="${dirHref(depth, 'rtp-scanner')}">RTP Scanner</a>
-      <a href="${dirHref(depth, 'house-edge-scanner')}">House Edge</a>
-      <a href="${dirHref(depth, 'verify')}">Bet Verifier</a>
-      <a href="${dirHref(depth, 'autovault')}">AutoVault</a>
-      <a href="${dirHref(depth, 'nudges')}">Nudges</a>
+      <a href="${dirHref(depth, 'gate')}">TimeCheck</a>
+      <a href="${dirHref(depth, 'cooldown')}">RealityCheck</a>
+      <a href="${dirHref(depth, 'rtp-scanner')}">RTPCheck</a>
+      <a href="${dirHref(depth, 'house-edge-scanner')}">MathCheck</a>
+      <a href="${dirHref(depth, 'verify')}">BetCheck</a>
+      <a href="${dirHref(depth, 'wincheck')}">WinCheck</a>
+      <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
       <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
       <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
     </div>
@@ -280,10 +283,15 @@ function shell({ title, description, depth, current, body, extraHead = '' }) {
 <meta charset="UTF-8"/>
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#06080b"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="TimeCheck"/>
+<link rel="manifest" href="${href(depth, 'manifest.webmanifest')}"/>
 ${FONT_LINKS}
 <link rel="icon" type="image/png" href="${assetHref(depth, 'icon.png')}"/>
+<link rel="apple-touch-icon" href="${assetHref(depth, 'icon.png')}"/>
 <link rel="stylesheet" href="${assetHref(depth, 'base.css')}"/>
 ${extraHead}
 </head>
@@ -491,41 +499,35 @@ function buildExtensionPage() {
   ).join('\n');
 
   const actions = `
-    ${zipCtaHtml()}
-    <a class="hero-actions__secondary-link" href="cooldown/">Sign a Touch Grass lock</a>`;
+    <a class="hero-actions__cta" href="/downloads/tiltcheck-extension.zip" download style="border-radius:var(--radius-pill); font-weight:800;">DOWNLOAD EXTENSION (ZIP)</a>
+    <a class="hero-actions__secondary-link" href="gate/">Use TimeCheck Mobile App</a>`;
 
   const content = `${productHero({
-    eyebrow: 'Browser extension',
-    title: 'TiltCheck lives in the casino tab.',
-    lede: 'It sits on the casino tab and gets in your way: two seconds between spins, your block list, losses in hours of your real job, and a dead cashier button while you touch grass. Read-only. We never hold your money.',
+    eyebrow: 'Desktop Companion',
+    title: 'TiltCheck Browser Extension',
+    lede: 'Direct, free browser companion: enforces a 2-second pause between spins, blocks high-risk games, and locks cashier buttons during cooldowns. Zero store dependencies.',
     actionsHtml: actions,
   })}
 <main class="product-main">
   <section class="public-page-section">
-    <div class="landing-shell explainer">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Why install</span>
-        <h2 class="public-page-section-heading__title">You already know the spiral.</h2>
-      </div>
-      <p class="explainer__p">Three losses. Bet size climbs. “Im due.” Another deposit. The extension’s job is to notice that pacing while the tab is still open and push the exit you configured when you were still thinking straight.</p>
-      <p class="explainer__p">It does not place bets for you. It does not “beat the house.” It is brakes — the same idea as a seatbelt, except for sessions that feel immortal at 2am.</p>
-    </div>
-  </section>
-  <section class="public-page-section">
     <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Getting it</p>
-        <h2 class="public-page-card__title">Not public yet.</h2>
-        <p class="public-page-card__copy">No download link right now. Hop in the <a href="${DISCORD_URL}" rel="noopener noreferrer">TiltCheck Discord</a> and you will hear first.</p>
-        <p class="public-page-card__copy">${escapeHtml(INSTALL_NOTE)}</p>
+      <article class="public-page-card" style="border: 1px solid rgba(23,195,178,0.35); background: rgba(23,195,178,0.04);">
+        <p class="public-page-card__eyebrow" style="color:#17c3b2;">3-Step Sideload Guide</p>
+        <h2 class="public-page-card__title">How to Install in 30 Seconds</h2>
+        <ol style="color:var(--text-secondary); line-height:1.75; padding-left:1.25rem; margin:1rem 0;">
+          <li><strong>Download and extract</strong> the <a href="/downloads/tiltcheck-extension.zip" download style="color:#17c3b2; text-decoration:underline;">tiltcheck-extension.zip</a> file to your computer.</li>
+          <li>Open Chrome, Brave, or Edge and go to <code>chrome://extensions</code> in your address bar.</li>
+          <li>Turn on <strong>Developer mode</strong> (toggle top right), click <strong>Load unpacked</strong>, and select the unzipped folder.</li>
+        </ol>
+        <p class="public-page-card__copy" style="font-size:0.85rem; color:var(--text-muted); margin-top:0.75rem;">100% client-side. No tracking, no wallet keys, no store dependencies.</p>
       </article>
     </div>
   </section>
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">On the tab</span>
-        <h2 class="public-page-section-heading__title">What it does.</h2>
+        <span class="brand-eyebrow">Features</span>
+        <h2 class="public-page-section-heading__title">What it does on your casino tab.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${signals}</div>
     </div>
@@ -533,8 +535,8 @@ function buildExtensionPage() {
 </main>`;
 
   return shell({
-    title: 'Extension | TiltCheck',
-    description: 'The TiltCheck Chrome extension: two seconds between spins, your own game block list, and losses in hours of your real job. Annoying on purpose.',
+    title: 'Direct Extension Download | TiltCheck',
+    description: 'Download the TiltCheck desktop extension: 2-second spin pause, custom game block lists, and 24-hour cashier cooldowns.',
     depth: 'root',
     current: 'extension',
     body: content,
@@ -745,9 +747,9 @@ function buildCasinosPage(casinos) {
 <\/script>`;
 
   const content = `${productHero({
-    eyebrow: 'Casino trust directory',
-    title: 'Look up the operator. Read the proof.',
-    lede: 'Before you deposit, check who you are playing. This page audits ' + auditedCasinos.length + ' verified operators with letter grades, verified RTP data, regulatory licenses, and documented red flags. Deep-dive evidence is published below for Stake.us, Stake.com, Roobet, and BC.Game.',
+    eyebrow: 'TrustCheck',
+    title: 'Audit the operator. Read the receipts.',
+    lede: 'Before you deposit, check who you are playing. TrustCheck audits ' + auditedCasinos.length + ' operators with letter grades, verified RTP data, regulatory licenses, and documented red flags.',
     actionsHtml: '<a class="btn btn-primary" href="' + href('docs', 'index.html') + '">Back home</a>',
   })}
 <main class="product-main">
@@ -778,11 +780,27 @@ function buildCasinosPage(casinos) {
 ${script}`;
 
   return shell({
-    title: 'Casino Trust | TiltCheck',
-    description: 'Curated casino trust grades and verified RTP evidence — static mirror of the TiltCheck directory.',
+    title: 'TrustCheck — Casino Directory & Payout Audits | TiltCheck',
+    description: 'Search casino trust scores, verified payout speeds, licenses, and documented player red flags.',
     depth: 'docs',
     current: 'casinos',
     body: content,
+  });
+}
+
+
+function buildGatePage() {
+  const staffDevNotes = staffOnly(
+    '<p style="margin:0 0 6px 0; font-size:0.85rem; color:#fde68a;"><strong>Staff Dev Note:</strong> TimeCheck PWA runs client-side on GitHub Pages. Session timers survive tab navigation via localStorage (key: <code>tc_active_session</code>).</p><p style="margin:0; font-size:0.8rem; color:#cbd5e1;">Worker target: <code>https://collectclock-api.j-chapman7.workers.dev</code>.</p>',
+    'TiltCheck Team Dev Note'
+  );
+
+  return shell({
+    title: 'TimeCheck — Mobile Casino Session Timer & Limits',
+    description: 'Pre-session limit setter and timer for casino players. 100% free web app with zero downloads required.',
+    depth: 1,
+    current: 'gate',
+    body: getGatePageBody(staffDevNotes),
   });
 }
 
@@ -790,8 +808,9 @@ function buildCooldownPage() {
   const depth = 'docs';
   const content = `<main class="cooldown-page">
   <div class="cooldown-panel">
+    <p class="brand-eyebrow">RealityCheck</p>
     <h1>Touch Grass</h1>
-    <p class="cooldown-punch">Sign a timer. Go outside. The casino will still be there. Sadly.</p>
+    <p class="cooldown-punch">Need a reality check? Step away and touch grass. The casino will still be there. Sadly.</p>
     <p class="cooldown-fine">Not a deposit. We never hold funds or keys. Sign a timer with any Solana wallet and the extension keeps the cashier and spin buttons dead until it runs out. Casinos do not have to honor it. You do.</p>
     <div id="auto-tilt-alert-banner" style="display:none; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.25rem; text-align: left; box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
@@ -1067,9 +1086,9 @@ function buildCooldownPage() {
 </main>`;
 
   return shell({
-    title: 'Touch Grass | Sign a timer, go outside | TiltCheck',
+    title: 'RealityCheck — Touch Grass 24h Lockout | TiltCheck',
     description:
-      'Sign a Touch Grass timer with any Solana wallet. The extension keeps cashier and spin buttons dead until it runs out. Not a deposit. No keys.',
+      'Sign a 24-hour Touch Grass cooldown with any Solana wallet. The extension keeps cashier and spin buttons dead until it runs out. Not a deposit. No keys.',
     depth: 'docs',
     current: 'cooldown',
     body: content,
@@ -1148,10 +1167,10 @@ function buildAutovaultPage() {
 </main>`;
 
   return shell({
-    title: 'AutoVault | Skim the hit | TiltCheck',
+    title: 'WinCheck | Profit Skimmer | TiltCheck',
     description: AUTOVAULT_PAGE.punch,
     depth: 'docs',
-    current: 'autovault',
+    current: 'wincheck',
     body: content,
   });
 }
@@ -1829,8 +1848,8 @@ window.addEventListener("DOMContentLoaded", function() {
 </script>`;
 
   return shell({
-    title: "House Edge & Comp Point Scanner | TiltCheck",
-    description: "Calculate VIP milestone true cost, expected losses, and comp reward return ratios.",
+    title: "MathCheck — House Edge & VIP Tier Cost Calculator | TiltCheck",
+    description: "Calculate VIP tier real costs, true wagering requirements, and expected house loss.",
     depth: "docs",
     current: "house-edge-scanner",
     body: content,
@@ -2131,6 +2150,7 @@ function buildPagesSitemapXml() {
   const today = '2026-11-08';
   const pages = [
     { loc: `${SITE_URL}/`, changefreq: 'daily', priority: '1.0' },
+    { loc: `${SITE_URL}/gate/`, changefreq: 'daily', priority: '1.0' },
     { loc: `${SITE_URL}/extension`, changefreq: 'weekly', priority: '0.9' },
     { loc: `${SITE_URL}/tools/`, changefreq: 'weekly', priority: '0.9' },
     { loc: `${SITE_URL}/casinos/`, changefreq: 'weekly', priority: '0.9' },
@@ -2138,6 +2158,7 @@ function buildPagesSitemapXml() {
     { loc: `${SITE_URL}/rtp-scanner/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/house-edge-scanner/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/verify/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/wincheck/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/autovault/`, changefreq: 'weekly', priority: '0.7' },
     { loc: `${SITE_URL}/tip/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/nudges/`, changefreq: 'weekly', priority: '0.7' },
@@ -2212,6 +2233,28 @@ function run() {
   fs.mkdirSync(privacyDir, { recursive: true });
   fs.writeFileSync(path.join(privacyDir, 'index.html'), buildPrivacyPage());
 
+  const gateDir = path.join(siteRoot, 'gate');
+  fs.mkdirSync(gateDir, { recursive: true });
+  fs.writeFileSync(path.join(gateDir, 'index.html'), buildGatePage());
+
+  // Copy PWA manifest and service worker
+  const manifestSrc = path.join(__dirname, 'pages-assets/manifest.webmanifest');
+  if (fs.existsSync(manifestSrc)) {
+    fs.copyFileSync(manifestSrc, path.join(siteRoot, 'manifest.webmanifest'));
+  }
+  const swSrc = path.join(__dirname, 'pages-assets/sw.js');
+  if (fs.existsSync(swSrc)) {
+    fs.copyFileSync(swSrc, path.join(siteRoot, 'sw.js'));
+  }
+
+  // Ensure downloads folder has latest extension zip
+  const downloadsDir = path.join(siteRoot, 'downloads');
+  fs.mkdirSync(downloadsDir, { recursive: true });
+  const extZipSrc = path.join(repoRoot, 'apps/chrome-extension/tiltcheck-extension.zip');
+  if (fs.existsSync(extZipSrc)) {
+    fs.copyFileSync(extZipSrc, path.join(downloadsDir, 'tiltcheck-extension.zip'));
+  }
+
   const tipDir = path.join(siteRoot, 'tip');
   fs.mkdirSync(tipDir, { recursive: true });
   fs.writeFileSync(path.join(tipDir, 'index.html'), buildTipPage());
@@ -2270,6 +2313,9 @@ function run() {
   const autovaultDir = path.join(siteRoot, 'autovault');
   fs.mkdirSync(autovaultDir, { recursive: true });
   fs.writeFileSync(path.join(autovaultDir, 'index.html'), buildAutovaultPage());
+  const wincheckDir = path.join(siteRoot, 'wincheck');
+  fs.mkdirSync(wincheckDir, { recursive: true });
+  fs.writeFileSync(path.join(wincheckDir, 'index.html'), buildAutovaultPage());
   const legacyVaultDir = path.join(siteRoot, 'tools', 'auto-vault');
   fs.mkdirSync(legacyVaultDir, { recursive: true });
   fs.writeFileSync(path.join(legacyVaultDir, 'index.html'), buildAutovaultRedirect());
