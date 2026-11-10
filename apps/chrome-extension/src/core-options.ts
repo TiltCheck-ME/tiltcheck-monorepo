@@ -46,6 +46,11 @@ export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enable
 export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
 export const TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY = 'tiltcheck_default_bet_breaker_enabled';
 export const TILTCHECK_BASE_STAKE_THRESHOLD_KEY = 'tiltcheck_base_stake_threshold';
+export const TILTCHECK_UI_MODE_KEY = 'tiltcheck_ui_mode';
+export const TILTCHECK_ACTIVE_PRESET_KEY = 'tiltcheck_active_preset';
+export type UiMode = 'easy' | 'pro';
+export const DEFAULT_UI_MODE: UiMode = 'easy';
+export const DEFAULT_ACTIVE_PRESET = 'bag_securer';
 export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
 export type { BonusTrackerConfig };
 
@@ -87,6 +92,8 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
   TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY,
   TILTCHECK_BASE_STAKE_THRESHOLD_KEY,
+  TILTCHECK_UI_MODE_KEY,
+  TILTCHECK_ACTIVE_PRESET_KEY,
 ] as const;
 
 export function normalizeRiskProfile(value: unknown, legacyRiskLevel?: unknown): RiskProfile {
@@ -172,6 +179,8 @@ export interface CoreCircuitBreakerOptions {
   audioAlertsVolume: number;
   defaultBetBreakerEnabled: boolean;
   baseStakeThreshold: number;
+  uiMode: UiMode;
+  activePreset: string;
 }
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
@@ -369,6 +378,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       audioAlertsVolume,
       defaultBetBreakerEnabled,
       baseStakeThreshold,
+      uiMode: (stored[TILTCHECK_UI_MODE_KEY] === 'pro' ? 'pro' : 'easy') as UiMode,
+      activePreset: (typeof stored[TILTCHECK_ACTIVE_PRESET_KEY] === 'string' ? stored[TILTCHECK_ACTIVE_PRESET_KEY] : DEFAULT_ACTIVE_PRESET),
     };
   } catch {
     return {
@@ -398,6 +409,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
       defaultBetBreakerEnabled: DEFAULT_DEFAULT_BET_BREAKER_ENABLED,
       baseStakeThreshold: DEFAULT_BASE_STAKE_THRESHOLD,
+      uiMode: DEFAULT_UI_MODE,
+      activePreset: DEFAULT_ACTIVE_PRESET,
     };
   }
 }

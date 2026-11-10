@@ -52,7 +52,11 @@ for (const zipPath of [localZip, webZip]) {
 }
 
 // Stage clean dist without source maps
-if (existsSync(stagingDir)) rmSync(stagingDir, { recursive: true, force: true });
+if (existsSync(stagingDir)) try {
+  rmSync(stagingDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+} catch {
+  // Ignore Windows handle release lag
+}
 mkdirSync(stagingDir, { recursive: true });
 
 function copyFiltered(src, dest) {
@@ -81,7 +85,11 @@ if (process.platform === 'win32') {
   });
   if (res.status !== 0) {
     console.error('PowerShell zip creation failed');
-    rmSync(stagingDir, { recursive: true, force: true });
+    try {
+  rmSync(stagingDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+} catch {
+  // Ignore Windows handle release lag
+}
     process.exit(res.status ?? 1);
   }
 } else {
@@ -95,12 +103,20 @@ if (process.platform === 'win32') {
   );
   if (zipResult.status !== 0) {
     console.error('zip failed');
-    rmSync(stagingDir, { recursive: true, force: true });
+    try {
+  rmSync(stagingDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+} catch {
+  // Ignore Windows handle release lag
+}
     process.exit(zipResult.status ?? 1);
   }
 }
 
-rmSync(stagingDir, { recursive: true, force: true });
+try {
+  rmSync(stagingDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+} catch {
+  // Ignore Windows handle release lag
+}
 
 mkdirSync(webDownloads, { recursive: true });
 copyFileSync(localZip, webZip);

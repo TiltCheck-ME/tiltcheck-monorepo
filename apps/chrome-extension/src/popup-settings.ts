@@ -38,6 +38,12 @@ import {
   MIN_BASE_STAKE_THRESHOLD,
   MAX_BASE_STAKE_THRESHOLD,
   type CoreCircuitBreakerOptions,
+  TILTCHECK_UI_MODE_KEY,
+  TILTCHECK_ACTIVE_PRESET_KEY,
+  TILTCHECK_COOLDOWN_SOURCE_KEY,
+  DEFAULT_UI_MODE,
+  DEFAULT_ACTIVE_PRESET,
+  type UiMode,
 } from './core-options.js';
 import {
   loadBlockedCategories,
@@ -390,4 +396,144 @@ export async function loadBaseStakeThreshold(): Promise<number> {
     }
   }
   return DEFAULT_BASE_STAKE_THRESHOLD;
+}
+
+
+export type PlayerPreset = 'casual' | 'bag_securer' | 'hard_lockdown';
+
+export interface PlayerPresetConfig {
+  id: PlayerPreset;
+  name: string;
+  badge: string;
+  tagline: string;
+  depositBarrierEnabled: boolean;
+  reverseWithdrawalShieldEnabled: boolean;
+  realityHudEnabled: boolean;
+  riskThreshold: number;
+  defaultBetBreakerEnabled: boolean;
+  profitLockEnabled: boolean;
+  profitLockTrailingPercent: number;
+  gameBlockOptIn: boolean;
+  touchGrassOptIn: boolean;
+  hourlyWage: number;
+  audioAlertsEnabled: boolean;
+}
+
+export const PRESET_CASUAL: PlayerPresetConfig = {
+  id: 'casual',
+  name: 'Casual Spinner',
+  badge: 'Light Guard',
+  tagline: 'Reality HUD, audio cues, and default bet breaker. High tilt allowance.',
+  depositBarrierEnabled: false,
+  reverseWithdrawalShieldEnabled: false,
+  realityHudEnabled: true,
+  riskThreshold: 80,
+  defaultBetBreakerEnabled: true,
+  profitLockEnabled: false,
+  profitLockTrailingPercent: 25,
+  gameBlockOptIn: false,
+  touchGrassOptIn: true,
+  hourlyWage: 25,
+  audioAlertsEnabled: true,
+};
+
+export const PRESET_BAG_SECURER: PlayerPresetConfig = {
+  id: 'bag_securer',
+  name: 'Bag Securer',
+  badge: 'Recommended',
+  tagline: 'Deposit barrier on, reverse withdrawal shielded, 15% trailing profit lock.',
+  depositBarrierEnabled: true,
+  reverseWithdrawalShieldEnabled: true,
+  realityHudEnabled: true,
+  riskThreshold: 55,
+  defaultBetBreakerEnabled: true,
+  profitLockEnabled: true,
+  profitLockTrailingPercent: 15,
+  gameBlockOptIn: false,
+  touchGrassOptIn: true,
+  hourlyWage: 25,
+  audioAlertsEnabled: true,
+};
+
+export const PRESET_HARD_LOCKDOWN: PlayerPresetConfig = {
+  id: 'hard_lockdown',
+  name: 'Hard Lockdown',
+  badge: 'Max Discipline',
+  tagline: 'Zero reload leaks, rapid 40% tilt freeze, tight profit trailing stop.',
+  depositBarrierEnabled: true,
+  reverseWithdrawalShieldEnabled: true,
+  realityHudEnabled: true,
+  riskThreshold: 40,
+  defaultBetBreakerEnabled: true,
+  profitLockEnabled: true,
+  profitLockTrailingPercent: 10,
+  gameBlockOptIn: true,
+  touchGrassOptIn: true,
+  hourlyWage: 25,
+  audioAlertsEnabled: true,
+};
+
+export const PLAYER_PRESETS: Record<PlayerPreset, PlayerPresetConfig> = {
+  casual: PRESET_CASUAL,
+  bag_securer: PRESET_BAG_SECURER,
+  hard_lockdown: PRESET_HARD_LOCKDOWN,
+};
+
+export async function applyPlayerPreset(preset: PlayerPreset): Promise<void> {
+  const config = PLAYER_PRESETS[preset];
+  if (!config) return;
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({
+      [TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY]: config.depositBarrierEnabled,
+      [TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY]: config.reverseWithdrawalShieldEnabled,
+      [TILTCHECK_REALITY_HUD_ENABLED_KEY]: config.realityHudEnabled,
+      [TILTCHECK_RISK_THRESHOLD_KEY]: config.riskThreshold,
+      [TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY]: config.defaultBetBreakerEnabled,
+      [TILTCHECK_PROFIT_LOCK_ENABLED_KEY]: config.profitLockEnabled,
+      [TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY]: config.profitLockTrailingPercent,
+      [TILTCHECK_GAME_BLOCK_OPT_IN_KEY]: config.gameBlockOptIn,
+      [TILTCHECK_TOUCH_GRASS_OPT_IN_KEY]: config.touchGrassOptIn,
+      [TILTCHECK_HOURLY_WAGE_KEY]: config.hourlyWage,
+      [TILTCHECK_AUDIO_ALERTS_ENABLED_KEY]: config.audioAlertsEnabled,
+      [TILTCHECK_ACTIVE_PRESET_KEY]: preset,
+    });
+  }
+}
+
+export async function saveUiMode(mode: UiMode): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_UI_MODE_KEY]: mode });
+  }
+}
+
+export async function loadUiMode(): Promise<UiMode> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const res = await chrome.storage.local.get(TILTCHECK_UI_MODE_KEY);
+    return res[TILTCHECK_UI_MODE_KEY] === 'pro' ? 'pro' : 'easy';
+  }
+  return DEFAULT_UI_MODE;
+}
+
+export async function loadActivePreset(): Promise<PlayerPreset> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const res = await chrome.storage.local.get(TILTCHECK_ACTIVE_PRESET_KEY);
+    const val = res[TILTCHECK_ACTIVE_PRESET_KEY];
+    if (val === 'casual' || val === 'bag_securer' || val === 'hard_lockdown') {
+      return val;
+    }
+  }
+  return 'bag_securer';
+}
+
+export async function saveEmergencyCooldown(durationMs = 86_400_000): Promise<number> {
+  const expiry = Date.now() + Math.max(60_000, durationMs);
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({
+      [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: expiry,
+      [TILTCHECK_DEPOSIT_BARRIER_ENABLED_KEY]: true,
+      [TILTCHECK_COOLDOWN_SOURCE_KEY]: 'local_emergency',
+    });
+  }
+  return expiry;
 }

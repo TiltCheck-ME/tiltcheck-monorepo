@@ -8,6 +8,12 @@ import {
   riskLabel,
   toggleCategoryInList,
   toggleSlugInList,
+  applyPlayerPreset,
+  saveUiMode,
+  loadUiMode,
+  loadActivePreset,
+  saveEmergencyCooldown,
+  PLAYER_PRESETS,
 } from '../../src/popup-settings.js';
 
 describe('popup-settings helpers', () => {
@@ -170,4 +176,55 @@ describe('popup-settings helpers', () => {
     await saveOnboardingCompleted(true);
     expect(storage['tiltcheck_onboarding_completed']).toBe(true);
   });
+
+  it('manages UI modes, player presets, and emergency cooldown', async () => {
+    const storage: Record<string, unknown> = {};
+    (globalThis as unknown as { chrome: unknown }).chrome = {
+      storage: {
+        local: {
+          set: (obj: Record<string, unknown>) => {
+            Object.assign(storage, obj);
+            return Promise.resolve();
+          },
+          get: (keys: string[] | string) => {
+            if (Array.isArray(keys)) {
+              const out: Record<string, unknown> = {};
+              for (const k of keys) out[k] = storage[k];
+              return Promise.resolve(out);
+            }
+            if (typeof keys === 'string') {
+              return Promise.resolve({ [keys]: storage[keys] });
+            }
+            return Promise.resolve(storage);
+          },
+        },
+      },
+    };
+
+    expect(await loadUiMode()).toBe('easy');
+    await saveUiMode('pro');
+    expect(storage['tiltcheck_ui_mode']).toBe('pro');
+    expect(await loadUiMode()).toBe('pro');
+
+    expect(await loadActivePreset()).toBe('bag_securer');
+    await applyPlayerPreset('hard_lockdown');
+    expect(storage['tiltcheck_active_preset']).toBe('hard_lockdown');
+    expect(storage['tiltcheck_deposit_barrier_enabled']).toBe(true);
+    expect(storage['tiltcheck_risk_threshold']).toBe(40);
+    expect(storage['tiltcheck_profit_lock_trailing_percent']).toBe(10);
+    expect(await loadActivePreset()).toBe('hard_lockdown');
+
+    await applyPlayerPreset('casual');
+    expect(storage['tiltcheck_active_preset']).toBe('casual');
+    expect(storage['tiltcheck_deposit_barrier_enabled']).toBe(false);
+    expect(storage['tiltcheck_risk_threshold']).toBe(80);
+
+    const now = Date.now();
+    const expiry = await saveEmergencyCooldown(86_400_000);
+    expect(expiry).toBeGreaterThanOrEqual(now + 86_400_000);
+    expect(storage['tiltcheck_cooldown_active_until']).toBe(expiry);
+    expect(storage['tiltcheck_deposit_barrier_enabled']).toBe(true);
+    expect(storage['tiltcheck_cooldown_source']).toBe('local_emergency');
+  });
+
 });

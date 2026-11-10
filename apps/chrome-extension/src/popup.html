@@ -1239,6 +1239,312 @@
       gap: 8px;
       margin: 6px 0;
     }
+
+    /* --- MODE TOGGLE --- */
+    .mode-toggle-group {
+      display: flex;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .mode-btn:hover { color: var(--text); }
+    .mode-btn.active {
+      background: var(--teal);
+      color: #000;
+    }
+
+    /* --- EASY MODE PANEL --- */
+    .easy-status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .easy-status-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .easy-shield-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .dot-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 8px var(--teal);
+    }
+    .easy-active-preset-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(23,195,178,0.15);
+      color: var(--teal);
+      border: 1px solid rgba(23,195,178,0.3);
+    }
+    .easy-status-sub {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .easy-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin: 14px 0 8px 0;
+    }
+    .presets-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .preset-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .preset-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: var(--surface-hi);
+    }
+    .preset-card.active {
+      border-color: var(--teal);
+      background: rgba(23,195,178,0.06);
+      box-shadow: 0 0 12px rgba(23,195,178,0.12);
+    }
+    .preset-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .preset-name {
+      font-weight: 700;
+      font-size: 12.5px;
+      color: var(--text);
+    }
+    .preset-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+    }
+    .preset-card.active .preset-pill {
+      background: rgba(23,195,178,0.18);
+      color: var(--teal);
+    }
+    .preset-pill.pill-rec {
+      background: rgba(23,195,178,0.15);
+      color: var(--teal);
+    }
+    .preset-pill.pill-max {
+      background: rgba(255,0,60,0.15);
+      color: #ff4a4a;
+    }
+    .preset-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+      margin-bottom: 6px;
+    }
+    .preset-specs {
+      display: flex;
+      gap: 10px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+    .preset-card.active .preset-specs {
+      color: var(--text);
+    }
+    .easy-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .easy-cooldown-card {
+      background: rgba(255,0,60,0.04);
+      border: 1px solid rgba(255,0,60,0.2);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .easy-cooldown-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cooldown-tag {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #ff4a4a;
+      background: rgba(255,0,60,0.12);
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .btn-emergency-cooldown {
+      width: 100%;
+      background: #ff003c;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-emergency-cooldown:hover {
+      background: #e00035;
+    }
+    .btn-emergency-cooldown:disabled {
+      background: rgba(255,255,255,0.1);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+    .easy-footer-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-align: center;
+      padding: 8px 4px 0 4px;
+      font-size: 10.5px;
+      color: var(--muted);
+    }
+    .link-btn-pro {
+      background: transparent;
+      border: none;
+      color: var(--teal);
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 2px 4px;
+    }
+    .link-btn-pro:hover {
+      color: #ffffff;
+    }
+
+    /* --- QUIZ STYLING --- */
+    .quiz-question-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+    .quiz-question-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .quiz-options-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .quiz-option-btn {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .quiz-option-btn:hover {
+      background: var(--surface-hi);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .quiz-option-btn.active {
+      border-color: var(--teal);
+      background: rgba(23,195,178,0.08);
+    }
+    .quiz-opt-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .quiz-option-btn.active .quiz-opt-title {
+      color: var(--teal);
+    }
+    .quiz-opt-desc {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .wizard-summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 11px;
+    }
+    .summary-row:last-of-type {
+      border-bottom: none;
+    }
+    .summary-label {
+      color: var(--muted);
+    }
+    .summary-value {
+      font-weight: 700;
+      color: var(--text);
+    }
+
   </style>
 </head>
 <body>
@@ -1249,6 +1555,10 @@
     <span>TiltCheck</span>
   </div>
   <div class="header-actions">
+    <div class="mode-toggle-group" id="mode-toggle-group" role="radiogroup" aria-label="Extension Interface Mode">
+      <button type="button" class="mode-btn active" id="btn-mode-easy" data-mode="easy" role="radio" aria-checked="true">Easy</button>
+      <button type="button" class="mode-btn" id="btn-mode-pro" data-mode="pro" role="radio" aria-checked="false">Pro</button>
+    </div>
     <span id="session-pill" class="status-pill pill-idle">
       <span class="dot"></span>
       <span id="session-pill-text">No session</span>
@@ -1281,11 +1591,109 @@
   </div>
 </div>
 
-<div class="tabs">
+<div class="tabs" id="main-tabs" style="display:none;">
   <button class="tab" data-tab="status">Status</button>
   <button class="tab active" data-tab="block">Guards</button>
   <button class="tab" data-tab="vault">Vault</button>
   <button class="tab" data-tab="activity">Activity</button>
+</div>
+
+<!-- ===== EASY MODE PANEL ===== -->
+<div id="panel-easy" class="panel">
+  <!-- Status Banner -->
+  <div class="easy-status-card">
+    <div class="easy-status-header">
+      <div class="easy-shield-indicator">
+        <span class="dot-pulse"></span>
+        <span id="easy-shield-status">Shield Armed</span>
+      </div>
+      <span class="easy-active-preset-badge" id="easy-active-preset-badge">Bag Securer</span>
+    </div>
+    <p class="easy-status-sub" id="easy-platform-sub">Active protection on Stake, Roobet, and supported casinos.</p>
+  </div>
+
+  <!-- 3 One-Click Presets -->
+  <div class="easy-section-title">
+    <span>Player Presets</span>
+    <span style="font-size:10px; color:var(--muted); font-weight:normal;">1-Click Protect</span>
+  </div>
+
+  <div class="presets-grid">
+    <!-- Preset 1: Casual -->
+    <div class="preset-card" id="preset-card-casual" data-preset="casual">
+      <div class="preset-card-header">
+        <div class="preset-name">Casual Spinner</div>
+        <span class="preset-pill">Light Guard</span>
+      </div>
+      <div class="preset-desc">Reality HUD, sound cues &amp; bet breaker. High tilt allowance.</div>
+      <div class="preset-specs">
+        <span>Drawdown: 80%</span>
+        <span>Barrier: Off</span>
+      </div>
+    </div>
+
+    <!-- Preset 2: Bag Securer (Default) -->
+    <div class="preset-card active" id="preset-card-bag-securer" data-preset="bag_securer">
+      <div class="preset-card-header">
+        <div class="preset-name">Bag Securer</div>
+        <span class="preset-pill pill-rec">Recommended</span>
+      </div>
+      <div class="preset-desc">Deposit barrier active, reverse withdrawal shielded, 15% profit lock trailing stop.</div>
+      <div class="preset-specs">
+        <span>Drawdown: 55%</span>
+        <span>Barrier: ON</span>
+        <span>Profit Lock: 15%</span>
+      </div>
+    </div>
+
+    <!-- Preset 3: Hard Lockdown -->
+    <div class="preset-card" id="preset-card-hard-lockdown" data-preset="hard_lockdown">
+      <div class="preset-card-header">
+        <div class="preset-name">Hard Lockdown</div>
+        <span class="preset-pill pill-max">Max Discipline</span>
+      </div>
+      <div class="preset-desc">Zero reload churn, fast 40% tilt freeze, tight profit protection.</div>
+      <div class="preset-specs">
+        <span>Drawdown: 40%</span>
+        <span>Auto-Freeze: Fast</span>
+        <span>Games Blocked</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Stats Row -->
+  <div class="easy-stats-row">
+    <div class="stat-cell">
+      <div class="stat-label">Session PnL</div>
+      <div class="stat-value stat-neu" id="easy-pnl-val">$0.00</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Cashout Target</div>
+      <div class="stat-value" id="easy-cashout-goal-val" style="color:var(--teal);">$50.00</div>
+    </div>
+  </div>
+
+  <!-- 1-Click Emergency Cooldown Button -->
+  <div class="easy-cooldown-card">
+    <div class="easy-cooldown-header">
+      <div style="font-weight:700; font-size:12px; color:#ff4a4a; text-transform:uppercase; letter-spacing:0.04em;">Emergency Cooldown</div>
+      <span class="cooldown-tag">Instant 24H Lock</span>
+    </div>
+    <p style="font-size:11px; color:var(--muted); line-height:1.35; margin:6px 0 10px 0;">
+      Need to stop immediately? Instantly locks all casino deposit flows, cashiers, and reloads across your browser for 24 hours. Zero crypto wallet required.
+    </p>
+    <div id="easy-cooldown-status-wrap" style="display:none; margin-bottom:10px; padding:8px 10px; background:rgba(255,0,60,0.12); border:1px solid rgba(255,0,60,0.3); border-radius:6px;">
+      <div style="font-size:10px; color:#ff8080; font-weight:700; text-transform:uppercase;">Cooldown Active</div>
+      <div id="easy-cooldown-countdown" style="font-family:var(--mono); font-size:15px; font-weight:800; color:#ffffff;">23h 59m remaining</div>
+    </div>
+    <button type="button" class="btn-emergency-cooldown" id="btn-emergency-cooldown">Take 24-Hour Break (Emergency Lock)</button>
+  </div>
+
+  <!-- Switch to Pro Mode Hint -->
+  <div class="easy-footer-hint">
+    <span>Need granular thresholds, wager filters, or seed cycling?</span>
+    <button type="button" class="link-btn-pro" id="btn-switch-to-pro">Switch to Pro Mode &rarr;</button>
+  </div>
 </div>
 
 <!-- ===== STATUS PANEL ===== -->
@@ -1834,7 +2242,6 @@
         <span class="step-dot active" data-step="1"></span>
         <span class="step-dot" data-step="2"></span>
         <span class="step-dot" data-step="3"></span>
-        <span class="step-dot" data-step="4"></span>
       </div>
       <button type="button" class="onboarding-close-btn" id="btn-close-onboarding" title="Close Guide">&times;</button>
     </div>
@@ -1860,77 +2267,107 @@
         </div>
       </div>
       <div class="onboarding-actions">
-        <button type="button" class="btn btn-primary" id="btn-step-1-next">Get Started &rarr;</button>
+        <button type="button" class="btn btn-primary" id="btn-step-1-next">Set Up My Protection &rarr;</button>
       </div>
     </div>
 
-    <!-- Step 2: Currency & Play Mode -->
+    <!-- Step 2: 2-Question Setup Quiz -->
     <div class="onboarding-step" id="onboarding-step-2" style="display:none;">
-      <div class="onboarding-badge-icon">SWEEPS VS GOLD COINS</div>
-      <h2>Currency &amp; Play Mode</h2>
-      <p class="onboarding-tagline">Smart balance detection for sweepstakes &amp; crypto casinos.</p>
-      <div class="onboarding-features">
-        <div class="feature-item">
-          <strong>Sweeps / Real Cash (SC):</strong> Actively monitored for cashout goals, trailing profit locks, and reality checks.
+      <h2>Personalized Protection Setup</h2>
+      <p class="onboarding-tagline">Answer 2 quick questions to calibrate your on-device defenses:</p>
+
+      <div class="wizard-quiz-wrap">
+        <div class="quiz-question-box">
+          <div class="quiz-question-title">1. What is your primary play style?</div>
+          <div class="quiz-options-group" id="quiz-group-style">
+            <button type="button" class="quiz-option-btn" data-value="casual">
+              <span class="quiz-opt-title">Casual &amp; Low Stakes</span>
+              <span class="quiz-opt-desc">Reality HUD, sound cues &amp; default bet breaker.</span>
+            </button>
+            <button type="button" class="quiz-option-btn active" data-value="bag_securer">
+              <span class="quiz-opt-title">Bag Securer &amp; Cashouts</span>
+              <span class="quiz-opt-desc">Deposit barrier on, reverse withdrawal shielded, 15% profit lock.</span>
+            </button>
+            <button type="button" class="quiz-option-btn" data-value="hard_lockdown">
+              <span class="quiz-opt-title">High Volatility / De-risking</span>
+              <span class="quiz-opt-desc">Zero reload churn, fast 40% tilt freeze, strict locks.</span>
+            </button>
+          </div>
         </div>
-        <div class="feature-item">
-          <strong>Gold Coins (GC) / Free Play:</strong> Automatically recognized as social play tokens. Real-world cashout alerts and alarms pause so free play never triggers false alarms.
+
+        <div class="quiz-question-box" style="margin-top:12px;">
+          <div class="quiz-question-title">2. What rinses you the most or triggers your tilt?</div>
+          <div class="quiz-options-group" id="quiz-group-tilt">
+            <button type="button" class="quiz-option-btn active" data-value="chasing">
+              <span class="quiz-opt-title">Chasing losses after a bad streak</span>
+              <span class="quiz-opt-desc">Engages Deposit Barrier &amp; rapid tilt freeze.</span>
+            </button>
+            <button type="button" class="quiz-option-btn" data-value="giveback">
+              <span class="quiz-opt-title">Giving back big wins (not cashing out)</span>
+              <span class="quiz-opt-desc">Engages Profit Lock trailing ratchet &amp; goals.</span>
+            </button>
+            <button type="button" class="quiz-option-btn" data-value="accidental">
+              <span class="quiz-opt-title">Accidental high bets on game load</span>
+              <span class="quiz-opt-desc">Engages Default Bet Breaker ($0.50 threshold).</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="onboarding-actions">
+
+      <div class="onboarding-actions" style="margin-top:14px;">
         <button type="button" class="btn btn-ghost" id="btn-step-2-back">&larr; Back</button>
-        <button type="button" class="btn btn-primary" id="btn-step-2-next">Set My Goals &rarr;</button>
+        <button type="button" class="btn btn-primary" id="btn-step-2-next">Review Shield &rarr;</button>
       </div>
     </div>
 
-    <!-- Step 3: Cashout Goals Setup -->
+    <!-- Step 3: Setup Confirmation & Launch -->
     <div class="onboarding-step" id="onboarding-step-3" style="display:none;">
-      <h2>Reality Cashout Goals</h2>
-      <p class="onboarding-tagline">Tired of running $50 up to $500 only to give it all back? Pick real-world lifelines to lock in:</p>
-      
-      <label class="guard-opt-row" style="margin-bottom:8px;">
-        <input type="checkbox" id="wizard-goals-enabled-toggle" checked />
-        <span>Enable Reality Cashout Goal Toasts</span>
-      </label>
+      <h2>Shield Calibrated</h2>
+      <p class="onboarding-tagline">Here is your active protection configuration:</p>
 
-      <div class="wizard-goal-list" id="wizard-goal-list">
-        <!-- Dynamically rendered templates -->
+      <div class="wizard-summary-card">
+        <div class="summary-row">
+          <span class="summary-label">Selected Preset</span>
+          <span class="summary-value" id="wizard-summary-preset">Bag Securer</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Target Defense</span>
+          <span class="summary-value" id="wizard-summary-defense">Loss Chase &amp; Deposit Barrier</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Interface Mode</span>
+          <span class="summary-value" style="color:var(--teal);">Easy Mode (Default)</span>
+        </div>
+        <p style="font-size:10.5px; color:var(--muted); line-height:1.4; margin-top:10px;">
+          All guardrails run purely on your device. You can toggle between Easy and Pro mode at any time using the header toggle.
+        </p>
       </div>
 
       <div class="onboarding-actions">
         <button type="button" class="btn btn-ghost" id="btn-step-3-back">&larr; Back</button>
-        <button type="button" class="btn btn-primary" id="btn-step-3-next">Next: Guardrails &rarr;</button>
+        <button type="button" class="btn btn-primary" id="btn-finish-onboarding">Arm Guardrails &amp; Finish &rarr;</button>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Step 4: Guardrails Checklist -->
-    <div class="onboarding-step" id="onboarding-step-4" style="display:none;">
-      <h2>Active Guardrails</h2>
-      <p class="onboarding-tagline">Configure the protections that keep your head in the game:</p>
-      
-      <div class="wizard-checklist">
-        <label class="guard-opt-row">
-          <input type="checkbox" id="wizard-spin-lock-toggle" checked />
-          <span><strong>2-Second Spin Brake:</strong> Pause after each click to prevent rage-spinning.</span>
-        </label>
-        <label class="guard-opt-row">
-          <input type="checkbox" id="wizard-reality-hud-toggle" checked />
-          <span><strong>Reality HUD:</strong> Translates session losses into hours of real labor.</span>
-        </label>
-        <div style="margin: 4px 0 8px 24px;">
-          <label style="font-size:10px; color:#94a3b8; margin-bottom:2px;">Your Hourly Wage (USD)</label>
-          <input type="number" id="wizard-hourly-wage-input" value="25" min="5" max="2000" style="width:100px; padding:4px 8px; font-size:11px;" />
-        </div>
-        <label class="guard-opt-row">
-          <input type="checkbox" id="wizard-sound-alerts-toggle" checked />
-          <span><strong>Spotter Sound Cues:</strong> Synthesized browser audio for tilt &amp; pacing.</span>
-        </label>
-      </div>
-
-      <div class="onboarding-actions">
-        <button type="button" class="btn btn-ghost" id="btn-step-4-back">&larr; Back</button>
-        <button type="button" class="btn btn-primary" id="btn-finish-onboarding">Arm Shield &amp; Finish &rarr;</button>
-      </div>
+<!-- ===== EMERGENCY COOLDOWN MODAL ===== -->
+<div id="emergency-cooldown-modal" class="onboarding-overlay" style="display:none;">
+  <div class="onboarding-card" style="border-color: rgba(255, 0, 60, 0.4); max-width: 350px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="font-weight: 800; font-size: 13px; color: #ff4a4a; text-transform: uppercase; letter-spacing: 0.05em;">Emergency 24-Hour Cooldown</div>
+      <button type="button" class="onboarding-close-btn" id="btn-close-cooldown-modal" title="Cancel">&times;</button>
+    </div>
+    <p style="font-size: 11.5px; color: var(--text); line-height: 1.45; margin-bottom: 12px;">
+      Engaging the Emergency Cooldown will <strong>immediately block all casino cashier and deposit buttons</strong> on your open tabs for 24 hours.
+    </p>
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 14px; font-size: 11px; color: var(--muted); line-height: 1.4;">
+      <div style="color: #ffffff; font-weight: 600; margin-bottom: 4px;">Zero crypto wallet required:</div>
+      Takes effect instantly inside your browser. Step away, cool off, and protect your capital.
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn btn-ghost" id="btn-cancel-emergency-cooldown" style="flex: 1;">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btn-confirm-emergency-cooldown" style="flex: 1.5; background: #ff003c; border-color: #ff003c; color: #ffffff;">Lock for 24 Hours</button>
     </div>
   </div>
 </div>

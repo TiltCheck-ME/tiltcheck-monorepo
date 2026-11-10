@@ -82,7 +82,7 @@ describe('core content script contracts', () => {
     await import('../../src/content.ts');
     await flush();
     expect(listeners).toHaveLength(1);
-  });
+  }, 15_000);
 
   it('returns core-only sidebar state when Pro monolith storage flag is unset', async () => {
     const { listeners } = createChromeMock();

@@ -38,6 +38,14 @@ import {
   loadOnboardingCompleted,
   saveDefaultBetBreakerEnabled,
   saveBaseStakeThreshold,
+  saveUiMode,
+  loadUiMode,
+  applyPlayerPreset,
+  PLAYER_PRESETS,
+  saveEmergencyCooldown,
+  loadActivePreset,
+  type PlayerPreset,
+  type UiMode,
 } from './popup-settings.js';
 import { DEFAULT_CASHOUT_GOALS } from './profit-lock.js';
 import { playAudioCue } from './audio-alerts.js';
@@ -501,6 +509,12 @@ function updateSessionRadarUI(state: SessionPnlState): void {
   pnlVal.textContent = formatPnl(state.netPnl);
   pnlVal.className = 'radar-pnl-val ' + (state.netPnl > 0 ? 'stat-pos' : state.netPnl < 0 ? 'stat-neg' : 'stat-neu');
 
+  const easyPnlVal = document.getElementById('easy-pnl-val');
+  if (easyPnlVal) {
+    easyPnlVal.textContent = formatPnl(state.netPnl);
+    easyPnlVal.className = 'stat-value ' + (state.netPnl > 0 ? 'stat-pos' : state.netPnl < 0 ? 'stat-neg' : 'stat-neu');
+  }
+
   // Update velocity readout
   if (Math.abs(state.velocityPerMin) < 0.01) {
     velVal.textContent = '0.00/min';
@@ -585,6 +599,14 @@ function renderGoalsProgressUI(
   if (!container) return;
 
   const items = calculateGoalsProgress(goals, balance, netPnl);
+  const easyGoalEl = document.getElementById('easy-cashout-goal-val');
+  if (easyGoalEl) {
+    if (items.length > 0) {
+      easyGoalEl.textContent = `${items[0].targetAmount.toFixed(2)}`;
+    } else {
+      easyGoalEl.textContent = 'None set';
+    }
+  }
   container.innerHTML = '';
 
   if (items.length === 0) {
@@ -1926,60 +1948,237 @@ function initTipJarModal(): void {
   });
 }
 
+let currentUiMode: UiMode = 'easy';
+
+async function setUiMode(mode: UiMode, persist = true): Promise<void> {
+  currentUiMode = mode;
+  if (persist) {
+    await saveUiMode(mode);
+  }
+  const btnEasy = document.getElementById('btn-mode-easy');
+  const btnPro = document.getElementById('btn-mode-pro');
+  const mainTabs = document.getElementById('main-tabs');
+  const panelEasy = document.getElementById('panel-easy');
+
+  if (btnEasy && btnPro) {
+    btnEasy.classList.toggle('active', mode === 'easy');
+    btnEasy.setAttribute('aria-checked', mode === 'easy' ? 'true' : 'false');
+    btnPro.classList.toggle('active', mode === 'pro');
+    btnPro.setAttribute('aria-checked', mode === 'pro' ? 'true' : 'false');
+  }
+
+  if (mode === 'easy') {
+    if (mainTabs) mainTabs.style.display = 'none';
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    panelEasy?.classList.add('active');
+    await renderEasyModeState();
+  } else {
+    if (mainTabs) mainTabs.style.display = 'flex';
+    panelEasy?.classList.remove('active');
+    activateTab('status');
+  }
+}
+
+async function renderEasyModeState(): Promise<void> {
+  const activePreset = await loadActivePreset();
+  const presetConfig = PLAYER_PRESETS[activePreset] ?? PLAYER_PRESETS.bag_securer;
+
+  const badgeEl = document.getElementById('easy-active-preset-badge');
+  if (badgeEl) badgeEl.textContent = presetConfig.name;
+
+  const cardCasual = document.getElementById('preset-card-casual');
+  const cardBag = document.getElementById('preset-card-bag-securer');
+  const cardLock = document.getElementById('preset-card-hard-lockdown');
+
+  cardCasual?.classList.toggle('active', activePreset === 'casual');
+  cardBag?.classList.toggle('active', activePreset === 'bag_securer');
+  cardLock?.classList.toggle('active', activePreset === 'hard_lockdown');
+
+  const cooldownWrap = document.getElementById('easy-cooldown-status-wrap');
+  const cooldownCount = document.getElementById('easy-cooldown-countdown');
+  const btnCooldown = document.getElementById('btn-emergency-cooldown') as HTMLButtonElement | null;
+
+  try {
+    const stored = await chrome.storage.local.get([
+      'tiltcheck_cooldown_active_until',
+      'currentHostname',
+      TILTCHECK_SESSION_PNL_KEY,
+      TILTCHECK_CASHOUT_GOALS_KEY,
+    ]);
+
+    const pnlState = stored[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState | undefined;
+    const net = pnlState?.netPnl ?? 0;
+    const easyPnlVal = document.getElementById('easy-pnl-val');
+    if (easyPnlVal) {
+      easyPnlVal.textContent = `${net >= 0 ? '+' : ''}$${net.toFixed(2)}`;
+      easyPnlVal.className = 'stat-value ' + (net > 0 ? 'stat-pos' : net < 0 ? 'stat-neg' : 'stat-neu');
+    }
+
+    const goals = sanitizeCashoutGoals(stored[TILTCHECK_CASHOUT_GOALS_KEY]);
+    const easyGoalEl = document.getElementById('easy-cashout-goal-val');
+    if (easyGoalEl) {
+      const activeGoals = goals.filter(g => g.enabled !== false);
+      if (activeGoals.length > 0) {
+        easyGoalEl.textContent = `$${activeGoals[0].targetAmount.toFixed(2)}`;
+      } else {
+        easyGoalEl.textContent = 'None set';
+      }
+    }
+
+    const hostLabel = document.getElementById('easy-platform-sub');
+    if (hostLabel && stored['currentHostname']) {
+      hostLabel.textContent = `Active protection on ${stored['currentHostname']}`;
+    }
+
+    const cooldownUntil = stored['tiltcheck_cooldown_active_until'];
+    const now = Date.now();
+    if (typeof cooldownUntil === 'number' && cooldownUntil > now) {
+      const diffSecs = Math.floor((cooldownUntil - now) / 1000);
+      const hours = Math.floor(diffSecs / 3600);
+      const mins = Math.floor((diffSecs % 3600) / 60);
+      if (cooldownWrap) cooldownWrap.style.display = 'block';
+      if (cooldownCount) cooldownCount.textContent = `${hours}h ${mins}m remaining`;
+      if (btnCooldown) {
+        btnCooldown.disabled = true;
+        btnCooldown.textContent = 'Emergency Lock Active';
+      }
+    } else {
+      if (cooldownWrap) cooldownWrap.style.display = 'none';
+      if (btnCooldown) {
+        btnCooldown.disabled = false;
+        btnCooldown.textContent = 'Take 24-Hour Break (Emergency Lock)';
+      }
+    }
+  } catch {
+    // storage catch
+  }
+}
+
+function initEasyModeListeners(): void {
+  document.getElementById('btn-mode-easy')?.addEventListener('click', () => {
+    void setUiMode('easy');
+  });
+  document.getElementById('btn-mode-pro')?.addEventListener('click', () => {
+    void setUiMode('pro');
+  });
+  document.getElementById('btn-switch-to-pro')?.addEventListener('click', () => {
+    void setUiMode('pro');
+  });
+
+  document.getElementById('preset-card-casual')?.addEventListener('click', async () => {
+    await applyPlayerPreset('casual');
+    await renderEasyModeState();
+    toast('Casual Spinner preset armed.');
+    void refreshGuardSettingsUi();
+  });
+  document.getElementById('preset-card-bag-securer')?.addEventListener('click', async () => {
+    await applyPlayerPreset('bag_securer');
+    await renderEasyModeState();
+    toast('Bag Securer preset armed (Recommended).');
+    void refreshGuardSettingsUi();
+  });
+  document.getElementById('preset-card-hard-lockdown')?.addEventListener('click', async () => {
+    await applyPlayerPreset('hard_lockdown');
+    await renderEasyModeState();
+    toast('Hard Lockdown preset armed (Max Discipline).');
+    void refreshGuardSettingsUi();
+  });
+
+  const cooldownModal = document.getElementById('emergency-cooldown-modal');
+  document.getElementById('btn-emergency-cooldown')?.addEventListener('click', () => {
+    if (cooldownModal) {
+      cooldownModal.style.display = 'flex';
+      document.body.classList.add('has-modal');
+    }
+  });
+
+  const closeCooldownModal = () => {
+    if (cooldownModal) {
+      cooldownModal.style.display = 'none';
+      document.body.classList.remove('has-modal');
+    }
+  };
+
+  document.getElementById('btn-close-cooldown-modal')?.addEventListener('click', closeCooldownModal);
+  document.getElementById('btn-cancel-emergency-cooldown')?.addEventListener('click', closeCooldownModal);
+
+  document.getElementById('btn-confirm-emergency-cooldown')?.addEventListener('click', async () => {
+    const expiry = await saveEmergencyCooldown(86_400_000);
+    closeCooldownModal();
+    playAudioCue('tilt_alert');
+    await renderEasyModeState();
+    toast('24-Hour Emergency Cooldown engaged. Casino cashiers locked.');
+    chrome.tabs?.query?.({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs?.[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'EMERGENCY_COOLDOWN_ACTIVATED', expiry }).catch(() => {});
+      }
+    });
+  });
+}
+
 function initOnboardingWizard(): void {
   const overlay = document.getElementById('onboarding-overlay');
+  const btnClose = document.getElementById('btn-close-onboarding');
+  const btnTutorial = document.getElementById('btn-tutorial');
+
   if (!overlay) return;
 
-  const btnTutorial = document.getElementById('btn-tutorial');
-  const btnClose = document.getElementById('btn-close-onboarding');
+  const stepDots = [
+    overlay.querySelector('.step-dot[data-step="1"]'),
+    overlay.querySelector('.step-dot[data-step="2"]'),
+    overlay.querySelector('.step-dot[data-step="3"]'),
+  ];
 
-  const stepDots = overlay.querySelectorAll('.step-dot');
   const stepPanels = [
     document.getElementById('onboarding-step-1'),
     document.getElementById('onboarding-step-2'),
     document.getElementById('onboarding-step-3'),
-    document.getElementById('onboarding-step-4'),
   ];
 
   let currentStep = 1;
+  let selectedStyle: PlayerPreset = 'bag_securer';
+  let selectedTiltTrigger = 'chasing';
 
-  function renderWizardGoals() {
-    const container = document.getElementById('wizard-goal-list');
-    if (!container) return;
-    container.innerHTML = currentGoals.map(goal => `
-      <label class="guard-opt-row" style="margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-        <span>
-          <input type="checkbox" class="wizard-goal-toggle" data-id="${goal.id}" ${goal.enabled !== false ? 'checked' : ''} />
-          <strong style="margin-left:6px;">${goal.name}</strong>
-        </span>
-        <span style="font-family:var(--mono); font-size:11px; color:#17c3b2;">${goal.targetAmount.toFixed(2)}</span>
-      </label>
-    `).join('');
-
-    container.querySelectorAll('.wizard-goal-toggle').forEach(el => {
-      el.addEventListener('change', async (e) => {
-        const id = (e.target as HTMLElement).dataset['id'];
-        if (id) {
-          currentGoals = toggleGoalInList(currentGoals, id);
-          await saveCashoutGoals(currentGoals);
-          renderGoalsList();
-        }
-      });
+  function updateWizardQuizUi() {
+    document.querySelectorAll('#quiz-group-style .quiz-option-btn').forEach(btn => {
+      const val = (btn as HTMLElement).dataset['value'];
+      btn.classList.toggle('active', val === selectedStyle);
     });
+
+    document.querySelectorAll('#quiz-group-tilt .quiz-option-btn').forEach(btn => {
+      const val = (btn as HTMLElement).dataset['value'];
+      btn.classList.toggle('active', val === selectedTiltTrigger);
+    });
+
+    const summaryPreset = document.getElementById('wizard-summary-preset');
+    if (summaryPreset) {
+      summaryPreset.textContent = PLAYER_PRESETS[selectedStyle]?.name ?? 'Bag Securer';
+    }
+
+    const summaryDefense = document.getElementById('wizard-summary-defense');
+    if (summaryDefense) {
+      if (selectedTiltTrigger === 'chasing') {
+        summaryDefense.textContent = 'Loss Chase & Deposit Barrier';
+      } else if (selectedTiltTrigger === 'giveback') {
+        summaryDefense.textContent = 'Profit Lock Ratchet & Goals';
+      } else {
+        summaryDefense.textContent = 'Default Bet Breaker ($0.50 Threshold)';
+      }
+    }
   }
 
   function showStep(stepNum: number) {
-    currentStep = Math.max(1, Math.min(4, stepNum));
+    currentStep = Math.max(1, Math.min(3, stepNum));
     stepPanels.forEach((panel, idx) => {
       if (panel) {
         panel.style.display = idx + 1 === currentStep ? 'block' : 'none';
       }
     });
     stepDots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx + 1 === currentStep);
+      dot?.classList.toggle('active', idx + 1 === currentStep);
     });
-    if (currentStep === 3) {
-      renderWizardGoals();
+    if (currentStep === 2 || currentStep === 3) {
+      updateWizardQuizUi();
     }
   }
 
@@ -2008,46 +2207,55 @@ function initOnboardingWizard(): void {
   });
 
   stepDots.forEach((dot, idx) => {
-    dot.addEventListener('click', () => showStep(idx + 1));
+    dot?.addEventListener('click', () => showStep(idx + 1));
   });
 
-  // Step navigation
   document.getElementById('btn-step-1-next')?.addEventListener('click', () => showStep(2));
   document.getElementById('btn-step-2-back')?.addEventListener('click', () => showStep(1));
   document.getElementById('btn-step-2-next')?.addEventListener('click', () => showStep(3));
   document.getElementById('btn-step-3-back')?.addEventListener('click', () => showStep(2));
-  document.getElementById('btn-step-3-next')?.addEventListener('click', () => showStep(4));
-  document.getElementById('btn-step-4-back')?.addEventListener('click', () => showStep(3));
 
-  // Goal master toggle in step 3
-  const goalsEnabledToggle = document.getElementById('wizard-goals-enabled-toggle') as HTMLInputElement | null;
-  if (goalsEnabledToggle) {
-    goalsEnabledToggle.addEventListener('change', async (e) => {
-      const enabled = (e.target as HTMLInputElement).checked;
-      await saveCashoutGoalsEnabled(enabled);
-      toast(enabled ? 'Cashout goals enabled.' : 'Cashout goals off.');
+  document.querySelectorAll('#quiz-group-style .quiz-option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = (btn as HTMLElement).dataset['value'] as PlayerPreset;
+      if (val) {
+        selectedStyle = val;
+        updateWizardQuizUi();
+      }
     });
-  }
-
-  // Finish button in step 4
-  document.getElementById('btn-finish-onboarding')?.addEventListener('click', async () => {
-    const spinLock = (document.getElementById('wizard-spin-lock-toggle') as HTMLInputElement)?.checked ?? true;
-    const realityHud = (document.getElementById('wizard-reality-hud-toggle') as HTMLInputElement)?.checked ?? true;
-    const soundAlerts = (document.getElementById('wizard-sound-alerts-toggle') as HTMLInputElement)?.checked ?? true;
-    const wage = Number((document.getElementById('wizard-hourly-wage-input') as HTMLInputElement)?.value) || 25;
-
-    await saveTouchGrassOptIn(spinLock);
-    await saveRealityHudEnabled(realityHud);
-    await saveAudioAlertsEnabled(soundAlerts);
-    await saveHourlyWage(wage);
-    await saveOnboardingCompleted(true);
-
-    void refreshGuardSettingsUi();
-    closeWizard();
-    toast('TiltCheck guardrails armed.');
   });
 
-  // Auto-launch on first run if never completed
+  document.querySelectorAll('#quiz-group-tilt .quiz-option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = (btn as HTMLElement).dataset['value'];
+      if (val) {
+        selectedTiltTrigger = val;
+        updateWizardQuizUi();
+      }
+    });
+  });
+
+  document.getElementById('btn-finish-onboarding')?.addEventListener('click', async () => {
+    await applyPlayerPreset(selectedStyle);
+
+    if (selectedTiltTrigger === 'chasing') {
+      await saveDepositBarrierEnabled(true);
+    } else if (selectedTiltTrigger === 'giveback') {
+      await saveProfitLockEnabled(true);
+      await saveCashoutGoalsEnabled(true);
+    } else if (selectedTiltTrigger === 'accidental') {
+      await saveDefaultBetBreakerEnabled(true);
+      await saveBaseStakeThreshold(0.50);
+    }
+
+    await saveOnboardingCompleted(true);
+    await setUiMode('easy');
+    await renderEasyModeState();
+    void refreshGuardSettingsUi();
+    closeWizard();
+    toast('TiltCheck guardrails armed. Welcome to Easy Mode.');
+  });
+
   void loadOnboardingCompleted().then((completed) => {
     if (!completed) {
       openWizard(1);
@@ -2157,6 +2365,7 @@ async function init() {
   }
 
   initTipJarModal();
+  initEasyModeListeners();
   initOnboardingWizard();
   // Tabs
   document.querySelectorAll('.tab').forEach(tab => {
@@ -2214,6 +2423,7 @@ async function init() {
 
   // Settings gear opens Guards tab (local circuit breaker + strategic filters)
   $('btn-settings').addEventListener('click', () => {
+    void setUiMode('pro');
     activateTab('block');
   });
 
@@ -2230,9 +2440,11 @@ async function init() {
   // Vault listeners
   initVaultListeners();
   loadFeed();
-
-  // Guests land on Guards (2s spin lock). Signed-in users get Status.
-  activateTab(userId ? 'status' : 'block');
+  const uiMode = await loadUiMode();
+  await setUiMode(uiMode, false);
+  if (uiMode === 'pro') {
+    activateTab(userId ? 'status' : 'block');
+  }
 }
 
 if (document.readyState === 'loading') {

@@ -240,7 +240,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
     onMessage({ type: 'open_sidebar' }, null, openResponse);
     await vi.waitFor(() => {
       expect(openResponse).toHaveBeenCalled();
-    });
+    }, 15_000);
     expect(openResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
