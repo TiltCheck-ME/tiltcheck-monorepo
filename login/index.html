@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Log in | TiltCheck</title>
-<meta name="description" content="Log in with Discord. Non-custodial. Web owns login; dashboard is after auth lands."/>
+<title>Sign in with Discord | TiltCheck</title>
+<meta name="description" content="Sign in with Discord. Non-custodial. Web owns login; dashboard is after auth lands."/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#06080b"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -25,32 +25,69 @@
     <a href="../tools/">Tools</a>
     <a href="../casinos/">TrustCheck</a>
     <a href="../cooldown/">RealityCheck</a>
-    <a class="site-nav__discord" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
+    <a class="site-nav__discord" href="../login/" aria-current="page" aria-label="Sign in with Discord" title="Sign in with Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
   </div>
 </nav>
 <header class="product-hero">
   <div class="landing-shell">
     <span class="brand-eyebrow">Access Portal</span>
-    <h1 class="product-hero__title">Log in without the scavenger hunt</h1>
-    <p class="product-hero__lede">Web still owns login. Discord is the founder lane. After auth lands, the canonical dashboard is the control surface.</p>
-    <div class="hero-actions hero-actions--start"><a class="btn btn-primary" href="https://api.tiltcheck.me/auth/discord/login?source=web&redirect=https%3A%2F%2Ftiltcheck.me%2Fdashboard" data-provider="discord">Login with Discord</a>
+    <h1 class="product-hero__title">Sign in with Discord</h1>
+    <p class="product-hero__lede">Sign in to access your saved settings, sync vault rules, and check staff verifications. 100% non-custodial.</p>
+    <div class="hero-actions hero-actions--start"><a class="btn btn-primary" href="https://discord.com/oauth2/authorize?client_id=1445916179163250860&response_type=token&scope=identify&redirect_uri=https%3A%2F%2Fcollectclock-api.j-chapman7.workers.dev%2Fauth%2Fcallback&state=h.web" data-provider="discord" style="display:inline-flex; align-items:center; gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><span>Sign in with Discord</span></a>
     <a class="hero-actions__secondary-link" href="../index.html">Back home</a></div>
   </div>
 </header>
 <main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
-      <p id="login-error" class="error" role="alert" hidden>Discord login failed. Try again or use email login.</p>
-      <p class="public-page-card__copy">If you have not linked Discord yet, this is the button you wanted to find in the first place.</p>
+      <div id="login-status-box" style="display:none; background: rgba(23,195,178,0.12); border: 1px solid #17c3b2; border-radius: 8px; padding: 16px; margin-bottom: 1.5rem; max-width: 540px;">
+        <span style="color:#17c3b2; font-weight:700; font-size:0.95rem; display:block; margin-bottom:4px;">Signed In with Discord</span>
+        <span id="login-username" style="color:#fff; font-size:0.85rem;"></span>
+      </div>
+      <p id="login-error" class="error" role="alert" hidden>Discord sign-in failed or was cancelled. Try again.</p>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem; max-width: 540px; margin-top: 1rem;">
+        <h3 style="font-size: 0.95rem; color: #fff; margin-bottom: 0.5rem;">Looking for the Community Server?</h3>
+        <p class="public-page-card__copy" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">
+          To chat with other players, report bugs, or get live support, join the official TiltCheck Discord server.
+        </p>
+        <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="font-size: 0.85rem;">Join TiltCheck Server &rarr;</a>
+      </div>
     </div>
   </section>
 </main>
 <script>
 (function () {
   var params = new URLSearchParams(window.location.search);
-  if (!params.get('error')) return;
-  var el = document.getElementById('login-error');
-  if (el) el.hidden = false;
+  if (params.get('error')) {
+    var el = document.getElementById('login-error');
+    if (el) el.hidden = false;
+  }
+  var hash = window.location.hash.substring(1);
+  if (hash) {
+    var hashParams = new URLSearchParams(hash);
+    var token = hashParams.get('access_token') || hashParams.get('token');
+    if (token) {
+      try {
+        localStorage.setItem('tc_token', token);
+      } catch (e) {}
+      fetch('https://discord.com/api/v10/users/@me', {
+        headers: { Authorization: 'Bearer ' + token }
+      })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(user) {
+          if (user) {
+            var box = document.getElementById('login-status-box');
+            var nameEl = document.getElementById('login-username');
+            if (box) box.style.display = 'block';
+            if (nameEl) nameEl.textContent = 'Welcome, ' + (user.global_name || user.username);
+            try {
+              localStorage.setItem('tc_user', JSON.stringify(user));
+            } catch (e) {}
+          }
+        })
+        .catch(function() {});
+    }
+  }
 })();
 </script>
 <footer class="site-footer">
@@ -66,6 +103,8 @@
       <a href="../wincheck/">WinCheck</a>
       <a href="../casinos/">TrustCheck</a>
       <a href="../tip/">Tip Jar</a>
+      <a href="../login/">Discord Sign In</a>
+      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord Server</a>
       <a href="../privacy/">Privacy Policy</a>
     </div>
   </nav>
