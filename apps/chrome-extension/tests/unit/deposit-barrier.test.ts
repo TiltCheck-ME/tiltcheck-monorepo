@@ -426,4 +426,80 @@ describe('in-session Cooldown Timer HUD', () => {
     depositBtn.remove();
     handle.stop();
   });
+
+  it('routes Stake wallet clicks directly into withdrawal modal instead of dead-ending', async () => {
+    let targetUrl = '';
+    const fakeDoc = {
+      location: {
+        hostname: 'stake.com',
+        href: 'https://stake.com/casino/games/plinko',
+        assign: (url: string) => { targetUrl = url; },
+      },
+      getElementById: (id: string) => document.getElementById(id),
+      querySelector: (selector: string) => document.querySelector(selector),
+      querySelectorAll: (selector: string) => document.querySelectorAll(selector),
+      createElement: (tag: string) => document.createElement(tag),
+      body: document.body,
+      documentElement: document.documentElement,
+      addEventListener: document.addEventListener.bind(document),
+      removeEventListener: document.removeEventListener.bind(document),
+    } as unknown as Document;
+
+    const handle = installDepositBarrier(fakeDoc);
+    await setCooldownActiveUntil(Date.now() + 600_000);
+
+    const stakeWalletBtn = document.createElement('button');
+    stakeWalletBtn.setAttribute('data-test', 'wallet-button');
+    stakeWalletBtn.textContent = 'Wallet';
+    document.body.appendChild(stakeWalletBtn);
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    stakeWalletBtn.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(targetUrl).toBe('https://stake.com/?modal=wallet&tab=withdraw');
+
+    const alert = document.getElementById(ALERT_ID);
+    expect(alert).not.toBeNull();
+    expect(alert?.innerHTML).toContain('Cash Out / Withdraw');
+
+    stakeWalletBtn.remove();
+    handle.stop();
+  });
+
+  it('routes Stake.us wallet clicks into redeem modal', async () => {
+    let targetUrl = '';
+    const fakeDoc = {
+      location: {
+        hostname: 'stake.us',
+        href: 'https://stake.us/casino',
+        assign: (url: string) => { targetUrl = url; },
+      },
+      getElementById: (id: string) => document.getElementById(id),
+      querySelector: (selector: string) => document.querySelector(selector),
+      querySelectorAll: (selector: string) => document.querySelectorAll(selector),
+      createElement: (tag: string) => document.createElement(tag),
+      body: document.body,
+      documentElement: document.documentElement,
+      addEventListener: document.addEventListener.bind(document),
+      removeEventListener: document.removeEventListener.bind(document),
+    } as unknown as Document;
+
+    const handle = installDepositBarrier(fakeDoc);
+    await setCooldownActiveUntil(Date.now() + 600_000);
+
+    const stakeUsWalletBtn = document.createElement('button');
+    stakeUsWalletBtn.setAttribute('data-test', 'wallet-button');
+    stakeUsWalletBtn.textContent = 'Wallet';
+    document.body.appendChild(stakeUsWalletBtn);
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    stakeUsWalletBtn.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(targetUrl).toBe('https://stake.us/?modal=wallet&tab=redeem');
+
+    stakeUsWalletBtn.remove();
+    handle.stop();
+  });
 });

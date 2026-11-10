@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * deposit-barrier.ts
  * DOM Deposit Barrier.
@@ -7,6 +7,7 @@
  */
 
 import { isTouchGrassActive } from './touch-grass-timeout.js';
+import { detectCashoutTarget } from './cashout-router.js';
 
 export const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
 export const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
@@ -265,6 +266,15 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     } else {
       hudEl.style.padding = '10px 14px';
       hudEl.style.minWidth = '240px';
+      let hudCashierUrl: string | null = null;
+      try {
+        if (typeof doc?.querySelector === 'function') {
+          hudCashierUrl = detectCashoutTarget(doc).cashierUrl;
+        }
+      } catch {
+        // Safe fallback
+      }
+
       hudEl.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
           <span style="font-size: 10px; font-weight: 800; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-transform: uppercase; letter-spacing: 0.05em;">${isAutoTilt ? 'Tilt Auto-Lock Active' : 'Vault Lock Active'}</span>
@@ -276,7 +286,8 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
         <div style="font-size: 10px; color: ${isAutoTilt ? '#fca5a5' : '#94a3b8'}; margin-bottom: 8px; line-height: 1.3;">
           ${isAutoTilt ? 'Level 3+ Tilt Lockout (Cashier Blocked)' : 'Deposit Barrier Engaged (Cashier Blocked)'}
         </div>
-        <div style="display: flex; gap: 12px; align-items: center; font-size: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center; font-size: 10px; flex-wrap: wrap;">
+          ${hudCashierUrl ? `<a href="${hudCashierUrl}" style="color: #17c3b2; text-decoration: underline; font-weight: 700;">Cash Out &rarr;</a>` : ''}
           <a href="https://tiltcheck.me/cooldown" target="_blank" rel="noopener noreferrer" style="color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-decoration: underline; font-weight: 600;">${isAutoTilt ? 'Confirm On-Chain &rarr;' : 'Verify PDA &rarr;'}</a>
           <a href="https://tiltcheck.me/cooldown?extend=7" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">Extend +7d &rarr;</a>
         </div>
@@ -296,7 +307,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     }
   };
 
-  const showAlert = (message: string) => {
+  const showAlert = (message: string, withdrawUrl?: string | null) => {
     let alertEl = doc.getElementById(ALERT_ID);
     if (!alertEl) {
       alertEl = doc.createElement('div');
@@ -319,14 +330,23 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
         'font-weight: 700',
         'box-shadow: 0 4px 24px rgba(0, 0, 0, 0.85)',
         'text-align: center',
-        'pointer-events: none',
+        'pointer-events: auto',
         'max-width: 90vw',
         'box-sizing: border-box',
       ].join(';');
       (doc.body ?? doc.documentElement).appendChild(alertEl);
     }
 
-    alertEl.textContent = message;
+    if (withdrawUrl) {
+      alertEl.innerHTML = `
+        <div style="margin-bottom: 6px;">${message}</div>
+        <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: center; align-items: center;">
+          <a href="${withdrawUrl}" style="background: #17c3b2; color: #06080b; padding: 5px 12px; border-radius: 4px; font-weight: 800; font-size: 11px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">Cash Out / Withdraw &rarr;</a>
+        </div>
+      `;
+    } else {
+      alertEl.textContent = message;
+    }
 
     if (alertTimeoutId !== null) {
       clearTimeout(alertTimeoutId);
@@ -356,6 +376,44 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
       return;
     }
 
+    let cashierWithdrawUrl: string | null = null;
+    try {
+      if (typeof doc?.querySelector === 'function') {
+        cashierWithdrawUrl = detectCashoutTarget(doc).cashierUrl;
+      }
+    } catch {
+      // Safe fallback
+    }
+
+    // Stake wallet handling: Clicking the header "Wallet" button shouldn't dead-end the player.
+    // Automatically route into the withdrawal/redemption modal so players can always cash out.
+    const host = doc.location?.hostname ?? '';
+    const isStake = /stake\.(com|us|bet|games)/i.test(host);
+    const isWalletHeaderBtn = target.closest('[data-test="wallet-button"]') ||
+                              target.closest('[data-testid="wallet-button"]') ||
+                              target.closest('.wallet-btn');
+
+    if (isStake && isWalletHeaderBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const isStakeUs = /stake\.us/i.test(host);
+      const withdrawUrl = isStakeUs
+        ? 'https://stake.us/?modal=wallet&tab=redeem'
+        : 'https://stake.com/?modal=wallet&tab=withdraw';
+
+      if (doc.location) {
+        if (typeof doc.location.assign === 'function') {
+          doc.location.assign(withdrawUrl);
+        } else {
+          doc.location.href = withdrawUrl;
+        }
+      }
+      showAlert('Deposit Barrier Active: Deposits blocked during cooldown. Directing to Cashier / Withdraw.', withdrawUrl);
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
@@ -374,7 +432,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
       message = "Deposit Barrier Active: You locked the door. Don't dig the hole deeper. Wait out the timer.";
     }
 
-    showAlert(message);
+    showAlert(message, cashierWithdrawUrl);
   };
 
   const onStorageChanged = (
