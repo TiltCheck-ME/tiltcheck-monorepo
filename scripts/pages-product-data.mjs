@@ -3,6 +3,8 @@
 export const SITE_URL = 'https://tiltcheck.me';
 export const API_URL = 'https://collectclock-api.j-chapman7.workers.dev';
 export const DISCORD_URL = 'https://discord.gg/gdBsEJfCar';
+export const DISCORD_INVITE_URL = 'https://discord.gg/gdBsEJfCar';
+export const DISCORD_OAUTH_LOGIN_URL = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&response_type=token&scope=identify&redirect_uri=https%3A%2F%2Fcollectclock-api.j-chapman7.workers.dev%2Fauth%2Fcallback&state=h.web';
 export const KOFI_URL = 'https://ko-fi.com/jmenichole7';
 export const EXTENSION_ZIP_URL = `${SITE_URL}/downloads/tiltcheck-extension.zip`;
 export const SOLANA_TIP_WALLET = 'DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1';

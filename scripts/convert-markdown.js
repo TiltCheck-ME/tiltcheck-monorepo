@@ -23,6 +23,8 @@ import {
   SITE_URL,
   API_URL,
   DISCORD_URL,
+  DISCORD_INVITE_URL,
+  DISCORD_OAUTH_LOGIN_URL,
   KOFI_URL,
   SOLANA_TIP_WALLET,
   SOLSCAN_TIP_URL,
@@ -217,7 +219,7 @@ function navHtml(depth, current) {
     <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
     <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
     <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
-    <a class="site-nav__discord" href="${DISCORD_URL}" rel="noopener noreferrer" aria-label="Discord" title="Discord">${DISCORD_ICON}</a>
+    <a class="site-nav__discord" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}</a>
   </div>
 </nav>`;
 }
@@ -236,6 +238,8 @@ function footerHtml(depth) {
       <a href="${dirHref(depth, 'wincheck')}">WinCheck</a>
       <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
       <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
+      <a href="${dirHref(depth, 'login')}">Discord Sign In</a>
+      <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord Server</a>
       <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
     </div>
   </nav>
@@ -2069,34 +2073,71 @@ function buildToolsPage() {
 }
 
 function buildLoginPage() {
-  const discordHref = `https://api.tiltcheck.me/auth/discord/login?source=web&redirect=${encodeURIComponent(`${SITE_URL}/dashboard`)}`;
+  const discordHref = DISCORD_OAUTH_LOGIN_URL;
   const content = `${productHero({
     eyebrow: 'Access Portal',
-    title: 'Log in without the scavenger hunt',
-    lede: 'Web still owns login. Discord is the founder lane. After auth lands, the canonical dashboard is the control surface.',
-    actionsHtml: `<a class="btn btn-primary" href="${discordHref}" data-provider="discord">Login with Discord</a>
+    title: 'Sign in with Discord',
+    lede: 'Sign in to access your saved settings, sync vault rules, and check staff verifications. 100% non-custodial.',
+    actionsHtml: `<a class="btn btn-primary" href="${discordHref}" data-provider="discord" style="display:inline-flex; align-items:center; gap:8px;">${DISCORD_ICON}<span>Sign in with Discord</span></a>
     <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>`,
   })}
 <main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
-      <p id="login-error" class="error" role="alert" hidden>Discord login failed. Try again or use email login.</p>
-      <p class="public-page-card__copy">If you have not linked Discord yet, this is the button you wanted to find in the first place.</p>
+      <div id="login-status-box" style="display:none; background: rgba(23,195,178,0.12); border: 1px solid #17c3b2; border-radius: 8px; padding: 16px; margin-bottom: 1.5rem; max-width: 540px;">
+        <span style="color:#17c3b2; font-weight:700; font-size:0.95rem; display:block; margin-bottom:4px;">Signed In with Discord</span>
+        <span id="login-username" style="color:#fff; font-size:0.85rem;"></span>
+      </div>
+      <p id="login-error" class="error" role="alert" hidden>Discord sign-in failed or was cancelled. Try again.</p>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem; max-width: 540px; margin-top: 1rem;">
+        <h3 style="font-size: 0.95rem; color: #fff; margin-bottom: 0.5rem;">Looking for the Community Server?</h3>
+        <p class="public-page-card__copy" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">
+          To chat with other players, report bugs, or get live support, join the official TiltCheck Discord server.
+        </p>
+        <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="font-size: 0.85rem;">Join TiltCheck Server &rarr;</a>
+      </div>
     </div>
   </section>
 </main>
 <script>
 (function () {
   var params = new URLSearchParams(window.location.search);
-  if (!params.get('error')) return;
-  var el = document.getElementById('login-error');
-  if (el) el.hidden = false;
+  if (params.get('error')) {
+    var el = document.getElementById('login-error');
+    if (el) el.hidden = false;
+  }
+  var hash = window.location.hash.substring(1);
+  if (hash) {
+    var hashParams = new URLSearchParams(hash);
+    var token = hashParams.get('access_token') || hashParams.get('token');
+    if (token) {
+      try {
+        localStorage.setItem('tc_token', token);
+      } catch (e) {}
+      fetch('https://discord.com/api/v10/users/@me', {
+        headers: { Authorization: 'Bearer ' + token }
+      })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(user) {
+          if (user) {
+            var box = document.getElementById('login-status-box');
+            var nameEl = document.getElementById('login-username');
+            if (box) box.style.display = 'block';
+            if (nameEl) nameEl.textContent = 'Welcome, ' + (user.global_name || user.username);
+            try {
+              localStorage.setItem('tc_user', JSON.stringify(user));
+            } catch (e) {}
+          }
+        })
+        .catch(function() {});
+    }
+  }
 })();
 </script>`;
 
   return shell({
-    title: 'Log in | TiltCheck',
-    description: 'Log in with Discord. Non-custodial. Web owns login; dashboard is after auth lands.',
+    title: 'Sign in with Discord | TiltCheck',
+    description: 'Sign in with Discord. Non-custodial. Web owns login; dashboard is after auth lands.',
     depth: 'docs',
     current: 'login',
     body: content,
