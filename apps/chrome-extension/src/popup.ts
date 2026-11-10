@@ -1,5 +1,5 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
-import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+import { EXT_CONFIG, getDiscordLoginUrl, getDirectDiscordOAuthUrl } from './config.js';
 import {
   addCustomSlug,
   clampRisk,
@@ -2378,17 +2378,16 @@ async function init() {
 
   // Auth
   $('btn-login').addEventListener('click', () => {
-    const authUrl = getDiscordLoginUrl('extension');
+    const oauthUrl = getDirectDiscordOAuthUrl();
     const button = $<HTMLButtonElement>('btn-login');
     button.disabled = true;
     button.textContent = 'Connecting...';
 
-    chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+    chrome.tabs.create({ url: oauthUrl }, (tab) => {
       button.disabled = false;
       button.textContent = 'Log in with Discord';
-      if (chrome.runtime.lastError || !response?.success) {
-        chrome.tabs.create({ url: 'https://tiltcheck.me/login' });
-        toast('Opening TiltCheck login portal...');
+      if (chrome.runtime.lastError || !tab) {
+        toast('Could not open Discord sign-in tab.', true);
       } else {
         toast('Discord sign-in tab opened.');
       }

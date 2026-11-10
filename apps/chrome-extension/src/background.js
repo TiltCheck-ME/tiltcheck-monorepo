@@ -5,7 +5,11 @@
  */
 
 const VAULT_URL_BASE = 'https://tiltcheck.me/autovault';
-const ALLOWED_AUTH_ORIGINS = new Set(['https://api.tiltcheck.me']);
+const ALLOWED_AUTH_ORIGINS = new Set([
+  'https://api.tiltcheck.me',
+  'https://collectclock-api.j-chapman7.workers.dev',
+  'https://discord.com',
+]);
 const API_BASE = 'https://api.tiltcheck.me';
 
 const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
@@ -442,3 +446,58 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     console.error('[TiltCheck] Safety API check failed:', e);
   }
 });
+
+// ── Discord OAuth Callback Interceptor ───────────────────────────────────────────
+if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  const url = changeInfo.url || tab?.url;
+  if (!url) return;
+
+  if (
+    url.includes("collectclock-api.j-chapman7.workers.dev/auth/callback") &&
+    url.includes("access_token=")
+  ) {
+    void (async () => {
+      try {
+        const hash = url.split("#")[1] || "";
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get("access_token");
+        if (!accessToken) return;
+
+        console.log("[TiltCheck] OAuth token received, fetching Discord user profile");
+
+        const res = await fetch("https://discord.com/api/v10/users/@me", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (res.ok) {
+          const discordUser = await res.json();
+          const userObj = {
+            id: String(discordUser.id),
+            username: discordUser.global_name || discordUser.username,
+            discriminator: discordUser.discriminator,
+            discordId: String(discordUser.id),
+            avatar: discordUser.avatar
+              ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
+              : null,
+          };
+
+          await chrome.storage.local.set({
+            authToken: accessToken,
+            userData: userObj,
+            tiltguard_user_id: String(discordUser.id),
+          });
+
+          console.log("[TiltCheck] Discord auth synced:", userObj.username);
+
+          setTimeout(() => {
+            chrome.tabs.remove(tabId).catch(() => {});
+          }, 800);
+        }
+      } catch (err) {
+        console.error("[TiltCheck] OAuth handler error:", err);
+      }
+    })();
+  }
+  });
+}

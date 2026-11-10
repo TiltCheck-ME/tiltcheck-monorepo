@@ -2,6 +2,8 @@
 
 export const EXT_CONFIG = {
     API_BASE_URL: 'https://api.tiltcheck.me',
+    WORKER_API_URL: 'https://collectclock-api.j-chapman7.workers.dev',
+    DISCORD_REDIRECT_URI: 'https://collectclock-api.j-chapman7.workers.dev/auth/callback',
     HUB_URL: 'https://api.tiltcheck.me',
     DASHBOARD_URL: 'https://tiltcheck.me/dashboard',
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
@@ -34,6 +36,21 @@ export function getHubEndpoint(path: string): string {
  */
 export function getExtensionId(): string | undefined {
     return typeof chrome !== 'undefined' ? chrome.runtime?.id : undefined;
+}
+
+/**
+ * Generate the direct Discord OAuth URL using the unified ecosystem client ID and callback
+ */
+export function getDirectDiscordOAuthUrl(nonce?: string): string {
+    const n = nonce || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    const params = new URLSearchParams({
+        client_id: EXT_CONFIG.DISCORD_CLIENT_ID,
+        response_type: 'token',
+        scope: 'identify',
+        redirect_uri: EXT_CONFIG.DISCORD_REDIRECT_URI,
+        state: `h.${n}`,
+    });
+    return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }
 
 /**

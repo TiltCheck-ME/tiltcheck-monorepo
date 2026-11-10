@@ -7,6 +7,7 @@ type ActionListener = (tab: { id?: number }) => void;
 function setupChromeMock() {
   const runtimeListeners: RuntimeListener[] = [];
   const actionListeners: ActionListener[] = [];
+  const tabUpdatedListeners: Array<(tabId: number, changeInfo: any, tab?: any) => void> = [];
   const installListeners: Array<() => void> = [];
   const alarmListeners: Array<(alarm: { name: string }) => void> = [];
   const storageListeners: Array<(changes: any, area: string) => void> = [];
@@ -31,6 +32,10 @@ function setupChromeMock() {
     tabs: {
       sendMessage: vi.fn((_tabId: number, _message: any, callback?: () => void) => callback?.()),
       create: vi.fn((_opts: any, callback?: () => void) => callback?.()),
+      remove: vi.fn((_tabId: number) => Promise.resolve()),
+      onUpdated: {
+        addListener: vi.fn((listener: any) => tabUpdatedListeners.push(listener)),
+      },
     },
     webNavigation: {
       onBeforeNavigate: {
@@ -64,7 +69,7 @@ function setupChromeMock() {
   };
 
   (globalThis as any).chrome = chromeMock;
-  return { chromeMock, runtimeListeners, actionListeners, installListeners, alarmListeners, storageListeners, storageData };
+  return { chromeMock, runtimeListeners, actionListeners, installListeners, alarmListeners, storageListeners, storageData, tabUpdatedListeners };
 }
 
 describe('background service worker', () => {
@@ -277,5 +282,50 @@ describe('background service worker', () => {
         url: expect.stringContaining('https://tiltcheck.me/cooldown?'),
       })
     );
+  });
+
+  it("intercepts Discord OAuth redirect and stores user session", async () => {
+    const { chromeMock, storageData, tabUpdatedListeners } = setupChromeMock();
+    const mockDiscordUser = {
+      id: "123456789012345678",
+      username: "degen_king",
+      global_name: "Degen King",
+      discriminator: "0",
+      avatar: "abcdef123456",
+    };
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockDiscordUser),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await import("../../src/background.js");
+
+    expect(tabUpdatedListeners.length).toBeGreaterThan(0);
+    const onUpdated = tabUpdatedListeners[0]!;
+
+    const testUrl = "https://collectclock-api.j-chapman7.workers.dev/auth/callback#access_token=mock_access_token_123&token_type=Bearer&state=h.mock-nonce";
+    onUpdated(42, { url: testUrl }, { url: testUrl });
+
+    // Allow async execution in the listener to complete
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://discord.com/api/v10/users/@me",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer mock_access_token_123" },
+      })
+    );
+
+    expect(storageData["authToken"]).toBe("mock_access_token_123");
+    expect(storageData["userData"]).toEqual({
+      id: "123456789012345678",
+      username: "Degen King",
+      discriminator: "0",
+      discordId: "123456789012345678",
+      avatar: "https://cdn.discordapp.com/avatars/123456789012345678/abcdef123456.png",
+    });
+    expect(storageData["tiltguard_user_id"]).toBe("123456789012345678");
   });
 });

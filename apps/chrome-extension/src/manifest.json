@@ -21,6 +21,8 @@
     "https://*.csgoempire.com/*",
     "https://*.tiltcheck.me/*",
     "https://api.tiltcheck.me/*",
+    "https://collectclock-api.j-chapman7.workers.dev/*",
+    "https://discord.com/*",
     "https://*.crowncoinscasino.com/*",
     "https://*.lonestarcasino.com/*",
     "https://*.realprize.com/*",
@@ -34,7 +36,7 @@
     "https://*.sportzino.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me https://collectclock-api.j-chapman7.workers.dev https://discord.com https://cdn.discordapp.com"
   },
   "background": {
     "service_worker": "background.js"
