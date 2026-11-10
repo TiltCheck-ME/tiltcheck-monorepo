@@ -29,7 +29,10 @@
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --weight-bold: 800;
-  --radius-md: 8px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
   --shell-max: 48rem;
   --content-max: min(100% - 2rem, 78rem);
 }
@@ -105,6 +108,7 @@ a:hover {
 }
 
 .site-nav__mark {
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2089,4 +2093,136 @@ td {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #ffb020;
+}
+
+/* --- Staff-only developer block --- */
+.staff-only {
+  background: rgba(245, 158, 11, 0.04);
+  border: 1px dashed rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+.staff-only__label {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 0.5rem;
+  padding: 2px 8px;
+  background: rgba(245, 158, 11, 0.15);
+  border-radius: 4px;
+}
+
+/* --- TimeCheck Launcher --- */
+.timecheck-container {
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  text-align: center;
+}
+.timecheck-hero {
+  margin-bottom: 2rem;
+}
+.timecheck-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  color: #fff;
+}
+.timecheck-hero p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin: 0 auto;
+  max-width: 30rem;
+}
+.timecheck-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.timecheck-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: #fff;
+}
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.chip-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip-btn:hover {
+  background: rgba(23, 195, 178, 0.12);
+  border-color: rgba(23, 195, 178, 0.35);
+  color: #fff;
+}
+.chip-btn.active {
+  background: #17c3b2;
+  border-color: #17c3b2;
+  color: #06080b;
+  font-weight: 700;
+}
+.timecheck-launch-btn {
+  width: 100%;
+  display: block;
+  background: #17c3b2;
+  color: #06080b;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(23, 195, 178, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.timecheck-launch-btn:hover {
+  background: #48d5c6;
+  transform: translateY(-1px);
+}
+.cooldown-quick-btn {
+  width: 100%;
+  display: block;
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.15s ease;
+}
+.cooldown-quick-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
 }

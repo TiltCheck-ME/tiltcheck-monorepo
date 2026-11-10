@@ -2,12 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Extension | TiltCheck</title>
-<meta name="description" content="The TiltCheck Chrome extension: two seconds between spins, your own game block list, and losses in hours of your real job. Annoying on purpose."/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Direct Extension Download | TiltCheck</title>
+<meta name="description" content="Download the TiltCheck desktop extension: 2-second spin pause, custom game block lists, and 24-hour cashier cooldowns."/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#06080b"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="TimeCheck"/>
+<link rel="manifest" href="manifest.webmanifest"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
 <link rel="icon" type="image/png" href="styles/icon.png"/>
+<link rel="apple-touch-icon" href="styles/icon.png"/>
 <link rel="stylesheet" href="styles/base.css"/>
 
 </head>
@@ -15,94 +20,68 @@
 <nav class="site-nav" aria-label="Primary">
   <a class="site-nav__brand" href="index.html"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>TiltCheck</a>
   <div class="site-nav__links">
+    <a href="gate/" style="color:#17c3b2; font-weight:700;">TimeCheck</a>
     <a href="extension.html" aria-current="page">Extension</a>
     <a href="tools/">Tools</a>
-    <a href="casinos/">Casinos</a>
-    <a href="cooldown/">Touch Grass</a>
-    <a href="tip/">Tip Jar</a>
+    <a href="casinos/">TrustCheck</a>
+    <a href="cooldown/">RealityCheck</a>
     <a class="site-nav__discord" href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
   </div>
 </nav>
 <header class="product-hero">
   <div class="landing-shell">
-    <span class="brand-eyebrow">Browser extension</span>
-    <h1 class="product-hero__title">TiltCheck lives in the casino tab.</h1>
-    <p class="product-hero__lede">It sits on the casino tab and gets in your way: two seconds between spins, your block list, losses in hours of your real job, and a dead cashier button while you touch grass. Read-only. We never hold your money.</p>
+    <span class="brand-eyebrow">Desktop Companion</span>
+    <h1 class="product-hero__title">TiltCheck Browser Extension</h1>
+    <p class="product-hero__lede">Direct, free browser companion: enforces a 2-second pause between spins, blocks high-risk games, and locks cashier buttons during cooldowns. Zero store dependencies.</p>
     <div class="hero-actions hero-actions--start">
-    <span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">EXTENSION: NOT PUBLIC YET</button><span id="gated-zip-why" class="gated-zip-cta__why">Hop in the Discord to hear when it drops.</span></span>
-    <a class="hero-actions__secondary-link" href="cooldown/">Sign a Touch Grass lock</a></div>
+    <a class="hero-actions__cta" href="/downloads/tiltcheck-extension.zip" download style="border-radius:var(--radius-pill); font-weight:800;">DOWNLOAD EXTENSION (ZIP)</a>
+    <a class="hero-actions__secondary-link" href="gate/">Use TimeCheck Mobile App</a></div>
   </div>
 </header>
 <main class="product-main">
   <section class="public-page-section">
-    <div class="landing-shell explainer">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Why install</span>
-        <h2 class="public-page-section-heading__title">You already know the spiral.</h2>
-      </div>
-      <p class="explainer__p">Three losses. Bet size climbs. “Im due.” Another deposit. The extension’s job is to notice that pacing while the tab is still open and push the exit you configured when you were still thinking straight.</p>
-      <p class="explainer__p">It does not place bets for you. It does not “beat the house.” It is brakes — the same idea as a seatbelt, except for sessions that feel immortal at 2am.</p>
-    </div>
-  </section>
-  <section class="public-page-section">
     <div class="landing-shell">
-      <article class="public-page-card">
-        <p class="public-page-card__eyebrow">Getting it</p>
-        <h2 class="public-page-card__title">Not public yet.</h2>
-        <p class="public-page-card__copy">No download link right now. Hop in the <a href="https://discord.gg/gdBsEJfCar" rel="noopener noreferrer">TiltCheck Discord</a> and you will hear first.</p>
-        <p class="public-page-card__copy">Live on this site right now, no extension needed: Touch Grass locks, the RTP scanner, the bet verifier, and casino trust lookups.</p>
+      <article class="public-page-card" style="border: 1px solid rgba(23,195,178,0.35); background: rgba(23,195,178,0.04);">
+        <p class="public-page-card__eyebrow" style="color:#17c3b2;">3-Step Sideload Guide</p>
+        <h2 class="public-page-card__title">How to Install in 30 Seconds</h2>
+        <ol style="color:var(--text-secondary); line-height:1.75; padding-left:1.25rem; margin:1rem 0;">
+          <li><strong>Download and extract</strong> the <a href="/downloads/tiltcheck-extension.zip" download style="color:#17c3b2; text-decoration:underline;">tiltcheck-extension.zip</a> file to your computer.</li>
+          <li>Open Chrome, Brave, or Edge and go to <code>chrome://extensions</code> in your address bar.</li>
+          <li>Turn on <strong>Developer mode</strong> (toggle top right), click <strong>Load unpacked</strong>, and select the unzipped folder.</li>
+        </ol>
+        <p class="public-page-card__copy" style="font-size:0.85rem; color:var(--text-muted); margin-top:0.75rem;">100% client-side. No tracking, no wallet keys, no store dependencies.</p>
       </article>
     </div>
   </section>
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">On the tab</span>
-        <h2 class="public-page-section-heading__title">What it does.</h2>
+        <span class="brand-eyebrow">Features</span>
+        <h2 class="public-page-section-heading__title">What it does on your casino tab.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2"><article class="public-page-card">
-  <h2 class="public-page-card__title">2-Second Spin Pause</h2>
-  <p class="public-page-card__copy">After every spin the bet button naps for two seconds. No turbo-mashing into dead rolls.</p>
+  <h2 class="public-page-card__title">ClickCheck (Spin Delay)</h2>
+  <p class="public-page-card__copy">A mandatory 2-second pause between spins to kill the auto-spin daze and stop bankroll bleed.</p>
 </article>
 <article class="public-page-card">
-  <h2 class="public-page-card__title">Game Filters</h2>
-  <p class="public-page-card__copy">Make your own block list. Chicken, Mines, Plinko, or the slots that rinse you stop clicking the second they are on it.</p>
+  <h2 class="public-page-card__title">TiltCheck (Rinse Blocker)</h2>
+  <p class="public-page-card__copy">Put high-drain trap games on your blocklist to make them completely unclickable.</p>
 </article>
 <article class="public-page-card">
-  <h2 class="public-page-card__title">Reality Wage Clock</h2>
-  <p class="public-page-card__copy">Turns your session losses into hours of real work torched ($25/hr default). A blunt reminder before you blow a whole shift.</p>
+  <h2 class="public-page-card__title">SpinCheck (Default Bet Breaker)</h2>
+  <p class="public-page-card__copy">Spots slots that sneakily open at $1.00–$2.00 a spin instead of $0.10 and catches it before spin one.</p>
 </article>
 <article class="public-page-card">
-  <h2 class="public-page-card__title">Deposit Speed Bump</h2>
-  <p class="public-page-card__copy">Reaching for the wallet during a Touch Grass lock? Cashier and reload buttons go dead until the timer runs out.</p>
+  <h2 class="public-page-card__title">PocketCheck (Payout Lock)</h2>
+  <p class="public-page-card__copy">Disables &quot;Cancel Withdrawal&quot; buttons so pending cashouts actually hit your pocket.</p>
 </article>
 <article class="public-page-card">
-  <h2 class="public-page-card__title">Cancel-Withdrawal Blocker</h2>
-  <p class="public-page-card__copy">Hides &quot;cancel withdrawal&quot; while a cashout is pending, so late-night you has to work harder to undo it.</p>
+  <h2 class="public-page-card__title">WinCheck (Profit Skimmer)</h2>
+  <p class="public-page-card__copy">Skims a configurable percentage of heater wins straight into your vault before you give it back.</p>
 </article>
 <article class="public-page-card">
-  <h2 class="public-page-card__title">Profit Floor &amp; Real Goals</h2>
-  <p class="public-page-card__copy">Marks a profit floor when you are up (50% default). Slide toward it and you get a warning, then a 60-second pause, plus what the money is really for: rent, bills, gas.</p>
-</article>
-<article class="public-page-card">
-  <h2 class="public-page-card__title">Bonus Rollover &amp; Max-Bet Alarm</h2>
-  <p class="public-page-card__copy">Shows how much rollover is left and yells before one oversized bet gets your bonus voided.</p>
-</article>
-<article class="public-page-card">
-  <h2 class="public-page-card__title">Loss Speed Meter</h2>
-  <p class="public-page-card__copy">How fast you are losing, in dollars per minute, with bands from Steady to Cliff-Dive, right in the popup.</p>
-</article>
-<article class="public-page-card">
-  <h2 class="public-page-card__title">One-Click Cashout Links</h2>
-  <p class="public-page-card__copy">Jumps straight to the cashier on 21+ crypto and sweeps casinos, with progress bars toward real bills.</p>
-</article>
-<article class="public-page-card">
-  <h2 class="public-page-card__title">Mid-Session Auto-Vault</h2>
-  <p class="public-page-card__copy">Moves a cut into the casino vault (like Stake Vault) when you hit your goal. Your account, your money.</p>
-</article>
-<article class="public-page-card">
-  <h2 class="public-page-card__title">Streak &amp; &quot;I&#39;m Due&quot; Spotter</h2>
-  <p class="public-page-card__copy">Counts dead spins and heater streaks. Raise your bet because you are &quot;due&quot; and it calls you out and points at the cashier.</p>
+  <h2 class="public-page-card__title">RealityCheck (Touch Grass)</h2>
+  <p class="public-page-card__copy">Locks cashier and spin buttons for 24 hours straight when you need a hard reset.</p>
 </article></div>
     </div>
   </section>
@@ -112,11 +91,13 @@
     <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
       <a href="tools/">All Tools</a>
-      <a href="rtp-scanner/">RTP Scanner</a>
-      <a href="house-edge-scanner/">House Edge</a>
-      <a href="verify/">Bet Verifier</a>
-      <a href="autovault/">AutoVault</a>
-      <a href="nudges/">Nudges</a>
+      <a href="gate/">TimeCheck</a>
+      <a href="cooldown/">RealityCheck</a>
+      <a href="rtp-scanner/">RTPCheck</a>
+      <a href="house-edge-scanner/">MathCheck</a>
+      <a href="verify/">BetCheck</a>
+      <a href="wincheck/">WinCheck</a>
+      <a href="casinos/">TrustCheck</a>
       <a href="tip/">Tip Jar</a>
       <a href="privacy/">Privacy Policy</a>
     </div>
