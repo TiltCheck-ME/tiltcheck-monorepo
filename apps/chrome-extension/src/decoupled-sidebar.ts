@@ -46,7 +46,7 @@ export function initSidebar(_onDisable?: () => void | Promise<void>): SidebarUI 
       <span style="font-weight:800;color:#17c3b2;font-size:0.875rem;letter-spacing:0.05em;">TiltCheck Spotter</span>
       <button id="tg-hide" type="button" style="background:transparent;border:0;color:#9aa3b2;cursor:pointer;font:inherit;">Close</button>
     </div>
-    <div id="tg-sidebar-status" style="font-size:0.75rem;color:#9aa3b2;margin-bottom:1rem;">Spotter active. Zero custody. Non-custodial guardrails.</div>
+    <div id="tg-sidebar-status" style="font-size:0.75rem;color:#9aa3b2;margin-bottom:1rem;">Spotter active. Zero custody. Non-custodial checks and brakes.</div>
     <div id="tg-sidebar-feed" style="font-size:0.75rem;color:#e2e8f0;display:flex;flex-direction:column;gap:0.5rem;"></div>
   `;
   document.body.appendChild(sidebarEl);

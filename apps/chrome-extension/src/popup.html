@@ -1638,11 +1638,11 @@
         <div class="preset-name">Bag Securer</div>
         <span class="preset-pill pill-rec">Recommended</span>
       </div>
-      <div class="preset-desc">Deposit barrier active, reverse withdrawal shielded, 15% profit lock trailing stop.</div>
+      <div class="preset-desc">Deposit barrier on, PocketCheck payout lock active, 15% WinCheck profit floor.</div>
       <div class="preset-specs">
         <span>Drawdown: 55%</span>
-        <span>Barrier: ON</span>
-        <span>Profit Lock: 15%</span>
+        <span>PocketCheck: ON</span>
+        <span>WinCheck: 15%</span>
       </div>
     </div>
 
@@ -1844,7 +1844,7 @@
 <div id="panel-block" class="panel active">
 
   <section class="guard-panel" id="touch-grass-panel">
-    <h3>Spin lock</h3>
+    <h3>ClickCheck (Spin Delay)</h3>
     <p class="guard-policy">
       Every spin locks the spin button for two seconds. A click during the lock does not spin.
       There is no full-screen cover.
@@ -1857,7 +1857,7 @@
   </section>
 
   <section class="guard-panel" id="default-bet-breaker-panel">
-    <h3>Default Bet Breaker</h3>
+    <h3>SpinCheck (Default Bet Breaker)</h3>
     <p class="guard-policy">
       Blocks the first spin on game load or page reload if the default house stake exceeds your base threshold.
     </p>
@@ -1872,7 +1872,7 @@
   </section>
 
   <section class="guard-panel" id="reality-hud-panel">
-    <h3>Reality HUD</h3>
+    <h3>Wage Clock (Reality HUD)</h3>
     <p class="guard-policy">
       Wage-hour equivalence banner. Converts session drawdown into hours of labor torched.
     </p>
@@ -1887,7 +1887,7 @@
   </section>
 
   <section class="guard-panel" id="deposit-barrier-panel">
-    <h3>Deposit Barrier</h3>
+    <h3>RealityCheck (Deposit &amp; Cashier Barrier)</h3>
     <p class="guard-policy">
       Intercepts cashier and deposit button clicks during active timeouts and voluntary cooldowns.
     </p>
@@ -1923,20 +1923,20 @@
   </section>
 
   <section class="guard-panel" id="reverse-withdrawal-shield-panel">
-    <h3>Reverse-Withdrawal Shield</h3>
+    <h3>PocketCheck (Payout Lock)</h3>
     <p class="guard-policy">
-      Blocks "Cancel Withdrawal" and "Cancel Redemption" buttons while cashouts are pending. Keep your winnings off the table.
+      Blocks "Cancel Withdrawal" and "Cancel Redemption" buttons while cashouts are pending so your winnings actually hit your pocket.
     </p>
     <label class="guard-opt-row" for="reverse-withdrawal-shield-toggle">
       <input type="checkbox" id="reverse-withdrawal-shield-toggle" />
-      <span>Disarm cancel-cashout buttons during pending payout periods.</span>
+      <span>Disable cancel-cashout buttons while payouts are pending.</span>
     </label>
   </section>
 
   <section class="guard-panel" id="profit-lock-panel">
-    <h3>Profit-Lock Ratchet</h3>
+    <h3>WinCheck (Profit Skimmer &amp; Floor)</h3>
     <p class="guard-policy">
-      Locks in a trailing profit floor once you are ahead. If your balance slides back to the floor, TiltCheck gives you a soft warning, escalating to a 60-second brake if you rage-spin through it.
+      Locks in a trailing profit floor once you are ahead. When you hit a win, WinCheck secures your cut before you give it back.
     </p>
     <label class="guard-opt-row" for="profit-lock-toggle">
       <input type="checkbox" id="profit-lock-toggle" />
@@ -2204,7 +2204,7 @@
     <div class="onboarding-badge-icon" style="border-color:#17c3b2; color:#17c3b2; margin-bottom:12px;">NON-CUSTODIAL TIP JAR</div>
     <h2 style="font-size:18px; margin:0 0 6px 0; color:#fff;">Support TiltCheck</h2>
     <p class="onboarding-tagline" style="margin-bottom:14px;">
-      TiltCheck is 100% free and open-source. When degens hit a heater, throw a tip to keep our servers running and spotter guardrails free for everyone.
+      TiltCheck is 100% free and open-source. When degens hit a heater, throw a tip to keep our servers running and all checks free for everyone.
     </p>
 
     <div style="background:#0c0f14; border:1px solid rgba(23,195,178,0.25); border-radius:8px; padding:12px; margin-bottom:12px;">
@@ -2252,29 +2252,29 @@
         <img src="icons/icon48.png" width="36" height="36" style="border-radius:8px;" alt="TiltCheck Shield" />
         <div>
           <h2>Welcome to TiltCheck</h2>
-          <p class="onboarding-tagline">Non-custodial responsible gaming guardrails for degens.</p>
+          <p class="onboarding-tagline">Client-side brakes and checks for casino players.</p>
         </div>
       </div>
       <div class="onboarding-features">
         <div class="feature-item">
-          <strong>Zero Custody:</strong> We never hold keys, passwords, or casino funds. 100% on-device harm reduction.
+          <strong>Zero Custody:</strong> We never hold keys, passwords, or casino funds. 100% in-browser harm reduction.
         </div>
         <div class="feature-item">
-          <strong>2s Spin Brake:</strong> Breaks the rapid-spin trance between clicks so you stay grounded.
+          <strong>ClickCheck:</strong> Mandatory 2s pause between clicks to break the auto-spin daze.
         </div>
         <div class="feature-item">
           <strong>On-Device Telemetry:</strong> PnL velocity, streak tracking, and CSPRNG client seed rotation.
         </div>
       </div>
       <div class="onboarding-actions">
-        <button type="button" class="btn btn-primary" id="btn-step-1-next">Set Up My Protection &rarr;</button>
+        <button type="button" class="btn btn-primary" id="btn-step-1-next">Set Up My Checks &rarr;</button>
       </div>
     </div>
 
     <!-- Step 2: 2-Question Setup Quiz -->
     <div class="onboarding-step" id="onboarding-step-2" style="display:none;">
-      <h2>Personalized Protection Setup</h2>
-      <p class="onboarding-tagline">Answer 2 quick questions to calibrate your on-device defenses:</p>
+      <h2>Personalized Setup</h2>
+      <p class="onboarding-tagline">Answer 2 quick questions to configure your in-browser checks:</p>
 
       <div class="wizard-quiz-wrap">
         <div class="quiz-question-box">
@@ -2282,11 +2282,11 @@
           <div class="quiz-options-group" id="quiz-group-style">
             <button type="button" class="quiz-option-btn" data-value="casual">
               <span class="quiz-opt-title">Casual &amp; Low Stakes</span>
-              <span class="quiz-opt-desc">Reality HUD, sound cues &amp; default bet breaker.</span>
+              <span class="quiz-opt-desc">Wage Clock, sound cues &amp; SpinCheck.</span>
             </button>
             <button type="button" class="quiz-option-btn active" data-value="bag_securer">
               <span class="quiz-opt-title">Bag Securer &amp; Cashouts</span>
-              <span class="quiz-opt-desc">Deposit barrier on, reverse withdrawal shielded, 15% profit lock.</span>
+              <span class="quiz-opt-desc">Cashier barrier on, PocketCheck payout lock, 15% WinCheck.</span>
             </button>
             <button type="button" class="quiz-option-btn" data-value="hard_lockdown">
               <span class="quiz-opt-title">High Volatility / De-risking</span>
@@ -2304,11 +2304,11 @@
             </button>
             <button type="button" class="quiz-option-btn" data-value="giveback">
               <span class="quiz-opt-title">Giving back big wins (not cashing out)</span>
-              <span class="quiz-opt-desc">Engages Profit Lock trailing ratchet &amp; goals.</span>
+              <span class="quiz-opt-desc">Engages WinCheck profit skimmer &amp; cashout goals.</span>
             </button>
             <button type="button" class="quiz-option-btn" data-value="accidental">
               <span class="quiz-opt-title">Accidental high bets on game load</span>
-              <span class="quiz-opt-desc">Engages Default Bet Breaker ($0.50 threshold).</span>
+              <span class="quiz-opt-desc">Engages SpinCheck default bet breaker ($0.50 threshold).</span>
             </button>
           </div>
         </div>
@@ -2316,14 +2316,14 @@
 
       <div class="onboarding-actions" style="margin-top:14px;">
         <button type="button" class="btn btn-ghost" id="btn-step-2-back">&larr; Back</button>
-        <button type="button" class="btn btn-primary" id="btn-step-2-next">Review Shield &rarr;</button>
+        <button type="button" class="btn btn-primary" id="btn-step-2-next">Review Checks &rarr;</button>
       </div>
     </div>
 
     <!-- Step 3: Setup Confirmation & Launch -->
     <div class="onboarding-step" id="onboarding-step-3" style="display:none;">
-      <h2>Shield Calibrated</h2>
-      <p class="onboarding-tagline">Here is your active protection configuration:</p>
+      <h2>Checks Configured</h2>
+      <p class="onboarding-tagline">Here is your active session configuration:</p>
 
       <div class="wizard-summary-card">
         <div class="summary-row">
@@ -2339,13 +2339,13 @@
           <span class="summary-value" style="color:var(--teal);">Easy Mode (Default)</span>
         </div>
         <p style="font-size:10.5px; color:var(--muted); line-height:1.4; margin-top:10px;">
-          All guardrails run purely on your device. You can toggle between Easy and Pro mode at any time using the header toggle.
+          All checks run purely on your device. You can toggle between Easy and Pro mode at any time using the header toggle.
         </p>
       </div>
 
       <div class="onboarding-actions">
         <button type="button" class="btn btn-ghost" id="btn-step-3-back">&larr; Back</button>
-        <button type="button" class="btn btn-primary" id="btn-finish-onboarding">Arm Guardrails &amp; Finish &rarr;</button>
+        <button type="button" class="btn btn-primary" id="btn-finish-onboarding">Activate Checks &amp; Finish &rarr;</button>
       </div>
     </div>
   </div>

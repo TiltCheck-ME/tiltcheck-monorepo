@@ -1,7 +1,7 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * activity-feed.ts
- * Real-time guardrail and session event logger for TiltCheck.
+ * Real-time session event logger for TiltCheck.
  * Non-custodial: client-side telemetry with zero custody of player funds.
  */
 

@@ -9,8 +9,10 @@ on:
       - 'docs/tiltcheck/**'
       - 'scripts/convert-markdown.js'
       - 'scripts/pages-product-data.mjs'
+      - 'scripts/build-gate-page.mjs'
       - 'scripts/pages-assets/**'
       - 'apps/web/src/data/casinos.json'
+      - 'apps/chrome-extension/tiltcheck-extension.zip'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 

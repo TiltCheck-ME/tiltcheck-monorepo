@@ -614,7 +614,7 @@ async function boot(): Promise<void> {
   const siteKey = normalizeSiteKey(hostname);
   const friendlySite = siteKey ? siteKey.charAt(0).toUpperCase() + siteKey.slice(1) : hostname;
   if (!hostname.includes('tiltcheck.me') && !hostname.includes('localhost')) {
-    void recordActivityFeedEvent(`TiltCheck guardrails active on ${friendlySite}`, 'info');
+    void recordActivityFeedEvent(`TiltCheck active on ${friendlySite}`, 'info');
   }
   installEventDrivenTiltWatcher();
   installCooldownPageBridge();

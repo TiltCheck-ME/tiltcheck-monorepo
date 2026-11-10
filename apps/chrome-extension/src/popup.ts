@@ -1631,7 +1631,7 @@ function initGuardSettingsPanel(): void {
     reverseShieldToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveReverseWithdrawalShieldEnabled(enabled);
-      toast(enabled ? 'Reverse-withdrawal shield armed.' : 'Reverse-withdrawal shield disabled.');
+      toast(enabled ? 'PocketCheck payout lock enabled.' : 'PocketCheck payout lock disabled.');
     });
   }
 
@@ -1640,7 +1640,7 @@ function initGuardSettingsPanel(): void {
     profitLockToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveProfitLockEnabled(enabled);
-      toast(enabled ? 'Profit-lock ratchet armed.' : 'Profit-lock ratchet disabled.');
+      toast(enabled ? 'WinCheck profit floor enabled.' : 'WinCheck profit floor disabled.');
     });
   }
 
@@ -2253,7 +2253,7 @@ function initOnboardingWizard(): void {
     await renderEasyModeState();
     void refreshGuardSettingsUi();
     closeWizard();
-    toast('TiltCheck guardrails armed. Welcome to Easy Mode.');
+    toast('TiltCheck checks active. Welcome to Easy Mode.');
   });
 
   void loadOnboardingCompleted().then((completed) => {
