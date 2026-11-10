@@ -653,12 +653,7 @@ function buildCasinosPage(casinos) {
           .map((e) => '<li>' + escapeHtml(e) + '</li>')
           .join('');
 
-        extraContent = '\n' +
-          '  <div class="casino-card__meta-tags">\n' +
-          '    <span class="badge-audited">Audited</span>\n' +
-          (c.rtpSummary ? '    <span class="badge-rtp">' + escapeHtml(c.rtpSummary) + '</span>\n' : '') +
-          '  </div>\n' +
-          '  <p class="casino-card__license">' + escapeHtml(c.license || '') + '</p>\n' +
+        const detailsHtml =
           '  <details class="casino-card__details">\n' +
           '    <summary class="casino-card__details-toggle">View verified evidence (' + (c.evidence || []).length + ')</summary>\n' +
           '    <div class="casino-card__details-body">\n' +
@@ -682,6 +677,14 @@ function buildCasinosPage(casinos) {
           '      <ul class="casino-card__evidence-list">' + evidenceItems + '</ul>\n' +
           '    </div>\n' +
           '  </details>';
+
+        extraContent = '\n' +
+          '  <div class="casino-card__meta-tags">\n' +
+          '    <span class="badge-audited">Audited</span>\n' +
+          (c.rtpSummary ? '    <span class="badge-rtp">' + escapeHtml(c.rtpSummary) + '</span>\n' : '') +
+          '  </div>\n' +
+          '  <p class="casino-card__license">' + escapeHtml(c.license || '') + '</p>\n' +
+          staffOnly(detailsHtml, 'TrustCheck Team — Audit Evidence');
       }
 
       const trust = calculateCasinoTrust(c);
@@ -773,7 +776,8 @@ function buildCasinosPage(casinos) {
         <span class="brand-eyebrow">Methodology</span>
         <h2 class="public-page-section-heading__title">How letter grades are built.</h2>
       </div>
-      <ol class="method-list">${steps}</ol>
+      <p class="method-summary">Grades are built from payout speed, license verification, and terms review.</p>
+      ${staffOnly('<ol class="method-list">' + steps + '</ol>', 'TrustCheck Team — Grading Methodology')}
     </div>
   </section>
 </main>

@@ -312,25 +312,29 @@
     "name": "MyPrize US",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Rolla",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Gains.com",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "LoneStar Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Real Prize",
@@ -358,7 +362,8 @@
     "name": "MegaBonanza",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Jackpota",
@@ -386,25 +391,29 @@
     "name": "PlayFame",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "SpinBlitz",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Ace.com",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Spindoo",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "NoLimitCoins",
@@ -432,139 +441,162 @@
     "name": "Pulsz Bingo",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Sportzino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "American Luck",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Yay Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Shuffle.us",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Chanced",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Punt",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Spinfinite",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Lunaland Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Baba Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Spree",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Dara Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Chip'n WIN",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "JefeBet Casino",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Rolling Riches",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "LuckyStake",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Lucky Hands",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "SpinQuest",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Zoot",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Gold Machine",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "MrGoodwin",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "GoldenHearts Bingo",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "TapTap Bingo",
     "grade": "B",
     "risk": "Medium",
-    "category": "Sweeps"
+    "category": "Sweeps",
+    "audited": false
   },
   {
     "name": "Funzpoints",
@@ -654,25 +686,29 @@
     "name": "Bitcasino.io",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Sportsbet.io",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "FortuneJack",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Cloudbet",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Gamdom",
@@ -742,7 +778,8 @@
     "name": "Wolf.bet",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Duelbits",
@@ -770,43 +807,50 @@
     "name": "TrustDice",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "MegaDice",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Mbit Casino",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "7Bit Casino",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Rocketpot",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Fairspin",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "Betcoin",
     "grade": "B-",
     "risk": "Medium",
-    "category": "Crypto"
+    "category": "Crypto",
+    "audited": false
   },
   {
     "name": "DraftKings Casino",
@@ -922,258 +966,301 @@
     "name": "Borgata Online",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Golden Nugget Online",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Hard Rock Bet",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "WynnBET",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "PlaySugarHouse",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "SI Casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Tropicana Online",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Mohegan Sun Casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Resorts Casino Online",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Bet365",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "888casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "PokerStars Casino",
     "grade": "A",
     "risk": "Low",
-    "category": "Regulated"
+    "category": "Regulated",
+    "audited": false
   },
   {
     "name": "Bovada",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "Ignition Casino",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "Casumo",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "Videoslots",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "Casino.com",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "Spin Casino",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "Jackpot City",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "PlayOJO",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Offshore"
+    "category": "Offshore",
+    "audited": false
   },
   {
     "name": "MyStake",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Grey Market"
+    "category": "Grey Market",
+    "audited": false
   },
   {
     "name": "Rabona Casino",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Grey Market"
+    "category": "Grey Market",
+    "audited": false
   },
   {
     "name": "Neon54",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Grey Market"
+    "category": "Grey Market",
+    "audited": false
   },
   {
     "name": "HellSpin",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Grey Market"
+    "category": "Grey Market",
+    "audited": false
   },
   {
     "name": "FreshBet",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Grey Market"
+    "category": "Grey Market",
+    "audited": false
   },
   {
     "name": "FortuneClock",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Grey Market"
+    "category": "Grey Market",
+    "audited": false
   },
   {
     "name": "Vegas X",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Skill Game"
+    "category": "Skill Game",
+    "audited": false
   },
   {
     "name": "Orion Stars (alt)",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Skill Game"
+    "category": "Skill Game",
+    "audited": false
   },
   {
     "name": "RiverSweeps (alt)",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Skill Game"
+    "category": "Skill Game",
+    "audited": false
   },
   {
     "name": "SkillMine (alt)",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Skill Game"
+    "category": "Skill Game",
+    "audited": false
   },
   {
     "name": "PlayRiverSlot",
     "grade": "C-",
     "risk": "Medium-High",
-    "category": "Skill Game"
+    "category": "Skill Game",
+    "audited": false
   },
   {
     "name": "SlotsOfVegas",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "CoolCat Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Raging Bull Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Grand Eagle",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Cherry Gold",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Slot Madness",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "SpinPalace (clone network)",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Royal Ace Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "TwoUp Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Planet 7 Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Prism Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   },
   {
     "name": "Eclipse Casino",
     "grade": "F",
     "risk": "Critical",
-    "category": "Scam"
+    "category": "Scam",
+    "audited": false
   }
 ]
