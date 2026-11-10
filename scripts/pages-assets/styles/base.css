@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-30 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /*
  * GitHub Pages shell — static twin of tiltcheck.me landing tokens/layout.
  * Absolute /paths break on project Pages; HTML uses relative asset hrefs.
@@ -2226,3 +2226,322 @@ td {
   border-color: rgba(239, 68, 68, 0.5);
   color: #fca5a5;
 }
+
+/* ==========================================================================
+   MathCheck — VIP Churn & House Edge Scanner
+   ========================================================================== */
+
+.mathcheck-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.mathcheck-tabs-label {
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.mathcheck-tabs-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mathcheck-tab {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-default);
+  color: #b5c1cd;
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mathcheck-tab:hover {
+  background: rgba(23, 195, 178, 0.08);
+  border-color: rgba(23, 195, 178, 0.4);
+  color: #f6fbff;
+}
+
+.mathcheck-tab.is-active {
+  background: rgba(23, 195, 178, 0.14);
+  border-color: #17c3b2;
+  color: #17c3b2;
+  box-shadow: 0 0 12px rgba(23, 195, 178, 0.2);
+}
+
+.mathcheck-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 860px) {
+  .mathcheck-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mathcheck-card {
+  background: #090d13;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+.mathcheck-results-card {
+  border-color: rgba(23, 195, 178, 0.3);
+  background: radial-gradient(circle at top right, rgba(23, 195, 178, 0.04), #090d13 60%);
+}
+
+.mathcheck-card-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.mathcheck-card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f6fbff;
+  margin: 0.25rem 0 0;
+  letter-spacing: -0.01em;
+}
+
+.mathcheck-section-badge {
+  font-size: 0.65rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #17c3b2;
+}
+
+.mathcheck-form-group {
+  margin-bottom: 1.15rem;
+}
+
+.mathcheck-label {
+  display: block;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.mathcheck-select,
+.mathcheck-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #05080c;
+  border: 1px solid #283347;
+  border-radius: 6px;
+  color: #f6fbff;
+  padding: 0.65rem 0.85rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mathcheck-select:focus,
+.mathcheck-input:focus {
+  outline: none;
+  border-color: #17c3b2;
+  box-shadow: 0 0 0 3px rgba(23, 195, 178, 0.18);
+}
+
+.mathcheck-select option {
+  background: #090d13;
+  color: #f6fbff;
+}
+
+.mathcheck-form-hint {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+.mathcheck-form-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .mathcheck-form-grid-2x2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mathcheck-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.mathcheck-badge {
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  border: 1px solid #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mathcheck-deficit-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 8px;
+  padding: 1.15rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.mathcheck-deficit-label {
+  font-size: 0.72rem;
+  font-family: var(--font-mono, monospace);
+  color: #ef4444;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.mathcheck-deficit-value {
+  font-size: clamp(1.8rem, 3.5vw, 2.3rem);
+  font-family: var(--font-mono, monospace);
+  font-weight: 900;
+  color: #ef4444;
+  letter-spacing: -0.02em;
+  margin: 0.25rem 0 0.15rem;
+}
+
+.mathcheck-deficit-sub {
+  font-size: 0.75rem;
+  font-family: var(--font-sans);
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.mathcheck-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.mathcheck-stat-tile {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mathcheck-stat-label {
+  font-size: 0.68rem;
+  font-family: var(--font-mono, monospace);
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.mathcheck-stat-value {
+  font-size: 1.15rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  color: #f6fbff;
+  margin-top: 0.2rem;
+}
+
+.mathcheck-stat-hint {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.mathcheck-val--loss {
+  color: #ef4444;
+}
+
+.mathcheck-val--accent {
+  color: #17c3b2;
+}
+
+.mathcheck-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(23, 195, 178, 0.06);
+  border: 1px solid rgba(23, 195, 178, 0.2);
+  border-left: 4px solid #17c3b2;
+  border-radius: 0 8px 8px 0;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.mathcheck-callout-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #17c3b2;
+  color: #06080b;
+  font-weight: 900;
+  font-family: var(--font-mono, monospace);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mathcheck-callout-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #17c3b2;
+  margin: 0 0 0.25rem 0;
+}
+
+.mathcheck-callout-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin: 0;
+}
+

@@ -1749,110 +1749,167 @@ function buildVerifyDirectRedirect() {
 function buildHouseEdgePage() {
   const depth = "docs";
 
-  const content = `<main class="cooldown-page">
-  <div class="cooldown-panel" style="max-width: 960px; text-align: left;">
-    <p class="brand-eyebrow">${escapeHtml(HOUSE_EDGE_PAGE.eyebrow)}</p>
-    <h1>${escapeHtml(HOUSE_EDGE_PAGE.title)}</h1>
-    <p class="cooldown-punch">${escapeHtml(HOUSE_EDGE_PAGE.punch)}</p>
-
-    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid #283347; padding-bottom: 0.75rem;">
-        <span style="font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe;">Select Casino Loyalty Model:</span>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button type="button" onclick="selectVipCasino('stake')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[STAKE VIP]</button>
-          <button type="button" onclick="selectVipCasino('roobet')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[ROOBET ROOWARDS]</button>
-          <button type="button" onclick="selectVipCasino('bcgame')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[BC.GAME VIP]</button>
-          <button type="button" onclick="selectVipCasino('sweeps')" style="background: #000; border: 1px solid #283347; color: #17c3b2; padding: 0.35rem 0.65rem; font-family: monospace; font-size: 10px; font-weight: bold; cursor: pointer;">[SWEEPSTAKES VIP]</button>
+  const content = `${productHero({
+    eyebrow: "MathCheck",
+    title: "VIP Churn & House Edge Scanner",
+    lede: "Calculate the mathematical cost of casino VIP ladders, wagering requirements, and comp rewards. Progress bars are psychological sunk-cost hooks designed to disguise expected negative EV.",
+    actionsHtml: `<a class="btn btn-primary" href="${href(depth, "extension.html")}">The Extension</a>
+    <a class="hero-actions__secondary-link" href="${dirHref(depth, "tools")}">All Tools</a>`,
+  })}
+<main class="product-main">
+  <section class="public-page-section">
+    <div class="landing-shell">
+      <div class="mathcheck-tabs-bar">
+        <span class="mathcheck-tabs-label">Loyalty Model Preset:</span>
+        <div class="mathcheck-tabs-group" role="tablist">
+          <button type="button" class="mathcheck-tab is-active" data-casino="stake" role="tab" aria-selected="true" onclick="selectVipCasino('stake')">Stake VIP</button>
+          <button type="button" class="mathcheck-tab" data-casino="roobet" role="tab" aria-selected="false" onclick="selectVipCasino('roobet')">Roobet Roowards</button>
+          <button type="button" class="mathcheck-tab" data-casino="bcgame" role="tab" aria-selected="false" onclick="selectVipCasino('bcgame')">BC.Game VIP</button>
+          <button type="button" class="mathcheck-tab" data-casino="sweeps" role="tab" aria-selected="false" onclick="selectVipCasino('sweeps')">Sweepstakes VIP</button>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+      <div class="mathcheck-grid">
+        <div class="mathcheck-card mathcheck-inputs-card">
+          <div class="mathcheck-card-header">
+            <span class="mathcheck-section-badge">Input Parameters</span>
+            <h2 class="mathcheck-card-title">Wagering Configuration</h2>
+          </div>
+
+          <div class="mathcheck-form-group">
+            <label class="mathcheck-label" for="heTierSelect">Milestone Tier Target</label>
+            <select id="heTierSelect" class="mathcheck-select" onchange="onVipTierChange()"></select>
+            <span class="mathcheck-form-hint">Presets populate standard tier turnover thresholds and unlock rewards.</span>
+          </div>
+
+          <div class="mathcheck-form-group">
+            <label class="mathcheck-label" for="heGameSelect">Game Category &amp; House Edge</label>
+            <select id="heGameSelect" class="mathcheck-select" onchange="onVipGameChange()">
+              <option value="1.0:100">Casino Originals (1.0% Edge - 100% Contribution)</option>
+              <option value="3.5:100" selected>Certified Slots (3.5% Edge - 100% Contribution)</option>
+              <option value="4.5:100">Average Industry Slots (4.5% Edge - 100% Contribution)</option>
+              <option value="6.0:100">Downgraded Slots (6.0% Edge - 100% Contribution)</option>
+              <option value="10.0:100">Severe Downgrade Slots (10.0% Edge - 100% Contribution)</option>
+              <option value="0.5:20">Live Blackjack (0.5% Edge - 20% Throttled Weight)</option>
+              <option value="2.7:50">European Roulette (2.7% Edge - 50% Throttled Weight)</option>
+            </select>
+            <span class="mathcheck-form-hint">Notice: Table games throttled to 20% contribution multiply required turnover 5x.</span>
+          </div>
+
+          <div class="mathcheck-form-grid-2x2">
+            <div class="mathcheck-form-group">
+              <label class="mathcheck-label" for="heCurrentWager">Current Wager ($)</label>
+              <input id="heCurrentWager" class="mathcheck-input" type="number" min="0" value="100000" oninput="updateVipCalc()"/>
+            </div>
+            <div class="mathcheck-form-group">
+              <label class="mathcheck-label" for="heTargetWager">Target Tier ($)</label>
+              <input id="heTargetWager" class="mathcheck-input" type="number" min="0" value="250000" oninput="updateVipCalc()"/>
+            </div>
+            <div class="mathcheck-form-group">
+              <label class="mathcheck-label" for="heReward">Tier Reward ($)</label>
+              <input id="heReward" class="mathcheck-input" type="number" min="0" value="220" oninput="updateVipCalc()"/>
+            </div>
+            <div class="mathcheck-form-group">
+              <label class="mathcheck-label" for="heBetSize">Bet Size ($)</label>
+              <input id="heBetSize" class="mathcheck-input" type="number" step="0.5" min="0.1" value="2.0" oninput="updateVipCalc()"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="mathcheck-card mathcheck-results-card">
+          <div class="mathcheck-results-header">
+            <div>
+              <span class="mathcheck-section-badge">Live Audit</span>
+              <h2 class="mathcheck-card-title">Mathematical Reality</h2>
+            </div>
+            <span id="heSeverityBadge" class="mathcheck-badge">PREDATORY CHURN</span>
+          </div>
+
+          <div id="heDeficitContainer" class="mathcheck-deficit-box">
+            <div class="mathcheck-deficit-label">Net Statistical Deficit (True Cost to Unlock)</div>
+            <div id="heNetDeficit" class="mathcheck-deficit-value">-$5,030.00</div>
+            <div class="mathcheck-deficit-sub">Expected loss incurred during wagering minus the unlocked reward value.</div>
+          </div>
+
+          <div class="mathcheck-stats-grid">
+            <div class="mathcheck-stat-tile">
+              <span class="mathcheck-stat-label">Effective Turnover</span>
+              <div id="heTurnover" class="mathcheck-stat-value">$150,000</div>
+              <span class="mathcheck-stat-hint">Adjusted for game weighting</span>
+            </div>
+            <div class="mathcheck-stat-tile">
+              <span class="mathcheck-stat-label">Expected House Loss</span>
+              <div id="heExpLoss" class="mathcheck-stat-value mathcheck-val--loss">-$5,250.00</div>
+              <span class="mathcheck-stat-hint">Statistical EV at chosen edge</span>
+            </div>
+            <div class="mathcheck-stat-tile">
+              <span class="mathcheck-stat-label">Comp Return Ratio</span>
+              <div id="heCompRatio" class="mathcheck-stat-value mathcheck-val--accent">4.19%</div>
+              <span class="mathcheck-stat-hint">Reward value vs expected loss</span>
+            </div>
+            <div class="mathcheck-stat-tile">
+              <span class="mathcheck-stat-label">House Retained</span>
+              <div id="heHouseKeep" class="mathcheck-stat-value">95.81%</div>
+              <span class="mathcheck-stat-hint">Casino retains the difference</span>
+            </div>
+            <div class="mathcheck-stat-tile">
+              <span class="mathcheck-stat-label">Spins Required</span>
+              <div id="heSpins" class="mathcheck-stat-value">75,000</div>
+              <span class="mathcheck-stat-hint">At chosen bet size</span>
+            </div>
+            <div class="mathcheck-stat-tile">
+              <span class="mathcheck-stat-label">Play Duration</span>
+              <div id="heDuration" class="mathcheck-stat-value">~72.9 hrs</div>
+              <span class="mathcheck-stat-hint">At ~3.5s per spin</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mathcheck-callout">
+        <div class="mathcheck-callout-icon">!</div>
         <div>
-          <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.35rem; font-weight: bold;">Milestone Tier Preset</label>
-          <select id="heTierSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px; margin-bottom: 1rem;" onchange="onVipTierChange()">
-          </select>
-
-          <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #17c3b2; margin-bottom: 0.35rem; font-weight: bold;">Game Type & House Edge</label>
-          <select id="heGameSelect" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.5rem; font-family: monospace; font-size: 12px; margin-bottom: 1rem;" onchange="onVipGameChange()">
-            <option value="1.0:100">Casino Originals (1.0% Edge - 100% Weight)</option>
-            <option value="3.5:100" selected>Certified Slots (3.5% Edge - 100% Weight)</option>
-            <option value="4.5:100">Average Industry Slots (4.5% Edge - 100% Weight)</option>
-            <option value="6.0:100">Downgraded Slots (6.0% Edge - 100% Weight)</option>
-            <option value="10.0:100">Severe Downgrade Slots (10.0% Edge - 100% Weight)</option>
-            <option value="0.5:20">Live Blackjack (0.5% Edge - 20% Throttled Weight)</option>
-            <option value="2.7:50">European Roulette (2.7% Edge - 50% Weight)</option>
-          </select>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <div>
-              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Current Wager ($)</label>
-              <input id="heCurrentWager" type="number" min="0" value="100000" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
-            </div>
-            <div>
-              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Target Tier ($)</label>
-              <input id="heTargetWager" type="number" min="0" value="250000" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
-            </div>
-            <div>
-              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Tier Reward ($)</label>
-              <input id="heReward" type="number" min="0" value="220" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
-            </div>
-            <div>
-              <label style="display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: #a0afbe; margin-bottom: 0.25rem;">Bet Size ($)</label>
-              <input id="heBetSize" type="number" step="0.5" min="0.1" value="2.0" style="width: 100%; background: #000; border: 1px solid #283347; color: #fff; padding: 0.45rem; font-family: monospace; font-size: 11px;" oninput="updateVipCalc()"/>
-            </div>
-          </div>
+          <h3 class="mathcheck-callout-title">The VIP Ladder Illusion</h3>
+          <p class="mathcheck-callout-text">VIP progress bars exploit the <strong>sunk cost fallacy</strong> and goal gradient effect. In over 95% of tier grinds, the mathematical expected loss to level up dwarfs the cash reward by 10x to 40x. Never wager additional volume solely to unlock a VIP milestone.</p>
         </div>
+      </div>
 
-        <div style="background: rgba(0,0,0,0.6); border: 1px solid #17c3b2; padding: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #283347; padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
-            <span style="font-size: 10px; font-family: monospace; color: #fff; font-weight: bold; text-transform: uppercase;">Mathematical Reality</span>
-            <span id="heSeverityBadge" style="font-size: 9px; font-family: monospace; padding: 0.15rem 0.5rem; border: 1px solid #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; font-weight: bold; text-transform: uppercase;">PREDATORY CHURN</span>
-          </div>
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">Mechanics Audit</span>
+        <h2 class="public-page-section-heading__title">Why VIP ladders are mathematically predatory.</h2>
+      </div>
 
-          <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 0.75rem; margin-bottom: 1rem;">
-            <div style="font-size: 10px; font-family: monospace; color: #ef4444; text-transform: uppercase; font-weight: bold;">Net Statistical Deficit (True Cost)</div>
-            <div id="heNetDeficit" style="font-size: 1.75rem; font-family: monospace; font-weight: 800; color: #ef4444;">-$5,030.00</div>
-            <div style="font-size: 10px; font-family: monospace; color: #a0afbe; margin-top: 0.25rem;">Expected loss minus the unlocked tier reward.</div>
-          </div>
+      <div class="public-page-grid public-page-grid--3" style="margin-top: 1.5rem;">
+        <article class="public-page-card">
+          <span class="public-page-card__eyebrow">CONTRIBUTION CUTS</span>
+          <h3 class="public-page-card__title">The Game Weighting Trap</h3>
+          <p class="public-page-card__copy">Table games like Blackjack (0.5% edge) and Roulette (2.7% edge) are throttled to 10%–20% wager contribution. Reaching a $100,000 tier requires $500,000 to $1,000,000 in actual bets, multiplying your dollar loss by 5x to 10x.</p>
+        </article>
+        <article class="public-page-card">
+          <span class="public-page-card__eyebrow">ASYMMETRIC RETURNS</span>
+          <h3 class="public-page-card__title">The 90%+ Retention Trap</h3>
+          <p class="public-page-card__copy">Even with rakeback and tier bonuses factored in, casinos retain between 85% and 97% of expected house loss. Players spend $3,000 to $15,000 in statistical negative EV to unlock a $100 to $300 milestone bonus.</p>
+        </article>
+        <article class="public-page-card">
+          <span class="public-page-card__eyebrow">COGNITIVE BIAS</span>
+          <h3 class="public-page-card__title">The Goal Gradient Hook</h3>
+          <p class="public-page-card__copy">As your progress bar passes 80%, loss aversion and urgency spike. Players increase bet sizes and session velocity to "finish the level", driving tilt, drawdown velocity, and inevitable bankroll bustout.</p>
+        </article>
+      </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; font-family: monospace; font-size: 11px;">
-            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Effective Turnover</div>
-              <div id="heTurnover" style="font-weight: bold; color: #fff; font-size: 13px;">$150,000</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Expected House Loss</div>
-              <div id="heExpLoss" style="font-weight: bold; color: #ef4444; font-size: 13px;">-$5,250.00</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 9px; color: #17c3b2; text-transform: uppercase;">Comp Return Ratio</div>
-              <div id="heCompRatio" style="font-weight: bold; color: #17c3b2; font-size: 13px;">4.19%</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">House Retained</div>
-              <div id="heHouseKeep" style="font-weight: bold; color: #fff; font-size: 13px;">95.81%</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Spins Required</div>
-              <div id="heSpins" style="font-weight: bold; color: #fff; font-size: 13px;">75,000</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 9px; color: #a0afbe; text-transform: uppercase;">Play Duration</div>
-              <div id="heDuration" style="font-weight: bold; color: #fff; font-size: 13px;">~72.9 hrs</div>
-            </div>
-          </div>
+      <div style="margin-top: 2.5rem; background: #090d13; border: 1px solid var(--border-default); border-radius: 12px; padding: 1.75rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem;">
+        <div>
+          <span class="brand-eyebrow">On-Device Protection</span>
+          <h3 style="color: #f6fbff; margin: 0.25rem 0 0.5rem; font-size: 1.25rem;">Kill the churn in real-time.</h3>
+          <p style="color: #94a3b8; margin: 0; font-size: 0.9rem; max-width: 34rem; line-height: 1.5;">Install the TiltCheck browser extension. Our client-side spotter detects hidden RTP drops, limits bet velocity, and enforces non-custodial session cooldowns.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a class="btn btn-primary" href="${href(depth, "extension.html")}">The Extension</a>
+          <a class="btn btn-secondary" href="${dirHref(depth, "cooldown")}">Touch Grass</a>
         </div>
       </div>
     </div>
-
-    <div style="font-family: monospace; font-size: 12px; color: #a0afbe; line-height: 1.6; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 6px;">
-      <strong style="color: #17c3b2;">VIP CHURN PRINCIPLE:</strong> Progress bars are psychological sunk-cost hooks. In 95% of cases, the expected mathematical loss incurred while reaching the next tier dwarfs the tier reward by a factor of 10x to 40x.
-    </div>
-
-    <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, "extension.html")}">THE EXTENSION</a>
-    </div>
-  </div>
+  </section>
 </main>
 <script>
 var vipData = {
@@ -1889,13 +1946,19 @@ var currentVipKey = "stake";
 
 function selectVipCasino(key) {
   currentVipKey = key;
+  var btns = document.querySelectorAll('.mathcheck-tab');
+  btns.forEach(function(btn) {
+    var match = btn.getAttribute('data-casino') === key;
+    btn.classList.toggle('is-active', match);
+    btn.setAttribute('aria-selected', match ? 'true' : 'false');
+  });
   var sel = document.getElementById("heTierSelect");
   sel.innerHTML = "";
   var list = vipData[key] || vipData.stake;
   list.forEach(function(item, idx) {
     var opt = document.createElement("option");
     opt.value = idx;
-    opt.textContent = item.name + " - $" + item.reward + " reward";
+    opt.textContent = item.name + " - $" + item.reward.toLocaleString() + " reward";
     sel.appendChild(opt);
   });
   sel.selectedIndex = list.length > 3 ? 3 : 0;
@@ -1945,26 +2008,43 @@ function updateVipCalc() {
   document.getElementById("heDuration").textContent = "~" + hrs.toFixed(1) + " hrs";
 
   var badge = document.getElementById("heSeverityBadge");
+  var box = document.getElementById("heDeficitContainer");
   if (compRatio >= 25) {
     badge.textContent = "MILD CHURN";
     badge.style.color = "#22c55e";
     badge.style.borderColor = "#22c55e";
-    badge.style.background = "rgba(34,197,94,0.1)";
+    badge.style.background = "rgba(34,197,94,0.12)";
+    if (box) {
+      box.style.background = "rgba(34,197,94,0.06)";
+      box.style.borderColor = "rgba(34,197,94,0.25)";
+    }
   } else if (compRatio >= 10) {
     badge.textContent = "MODERATE CHURN";
     badge.style.color = "#ffd700";
     badge.style.borderColor = "#ffd700";
-    badge.style.background = "rgba(255,215,0,0.1)";
+    badge.style.background = "rgba(255,215,0,0.12)";
+    if (box) {
+      box.style.background = "rgba(255,215,0,0.06)";
+      box.style.borderColor = "rgba(255,215,0,0.25)";
+    }
   } else if (compRatio >= 3) {
     badge.textContent = "PREDATORY CHURN";
     badge.style.color = "#ef4444";
     badge.style.borderColor = "#ef4444";
-    badge.style.background = "rgba(239,68,68,0.1)";
+    badge.style.background = "rgba(239,68,68,0.12)";
+    if (box) {
+      box.style.background = "rgba(239,68,68,0.08)";
+      box.style.borderColor = "rgba(239,68,68,0.28)";
+    }
   } else {
     badge.textContent = "EXTREME CHURN";
     badge.style.color = "#ef4444";
     badge.style.borderColor = "#ef4444";
-    badge.style.background = "rgba(239,68,68,0.2)";
+    badge.style.background = "rgba(239,68,68,0.22)";
+    if (box) {
+      box.style.background = "rgba(239,68,68,0.14)";
+      box.style.borderColor = "rgba(239,68,68,0.4)";
+    }
   }
 }
 
@@ -1974,10 +2054,10 @@ window.addEventListener("DOMContentLoaded", function() {
 </script>`;
 
   return shell({
-    title: "MathCheck — House Edge & VIP Tier Cost Calculator | TiltCheck",
-    description: "Calculate VIP tier real costs, true wagering requirements, and expected house loss.",
+    title: "MathCheck — VIP Churn & House Edge Scanner | TiltCheck",
+    description: "Calculate what chasing VIP tier bonuses actually costs in statistical expected loss, true wagering volume, and comp return ratios.",
     depth: "docs",
-    current: "house-edge-scanner",
+    current: "tools",
     body: content,
   });
 }
@@ -1987,12 +2067,12 @@ function buildHouseEdgeRedirect() {
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="refresh" content="0; url=../../tools/house-edge-scanner/"/>
+<meta http-equiv="refresh" content="0; url=../tools/house-edge-scanner/"/>
 <link rel="canonical" href="${SITE_URL}/tools/house-edge-scanner/"/>
-<title>House Edge & Comp Point Scanner | TiltCheck</title>
+<title>VIP Churn & House Edge Scanner | TiltCheck</title>
 </head>
 <body>
-<p><a href="../../tools/house-edge-scanner/">House Edge & Comp Point Scanner lives here</a></p>
+<p><a href="../tools/house-edge-scanner/">VIP Churn & House Edge Scanner lives here</a></p>
 </body>
 </html>`;
 }
@@ -2408,6 +2488,14 @@ function run() {
   const swSrc = path.join(__dirname, 'pages-assets/sw.js');
   if (fs.existsSync(swSrc)) {
     fs.copyFileSync(swSrc, path.join(siteRoot, 'sw.js'));
+  }
+
+  // Ensure base stylesheet is synchronized
+  const stylesSrc = path.join(__dirname, 'pages-assets/styles/base.css');
+  const stylesDestDir = path.join(siteRoot, 'styles');
+  fs.mkdirSync(stylesDestDir, { recursive: true });
+  if (fs.existsSync(stylesSrc)) {
+    fs.copyFileSync(stylesSrc, path.join(stylesDestDir, 'base.css'));
   }
 
   // Ensure downloads folder has latest extension zip
