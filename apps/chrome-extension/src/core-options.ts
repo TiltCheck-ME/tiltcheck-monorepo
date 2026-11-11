@@ -48,9 +48,13 @@ export const TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY = 'tiltcheck_default_bet_
 export const TILTCHECK_BASE_STAKE_THRESHOLD_KEY = 'tiltcheck_base_stake_threshold';
 export const TILTCHECK_UI_MODE_KEY = 'tiltcheck_ui_mode';
 export const TILTCHECK_ACTIVE_PRESET_KEY = 'tiltcheck_active_preset';
+export const TILTCHECK_POPUP_SIZE_KEY = 'tiltcheck_popup_size';
+export const TILTCHECK_ALWAYS_POPOUT_KEY = 'tiltcheck_always_popout';
 export type UiMode = 'easy' | 'pro';
+export type PopupSize = 'compact' | 'standard' | 'expanded';
 export const DEFAULT_UI_MODE: UiMode = 'easy';
 export const DEFAULT_ACTIVE_PRESET = 'bag_securer';
+export const DEFAULT_POPUP_SIZE: PopupSize = 'standard';
 export { TILTCHECK_BONUS_TRACKER_CONFIG_KEY, DEFAULT_BONUS_TRACKER_CONFIG };
 export type { BonusTrackerConfig };
 
@@ -94,6 +98,8 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_BASE_STAKE_THRESHOLD_KEY,
   TILTCHECK_UI_MODE_KEY,
   TILTCHECK_ACTIVE_PRESET_KEY,
+  TILTCHECK_POPUP_SIZE_KEY,
+  TILTCHECK_ALWAYS_POPOUT_KEY,
 ] as const;
 
 export function normalizeRiskProfile(value: unknown, legacyRiskLevel?: unknown): RiskProfile {

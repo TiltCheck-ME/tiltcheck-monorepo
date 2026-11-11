@@ -25,11 +25,19 @@
       --mono:      'JetBrains Mono', 'Fira Code', monospace;
     }
 
-    html { width: 390px; }
+      --popup-width: 390px;
+      --discord-blurple: #5865F2;
+    }
+
+    html { width: var(--popup-width); }
+    html.size-compact, body.size-compact { --popup-width: 360px; }
+    html.size-standard, body.size-standard { --popup-width: 390px; }
+    html.size-expanded, body.size-expanded { --popup-width: 440px; }
+
     html.standalone-window { width: 100% !important; height: 100% !important; }
 
     body {
-      width: 390px;
+      width: var(--popup-width);
       min-height: 380px;
       max-height: 600px;
       background: var(--bg);
@@ -56,11 +64,14 @@
     }
     body.standalone-window .panel,
     body.standalone-window .header,
+    body.standalone-window .discord-account-bar,
+    body.standalone-window .standalone-window-bar,
     body.standalone-window .tabs,
     body.standalone-window .footer {
-      max-width: 580px;
+      max-width: 680px;
       margin-left: auto;
       margin-right: auto;
+      width: 100%;
     }
 
     body::-webkit-scrollbar { width: 4px; }
@@ -1545,6 +1556,224 @@
       color: var(--text);
     }
 
+    /* --- STANDALONE WINDOW & PIN BAR --- */
+    .standalone-window-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px;
+      background: rgba(23,195,178,0.08);
+      border-bottom: 1px solid rgba(23,195,178,0.22);
+      font-size: 11px;
+    }
+    .window-pin-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--teal);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .window-size-presets {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .win-size-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .win-size-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+    .win-size-btn.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* --- DISCORD ACCOUNT SUBHEADER BAR --- */
+    .discord-account-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 16px;
+      background: rgba(88,101,242,0.06);
+      border-bottom: 1px solid rgba(88,101,242,0.18);
+      font-size: 11px;
+    }
+    .discord-account-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .discord-user-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .discord-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(88,101,242,0.4);
+    }
+    .discord-icon-svg {
+      width: 15px;
+      height: 15px;
+      fill: #5865F2;
+      flex-shrink: 0;
+    }
+    .discord-username {
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.02em;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .discord-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 6px rgba(52,211,153,0.8);
+      flex-shrink: 0;
+    }
+    .discord-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .discord-session-tag {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(52,211,153,0.12);
+      color: #34d399;
+      border: 1px solid rgba(52,211,153,0.3);
+    }
+    .discord-logout-link {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 10px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+    .discord-logout-link:hover {
+      color: #ff4a4a;
+    }
+    .discord-guest-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .discord-guest-text {
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .btn-discord-connect-sm {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #5865F2;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-discord-connect-sm:hover {
+      background: #4752c4;
+    }
+
+    /* --- EASY DISPLAY CARD --- */
+    .easy-display-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .easy-display-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-popout-window {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(23,195,178,0.12);
+      border: 1px solid rgba(23,195,178,0.35);
+      color: var(--teal);
+      border-radius: 5px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-popout-window:hover {
+      background: rgba(23,195,178,0.22);
+      border-color: var(--teal);
+    }
+    .display-size-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .size-pill-group {
+      display: flex;
+      gap: 4px;
+    }
+    .size-pill {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .size-pill:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+    .size-pill.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #000;
+      font-weight: 700;
+    }
+
+
   </style>
 </head>
 <body>
@@ -1575,7 +1804,7 @@
         <line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
     </button>
-    <button class="icon-btn" id="btn-detach-window" title="Pop out into resizable window">
+    <button class="icon-btn" id="btn-detach-window" title="Stay on Screen: Pop out into persistent resizable window that stays open while clicking behind it">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
         <polyline points="15 3 21 3 21 9"/>
@@ -1587,6 +1816,49 @@
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
       </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Standalone Window Control Bar (active when detached into independent window) -->
+<div id="standalone-window-bar" class="standalone-window-bar" style="display:none;">
+  <div class="window-pin-badge">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2v10m0 0l-3-3m3 3l3-3M5 12h14M5 19h14"/>
+    </svg>
+    <span>Pinned on Screen (Stays Open)</span>
+  </div>
+  <div class="window-size-presets">
+    <span style="font-size:10px; color:var(--muted); font-weight:600; margin-right:2px;">Size:</span>
+    <button type="button" class="win-size-btn" id="btn-win-compact" data-size="compact" title="Compact size (360x540)">Compact</button>
+    <button type="button" class="win-size-btn active" id="btn-win-standard" data-size="standard" title="Standard size (420x680)">Standard</button>
+    <button type="button" class="win-size-btn" id="btn-win-expanded" data-size="expanded" title="Expanded size (560x780)">Expanded</button>
+  </div>
+</div>
+
+<!-- Discord Account Subheader (Visible across all tabs and window modes) -->
+<div id="discord-account-bar" class="discord-account-bar">
+  <div class="discord-account-info" id="discord-account-info" style="display:none;">
+    <div class="discord-user-badge">
+      <img id="discord-avatar-img" class="discord-avatar" src="" alt="Discord Avatar" style="display:none;" />
+      <svg id="discord-avatar-fallback" class="discord-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+      </svg>
+      <span class="discord-username" id="discord-username-display">@Discord</span>
+      <span class="discord-status-dot" title="Discord session active and persistent"></span>
+    </div>
+    <div class="discord-actions">
+      <span class="discord-session-tag">Synced</span>
+      <button type="button" class="discord-logout-link" id="btn-quick-logout" title="Log out from Discord session">Sign out</button>
+    </div>
+  </div>
+  <div class="discord-guest-info" id="discord-guest-info">
+    <span class="discord-guest-text">Guest Mode (Spin Lock Active)</span>
+    <button type="button" class="btn-discord-connect-sm" id="btn-quick-discord-login" title="Connect Discord account">
+      <svg class="discord-icon-svg" style="fill:#ffffff; width:13px; height:13px;" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+      </svg>
+      Log in with Discord
     </button>
   </div>
 </div>
@@ -1687,6 +1959,32 @@
       <div id="easy-cooldown-countdown" style="font-family:var(--mono); font-size:15px; font-weight:800; color:#ffffff;">23h 59m remaining</div>
     </div>
     <button type="button" class="btn-emergency-cooldown" id="btn-emergency-cooldown">Take 24-Hour Break (Emergency Lock)</button>
+  </div>
+
+  <!-- Screen Docking & Resizing Card -->
+  <div class="easy-display-card">
+    <div class="easy-display-header">
+      <div style="font-weight:700; font-size:12px; color:var(--text); text-transform:uppercase; letter-spacing:0.04em;">Screen &amp; Window</div>
+      <button type="button" class="btn-popout-window" id="btn-easy-detach" title="Open persistent floating window that stays visible while clicking games behind it">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Stay on Screen
+      </button>
+    </div>
+    <p style="font-size:11px; color:var(--muted); line-height:1.35; margin:6px 0 10px 0;">
+      Keep TiltCheck open while playing games or clicking behind it. Resizable with compact, standard, and wide layouts.
+    </p>
+    <div class="display-size-row">
+      <span style="font-size:11px; color:var(--muted); font-weight:600;">Window Size:</span>
+      <div class="size-pill-group" id="size-pill-group">
+        <button type="button" class="size-pill" id="btn-size-compact" data-size="compact" title="Compact size (360px)">Compact</button>
+        <button type="button" class="size-pill active" id="btn-size-standard" data-size="standard" title="Standard size (390px / 420px)">Standard</button>
+        <button type="button" class="size-pill" id="btn-size-expanded" data-size="expanded" title="Expanded size (440px / 560px)">Expanded</button>
+      </div>
+    </div>
   </div>
 
   <!-- Switch to Pro Mode Hint -->

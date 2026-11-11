@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 import { describe, expect, it } from 'vitest';
 import {
   addCustomSlug,
@@ -13,6 +13,11 @@ import {
   loadUiMode,
   loadActivePreset,
   saveEmergencyCooldown,
+  savePopupSize,
+  loadPopupSize,
+  saveAlwaysPopout,
+  loadAlwaysPopout,
+  POPUP_SIZE_CONFIGS,
   PLAYER_PRESETS,
 } from '../../src/popup-settings.js';
 
@@ -227,4 +232,46 @@ describe('popup-settings helpers', () => {
     expect(storage['tiltcheck_cooldown_source']).toBe('local_emergency');
   });
 
+  it('saves and loads popup display size presets and always-popout preference', async () => {
+    const storage: Record<string, unknown> = {};
+    (globalThis as unknown as { chrome: unknown }).chrome = {
+      storage: {
+        local: {
+          set: (data: Record<string, unknown>) => {
+            Object.assign(storage, data);
+            return Promise.resolve();
+          },
+          get: (keys: string | string[]) => {
+            if (Array.isArray(keys)) {
+              const out: Record<string, unknown> = {};
+              for (const k of keys) out[k] = storage[k];
+              return Promise.resolve(out);
+            }
+            if (typeof keys === 'string') {
+              return Promise.resolve({ [keys]: storage[keys] });
+            }
+            return Promise.resolve(storage);
+          },
+        },
+      },
+    };
+
+    expect(await loadPopupSize()).toBe('standard');
+    await savePopupSize('compact');
+    expect(storage['tiltcheck_popup_size']).toBe('compact');
+    expect(await loadPopupSize()).toBe('compact');
+
+    await savePopupSize('expanded');
+    expect(storage['tiltcheck_popup_size']).toBe('expanded');
+    expect(await loadPopupSize()).toBe('expanded');
+
+    expect(POPUP_SIZE_CONFIGS.compact.width).toBe(360);
+    expect(POPUP_SIZE_CONFIGS.standard.width).toBe(420);
+    expect(POPUP_SIZE_CONFIGS.expanded.width).toBe(560);
+
+    expect(await loadAlwaysPopout()).toBe(false);
+    await saveAlwaysPopout(true);
+    expect(storage['tiltcheck_always_popout']).toBe(true);
+    expect(await loadAlwaysPopout()).toBe(true);
+  });
 });

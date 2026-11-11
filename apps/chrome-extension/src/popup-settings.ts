@@ -40,10 +40,14 @@ import {
   type CoreCircuitBreakerOptions,
   TILTCHECK_UI_MODE_KEY,
   TILTCHECK_ACTIVE_PRESET_KEY,
+  TILTCHECK_POPUP_SIZE_KEY,
+  TILTCHECK_ALWAYS_POPOUT_KEY,
   TILTCHECK_COOLDOWN_SOURCE_KEY,
   DEFAULT_UI_MODE,
   DEFAULT_ACTIVE_PRESET,
+  DEFAULT_POPUP_SIZE,
   type UiMode,
+  type PopupSize,
 } from './core-options.js';
 import {
   loadBlockedCategories,
@@ -536,4 +540,45 @@ export async function saveEmergencyCooldown(durationMs = 86_400_000): Promise<nu
     });
   }
   return expiry;
+}
+
+export const POPUP_SIZE_CONFIGS: Record<PopupSize, { width: number; height: number; label: string }> = {
+  compact: { width: 360, height: 540, label: 'Compact' },
+  standard: { width: 420, height: 680, label: 'Standard' },
+  expanded: { width: 560, height: 780, label: 'Expanded' },
+};
+
+export async function savePopupSize(size: PopupSize): Promise<PopupSize> {
+  const validSize: PopupSize = size === 'compact' || size === 'expanded' ? size : 'standard';
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_POPUP_SIZE_KEY]: validSize });
+  }
+  return validSize;
+}
+
+export async function loadPopupSize(): Promise<PopupSize> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const res = await chrome.storage.local.get(TILTCHECK_POPUP_SIZE_KEY);
+    const val = res[TILTCHECK_POPUP_SIZE_KEY];
+    if (val === 'compact' || val === 'standard' || val === 'expanded') {
+      return val;
+    }
+  }
+  return DEFAULT_POPUP_SIZE;
+}
+
+export async function saveAlwaysPopout(enabled: boolean): Promise<boolean> {
+  const bool = Boolean(enabled);
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    await chrome.storage.local.set({ [TILTCHECK_ALWAYS_POPOUT_KEY]: bool });
+  }
+  return bool;
+}
+
+export async function loadAlwaysPopout(): Promise<boolean> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    const res = await chrome.storage.local.get(TILTCHECK_ALWAYS_POPOUT_KEY);
+    return Boolean(res[TILTCHECK_ALWAYS_POPOUT_KEY]);
+  }
+  return false;
 }

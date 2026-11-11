@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,5 +94,33 @@ describe('popup guest-first copy', () => {
     expect(popupTs).toContain('SOLANA_TIP_ADDRESS');
     expect(popupTs).toContain('DgeYJvpRQGmYgyXQNqm2nGxwoxABa43dvQY5HJU57ET1');
     expect(popupTs).toContain('initTipJarModal');
+  });
+
+  it('renders persistent Discord login indicator bar and action controls', () => {
+    expect(popupHtml).toContain('id="discord-account-bar"');
+    expect(popupHtml).toContain('id="discord-account-info"');
+    expect(popupHtml).toContain('id="discord-guest-info"');
+    expect(popupHtml).toContain('id="discord-username-display"');
+    expect(popupHtml).toContain('id="btn-quick-discord-login"');
+    expect(popupHtml).toContain('id="btn-quick-logout"');
+
+    expect(popupTs).toContain('discord-account-info');
+    expect(popupTs).toContain('discord-guest-info');
+    expect(popupTs).toContain('discord-username-display');
+  });
+
+  it('renders standalone window controls and resizing options', () => {
+    expect(popupHtml).toContain('id="standalone-window-bar"');
+    expect(popupHtml).toContain('id="btn-win-compact"');
+    expect(popupHtml).toContain('id="btn-win-standard"');
+    expect(popupHtml).toContain('id="btn-win-expanded"');
+
+    expect(popupHtml).toContain('id="btn-easy-detach"');
+    expect(popupHtml).toContain('id="btn-size-compact"');
+    expect(popupHtml).toContain('id="btn-size-standard"');
+    expect(popupHtml).toContain('id="btn-size-expanded"');
+
+    expect(popupTs).toContain('applyUiSizePreset');
+    expect(popupTs).toContain('detachToStandaloneWindow');
   });
 });

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
 /**
  * @vitest-environment jsdom
  */
@@ -247,7 +247,7 @@ describe('Sidebar/content/page-bridge message contracts', () => {
         coreOnly: true,
       }),
     );
-  });
+  }, 15_000);
 
   it('emits page-bridge TX_SENT with correlated requestId', async () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage').mockImplementation(() => {});

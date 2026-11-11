@@ -44,8 +44,12 @@ import {
   PLAYER_PRESETS,
   saveEmergencyCooldown,
   loadActivePreset,
+  savePopupSize,
+  loadPopupSize,
+  POPUP_SIZE_CONFIGS,
   type PlayerPreset,
   type UiMode,
+  type PopupSize,
 } from './popup-settings.js';
 import { DEFAULT_CASHOUT_GOALS } from './profit-lock.js';
 import { playAudioCue } from './audio-alerts.js';
@@ -97,6 +101,7 @@ interface UserData {
   discriminator?: string;
   email?: string | null;
   discordId?: string | null;
+  avatar?: string | null;
 }
 
 interface PopupStorageSnapshot {
@@ -162,11 +167,17 @@ function toast(msg: string, isError = false) {
 async function loadAuth(): Promise<void> {
   return new Promise(resolve => {
     chrome.storage.local.get(['userData', 'authToken', 'tiltguard_user_id'], (data: PopupStorageSnapshot) => {
-      if (data.userData?.id) {
-        userId = data.userData.id;
+      authToken = data.authToken ?? null;
+      if (data.userData && (data.userData.id || data.userData.discordId)) {
+        userId = data.userData.id || data.userData.discordId!;
         userData = data.userData;
       } else if (data.tiltguard_user_id) {
         userId = data.tiltguard_user_id;
+        userData = {
+          id: data.tiltguard_user_id,
+          discordId: data.tiltguard_user_id,
+          username: 'Discord User',
+        };
       } else {
         userId = null;
         userData = null;
@@ -177,14 +188,47 @@ async function loadAuth(): Promise<void> {
 }
 
 function renderAuthState() {
+  const hasDiscordLinked = Boolean(userData?.discordId);
+  const name = userData?.username ?? userData?.email ?? (userId ? userId.slice(0, 10) : 'Guest');
+
+  // Update persistent subheader Discord account bar
+  const accountInfo = document.getElementById('discord-account-info');
+  const guestInfo = document.getElementById('discord-guest-info');
+  const usernameDisplay = document.getElementById('discord-username-display');
+  const avatarImg = document.getElementById('discord-avatar-img') as HTMLImageElement | null;
+  const avatarFallback = document.getElementById('discord-avatar-fallback');
+
+  if (accountInfo && guestInfo) {
+    if (hasDiscordLinked) {
+      accountInfo.style.display = 'flex';
+      guestInfo.style.display = 'none';
+      if (usernameDisplay) {
+        usernameDisplay.textContent = `@${userData?.username || name}`;
+      }
+      if (avatarImg && userData?.avatar) {
+        avatarImg.src = userData.avatar;
+        avatarImg.style.display = 'inline-block';
+        if (avatarFallback) avatarFallback.style.display = 'none';
+      } else if (avatarFallback) {
+        if (avatarImg) avatarImg.style.display = 'none';
+        avatarFallback.style.display = 'inline-block';
+      }
+    } else {
+      accountInfo.style.display = 'none';
+      guestInfo.style.display = 'flex';
+    }
+  }
+
   if (!userId) {
     hide('status-content');
     show('auth-gate');
   } else {
     show('status-content');
     hide('auth-gate');
-    const name = userData?.username ?? userData?.email ?? userId.slice(0, 10);
-    $('stat-user').textContent = name;
+    const statUserEl = $('stat-user');
+    if (statUserEl) {
+      statUserEl.textContent = name;
+    }
     syncCapabilityState();
     checkOnboardingStatus();
   }
@@ -2114,6 +2158,16 @@ function initEasyModeListeners(): void {
       }
     });
   });
+
+  document.getElementById('btn-easy-detach')?.addEventListener('click', () => {
+    void detachToStandaloneWindow();
+  });
+
+  ['compact', 'standard', 'expanded'].forEach((s) => {
+    document.getElementById(`btn-size-${s}`)?.addEventListener('click', () => {
+      void applyUiSizePreset(s as PopupSize);
+    });
+  });
 }
 
 function initOnboardingWizard(): void {
@@ -2307,6 +2361,77 @@ function loadFeed() {
 }
 
 // ---------------------------------------------------------------------------
+// Standalone Window & Resizing
+// ---------------------------------------------------------------------------
+
+async function applyUiSizePreset(size: PopupSize): Promise<void> {
+  const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
+  const config = POPUP_SIZE_CONFIGS[size] || POPUP_SIZE_CONFIGS.standard;
+
+  document.documentElement.classList.remove('size-compact', 'size-standard', 'size-expanded');
+  document.body.classList.remove('size-compact', 'size-standard', 'size-expanded');
+  document.documentElement.classList.add(`size-${size}`);
+  document.body.classList.add(`size-${size}`);
+
+  if (isStandaloneWindow && typeof chrome !== 'undefined' && chrome.windows?.getCurrent) {
+    chrome.windows.getCurrent((win) => {
+      if (win?.id) {
+        chrome.windows.update(win.id, {
+          width: config.width,
+          height: config.height,
+        });
+      }
+    });
+  }
+
+  ['compact', 'standard', 'expanded'].forEach((s) => {
+    const easyBtn = document.getElementById(`btn-size-${s}`);
+    const winBtn = document.getElementById(`btn-win-${s}`);
+    if (s === size) {
+      easyBtn?.classList.add('active');
+      winBtn?.classList.add('active');
+    } else {
+      easyBtn?.classList.remove('active');
+      winBtn?.classList.remove('active');
+    }
+  });
+
+  await savePopupSize(size);
+  toast(`Display set to ${config.label}.`);
+}
+
+async function detachToStandaloneWindow(size?: PopupSize): Promise<void> {
+  const preferredSize = size || (await loadPopupSize());
+  const config = POPUP_SIZE_CONFIGS[preferredSize] || POPUP_SIZE_CONFIGS.standard;
+  const url = chrome.runtime.getURL(`popup.html?mode=window&size=${preferredSize}`);
+  try {
+    if (typeof chrome !== 'undefined' && chrome.windows?.create) {
+      chrome.windows.create(
+        {
+          url,
+          type: 'popup',
+          width: config.width,
+          height: config.height,
+          focused: true,
+        },
+        (newWin) => {
+          if (chrome.runtime.lastError || !newWin) {
+            chrome.tabs.create({ url });
+          }
+          window.close();
+        }
+      );
+    } else {
+      chrome.tabs.create({ url });
+      window.close();
+    }
+  } catch {
+    chrome.tabs.create({ url });
+    window.close();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
 
@@ -2323,46 +2448,67 @@ async function init() {
     void updateSessionStatusPill();
   }
 
+  // Load and apply initial display size
+  const initialSize = await loadPopupSize();
+  document.documentElement.classList.add(`size-${initialSize}`);
+  document.body.classList.add(`size-${initialSize}`);
+  ['compact', 'standard', 'expanded'].forEach((s) => {
+    if (s === initialSize) {
+      document.getElementById(`btn-size-${s}`)?.classList.add('active');
+      document.getElementById(`btn-win-${s}`)?.classList.add('active');
+    } else {
+      document.getElementById(`btn-size-${s}`)?.classList.remove('active');
+      document.getElementById(`btn-win-${s}`)?.classList.remove('active');
+    }
+  });
+
   // Detach window listener
   const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
   if (isStandaloneWindow) {
     document.documentElement.classList.add('standalone-window');
     document.body.classList.add('standalone-window');
+    const winBar = document.getElementById('standalone-window-bar');
+    if (winBar) winBar.style.display = 'flex';
     const detachBtn = document.getElementById('btn-detach-window');
     if (detachBtn) detachBtn.style.display = 'none';
+    const easyDetachBtn = document.getElementById('btn-easy-detach');
+    if (easyDetachBtn) {
+      easyDetachBtn.textContent = 'Floating Window Active';
+      (easyDetachBtn as HTMLButtonElement).disabled = true;
+      (easyDetachBtn as HTMLElement).style.opacity = '0.6';
+    }
   }
+
   const detachBtn = document.getElementById('btn-detach-window');
   if (detachBtn) {
     detachBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const url = chrome.runtime.getURL('popup.html?mode=window');
-      try {
-        if (typeof chrome !== 'undefined' && chrome.windows?.create) {
-          chrome.windows.create(
-            {
-              url,
-              type: 'popup',
-              width: 440,
-              height: 720,
-              focused: true,
-            },
-            (newWin) => {
-              if (chrome.runtime.lastError || !newWin) {
-                chrome.tabs.create({ url });
-              }
-              window.close();
-            }
-          );
-        } else {
-          chrome.tabs.create({ url });
-          window.close();
-        }
-      } catch {
-        chrome.tabs.create({ url });
-        window.close();
-      }
+      void detachToStandaloneWindow();
     });
   }
+
+  // Standalone window resize buttons
+  ['compact', 'standard', 'expanded'].forEach((s) => {
+    document.getElementById(`btn-win-${s}`)?.addEventListener('click', () => {
+      void applyUiSizePreset(s as PopupSize);
+    });
+  });
+
+  // Subheader Discord actions
+  document.getElementById('btn-quick-discord-login')?.addEventListener('click', () => {
+    const oauthUrl = getDirectDiscordOAuthUrl();
+    chrome.tabs.create({ url: oauthUrl }, (tab) => {
+      if (chrome.runtime.lastError || !tab) {
+        toast('Could not open Discord sign-in tab.', true);
+      } else {
+        toast('Discord sign-in tab opened.');
+      }
+    });
+  });
+
+  document.getElementById('btn-quick-logout')?.addEventListener('click', () => {
+    void performLogout();
+  });
 
   initTipJarModal();
   initEasyModeListeners();
