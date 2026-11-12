@@ -1072,7 +1072,7 @@ function buildCooldownPage() {
             type: 'LOCK_UPDATED',
             wallet: 'in_browser_lockout',
             endTime: endTimeSec,
-            source: 'local_browser_session'
+            lockSource: 'local_browser_session'
           }, '*');
 
           try {
@@ -1087,7 +1087,7 @@ function buildCooldownPage() {
             feedback.style.border = '1px solid #17c3b2';
             feedback.style.color = '#ffffff';
             feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed (In-Browser)</strong><br/>' +
-              'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + ' Days' : selectedHours + 'h') + ')<br/>' +
+              'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + (selectedHours === 24 ? ' Day' : ' Days') : selectedHours + 'h') + ')<br/>' +
               '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has engaged your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
           }
           if (btnSign) {
@@ -1218,11 +1218,11 @@ function buildCooldownPage() {
           var endTimeSec = nowSec + (selectedHours * 3600);
           var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
 
-          var messageText = 'TiltCheck Voluntary Touch Grass Lock\n' +
-            'Wallet: ' + currentWallet + '\n' +
-            'Duration: ' + selectedHours + ' Hours\n' +
-            'Expires: ' + expiryDateStr + '\n' +
-            'Nonce: ' + Math.random().toString(36).substring(2, 10) + '\n' +
+          var messageText = 'TiltCheck Voluntary Touch Grass Lock\\n' +
+            'Wallet: ' + currentWallet + '\\n' +
+            'Duration: ' + selectedHours + ' Hours\\n' +
+            'Expires: ' + expiryDateStr + '\\n' +
+            'Nonce: ' + Math.random().toString(36).substring(2, 10) + '\\n' +
             'Standard: tiltcheck-cooldown-v1';
 
           try {
@@ -1230,12 +1230,13 @@ function buildCooldownPage() {
             btnSign.textContent = 'Awaiting Wallet Signature...';
 
             var encoded = new TextEncoder().encode(messageText);
-            if (typeof provider.signMessage === 'function') {
-              try {
-                await provider.signMessage(encoded, 'utf8');
-              } catch (e1) {
-                await provider.signMessage(encoded);
-              }
+            if (typeof provider.signMessage !== 'function') {
+              throw new Error('This wallet cannot sign messages. Try Phantom, Solflare, or Backpack.');
+            }
+            try {
+              await provider.signMessage(encoded, 'utf8');
+            } catch (e1) {
+              await provider.signMessage(encoded);
             }
 
             window.postMessage({
@@ -1243,7 +1244,7 @@ function buildCooldownPage() {
               type: 'LOCK_UPDATED',
               wallet: currentWallet,
               endTime: endTimeSec,
-              source: 'solana_web_wallet'
+              lockSource: 'solana_web_wallet'
             }, '*');
 
             try {
@@ -1257,7 +1258,7 @@ function buildCooldownPage() {
               feedback.style.border = '1px solid #17c3b2';
               feedback.style.color = '#ffffff';
               feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed</strong><br/>' +
-                'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + ' Days' : selectedHours + 'h') + ')<br/>' +
+                'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + (selectedHours === 24 ? ' Day' : ' Days') : selectedHours + 'h') + ')<br/>' +
                 'Cryptographic commitment signed by ' + currentWallet.substring(0, 8) + '...<br/>' +
                 '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has received your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
             }
@@ -1730,7 +1731,7 @@ function buildVerifyPage() {
   </div>
 </main>
 <script>
-var presets = JSON.parse("[{\"id\":\"stake\",\"tag\":\"STAKE DICE/LIMBO\",\"serverSeed\":\"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13\",\"committedHash\":\"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551\",\"clientSeed\":\"stake_session_verifier_audit\",\"nonce\":1,\"edge\":1},{\"id\":\"roobet\",\"tag\":\"ROOBET CRASH\",\"serverSeed\":\"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906\",\"committedHash\":\"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3\",\"clientSeed\":\"roobet_verifier_audit_alpha\",\"nonce\":42,\"edge\":1},{\"id\":\"bcgame\",\"tag\":\"BC.GAME LIMBO\",\"serverSeed\":\"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b\",\"committedHash\":\"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578\",\"clientSeed\":\"bcgame_high_roller_verifier\",\"nonce\":100,\"edge\":1}]");
+var presets = [{"id":"stake","tag":"STAKE DICE/LIMBO","serverSeed":"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13","committedHash":"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551","clientSeed":"stake_session_verifier_audit","nonce":1,"edge":1},{"id":"roobet","tag":"ROOBET CRASH","serverSeed":"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906","committedHash":"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3","clientSeed":"roobet_verifier_audit_alpha","nonce":42,"edge":1},{"id":"bcgame","tag":"BC.GAME LIMBO","serverSeed":"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b","committedHash":"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578","clientSeed":"bcgame_high_roller_verifier","nonce":100,"edge":1}];
 var RED_ROULETTE = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
 async function sha256Hex(str) {
