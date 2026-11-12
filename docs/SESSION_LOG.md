@@ -1,6 +1,16 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11 -->
 
 # Session Log
+
+## 2026-11-11 — feat(pages): tiltcheck.me quick fixes, simpler tool names, signed-in header, Discord sign-in fix
+
+- Homepage quick fixes (3e0bc59): page title is now "TiltCheck | House always wins? Not today."; the nav shows a visible "Sign in" label next to the Discord icon; removed the duplicate WinCheck section.
+- Simpler tool names (f414b54), visible text only, URLs unchanged: Nope List, Sneaky Bet Alert, Keep the Win, Win Skim, RTP Scanner, House Edge Scanner, Fairness Verifier. New meta description.
+- Signed-in state (acab5b0): a shared script in every generated page reads tc_token and tc_user (Discord /users/@me JSON) from localStorage. Signed in, the nav "Sign in" link becomes a round Discord avatar (default embed avatar when none) plus username, linking to /dashboard/. /login/ hides the sign-in copy and button and shows the signed-in card with a Sign out link that clears tc_token, tc_user and tc_token_exp. The token is removed from the address bar after login, and the stored expiry signs you out when Discord's token runs out.
+- BETA stamp next to the TILTCHECK wordmark, same tilted stamp as CollectClock in TiltCheck teal.
+- STAFF badge on the avatar from a hardcoded Discord ID list in convert-markdown.js (STAFF_DISCORD_IDS). Cosmetic only; it gates nothing. The CollectClock worker /me needs a CollectClock session and only allows the tiltcheck-me.github.io origin, so it can't be used from tiltcheck.me yet.
+- CollectClock worker (collectclock-api, code-only deploy outside this repo): the tiltcheck.me/login link (state h.web) was landing on CollectClock's phone-app handoff and showing "Sign-in failed. Go back to CollectClock". The callback now redirects state h.web or tc to https://tiltcheck.me/login/#access_token=... Confirmed working.
+- PR #715 (branch quick-copy-fixes) holds all of the repo changes above. Not merged.
 
 ## 2026-11-09 — feat(web): voice + staff-gating pass (web app and tiltcheck.me Pages twin)
 
