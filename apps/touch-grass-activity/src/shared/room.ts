@@ -1,9 +1,10 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// One room per Discord Activity instance: who is here, the DA&D table and the trivia game.
+// One room per Discord Activity instance: who is here, the DA&D table, the trivia game and Bluff.
 // Runs inside the Durable Object (authoritative) and inside the guest/dev room in the browser.
 
 import * as dad from './dad.js';
 import * as trivia from './trivia.js';
+import * as bluff from './bluff.js';
 import type { Rng } from './rng.js';
 import type { ClientAction, LookAt, RoomUser, RoomView } from './protocol.js';
 import type { Brag, FinishedScore } from './scores.js';
@@ -34,6 +35,7 @@ export interface RoomState {
   members: Record<string, RoomMember>;
   dad: dad.DadState;
   trivia: trivia.TriviaState;
+  bluff: bluff.BluffState;
   /**
    * High-score bookkeeping for the last finished trivia game. `brags` is null when the game was off
    * the record (no server). Absent until a game has been run to the end.
@@ -50,14 +52,15 @@ export interface PendingHighScores {
 export type ActionResult = { ok: true } | { ok: false; code: string; message: string };
 
 export function createRoomState(instanceId: string): RoomState {
-  return { instanceId, version: 0, members: {}, dad: dad.createDad(), trivia: trivia.createTrivia() };
+  return { instanceId, version: 0, members: {}, dad: dad.createDad(), trivia: trivia.createTrivia(), bluff: bluff.createBluff() };
 }
 
-/** Older stored rooms (break-timer era) get a trivia slot and an away flag. */
+/** Older stored rooms (break-timer era, pre-Bluff) get trivia and Bluff slots and an away flag. */
 export function upgradeRoomState(saved: RoomState): RoomState {
   const s = saved as RoomState & { brk?: unknown };
   delete s.brk;
   s.trivia ??= trivia.createTrivia();
+  s.bluff ??= bluff.createBluff();
   for (const m of Object.values(s.members)) m.awaySince ??= null;
   return s;
 }
@@ -110,6 +113,8 @@ export class Room {
       looking: existing?.looking,
     };
     this.bump();
+    // A returning Bluff teller restarts a write clock that ran out while they were away.
+    this.tick(now);
   }
 
   touch(userId: string, now: number): void {
@@ -119,6 +124,7 @@ export class Room {
     if (m.awaySince !== null) {
       m.awaySince = null;
       this.bump();
+      this.tick(now);
     }
   }
 
@@ -152,6 +158,7 @@ export class Room {
     delete this.state.members[userId];
     dad.removePlayer(this.state.dad, userId, this.rng);
     trivia.removePlayer(this.state.trivia, userId);
+    bluff.removePlayer(this.state.bluff, userId, this.rng, _now);
     this.bump();
   }
 
@@ -175,7 +182,10 @@ export class Room {
 
   /** Time-based transitions. Returns true when state changed. */
   tick(now: number): boolean {
-    if (trivia.tick(this.state.trivia, now, this.rng, this.activeIds())) {
+    const active = this.activeIds();
+    const t = trivia.tick(this.state.trivia, now, this.rng, active);
+    const b = bluff.tick(this.state.bluff, now, this.rng, active);
+    if (t || b) {
       this.bump();
       return true;
     }
@@ -211,6 +221,8 @@ export class Room {
     const times: number[] = [];
     const t = trivia.nextWake(this.state.trivia);
     if (t !== null) times.push(t);
+    const b = bluff.nextWake(this.state.bluff);
+    if (b !== null) times.push(b);
     for (const m of Object.values(this.state.members)) if (m.awaySince !== null) times.push(m.awaySince + AWAY_GRACE_MS);
     return times.length ? Math.min(...times) : null;
   }
@@ -263,6 +275,25 @@ export class Room {
         break;
       case 'trivia.leave':
         r = trivia.leave(s.trivia, userId);
+        break;
+      case 'bluff.sit':
+        r = bluff.sit(s.bluff, userId);
+        break;
+      case 'bluff.stand':
+        r = bluff.stand(s.bluff, userId, this.rng, now);
+        break;
+      case 'bluff.start':
+        r = bluff.start(s.bluff, userId, now, this.rng);
+        break;
+      case 'bluff.tell':
+        r = bluff.tell(s.bluff, userId, action.statements, action.lie, now, this.rng);
+        break;
+      case 'bluff.guess':
+        r = bluff.guess(s.bluff, userId, action.rid, action.pick, now);
+        if (r.ok) this.tick(now); // last guess in closes the window early
+        break;
+      case 'bluff.next':
+        r = bluff.next(s.bluff, userId, now, this.rng);
         break;
       case 'leave':
         this.leave(userId, now);
@@ -332,6 +363,51 @@ export class Room {
         winnerIds: tv.phase === 'over' ? trivia.winners(tv) : [],
         me: { playing: tv.scores[userId] !== undefined, answered: tv.phase === 'question' ? (tv.answers[userId]?.choice ?? null) : null, brag: posted?.brags?.[userId] ?? null },
         highScores: tv.phase !== 'over' ? 'none' : !posted ? 'pending' : posted.brags ? 'posted' : 'off-record',
+      },
+      bluff: this.bluffView(userId, away),
+    };
+  }
+
+  /** Bluff, as one viewer may see it. The lie is only in the teller's own `mine` until the reveal. */
+  private bluffView(userId: string, away: (id: string) => boolean): RoomView['bluff'] {
+    const b = this.state.bluff;
+    const guessing = b.phase === 'guessing' && b.statements !== null;
+    const isTeller = bluff.isInGame(b) && b.tellerId === userId;
+    const others = bluff.guessers(b);
+    const myGuess = b.guesses[userId];
+    return {
+      phase: b.phase,
+      game: b.game,
+      round: b.round,
+      total: b.order.length,
+      seats: b.seats.map((id) => ({
+        id,
+        score: b.scores[id] ?? 0,
+        isTeller: bluff.isInGame(b) && id === b.tellerId,
+        told: b.told.includes(id),
+        guessed: guessing && b.guesses[id] !== undefined,
+        away: away(id),
+      })),
+      waiting: [...b.waiting],
+      tellerId: bluff.isInGame(b) ? b.tellerId : null,
+      prompt: bluff.isInGame(b) ? b.prompt : null,
+      rid: guessing ? b.rid : null,
+      // Deliberately copied text only: the lie index is never part of this list.
+      statements: guessing ? [...(b.statements as string[])] : null,
+      writeEndsAt: b.phase === 'writing' ? b.writeEndsAt : null,
+      guessEndsAt: guessing ? b.guessEndsAt : null,
+      revealEndsAt: b.phase === 'reveal' ? b.revealEndsAt : null,
+      guessedCount: guessing ? others.filter((id) => b.guesses[id] !== undefined).length : 0,
+      neededCount: guessing ? others.length : 0,
+      lastRound: guessing || !b.lastRound ? null : { ...b.lastRound, statements: b.lastRound.statements ? [...b.lastRound.statements] : null, picks: b.lastRound.picks.map((p) => ({ ...p })) },
+      scores: bluff.standings(b).map((x) => ({ ...x, away: away(x.id) })),
+      winnerIds: b.phase === 'over' ? [...b.winnerIds] : [],
+      me: {
+        seated: b.seats.includes(userId),
+        waiting: b.waiting.includes(userId),
+        isTeller,
+        guess: guessing && myGuess !== undefined ? myGuess : null,
+        mine: guessing && isTeller && b.lie !== null ? { statements: [...(b.statements as string[])], lie: b.lie } : null,
       },
     };
   }

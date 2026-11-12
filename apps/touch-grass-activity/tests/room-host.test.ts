@@ -6,6 +6,7 @@ import type { RoomUser, ServerMessage } from '../src/shared/protocol.js';
 import { AWAY_GRACE_MS, type RoomState } from '../src/shared/room.js';
 import { makeRng } from '../src/shared/rng.js';
 import { ANSWER_MS, REVEAL_MS } from '../src/shared/trivia.js';
+import * as bluffRules from '../src/shared/bluff.js';
 import type { LiveReport } from '../src/shared/live.js';
 
 class FakeStorage {
@@ -391,5 +392,110 @@ describe('RoomHost (Durable Object logic)', () => {
     const host2 = new RoomHost({ storage: t.storage, sockets: () => t.sockets, verify: async (x) => USERS[x] ?? null, now: t.nowFn });
     const r = await host2.pollState('i-test', USERS['tok-a']!);
     expect(r.body.t === 'state' && r.body.view.dad.seats.map((s) => s.id)).toEqual(['100000001']);
+  });
+
+  it('bluff: 3 players over the host, alarms drive the clocks, the lie never reaches a guesser before the reveal', async () => {
+    const { connect, act, host, wakes, advance, storage } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c')];
+    for (const s of socks) await act(s, { t: 'bluff.sit' });
+    await act(socks[0]!, { t: 'bluff.start' });
+    const byId = (id: string) => socks.find((s) => s.user!.id === id)!;
+    const statements = ['I own a kayak.', 'I have met a governor.', 'I can solve a cube.'];
+    const tellers: string[] = [];
+    for (let round = 1; round <= 3; round += 1) {
+      const v = socks[0]!.lastState().bluff;
+      expect(v.phase).toBe('writing');
+      expect(v.round).toBe(round);
+      expect(wakes.at(-1)).toBe(v.writeEndsAt);
+      const teller = byId(v.tellerId!);
+      tellers.push(v.tellerId!);
+      const guessersS = socks.filter((s) => s !== teller);
+      // A guesser can't tell; a statement over 120 characters is refused.
+      await act(guessersS[0]!, { t: 'bluff.tell', statements, lie: 0 });
+      expect(guessersS[0]!.lastError()).toMatchObject({ code: 'not-teller' });
+      await act(teller, { t: 'bluff.tell', statements: ['x'.repeat(121), 'b', 'c'], lie: 0 });
+      expect(teller.lastError()).toMatchObject({ code: 'too-long' });
+      await act(teller, { t: 'bluff.tell', statements, lie: 2 });
+      for (const g of guessersS) {
+        const gv = g.lastState().bluff;
+        expect(gv.phase).toBe('guessing');
+        expect(gv.me.mine).toBeNull();
+        expect(JSON.stringify(g.inbox.at(-1))).not.toContain('"lie"');
+      }
+      const tv = teller.lastState().bluff;
+      expect(tv.me.mine!.statements[tv.me.mine!.lie]).toBe(statements[2]);
+      const saved = (await storage.get<RoomState>('room'))!;
+      const lie = saved.bluff.lie!;
+      const rid = guessersS[0]!.lastState().bluff.rid!;
+      await act(teller, { t: 'bluff.guess', rid, pick: lie });
+      expect(teller.lastError()).toMatchObject({ code: 'teller-cannot-guess' });
+      await act(guessersS[0]!, { t: 'bluff.guess', rid, pick: lie });
+      await act(guessersS[0]!, { t: 'bluff.guess', rid, pick: (lie + 1) % 3 });
+      expect(guessersS[0]!.lastError()).toMatchObject({ code: 'already-guessed' });
+      // The other guesser sleeps: the 30 s window runs out on the alarm.
+      expect(wakes.at(-1)).toBe(guessersS[0]!.lastState().bluff.guessEndsAt);
+      advance(bluffRules.GUESS_MS);
+      await host.onAlarm('i-test');
+      const r = socks[0]!.lastState().bluff;
+      expect(r.phase).toBe('reveal');
+      expect(r.lastRound!.lie).toBe(lie);
+      expect(r.lastRound!.tellerPoints).toBe(0);
+      advance(bluffRules.REVEAL_MS);
+      await host.onAlarm('i-test');
+    }
+    const end = socks[0]!.lastState().bluff;
+    expect(end.phase).toBe('over');
+    expect(new Set(tellers).size).toBe(3);
+    // Each player guessed right exactly once (when they were the first guesser) or slept.
+    expect(end.scores.reduce((n, x) => n + x.score, 0)).toBe(30);
+  });
+
+  it('bluff: an away teller gets the 3-minute grace, then the round is skipped; an away guesser just misses', async () => {
+    const { connect, act, drop, host, advance, wakes } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c'), await connect('tok-d')];
+    for (const s of socks) await act(s, { t: 'bluff.sit' });
+    await act(socks[0]!, { t: 'bluff.start' });
+    let v = socks[0]!.lastState().bluff;
+    const teller = socks.find((s) => s.user!.id === v.tellerId)!;
+    const tellerId = v.tellerId!;
+    advance(30_000);
+    await drop(teller);
+    // Write clock runs out while the teller is away: the round holds, no wake loop.
+    advance(bluffRules.WRITE_MS - 30_000);
+    await host.onAlarm('i-test');
+    const watcher = socks.find((s) => s !== teller)!;
+    expect(watcher.lastState().bluff).toMatchObject({ phase: 'writing', tellerId });
+    expect(wakes.at(-1)).toBeGreaterThan(watcher.lastState().serverNow);
+    // Grace (from the drop) ends: teller removed, round skipped, next teller up.
+    advance(AWAY_GRACE_MS - (bluffRules.WRITE_MS - 30_000));
+    await host.onAlarm('i-test');
+    v = watcher.lastState().bluff;
+    expect(v.lastRound).toMatchObject({ tellerId, skipped: 'teller-left' });
+    expect(v.phase).toBe('writing');
+    expect(v.tellerId).not.toBe(tellerId);
+    expect(v.seats.map((x) => x.id)).not.toContain(tellerId);
+    // Next round: one guesser drops; the other guesser alone closes the window.
+    const t2 = socks.find((s) => s.user!.id === v.tellerId)!;
+    await act(t2, { t: 'bluff.tell', statements: ['one', 'two', 'three'], lie: 0 });
+    const left = socks.filter((s) => s !== teller && s !== t2);
+    await drop(left[1]!);
+    await act(left[0]!, { t: 'bluff.guess', rid: left[0]!.lastState().bluff.rid!, pick: 0 });
+    const r = left[0]!.lastState().bluff;
+    expect(r.phase).toBe('reveal');
+    expect(r.lastRound!.picks.find((p) => p.id === left[1]!.user!.id)).toMatchObject({ pick: null, points: 0 });
+  });
+
+  it('bluff: live report carries seated counts and the room upgrades a pre-Bluff save', async () => {
+    const t = setup();
+    await t.host.setGuild('i-test', '123456789012345678');
+    const a = await t.connect('tok-a');
+    await t.act(a, { t: 'bluff.sit' });
+    expect(t.reports.at(-1)!.games.bluff).toEqual({ phase: 'seating', count: 1, joinable: true });
+    const saved = (await t.storage.get<RoomState>('room'))!;
+    delete (saved as Partial<RoomState>).bluff;
+    await t.storage.put('room', saved);
+    const host2 = new RoomHost({ storage: t.storage, sockets: () => t.sockets, verify: async (x) => USERS[x] ?? null, now: t.nowFn });
+    const r = await host2.pollState('i-test', USERS['tok-b']!);
+    expect(r.body.t === 'state' && r.body.view.bluff.phase).toBe('seating');
   });
 });

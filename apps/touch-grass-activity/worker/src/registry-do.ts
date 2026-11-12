@@ -5,7 +5,7 @@
 
 import { LiveBoard, parseLiveReport, type LiveEntry } from '../../src/shared/live.js';
 import { isValidGuildId } from '../../src/shared/protocol.js';
-import { alertsEnabled, emptyAlertState, evaluateAlerts, type AlertConfig, type AlertState } from './alerts.js';
+import { alertsEnabled, emptyAlertState, evaluateAlerts, upgradeAlertState, type AlertConfig, type AlertState } from './alerts.js';
 
 export interface RegistryEnv {
   /** Discord channel webhook for table alerts (secret). Unset = alerts off. */
@@ -36,7 +36,7 @@ export class LiveRegistry implements DurableObject {
   private async load(): Promise<void> {
     if (this.loaded) return;
     this.board.load(await this.ctx.storage.get<LiveEntry[]>(STORAGE_KEY));
-    this.alerts = (await this.ctx.storage.get<AlertState>(ALERTS_KEY)) ?? emptyAlertState();
+    this.alerts = upgradeAlertState(await this.ctx.storage.get<Partial<AlertState>>(ALERTS_KEY));
     this.loaded = true;
   }
 

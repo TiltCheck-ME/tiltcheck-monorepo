@@ -142,3 +142,27 @@ button.choice.choice--mine:disabled { opacity: 1; }
   .clock--sm { font-size: 30px; }
   .lobby-head .lede { display: none; }
 }
+
+/* Bluff */
+.tile--bluff { background: linear-gradient(135deg, #1d1a24, #191428); }
+.bluff-panel .choices { grid-template-columns: 1fr; }
+.bluff-panel .choice { align-items: flex-start; flex-wrap: wrap; }
+.choice__text { flex: 1 1 60%; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.bluff-panel .choice__count { flex-basis: 100%; margin-left: 36px; }
+.prompt--sm { font-size: 15px; padding: 10px 12px; }
+.tag--lie { background: var(--warn); color: #1a0f08; border-color: var(--warn); }
+.bluff-write { display: grid; gap: 8px; margin: 8px 0; }
+.bluff-line { display: flex; gap: 8px; align-items: center; }
+.bluff-line--lie .bluff-input { border-color: var(--warn); }
+.bluff-input { flex: 1; min-width: 0; font: inherit; font-size: 16px; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; min-height: 44px; }
+.bluff-input:focus { outline: 2px solid var(--teal); border-color: var(--teal); }
+/* Three tiles: a third column only when there is room for it. */
+@media (min-width: 900px) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 640px) and (max-width: 899px) {
+  .tiles .tile--bluff { grid-column: 1 / -1; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .tiles .tile--bluff { grid-column: 1 / -1; }
+}

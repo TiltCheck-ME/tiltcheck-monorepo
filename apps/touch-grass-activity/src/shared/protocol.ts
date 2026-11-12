@@ -4,6 +4,7 @@
 import type { Card } from './deck.js';
 import type { DadPhase, DadRoundResult } from './dad.js';
 import type { TriviaPhase } from './trivia.js';
+import type { BluffPhase, BluffRoundResult } from './bluff.js';
 import type { Brag } from './scores.js';
 
 export interface RoomUser {
@@ -28,12 +29,22 @@ export type ClientAction =
   | { t: 'trivia.start' }
   | { t: 'trivia.answer'; qid: string; choice: number }
   | { t: 'trivia.leave' }
+  | { t: 'bluff.sit' }
+  | { t: 'bluff.stand' }
+  | { t: 'bluff.start' }
+  /** Teller only: three statements in the order written, and which one (0-2) is the lie. */
+  | { t: 'bluff.tell'; statements: [string, string, string]; lie: number }
+  | { t: 'bluff.guess'; rid: string; pick: number }
+  | { t: 'bluff.next' }
   | { t: 'leave' }
   | { t: 'ping' }
   /** Which screen this player has open. Only feeds "someone is waiting at Trivia" for table alerts. */
   | { t: 'look'; at: LookAt };
 
-export type LookAt = 'lobby' | 'dad' | 'trivia';
+export type LookAt = 'lobby' | 'dad' | 'trivia' | 'bluff';
+
+/** Raw statement text accepted off the wire; the room cleans it and enforces the real 120-char cap. */
+export const MAX_RAW_STATEMENT = 600;
 
 /** First WebSocket message. Polling sends the token as a Bearer header instead. */
 export interface AuthMessage {
@@ -111,6 +122,49 @@ export interface TriviaView {
   highScores: 'none' | 'pending' | 'posted' | 'off-record';
 }
 
+export interface BluffSeatView {
+  id: string;
+  score: number;
+  isTeller: boolean;
+  told: boolean;
+  guessed: boolean;
+  away: boolean;
+}
+
+export interface BluffView {
+  phase: BluffPhase;
+  game: number;
+  round: number;
+  /** Rounds in this game (one per teller). */
+  total: number;
+  seats: BluffSeatView[];
+  waiting: string[];
+  tellerId: string | null;
+  prompt: string | null;
+  /** Round id to send with a guess. */
+  rid: string | null;
+  /** Shuffled statements while guessing. Never carries the lie. */
+  statements: string[] | null;
+  writeEndsAt: number | null;
+  guessEndsAt: number | null;
+  revealEndsAt: number | null;
+  guessedCount: number;
+  neededCount: number;
+  /** The round that just closed (reveal, or a skip note). Absent while guessing. */
+  lastRound: BluffRoundResult | null;
+  scores: Array<{ id: string; score: number; away: boolean }>;
+  winnerIds: string[];
+  me: {
+    seated: boolean;
+    waiting: boolean;
+    isTeller: boolean;
+    /** Viewer's own locked guess this round. */
+    guess: number | null;
+    /** Teller only, while guessing: their statements in display order with the lie marked. */
+    mine: { statements: string[]; lie: number } | null;
+  };
+}
+
 export interface RoomView {
   instanceId: string;
   serverNow: number;
@@ -119,6 +173,7 @@ export interface RoomView {
   members: RoomMemberView[];
   dad: DadView;
   trivia: TriviaView;
+  bluff: BluffView;
 }
 
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
@@ -145,11 +200,25 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'dad.reset':
     case 'trivia.start':
     case 'trivia.leave':
+    case 'bluff.sit':
+    case 'bluff.stand':
+    case 'bluff.start':
+    case 'bluff.next':
     case 'leave':
     case 'ping':
       return { t: m.t };
     case 'look':
-      return m.at === 'lobby' || m.at === 'dad' || m.at === 'trivia' ? { t: 'look', at: m.at } : null;
+      return m.at === 'lobby' || m.at === 'dad' || m.at === 'trivia' || m.at === 'bluff' ? { t: 'look', at: m.at } : null;
+    case 'bluff.tell': {
+      const st = m.statements;
+      if (!Array.isArray(st) || st.length !== 3 || !st.every((x) => typeof x === 'string' && x.length <= MAX_RAW_STATEMENT)) return null;
+      if (!Number.isInteger(m.lie) || (m.lie as number) < 0 || (m.lie as number) > 2) return null;
+      return { t: 'bluff.tell', statements: [st[0], st[1], st[2]] as [string, string, string], lie: m.lie as number };
+    }
+    case 'bluff.guess':
+      return typeof m.rid === 'string' && ID_RE.test(m.rid) && Number.isInteger(m.pick) && (m.pick as number) >= 0 && (m.pick as number) <= 2
+        ? { t: 'bluff.guess', rid: m.rid, pick: m.pick as number }
+        : null;
     case 'dad.start':
       if (m.target === undefined) return { t: 'dad.start' };
       return typeof m.target === 'number' && Number.isFinite(m.target) ? { t: 'dad.start', target: m.target } : null;
