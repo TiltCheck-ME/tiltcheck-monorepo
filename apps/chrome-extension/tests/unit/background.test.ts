@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-05 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RuntimeListener = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;
@@ -240,6 +240,30 @@ describe('background service worker', () => {
     );
   });
 
+  it('refuses trigger_tilt_auto_lock unless the player confirmed it in the offer', async () => {
+    const { chromeMock, runtimeListeners, storageData } = setupChromeMock();
+    await import('../../src/background.js');
+    const listener = runtimeListeners[0]!;
+    const res = vi.fn();
+    listener({ type: 'trigger_tilt_auto_lock', duration: 86400, tiltRisk: 95, openPrompt: true }, {}, res);
+    expect(res).toHaveBeenCalledWith({ success: false, error: 'not_confirmed' });
+    expect(storageData['tiltcheck_cooldown_active_until']).toBeUndefined();
+    expect(storageData['tiltcheck_cooldown_source']).toBeUndefined();
+    expect(chromeMock.tabs.create).not.toHaveBeenCalled();
+  });
+
+  it('a confirmed tilt lock can only extend a running lock, never shorten it', async () => {
+    const { runtimeListeners, storageData } = setupChromeMock();
+    await import('../../src/background.js');
+    const listener = runtimeListeners[0]!;
+    const longer = Date.now() + 7 * 86400 * 1000;
+    storageData['tiltcheck_cooldown_active_until'] = longer;
+    storageData['tiltcheck_cooldown_source'] = 'local_browser_session';
+    listener({ type: 'trigger_tilt_auto_lock', userConfirmed: true, duration: 3600, tiltRisk: 90, openPrompt: false }, {}, vi.fn());
+    expect(storageData['tiltcheck_cooldown_active_until']).toBe(longer);
+    expect(storageData['tiltcheck_cooldown_source']).toBe('local_browser_session');
+  });
+
   it('handles trigger_tilt_auto_lock and creates cooldown prompt tab', async () => {
     const { chromeMock, runtimeListeners, storageData } = setupChromeMock();
     await import('../../src/background.js');
@@ -251,6 +275,7 @@ describe('background service worker', () => {
     const keep = listener(
       {
         type: 'trigger_tilt_auto_lock',
+        userConfirmed: true,
         wallet: testWallet,
         duration: 86400,
         tiltRisk: 82,

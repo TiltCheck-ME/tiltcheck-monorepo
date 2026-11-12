@@ -279,7 +279,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
 
       hudEl.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-          <span style="font-size: 10px; font-weight: 800; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-transform: uppercase; letter-spacing: 0.05em;">${isAutoTilt ? 'Tilt Auto-Lock Active' : 'Vault Lock Active'}</span>
+          <span style="font-size: 10px; font-weight: 800; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-transform: uppercase; letter-spacing: 0.05em;">${isAutoTilt ? 'Tilt Break Active' : 'Vault Lock Active'}</span>
           <button type="button" class="tiltcheck-cooldown-toggle" style="background: transparent; border: none; color: #94a3b8; font-family: inherit; font-size: 14px; cursor: pointer; line-height: 1; padding: 0 2px;" title="Minimize">-</button>
         </div>
         <div class="cooldown-timer-val" style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 2px 0 4px 0;">
@@ -426,7 +426,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     if (cooldownUntil > now) {
       const remainingMins = Math.max(1, Math.ceil((cooldownUntil - now) / 60000));
       if (inMemoryCooldownSource === 'auto_tilt') {
-        message = `Deposit Barrier Active: Level 3+ tilt auto-lock engaged (${remainingMins}m remaining). Cool down and protect your capital.`;
+        message = `Deposit Barrier Active: you took the tilt break (${remainingMins}m left). It ends when it ends.`;
       } else {
         message = `Deposit Barrier Active: Voluntary lock engaged (${remainingMins}m remaining). Don't reload. Step away.`;
       }

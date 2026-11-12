@@ -66,9 +66,9 @@ export const SETTINGS_GROUPS = Object.freeze([
     hint: 'Timeouts when things get spicy. For a proper lock, use Take a break above.',
     rows: [
       { key: 'depositBlock', type: 'toggle', label: 'Grey out deposit buttons during a timeout' },
-      { key: 'autoBreak', type: 'toggle', label: 'Lock me out on its own when my tilt score gets ugly' },
-      { key: 'autoBreakScore', type: 'number', label: 'Tilt score that sets it off (50 to 95)', min: 50, max: 95, step: 1 },
-      { key: 'autoBreakHours', type: 'number', label: 'How long that lock lasts (hours)', min: 1, max: 720, step: 1 },
+      { key: 'autoBreak', type: 'toggle', label: "Offer a break when I'm tilting (it asks first)" },
+      { key: 'autoBreakScore', type: 'number', label: 'Tilt score that brings up the offer (50 to 95)', min: 50, max: 95, step: 1 },
+      { key: 'autoBreakHours', type: 'number', label: 'How long the break lasts if I take it (hours)', min: 1, max: 720, step: 1 },
     ],
   },
   {

@@ -1,9 +1,17 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /**
  * tilt-auto-lock.ts
- * Automated on-chain voluntary lock trigger on high tilt (Level 3+ / score >= 75).
- * Non-custodial: enforces local session freeze, activates deposit barrier HUD,
- * and routes user to non-custodial Anchor Cooldown program on tiltcheck.me/cooldown.
+ * "Offer a break when I'm tilting": rules for when the extension may OFFER a lock on high
+ * tilt, and the code that starts the lock once the player has said yes.
+ *
+ * The extension never starts a lock on its own. A lock from here needs the player to tick
+ * the first-person checkbox and press the lock button in the offer (tilt-break-offer.ts);
+ * `executeTiltAutoLock` refuses to run without `confirmed: true`, and the background worker
+ * refuses `trigger_tilt_auto_lock` without `userConfirmed: true`.
+ *
+ * After "Not now" the offer stays quiet for TILT_OFFER_DISMISS_COOLDOWN_MS (30 min), unless
+ * the tilt score climbs at least TILT_OFFER_REPROMPT_SCORE_JUMP (10) points above the score
+ * it was dismissed at.
  */
 
 import {
@@ -33,21 +41,49 @@ export function buildAutoLockVaultUrl(options: {
   return `https://tiltcheck.me/cooldown?${params.toString()}`;
 }
 
+/** Quiet period after "Not now". */
+export const TILT_OFFER_DISMISS_COOLDOWN_MS = 30 * 60 * 1000;
+/** Inside the quiet period, a score this many points above the dismissed one re-offers. */
+export const TILT_OFFER_REPROMPT_SCORE_JUMP = 10;
+/** chrome.storage.local key for the last "Not now" (shared by every casino tab). */
+export const TILTCHECK_TILT_OFFER_DISMISSED_KEY = 'tiltcheck_tilt_offer_dismissed';
+
+export interface TiltOfferDismissal {
+  /** ms since epoch */
+  at: number;
+  /** tilt score when it was dismissed */
+  score: number;
+}
+
+export function readTiltOfferDismissal(value: unknown): TiltOfferDismissal | null {
+  if (!value || typeof value !== 'object') return null;
+  const v = value as Record<string, unknown>;
+  const at = Number(v.at);
+  const score = Number(v.score);
+  if (!Number.isFinite(at) || !Number.isFinite(score)) return null;
+  return { at, score };
+}
+
 export interface AutoLockEvaluationParams {
   tiltRisk: number;
   threshold?: number;
+  /** The dashboard's "Offer a break when I'm tilting" switch. */
   autoLockEnabled?: boolean;
   cooldownActiveUntil?: number;
+  lastDismissal?: TiltOfferDismissal | null;
+  /** An offer is already on screen. */
+  offerOpen?: boolean;
   now?: number;
 }
 
-export function shouldTriggerAutoLock(params: AutoLockEvaluationParams): boolean {
+/** True when the extension may SHOW the break offer. It never means "lock now". */
+export function shouldOfferTiltBreak(params: AutoLockEvaluationParams): boolean {
   const enabled = params.autoLockEnabled ?? DEFAULT_AUTO_LOCK_ON_TILT;
-  if (!enabled) {
+  if (!enabled || params.offerOpen) {
     return false;
   }
   const threshold = params.threshold ?? DEFAULT_AUTO_LOCK_THRESHOLD;
-  if (params.tiltRisk < threshold) {
+  if (!Number.isFinite(params.tiltRisk) || params.tiltRisk < threshold) {
     return false;
   }
   const now = params.now ?? Date.now();
@@ -55,10 +91,22 @@ export function shouldTriggerAutoLock(params: AutoLockEvaluationParams): boolean
   if (cooldownUntil > now) {
     return false;
   }
+  const d = params.lastDismissal;
+  if (d && now - d.at < TILT_OFFER_DISMISS_COOLDOWN_MS) {
+    return params.tiltRisk >= d.score + TILT_OFFER_REPROMPT_SCORE_JUMP;
+  }
   return true;
 }
 
+/** @deprecated Kept as an alias so old imports compile; it only decides whether to OFFER. */
+export const shouldTriggerAutoLock = shouldOfferTiltBreak;
+
 export interface TriggerAutoLockOptions {
+  /**
+   * Must be true: the player ticked the checkbox and pressed the lock button in the offer.
+   * Without it nothing is written and nothing is sent.
+   */
+  confirmed: boolean;
   tiltRisk: number;
   wallet?: string | null;
   indicators?: string[];
@@ -76,13 +124,15 @@ export interface TriggerAutoLockResult {
   wallet: string | null;
 }
 
+/** Starts the lock the player just accepted in the offer. Refuses without `confirmed: true`. */
 export async function executeTiltAutoLock(
   options: TriggerAutoLockOptions
 ): Promise<TriggerAutoLockResult> {
   const now = options.now ?? Date.now();
   const duration = options.duration ?? DEFAULT_AUTO_LOCK_DURATION;
   const activeUntil = now + duration * 1000;
-  const source = options.source ?? 'auto_tilt';
+  // An accepted tilt offer is always recorded as lockSource 'auto_tilt'.
+  const source = 'auto_tilt';
   const wallet = options.wallet ?? null;
   const targetUrl = buildAutoLockVaultUrl({
     wallet,
@@ -90,6 +140,10 @@ export async function executeTiltAutoLock(
     source,
     scope: 'all',
   });
+
+  if (options.confirmed !== true) {
+    return { triggered: false, activeUntil: 0, duration, targetUrl, wallet };
+  }
 
   // 1. Persist local exclusion state into chrome.storage.local
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
@@ -163,6 +217,7 @@ export async function executeTiltAutoLock(
     try {
       chrome.runtime.sendMessage({
         type: 'trigger_tilt_auto_lock',
+        userConfirmed: true,
         wallet,
         duration,
         tiltRisk: options.tiltRisk,
@@ -183,31 +238,43 @@ export async function executeTiltAutoLock(
   };
 }
 
-export async function checkAndTriggerAutoLock(params: {
-  tiltRisk: number;
-  indicators?: string[];
-  openPrompt?: boolean;
-  now?: number;
-}): Promise<TriggerAutoLockResult | null> {
+export interface TiltOfferContext {
+  enabled: boolean;
+  threshold: number;
+  duration: number;
+  wallet: string | null;
+  cooldownActiveUntil: number;
+  lastDismissal: TiltOfferDismissal | null;
+}
+
+/** Reads everything the offer decision needs from chrome.storage. */
+export async function loadTiltOfferContext(): Promise<TiltOfferContext> {
   const opts = await loadCoreCircuitBreakerOptions();
-  const shouldTrigger = shouldTriggerAutoLock({
-    tiltRisk: params.tiltRisk,
-    threshold: opts.autoLockThreshold,
-    autoLockEnabled: opts.autoLockOnTilt,
-    cooldownActiveUntil: opts.cooldownActiveUntil,
-    now: params.now,
-  });
-
-  if (!shouldTrigger) {
-    return null;
+  let lastDismissal: TiltOfferDismissal | null = null;
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    try {
+      const got = await chrome.storage.local.get([TILTCHECK_TILT_OFFER_DISMISSED_KEY]);
+      lastDismissal = readTiltOfferDismissal(got?.[TILTCHECK_TILT_OFFER_DISMISSED_KEY]);
+    } catch {
+      // ignore
+    }
   }
-
-  return executeTiltAutoLock({
-    tiltRisk: params.tiltRisk,
-    wallet: opts.cooldownWallet,
-    indicators: params.indicators,
+  return {
+    enabled: opts.autoLockOnTilt,
+    threshold: opts.autoLockThreshold,
     duration: opts.autoLockDuration,
-    openPrompt: params.openPrompt ?? Boolean(opts.cooldownWallet),
-    now: params.now,
-  });
+    wallet: opts.cooldownWallet ?? null,
+    cooldownActiveUntil: opts.cooldownActiveUntil,
+    lastDismissal,
+  };
+}
+
+export async function recordTiltOfferDismissal(d: TiltOfferDismissal): Promise<void> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    try {
+      await chrome.storage.local.set({ [TILTCHECK_TILT_OFFER_DISMISSED_KEY]: d });
+    } catch {
+      // ignore
+    }
+  }
 }

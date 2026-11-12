@@ -377,6 +377,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'trigger_tilt_auto_lock') {
+    // Only a lock the player accepted in the tilt offer (checkbox + button) gets here.
+    // Anything else asking for an automatic lock is refused.
+    if (message.userConfirmed !== true) {
+      sendResponse({ success: false, error: 'not_confirmed' });
+      return false;
+    }
     const wallet = typeof message.wallet === 'string' && message.wallet.trim().length >= 32 ? message.wallet.trim() : null;
     const duration = typeof message.duration === 'number' && message.duration > 0 ? message.duration : 86400;
     const tiltRisk = typeof message.tiltRisk === 'number' ? message.tiltRisk : 75;

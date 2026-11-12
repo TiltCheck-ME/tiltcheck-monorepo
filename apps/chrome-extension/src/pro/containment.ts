@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-20 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 /**
  * DOM roots owned by Core / Pro safety surfaces. Mutation scanners must not
@@ -13,6 +13,7 @@ export const TILTCHECK_SAFETY_ROOT_IDS = [
   'tiltcheck-sidebar',
   'tiltcheck-mobile-license-hud',
   'tiltcheck-cooldown-hud',
+  'tiltcheck-tilt-break-offer',
 ] as const;
 
 export function isInsideTiltcheckSafetyRoot(node: Node | null): boolean {

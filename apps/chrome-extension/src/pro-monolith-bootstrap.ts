@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -53,7 +53,7 @@ import { GameBlocker } from './game-blocker.js';
 import { installLocalGameBlocker, LocalGameBlocker } from './pro/local-game-blocker.js';
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './pro/containment.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
-import { checkAndTriggerAutoLock } from './tilt-auto-lock.js';
+import { maybeOfferTiltBreak } from './tilt-break-offer.js';
 import type { CasinoVerification } from './license-verifier.js';
 import {
   attachMarketingSiteStorageListener,
@@ -1160,22 +1160,22 @@ function startTiltMonitoring() {
       });
     }
 
-    // Automated on-chain lock trigger on high tilt (Level 3+ / score >= 75)
-    void checkAndTriggerAutoLock({
+    // High tilt: OFFER a break (dashboard "Offer a break when I'm tilting"). The extension
+    // never starts a lock on its own; the player has to tick the box and press the button.
+    void maybeOfferTiltBreak({
       tiltRisk,
       indicators,
-    }).then((result) => {
-      if (result?.triggered) {
-        triggerTouchGrassTimeout(`High Tilt Auto-Lock Engaged: Score ${tiltRisk}/100. 24h deposit barrier active.`);
-        notifySupportIntervention('tilt_auto_lock', {
-          message: `High tilt auto-lock engaged at score ${tiltRisk}/100.`,
+    }).then((res) => {
+      if (res.outcome === 'accepted' && res.lock.triggered) {
+        notifySupportIntervention('tilt_break_accepted', {
+          message: `Took the tilt break at score ${tiltRisk}/100.`,
           risk: tiltRisk,
           indicators,
-          duration: result.duration,
-          wallet: result.wallet,
+          duration: res.lock.duration,
+          wallet: res.lock.wallet,
         });
       }
-    });
+    }).catch(() => { /* offer is best-effort */ });
 
     const generated = tiltDetector.generateInterventions();
     if (generated.length > 0) {

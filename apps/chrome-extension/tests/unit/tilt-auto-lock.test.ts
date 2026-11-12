@@ -1,14 +1,15 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /**
  * @vitest-environment jsdom
- * Automated high-tilt cooldown vault tests.
+ * Tilt break offer rules + the lock it starts once accepted.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildAutoLockVaultUrl,
   shouldTriggerAutoLock,
   executeTiltAutoLock,
-  checkAndTriggerAutoLock,
+  shouldOfferTiltBreak,
+  TILT_OFFER_DISMISS_COOLDOWN_MS,
 } from '../../src/tilt-auto-lock.js';
 import {
   TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
@@ -134,6 +135,7 @@ describe('tilt-auto-lock module', () => {
       const postMessageSpy = vi.spyOn(window, 'postMessage');
 
       const result = await executeTiltAutoLock({
+        confirmed: true,
         tiltRisk: 85,
         wallet: testWallet,
         indicators: ['rage_betting', 'loss_chasing'],
@@ -177,6 +179,7 @@ describe('tilt-auto-lock module', () => {
       // Verify runtime message
       expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'trigger_tilt_auto_lock',
+        userConfirmed: true,
         wallet: testWallet,
         duration: 86400,
         tiltRisk: 85,
@@ -186,35 +189,40 @@ describe('tilt-auto-lock module', () => {
     });
   });
 
-  describe('checkAndTriggerAutoLock', () => {
-    it('returns null when tiltRisk does not satisfy threshold', async () => {
-      storageData[TILTCHECK_AUTO_LOCK_ON_TILT_KEY] = true;
-      storageData[TILTCHECK_AUTO_LOCK_THRESHOLD_KEY] = 75;
-
-      const res = await checkAndTriggerAutoLock({
-        tiltRisk: 60,
-      });
-      expect(res).toBeNull();
+  describe('executeTiltAutoLock without confirmation', () => {
+    it('writes nothing and sends nothing unless confirmed is true', async () => {
+      const res = await executeTiltAutoLock({ confirmed: false, tiltRisk: 95, duration: 86400, now: 1000 });
+      expect(res.triggered).toBe(false);
+      expect(storageData[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]).toBeUndefined();
+      expect(storageData[TILTCHECK_COOLDOWN_SOURCE_KEY]).toBeUndefined();
+      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
     });
 
-    it('triggers and returns result when tiltRisk satisfies threshold', async () => {
-      storageData[TILTCHECK_AUTO_LOCK_ON_TILT_KEY] = true;
-      storageData[TILTCHECK_AUTO_LOCK_THRESHOLD_KEY] = 75;
-      storageData[TILTCHECK_AUTO_LOCK_DURATION_KEY] = 86400;
-      storageData[TILTCHECK_COOLDOWN_WALLET_KEY] = testWallet;
-
+    it('never shortens a longer lock that is already running', async () => {
       const now = 1700000000000;
-      const res = await checkAndTriggerAutoLock({
-        tiltRisk: 80,
-        indicators: ['fast_clicks'],
-        now,
-      });
+      storageData[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] = now + 7 * 86400 * 1000;
+      storageData[TILTCHECK_COOLDOWN_SOURCE_KEY] = 'local_browser_session';
+      await executeTiltAutoLock({ confirmed: true, tiltRisk: 90, duration: 3600, now });
+      expect(storageData[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]).toBe(now + 7 * 86400 * 1000);
+      expect(storageData[TILTCHECK_COOLDOWN_SOURCE_KEY]).toBe('local_browser_session');
+    });
+  });
 
-      expect(res).not.toBeNull();
-      expect(res?.triggered).toBe(true);
-      expect(res?.wallet).toBe(testWallet);
-      expect(res?.activeUntil).toBe(now + 86400 * 1000);
-      expect(storageData[TILTCHECK_COOLDOWN_SOURCE_KEY]).toBe('auto_tilt');
+  describe('shouldOfferTiltBreak dismiss cooldown', () => {
+    const base = { threshold: 75, autoLockEnabled: true, cooldownActiveUntil: 0 };
+    const at = 1_000_000;
+    it('stays quiet for 30 minutes after Not now at the same score', () => {
+      expect(shouldOfferTiltBreak({ ...base, tiltRisk: 80, lastDismissal: { at, score: 80 }, now: at + 60_000 })).toBe(false);
+      expect(shouldOfferTiltBreak({ ...base, tiltRisk: 89, lastDismissal: { at, score: 80 }, now: at + TILT_OFFER_DISMISS_COOLDOWN_MS - 1 })).toBe(false);
+    });
+    it('re-offers inside the quiet period when the score climbs 10+ points', () => {
+      expect(shouldOfferTiltBreak({ ...base, tiltRisk: 90, lastDismissal: { at, score: 80 }, now: at + 60_000 })).toBe(true);
+    });
+    it('re-offers after the quiet period ends', () => {
+      expect(shouldOfferTiltBreak({ ...base, tiltRisk: 80, lastDismissal: { at, score: 80 }, now: at + TILT_OFFER_DISMISS_COOLDOWN_MS })).toBe(true);
+    });
+    it('never offers while one is already open', () => {
+      expect(shouldOfferTiltBreak({ ...base, tiltRisk: 99, offerOpen: true, now: at })).toBe(false);
     });
   });
 });
