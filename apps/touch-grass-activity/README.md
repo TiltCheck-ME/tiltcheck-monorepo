@@ -114,13 +114,12 @@ GET /api/live                        global totals
 
 A DA&D table is an instance with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. No user ids, names, avatars or instance ids in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
 
-## Current test deploy (2026-11-12)
+## Current test deploy (2026-11-12, trivia build)
 
-- Worker: `touch-grass-activity` on Cloudflare account 6604734f6224c90d45b3d817f9dfab23, `https://touch-grass-activity.j-chapman7.workers.dev` (`/api/health` returns `{"ok":true,"service":"touch-grass-activity"}`). Bindings: Durable Object `ROOMS` -> `TouchGrassRoom` (migration v1, new_sqlite_classes), var `DISCORD_CLIENT_ID=1445916179163250860`. No `ALLOW_GUEST`.
-- Frontend: Cloudflare Pages project `touch-grass-activity`, `https://touch-grass-activity.pages.dev` (built from commit e8c7ed9d, default client id).
-- `DISCORD_CLIENT_SECRET` is NOT set yet, so `POST /api/activity/token` returns 500 `{"error":"server-not-configured"}` until Jamie adds it as a secret in the dashboard (Workers & Pages -> touch-grass-activity -> Settings -> Variables and Secrets -> Add -> Type Secret).
-- Developer Portal URL Mappings for this deploy: `/` -> `touch-grass-activity.pages.dev`, `/api` -> `touch-grass-activity.j-chapman7.workers.dev`.
-- The worker was uploaded with the Cloudflare REST API (bundle from `wrangler deploy --dry-run --outdir`), Pages via the direct-upload API. `wrangler deploy --config worker/wrangler.toml` produces the same script.
+- Worker: `touch-grass-activity` on Cloudflare account 6604734f6224c90d45b3d817f9dfab23, `https://touch-grass-activity.j-chapman7.workers.dev` (`/api/health` 200, `/api/live` 200). Bindings: Durable Objects `ROOMS` -> `TouchGrassRoom` (migration v1, unchanged namespace) and `LIVE` -> `LiveRegistry` (migration v2, new_sqlite_classes), var `DISCORD_CLIENT_ID=1445916179163250860`, secret `DISCORD_CLIENT_SECRET` (kept). No `ALLOW_GUEST`. Uploaded with the Cloudflare REST API (bundle from `wrangler deploy --dry-run --outdir`, `keep_bindings: ["secret_text"]`, migrations `old_tag v1 -> new_tag v2`).
+- Frontend: Cloudflare Pages project `touch-grass-activity`, `https://touch-grass-activity.pages.dev`, built from 3738e659. Uploaded with the Pages direct-upload API (upload JWT -> assets/upload + upsert-hashes, then a deployment with the manifest). A new deployment can answer 500 for a minute or two while it propagates.
+- Discord proxy: `https://1445916179163250860.discordsays.com/.proxy/api/health` 200.
+- Developer Portal URL Mappings: `/` -> `touch-grass-activity.pages.dev`, `/api` -> `touch-grass-activity.j-chapman7.workers.dev`.
 
 ## Deploy checklist for Jamie
 

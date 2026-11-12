@@ -12,6 +12,11 @@
 - Live tables: new `LiveRegistry` singleton DO (migration v2, new_sqlite_classes; v1/ROOMS untouched). Rooms report guild id (from `sdk.guildId`), game phases and seated/playing counts on change plus a 50 s heartbeat; 120 s TTL. `GET /api/live[?guild=<id>]` returns per-game tables/seated|playing/joinable and totals, no user ids, names, avatars or instance ids; light per-IP rate limit; CORS for tiltcheck.me (+subdomains) and chrome-extension:// only. Extension not touched.
 - Checked: typecheck (client, worker, tests), vite build, 84 vitest tests (trivia state machine incl. start/window/speed score/duplicate and late answers/hidden answer/end and restart/late join/away; live registry incl. TTL; DO host incl. reconnect-inside-grace keeps seat and hand, expiry removes, away judge waits; workerd: reconnect inside grace, full 3-player 10-question trivia game over WebSockets with /api/live counts and CORS; jsdom client; no-money guard extended to the trivia bank), `simulate` (DA&D to a winner, then a full trivia game with a mid-game drop and rejoin).
 
+## 2026-11-12 — deploy(activity): Touch Grass trivia build on the same test hosts
+
+- Worker `touch-grass-activity` re-uploaded from 3738e659: ROOMS/TouchGrassRoom namespace unchanged, new LIVE/LiveRegistry (migration v2), DISCORD_CLIENT_ID var and DISCORD_CLIENT_SECRET secret kept. `/api/health` 200, `/api/live` 200 (CORS for tiltcheck.me verified), token route now reaches Discord (secret present).
+- Pages `touch-grass-activity` deployment c9875fba (3738e659) live at https://touch-grass-activity.pages.dev; discordsays.com `/.proxy/api/health` 200. Pages answered 500 for a few minutes during the deploy (a first attempt without assets, rolled back to 112e0aa3, then propagation of the good deployment).
+
 ## 2026-11-12 — deploy(activity): Touch Grass Activity test deploy on Cloudflare
 
 - Worker `touch-grass-activity` (new script; collectclock-api and other workers untouched) live at https://touch-grass-activity.j-chapman7.workers.dev with Durable Object `ROOMS`/`TouchGrassRoom` (sqlite migration v1) and var DISCORD_CLIENT_ID; no ALLOW_GUEST. `/api/health` 200.
