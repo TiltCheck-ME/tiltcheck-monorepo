@@ -1,8 +1,9 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 # Touch Grass Activity backend. Its OWN worker name, not collectclock-api or any other existing worker.
-# Not deployed by this PR. See ../README.md for Jamie's deploy steps.
+# Deployed 2026-11-12 to https://touch-grass-activity.j-chapman7.workers.dev (see ../README.md).
 
 name = "touch-grass-activity"
+account_id = "6604734f6224c90d45b3d817f9dfab23"
 main = "src/index.ts"
 compatibility_date = "2026-03-01"
 workers_dev = true

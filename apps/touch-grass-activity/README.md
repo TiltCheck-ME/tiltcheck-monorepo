@@ -1,6 +1,6 @@
 <!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
 
-# Touch Grass Activity (DRAFT, not deployed)
+# Touch Grass Activity (DRAFT, test deploy live)
 
 A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
@@ -80,7 +80,15 @@ Client ID: `VITE_DISCORD_CLIENT_ID`, falling back to "Tilt Check" `1445916179163
 - Leaving: a socket close (last tab for that user) removes them from the room. Polling-only users are swept after 45 s of silence. A judge leaving voids the round and returns submitted cards. Under 3 players the game pauses with scores kept.
 - Late joiners sit in line and are dealt in at the next round.
 
-## Deploy checklist for Jamie (not done in this PR)
+## Current test deploy (2026-11-12)
+
+- Worker: `touch-grass-activity` on Cloudflare account 6604734f6224c90d45b3d817f9dfab23, `https://touch-grass-activity.j-chapman7.workers.dev` (`/api/health` returns `{"ok":true,"service":"touch-grass-activity"}`). Bindings: Durable Object `ROOMS` -> `TouchGrassRoom` (migration v1, new_sqlite_classes), var `DISCORD_CLIENT_ID=1445916179163250860`. No `ALLOW_GUEST`.
+- Frontend: Cloudflare Pages project `touch-grass-activity`, `https://touch-grass-activity.pages.dev` (built from commit e8c7ed9d, default client id).
+- `DISCORD_CLIENT_SECRET` is NOT set yet, so `POST /api/activity/token` returns 500 `{"error":"server-not-configured"}` until Jamie adds it as a secret in the dashboard (Workers & Pages -> touch-grass-activity -> Settings -> Variables and Secrets -> Add -> Type Secret).
+- Developer Portal URL Mappings for this deploy: `/` -> `touch-grass-activity.pages.dev`, `/api` -> `touch-grass-activity.j-chapman7.workers.dev`.
+- The worker was uploaded with the Cloudflare REST API (bundle from `wrangler deploy --dry-run --outdir`), Pages via the direct-upload API. `wrangler deploy --config worker/wrangler.toml` produces the same script.
+
+## Deploy checklist for Jamie
 
 Nothing here touches `collectclock-api`, DNS, the Developer Portal or any Discord channel. These are the steps when you decide to ship.
 

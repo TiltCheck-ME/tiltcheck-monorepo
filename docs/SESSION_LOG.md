@@ -2,6 +2,13 @@
 
 # Session Log
 
+## 2026-11-12 — deploy(activity): Touch Grass Activity test deploy on Cloudflare
+
+- Worker `touch-grass-activity` (new script; collectclock-api and other workers untouched) live at https://touch-grass-activity.j-chapman7.workers.dev with Durable Object `ROOMS`/`TouchGrassRoom` (sqlite migration v1) and var DISCORD_CLIENT_ID; no ALLOW_GUEST. `/api/health` 200.
+- Pages project `touch-grass-activity` live at https://touch-grass-activity.pages.dev (dist from e8c7ed9d).
+- DISCORD_CLIENT_SECRET not set; `/api/activity/token` answers 500 `server-not-configured` until Jamie adds it in the dashboard. Portal URL mappings, iOS/Android toggles and old launch messages still on Jamie.
+- `worker/wrangler.toml` now has `account_id`; README has a "Current test deploy" section.
+
 ## 2026-11-12 — feat(activity): Touch Grass Discord Activity draft (lobby, Degens Against Decency, group break)
 
 - New app `apps/touch-grass-activity` (Vite + TS static build) on branch touch-grass-activity, draft PR only. Nothing deployed; collectclock-api, the Developer Portal, Discord channels and DNS untouched.
