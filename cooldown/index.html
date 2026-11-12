@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-title" content="TimeCheck"/>
 <link rel="manifest" href="../manifest.webmanifest"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
-<link rel="icon" type="image/png" href="../styles/icon.png"/>
-<link rel="apple-touch-icon" href="../styles/icon.png"/>
+<link rel="icon" type="image/png" href="../icon.png"/>
+<link rel="apple-touch-icon" href="../icon.png"/>
 <link rel="stylesheet" href="../styles/base.css"/>
 <script>
 (function () {
@@ -260,10 +260,25 @@
               connectNotice.style.background = 'rgba(239, 68, 68, 0.12)';
               connectNotice.style.border = '1px solid rgba(239, 68, 68, 0.4)';
               connectNotice.style.color = '#fca5a5';
+              // Mobile Safari / Chrome have no wallet extension: offer to reopen this page in
+              // Phantom's in-app browser (docs.phantom.com > Deeplinks > Browse).
+              var ua = navigator.userAgent || '';
+              var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+              var walletBtnHtml;
+              if (isMobile) {
+                var phantomBrowse = 'https://phantom.com/ul/browse/' + encodeURIComponent(location.href) +
+                  '?ref=' + encodeURIComponent(location.origin);
+                walletBtnHtml = '  <a id="btn-open-phantom-app" href="' + phantomBrowse + '" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Open in Phantom app</a>';
+              } else {
+                walletBtnHtml = '  <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Install Phantom</a>';
+              }
               connectNotice.innerHTML = '<strong style="color: #ef4444; display: block; margin-bottom: 4px;">No Solana Wallet Detected</strong>' +
-                'TiltCheck could not detect a Solana browser extension (Phantom, Solflare, Backpack).<br/>' +
+                (isMobile
+                  ? 'Phone browsers cannot see wallet extensions. Open this page in the Phantom app, or lock right here without a wallet.<br/>'
+                  : 'TiltCheck could not detect a Solana browser extension (Phantom, Solflare, Backpack).<br/>') +
                 '<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">' +
-                '  <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Install Phantom</a>' +
+                walletBtnHtml +
                 '  <button type="button" id="btn-no-wallet-lock" style="background: rgba(23,195,178,0.2); border: 1px solid #17c3b2; color: #17c3b2; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Lock In-Browser (No Wallet)</button>' +
                 '</div>';
 
@@ -456,7 +471,7 @@
       <a href="../wincheck/">Win Skim</a>
       <a href="../casinos/">TrustCheck</a>
       <a href="../tip/">Tip Jar</a>
-      <a href="../login/">Discord Sign In</a>
+      <a href="../login/" data-tc-footer-auth data-signed-in-href="../dashboard/" data-signed-in-text="Your dashboard">Discord Sign In</a>
       <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord Server</a>
       <a href="../privacy/">Privacy Policy</a>
     </div>
@@ -471,6 +486,8 @@
   function readUser() {
     try {
       if (!localStorage.getItem('tc_token')) return null;
+      var exp = Number(localStorage.getItem('tc_token_exp') || 0);
+      if (exp && exp < Date.now()) return null;
       var u = JSON.parse(localStorage.getItem('tc_user') || 'null');
       return u && /^[0-9]{5,25}$/.test(String(u.id)) ? u : null;
     } catch (e) { return null; }
@@ -530,6 +547,22 @@
       a.appendChild(wrap);
       a.appendChild(el('span', 'site-nav__name', name));
     }
+    // Footer "Discord Sign In" becomes "Your dashboard" while signed in.
+    var foot = document.querySelectorAll('[data-tc-footer-auth]');
+    for (var f = 0; f < foot.length; f++) {
+      var fa = foot[f];
+      if (!fa.getAttribute('data-signed-out-text')) {
+        fa.setAttribute('data-signed-out-text', fa.textContent);
+        fa.setAttribute('data-signed-out-href', fa.getAttribute('href') || '');
+      }
+      if (u) {
+        fa.textContent = fa.getAttribute('data-signed-in-text') || 'Your dashboard';
+        fa.setAttribute('href', fa.getAttribute('data-signed-in-href') || fa.getAttribute('data-signed-out-href'));
+      } else {
+        fa.textContent = fa.getAttribute('data-signed-out-text');
+        fa.setAttribute('href', fa.getAttribute('data-signed-out-href'));
+      }
+    }
     var nameSlots = document.querySelectorAll('[data-tc-user-name]');
     for (var j = 0; j < nameSlots.length; j++) nameSlots[j].textContent = name;
     var avSlots = document.querySelectorAll('img[data-tc-user-avatar]');
@@ -550,7 +583,7 @@
   };
   render();
   window.addEventListener('storage', function (e) {
-    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user') render();
+    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user' || e.key === 'tc_token_exp') render();
   });
 })();
 </script>

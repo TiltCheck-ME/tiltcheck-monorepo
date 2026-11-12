@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-title" content="TimeCheck"/>
 <link rel="manifest" href="../manifest.webmanifest"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet"/>
-<link rel="icon" type="image/png" href="../styles/icon.png"/>
-<link rel="apple-touch-icon" href="../styles/icon.png"/>
+<link rel="icon" type="image/png" href="../icon.png"/>
+<link rel="apple-touch-icon" href="../icon.png"/>
 <link rel="stylesheet" href="../styles/base.css"/>
 <script>
 (function () {
@@ -203,7 +203,7 @@
       <a href="../wincheck/">Win Skim</a>
       <a href="../casinos/">TrustCheck</a>
       <a href="../tip/">Tip Jar</a>
-      <a href="../login/">Discord Sign In</a>
+      <a href="../login/" data-tc-footer-auth data-signed-in-href="../dashboard/" data-signed-in-text="Your dashboard">Discord Sign In</a>
       <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord Server</a>
       <a href="../privacy/">Privacy Policy</a>
     </div>
@@ -218,6 +218,8 @@
   function readUser() {
     try {
       if (!localStorage.getItem('tc_token')) return null;
+      var exp = Number(localStorage.getItem('tc_token_exp') || 0);
+      if (exp && exp < Date.now()) return null;
       var u = JSON.parse(localStorage.getItem('tc_user') || 'null');
       return u && /^[0-9]{5,25}$/.test(String(u.id)) ? u : null;
     } catch (e) { return null; }
@@ -277,6 +279,22 @@
       a.appendChild(wrap);
       a.appendChild(el('span', 'site-nav__name', name));
     }
+    // Footer "Discord Sign In" becomes "Your dashboard" while signed in.
+    var foot = document.querySelectorAll('[data-tc-footer-auth]');
+    for (var f = 0; f < foot.length; f++) {
+      var fa = foot[f];
+      if (!fa.getAttribute('data-signed-out-text')) {
+        fa.setAttribute('data-signed-out-text', fa.textContent);
+        fa.setAttribute('data-signed-out-href', fa.getAttribute('href') || '');
+      }
+      if (u) {
+        fa.textContent = fa.getAttribute('data-signed-in-text') || 'Your dashboard';
+        fa.setAttribute('href', fa.getAttribute('data-signed-in-href') || fa.getAttribute('data-signed-out-href'));
+      } else {
+        fa.textContent = fa.getAttribute('data-signed-out-text');
+        fa.setAttribute('href', fa.getAttribute('data-signed-out-href'));
+      }
+    }
     var nameSlots = document.querySelectorAll('[data-tc-user-name]');
     for (var j = 0; j < nameSlots.length; j++) nameSlots[j].textContent = name;
     var avSlots = document.querySelectorAll('img[data-tc-user-avatar]');
@@ -297,7 +315,7 @@
   };
   render();
   window.addEventListener('storage', function (e) {
-    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user') render();
+    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user' || e.key === 'tc_token_exp') render();
   });
 })();
 </script>
