@@ -2,9 +2,11 @@
 // RoomHost: the Durable Object's brain, with storage, sockets and auth injected so it can be
 // unit tested with fakes. The DO class in room-do.ts is a thin adapter around this.
 
-import { PRESENCE_TIMEOUT_MS, Room, createRoomState, type RoomState } from '../../src/shared/room.js';
+import { PRESENCE_TIMEOUT_MS, Room, createRoomState, upgradeRoomState, type RoomState } from '../../src/shared/room.js';
 import { makeRng, type Rng } from '../../src/shared/rng.js';
-import { parseClientMessage, type RoomUser, type ServerMessage } from '../../src/shared/protocol.js';
+import { isValidGuildId, parseClientMessage, type RoomUser, type ServerMessage } from '../../src/shared/protocol.js';
+import { LIVE_HEARTBEAT_MS, reportFor, reportKey, type LiveReport } from '../../src/shared/live.js';
+import type { Brag, FinishedScore } from '../../src/shared/scores.js';
 
 export interface HostStorage {
   get<T>(key: string): Promise<T | undefined>;
@@ -29,7 +31,18 @@ export interface HostDeps {
   rng?: Rng;
   /** Ask the platform to call alarm() at this time (or clear it with null). */
   setWake?: (at: number | null) => Promise<void>;
+  /** Send this room's anonymous summary to the live-tables registry. Failures are ignored. */
+  report?: (r: LiveReport) => Promise<void>;
+  /**
+   * Put a finished trivia game on this server's high-score board (TriviaScores DO). Only called by
+   * the host itself when the room has run a game to the end; never with anything a client sent.
+   */
+  postScores?: (guildId: string, results: FinishedScore[]) => Promise<Record<string, Brag>>;
 }
+
+/** If writing the board fails, try again on the alarm, a few times. Best-only makes a repeat harmless. */
+export const SCORE_RETRY_MS = 5_000;
+export const SCORE_MAX_TRIES = 5;
 
 const STORAGE_KEY = 'room';
 export const MAX_MESSAGE_BYTES = 4096;
@@ -38,6 +51,10 @@ export class RoomHost {
   private room: Room | null = null;
   private readonly now: () => number;
   private readonly rng: Rng;
+  private lastReportKey = '';
+  private lastReportAt = 0;
+  private scoreTries = 0;
+  private scoreRetryAt: number | null = null;
 
   constructor(private readonly deps: HostDeps) {
     this.now = deps.now ?? Date.now;
@@ -47,22 +64,90 @@ export class RoomHost {
   async load(instanceId: string): Promise<Room> {
     if (this.room) return this.room;
     const saved = await this.deps.storage.get<RoomState>(STORAGE_KEY);
-    this.room = new Room(saved ?? createRoomState(instanceId), this.rng);
+    this.room = new Room(saved ? upgradeRoomState(saved) : createRoomState(instanceId), this.rng);
     return this.room;
+  }
+
+  /** First valid guild id wins; it never changes for an instance. */
+  async setGuild(instanceId: string, guildId: string | null | undefined): Promise<void> {
+    if (!isValidGuildId(guildId)) return;
+    const room = await this.load(instanceId);
+    if (room.state.guildId) return;
+    room.state.guildId = guildId;
+    await this.save();
+  }
+
+  /**
+   * A trivia game just ran to the end: put the server's own scores on the guild's board, and keep
+   * each player's brag for the end screen. A game with no guild (DM / group DM) is off the record.
+   */
+  private async postHighScores(): Promise<void> {
+    const room = this.room;
+    if (!room) return;
+    const pending = room.pendingHighScores();
+    if (!pending) {
+      this.scoreTries = 0;
+      this.scoreRetryAt = null;
+      return;
+    }
+    const guild = room.state.guildId;
+    if (!isValidGuildId(guild)) {
+      room.applyHighScores(pending.game, null);
+      return;
+    }
+    if (!this.deps.postScores) return;
+    if (this.scoreRetryAt !== null && this.now() < this.scoreRetryAt) return;
+    try {
+      const brags = await this.deps.postScores(guild, pending.results);
+      room.applyHighScores(pending.game, brags);
+      this.scoreTries = 0;
+      this.scoreRetryAt = null;
+    } catch {
+      this.scoreTries += 1;
+      if (this.scoreTries >= SCORE_MAX_TRIES) {
+        // Give up on this game's board write; the end screen just won't brag.
+        room.applyHighScores(pending.game, {});
+        this.scoreTries = 0;
+        this.scoreRetryAt = null;
+      } else {
+        this.scoreRetryAt = this.now() + SCORE_RETRY_MS;
+      }
+    }
   }
 
   private async save(): Promise<void> {
     if (!this.room) return;
+    await this.postHighScores();
     await this.deps.storage.put(STORAGE_KEY, this.room.state);
+    await this.maybeReport();
     if (!this.deps.setWake) return;
-    // Wake for the break ending, and for sweeping polling-only members who went quiet.
+    // Wake for trivia timers, away-grace expiries, and quiet pollers who should be marked away.
     let wake = this.room.nextWake();
+    if (this.scoreRetryAt !== null) wake = wake === null ? this.scoreRetryAt : Math.min(wake, this.scoreRetryAt);
     const live = this.liveUserIds();
-    if (Object.keys(this.room.state.members).some((id) => !live.has(id))) {
-      const sweepAt = this.now() + PRESENCE_TIMEOUT_MS + 5_000;
+    for (const m of Object.values(this.room.state.members)) {
+      if (live.has(m.id) || m.awaySince !== null) continue;
+      const sweepAt = Math.max(this.now(), m.lastSeen) + PRESENCE_TIMEOUT_MS + 5_000;
       wake = wake === null ? sweepAt : Math.min(wake, sweepAt);
     }
     await this.deps.setWake(wake);
+  }
+
+  /** Report on change, plus a heartbeat while anyone is here so the registry TTL keeps us listed. */
+  private async maybeReport(force = false): Promise<void> {
+    if (!this.room || !this.deps.report) return;
+    const r = reportFor(this.room.state, this.room.state.guildId ?? null);
+    const key = reportKey(r);
+    const now = this.now();
+    const stale = r.members > 0 && now - this.lastReportAt >= LIVE_HEARTBEAT_MS;
+    if (!force && key === this.lastReportKey && !stale) return;
+    this.lastReportKey = key;
+    this.lastReportAt = now;
+    try {
+      await this.deps.report(r);
+    } catch {
+      /* the live count is best effort */
+    }
   }
 
   private liveUserIds(): Set<string> {
@@ -128,27 +213,43 @@ export class RoomHost {
       this.sendTo(socket, { t: 'error', code: 'unauthorized', message: 'Send auth first.' });
       return;
     }
+    const before = room.state.version;
     if (!room.isMember(socket.user.id)) room.join(socket.user, now);
     const r = room.handle(socket.user.id, msg, now);
     if (!r.ok) {
       this.sendTo(socket, { t: 'error', code: r.code, message: r.message });
+      if (room.state.version !== before) {
+        await this.save();
+        this.broadcast();
+      }
       return;
     }
-    if (msg.t === 'ping') {
+    if (msg.t === 'ping' && room.state.version === before) {
       this.sendTo(socket, { t: 'state', view: room.viewFor(socket.user.id, now) });
+      await this.maybeReport();
+      return;
+    }
+    if (msg.t === 'leave') {
+      // Explicit leave: drop them now and close this socket.
+      await this.save();
+      this.broadcast();
+      socket.close(1000, 'left');
       return;
     }
     await this.save();
     this.broadcast();
   }
 
-  /** Socket closed. Only leave the room if this user has no other live socket. */
+  /**
+   * Socket closed. A dropped connection is NOT leaving: if this was the user's last socket they are
+   * marked away and keep their seat, hand and score for AWAY_GRACE_MS. The alarm removes them after.
+   */
   async onClose(instanceId: string, socket: HostSocket): Promise<void> {
     if (!socket.user) return;
     const room = await this.load(instanceId);
     const stillHere = this.deps.sockets().some((s) => s !== socket && s.user?.id === socket.user?.id);
-    if (stillHere) return;
-    room.leave(socket.user.id, this.now());
+    if (stillHere || !room.isMember(socket.user.id)) return;
+    if (!room.markAway(socket.user.id, this.now())) return;
     await this.save();
     this.broadcast();
   }
@@ -157,15 +258,15 @@ export class RoomHost {
   async pollState(instanceId: string, user: RoomUser): Promise<{ status: number; body: ServerMessage }> {
     const room = await this.load(instanceId);
     const now = this.now();
-    let changed = room.tick(now);
-    if (!room.isMember(user.id)) {
-      room.join(user, now);
-      changed = true;
-    } else room.touch(user.id, now);
+    const before = room.state.version;
+    room.tick(now);
+    if (!room.isMember(user.id) || room.isAway(user.id)) room.join(user, now);
+    else room.touch(user.id, now);
+    let changed = room.state.version !== before;
     const live = this.liveUserIds();
     if (room.sweep(now, (id) => live.has(id) || id === user.id)) changed = true;
     await this.save();
-    if (changed) this.broadcast();
+    if (changed || room.state.version !== before) this.broadcast();
     return { status: 200, body: { t: 'state', view: room.viewFor(user.id, now) } };
   }
 
@@ -177,8 +278,13 @@ export class RoomHost {
     const room = await this.load(instanceId);
     const now = this.now();
     if (!room.isMember(user.id)) room.join(user, now);
+    const before = room.state.version;
     const r = room.handle(user.id, msg, now);
     if (!r.ok) {
+      if (room.state.version !== before) {
+        await this.save();
+        this.broadcast();
+      }
       const status = r.code === 'rate-limited' ? 429 : 409;
       return { status, body: { t: 'error', code: r.code, message: r.message } };
     }
@@ -187,13 +293,15 @@ export class RoomHost {
     return { status: 200, body: { t: 'state', view: room.viewFor(user.id, now) } };
   }
 
-  /** Durable Object alarm: break timer ended, or presence sweep. */
+  /** Durable Object alarm: trivia timer, away-grace expiry, or presence sweep. */
   async onAlarm(instanceId: string): Promise<void> {
     const room = await this.load(instanceId);
     const now = this.now();
     const live = this.liveUserIds();
-    const changed = room.tick(now) || room.sweep(now, (id) => live.has(id));
-    await this.save();
-    if (changed) this.broadcast();
+    const before = room.state.version;
+    room.sweep(now, (id) => live.has(id));
+    room.tick(now);
+    await this.save(); // may also post a finished game's scores
+    if (room.state.version !== before) this.broadcast();
   }
 }
