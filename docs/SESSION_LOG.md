@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-12 — deploy(activity): Touch Grass Bluff build on the same test hosts
+
+- Worker `touch-grass-activity` re-uploaded from 73de355f through the REST API: same bindings (ROOMS, LIVE, SCORES Durable Objects; vars DISCORD_CLIENT_ID, ALERT_GUILD_ID), secrets DISCORD_CLIENT_SECRET and ALERT_WEBHOOK_URL kept via `keep_bindings`; no new DO class, so no migration (still v3). `/api/health` 200 before and on every poll after; `/api/live` 200 with `games.bluff`; `/api/trivia/scores` 401 without a token; token route still reaches Discord.
+- Pages `touch-grass-activity` deployment 2b1df5ca (73de355f): assets uploaded with the upload JWT, check-missing confirmed 0 missing, then the deployment created. pages.dev polled every 2 s through the switch: all 200, old bundle to new with no gap. discordsays.com `/.proxy/api/health` 200. No Discord test messages posted.
+
 ## 2026-11-12 — feat(activity): Bluff (two truths and a lie) as the third Touch Grass game; CI brand fixes; main merged in
 
 - Merged origin/main into touch-grass-activity (9a8761ca, merge not rebase): main holds #720 squashed from this branch's first head, so every app file was add/add. Kept this branch's app; dropped the break-timer files main still carried; SESSION_LOG entries from both sides kept; lockfile regenerates unchanged.
