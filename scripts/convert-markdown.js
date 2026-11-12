@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -19,7 +19,10 @@ import { calculateCasinoTrust } from '@tiltcheck/intel-tools';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getGatePageBody } from './build-gate-page.mjs';
+import { lockConfirmDialogHtml, LOCK_CONFIRM_SCRIPT } from './pages-lock-confirm.mjs';
+import { dashboardSettingsHtml, dashboardSettingsScript } from './pages-dashboard-settings.mjs';
 import {
+  PLAYER_SETTINGS_DEFAULTS,
   SITE_URL,
   API_URL,
   DISCORD_URL,
@@ -235,7 +238,17 @@ function navHtml(depth, current) {
 </nav>`;
 }
 
-function footerHtml(depth) {
+const COFFEE_ICON = '<svg class="site-footer__tip-icon" aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M10 11.5c-.8-.9-2.3-.6-2.3.7 0 1 1.2 1.8 2.3 2.6 1.1-.8 2.3-1.6 2.3-2.6 0-1.3-1.5-1.6-2.3-.7Z"/></svg>';
+
+/** Footer tagline. On the dashboard it doubles as a quiet Ko-fi tip link (no popups, no nags). */
+function footerTagHtml(current) {
+  if (current === 'dashboard') {
+    return `<a class="site-footer__tag site-footer__tag--tip" href="${KOFI_URL}" target="_blank" rel="noopener noreferrer" aria-label="Tip the dev on Ko-fi">${FOOTER} ${COFFEE_ICON}</a>`;
+  }
+  return `<span class="site-footer__tag">${FOOTER}</span>`;
+}
+
+function footerHtml(depth, current) {
   return `<footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
     <p class="site-footer__more-label">Tools &amp; Resources</p>
@@ -255,7 +268,7 @@ function footerHtml(depth) {
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
-  <span class="site-footer__tag">${FOOTER}</span>
+  ${footerTagHtml(current)}
   ${COPYRIGHT}
 </footer>`;
 }
@@ -447,7 +460,7 @@ ${extraHead}
 <body>
 ${navHtml(depth, current)}
 ${body}
-${footerHtml(depth)}
+${footerHtml(depth, current)}
 ${AUTH_NAV_SCRIPT}
 ${body.includes('data-staff-only') ? STAFF_REVEAL_SCRIPT : ''}
 </body>
@@ -1105,18 +1118,43 @@ function buildCooldownPage() {
           }, '*');
         }
 
+        // Every new lock goes through the "No take-backs" popup first.
+        function confirmLock(endMs) {
+          if (!window.TiltCheckLockConfirm) return Promise.resolve(false);
+          return window.TiltCheckLockConfirm.open({ endMs: endMs });
+        }
+
         function applyLocalLock() {
           if (lockedUntilMs > Date.now()) return;
           var endTimeSec = Math.floor(Date.now() / 1000) + (selectedHours * 3600);
-          postLock('in_browser_lockout', endTimeSec, 'local_browser_session');
-          try {
-            localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
-            localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
-          } catch (e) {}
-          showLocked(endTimeSec * 1000);
+          confirmLock(endTimeSec * 1000).then(function(ok) {
+            if (!ok || lockedUntilMs > Date.now()) return;
+            postLock('in_browser_lockout', endTimeSec, 'local_browser_session');
+            try {
+              localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
+              localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
+            } catch (e) {}
+            showLocked(endTimeSec * 1000);
+          });
         }
 
         btnLock && btnLock.addEventListener('click', applyLocalLock);
+
+        // The extension holds the real lock. It answers with LOCK_STATE, so a lock still
+        // shows (and still runs) after this page's localStorage is cleared.
+        window.addEventListener('message', function(event) {
+          if (event.source !== window || !event.data || event.data.source !== 'TILTCHECK_EXTENSION' || event.data.type !== 'LOCK_STATE') return;
+          var until = Number(event.data.activeUntil) || 0;
+          if (until > Date.now() && until >= lockedUntilMs) {
+            try { localStorage.setItem('tiltcheck_cooldown_active_until', String(until)); } catch (e) {}
+            showLocked(until);
+          }
+          if (event.data.rejected === 'cant_shorten' && lockStatus) {
+            lockStatus.textContent = 'Already locked until ' + fmtDate(until) + '. It only gets longer.';
+            lockStatus.hidden = false;
+          }
+        });
+        window.postMessage({ source: 'TILTCHECK_COOLDOWN_PAGE', type: 'GET_LOCK_STATE' }, window.location.origin);
 
         // Optional wallet section
         toggle && toggle.addEventListener('click', function() {
@@ -1229,6 +1267,11 @@ function buildCooldownPage() {
           if (!provider || !currentWallet) return;
           var nowMs = Date.now();
           var endTimeSec = lockedUntilMs > nowMs ? Math.floor(lockedUntilMs / 1000) : Math.floor(nowMs / 1000) + (selectedHours * 3600);
+          var startsNewLock = !(lockedUntilMs > nowMs);
+          if (startsNewLock) {
+            var ok = await confirmLock(endTimeSec * 1000);
+            if (!ok) return;
+          }
           var hours = Math.max(1, Math.round((endTimeSec * 1000 - nowMs) / 3600000));
           var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
           var messageText = 'TiltCheck Voluntary Touch Grass Lock\\n' +
@@ -1306,6 +1349,9 @@ function buildCooldownPage() {
         }, 350);
       })();
     </script>
+
+    ${lockConfirmDialogHtml()}
+    ${LOCK_CONFIRM_SCRIPT}
 
     <div class="cooldown-how">
       <h2>How it works</h2>
@@ -1426,38 +1472,31 @@ function buildAutovaultPage() {
 
 function buildDashboardPage() {
   const depth = 'docs';
+  const card = (target, title, body) => `<a href="${href(depth, target)}" class="dash-card" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">${title} &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">${body}</p>
+      </a>`;
   const content = `<main class="cooldown-page">
   <div class="cooldown-panel" style="max-width: 720px;">
     <p class="brand-eyebrow">DASHBOARD</p>
     <h1>Your TiltCheck stuff</h1>
-    <p class="cooldown-punch">Your tools in one spot: skim the win, touch grass, check the math.</p>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; text-align: left;">
-      <a href="${href(depth, 'autovault')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">AutoVault &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Set how much of a win gets moved to your vault.</p>
-      </a>
+    <p class="cooldown-punch">Your settings and tools in one spot. The extension just follows orders.</p>
 
-      <a href="${href(depth, 'cooldown')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Touch Grass &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Sign a timer with your Solana wallet. You sign it. We never hold anything.</p>
-      </a>
+    ${dashboardSettingsHtml({ loginUrl: DISCORD_OAUTH_LOGIN_URL })}
 
-      <a href="${href(depth, 'tools/verify')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Bet Verifier &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Paste the seeds, check the bet yourself.</p>
-      </a>
-
-      <a href="${href(depth, 'nudges')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Pacing &amp; Nudges &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Two-second spin pauses, loss-speed warnings, and reality checks.</p>
-      </a>
+    <h2 class="cooldown-label" style="margin-top: 2rem;">Tools</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 12px 0 24px; text-align: left;">
+      ${card('autovault', 'Win Skim', 'How skimming a win into your casino vault works.')}
+      ${card('cooldown', 'Take a break', 'Lock yourself out of deposits for a day, a week, or a month.')}
+      ${card('tools/verify', 'Fairness Verifier', 'Paste the seeds, check the bet yourself.')}
+      ${card('nudges', 'Nudges', 'What the extension says when the spins speed up.')}
     </div>
 
     <div style="margin-top: 1.5rem;">
       <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
     </div>
   </div>
+  ${dashboardSettingsScript({ apiUrl: API_URL, defaults: PLAYER_SETTINGS_DEFAULTS })}
   <script>
     (function() {
       var p = new URLSearchParams(window.location.search);
@@ -1468,6 +1507,9 @@ function buildDashboardPage() {
         window.location.replace('../nudges/');
       } else if (tab === 'buddies') {
         window.location.replace('../collab/');
+      } else if (tab === 'settings') {
+        var el = document.getElementById('settings');
+        if (el) el.scrollIntoView();
       }
     })();
   </script>
@@ -1475,7 +1517,7 @@ function buildDashboardPage() {
 
   return shell({
     title: 'Dashboard | TiltCheck',
-    description: 'Your TiltCheck tools in one spot.',
+    description: 'Your TiltCheck settings and tools in one spot.',
     depth: 'docs',
     current: 'dashboard',
     body: content,

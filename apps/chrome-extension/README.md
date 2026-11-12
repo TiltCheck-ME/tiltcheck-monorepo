@@ -1,6 +1,15 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
+
+## Popup and settings (2026-11-12)
+
+The popup has three things: Discord sign-in (same flow as tiltcheck.me, state `h.web`), one on/off switch, and **Open Dashboard**. Every other setting lives at https://tiltcheck.me/dashboard/ and is saved per Discord user by the CollectClock worker (`GET/PUT /settings`).
+
+- `src/player-settings.ts`: the settings shape, safe defaults (the old extension defaults), and the map onto the `chrome.storage` keys the content script reads.
+- `src/settings-sync.ts` (loaded by `background.js` via `background-sync.js`): pulls on start-up, on sign-in/sign-out and every 15 minutes, caches the last good copy, falls back to the cache when offline and to the defaults when signed out. The on/off switch is the only write.
+- `src/cooldown-lock.ts`: a running Take-a-break lock can only be extended. The page bridge reads `lockSource`, the extension's storage is the record that counts, and the deposit block stays on during a lock even with the switch off.
+
 
 Source code and documentation for the TiltGuard Chrome extension.
 
@@ -16,6 +25,7 @@ Default **Core** install (what players get from the web zip at `https://tiltchec
 - **Strategic Game Filters**: Real-time risk badges and house-edge awareness for high-variance formats (Chicken, Mines, Plinko, and low-RTP slots).
 - **Reality-Grounding Wage-Hour HUD**: Injects a clean session drawdown tracker converting losses directly into equivalent real-world working hours ($25/hr baseline default, customizable in settings) so credits feel like actual labor.
 - **DOM Deposit Barrier**: Intercepts and blocks cashier and deposit button clicks across casino frontends when a player is in an active cooldown or Touch Grass timeout, preventing reflexive tilt re-ups.
+- **Offer a break when I'm tilting**: when the tilt score hits the player's trigger score (dashboard setting, default 75), an in-page offer asks if they want a break of their configured length. It never locks on its own: the lock button stays disabled until the player ticks "I know I'm the one choosing this, and I can't undo it" and presses it. "Not now" keeps it quiet for 30 minutes unless the score climbs 10+ points. An accepted break is a normal `auto_tilt` lock: it can only be extended.
 - **Reverse-Withdrawal Shield**: Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.
 - **Profit-Lock & Reality Goals**: Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.
 - **Bonus Playthrough & Max-Bet Traps**: Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).

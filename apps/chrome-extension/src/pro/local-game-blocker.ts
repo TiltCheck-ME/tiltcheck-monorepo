@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 /**
  * User-configured game/category filter. Nothing is blocked until the popup list is armed.
@@ -12,6 +12,7 @@ import {
   TILTCHECK_BLOCKED_CATEGORIES_KEY,
   TILTCHECK_BLOCKED_GAMES_KEY,
   TILTCHECK_GAME_BLOCK_OPT_IN_KEY,
+  TILTCHECK_EXTENSION_ENABLED_KEY,
 } from './blocked-games-options.js';
 import {
   haystackFromElement,
@@ -74,7 +75,8 @@ export class LocalGameBlocker {
     if (
       changes[TILTCHECK_BLOCKED_GAMES_KEY] ||
       changes[TILTCHECK_BLOCKED_CATEGORIES_KEY] ||
-      changes[TILTCHECK_GAME_BLOCK_OPT_IN_KEY]
+      changes[TILTCHECK_GAME_BLOCK_OPT_IN_KEY] ||
+      changes[TILTCHECK_EXTENSION_ENABLED_KEY]
     ) {
       void this.reloadAndScan();
     }

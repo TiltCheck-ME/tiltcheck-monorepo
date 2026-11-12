@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 /**
  * Core content script — pace-locks spins and provides event-driven Touch Grass timeouts.
@@ -37,6 +37,14 @@ import {
   TILTCHECK_COOLDOWN_SOURCE_KEY,
 } from './core-options.js';
 
+import {
+  COOLDOWN_PAGE_ENVELOPE,
+  EXTENSION_ENVELOPE,
+  isLockActive,
+  readLockSource,
+  resolveLockUpdate,
+  type LockState,
+} from './cooldown-lock.js';
 import { installSpinPaceLock, type PaceLockHandle, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
 import { installLoungeOverlay } from './lounge-overlay.js';
 import { installHeaterNudge, type HeaterHandle } from './heater-nudge.js';
@@ -117,6 +125,8 @@ export function handleRapidClickTilt(target: Element): boolean {
     target.closest('button, [role="button"]') !== null;
 
   if (!isActionControl) return false;
+  // ClickCheck off, or the whole extension switched off: no mash detection.
+  if (coreOptions && coreOptions.enforcementEnabled === false) return false;
 
   const now = Date.now();
   clickTimestamps = clickTimestamps.filter((t) => now - t <= RAPID_CLICK_WINDOW_MS);
@@ -341,7 +351,7 @@ function installCoreOptionsListener(): void {
 
 
 function syncDefaultBetBreaker(opts: CoreCircuitBreakerOptions): void {
-  const shouldRun = opts.enforcementEnabled && opts.defaultBetBreakerEnabled;
+  const shouldRun = opts.extensionEnabled && opts.defaultBetBreakerEnabled;
   if (shouldRun) {
     if (!defaultBetBreaker) {
       try {
@@ -365,7 +375,7 @@ function syncDefaultBetBreaker(opts: CoreCircuitBreakerOptions): void {
 }
 
 function syncRealityHud(opts: CoreCircuitBreakerOptions): void {
-  const shouldRun = opts.enforcementEnabled && opts.realityHudEnabled;
+  const shouldRun = opts.extensionEnabled && opts.realityHudEnabled;
   if (shouldRun) {
     if (!realityHud) {
       try {
@@ -391,7 +401,9 @@ function syncRealityHud(opts: CoreCircuitBreakerOptions): void {
 }
 
 function syncDepositBarrier(opts: CoreCircuitBreakerOptions): void {
-  const shouldRun = opts.enforcementEnabled && opts.depositBarrierEnabled;
+  // A running lock keeps the deposit block on no matter which switches are off.
+  const lockRunning = isLockActive(opts.cooldownActiveUntil);
+  const shouldRun = lockRunning || (opts.extensionEnabled && opts.depositBarrierEnabled);
   if (shouldRun) {
     if (!depositBarrier) {
       try {
@@ -409,7 +421,7 @@ function syncDepositBarrier(opts: CoreCircuitBreakerOptions): void {
 }
 
 function syncReverseWithdrawalShield(opts: CoreCircuitBreakerOptions): void {
-  const shouldRun = opts.enforcementEnabled && opts.reverseWithdrawalShieldEnabled;
+  const shouldRun = opts.extensionEnabled && opts.reverseWithdrawalShieldEnabled;
   if (shouldRun) {
     if (!reverseWithdrawalShield) {
       try {
@@ -426,7 +438,7 @@ function syncReverseWithdrawalShield(opts: CoreCircuitBreakerOptions): void {
 }
 
 function syncProfitLock(opts: CoreCircuitBreakerOptions): void {
-  const shouldRun = opts.enforcementEnabled && (opts.profitLockEnabled || opts.goalsEnabled);
+  const shouldRun = opts.extensionEnabled && (opts.profitLockEnabled || opts.goalsEnabled);
   if (shouldRun) {
     if (!profitLock) {
       try {
@@ -456,7 +468,7 @@ function syncProfitLock(opts: CoreCircuitBreakerOptions): void {
 }
 
 function syncBonusTracker(opts: CoreCircuitBreakerOptions): void {
-  const shouldRun = opts.enforcementEnabled && opts.bonusConfig?.active;
+  const shouldRun = opts.extensionEnabled && opts.bonusConfig?.active;
   if (shouldRun) {
     if (!bonusTracker) {
       try {
@@ -550,13 +562,55 @@ async function startCoreCircuitBreaker(): Promise<void> {
 }
 
 
+async function readStoredLock(): Promise<LockState> {
+  try {
+    const stored = await chrome.storage.local.get([
+      TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY,
+      TILTCHECK_COOLDOWN_SOURCE_KEY,
+    ]);
+    const until = stored?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY];
+    const source = stored?.[TILTCHECK_COOLDOWN_SOURCE_KEY];
+    return {
+      activeUntil: typeof until === 'number' && Number.isFinite(until) ? Math.max(0, until) : 0,
+      source: typeof source === 'string' && source.length > 0 ? source : null,
+    };
+  } catch {
+    return { activeUntil: 0, source: null };
+  }
+}
+
+/** Tell the page what lock the extension is actually holding. */
+function postLockStateToPage(state: LockState, extra: Record<string, unknown> = {}): void {
+  try {
+    window.postMessage(
+      {
+        source: EXTENSION_ENVELOPE,
+        type: 'LOCK_STATE',
+        activeUntil: isLockActive(state.activeUntil) ? state.activeUntil : 0,
+        lockSource: state.source,
+        ...extra,
+      },
+      window.location.origin,
+    );
+  } catch {
+    // Window gone
+  }
+}
+
+/**
+ * Bridge between the tiltcheck.me "Take a break" page and the extension.
+ * The extension's own storage is the record that counts: a running lock can only be
+ * extended, and the page is always told the real end time (so clearing the page's
+ * localStorage cannot make a lock look finished, and cannot end it).
+ */
 export function installCooldownPageBridge(): () => void {
   const onMessage = (event: MessageEvent) => {
-    if (event.source !== window || !event.data || event.data.source !== 'TILTCHECK_COOLDOWN_PAGE') {
+    if (event.source !== window || !event.data || event.data.source !== COOLDOWN_PAGE_ENVELOPE) {
       return;
     }
-    if (event.data.type === 'WALLET_CONNECTED' && typeof event.data.wallet === 'string') {
-      const wallet = event.data.wallet.trim();
+    const data = event.data as Record<string, unknown>;
+    if (data.type === 'WALLET_CONNECTED' && typeof data.wallet === 'string') {
+      const wallet = data.wallet.trim();
       if (wallet.length >= 32 && wallet.length <= 44) {
         chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_WALLET_KEY]: wallet });
         try {
@@ -565,35 +619,49 @@ export function installCooldownPageBridge(): () => void {
           // Extension context disconnected in tests
         }
       }
-    } else if (event.data.type === 'LOCK_UPDATED') {
-      const { wallet, endTime, source } = event.data;
-      if (typeof endTime === 'number' && endTime > 0) {
-        const endTimeMs = endTime * 1000;
-        const updates: Record<string, unknown> = {
-          [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs,
-        };
-        if (typeof source === 'string') {
-          updates[TILTCHECK_COOLDOWN_SOURCE_KEY] = source;
+    } else if (data.type === 'GET_LOCK_STATE') {
+      void readStoredLock().then((state) => postLockStateToPage(state));
+    } else if (data.type === 'LOCK_UPDATED') {
+      const { wallet, endTime } = data;
+      const lockSource = readLockSource(data);
+      if (typeof endTime !== 'number' || !(endTime > 0)) return;
+      const endTimeMs = endTime * 1000;
+      void readStoredLock().then((current) => {
+        const decision = resolveLockUpdate(current, { endTimeMs, source: lockSource });
+        if (decision.accept !== true) {
+          // Shorter, unknown-source or bogus requests never touch the running lock.
+          postLockStateToPage(current, { rejected: (decision as { reason: string }).reason });
+          return;
         }
+        const updates: Record<string, unknown> = {
+          [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: decision.activeUntil,
+          [TILTCHECK_COOLDOWN_SOURCE_KEY]: decision.source,
+        };
         if (typeof wallet === 'string' && wallet.trim().length >= 32) {
           updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
         }
         chrome.storage?.local?.set?.(updates);
-        depositBarrier?.updateCooldown(endTimeMs, typeof source === 'string' ? source : null);
+        depositBarrier?.updateCooldown(decision.activeUntil, decision.source);
+        postLockStateToPage({ activeUntil: decision.activeUntil, source: decision.source });
         try {
           chrome.runtime?.sendMessage?.({
             type: 'cooldown_lock_updated',
             wallet,
-            endTime,
+            endTime: Math.floor(decision.activeUntil / 1000),
+            lockSource: decision.source,
           });
         } catch {
           // Ignore
         }
-      }
+      });
     }
   };
 
   window.addEventListener('message', onMessage);
+  // Let an open page know about a lock it may have lost from localStorage.
+  void readStoredLock().then((state) => {
+    if (isLockActive(state.activeUntil)) postLockStateToPage(state);
+  });
   return () => {
     window.removeEventListener('message', onMessage);
   };

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 // E2E test: Chrome extension packaging, unpacked loading, popup settings, and cooldown auto-lock deep-link.
 
 import { test, expect, chromium, type BrowserContext, type Page } from "@playwright/test";
@@ -92,96 +92,40 @@ test.describe("Chrome Extension Packaging & Distribution Verification", () => {
 });
 
 test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
-  test("loads unpacked MV3 extension and verifies popup initial state", async () => {
+  test("popup shows only sign-in, the on/off switch, and Open Dashboard", async () => {
     const harness = await createExtensionHarness();
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      expect(await page.title()).toMatch(/TiltCheck/i);
 
-      // Verify title.
-      const pageTitle = await page.title();
-      expect(pageTitle).toMatch(/TiltCheck/i);
-
-      // Verify On-Chain Lock Sync section exists.
-      const syncWrap = page.locator("#cooldown-wallet-sync-wrap");
-      await expect(syncWrap).toBeVisible();
-
-      // Verify auto-lock toggle exists and is checked by default.
-      const autoLockToggle = page.locator("#auto-lock-on-tilt-toggle");
-      await expect(autoLockToggle).toBeVisible();
-      await expect(autoLockToggle).toBeChecked();
-
-      // Verify descriptive text for auto-lock rule.
-      const toggleLabel = page.locator("label[for='auto-lock-on-tilt-toggle']");
-      await expect(toggleLabel).toContainText("Auto-lock on Level 3+ tilt");
-
-      // Verify Solana wallet input and sync button are visible.
-      const walletInput = page.locator("#cooldown-wallet-input");
-      const syncBtn = page.locator("#btn-sync-cooldown");
-      await expect(walletInput).toBeVisible();
-      await expect(syncBtn).toBeVisible();
+      await expect(page.locator("#btn-signin")).toBeVisible();
+      await expect(page.locator("#master-switch")).toHaveAttribute("aria-checked", "true");
+      await expect(page.locator("#btn-dashboard")).toHaveAttribute("href", "https://tiltcheck.me/dashboard/");
+      // Settings moved to the dashboard.
+      await expect(page.locator("#auto-lock-on-tilt-toggle")).toHaveCount(0);
+      await expect(page.locator("#cooldown-wallet-input")).toHaveCount(0);
     } finally {
       await harness.cleanup();
     }
   });
 
-  test("toggling auto-lock updates storage state and survives re-query", async () => {
+  test("the on/off switch writes tiltcheck_enabled and survives re-query", async () => {
     const harness = await createExtensionHarness();
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      const sw = page.locator("#master-switch");
 
-      const autoLockToggle = page.locator("#auto-lock-on-tilt-toggle");
-      await expect(autoLockToggle).toBeChecked();
+      await sw.click();
+      await expect(sw).toHaveAttribute("aria-checked", "false");
+      const off = await page.evaluate(async () => (await chrome.storage.local.get("tiltcheck_enabled")).tiltcheck_enabled);
+      expect(off).toBe(false);
 
-      // Toggle off.
-      await autoLockToggle.uncheck();
-      await expect(autoLockToggle).not.toBeChecked();
-
-      // Verify chrome.storage.local reflects disabled state.
-      const storedValueDisabled = await page.evaluate(async () => {
-        const data = await chrome.storage.local.get("tiltcheck_auto_lock_on_tilt");
-        return data.tiltcheck_auto_lock_on_tilt;
-      });
-      expect(storedValueDisabled).toBe(false);
-
-      // Toggle back on.
-      await autoLockToggle.check();
-      await expect(autoLockToggle).toBeChecked();
-
-      // Verify chrome.storage.local reflects enabled state.
-      const storedValueEnabled = await page.evaluate(async () => {
-        const data = await chrome.storage.local.get("tiltcheck_auto_lock_on_tilt");
-        return data.tiltcheck_auto_lock_on_tilt;
-      });
-      expect(storedValueEnabled).toBe(true);
-    } finally {
-      await harness.cleanup();
-    }
-  });
-
-  test("syncs Solana cooldown wallet to extension storage via service worker", async () => {
-    const harness = await createExtensionHarness();
-    try {
-      const page: Page = await harness.context.newPage();
-      await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
-
-      const walletInput = page.locator("#cooldown-wallet-input");
-      const syncBtn = page.locator("#btn-sync-cooldown");
-
-      // Enter test Solana wallet.
-      await walletInput.fill(TEST_SOLANA_WALLET);
-
-      // Click sync and assert state transition.
-      await syncBtn.click();
-      await expect(syncBtn).toHaveText(/Synced/i);
-
-      // Verify chrome.storage.local holds the configured wallet address.
-      const storedWallet = await page.evaluate(async () => {
-        const data = await chrome.storage.local.get("tiltcheck_cooldown_wallet");
-        return data.tiltcheck_cooldown_wallet;
-      });
-      expect(storedWallet).toBe(TEST_SOLANA_WALLET);
+      await sw.click();
+      await expect(sw).toHaveAttribute("aria-checked", "true");
+      const on = await page.evaluate(async () => (await chrome.storage.local.get("tiltcheck_enabled")).tiltcheck_enabled);
+      expect(on).toBe(true);
     } finally {
       await harness.cleanup();
     }

@@ -1,8 +1,18 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 /**
  * MV3 service worker.
  * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
  */
+
+// Dashboard settings sync (bundled from src/background-sync.ts). Classic service worker,
+// so importScripts must run at top level. Tests load this file without it.
+if (typeof importScripts === 'function') {
+  try {
+    importScripts('background-sync.js');
+  } catch (err) {
+    console.warn('[TiltCheck] Settings sync unavailable:', err);
+  }
+}
 
 const VAULT_URL_BASE = 'https://tiltcheck.me/autovault';
 const ALLOWED_AUTH_ORIGINS = new Set([
@@ -69,6 +79,15 @@ function buildVaultUrl(suggestedAmount) {
   return VAULT_URL_BASE;
 }
 
+/** Never shortens a running lock: keeps whichever end time is later. */
+function extendCooldownTo(endTimeMs) {
+  chrome.storage?.local?.get?.([TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY], (res) => {
+    const current = Number(res?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]) || 0;
+    if (current > Date.now() && current >= endTimeMs) return;
+    chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs });
+  });
+}
+
 // ── On-Chain Cooldown Verification & Real-Time SSE Stream ────────────────────
 
 async function syncCooldownStatus(wallet) {
@@ -80,7 +99,7 @@ async function syncCooldownStatus(wallet) {
     if (data && data.locked && typeof data.endTime === 'number') {
       const endTimeMs = data.endTime * 1000;
       if (endTimeMs > Date.now()) {
-        chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs });
+        extendCooldownTo(endTimeMs);
         console.log('[TiltCheck] Synced active cooldown lock until:', new Date(endTimeMs).toISOString());
       }
     } else if (data && data.locked === false) {
@@ -132,7 +151,7 @@ function handleSseMessageBlock(block) {
       if (lock && lock.locked && typeof lock.endTime === 'number') {
         const endTimeMs = lock.endTime * 1000;
         if (endTimeMs > Date.now()) {
-          chrome.storage?.local?.set?.({ [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs });
+          extendCooldownTo(endTimeMs);
           console.log('[TiltCheck] Real-time lock update received. Lock active until:', new Date(endTimeMs).toISOString());
         }
       } else if (lock && lock.locked === false) {
@@ -336,16 +355,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'cooldown_lock_updated') {
     const { wallet, endTime } = message;
     if (typeof endTime === 'number' && endTime > 0) {
-      const endTimeMs = endTime * 1000;
-      const updates = { [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs };
-      if (typeof wallet === 'string' && wallet.trim().length >= 32) {
-        updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
-      }
-      chrome.storage?.local?.set?.(updates);
-      if (wallet && typeof wallet === 'string' && wallet.trim().length >= 32) {
-        syncCooldownStatus(wallet.trim());
-      }
-      sendResponse({ success: true, activeUntil: endTimeMs });
+      const requestedMs = endTime * 1000;
+      chrome.storage?.local?.get?.([TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY], (res) => {
+        const current = Number(res?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]) || 0;
+        // A running lock can only be extended, never shortened.
+        const endTimeMs = current > Date.now() ? Math.max(current, requestedMs) : requestedMs;
+        const updates = { [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs };
+        if (typeof wallet === 'string' && wallet.trim().length >= 32) {
+          updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet.trim();
+        }
+        chrome.storage?.local?.set?.(updates);
+        if (wallet && typeof wallet === 'string' && wallet.trim().length >= 32) {
+          syncCooldownStatus(wallet.trim());
+        }
+        sendResponse({ success: true, activeUntil: endTimeMs });
+      });
       return true;
     }
     sendResponse({ success: false, error: 'Invalid endTime' });
@@ -353,27 +377,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'trigger_tilt_auto_lock') {
+    // Only a lock the player accepted in the tilt offer (checkbox + button) gets here.
+    // Anything else asking for an automatic lock is refused.
+    if (message.userConfirmed !== true) {
+      sendResponse({ success: false, error: 'not_confirmed' });
+      return false;
+    }
     const wallet = typeof message.wallet === 'string' && message.wallet.trim().length >= 32 ? message.wallet.trim() : null;
     const duration = typeof message.duration === 'number' && message.duration > 0 ? message.duration : 86400;
     const tiltRisk = typeof message.tiltRisk === 'number' ? message.tiltRisk : 75;
     const indicators = Array.isArray(message.indicators) ? message.indicators : [];
     const endTimeMs = Date.now() + duration * 1000;
 
-    const updates = {
-      [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: endTimeMs,
-      [TILTCHECK_COOLDOWN_SOURCE_KEY]: 'auto_tilt',
-      tiltcheck_last_auto_lock: {
-        timestamp: Date.now(),
-        tiltRisk,
-        indicators,
-        duration,
-        wallet,
-      },
+    const lastAutoLock = {
+      timestamp: Date.now(),
+      tiltRisk,
+      indicators,
+      duration,
+      wallet,
     };
-    if (wallet) {
-      updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet;
-    }
-    chrome.storage?.local?.set?.(updates);
+    chrome.storage?.local?.get?.([TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY], (res) => {
+      const current = Number(res?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]) || 0;
+      // An auto lock never shortens a longer lock that is already running.
+      const keepCurrent = current > Date.now() && current >= endTimeMs;
+      const updates = { tiltcheck_last_auto_lock: lastAutoLock };
+      if (!keepCurrent) {
+        updates[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY] = endTimeMs;
+        updates[TILTCHECK_COOLDOWN_SOURCE_KEY] = 'auto_tilt';
+      }
+      if (wallet) {
+        updates[TILTCHECK_COOLDOWN_WALLET_KEY] = wallet;
+      }
+      chrome.storage?.local?.set?.(updates);
+    });
 
     if (message.openPrompt !== false) {
       const query = new URLSearchParams();
@@ -448,21 +484,24 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 });
 
 // ── Discord OAuth Callback Interceptor ───────────────────────────────────────────
+let lastSyncedAuthToken = null;
 if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   const url = changeInfo.url || tab?.url;
   if (!url) return;
 
-  if (
-    url.includes("collectclock-api.j-chapman7.workers.dev/auth/callback") &&
-    url.includes("access_token=")
-  ) {
+  const isWorkerCallback = url.includes("collectclock-api.j-chapman7.workers.dev/auth/callback");
+  const isSiteLogin = url.startsWith("https://tiltcheck.me/login");
+  if ((isWorkerCallback || isSiteLogin) && url.includes("access_token=")) {
     void (async () => {
       try {
         const hash = url.split("#")[1] || "";
         const params = new URLSearchParams(hash);
         const accessToken = params.get("access_token");
-        if (!accessToken) return;
+        if (!accessToken || accessToken === lastSyncedAuthToken) return;
+        // Site sign-in (state h.web / tc) carries on to tiltcheck.me/login, so leave that tab open.
+        const state = params.get("state") || "";
+        const keepTabOpen = isSiteLogin || state === "h.web" || state === "tc";
 
         console.log("[TiltCheck] OAuth token received, fetching Discord user profile");
 
@@ -487,12 +526,15 @@ if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
             userData: userObj,
             tiltguard_user_id: String(discordUser.id),
           });
+          lastSyncedAuthToken = accessToken;
 
           console.log("[TiltCheck] Discord auth synced:", userObj.username);
 
-          setTimeout(() => {
-            chrome.tabs.remove(tabId).catch(() => {});
-          }, 800);
+          if (!keepTabOpen) {
+            setTimeout(() => {
+              chrome.tabs.remove(tabId).catch(() => {});
+            }, 800);
+          }
         }
       } catch (err) {
         console.error("[TiltCheck] OAuth handler error:", err);

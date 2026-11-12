@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 export const SITE_URL = 'https://tiltcheck.me';
 export const API_URL = 'https://collectclock-api.j-chapman7.workers.dev';
@@ -286,3 +286,38 @@ export const CORE_BRAKES = [
     status: 'Configurable %',
   },
 ];
+
+/**
+ * Dashboard Settings defaults. Must equal DEFAULT_PLAYER_SETTINGS in
+ * apps/chrome-extension/src/player-settings.ts (a test checks). These are the values the
+ * extension used before settings moved here, so nothing changes for anyone who never touches them.
+ */
+export const PLAYER_SETTINGS_DEFAULTS = Object.freeze({
+  enabled: true,
+  clickCheck: true,
+  tiltSensitivity: 'moderate',
+  sneakyBet: true,
+  sneakyBetThreshold: 0.5,
+  timeCheck: true,
+  hourlyWage: 25,
+  timeCheckHours: 2,
+  depositBlock: true,
+  autoBreak: true,
+  autoBreakHours: 24,
+  autoBreakScore: 75,
+  keepTheWin: true,
+  winSkim: true,
+  winSkimPercent: 50,
+  winSkimMinProfit: 50,
+  cashoutGoals: true,
+  bonusTracker: false,
+  bonusName: 'Deposit Bonus',
+  bonusTargetWager: 1000,
+  bonusMaxBet: 5,
+  bonusBlockOver: true,
+  nopeList: false,
+  nopeGames: [],
+  nopeCategories: [],
+  sounds: true,
+  soundVolume: 0.25,
+});

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /**
  * @vitest-environment jsdom
  * Core content script — pace lock and event-driven Touch Grass timeouts.
@@ -385,7 +385,7 @@ describe('core content script contracts', () => {
     const futureTime = Math.floor(Date.now() / 1000) + 7200;
     window.dispatchEvent(
       new MessageEvent('message', {
-        data: { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'LOCK_UPDATED', wallet: testWallet, endTime: futureTime },
+        data: { source: 'TILTCHECK_COOLDOWN_PAGE', type: 'LOCK_UPDATED', wallet: testWallet, endTime: futureTime, lockSource: 'solana_web_wallet' },
         source: window,
       })
     );
@@ -394,6 +394,7 @@ describe('core content script contracts', () => {
     expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
         tiltcheck_cooldown_active_until: futureTime * 1000,
+        tiltcheck_cooldown_source: 'solana_web_wallet',
         tiltcheck_cooldown_wallet: testWallet,
       })
     );
@@ -401,6 +402,7 @@ describe('core content script contracts', () => {
       type: 'cooldown_lock_updated',
       wallet: testWallet,
       endTime: futureTime,
+      lockSource: 'solana_web_wallet',
     });
 
     cleanup();

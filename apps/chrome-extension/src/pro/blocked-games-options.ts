@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 /**
  * Local game/category filter — user config in chrome.storage.
@@ -78,9 +78,13 @@ export async function loadBlockedCategories(): Promise<GameCategory[]> {
   }
 }
 
+/** Popup on/off switch (same key as core-options TILTCHECK_ENABLED_KEY). */
+export const TILTCHECK_EXTENSION_ENABLED_KEY = 'tiltcheck_enabled';
+
 export async function loadGameBlockOptIn(): Promise<boolean> {
   try {
-    const stored = await chrome.storage.local.get(TILTCHECK_GAME_BLOCK_OPT_IN_KEY);
+    const stored = await chrome.storage.local.get([TILTCHECK_GAME_BLOCK_OPT_IN_KEY, TILTCHECK_EXTENSION_ENABLED_KEY]);
+    if (stored[TILTCHECK_EXTENSION_ENABLED_KEY] === false) return false;
     return stored[TILTCHECK_GAME_BLOCK_OPT_IN_KEY] === true;
   } catch {
     return false;

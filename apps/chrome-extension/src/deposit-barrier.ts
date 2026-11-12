@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /**
  * deposit-barrier.ts
  * DOM Deposit Barrier.
@@ -119,14 +119,16 @@ export async function loadCooldownActiveUntil(): Promise<number> {
 }
 
 export function isDepositBarrierActive(now?: number): boolean {
+  const currentTime = now ?? Date.now();
+  // A running "Take a break" lock can't be switched off early: it ignores the
+  // deposit-block setting and the extension on/off switch until it ends.
+  if (inMemoryCooldownActiveUntil > currentTime) {
+    return true;
+  }
   if (!inMemoryBarrierEnabled) {
     return false;
   }
-  if (isTouchGrassActive()) {
-    return true;
-  }
-  const currentTime = now ?? Date.now();
-  return inMemoryCooldownActiveUntil > currentTime;
+  return isTouchGrassActive();
 }
 
 export function isDepositTarget(target: Element): boolean {
@@ -208,7 +210,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     const now = Date.now();
     const cooldownUntil = getCooldownActiveUntil();
 
-    if (cooldownUntil <= now || !inMemoryBarrierEnabled) {
+    if (cooldownUntil <= now) {
       removeCooldownHud();
       return;
     }
@@ -277,7 +279,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
 
       hudEl.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-          <span style="font-size: 10px; font-weight: 800; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-transform: uppercase; letter-spacing: 0.05em;">${isAutoTilt ? 'Tilt Auto-Lock Active' : 'Vault Lock Active'}</span>
+          <span style="font-size: 10px; font-weight: 800; color: ${isAutoTilt ? '#ff4a4a' : '#17c3b2'}; text-transform: uppercase; letter-spacing: 0.05em;">${isAutoTilt ? 'Tilt Break Active' : 'Vault Lock Active'}</span>
           <button type="button" class="tiltcheck-cooldown-toggle" style="background: transparent; border: none; color: #94a3b8; font-family: inherit; font-size: 14px; cursor: pointer; line-height: 1; padding: 0 2px;" title="Minimize">-</button>
         </div>
         <div class="cooldown-timer-val" style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 2px 0 4px 0;">
@@ -424,7 +426,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     if (cooldownUntil > now) {
       const remainingMins = Math.max(1, Math.ceil((cooldownUntil - now) / 60000));
       if (inMemoryCooldownSource === 'auto_tilt') {
-        message = `Deposit Barrier Active: Level 3+ tilt auto-lock engaged (${remainingMins}m remaining). Cool down and protect your capital.`;
+        message = `Deposit Barrier Active: you took the tilt break (${remainingMins}m left). It ends when it ends.`;
       } else {
         message = `Deposit Barrier Active: Voluntary lock engaged (${remainingMins}m remaining). Don't reload. Step away.`;
       }

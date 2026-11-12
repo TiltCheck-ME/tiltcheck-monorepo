@@ -395,7 +395,7 @@ describe('in-session Cooldown Timer HUD', () => {
     expect(document.getElementById(COOLDOWN_HUD_ID)).toBeNull();
   });
 
-  it('renders critical Tilt Auto-Lock badge and message when source is auto_tilt', () => {
+  it('renders the Tilt Break badge and message when source is auto_tilt', () => {
     const handle = installDepositBarrier(document);
     const futureTime = Date.now() + 86400 * 1000;
     handle.updateCooldown(futureTime, 'auto_tilt');
@@ -403,7 +403,7 @@ describe('in-session Cooldown Timer HUD', () => {
     expect(handle.isHudVisible()).toBe(true);
     expect(handle.getCooldownSource()).toBe('auto_tilt');
     const hud = document.getElementById(COOLDOWN_HUD_ID);
-    expect(hud?.textContent).toContain('Tilt Auto-Lock Active');
+    expect(hud?.textContent).toContain('Tilt Break Active');
     expect(hud?.textContent).toContain('Level 3+ Tilt Lockout');
     expect(hud?.innerHTML).toContain('Confirm On-Chain');
 
@@ -421,7 +421,7 @@ describe('in-session Cooldown Timer HUD', () => {
     depositBtn.click();
     const alert = document.getElementById(ALERT_ID);
     expect(alert).not.toBeNull();
-    expect(alert?.textContent).toContain('Level 3+ tilt auto-lock engaged');
+    expect(alert?.textContent).toContain('you took the tilt break');
 
     depositBtn.remove();
     handle.stop();
