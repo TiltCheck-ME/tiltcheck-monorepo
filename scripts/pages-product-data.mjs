@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 export const SITE_URL = 'https://tiltcheck.me';
 export const API_URL = 'https://collectclock-api.j-chapman7.workers.dev';
@@ -15,12 +15,10 @@ export const SITE_HERO_HEADLINE = 'House always wins? NOT TODAY.';
 export const SITE_DOPAMINE = "The math isn't rigged. Your dopamine is.";
 export const SITE_KICKER = 'Chasing losses and thinking you are due is how the casino eats your balance.';
 export const SITE_LEDE =
-  'Simple tools to keep you in control: ClickCheck for 2-second spin pauses, Nope List to block the games that rinse you, and RealityCheck when you need to walk away and touch grass.';
+  'Free tools you switch on yourself, so you stay the one deciding.';
 export const SITE_ONE_LINER =
   'Free tools for casino players: TrustCheck, TimeCheck, ClickCheck, and RealityCheck.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
-export const SITE_PRIVACY =
-  'We never ask for passwords or private keys. The extension and web tools run client-side in your own browser.';
 
 export const CTA_READY = true;
 export const CTA_LABEL = 'DOWNLOAD EXTENSION (ZIP)';
@@ -49,8 +47,8 @@ export const INSTALL_MOVES = [
     body: 'Use TimeCheck to lock in your session time and stop-loss before you spin.',
   },
   {
-    title: 'Slow your rolls',
-    body: 'Use ClickCheck in the extension for a forced 2-second pause so you cannot turbo-mash away your balance.',
+    title: 'Put brakes on the tab',
+    body: 'Add the extension and pick which brakes run. The list is right below.',
   },
 ];
 
@@ -99,9 +97,9 @@ export const HOUSE_EDGE_PAGE = {
 };
 
 export const LAUNCH_HONESTY = [
-  'Zero keys, zero deposits: we never take custody of player funds.',
-  'Client-side harm reduction: all limits and delays run in your browser.',
-  'Non-custodial cooldowns: 24-hour locks are voluntary and self-enforced.',
+  'No passwords, no keys, no deposits. We never hold your money.',
+  'Every limit and delay runs in your own browser.',
+  'Cooldowns are your call: 24 hours, 3, 7 or 30 days.',
 ];
 
 export const EXTENSION_SIGNALS = [
@@ -127,7 +125,7 @@ export const EXTENSION_SIGNALS = [
   },
   {
     title: 'RealityCheck (Touch Grass)',
-    body: 'Locks cashier and spin buttons for 24 hours straight when you need a hard reset.',
+    body: 'Locks cashier and spin buttons for 24 hours, 3, 7 or 30 days when you need a hard reset.',
   },
 ];
 
@@ -151,14 +149,14 @@ export const TOOL_REGISTRY = [
     href: '/gate/',
     label: 'TIMECHECK',
     title: 'TimeCheck',
-    description: 'Pre-session limit setter and countdown timer for your phone.',
+    description: 'Session timer and stop-loss for your phone. Add it to your home screen, no app store.',
     status: 'live',
   },
   {
     href: '/cooldown/',
     label: 'REALITYCHECK',
     title: 'RealityCheck',
-    description: 'Lock your cashier and spin buttons for 24 hours to touch grass.',
+    description: 'Lock your cashier and spin buttons for 24 hours, 3, 7 or 30 days. Go touch grass.',
     status: 'live',
   },
   {
@@ -233,21 +231,6 @@ export const TOOL_REGISTRY = [
   },
 ];
 
-export const INSTALL_SURFACES = [
-  {
-    href: '/extension',
-    label: 'DESKTOP EXTENSION',
-    title: 'TiltCheck Desktop Extension',
-    description: 'Direct ZIP download. Sideload in Developer Mode in 30 seconds.',
-  },
-  {
-    href: '/gate/',
-    label: 'MOBILE PWA',
-    title: 'TimeCheck for iOS & Android',
-    description: 'Install directly to your home screen from your browser menu. Zero downloads.',
-  },
-];
-
 export const CORE_BRAKES = [
   {
     num: '01',
@@ -276,8 +259,8 @@ export const CORE_BRAKES = [
   {
     num: '05',
     title: 'RealityCheck',
-    body: 'Cashier and spin buttons stay dead while your 24-hour Touch Grass lock is active.',
-    status: '24-hour timelock',
+    body: 'Cashier and spin buttons stay dead until the break you picked is over.',
+    status: '24h, 3, 7 or 30 days',
   },
   {
     num: '06',

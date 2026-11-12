@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /*
  * GitHub Pages shell — static twin of tiltcheck.me landing tokens/layout.
  * Absolute /paths break on project Pages; HTML uses relative asset hrefs.
@@ -2958,3 +2958,85 @@ td {
   margin: 0;
 }
 
+
+/* Directory search hides cards with [hidden]. */
+.audit-card[hidden] {
+  display: none;
+}
+
+/* Dashboard: where each tool's settings live. */
+.dash-panel {
+  max-width: 760px;
+  text-align: left;
+}
+.dash-heading {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e2e8f0;
+}
+.dash-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+.dash-note a {
+  color: #17c3b2;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 0.75rem 0 1rem;
+}
+.dash-card {
+  display: block;
+  position: relative;
+  padding: 16px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  text-decoration: none;
+}
+.dash-card--link {
+  border-color: rgba(23, 195, 178, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+.dash-card--link:hover,
+.dash-card--link:focus-visible {
+  border-color: #17c3b2;
+}
+.dash-card--soon {
+  opacity: 0.75;
+}
+.dash-card--focus {
+  border-color: #17c3b2;
+  box-shadow: 0 0 0 2px rgba(23, 195, 178, 0.35);
+}
+.dash-card__name {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: #17c3b2;
+}
+.dash-card:not(.dash-card--link) .dash-card__name {
+  color: #e2e8f0;
+}
+.dash-card__body {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #94a3b8;
+}
+.dash-card__tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.tool-card__meta .public-page-card__title {
+  margin: 0;
+}

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -34,7 +34,6 @@ import {
   SITE_LEDE,
   SITE_ONE_LINER,
   SITE_META_DESCRIPTION,
-  SITE_PRIVACY,
   CTA_READY,
   CTA_LABEL,
   CTA_GATED_LABEL,
@@ -50,7 +49,6 @@ import {
   EXTENSION_SIGNALS,
   GRADING_STEPS,
   TOOL_REGISTRY,
-  INSTALL_SURFACES,
   CORE_BRAKES,
   RTP_SCANNER_PAGE,
   VERIFY_PAGE,
@@ -97,6 +95,8 @@ function renderMarkdown(md) {
   let listOpen = false;
 
   for (const raw of lines) {
+    // File copyright headers repeat the site footer's copyright line. Skip them outside code.
+    if (!inCode && /^©\s*20\d\d.*All Rights Reserved/i.test(raw.trim())) continue;
     const line = raw.replace(/\t/g, '    ');
     const fenceMatch = line.match(/^```(.*)$/);
     if (fenceMatch) {
@@ -555,7 +555,6 @@ function buildRootLanding() {
         ${secondaryCtaHtml()}
       </div>
       <a class="hero-actions__secondary-link" href="${escapeHtml(TERTIARY_LINK.href)}">${escapeHtml(TERTIARY_LINK.label)}</a>
-      <p class="landing-hero__privacy">${escapeHtml(SITE_PRIVACY)}</p>
     </div>
   </section>
   <section class="landing-moves" id="install" aria-label="How it works">
@@ -650,15 +649,14 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: 'Desktop Companion',
     title: 'TiltCheck Browser Extension',
-    lede: 'Direct, free browser companion: enforces a 2-second pause between spins, blocks high-risk games, and locks cashier buttons during cooldowns. Zero store dependencies.',
+    lede: 'Free brakes for your casino tab. Add it in 30 seconds, then pick which ones run.',
     actionsHtml: actions,
   })}
 <main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card" style="border: 1px solid rgba(23,195,178,0.35); background: rgba(23,195,178,0.04);">
-        <p class="public-page-card__eyebrow" style="color:#17c3b2;">3-Step Sideload Guide</p>
-        <h2 class="public-page-card__title">How to Install in 30 Seconds</h2>
+        <h2 class="public-page-card__title">How to install</h2>
         <ol style="color:var(--text-secondary); line-height:1.75; padding-left:1.25rem; margin:1rem 0;">
           <li><strong>Download and extract</strong> the <a href="/downloads/tiltcheck-extension.zip" download style="color:#17c3b2; text-decoration:underline;">tiltcheck-extension.zip</a> file to your computer.</li>
           <li>Open Chrome, Brave, or Edge and go to <code>chrome://extensions</code> in your address bar.</li>
@@ -681,7 +679,7 @@ function buildExtensionPage() {
 
   return shell({
     title: 'Direct Extension Download | TiltCheck',
-    description: 'Download the TiltCheck desktop extension: 2-second spin pause, custom game block lists, and 24-hour cashier cooldowns.',
+    description: 'Download the TiltCheck desktop extension: 2-second spin pause, custom game block lists, and cashier cooldowns from 24 hours to 30 days.',
     depth: 'root',
     current: 'extension',
     body: content,
@@ -697,7 +695,7 @@ function gradeClass(grade) {
   return 'grade-f';
 }
 
-function buildAuditedShowcase(auditedCasinos) {
+function buildAuditedShowcase(auditedCasinos, toolbarHtml) {
   const showcaseCards = auditedCasinos
     .map((c) => {
       const trust = calculateCasinoTrust(c);
@@ -705,7 +703,12 @@ function buildAuditedShowcase(auditedCasinos) {
         .map((e) => '<li>' + escapeHtml(e) + '</li>')
         .join('\n');
 
-      return '<article class="audit-card">\n' +
+      const keywords = [c.name, c.category, trust.grade, trust.risk, c.license, c.rtpSummary, ...(c.evidence || [])]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return '<article class="audit-card" data-casino-card data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(trust.grade) + '" data-audited="true" data-keywords="' + escapeHtml(keywords) + '">\n' +
         '  <div class="audit-card__header">\n' +
         '    <div class="audit-card__title-row">\n' +
         '      <h3 class="audit-card__name">' + escapeHtml(c.name) + '</h3>\n' +
@@ -762,10 +765,10 @@ function buildAuditedShowcase(auditedCasinos) {
   return '<section class="public-page-section audited-showcase-section">\n' +
     '  <div class="landing-shell">\n' +
     '    <div class="public-page-section-heading">\n' +
-    '      <span class="brand-eyebrow">Audited deep dives</span>\n' +
-    '      <h2 class="public-page-section-heading__title">Audited Operator Receipts — Stake, Roobet & BC.Game: The Receipts.</h2>\n' +
-    '      <p class="public-page-section-heading__sub">Deterministic 5-pillar trust scoring, provably fair verification, certified slot RTP profiles, and documented friction across ' + auditedCasinos.length + ' audited operators.</p>\n' +
+    '      <span class="brand-eyebrow">The directory</span>\n' +
+    '      <h2 class="public-page-section-heading__title">Every operator, graded.</h2>\n' +
     '    </div>\n' +
+    (toolbarHtml || '') + '\n' +
     '    <div class="audited-grid">\n' +
     showcaseCards + '\n' +
     '    </div>\n' +
@@ -776,77 +779,6 @@ function buildAuditedShowcase(auditedCasinos) {
 function buildCasinosPage(casinos) {
   const auditedCasinos = casinos.filter((c) => Boolean(c.audited));
   const categories = [...new Set(auditedCasinos.map((c) => c.category))].sort();
-  const cards = auditedCasinos
-    .map((c) => {
-      const isAudited = Boolean(c.audited);
-      const keywords = [
-        c.name,
-        c.category,
-        c.grade,
-        c.risk,
-        c.license,
-        c.rtpSummary,
-        ...(c.evidence || []),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      let extraContent = '';
-      if (isAudited) {
-        const evidenceItems = (c.evidence || [])
-          .map((e) => '<li>' + escapeHtml(e) + '</li>')
-          .join('');
-
-        const detailsHtml =
-          '  <details class="casino-card__details">\n' +
-          '    <summary class="casino-card__details-toggle">View verified evidence (' + (c.evidence || []).length + ')</summary>\n' +
-          '    <div class="casino-card__details-body">\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Originals RTP</span>\n' +
-          '        <span class="stat-value text-accent">' + escapeHtml(c.rtpOriginals || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Slot Tiers</span>\n' +
-          '        <span class="stat-value">' + escapeHtml(c.rtpSlots || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Extension Support</span>\n' +
-          '        <span class="stat-value">' + escapeHtml(c.vaultSupport || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Playthrough</span>\n' +
-          '        <span class="stat-value">' + escapeHtml(c.playthrough || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <h4 class="evidence-subheading">Verified Receipts</h4>\n' +
-          '      <ul class="casino-card__evidence-list">' + evidenceItems + '</ul>\n' +
-          '    </div>\n' +
-          '  </details>';
-
-        extraContent = '\n' +
-          '  <div class="casino-card__meta-tags">\n' +
-          '    <span class="badge-audited">Audited</span>\n' +
-          (c.rtpSummary ? '    <span class="badge-rtp">' + escapeHtml(c.rtpSummary) + '</span>\n' : '') +
-          '  </div>\n' +
-          '  <p class="casino-card__license">' + escapeHtml(c.license || '') + '</p>\n' +
-          staffOnly(detailsHtml, 'TrustCheck Team — Audit Evidence');
-      }
-
-      const trust = calculateCasinoTrust(c);
-      return '<article class="casino-card' + (isAudited ? ' casino-card--audited' : '') + '" data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(trust.grade) + '" data-audited="' + (isAudited ? 'true' : 'false') + '" data-keywords="' + escapeHtml(keywords) + '">\n' +
-        '  <div class="casino-card__top">\n' +
-        '    <div class="casino-card__grade-block">\n' +
-        '      <span class="casino-card__grade ' + gradeClass(trust.grade) + '">' + escapeHtml(trust.grade) + '</span>\n' +
-        '      <span class="casino-card__score-label">' + trust.score + '/100</span>\n' +
-        '    </div>\n' +
-        '    <span class="casino-card__cat">' + escapeHtml(c.category) + '</span>\n' +
-        '  </div>\n' +
-        '  <h3 class="casino-card__name">' + escapeHtml(c.name) + '</h3>\n' +
-        '  <p class="casino-card__risk">Risk: <strong>' + escapeHtml(trust.risk) + '</strong></p>' + extraContent + '\n' +
-        '</article>';
-    })
-    .join('\n');
-
   const filters = ['All', ...categories]
     .map(
       (cat, i) =>
@@ -862,7 +794,7 @@ function buildCasinosPage(casinos) {
 (function () {
   var input = document.getElementById('casino-search');
   var chips = document.querySelectorAll('.filter-chip');
-  var cards = Array.prototype.slice.call(document.querySelectorAll('.casino-card'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-casino-card]'));
   var count = document.getElementById('casino-count');
   var activeCat = 'All';
   function apply() {
@@ -901,20 +833,14 @@ function buildCasinosPage(casinos) {
     actionsHtml: '<a class="btn btn-primary" href="' + href('docs', 'index.html') + '">Back home</a>',
   })}
 <main class="product-main">
-  ${buildAuditedShowcase(auditedCasinos)}
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <div class="casino-toolbar">
+  ${buildAuditedShowcase(auditedCasinos, `      <div class="casino-toolbar">
         <label class="casino-search">
           <span class="sr-only">Search casinos</span>
           <input id="casino-search" type="search" placeholder="Search operator name, license, RTP, or provider…" autocomplete="off"/>
         </label>
         <div class="filter-row" role="group" aria-label="Category filters">${filters}</div>
         <p class="casino-count" id="casino-count">${auditedCasinos.length} audited operators</p>
-      </div>
-      <div class="casino-grid">${cards}</div>
-    </div>
-  </section>
+      </div>`)}
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
@@ -960,7 +886,7 @@ function buildCooldownPage() {
   <div class="cooldown-panel">
     <p class="brand-eyebrow">RealityCheck</p>
     <h1>Take a break</h1>
-    <p class="cooldown-punch">Pick how long. TiltCheck blocks casino deposit buttons until it's over.</p>
+    <p class="cooldown-punch">TiltCheck blocks casino deposit buttons until your break is over.</p>
 
     <div id="auto-tilt-alert-banner" class="cooldown-banner" style="display:none;">
       <p class="cooldown-banner__title">Tilt check</p>
@@ -983,7 +909,7 @@ function buildCooldownPage() {
       })();
     </script>
 
-    <div class="cooldown-lock">
+    <div class="cooldown-lock" id="cooldown-length">
       <p class="cooldown-label" id="cooldown-dur-label">How long?</p>
       <div class="cooldown-durs" role="group" aria-labelledby="cooldown-dur-label">
         <button type="button" class="cooldown-dur-btn" data-hours="24" aria-pressed="false">24h</button>
@@ -1327,7 +1253,7 @@ function buildCooldownPage() {
         </div>
         <div class="cooldown-how__card">
           <h3>3. The fine print</h3>
-          <p>Not a deposit. We never hold your money or keys. Casinos don't have to honor your lock. You do. The optional wallet signature just adds a signed note with your lock's end time, for your own records.</p>
+          <p>Casinos don't have to honor your lock. You do. The optional wallet signature just adds a signed note with your lock's end time, for your own records.</p>
         </div>
       </div>
     </div>
@@ -1370,7 +1296,6 @@ function buildNudgesPage() {
       return `<section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Toast</span>
         <h2 class="public-page-section-heading__title">${escapeHtml(group.when)}</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${cards}</div>
@@ -1426,56 +1351,77 @@ function buildAutovaultPage() {
 
 function buildDashboardPage() {
   const depth = 'docs';
+  // Each card points at the tool's real controls, not its explainer page.
+  // Web tools: deep link to the form on the tool page. Extension tools: the
+  // settings live in the extension popup (gear icon opens Guards), which a web
+  // link can't open, so those cards say where to look and carry no link.
+  const webTools = [
+    { name: 'TimeCheck', href: dirHref(depth, 'gate') + '#timecheck-setup-card', body: 'Pick your site, session timer and stop-loss.' },
+    { name: 'RealityCheck', href: dirHref(depth, 'cooldown') + '#cooldown-length', body: 'Pick 24 hours, 3, 7 or 30 days, then lock.' },
+    { name: 'Fairness Verifier', href: dirHref(depth, 'tools/verify') + '#verify-seeds', body: 'Paste the seeds and nonce. Check the bet yourself.' },
+  ];
+  const extensionTools = [
+    { id: 'clickcheck', name: 'ClickCheck', body: 'Guards: switch the 2-second spin pause on or off.' },
+    { id: 'nope-list', name: 'Nope List', body: 'Guards: pick the game types and titles that stop clicking.' },
+    { id: 'sneaky-bet-alert', name: 'Sneaky Bet Alert', body: 'Guards: switch it on and set the stake that counts as sneaky.' },
+    { id: 'keep-the-win', name: 'Keep the Win', body: 'Guards: switch the cancel-withdrawal blocker on or off.' },
+    { id: 'win-skim', name: 'Win Skim', body: 'Guards: pick how much of a win to keep. Skim rules sit in the Vault tab.' },
+  ];
+  const webCards = webTools
+    .map((t) => `<a class="dash-card dash-card--link" href="${t.href}">
+        <h3 class="dash-card__name">${escapeHtml(t.name)} &rarr;</h3>
+        <p class="dash-card__body">${escapeHtml(t.body)}</p>
+      </a>`)
+    .join('\n      ');
+  const extCards = extensionTools
+    .map((t) => `<div class="dash-card" id="${t.id}">
+        <h3 class="dash-card__name">${escapeHtml(t.name)}</h3>
+        <p class="dash-card__body">${escapeHtml(t.body)}</p>
+        <span class="dash-card__tag">In the extension</span>
+      </div>`)
+    .join('\n      ');
+
   const content = `<main class="cooldown-page">
-  <div class="cooldown-panel" style="max-width: 720px;">
+  <div class="cooldown-panel dash-panel">
     <p class="brand-eyebrow">DASHBOARD</p>
     <h1>Your TiltCheck stuff</h1>
-    <p class="cooldown-punch">Your tools in one spot: skim the win, touch grass, check the math.</p>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; text-align: left;">
-      <a href="${href(depth, 'autovault')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">AutoVault &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Set how much of a win gets moved to your vault.</p>
-      </a>
+    <p class="cooldown-punch">Where each tool's settings live.</p>
 
-      <a href="${href(depth, 'cooldown')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Touch Grass &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Sign a timer with your Solana wallet. You sign it. We never hold anything.</p>
-      </a>
-
-      <a href="${href(depth, 'tools/verify')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Bet Verifier &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Paste the seeds, check the bet yourself.</p>
-      </a>
-
-      <a href="${href(depth, 'nudges')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Pacing &amp; Nudges &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Two-second spin pauses, loss-speed warnings, and reality checks.</p>
-      </a>
+    <h2 class="dash-heading">Set it here</h2>
+    <div class="dash-grid">
+      ${webCards}
     </div>
 
-    <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
+    <h2 class="dash-heading" id="in-the-extension">Set in the extension</h2>
+    <p class="dash-note">Open the TiltCheck extension and tap the gear. That opens Guards.</p>
+    <div class="dash-grid">
+      ${extCards}
+      <div class="dash-card dash-card--soon" id="nudges">
+        <h3 class="dash-card__name">Nudges</h3>
+        <p class="dash-card__body">No settings yet. They pop up on their own.</p>
+        <span class="dash-card__tag">Coming soon</span>
+      </div>
     </div>
+
+    <p class="dash-note">No extension yet? <a href="${href(depth, 'extension.html')}">Get it here</a>.</p>
   </div>
   <script>
     (function() {
-      var p = new URLSearchParams(window.location.search);
-      var tab = p.get('tab');
-      if (tab === 'vault') {
-        window.location.replace('../autovault/');
-      } else if (tab === 'safety') {
-        window.location.replace('../nudges/');
-      } else if (tab === 'buddies') {
-        window.location.replace('../collab/');
-      }
+      // Old links (and the extension's block screen) use ?tab=. Land on the matching card.
+      var tab = new URLSearchParams(window.location.search).get('tab');
+      var target = { safety: 'nope-list', vault: 'win-skim' }[tab];
+      var el = target && document.getElementById(target);
+      if (!el) return;
+      el.classList.add('dash-card--focus');
+      if (!window.location.hash && history.replaceState) history.replaceState(null, '', window.location.pathname + window.location.search + '#' + target);
+      if (el.scrollIntoView) el.scrollIntoView({ block: 'center' });
     })();
   </script>
 </main>`;
 
   return shell({
     title: 'Dashboard | TiltCheck',
-    description: 'Your TiltCheck tools in one spot.',
+    description: 'Where each TiltCheck tool is set up.',
     depth: 'docs',
     current: 'dashboard',
     body: content,
@@ -1658,7 +1604,7 @@ function buildVerifyPage() {
     <h1>${escapeHtml(VERIFY_PAGE.title)}</h1>
     <p class="cooldown-punch">${escapeHtml(VERIFY_PAGE.punch)}</p>
 
-    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
+    <div id="verify-seeds" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
       <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid #283347; padding-bottom: 0.75rem;">
         <span style="font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe;">Sample Presets:</span>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -2217,24 +2163,14 @@ function buildNudgesRedirect() {
 
 function buildToolsPage() {
   const depth = 'docs';
-  const install = INSTALL_SURFACES.map(
-    (t) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
-  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
-  <a class="feature-card__link" href="${mapPublicHref(depth, t.href)}">Open install →</a>
-</article>`,
-  ).join('\n');
-
   const tools = TOOL_REGISTRY.map(
     (t) => `<article class="public-page-card tool-card">
   <div class="tool-card__meta">
-    <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
+    <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
     <span class="status-pill status-pill--${escapeHtml(t.status)}">${escapeHtml(t.status)}</span>
   </div>
-  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
   <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
-  <a class="feature-card__link" href="${mapPublicHref(depth, t.href)}">Launch tool &rarr;</a>
+  <a class="feature-card__link" href="${mapPublicHref(depth, t.href)}">${t.href === '/extension' ? 'In the extension' : 'Launch tool'} &rarr;</a>
 </article>`,
   ).join('\n');
 
@@ -2242,8 +2178,7 @@ function buildToolsPage() {
     eyebrow: 'Degen-built tools',
     title: 'The Anti-Tilt Toolkit',
     lede: 'Friction, receipts, and a little trash talk. Every tool we built, in one place. No login. We never hold your money. The willpower part is still on you.',
-    actionsHtml: `<a class="btn btn-primary" href="${href(depth, 'extension.html')}">The Extension</a>
-    <a class="hero-actions__secondary-link" href="${dirHref(depth, 'cooldown')}">Touch Grass</a>`,
+    actionsHtml: `<a class="btn btn-primary" href="${href(depth, 'extension.html')}">The Extension</a>`,
   })}
 <main class="product-main">
   <section class="public-page-section">
@@ -2253,15 +2188,6 @@ function buildToolsPage() {
         <h2 class="public-page-section-heading__title">Pick your poison.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${tools}</div>
-    </div>
-  </section>
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Phone setup</span>
-        <h2 class="public-page-section-heading__title">AutoVault on your phone.</h2>
-      </div>
-      <div class="public-page-grid public-page-grid--2">${install}</div>
     </div>
   </section>
 </main>`;
@@ -2497,16 +2423,10 @@ function buildTipPage() {
         </div>
       </div>
 
-      <div class="public-page-grid public-page-grid--2" style="max-width:760px; margin:0 auto;">
+      <div style="max-width:760px; margin:0 auto;">
         <article class="public-page-card">
-          <p class="public-page-card__eyebrow">100% Non-Custodial</p>
-          <h3 class="public-page-card__title">Zero Fund Custody</h3>
-          <p class="public-page-card__copy">TiltCheck never holds player casino bankrolls, deposits, or private keys. Tipping is purely voluntary and client-side.</p>
-        </article>
-        <article class="public-page-card">
-          <p class="public-page-card__eyebrow">Nothing paywalled</p>
-          <h3 class="public-page-card__title">Free for Every Degen</h3>
-          <p class="public-page-card__copy">Spin pause, streak spotter, cancel-withdrawal blocker, AutoVault: all free whether you tip or not.</p>
+          <h3 class="public-page-card__title">Your money stays yours</h3>
+          <p class="public-page-card__copy">We never hold bankrolls, deposits or private keys. A tip goes straight from your wallet to ours.</p>
         </article>
       </div>
     </div>
