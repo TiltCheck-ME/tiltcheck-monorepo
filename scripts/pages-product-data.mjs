@@ -15,9 +15,9 @@ export const SITE_HERO_HEADLINE = 'House always wins? NOT TODAY.';
 export const SITE_DOPAMINE = "The math isn't rigged. Your dopamine is.";
 export const SITE_KICKER = 'Chasing losses and thinking you are due is how the casino eats your balance.';
 export const SITE_LEDE =
-  'Simple tools to keep you in control: ClickCheck for 2-second spin pauses, TiltCheck to block the games that rinse you, and RealityCheck when you need to walk away and touch grass.';
+  'Simple tools to keep you in control: ClickCheck for 2-second spin pauses, Nope List to block the games that rinse you, and RealityCheck when you need to walk away and touch grass.';
 export const SITE_ONE_LINER =
-  'Free tools for casino players: TimeCheck, RealityCheck, PocketCheck, WinCheck, and TiltCheck.';
+  'Free tools for casino players: TrustCheck, TimeCheck, ClickCheck, and RealityCheck.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
 export const SITE_PRIVACY =
   'We never ask for passwords or private keys. The extension and web tools run client-side in your own browser.';
@@ -55,20 +55,20 @@ export const INSTALL_MOVES = [
 ];
 
 export const INSTALL_NOTE =
-  'Free web tools live right now: TimeCheck, RealityCheck, BetCheck, RTPCheck, MathCheck, and TrustCheck.';
+  'Free web tools live right now: TimeCheck, RealityCheck, Fairness Verifier, RTP Scanner, House Edge Scanner, and TrustCheck.';
 
 export const VAULT = {
-  title: 'WinCheck — Skim your wins.',
+  title: 'Win Skim — Skim your wins.',
   body: 'Auto-skims a cut of big hits into your casino vault before you give it back.',
-  ctaLabel: 'WINCHECK',
+  ctaLabel: 'WIN SKIM',
   href: 'wincheck/',
 };
 
 export const AUTOVAULT_PAGE = {
   eyebrow: 'Profit Skimmer',
-  title: 'WinCheck',
+  title: 'Win Skim',
   punch:
-    'Hit a heater? WinCheck stashes a percentage into your casino vault so it is off the table before your next spin.',
+    'Hit a heater? Win Skim stashes a percentage into your casino vault so it is off the table before your next spin.',
   steps: [
     'Download the TiltCheck extension for your desktop browser.',
     'Set your skim percentage (e.g. 10%) and win threshold.',
@@ -79,21 +79,21 @@ export const AUTOVAULT_PAGE = {
 
 export const RTP_SCANNER_PAGE = {
   eyebrow: 'Slot Payout Check',
-  title: 'RTPCheck',
+  title: 'RTP Scanner',
   punch: 'Slots ship with multiple payout tiers (e.g. 96% down to 88%). See if your casino picked the nerfed setting.',
   fine: 'Compare live slot payout settings against original provider baselines.',
 };
 
 export const VERIFY_PAGE = {
   eyebrow: 'Game Fairness Check',
-  title: 'BetCheck',
+  title: 'Fairness Verifier',
   punch: 'Paste your server seed, client seed, and nonce to verify whether a dice, crash, or plinko roll was fair.',
   fine: 'Client-side verification computed right in your browser.',
 };
 
 export const HOUSE_EDGE_PAGE = {
   eyebrow: 'House Math & VIP Calculator',
-  title: 'MathCheck',
+  title: 'House Edge Scanner',
   punch: 'Check the real math on VIP level-up grinds, wagering requirements, and house edge.',
   fine: 'Calculates expected house edge loss against comp return ratios.',
 };
@@ -110,19 +110,19 @@ export const EXTENSION_SIGNALS = [
     body: 'A mandatory 2-second pause between spins to kill the auto-spin daze and stop bankroll bleed.',
   },
   {
-    title: 'TiltCheck (Rinse Blocker)',
+    title: 'Nope List (Rinse Blocker)',
     body: 'Put high-drain trap games on your blocklist to make them completely unclickable.',
   },
   {
-    title: 'SpinCheck (Default Bet Breaker)',
+    title: 'Sneaky Bet Alert (Default Bet Breaker)',
     body: 'Spots slots that sneakily open at $1.00–$2.00 a spin instead of $0.10 and catches it before spin one.',
   },
   {
-    title: 'PocketCheck (Payout Lock)',
+    title: 'Keep the Win (Payout Lock)',
     body: 'Disables "Cancel Withdrawal" buttons so pending cashouts actually hit your pocket.',
   },
   {
-    title: 'WinCheck (Profit Skimmer)',
+    title: 'Win Skim (Profit Skimmer)',
     body: 'Skims a configurable percentage of heater wins straight into your vault before you give it back.',
   },
   {
@@ -163,22 +163,22 @@ export const TOOL_REGISTRY = [
   },
   {
     href: '/verify/',
-    label: 'BETCHECK',
-    title: 'BetCheck',
+    label: 'FAIRNESS VERIFIER',
+    title: 'Fairness Verifier',
     description: 'Verify HMAC seeds and nonces to prove your roll was mathematically fair.',
     status: 'live',
   },
   {
     href: '/rtp-scanner/',
-    label: 'RTPCHECK',
-    title: 'RTPCheck',
+    label: 'RTP SCANNER',
+    title: 'RTP Scanner',
     description: 'Catch casinos secretly running lower RTP payout configurations.',
     status: 'live',
   },
   {
     href: '/house-edge-scanner/',
-    label: 'MATHCHECK',
-    title: 'MathCheck',
+    label: 'HOUSE EDGE SCANNER',
+    title: 'House Edge Scanner',
     description: 'Calculate what chasing VIP tier bonuses actually costs in expected loss.',
     status: 'live',
   },
@@ -198,29 +198,29 @@ export const TOOL_REGISTRY = [
   },
   {
     href: '/extension',
-    label: 'TILTCHECK',
-    title: 'TiltCheck',
+    label: 'NOPE LIST',
+    title: 'Nope List',
     description: 'Game blocker that disables clicks on the exact titles that rinse your bankroll.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'SPINCHECK',
-    title: 'SpinCheck',
+    label: 'SNEAKY BET ALERT',
+    title: 'Sneaky Bet Alert',
     description: 'Default bet breaker catching $1–$2 opening stakes on game launch.',
     status: 'live',
   },
   {
     href: '/extension',
-    label: 'POCKETCHECK',
-    title: 'PocketCheck',
+    label: 'KEEP THE WIN',
+    title: 'Keep the Win',
     description: 'Kills the cancel button on pending withdrawals so cashouts hit your pocket.',
     status: 'live',
   },
   {
     href: '/wincheck/',
-    label: 'WINCHECK',
-    title: 'WinCheck',
+    label: 'WIN SKIM',
+    title: 'Win Skim',
     description: 'Auto-skims a cut of heater wins straight into your casino vault.',
     status: 'live',
   },
@@ -257,19 +257,19 @@ export const CORE_BRAKES = [
   },
   {
     num: '02',
-    title: 'TiltCheck',
+    title: 'Nope List',
     body: 'Add the slots and games that rinse you to your list and they stop clicking.',
     status: 'Custom list',
   },
   {
     num: '03',
-    title: 'SpinCheck',
+    title: 'Sneaky Bet Alert',
     body: 'Spots slots that sneakily open at $1.00–$2.00 instead of $0.10 before spin one.',
     status: 'Active on game open',
   },
   {
     num: '04',
-    title: 'PocketCheck',
+    title: 'Keep the Win',
     body: 'Hides cancel-withdrawal buttons while payouts are pending so you keep your win.',
     status: 'Active on pending payouts',
   },
@@ -281,8 +281,8 @@ export const CORE_BRAKES = [
   },
   {
     num: '06',
-    title: 'WinCheck',
-    body: 'Auto-skims a cut of big wins into your casino vault before you give it back.',
+    title: 'Win Skim',
+    body: "Auto-skims a cut of big wins into your casino's own vault before you give it back.",
     status: 'Configurable %',
   },
 ];

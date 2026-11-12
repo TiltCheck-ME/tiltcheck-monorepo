@@ -45,7 +45,6 @@ import {
   INSTALL_TITLE,
   INSTALL_MOVES,
   INSTALL_NOTE,
-  VAULT,
   AUTOVAULT_PAGE,
   LAUNCH_HONESTY,
   EXTENSION_SIGNALS,
@@ -219,7 +218,7 @@ function navHtml(depth, current) {
     <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
     <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
     <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
-    <a class="site-nav__discord" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}</a>
+    <a class="site-nav__discord" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
   </div>
 </nav>`;
 }
@@ -232,10 +231,10 @@ function footerHtml(depth) {
       <a href="${dirHref(depth, 'tools')}">All Tools</a>
       <a href="${dirHref(depth, 'gate')}">TimeCheck</a>
       <a href="${dirHref(depth, 'cooldown')}">RealityCheck</a>
-      <a href="${dirHref(depth, 'rtp-scanner')}">RTPCheck</a>
-      <a href="${dirHref(depth, 'house-edge-scanner')}">MathCheck</a>
-      <a href="${dirHref(depth, 'verify')}">BetCheck</a>
-      <a href="${dirHref(depth, 'wincheck')}">WinCheck</a>
+      <a href="${dirHref(depth, 'rtp-scanner')}">RTP Scanner</a>
+      <a href="${dirHref(depth, 'house-edge-scanner')}">House Edge Scanner</a>
+      <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
+      <a href="${dirHref(depth, 'wincheck')}">Win Skim</a>
       <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
       <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
       <a href="${dirHref(depth, 'login')}">Discord Sign In</a>
@@ -439,11 +438,6 @@ function buildRootLanding() {
       </div>
     </div>
   </section>
-  <section class="landing-vault" aria-label="AutoVault">
-    <h2 class="landing-vault__title">${escapeHtml(VAULT.title)}</h2>
-    <p class="landing-vault__body">${escapeHtml(VAULT.body)}</p>
-    <a class="btn btn-secondary" href="${escapeHtml(VAULT.href)}">${escapeHtml(VAULT.ctaLabel)}</a>
-  </section>
   <section class="landing-tape" aria-label="Honesty">
     <p class="landing-tape__label">THE FINE PRINT</p>
     <ul class="landing-tape__list">${honesty}</ul>
@@ -470,7 +464,7 @@ function updateLandingWage() {
 </script>`;
 
   return shell({
-    title: 'TiltCheck | House always wins? FUCK THAT.',
+    title: 'TiltCheck | House always wins? Not today.',
     description: SITE_META_DESCRIPTION,
     depth: 'root',
     current: 'home',
@@ -1293,7 +1287,7 @@ function buildAutovaultPage() {
 </main>`;
 
   return shell({
-    title: 'WinCheck | Profit Skimmer | TiltCheck',
+    title: 'Win Skim | Profit Skimmer | TiltCheck',
     description: AUTOVAULT_PAGE.punch,
     depth: 'docs',
     current: 'wincheck',
@@ -1750,7 +1744,7 @@ function buildHouseEdgePage() {
   const depth = "docs";
 
   const content = `${productHero({
-    eyebrow: "MathCheck",
+    eyebrow: "House Edge Scanner",
     title: "VIP Churn & House Edge Scanner",
     lede: "Calculate the mathematical cost of casino VIP ladders, wagering requirements, and comp rewards. Progress bars are psychological sunk-cost hooks designed to disguise expected negative EV.",
     actionsHtml: `<a class="btn btn-primary" href="${href(depth, "extension.html")}">The Extension</a>
@@ -2054,7 +2048,7 @@ window.addEventListener("DOMContentLoaded", function() {
 </script>`;
 
   return shell({
-    title: "MathCheck — VIP Churn & House Edge Scanner | TiltCheck",
+    title: "House Edge Scanner — VIP Churn & House Edge | TiltCheck",
     description: "Calculate what chasing VIP tier bonuses actually costs in statistical expected loss, true wagering volume, and comp return ratios.",
     depth: "docs",
     current: "tools",

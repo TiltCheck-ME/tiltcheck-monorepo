@@ -151,6 +151,11 @@ a:hover {
   display: block;
 }
 
+.site-nav__discord span {
+  margin-left: 0.4rem;
+  line-height: 1;
+}
+
 .nudge-honesty {
   margin: 0 auto 2.5rem;
   max-width: 40rem;
