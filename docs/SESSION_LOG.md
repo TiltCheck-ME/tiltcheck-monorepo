@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-11 — feat(pages): simpler cooldown, pick a length and one lock button
+
+- /cooldown/ rebuilt in convert-markdown.js buildCooldownPage (styles in base.css, `.cooldown-*` classes instead of inline styles). Owner feedback from iPhone: it "seems less easy than it could be". The page asked for a Solana wallet first, had two connect buttons, showed a red "No Solana Wallet Detected" box on a normal phone, and used jargon.
+- New flow: heading "Take a break", one line ("Pick how long. TiltCheck blocks casino deposit buttons until it's over."), duration picker (24h / 3 Days / 7 Days / 30 Days, 7 Days default, aria-pressed), then one primary button whose label follows the pick ("Lock me out for 7 days"). It does the in-browser lock with no wallet: localStorage plus the LOCK_UPDATED postMessage (source TILTCHECK_COOLDOWN_PAGE, lockSource local_browser_session). Locked, the button is disabled and reads "Locked until <date/time>", with a status line under it; a lock already running in localStorage shows the same state on reload. `?extend=30` preselect and the `?source=auto_tilt` banner are kept (banner is now amber, not red).
+- The Solana flow moved under a text button, "Add a wallet signature (optional)" (aria-expanded/aria-controls). One button goes "Connect wallet" -> "Sign lock" (lockSource solana_web_wallet, same 6-line signed message). If a lock is already running it signs that lock's end time instead of starting a new one. No wallet injected: phones get Phantom, Solflare and Backpack in-app-browser links (phantom.com/ul/browse, solflare.com/ul/v1/browse, backpack.app/ul/v1/browse, each with the encoded page URL and ?ref=<encoded origin>); desktop gets Install Phantom. Every wallet message is a neutral note; there is no red error box on the page.
+- Phones only (iOS/Android UA, incl. iPadOS reporting as Mac): one neutral line saying the block runs in the TiltCheck extension on a computer, so a lock set here won't block anything on that phone, linking to /extension.html.
+- "How it works" rewritten without jargon ("cryptographic commitment", "verifiable timelock" are gone) and gains a fine-print card. Page title and meta description no longer mention a wallet.
+- Checked locally: all inline scripts pass node --check, 0 missing asset paths, no old tool names in visible text, and 119 jsdom checks pass on desktop and iPhone UAs (plus Android, iPadOS and Mac for the phone note): default 7 Days and label changes, primary lock storage/message/active state, optional section open/shut, mock-wallet connect/sign/disconnect and rejections, mobile wallet link URLs, phone note only on phones, no red box.
+
 ## 2026-11-11 — fix(pages): verify page styles, footer sign-in when signed in, Phantom mobile link
 
 - /tools/verify/ rendered unstyled: it sits two folders deep but was built with the one-folder depth, so `../styles/base.css` resolved to /tools/styles/base.css (404). convert-markdown.js now has a third depth, 'nested' ('../../'), shared by assetHref/href/dirHref, and buildVerifyPage + buildHouseEdgePage use it. That also fixed their manifest, icon and every nav/footer link (all pointed under /tools/).

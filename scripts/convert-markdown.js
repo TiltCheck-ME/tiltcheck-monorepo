@@ -955,19 +955,17 @@ function buildGatePage() {
 
 function buildCooldownPage() {
   const depth = 'docs';
+  const extensionHref = href(depth, 'extension.html');
   const content = `<main class="cooldown-page">
   <div class="cooldown-panel">
     <p class="brand-eyebrow">RealityCheck</p>
-    <h1>Touch Grass</h1>
-    <p class="cooldown-punch">Need a reality check? Step away and touch grass. The casino will still be there. Sadly.</p>
-    <p class="cooldown-fine">Not a deposit. We never hold funds or keys. Sign a timer with any Solana wallet and the extension keeps the cashier and spin buttons dead until it runs out. Casinos do not have to honor it. You do.</p>
-    <div id="auto-tilt-alert-banner" style="display:none; background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.25rem; text-align: left; box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-        <span style="color: #ef4444; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">Tilt check</span>
-        <span style="font-size: 0.65rem; font-family: monospace; padding: 2px 6px; border-radius: 3px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">YOUR CALL</span>
-      </div>
-      <p style="color: #ffffff; font-size: 0.875rem; line-height: 1.4; margin: 0 0 6px 0;">Fast spins and faster losses. The extension slowed things down. Want a real break? Sign a Touch Grass lock below.</p>
-      <div id="auto-tilt-wallet" style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;"></div>
+    <h1>Take a break</h1>
+    <p class="cooldown-punch">Pick how long. TiltCheck blocks casino deposit buttons until it's over.</p>
+
+    <div id="auto-tilt-alert-banner" class="cooldown-banner" style="display:none;">
+      <p class="cooldown-banner__title">Tilt check</p>
+      <p class="cooldown-banner__text">Fast spins and faster losses. The extension slowed things down. Want a real break? Pick a length below.</p>
+      <div id="auto-tilt-wallet" class="cooldown-banner__wallet"></div>
     </div>
     <script>
       (function() {
@@ -979,95 +977,156 @@ function buildCooldownPage() {
           var w = p.get('wallet');
           if (w) {
             var el = document.getElementById('auto-tilt-wallet');
-            if (el) el.textContent = 'Touch Grass wallet: ' + w;
+            if (el) el.textContent = 'Wallet: ' + w;
           }
         }
       })();
-    </script>    <ol class="cooldown-steps">
-      <li><strong>Connect any Solana wallet</strong> (Phantom, Backpack, Solflare, etc.). No SOL or tokens are ever spent or transferred.</li>
-      <li><strong>Pick how long you touch grass</strong> (24 hours, 3 days, 7 days, or 30 days). Once signed, you cannot cancel the timer early.</li>
-      <li><strong>The extension does the nagging</strong>. Cashier and spin buttons stay dead until the timer runs out.</li>
-    </ol>
+    </script>
 
-    <!-- Web Wallet Signer Interface -->
-    <div class="cooldown-signer-card" id="cooldown-signer-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; text-align: left; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+    <div class="cooldown-lock">
+      <p class="cooldown-label" id="cooldown-dur-label">How long?</p>
+      <div class="cooldown-durs" role="group" aria-labelledby="cooldown-dur-label">
+        <button type="button" class="cooldown-dur-btn" data-hours="24" aria-pressed="false">24h</button>
+        <button type="button" class="cooldown-dur-btn" data-hours="72" aria-pressed="false">3 Days</button>
+        <button type="button" class="cooldown-dur-btn active" data-hours="168" aria-pressed="true">7 Days</button>
+        <button type="button" class="cooldown-dur-btn" data-hours="720" aria-pressed="false">30 Days</button>
+      </div>
+      <button type="button" class="btn btn-primary cooldown-lock-btn" id="btn-cooldown-lock">Lock me out for 7 days</button>
+      <p id="cooldown-lock-status" class="cooldown-lock-status" role="status" aria-live="polite" hidden></p>
+      <p id="cooldown-mobile-note" class="cooldown-note" hidden>Heads up: the block runs in the TiltCheck browser extension on a computer, so a lock set here won't block anything on this phone. <a href="${extensionHref}">About the extension</a></p>
+      <p class="cooldown-fine">No account, no wallet, no money moves. You can't cancel it early.</p>
+    </div>
+
+    <button type="button" class="cooldown-optional-toggle" id="btn-wallet-toggle" aria-expanded="false" aria-controls="cooldown-wallet-panel">Add a wallet signature (optional)</button>
+    <div id="cooldown-wallet-panel" class="cooldown-wallet" hidden>
+      <p class="cooldown-wallet__intro">Sign your lock with a Solana wallet for a signed receipt. Free. Nothing gets sent or spent.</p>
+      <div id="wallet-connected-row" class="cooldown-wallet__row" style="display:none;">
         <div>
-          <div style="font-size: 0.75rem; font-weight: 800; color: #17c3b2; text-transform: uppercase; letter-spacing: 0.08em;">Web Wallet Signer</div>
-          <h2 style="font-size: 1.15rem; margin: 2px 0 0 0; color: #fff;">Cryptographic Touch Grass Lock</h2>
+          <span class="cooldown-wallet__label">Connected</span>
+          <div id="wallet-address-display" class="cooldown-wallet__addr"></div>
         </div>
-        <span id="wallet-network-pill" style="font-size: 0.65rem; font-family: monospace; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3);">Solana</span>
+        <button type="button" id="btn-wallet-disconnect" class="cooldown-wallet__disconnect">Disconnect</button>
       </div>
-
-      <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.45; margin-bottom: 1.25rem;">
-        Sign a verifiable timelock using your browser wallet. Once signed, the TiltCheck extension detects the cryptographic commitment and blocks casino cashier and deposit buttons until the lock expires.
-      </p>
-
-      <!-- Wallet Connection -->
-      <div id="wallet-connect-section" style="margin-bottom: 1.25rem;">
-        <button type="button" class="btn btn-primary" id="btn-wallet-connect" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <span>Connect Solana Wallet</span>
-        </button>
-        <div id="wallet-connect-notice" style="display: none; margin-top: 10px; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.45;"></div>
-        <div id="wallet-connected-row" style="display: none; background: rgba(0,0,0,0.5); border: 1px solid #1e293b; border-radius: 8px; padding: 10px 14px; align-items: center; justify-content: space-between;">
-          <div>
-            <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Connected</span>
-            <div id="wallet-address-display" style="font-family: monospace; font-size: 0.85rem; color: #f8fafc; font-weight: 700;"></div>
-          </div>
-          <button type="button" id="btn-wallet-disconnect" style="background: transparent; border: 1px solid #334155; color: #94a3b8; padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer;">Disconnect</button>
-        </div>
-      </div>
-
-      <!-- Duration Selector -->
-      <div style="margin-bottom: 1.25rem;">
-        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">Cooldown Duration</label>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
-          <button type="button" class="cooldown-dur-btn" data-hours="24" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; color: #cbd5e1; font-weight: 700; font-size: 0.8rem; cursor: pointer;">24h</button>
-          <button type="button" class="cooldown-dur-btn" data-hours="72" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; color: #cbd5e1; font-weight: 700; font-size: 0.8rem; cursor: pointer;">3 Days</button>
-          <button type="button" class="cooldown-dur-btn active" data-hours="168" style="background: rgba(23,195,178,0.15); border: 1px solid #17c3b2; border-radius: 6px; padding: 8px; color: #17c3b2; font-weight: 700; font-size: 0.8rem; cursor: pointer;">7 Days</button>
-          <button type="button" class="cooldown-dur-btn" data-hours="720" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; color: #cbd5e1; font-weight: 700; font-size: 0.8rem; cursor: pointer;">30 Days</button>
-        </div>
-      </div>
-
-      <!-- Sign Action Button -->
-      <button type="button" class="btn btn-primary" id="btn-sign-cooldown-lock" style="width: 100%; padding: 12px; font-weight: 800; font-size: 0.95rem;" disabled>
-        Connect Wallet to Sign
-      </button>
-
-      <!-- Feedback / Output Box -->
-      <div id="cooldown-sign-feedback" style="display: none; margin-top: 1rem; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4;"></div>
+      <button type="button" class="btn btn-secondary cooldown-wallet__btn" id="btn-wallet-connect">Connect wallet</button>
+      <div id="wallet-connect-notice" class="cooldown-note" hidden></div>
+      <div id="cooldown-sign-feedback" class="cooldown-note" role="status" aria-live="polite" hidden></div>
     </div>
 
     <script>
       (function() {
         var selectedHours = 168;
         var currentWallet = null;
+        var lockedUntilMs = 0;
 
-        var durBtns = document.querySelectorAll('.cooldown-dur-btn');
-        durBtns.forEach(function(b) {
-          b.addEventListener('click', function() {
-            durBtns.forEach(function(btn) {
-              btn.style.borderColor = 'rgba(255,255,255,0.1)';
-              btn.style.background = 'rgba(255,255,255,0.04)';
-              btn.style.color = '#cbd5e1';
-            });
-            b.style.borderColor = '#17c3b2';
-            b.style.background = 'rgba(23,195,178,0.15)';
-            b.style.color = '#17c3b2';
-            selectedHours = parseInt(b.getAttribute('data-hours') || '168', 10);
-            if (currentWallet && btnSign) {
-              btnSign.textContent = 'Sign ' + (selectedHours >= 24 ? (selectedHours / 24) + '-Day' : selectedHours + 'h') + ' Lock Commitment';
-            }
-          });
-        });
+        var ua = navigator.userAgent || '';
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-        var btnConnect = document.getElementById('btn-wallet-connect');
+        var durBtns = Array.prototype.slice.call(document.querySelectorAll('.cooldown-dur-btn'));
+        var btnLock = document.getElementById('btn-cooldown-lock');
+        var lockStatus = document.getElementById('cooldown-lock-status');
+        var mobileNote = document.getElementById('cooldown-mobile-note');
+        var toggle = document.getElementById('btn-wallet-toggle');
+        var walletPanel = document.getElementById('cooldown-wallet-panel');
+        var btnWallet = document.getElementById('btn-wallet-connect');
         var btnDisconnect = document.getElementById('btn-wallet-disconnect');
         var connectNotice = document.getElementById('wallet-connect-notice');
         var connectedRow = document.getElementById('wallet-connected-row');
         var addressDisplay = document.getElementById('wallet-address-display');
-        var btnSign = document.getElementById('btn-sign-cooldown-lock');
         var feedback = document.getElementById('cooldown-sign-feedback');
+
+        if (isMobile && mobileNote) mobileNote.hidden = false;
+
+        function durationWords(h) {
+          if (h < 24) return h + ' hours';
+          if (h === 24) return '24 hours';
+          var d = Math.round(h / 24);
+          return d + (d === 1 ? ' day' : ' days');
+        }
+
+        function fmtDate(ms) {
+          try {
+            return new Date(ms).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+          } catch (e) {
+            return new Date(ms).toString();
+          }
+        }
+
+        function setNote(el, html) {
+          if (!el) return;
+          if (html) { el.innerHTML = html; el.hidden = false; }
+          else { el.innerHTML = ''; el.hidden = true; }
+        }
+
+        function refreshLockButton() {
+          if (!btnLock) return;
+          if (lockedUntilMs > Date.now()) {
+            btnLock.disabled = true;
+            btnLock.textContent = 'Locked until ' + fmtDate(lockedUntilMs);
+          } else {
+            btnLock.disabled = false;
+            btnLock.textContent = 'Lock me out for ' + durationWords(selectedHours);
+          }
+        }
+
+        function selectDuration(b) {
+          durBtns.forEach(function(x) {
+            x.classList.remove('active');
+            x.setAttribute('aria-pressed', 'false');
+          });
+          b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
+          selectedHours = parseInt(b.getAttribute('data-hours') || '168', 10);
+          refreshLockButton();
+        }
+
+        durBtns.forEach(function(b) {
+          b.addEventListener('click', function() { selectDuration(b); });
+        });
+
+        function showLocked(endMs) {
+          lockedUntilMs = endMs;
+          durBtns.forEach(function(x) { x.disabled = true; });
+          refreshLockButton();
+          if (lockStatus) {
+            lockStatus.textContent = 'Locked until ' + fmtDate(endMs) + '. Go touch grass.';
+            lockStatus.hidden = false;
+          }
+          if (btnWallet && currentWallet) btnWallet.textContent = 'Sign lock';
+        }
+
+        function postLock(wallet, endTimeSec, lockSource) {
+          window.postMessage({
+            source: 'TILTCHECK_COOLDOWN_PAGE',
+            type: 'LOCK_UPDATED',
+            wallet: wallet,
+            endTime: endTimeSec,
+            lockSource: lockSource
+          }, '*');
+        }
+
+        function applyLocalLock() {
+          if (lockedUntilMs > Date.now()) return;
+          var endTimeSec = Math.floor(Date.now() / 1000) + (selectedHours * 3600);
+          postLock('in_browser_lockout', endTimeSec, 'local_browser_session');
+          try {
+            localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
+            localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
+          } catch (e) {}
+          showLocked(endTimeSec * 1000);
+        }
+
+        btnLock && btnLock.addEventListener('click', applyLocalLock);
+
+        // Optional wallet section
+        toggle && toggle.addEventListener('click', function() {
+          var open = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+          if (walletPanel) walletPanel.hidden = open;
+          if (!open && !currentWallet) {
+            resolveProvider(600).then(function(p) { if (!p) showNoWallet(); });
+          }
+        });
 
         function getProvider() {
           if (window.phantom && window.phantom.solana) return window.phantom.solana;
@@ -1092,276 +1151,183 @@ function buildCooldownPage() {
           return null;
         }
 
-        function applyLocalLock() {
-          var nowSec = Math.floor(Date.now() / 1000);
-          var endTimeSec = nowSec + (selectedHours * 3600);
-          var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
+        function walletLinks() {
+          var u = encodeURIComponent(location.href);
+          var ref = encodeURIComponent(location.origin);
+          return [
+            { id: 'btn-open-phantom-app', name: 'Phantom', url: 'https://phantom.com/ul/browse/' + u + '?ref=' + ref },
+            { id: 'btn-open-solflare-app', name: 'Solflare', url: 'https://solflare.com/ul/v1/browse/' + u + '?ref=' + ref },
+            { id: 'btn-open-backpack-app', name: 'Backpack', url: 'https://backpack.app/ul/v1/browse/' + u + '?ref=' + ref }
+          ];
+        }
 
-          window.postMessage({
-            source: 'TILTCHECK_COOLDOWN_PAGE',
-            type: 'LOCK_UPDATED',
-            wallet: 'in_browser_lockout',
-            endTime: endTimeSec,
-            lockSource: 'local_browser_session'
-          }, '*');
-
-          try {
-            localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
-            localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
-          } catch (e) {}
-
-          if (connectNotice) connectNotice.style.display = 'none';
-          if (feedback) {
-            feedback.style.display = 'block';
-            feedback.style.background = 'rgba(23, 195, 178, 0.12)';
-            feedback.style.border = '1px solid #17c3b2';
-            feedback.style.color = '#ffffff';
-            feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed (In-Browser)</strong><br/>' +
-              'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + (selectedHours === 24 ? ' Day' : ' Days') : selectedHours + 'h') + ')<br/>' +
-              '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has engaged your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
+        function showNoWallet() {
+          if (currentWallet) return;
+          var html;
+          if (isMobile) {
+            html = 'No wallet in this browser. Open this page in your wallet app:' +
+              '<span class="cooldown-wallet__links">' +
+              walletLinks().map(function(l) {
+                return '<a id="' + l.id + '" class="cooldown-wallet__link" href="' + l.url + '" rel="noopener noreferrer">' + l.name + '</a>';
+              }).join('') +
+              '</span>';
+          } else {
+            html = 'No Solana wallet found in this browser. ' +
+              '<a id="btn-install-phantom" class="cooldown-wallet__link" href="https://phantom.app/download" target="_blank" rel="noopener noreferrer">Install Phantom</a>';
           }
-          if (btnSign) {
-            btnSign.disabled = true;
-            btnSign.textContent = 'Lock Active until ' + new Date(endTimeSec * 1000).toLocaleDateString();
-          }
+          setNote(connectNotice, html);
         }
 
         function updateConnectedUI(pubkey) {
           currentWallet = pubkey;
-          if (connectNotice) connectNotice.style.display = 'none';
+          setNote(connectNotice, '');
           if (pubkey) {
-            if (btnConnect) btnConnect.style.display = 'none';
             if (connectedRow) connectedRow.style.display = 'flex';
             if (addressDisplay) addressDisplay.textContent = pubkey.substring(0, 4) + '...' + pubkey.substring(pubkey.length - 4);
-            if (btnSign) {
-              btnSign.disabled = false;
-              btnSign.textContent = 'Sign ' + (selectedHours >= 24 ? (selectedHours / 24) + '-Day' : selectedHours + 'h') + ' Lock Commitment';
-            }
-            window.postMessage({
-              source: 'TILTCHECK_COOLDOWN_PAGE',
-              type: 'WALLET_CONNECTED',
-              wallet: pubkey
-            }, '*');
+            if (btnWallet) { btnWallet.disabled = false; btnWallet.textContent = 'Sign lock'; }
+            window.postMessage({ source: 'TILTCHECK_COOLDOWN_PAGE', type: 'WALLET_CONNECTED', wallet: pubkey }, '*');
           } else {
-            if (btnConnect) {
-              btnConnect.style.display = 'block';
-              btnConnect.disabled = false;
-              btnConnect.innerHTML = '<span>Connect Solana Wallet</span>';
-            }
             if (connectedRow) connectedRow.style.display = 'none';
             if (addressDisplay) addressDisplay.textContent = '';
-            if (btnSign) {
-              btnSign.disabled = true;
-              btnSign.textContent = 'Connect Wallet to Sign';
-            }
+            if (btnWallet) { btnWallet.disabled = false; btnWallet.textContent = 'Connect wallet'; }
           }
         }
 
-        btnConnect && btnConnect.addEventListener('click', async function() {
-          btnConnect.disabled = true;
-          var originalHtml = '<span>Connect Solana Wallet</span>';
-          btnConnect.innerHTML = '<span>Detecting Solana Wallet...</span>';
-          if (connectNotice) connectNotice.style.display = 'none';
-
+        async function connectWallet() {
+          btnWallet.disabled = true;
+          btnWallet.textContent = 'Looking for a wallet...';
+          setNote(connectNotice, '');
           var provider = await resolveProvider(900);
           if (!provider) {
-            btnConnect.disabled = false;
-            btnConnect.innerHTML = originalHtml;
-            if (connectNotice) {
-              connectNotice.style.display = 'block';
-              connectNotice.style.background = 'rgba(239, 68, 68, 0.12)';
-              connectNotice.style.border = '1px solid rgba(239, 68, 68, 0.4)';
-              connectNotice.style.color = '#fca5a5';
-              // Mobile Safari / Chrome have no wallet extension: offer to reopen this page in
-              // Phantom's in-app browser (docs.phantom.com > Deeplinks > Browse).
-              var ua = navigator.userAgent || '';
-              var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-              var walletBtnHtml;
-              if (isMobile) {
-                var phantomBrowse = 'https://phantom.com/ul/browse/' + encodeURIComponent(location.href) +
-                  '?ref=' + encodeURIComponent(location.origin);
-                walletBtnHtml = '  <a id="btn-open-phantom-app" href="' + phantomBrowse + '" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Open in Phantom app</a>';
-              } else {
-                walletBtnHtml = '  <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Install Phantom</a>';
-              }
-              connectNotice.innerHTML = '<strong style="color: #ef4444; display: block; margin-bottom: 4px;">No Solana Wallet Detected</strong>' +
-                (isMobile
-                  ? 'Phone browsers cannot see wallet extensions. Open this page in the Phantom app, or lock right here without a wallet.<br/>'
-                  : 'TiltCheck could not detect a Solana browser extension (Phantom, Solflare, Backpack).<br/>') +
-                '<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">' +
-                walletBtnHtml +
-                '  <button type="button" id="btn-no-wallet-lock" style="background: rgba(23,195,178,0.2); border: 1px solid #17c3b2; color: #17c3b2; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Lock In-Browser (No Wallet)</button>' +
-                '</div>';
-
-              var btnNoWallet = document.getElementById('btn-no-wallet-lock');
-              if (btnNoWallet) {
-                btnNoWallet.addEventListener('click', function() {
-                  applyLocalLock();
-                });
-              }
-            }
+            btnWallet.disabled = false;
+            btnWallet.textContent = 'Connect wallet';
+            showNoWallet();
             return;
           }
-
           try {
-            btnConnect.innerHTML = '<span>Awaiting Wallet Approval...</span>';
+            btnWallet.textContent = 'Approve in your wallet...';
             var resp = await provider.connect();
             var pubKey = (resp && resp.publicKey) ? resp.publicKey : (provider.publicKey || null);
             var key = null;
             if (pubKey) {
-              if (typeof pubKey.toBase58 === 'function') {
-                key = pubKey.toBase58();
-              } else if (typeof pubKey.toString === 'function') {
-                key = pubKey.toString();
-              } else {
-                key = String(pubKey);
-              }
+              if (typeof pubKey.toBase58 === 'function') key = pubKey.toBase58();
+              else if (typeof pubKey.toString === 'function') key = pubKey.toString();
+              else key = String(pubKey);
             }
-            if (!key) {
-              throw new Error('Wallet connected but no public address returned.');
-            }
+            if (!key) throw new Error('Wallet connected but no public address returned.');
             updateConnectedUI(key);
-            if (feedback) feedback.style.display = 'none';
+            setNote(feedback, '');
           } catch (err) {
-            btnConnect.disabled = false;
-            btnConnect.innerHTML = originalHtml;
-            if (connectNotice) {
-              connectNotice.style.display = 'block';
-              connectNotice.style.background = 'rgba(239, 68, 68, 0.12)';
-              connectNotice.style.border = '1px solid rgba(239, 68, 68, 0.4)';
-              connectNotice.style.color = '#fca5a5';
-              connectNotice.innerHTML = '<strong style="color: #ef4444; display: block; margin-bottom: 4px;">Connection Cancelled</strong>' +
-                'Wallet connection request was cancelled or rejected.<br/>' +
-                '<div style="margin-top: 8px;">' +
-                '  <button type="button" id="btn-fallback-lock" style="background: rgba(23,195,178,0.2); border: 1px solid #17c3b2; color: #17c3b2; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Lock In-Browser (No Wallet)</button>' +
-                '</div>';
-              var btnFallback = document.getElementById('btn-fallback-lock');
-              if (btnFallback) {
-                btnFallback.addEventListener('click', function() {
-                  applyLocalLock();
-                });
-              }
-            }
+            btnWallet.disabled = false;
+            btnWallet.textContent = 'Connect wallet';
+            setNote(connectNotice, 'Connection cancelled. No problem: the lock button above works without a wallet.');
           }
-        });
+        }
 
-        btnDisconnect && btnDisconnect.addEventListener('click', function() {
+        async function signLock() {
           var provider = getProvider();
-          if (provider && provider.disconnect) {
-            provider.disconnect().catch(function() {});
-          }
-          updateConnectedUI(null);
-        });
-
-        btnSign && btnSign.addEventListener('click', async function() {
-          if (!currentWallet) return;
-          var provider = getProvider();
-          if (!provider) return;
-
-          var nowSec = Math.floor(Date.now() / 1000);
-          var endTimeSec = nowSec + (selectedHours * 3600);
+          if (!provider || !currentWallet) return;
+          var nowMs = Date.now();
+          var endTimeSec = lockedUntilMs > nowMs ? Math.floor(lockedUntilMs / 1000) : Math.floor(nowMs / 1000) + (selectedHours * 3600);
+          var hours = Math.max(1, Math.round((endTimeSec * 1000 - nowMs) / 3600000));
           var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
-
           var messageText = 'TiltCheck Voluntary Touch Grass Lock\\n' +
             'Wallet: ' + currentWallet + '\\n' +
-            'Duration: ' + selectedHours + ' Hours\\n' +
+            'Duration: ' + hours + ' Hours\\n' +
             'Expires: ' + expiryDateStr + '\\n' +
             'Nonce: ' + Math.random().toString(36).substring(2, 10) + '\\n' +
             'Standard: tiltcheck-cooldown-v1';
-
           try {
-            btnSign.disabled = true;
-            btnSign.textContent = 'Awaiting Wallet Signature...';
-
-            var encoded = new TextEncoder().encode(messageText);
+            btnWallet.disabled = true;
+            btnWallet.textContent = 'Sign in your wallet...';
             if (typeof provider.signMessage !== 'function') {
               throw new Error('This wallet cannot sign messages. Try Phantom, Solflare, or Backpack.');
             }
+            var encoded = new TextEncoder().encode(messageText);
             try {
               await provider.signMessage(encoded, 'utf8');
             } catch (e1) {
               await provider.signMessage(encoded);
             }
-
-            window.postMessage({
-              source: 'TILTCHECK_COOLDOWN_PAGE',
-              type: 'LOCK_UPDATED',
-              wallet: currentWallet,
-              endTime: endTimeSec,
-              lockSource: 'solana_web_wallet'
-            }, '*');
-
+            postLock(currentWallet, endTimeSec, 'solana_web_wallet');
             try {
               localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
               localStorage.setItem('tiltcheck_cooldown_wallet', currentWallet);
             } catch (e) {}
-
-            if (feedback) {
-              feedback.style.display = 'block';
-              feedback.style.background = 'rgba(23, 195, 178, 0.12)';
-              feedback.style.border = '1px solid #17c3b2';
-              feedback.style.color = '#ffffff';
-              feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed</strong><br/>' +
-                'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + (selectedHours === 24 ? ' Day' : ' Days') : selectedHours + 'h') + ')<br/>' +
-                'Cryptographic commitment signed by ' + currentWallet.substring(0, 8) + '...<br/>' +
-                '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has received your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
-            }
-
-            btnSign.textContent = 'Lock Active until ' + new Date(endTimeSec * 1000).toLocaleDateString();
+            showLocked(endTimeSec * 1000);
+            btnWallet.disabled = true;
+            btnWallet.textContent = 'Signed';
+            setNote(feedback, 'Signed by ' + currentWallet.substring(0, 4) + '...' + currentWallet.substring(currentWallet.length - 4) + '. Lock runs until ' + fmtDate(endTimeSec * 1000) + '.');
           } catch (err) {
-            btnSign.disabled = false;
-            btnSign.textContent = 'Sign ' + (selectedHours >= 24 ? (selectedHours / 24) + '-Day' : selectedHours + 'h') + ' Lock Commitment';
+            btnWallet.disabled = false;
+            btnWallet.textContent = 'Sign lock';
             if (feedback) {
-              feedback.style.display = 'block';
-              feedback.style.background = 'rgba(239, 68, 68, 0.15)';
-              feedback.style.border = '1px solid #ef4444';
-              feedback.style.color = '#fca5a5';
-              feedback.textContent = 'Signature cancelled: ' + (err.message || 'User rejected signature');
+              feedback.textContent = 'Signature cancelled: ' + ((err && err.message) || 'request rejected') + (lockedUntilMs > Date.now() ? ' Your lock still stands.' : '');
+              feedback.hidden = false;
             }
           }
+        }
+
+        btnWallet && btnWallet.addEventListener('click', function() {
+          if (currentWallet) signLock(); else connectWallet();
         });
 
-        // Check query param for extend e.g. ?extend=7
-        var p = new URLSearchParams(window.location.search);
-        var ext = p.get('extend');
+        btnDisconnect && btnDisconnect.addEventListener('click', function() {
+          var provider = getProvider();
+          if (provider && provider.disconnect) provider.disconnect().catch(function() {});
+          updateConnectedUI(null);
+        });
+
+        // ?extend=30 preselects a length
+        var params = new URLSearchParams(window.location.search);
+        var ext = params.get('extend');
         if (ext) {
           var hrs = parseInt(ext, 10) * 24;
           durBtns.forEach(function(b) {
-            if (b.getAttribute('data-hours') === String(hrs)) {
-              b.click();
-            }
+            if (b.getAttribute('data-hours') === String(hrs)) selectDuration(b);
           });
         }
 
-        // Auto-detect previously connected wallet
+        // A lock that is already running shows as active
+        try {
+          var stored = Number(localStorage.getItem('tiltcheck_cooldown_active_until') || 0);
+          if (stored > Date.now()) showLocked(stored);
+        } catch (e) {}
+        refreshLockButton();
+
+        // Wallet already connected (e.g. inside a wallet's in-app browser)
         setTimeout(function() {
           var p = getProvider();
           if (p && p.publicKey) {
-            var pubKey = p.publicKey;
-            var key = typeof pubKey.toBase58 === 'function' ? pubKey.toBase58() : (typeof pubKey.toString === 'function' ? pubKey.toString() : String(pubKey));
+            var pk = p.publicKey;
+            var key = typeof pk.toBase58 === 'function' ? pk.toBase58() : (typeof pk.toString === 'function' ? pk.toString() : String(pk));
             if (key) updateConnectedUI(key);
           }
         }, 350);
       })();
     </script>
-    <div class="cooldown-how" style="margin-top: 2rem; border-top: 1px solid #283347; padding-top: 1.5rem;">
-      <h2 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin-bottom: 0.75rem;">How it works</h2>
-      <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
-        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">1. The extension</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">While your lock is running, the extension kills the cashier and deposit buttons and deadens spins on the games you blocked.</p>
-          <a class="btn btn-primary" href="${href(depth, 'extension.html')}">What the extension does</a>
+
+    <div class="cooldown-how">
+      <h2>How it works</h2>
+      <div class="cooldown-how__grid">
+        <div class="cooldown-how__card">
+          <h3>1. The extension</h3>
+          <p>While your lock runs, the TiltCheck extension greys out cashier and deposit buttons on casino sites and deadens spins on the games you blocked. It runs in a desktop browser.</p>
+          <a class="btn btn-primary" href="${extensionHref}">What the extension does</a>
         </div>
-        ${staffOnly(`<div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">Terminal Cooldown (No Wallet Needed)</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Don't want to connect a crypto wallet? Set a local break timer directly from your terminal:</p>
-          <code style="display: block; background: #050608; border: 1px solid #1e293b; padding: 0.5rem 0.75rem; border-radius: 4px; color: #38bdf8; font-size: 0.8rem; font-family: monospace;">npx @tiltcheck/cli cooldown --days 7</code>
-          <p style="color: #64748b; font-size: 0.75rem; line-height: 1.4; margin-top: 0.5rem;">Generates a local self-exclusion receipt on your machine so you can step away without connecting a wallet or making an account.</p>
+        ${staffOnly(`<div class="cooldown-how__card">
+          <h3>Terminal break timer</h3>
+          <p>Set a local break timer from your terminal:</p>
+          <code class="cooldown-how__code">npx @tiltcheck/cli cooldown --days 7</code>
+          <p class="cooldown-how__small">Saves a break receipt on your machine. No wallet, no account.</p>
         </div>`, 'Staff only: CLI')}
-        <div style="background: rgba(0,0,0,0.4); border: 1px solid #283347; border-radius: 8px; padding: 1rem;">
-          <h3 style="color: #17c3b2; font-size: 0.95rem; margin-bottom: 0.4rem; text-transform: uppercase;">2. Cancel-withdrawal blocker</h3>
-          <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem;">Cashing out on Stake, Roobet, or a sweeps site? The extension hides 'Cancel Withdrawal' while the payout clears, so undoing it takes real effort.</p>
+        <div class="cooldown-how__card">
+          <h3>2. Cancel-withdrawal blocker</h3>
+          <p>Cashing out on Stake, Roobet, or a sweeps site? The extension hides 'Cancel Withdrawal' while the payout clears, so undoing it takes real effort.</p>
+        </div>
+        <div class="cooldown-how__card">
+          <h3>3. The fine print</h3>
+          <p>Not a deposit. We never hold your money or keys. Casinos don't have to honor your lock. You do. The optional wallet signature just adds a signed note with your lock's end time, for your own records.</p>
         </div>
       </div>
     </div>
@@ -1369,9 +1335,9 @@ function buildCooldownPage() {
 </main>`;
 
   return shell({
-    title: 'RealityCheck — Touch Grass 24h Lockout | TiltCheck',
+    title: 'RealityCheck — Take a break | TiltCheck',
     description:
-      'Sign a 24-hour Touch Grass cooldown with any Solana wallet. The extension keeps cashier and spin buttons dead until it runs out. Not a deposit. No keys.',
+      'Pick 24 hours, 3, 7 or 30 days. The TiltCheck extension blocks casino deposit buttons until it is over. No wallet, no account, no deposit.',
     depth: 'docs',
     current: 'cooldown',
     body: content,
