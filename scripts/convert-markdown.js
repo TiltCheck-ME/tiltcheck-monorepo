@@ -184,19 +184,31 @@ function sortKey(file) {
   return `9999-${base.toLowerCase()}`;
 }
 
-/** @param {'root' | 'docs'} depth */
+/**
+ * How many folders below the site root a page sits.
+ * 'root' = /index.html, 'docs' = one folder down (/docs/x.html, /cooldown/),
+ * 'nested' = two folders down (/tools/verify/, /tools/house-edge-scanner/).
+ * @param {'root' | 'docs' | 'nested'} depth
+ */
+function depthPrefix(depth) {
+  if (depth === 'root') return '';
+  if (depth === 'nested') return '../../';
+  return '../';
+}
+
+/** @param {'root' | 'docs' | 'nested'} depth */
 function assetHref(depth, file) {
-  return depth === 'root' ? `styles/${file}` : `../styles/${file}`;
+  return `${depthPrefix(depth)}styles/${file}`;
 }
 
-/** @param {'root' | 'docs'} depth */
+/** @param {'root' | 'docs' | 'nested'} depth */
 function href(depth, file) {
-  return depth === 'root' ? file : `../${file}`;
+  return `${depthPrefix(depth)}${file}`;
 }
 
-/** @param {'root' | 'docs'} depth @param {string} current */
+/** @param {'root' | 'docs' | 'nested'} depth @param {string} folder */
 function dirHref(depth, folder) {
-  return depth === 'root' ? `${folder}/` : `../${folder}/`;
+  return `${depthPrefix(depth)}${folder}/`;
 }
 
 function navHtml(depth, current) {
@@ -237,7 +249,7 @@ function footerHtml(depth) {
       <a href="${dirHref(depth, 'wincheck')}">Win Skim</a>
       <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
       <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
-      <a href="${dirHref(depth, 'login')}">Discord Sign In</a>
+      <a href="${dirHref(depth, 'login')}" data-tc-footer-auth data-signed-in-href="${dirHref(depth, 'dashboard')}" data-signed-in-text="Your dashboard">Discord Sign In</a>
       <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord Server</a>
       <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
     </div>
@@ -310,6 +322,8 @@ const AUTH_NAV_SCRIPT = `<script>
   function readUser() {
     try {
       if (!localStorage.getItem('tc_token')) return null;
+      var exp = Number(localStorage.getItem('tc_token_exp') || 0);
+      if (exp && exp < Date.now()) return null;
       var u = JSON.parse(localStorage.getItem('tc_user') || 'null');
       return u && /^[0-9]{5,25}$/.test(String(u.id)) ? u : null;
     } catch (e) { return null; }
@@ -369,6 +383,22 @@ const AUTH_NAV_SCRIPT = `<script>
       a.appendChild(wrap);
       a.appendChild(el('span', 'site-nav__name', name));
     }
+    // Footer "Discord Sign In" becomes "Your dashboard" while signed in.
+    var foot = document.querySelectorAll('[data-tc-footer-auth]');
+    for (var f = 0; f < foot.length; f++) {
+      var fa = foot[f];
+      if (!fa.getAttribute('data-signed-out-text')) {
+        fa.setAttribute('data-signed-out-text', fa.textContent);
+        fa.setAttribute('data-signed-out-href', fa.getAttribute('href') || '');
+      }
+      if (u) {
+        fa.textContent = fa.getAttribute('data-signed-in-text') || 'Your dashboard';
+        fa.setAttribute('href', fa.getAttribute('data-signed-in-href') || fa.getAttribute('data-signed-out-href'));
+      } else {
+        fa.textContent = fa.getAttribute('data-signed-out-text');
+        fa.setAttribute('href', fa.getAttribute('data-signed-out-href'));
+      }
+    }
     var nameSlots = document.querySelectorAll('[data-tc-user-name]');
     for (var j = 0; j < nameSlots.length; j++) nameSlots[j].textContent = name;
     var avSlots = document.querySelectorAll('img[data-tc-user-avatar]');
@@ -389,7 +419,7 @@ const AUTH_NAV_SCRIPT = `<script>
   };
   render();
   window.addEventListener('storage', function (e) {
-    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user') render();
+    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user' || e.key === 'tc_token_exp') render();
   });
 })();
 </script>`;
@@ -408,8 +438,8 @@ function shell({ title, description, depth, current, body, extraHead = '' }) {
 <meta name="apple-mobile-web-app-title" content="TimeCheck"/>
 <link rel="manifest" href="${href(depth, 'manifest.webmanifest')}"/>
 ${FONT_LINKS}
-<link rel="icon" type="image/png" href="${assetHref(depth, 'icon.png')}"/>
-<link rel="apple-touch-icon" href="${assetHref(depth, 'icon.png')}"/>
+<link rel="icon" type="image/png" href="${href(depth, 'icon.png')}"/>
+<link rel="apple-touch-icon" href="${href(depth, 'icon.png')}"/>
 <link rel="stylesheet" href="${assetHref(depth, 'base.css')}"/>
 ${AUTH_HEAD_SCRIPT}
 ${extraHead}
@@ -1142,10 +1172,25 @@ function buildCooldownPage() {
               connectNotice.style.background = 'rgba(239, 68, 68, 0.12)';
               connectNotice.style.border = '1px solid rgba(239, 68, 68, 0.4)';
               connectNotice.style.color = '#fca5a5';
+              // Mobile Safari / Chrome have no wallet extension: offer to reopen this page in
+              // Phantom's in-app browser (docs.phantom.com > Deeplinks > Browse).
+              var ua = navigator.userAgent || '';
+              var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+              var walletBtnHtml;
+              if (isMobile) {
+                var phantomBrowse = 'https://phantom.com/ul/browse/' + encodeURIComponent(location.href) +
+                  '?ref=' + encodeURIComponent(location.origin);
+                walletBtnHtml = '  <a id="btn-open-phantom-app" href="' + phantomBrowse + '" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Open in Phantom app</a>';
+              } else {
+                walletBtnHtml = '  <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Install Phantom</a>';
+              }
               connectNotice.innerHTML = '<strong style="color: #ef4444; display: block; margin-bottom: 4px;">No Solana Wallet Detected</strong>' +
-                'TiltCheck could not detect a Solana browser extension (Phantom, Solflare, Backpack).<br/>' +
+                (isMobile
+                  ? 'Phone browsers cannot see wallet extensions. Open this page in the Phantom app, or lock right here without a wallet.<br/>'
+                  : 'TiltCheck could not detect a Solana browser extension (Phantom, Solflare, Backpack).<br/>') +
                 '<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">' +
-                '  <a href="https://phantom.app/download" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #ab9ff2; color: #181424; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; text-decoration: none;">Install Phantom</a>' +
+                walletBtnHtml +
                 '  <button type="button" id="btn-no-wallet-lock" style="background: rgba(23,195,178,0.2); border: 1px solid #17c3b2; color: #17c3b2; font-weight: 700; font-size: 0.75rem; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Lock In-Browser (No Wallet)</button>' +
                 '</div>';
 
@@ -1638,7 +1683,7 @@ function buildRtpScannerRedirect() {
 }
 
 function buildVerifyPage() {
-  const depth = "docs";
+  const depth = "nested";
   const presetsJson = "[{\"id\":\"stake\",\"tag\":\"STAKE DICE/LIMBO\",\"serverSeed\":\"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13\",\"committedHash\":\"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551\",\"clientSeed\":\"stake_session_verifier_audit\",\"nonce\":1,\"edge\":1},{\"id\":\"roobet\",\"tag\":\"ROOBET CRASH\",\"serverSeed\":\"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906\",\"committedHash\":\"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3\",\"clientSeed\":\"roobet_verifier_audit_alpha\",\"nonce\":42,\"edge\":1},{\"id\":\"bcgame\",\"tag\":\"BC.GAME LIMBO\",\"serverSeed\":\"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b\",\"committedHash\":\"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578\",\"clientSeed\":\"bcgame_high_roller_verifier\",\"nonce\":100,\"edge\":1}]";
 
   const content = `<main class="cooldown-page">
@@ -1837,7 +1882,7 @@ window.addEventListener("DOMContentLoaded", function() {
   return shell({
     title: "Provably Fair HMAC-SHA256 Seed Verifier | TiltCheck",
     description: "Recompute and audit casino outcomes (Dice, Limbo, Crash, Roulette, Plinko, Mines) client-side.",
-    depth: "docs",
+    depth,
     current: "verify",
     body: content,
   });
@@ -1859,7 +1904,7 @@ function buildVerifyDirectRedirect() {
 }
 
 function buildHouseEdgePage() {
-  const depth = "docs";
+  const depth = "nested";
 
   const content = `${productHero({
     eyebrow: "House Edge Scanner",
@@ -2168,7 +2213,7 @@ window.addEventListener("DOMContentLoaded", function() {
   return shell({
     title: "House Edge Scanner — VIP Churn & House Edge | TiltCheck",
     description: "Calculate what chasing VIP tier bonuses actually costs in statistical expected loss, true wagering volume, and comp return ratios.",
-    depth: "docs",
+    depth,
     current: "tools",
     body: content,
   });
