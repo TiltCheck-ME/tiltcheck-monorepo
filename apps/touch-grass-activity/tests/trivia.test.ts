@@ -9,9 +9,9 @@ import { TRIVIA_BANK, triviaById } from '../src/shared/triviaBank.js';
 
 const T0 = 1_000_000;
 
-function game(players = ['a', 'b', 'c'], seed = 7) {
+function game(players = ['a', 'b', 'c'], rngStart = 7) {
   const s = tv.createTrivia();
-  const rng = makeRng(seed);
+  const rng = makeRng(rngStart);
   expect(tv.start(s, players[0]!, T0, rng, players)).toEqual({ ok: true });
   return { s, rng };
 }

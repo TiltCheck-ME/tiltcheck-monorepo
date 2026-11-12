@@ -6,7 +6,7 @@ A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
 - **Lobby**: who's here (avatars, "away" badge) and two live tiles, each with a seated/playing count.
 - **Degens Against Decency (DA&D)**: 3 to 8 players, rotating judge, 7-card hands, anonymous shuffled answers, first to N points (default 5). Points are bragging rights only.
-- **Trivia**: self-running, no host. Anyone taps Start; 10 questions, 4 choices, 15 s answer window, 4 s reveal, scoreboard after each question and at the end. 100 points for a right answer plus up to 50 for speed. Late joiners spectate one question and are dealt in at the next. Bank of 116 hand-checked questions (33 from the shared arena bank, 11 from the trivia.live seed, 72 new) (`src/shared/triviaBank.ts`), drawn without repeats per instance. No AI at runtime.
+- **Trivia**: self-running, no host. Anyone taps Start; 10 questions, 4 choices, 15 s answer window, 4 s reveal, scoreboard after each question and at the end. 100 points for a right answer plus up to 50 for speed. Late joiners spectate one question and are dealt in at the next. Bank of 116 hand-checked questions (33 from the shared arena bank, 11 from the trivia.live starter set, 72 new) (`src/shared/triviaBank.ts`), drawn without repeats per instance. No AI at runtime.
 
 The group break timer was removed on 2026-11-12 (Jamie's call after testing it on iPhone).
 

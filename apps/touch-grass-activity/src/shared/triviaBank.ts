@@ -3,7 +3,7 @@
 // Sources:
 //   arena    = packages/shared/src/trivia.ts (the bank apps/game-arena/src/trivia-manager.ts and the
 //              apps/web/src/lib/touch-grass practice deck both draw from), reworded for this guard.
-//   tlive    = jmenichole/trivia.live supabase/seed.sql (free-play-mvp), 3-choice items given a 4th choice.
+//   tlive    = jmenichole/trivia.live starter question set (supabase SQL, free-play-mvp), 3-choice items given a 4th choice.
 //   tg       = written for Touch Grass: general knowledge plus gambling literacy (odds, house edge, lore).
 // archive/apps/degens-activity trivia had no local bank (it rendered questions sent by the arena server).
 // Every item must pass the money-words guard in tests/no-money.test.ts.
@@ -59,7 +59,7 @@ const ROWS: Row[] = [
   ['odds', 'arena', 'Why can card counting give a blackjack player an edge?', ['It trains memory', 'It tracks the ratio of high to low cards left so bets can be sized', 'It predicts the exact next card', 'It wins every hand'], 1],
   ['odds', 'arena', 'How do RTP and variance relate?', ['Same thing', 'Independent: RTP is long-run return, variance is how hard it swings', 'High RTP always means low variance', 'Low variance always means high RTP'], 1],
 
-  // ---- trivia.live seed ----
+  // ---- trivia.live starter set ----
   ['pop', 'tlive', 'Which film won Best Picture at the 1995 Oscars (the 1994 film year)?', ['Pulp Fiction', 'Forrest Gump', 'The Shawshank Redemption', 'Quiz Show'], 1],
   ['general', 'tlive', 'How many players does one soccer team have on the field during play?', ['9', '10', '11', '12'], 2],
   ['general', 'tlive', 'Which planet is known as the Red Planet?', ['Venus', 'Mars', 'Jupiter', 'Mercury'], 1],
