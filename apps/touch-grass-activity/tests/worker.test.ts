@@ -186,14 +186,17 @@ describe('worker (local workerd)', () => {
         expect(JSON.stringify(st.trivia)).not.toContain('"correct"');
       }
       const qid = v.question!.id;
+      const errsBefore = a.msgs.filter((m) => m.t === 'error' && m.code === 'already-answered').length;
       a.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 0 }));
       a.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 1 }));
+      // Wait for Ana's duplicate to be refused before the others answer: messages on different
+      // sockets are not ordered, and the last answer in closes the window early.
+      await until(() => a.msgs.filter((m) => m.t === 'error' && m.code === 'already-answered').length > errsBefore, 3_000).catch(() => {
+        throw new Error(`errors seen: ${JSON.stringify(a.msgs.filter((m) => m.t === 'error'))}`);
+      });
       b.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 1 }));
       c.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 2 }));
       await until(() => a.last().trivia.phase === 'reveal' || a.last().trivia.phase === 'over', 20_000);
-      await until(() => a.msgs.some((m) => m.t === 'error' && m.code === 'already-answered'), 3_000).catch(() => {
-        throw new Error(`errors seen: ${JSON.stringify(a.msgs.filter((m) => m.t === 'error'))}`);
-      });
       const r = [...a.msgs].reverse().find((m) => m.t === 'state' && m.view.trivia.reveal?.questionId === qid);
       expect(r && r.t === 'state' && typeof r.view.trivia.reveal!.correct).toBe('number');
       if (r && r.t === 'state') {
@@ -238,5 +241,74 @@ describe('worker (local workerd)', () => {
     c.ws.send('{"t":"trivia.start"}');
     await until(() => a.last().trivia.phase === 'question' && a.last().trivia.game === 2);
     for (const p of [a, b, c]) p.ws.close();
+  }, 120_000);
+
+  it('3-player Bluff over WebSockets: everyone tells once, lie hidden until the reveal, scores, /api/live bluff', async () => {
+    if (!worker) return;
+    const room = `i-bluff-${Date.now()}`;
+    const guild = `77${Date.now()}`;
+    const ps = await Promise.all([open('ana', room, guild), open('bo', room, guild), open('cy', room, guild)]);
+    const [a] = ps as [Awaited<ReturnType<typeof open>>, ...Awaited<ReturnType<typeof open>>[]];
+    await until(() => a.msgs.some((m) => m.t === 'state' && m.view.members.length === 3));
+    for (const p of ps) p.ws.send('{"t":"bluff.sit"}');
+    await until(() => a.last().bluff.seats.length === 3);
+    const seatedLive = (await (await worker.fetch(`/api/live?guild=${guild}`)).json()) as { games: { bluff: { tables: number; seated: number; joinable: number } }; tables: number };
+    expect(seatedLive.games.bluff).toEqual({ tables: 1, seated: 3, joinable: 1 });
+    ps[1]!.ws.send('{"t":"bluff.start"}');
+    await until(() => ps.every((p) => p.last().bluff.phase === 'writing'));
+    const live = (await (await worker.fetch(`/api/live?guild=${guild}`)).json()) as { games: { bluff: { tables: number; seated: number; joinable: number } } };
+    expect(live.games.bluff).toEqual({ tables: 1, seated: 3, joinable: 0 });
+    expect(JSON.stringify(live)).not.toMatch(/guest-|Guest |i-bluff/);
+
+    const statements = ['I have a twin.', 'I once ate a cricket.', 'I have never seen snow.'];
+    const tellers: string[] = [];
+    for (let round = 1; round <= 3; round += 1) {
+      await until(() => a.last().bluff.phase === 'writing' && a.last().bluff.round === round, 10_000);
+      const tellerId = a.last().bluff.tellerId!;
+      tellers.push(tellerId);
+      const teller = ps.find((p) => p.last().you === tellerId)!;
+      const guessers = ps.filter((p) => p !== teller);
+      if (round === 1) {
+        teller.ws.send(JSON.stringify({ t: 'bluff.tell', statements: ['y'.repeat(121), 'b', 'c'], lie: 0 }));
+        await until(() => teller.msgs.some((m) => m.t === 'error' && m.code === 'too-long'));
+        guessers[0]!.ws.send(JSON.stringify({ t: 'bluff.tell', statements, lie: 0 }));
+        await until(() => guessers[0]!.msgs.some((m) => m.t === 'error' && m.code === 'not-teller'));
+      }
+      teller.ws.send(JSON.stringify({ t: 'bluff.tell', statements, lie: 1 }));
+      await until(() => ps.every((p) => p.last().bluff.phase === 'guessing'));
+      // Nothing a guesser has received for this round carries the lie; the teller's own view does.
+      for (const g of guessers) {
+        const st = g.last().bluff;
+        expect(st.me.mine).toBeNull();
+        expect(JSON.stringify(st)).not.toContain('"lie"');
+      }
+      const mine = teller.last().bluff.me.mine!;
+      expect(mine.statements[mine.lie]).toBe(statements[1]);
+      const lie = mine.lie;
+      const rid = guessers[0]!.last().bluff.rid!;
+      teller.ws.send(JSON.stringify({ t: 'bluff.guess', rid, pick: lie }));
+      await until(() => teller.msgs.some((m) => m.t === 'error' && m.code === 'teller-cannot-guess'));
+      // First guesser is right (twice: second is refused), second guesser is fooled.
+      guessers[0]!.ws.send(JSON.stringify({ t: 'bluff.guess', rid, pick: lie }));
+      guessers[0]!.ws.send(JSON.stringify({ t: 'bluff.guess', rid, pick: (lie + 1) % 3 }));
+      await until(() => guessers[0]!.msgs.some((m) => m.t === 'error' && m.code === 'already-guessed'));
+      guessers[1]!.ws.send(JSON.stringify({ t: 'bluff.guess', rid, pick: (lie + 1) % 3 }));
+      await until(() => a.last().bluff.phase === 'reveal' || a.last().bluff.phase === 'over', 10_000);
+      const r = a.last().bluff.lastRound!;
+      expect(r.lie).toBe(lie);
+      expect(r.tellerPoints).toBe(5);
+      expect(r.picks.find((x) => x.id === guessers[0]!.last().you)).toMatchObject({ pick: lie, correct: true, points: 10 });
+      expect(r.picks.find((x) => x.id === guessers[1]!.last().you)).toMatchObject({ correct: false, points: 0 });
+      if (a.last().bluff.phase === 'reveal') guessers[0]!.ws.send('{"t":"bluff.next"}');
+    }
+    await until(() => a.last().bluff.phase === 'over', 10_000);
+    expect(new Set(tellers).size).toBe(3);
+    const end = a.last().bluff;
+    expect(end.scores).toHaveLength(3);
+    expect(end.scores.reduce((n, x) => n + x.score, 0)).toBe(3 * 15);
+    expect(end.winnerIds.length).toBeGreaterThan(0);
+    // No high-score board for Bluff.
+    expect((await worker.fetch(`/api/bluff/scores?guild=${guild}`)).status).toBe(404);
+    for (const p of ps) p.ws.close();
   }, 120_000);
 });

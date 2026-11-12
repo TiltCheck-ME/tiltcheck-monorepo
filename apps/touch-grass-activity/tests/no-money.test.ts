@@ -1,10 +1,11 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// Guard: the Activity has no money mechanics and no crisis copy in the main UI (client, DA&D deck, trivia bank).
+// Guard: the Activity has no money mechanics and no crisis copy in the main UI (client, DA&D deck, trivia bank, Bluff prompts).
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { PROMPTS, WHITE_CARDS } from '../src/shared/deck.js';
 import { TRIVIA_BANK } from '../src/shared/triviaBank.js';
+import { BLUFF_PROMPTS } from '../src/shared/bluffPrompts.js';
 
 const root = new URL('..', import.meta.url).pathname;
 
@@ -35,6 +36,10 @@ describe('no money anywhere', () => {
     for (const q of TRIVIA_BANK) {
       for (const text of [q.q, ...q.choices]) for (const re of BANNED) expect({ id: q.id, text, hit: re.test(text) ? re.source : null }).toEqual({ id: q.id, text, hit: null });
     }
+  });
+
+  it('every Bluff prompt is clean', () => {
+    for (const p of BLUFF_PROMPTS) for (const re of BANNED) expect({ id: p.id, text: p.text, hit: re.test(p.text) ? re.source : null }).toEqual({ id: p.id, text: p.text, hit: null });
   });
 
   it('trivia bank: 80+ questions, 4 distinct choices, a valid answer, no duplicates', () => {

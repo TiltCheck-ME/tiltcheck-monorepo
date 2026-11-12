@@ -235,6 +235,13 @@ export class RemoteTransport extends Emitter implements Transport {
   }
 }
 
+/** Guest-mode bots need something to say when it is their turn to tell. */
+const BOT_LINES: ReadonlyArray<readonly [string, string, string]> = [
+  ['I have never seen the ocean.', 'I can name every planet backwards.', 'I once slept through a fire alarm.'],
+  ['I own four identical hoodies.', 'I was on local TV as a kid.', 'I have never lost at checkers.'],
+  ['I hate pizza.', 'I broke my wrist falling off a couch.', 'I can whistle with two fingers.'],
+];
+
 const BOT_NAMES = ['Bot Chad', 'Bot Becky', 'Bot Tilted Tim', 'Bot Copium Carl', 'Bot Variance Val', 'Bot Max Bet Mo', 'Bot Snooze'];
 
 /** Guest/dev mode: the full room in the browser. Bots play so DA&D and trivia can be tested solo. */
@@ -304,6 +311,7 @@ export class LocalTransport extends Emitter implements Transport {
     this.bots.push(bot);
     this.room.join(bot, Date.now());
     this.room.handle(bot.id, { t: 'dad.sit' }, Date.now());
+    this.room.handle(bot.id, { t: 'bluff.sit' }, Date.now());
     this.push();
   }
 
@@ -333,6 +341,13 @@ export class LocalTransport extends Emitter implements Transport {
         } else if (v.phase === 'judging' && v.me.isJudge && v.entries[0]) {
           const e = v.entries[Math.floor(Math.random() * v.entries.length)] ?? v.entries[0];
           acted = this.room.handle(bot.id, { t: 'dad.pick', entryId: e.entryId }, now).ok || acted;
+        }
+        const bv = this.room.viewFor(bot.id, now).bluff;
+        if (bv.phase === 'writing' && bv.me.isTeller) {
+          const lines = BOT_LINES[Math.floor(Math.random() * BOT_LINES.length)] ?? BOT_LINES[0]!;
+          acted = this.room.handle(bot.id, { t: 'bluff.tell', statements: [...lines] as [string, string, string], lie: Math.floor(Math.random() * 3) }, now).ok || acted;
+        } else if (bv.phase === 'guessing' && bv.me.seated && !bv.me.isTeller && bv.me.guess === null && bv.rid && Math.random() < 0.7) {
+          acted = this.room.handle(bot.id, { t: 'bluff.guess', rid: bv.rid, pick: Math.floor(Math.random() * 3) }, now).ok || acted;
         }
         const tv = this.room.viewFor(bot.id, now).trivia;
         if (tv.phase === 'question' && tv.question && tv.me.playing && tv.me.answered === null && Math.random() < 0.6) {

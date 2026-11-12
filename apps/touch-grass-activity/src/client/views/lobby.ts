@@ -1,5 +1,5 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// Lobby: who's here plus two live tiles, DA&D and Trivia, each with a seated/playing count.
+// Lobby: who's here plus three live tiles, DA&D, Trivia and Bluff, each with a seated/playing count.
 
 import { COPY } from '../copy.js';
 import type { RoomUser, RoomView } from '../../shared/protocol.js';
@@ -23,6 +23,9 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
   const dadLive = Boolean(view && ['submitting', 'judging', 'reveal'].includes(view.dad.phase));
   const playing = view?.trivia.playingCount ?? 0;
   const triviaLive = Boolean(view && (view.trivia.phase === 'question' || view.trivia.phase === 'reveal'));
+  const bluffSeated = view?.bluff.seats.length ?? 0;
+  const bluffLive = Boolean(view && ['writing', 'guessing', 'reveal'].includes(view.bluff.phase));
+  const bluffBadge = `<span class="badge ${bluffLive ? 'badge--live' : ''}" data-count="bluff">${bluffSeated} seated${bluffLive ? ` / T${view?.bluff.round}` : ''}</span>`;
   const dadBadge = `<span class="badge ${dadLive ? 'badge--live' : ''}" data-count="dad">${seated} seated${dadLive ? ` / R${view?.dad.round}` : ''}</span>`;
   const triviaBadge = `<span class="badge ${triviaLive ? 'badge--live' : ''}" data-count="trivia">${playing} playing${triviaLive ? ` / Q${view?.trivia.number}` : ''}</span>`;
   return `
@@ -44,6 +47,11 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
         <span class="tile__name">${esc(COPY.tiles.trivia.name)}</span>
         <span class="tile__desc">${esc(COPY.tiles.trivia.desc)}</span>
         ${triviaBadge}
+      </button>
+      <button class="tile tile--bluff" data-go="bluff">
+        <span class="tile__name">${esc(COPY.tiles.bluff.name)}</span>
+        <span class="tile__desc">${esc(COPY.tiles.bluff.desc)}</span>
+        ${bluffBadge}
       </button>
     </section>
     ${renderHighScores(scores, tab, view?.you ?? '')}`;

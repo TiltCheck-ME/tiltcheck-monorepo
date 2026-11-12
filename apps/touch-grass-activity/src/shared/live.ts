@@ -4,6 +4,7 @@
 
 import { MAX_PLAYERS } from './dad.js';
 import { isRunning } from './trivia.js';
+import { MAX_PLAYERS as BLUFF_MAX, isInGame as bluffInGame } from './bluff.js';
 import type { RoomState } from './room.js';
 
 export const LIVE_TTL_MS = 120_000;
@@ -12,7 +13,7 @@ export const LIVE_HEARTBEAT_MS = 50_000;
 
 export interface LiveGameReport {
   phase: string;
-  /** Seated (DA&D) or playing (trivia). */
+  /** Seated (DA&D, Bluff) or playing (trivia). */
   count: number;
   joinable: boolean;
   /** Trivia only: connected players on the Trivia screen with no game running (table alerts). */
@@ -23,7 +24,8 @@ export interface LiveReport {
   instanceId: string;
   guildId: string | null;
   members: number;
-  games: { dad: LiveGameReport; trivia: LiveGameReport };
+  /** `bluff` is optional on the wire so a report from a pre-Bluff room still parses (counts as empty). */
+  games: { dad: LiveGameReport; trivia: LiveGameReport; bluff: LiveGameReport };
 }
 
 export interface LiveEntry extends LiveReport {
@@ -37,13 +39,14 @@ export interface LiveSummary {
   updatedAt: number;
   /** Activity instances with at least one person in them. */
   rooms: number;
-  /** Tables (a DA&D table with someone seated, or a trivia game running) across both games. */
+  /** Tables (a DA&D or Bluff table with someone seated, or a trivia game running) across all games. */
   tables: number;
   /** Tables a newcomer can join right now. */
   joinable: number;
   games: {
     dad: { tables: number; seated: number; joinable: number };
     trivia: { tables: number; playing: number; joinable: number };
+    bluff: { tables: number; seated: number; joinable: number };
   };
 }
 
@@ -58,6 +61,8 @@ export function reportFor(state: RoomState, guildId: string | null): LiveReport 
   const t = state.trivia;
   const seated = d.seats.length;
   const playing = isRunning(t) ? Object.keys(t.scores).length : 0;
+  const b = state.bluff;
+  const bluffSeated = b ? b.seats.length : 0;
   return {
     instanceId: state.instanceId,
     guildId,
@@ -67,13 +72,19 @@ export function reportFor(state: RoomState, guildId: string | null): LiveReport 
       // Late joiners spectate one question and are dealt in at the next, so a running game is joinable
       // until its last question opens.
       trivia: { phase: t.phase, count: playing, joinable: members > 0 && isRunning(t) && t.index + 1 < t.total, waiting: triviaWaiting(state) },
+      // Bluff late joiners only spectate until the next game, so a table is joinable between games.
+      bluff: {
+        phase: b ? b.phase : 'seating',
+        count: bluffSeated,
+        joinable: Boolean(b) && members > 0 && bluffSeated > 0 && !bluffInGame(b) && bluffSeated + b.waiting.length < BLUFF_MAX,
+      },
     },
   };
 }
 
 /** Change detection: the parts a reader would notice. */
 export function reportKey(r: LiveReport): string {
-  return JSON.stringify([r.guildId, r.members, r.games.dad, r.games.trivia]);
+  return JSON.stringify([r.guildId, r.members, r.games.dad, r.games.trivia, r.games.bluff]);
 }
 
 const SAFE_PHASE = /^[a-z]{1,16}$/;
@@ -102,8 +113,9 @@ export function parseLiveReport(raw: unknown): LiveReport | null {
   const gs = r.games as Record<string, unknown> | undefined;
   const dad = game(gs?.dad);
   const trivia = game(gs?.trivia);
-  if (!dad || !trivia) return null;
-  return { instanceId: r.instanceId, guildId, members: r.members as number, games: { dad, trivia } };
+  const bluff = gs?.bluff === undefined ? { phase: 'seating', count: 0, joinable: false } : game(gs.bluff);
+  if (!dad || !trivia || !bluff) return null;
+  return { instanceId: r.instanceId, guildId, members: r.members as number, games: { dad, trivia, bluff } };
 }
 
 /** The registry's brain: entries keyed by instance id, dropped after the TTL. */
@@ -139,12 +151,13 @@ export class LiveBoard {
       rooms: 0,
       tables: 0,
       joinable: 0,
-      games: { dad: { tables: 0, seated: 0, joinable: 0 }, trivia: { tables: 0, playing: 0, joinable: 0 } },
+      games: { dad: { tables: 0, seated: 0, joinable: 0 }, trivia: { tables: 0, playing: 0, joinable: 0 }, bluff: { tables: 0, seated: 0, joinable: 0 } },
     };
     for (const e of this.entries.values()) {
       if (guild !== null && e.guildId !== guild) continue;
       out.rooms += 1;
       const { dad, trivia } = e.games;
+      const bluff = e.games.bluff;
       if (dad.count > 0) {
         out.games.dad.tables += 1;
         out.games.dad.seated += dad.count;
@@ -155,9 +168,15 @@ export class LiveBoard {
         out.games.trivia.playing += trivia.count;
         if (trivia.joinable) out.games.trivia.joinable += 1;
       }
+      // Entries stored before Bluff existed have no bluff slot.
+      if (bluff && bluff.count > 0) {
+        out.games.bluff.tables += 1;
+        out.games.bluff.seated += bluff.count;
+        if (bluff.joinable) out.games.bluff.joinable += 1;
+      }
     }
-    out.tables = out.games.dad.tables + out.games.trivia.tables;
-    out.joinable = out.games.dad.joinable + out.games.trivia.joinable;
+    out.tables = out.games.dad.tables + out.games.trivia.tables + out.games.bluff.tables;
+    out.joinable = out.games.dad.joinable + out.games.trivia.joinable + out.games.bluff.joinable;
     return out;
   }
 

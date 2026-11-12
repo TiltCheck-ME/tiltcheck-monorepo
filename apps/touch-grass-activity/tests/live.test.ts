@@ -16,6 +16,7 @@ function rep(instanceId: string, guildId: string | null, dad: number, trivia: nu
     games: {
       dad: { phase: dad ? 'submitting' : 'seating', count: dad, joinable: dad > 0 && dad < 8 },
       trivia: { phase: trivia ? 'question' : 'idle', count: trivia, joinable: trivia > 0 },
+      bluff: { phase: 'seating', count: 0, joinable: false },
     },
     ...extra,
   };
@@ -79,5 +80,28 @@ describe('LiveBoard', () => {
     const r = reportFor(room.state, G1);
     expect(r).toMatchObject({ instanceId: 'i-r', guildId: G1, members: 3, games: { dad: { phase: 'seating', count: 3, joinable: true }, trivia: { phase: 'question', count: 3, joinable: true } } });
     expect(JSON.stringify(r)).not.toMatch(/"a"|"b"|"c"/);
+  });
+
+  it('bluff: seated tables counted under games.bluff and in the totals; joinable only between games; old reports still parse', () => {
+    const b = new LiveBoard();
+    b.report({ ...rep('i-b1', G1, 0, 0), games: { ...rep('i-b1', G1, 0, 0).games, bluff: { phase: 'seating', count: 3, joinable: true } } }, 0);
+    b.report({ ...rep('i-b2', G1, 0, 0), games: { ...rep('i-b2', G1, 0, 0).games, bluff: { phase: 'guessing', count: 5, joinable: false } } }, 0);
+    const s = b.summary(G1, 1);
+    expect(s.games.bluff).toEqual({ tables: 2, seated: 8, joinable: 1 });
+    expect(s).toMatchObject({ tables: 2, joinable: 1 });
+    const old = { instanceId: 'i-old', guildId: G1, members: 1, games: { dad: { phase: 'seating', count: 1, joinable: true }, trivia: { phase: 'idle', count: 0, joinable: false } } };
+    expect(parseLiveReport(old)!.games.bluff).toEqual({ phase: 'seating', count: 0, joinable: false });
+    expect(parseLiveReport({ ...old, games: { ...old.games, bluff: { phase: 'BAD!', count: 1, joinable: true } } })).toBeNull();
+    // An entry stored before Bluff existed (no bluff slot) still sums.
+    b.entries.set('i-legacy', { ...(old as unknown as LiveReport), at: 1 } as never);
+    expect(b.summary(G1, 2).rooms).toBe(3);
+    const room = new Room(createRoomState('i-r'), makeRng(1));
+    for (const id of ['a', 'b', 'c']) {
+      room.join({ id, name: id, avatar: null }, 0);
+      room.handle(id, { t: 'bluff.sit' }, 0);
+    }
+    expect(reportFor(room.state, G1).games.bluff).toEqual({ phase: 'seating', count: 3, joinable: true });
+    room.handle('a', { t: 'bluff.start' }, 0);
+    expect(reportFor(room.state, G1).games.bluff).toEqual({ phase: 'writing', count: 3, joinable: false });
   });
 });
