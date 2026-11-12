@@ -282,7 +282,7 @@ export const CORE_BRAKES = [
   {
     num: '06',
     title: 'WinCheck',
-    body: 'Auto-skims a cut of big wins into your casino vault before you give it back.',
+    body: "Auto-skims a cut of big wins into your casino's own vault before you give it back.",
     status: 'Configurable %',
   },
 ];

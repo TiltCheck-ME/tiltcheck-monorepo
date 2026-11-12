@@ -45,7 +45,6 @@ import {
   INSTALL_TITLE,
   INSTALL_MOVES,
   INSTALL_NOTE,
-  VAULT,
   AUTOVAULT_PAGE,
   LAUNCH_HONESTY,
   EXTENSION_SIGNALS,
@@ -219,7 +218,7 @@ function navHtml(depth, current) {
     <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
     <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
     <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
-    <a class="site-nav__discord" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}</a>
+    <a class="site-nav__discord" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
   </div>
 </nav>`;
 }
@@ -439,11 +438,6 @@ function buildRootLanding() {
       </div>
     </div>
   </section>
-  <section class="landing-vault" aria-label="AutoVault">
-    <h2 class="landing-vault__title">${escapeHtml(VAULT.title)}</h2>
-    <p class="landing-vault__body">${escapeHtml(VAULT.body)}</p>
-    <a class="btn btn-secondary" href="${escapeHtml(VAULT.href)}">${escapeHtml(VAULT.ctaLabel)}</a>
-  </section>
   <section class="landing-tape" aria-label="Honesty">
     <p class="landing-tape__label">THE FINE PRINT</p>
     <ul class="landing-tape__list">${honesty}</ul>
@@ -470,7 +464,7 @@ function updateLandingWage() {
 </script>`;
 
   return shell({
-    title: 'TiltCheck | House always wins? FUCK THAT.',
+    title: 'TiltCheck | House always wins? Not today.',
     description: SITE_META_DESCRIPTION,
     depth: 'root',
     current: 'home',
