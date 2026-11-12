@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /**
  * deposit-barrier.ts
  * DOM Deposit Barrier.
@@ -119,14 +119,16 @@ export async function loadCooldownActiveUntil(): Promise<number> {
 }
 
 export function isDepositBarrierActive(now?: number): boolean {
+  const currentTime = now ?? Date.now();
+  // A running "Take a break" lock can't be switched off early: it ignores the
+  // deposit-block setting and the extension on/off switch until it ends.
+  if (inMemoryCooldownActiveUntil > currentTime) {
+    return true;
+  }
   if (!inMemoryBarrierEnabled) {
     return false;
   }
-  if (isTouchGrassActive()) {
-    return true;
-  }
-  const currentTime = now ?? Date.now();
-  return inMemoryCooldownActiveUntil > currentTime;
+  return isTouchGrassActive();
 }
 
 export function isDepositTarget(target: Element): boolean {
@@ -208,7 +210,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     const now = Date.now();
     const cooldownUntil = getCooldownActiveUntil();
 
-    if (cooldownUntil <= now || !inMemoryBarrierEnabled) {
+    if (cooldownUntil <= now) {
       removeCooldownHud();
       return;
     }

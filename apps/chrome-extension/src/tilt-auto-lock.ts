@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 /**
  * tilt-auto-lock.ts
  * Automated on-chain voluntary lock trigger on high tilt (Level 3+ / score >= 75).
@@ -94,9 +94,14 @@ export async function executeTiltAutoLock(
   // 1. Persist local exclusion state into chrome.storage.local
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     try {
+      const existing = await chrome.storage.local.get([TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]);
+      const current = Number(existing?.[TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]) || 0;
+      // Never shorten a longer lock that is already running.
+      const keepCurrent = current > now && current >= activeUntil;
       const updates: Record<string, unknown> = {
-        [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: activeUntil,
-        [TILTCHECK_COOLDOWN_SOURCE_KEY]: source,
+        ...(keepCurrent
+          ? {}
+          : { [TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY]: activeUntil, [TILTCHECK_COOLDOWN_SOURCE_KEY]: source }),
         tiltcheck_last_auto_lock: {
           timestamp: now,
           tiltRisk: options.tiltRisk,

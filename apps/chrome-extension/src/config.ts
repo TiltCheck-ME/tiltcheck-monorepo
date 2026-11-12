@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 export const EXT_CONFIG = {
     API_BASE_URL: 'https://api.tiltcheck.me',
@@ -49,6 +49,22 @@ export function getDirectDiscordOAuthUrl(nonce?: string): string {
         scope: 'identify',
         redirect_uri: EXT_CONFIG.DISCORD_REDIRECT_URI,
         state: `h.${n}`,
+    });
+    return `https://discord.com/oauth2/authorize?${params.toString()}`;
+}
+
+/**
+ * Same Discord sign-in the site uses (tiltcheck.me "Sign in"): implicit grant through the
+ * CollectClock callback with state `h.web`, which lands on tiltcheck.me/login signed in.
+ * The background worker reads the token on the way through, so one sign-in covers both.
+ */
+export function getSiteDiscordLoginUrl(): string {
+    const params = new URLSearchParams({
+        client_id: EXT_CONFIG.DISCORD_CLIENT_ID,
+        response_type: 'token',
+        scope: 'identify',
+        redirect_uri: EXT_CONFIG.DISCORD_REDIRECT_URI,
+        state: 'h.web',
     });
     return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }

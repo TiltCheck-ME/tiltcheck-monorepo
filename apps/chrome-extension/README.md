@@ -2,6 +2,15 @@
 
 # TiltCheck Chrome Extension (TiltGuard)
 
+## Popup and settings (2026-11-12)
+
+The popup has three things: Discord sign-in (same flow as tiltcheck.me, state `h.web`), one on/off switch, and **Open Dashboard**. Every other setting lives at https://tiltcheck.me/dashboard/ and is saved per Discord user by the CollectClock worker (`GET/PUT /settings`).
+
+- `src/player-settings.ts`: the settings shape, safe defaults (the old extension defaults), and the map onto the `chrome.storage` keys the content script reads.
+- `src/settings-sync.ts` (loaded by `background.js` via `background-sync.js`): pulls on start-up, on sign-in/sign-out and every 15 minutes, caches the last good copy, falls back to the cache when offline and to the defaults when signed out. The on/off switch is the only write.
+- `src/cooldown-lock.ts`: a running Take-a-break lock can only be extended. The page bridge reads `lockSource`, the extension's storage is the record that counts, and the deposit block stays on during a lock even with the switch off.
+
+
 Source code and documentation for the TiltGuard Chrome extension.
 
 Made for Degens. By Degens.

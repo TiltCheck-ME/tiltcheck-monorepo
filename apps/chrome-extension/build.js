@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 import * as esbuild from 'esbuild';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -54,6 +54,18 @@ async function build() {
     entryPoints: [path.join(__dirname, 'src/popup.ts')],
     bundle: true,
     outfile: path.join(__dirname, 'dist/popup.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: false,
+    minify: true,
+  });
+
+  // Build background settings sync (importScripts'd by the classic background.js)
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/background-sync.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/background-sync.js'),
     format: 'iife',
     platform: 'browser',
     target: 'chrome100',

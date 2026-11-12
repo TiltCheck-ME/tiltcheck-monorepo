@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
 
 /**
  * Core circuit-breaker settings (chrome.storage.local).
@@ -18,6 +18,8 @@ import {
   sanitizeCashoutGoals,
 } from './profit-lock.js';
 
+/** The one on/off switch in the popup. Off pauses every check except a running "Take a break" lock. */
+export const TILTCHECK_ENABLED_KEY = 'tiltcheck_enabled';
 export const TILTCHECK_RISK_THRESHOLD_KEY = 'tiltcheck_risk_threshold';
 export const TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY = 'tiltcheck_touch_grass_duration_ms';
 export const TILTCHECK_TOUCH_GRASS_COOLDOWN_MS_KEY = 'tiltcheck_touch_grass_cooldown_ms';
@@ -70,6 +72,7 @@ const RISK_PROFILE_MULTIPLIERS: Record<RiskProfile, number> = {
 
 /** Keys the Core circuit breaker reads; Pro/popup must not write these mid-session. */
 export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
+  TILTCHECK_ENABLED_KEY,
   TILTCHECK_RISK_THRESHOLD_KEY,
   TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY,
   TILTCHECK_TOUCH_GRASS_COOLDOWN_MS_KEY,
@@ -162,8 +165,10 @@ export interface CoreCircuitBreakerOptions {
   touchGrassDurationMs: number;
   touchGrassCooldownMs: number;
   riskProfile: RiskProfile;
-  /** When false, core path does not fire Touch Grass (default true until options UI ships). */
+  /** When false, core path does not fire Touch Grass (default true until options UI ships). Also false when the extension is switched off. */
   enforcementEnabled: boolean;
+  /** The popup on/off switch. */
+  extensionEnabled: boolean;
   hourlyWage: number;
   realityHudEnabled: boolean;
   realityThresholdHours: number;
@@ -207,6 +212,7 @@ function clampFloat(value: unknown, min: number, max: number, fallback: number):
 export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreakerOptions> {
   try {
     const stored = await chrome.storage.local.get([
+      TILTCHECK_ENABLED_KEY,
       TILTCHECK_RISK_THRESHOLD_KEY,
       TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY,
       TILTCHECK_TOUCH_GRASS_COOLDOWN_MS_KEY,
@@ -252,7 +258,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
     );
 
     const optIn = stored[TILTCHECK_TOUCH_GRASS_OPT_IN_KEY];
-    const enforcementEnabled = optIn === undefined ? true : optIn === true;
+    const extensionEnabled = stored[TILTCHECK_ENABLED_KEY] !== false;
+    const enforcementEnabled = extensionEnabled && (optIn === undefined ? true : optIn === true);
 
     const hourlyWage = clampInt(
       stored[TILTCHECK_HOURLY_WAGE_KEY],
@@ -363,6 +370,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
         stored['riskLevel']
       ),
       enforcementEnabled,
+      extensionEnabled,
       hourlyWage,
       realityHudEnabled,
       realityThresholdHours,
@@ -394,6 +402,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       touchGrassCooldownMs: DEFAULT_TOUCH_GRASS_COOLDOWN_MS,
       riskProfile: DEFAULT_RISK_PROFILE,
       enforcementEnabled: true,
+      extensionEnabled: true,
       hourlyWage: DEFAULT_HOURLY_WAGE,
       realityHudEnabled: DEFAULT_REALITY_HUD_ENABLED,
       realityThresholdHours: DEFAULT_REALITY_THRESHOLD_HOURS,
