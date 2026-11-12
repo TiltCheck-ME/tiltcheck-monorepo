@@ -231,10 +231,10 @@ function footerHtml(depth) {
       <a href="${dirHref(depth, 'tools')}">All Tools</a>
       <a href="${dirHref(depth, 'gate')}">TimeCheck</a>
       <a href="${dirHref(depth, 'cooldown')}">RealityCheck</a>
-      <a href="${dirHref(depth, 'rtp-scanner')}">RTPCheck</a>
-      <a href="${dirHref(depth, 'house-edge-scanner')}">MathCheck</a>
-      <a href="${dirHref(depth, 'verify')}">BetCheck</a>
-      <a href="${dirHref(depth, 'wincheck')}">WinCheck</a>
+      <a href="${dirHref(depth, 'rtp-scanner')}">RTP Scanner</a>
+      <a href="${dirHref(depth, 'house-edge-scanner')}">House Edge Scanner</a>
+      <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
+      <a href="${dirHref(depth, 'wincheck')}">Win Skim</a>
       <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
       <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
       <a href="${dirHref(depth, 'login')}">Discord Sign In</a>
@@ -1287,7 +1287,7 @@ function buildAutovaultPage() {
 </main>`;
 
   return shell({
-    title: 'WinCheck | Profit Skimmer | TiltCheck',
+    title: 'Win Skim | Profit Skimmer | TiltCheck',
     description: AUTOVAULT_PAGE.punch,
     depth: 'docs',
     current: 'wincheck',
@@ -1744,7 +1744,7 @@ function buildHouseEdgePage() {
   const depth = "docs";
 
   const content = `${productHero({
-    eyebrow: "MathCheck",
+    eyebrow: "House Edge Scanner",
     title: "VIP Churn & House Edge Scanner",
     lede: "Calculate the mathematical cost of casino VIP ladders, wagering requirements, and comp rewards. Progress bars are psychological sunk-cost hooks designed to disguise expected negative EV.",
     actionsHtml: `<a class="btn btn-primary" href="${href(depth, "extension.html")}">The Extension</a>
@@ -2048,7 +2048,7 @@ window.addEventListener("DOMContentLoaded", function() {
 </script>`;
 
   return shell({
-    title: "MathCheck — VIP Churn & House Edge Scanner | TiltCheck",
+    title: "House Edge Scanner — VIP Churn & House Edge | TiltCheck",
     description: "Calculate what chasing VIP tier bonuses actually costs in statistical expected loss, true wagering volume, and comp return ratios.",
     depth: "docs",
     current: "tools",
