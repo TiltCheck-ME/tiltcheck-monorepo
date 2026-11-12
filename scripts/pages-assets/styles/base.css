@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11 */
 /*
  * GitHub Pages shell — static twin of tiltcheck.me landing tokens/layout.
  * Absolute /paths break on project Pages; HTML uses relative asset hrefs.
@@ -154,6 +154,160 @@ a:hover {
 .site-nav__discord span {
   margin-left: 0.4rem;
   line-height: 1;
+}
+
+/* BETA stamp next to the wordmark (same stamp as CollectClock, TiltCheck colors) */
+.site-nav__beta {
+  display: inline-block;
+  margin-left: 0.15rem;
+  padding: 0 4px;
+  background: var(--color-primary);
+  color: var(--bg-primary);
+  border: 2px solid var(--bg-primary);
+  border-radius: 4px;
+  box-shadow: 1px 1px 0 var(--color-primary-light), 0 0 0 1px rgba(23, 195, 178, 0.45);
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  transform: rotate(-12deg) translateY(-2px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Signed-in header: round Discord avatar + name, replaces the Sign in link */
+.site-nav__account {
+  gap: 0.45rem;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  max-width: 12rem;
+}
+
+.site-nav__account .site-nav__avatar,
+.site-nav__account .site-nav__staff {
+  margin-left: 0;
+}
+
+.site-nav__avatar {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+}
+
+.site-nav__avatar img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  background: #5865f2;
+  object-fit: cover;
+}
+
+.site-nav__staff {
+  position: absolute;
+  right: -12px;
+  bottom: -7px;
+  padding: 0 3px;
+  background: var(--color-primary);
+  color: var(--bg-primary);
+  border: 1.5px solid var(--bg-primary);
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 0.45rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.site-nav__account .site-nav__name {
+  margin-left: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Login page: show one state at a time */
+html.tc-signed-in [data-tc-signed-out] {
+  display: none !important;
+}
+
+html:not(.tc-signed-in) [data-tc-signed-in] {
+  display: none !important;
+}
+
+.login-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  max-width: 540px;
+  margin: 0.5rem 0 1.25rem;
+  padding: 16px;
+  background: rgba(23, 195, 178, 0.12);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+}
+
+.login-card__avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  background: #5865f2;
+  object-fit: cover;
+}
+
+.login-card__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.login-card__label {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.login-card__name {
+  color: #fff;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.login-card__staff {
+  padding: 0 6px;
+  background: var(--color-primary);
+  color: var(--bg-primary);
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.login-card__staff[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .site-nav__account {
+    max-width: 9rem;
+  }
 }
 
 .nudge-honesty {
