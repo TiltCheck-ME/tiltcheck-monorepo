@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -211,14 +211,14 @@ function navHtml(depth, current) {
   const shieldLogoSvg = `<svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>`;
 
   return `<nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="${homeHref}"${homeCurrent}>${shieldLogoSvg}TiltCheck</a>
+  <a class="site-nav__brand" href="${homeHref}"${homeCurrent}>${shieldLogoSvg}TiltCheck<span class="site-nav__beta">Beta</span></a>
   <div class="site-nav__links">
     <a href="${dirHref(depth, 'gate')}"${current === 'gate' ? ' aria-current="page"' : ''} style="color:#17c3b2; font-weight:700;">TimeCheck</a>
     <a href="${href(depth, 'extension.html')}"${extensionCurrent}>Extension</a>
     <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
     <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
     <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
-    <a class="site-nav__discord" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
+    <a class="site-nav__discord" data-tc-nav-auth data-account-href="${dirHref(depth, 'dashboard')}" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
   </div>
 </nav>`;
 }
@@ -279,6 +279,121 @@ const STAFF_REVEAL_SCRIPT = `<script>
 })();
 </script>`;
 
+/**
+ * Signed-in state for the static site. Reads tc_token / tc_user (Discord /users/@me JSON)
+ * from localStorage, which /login/ writes after Discord sign-in. Cosmetic only: the avatar,
+ * name and STAFF badge are display, never access control. Real staff gating stays on the API.
+ */
+// Discord user IDs that get the cosmetic STAFF badge. Jamie (jmenichole) = 1153034319271559328.
+const STAFF_DISCORD_IDS = ['1153034319271559328'];
+
+// Runs in <head> so signed-in pages don't flash the signed-out header first.
+const AUTH_HEAD_SCRIPT = `<script>
+(function () {
+  try {
+    var exp = Number(localStorage.getItem('tc_token_exp') || 0);
+    if (exp && exp < Date.now()) {
+      localStorage.removeItem('tc_token');
+      localStorage.removeItem('tc_user');
+      localStorage.removeItem('tc_token_exp');
+    }
+    if (localStorage.getItem('tc_token') && localStorage.getItem('tc_user')) {
+      document.documentElement.classList.add('tc-signed-in');
+    }
+  } catch (e) {}
+})();
+</script>`;
+
+const AUTH_NAV_SCRIPT = `<script>
+(function () {
+  var STAFF = ${JSON.stringify(STAFF_DISCORD_IDS)};
+  function readUser() {
+    try {
+      if (!localStorage.getItem('tc_token')) return null;
+      var u = JSON.parse(localStorage.getItem('tc_user') || 'null');
+      return u && /^[0-9]{5,25}$/.test(String(u.id)) ? u : null;
+    } catch (e) { return null; }
+  }
+  function avatarUrl(u) {
+    if (u.avatar && /^(a_)?[0-9a-f]{16,64}$/.test(String(u.avatar))) {
+      return 'https://cdn.discordapp.com/avatars/' + u.id + '/' + u.avatar + '.png?size=64';
+    }
+    var i = 0;
+    try {
+      i = (u.discriminator && u.discriminator !== '0')
+        ? Number(u.discriminator) % 5
+        : Number((BigInt(u.id) >> BigInt(22)) % BigInt(6));
+    } catch (e) {}
+    return 'https://cdn.discordapp.com/embed/avatars/' + i + '.png';
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text) n.textContent = text;
+    return n;
+  }
+  function render() {
+    var u = readUser();
+    document.documentElement.classList.toggle('tc-signed-in', !!u);
+    var staff = !!u && STAFF.indexOf(String(u.id)) !== -1;
+    var name = u ? String(u.global_name || u.username || 'you') : '';
+    var links = document.querySelectorAll('[data-tc-nav-auth]');
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      if (!a.getAttribute('data-signed-out-html')) {
+        a.setAttribute('data-signed-out-html', a.innerHTML);
+        a.setAttribute('data-signed-out-href', a.getAttribute('href') || '');
+      }
+      if (!u) {
+        a.innerHTML = a.getAttribute('data-signed-out-html');
+        a.setAttribute('href', a.getAttribute('data-signed-out-href'));
+        a.classList.remove('site-nav__account');
+        a.setAttribute('aria-label', 'Sign in with Discord');
+        a.setAttribute('title', 'Sign in with Discord');
+        continue;
+      }
+      a.textContent = '';
+      a.classList.add('site-nav__account');
+      a.setAttribute('href', a.getAttribute('data-account-href') || a.getAttribute('data-signed-out-href'));
+      a.setAttribute('aria-label', 'Signed in as ' + name + (staff ? ' (staff)' : '') + '. Open your dashboard');
+      a.setAttribute('title', 'Signed in as ' + name);
+      var wrap = el('span', 'site-nav__avatar');
+      var img = el('img');
+      img.src = avatarUrl(u);
+      img.alt = '';
+      img.width = 28;
+      img.height = 28;
+      img.referrerPolicy = 'no-referrer';
+      wrap.appendChild(img);
+      if (staff) wrap.appendChild(el('span', 'site-nav__staff', 'Staff'));
+      a.appendChild(wrap);
+      a.appendChild(el('span', 'site-nav__name', name));
+    }
+    var nameSlots = document.querySelectorAll('[data-tc-user-name]');
+    for (var j = 0; j < nameSlots.length; j++) nameSlots[j].textContent = name;
+    var avSlots = document.querySelectorAll('img[data-tc-user-avatar]');
+    for (var k = 0; k < avSlots.length; k++) { if (u) avSlots[k].src = avatarUrl(u); }
+    var staffSlots = document.querySelectorAll('[data-tc-staff-badge]');
+    for (var m = 0; m < staffSlots.length; m++) staffSlots[m].hidden = !staff;
+  }
+  window.tcAuth = {
+    render: render,
+    signOut: function () {
+      try {
+        localStorage.removeItem('tc_token');
+        localStorage.removeItem('tc_user');
+        localStorage.removeItem('tc_token_exp');
+      } catch (e) {}
+      render();
+    }
+  };
+  render();
+  window.addEventListener('storage', function (e) {
+    if (!e.key || e.key === 'tc_token' || e.key === 'tc_user') render();
+  });
+})();
+</script>`;
+
 function shell({ title, description, depth, current, body, extraHead = '' }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -296,12 +411,14 @@ ${FONT_LINKS}
 <link rel="icon" type="image/png" href="${assetHref(depth, 'icon.png')}"/>
 <link rel="apple-touch-icon" href="${assetHref(depth, 'icon.png')}"/>
 <link rel="stylesheet" href="${assetHref(depth, 'base.css')}"/>
+${AUTH_HEAD_SCRIPT}
 ${extraHead}
 </head>
 <body>
 ${navHtml(depth, current)}
 ${body}
 ${footerHtml(depth)}
+${AUTH_NAV_SCRIPT}
 ${body.includes('data-staff-only') ? STAFF_REVEAL_SCRIPT : ''}
 </body>
 </html>`;
@@ -955,7 +1072,7 @@ function buildCooldownPage() {
             type: 'LOCK_UPDATED',
             wallet: 'in_browser_lockout',
             endTime: endTimeSec,
-            source: 'local_browser_session'
+            lockSource: 'local_browser_session'
           }, '*');
 
           try {
@@ -970,7 +1087,7 @@ function buildCooldownPage() {
             feedback.style.border = '1px solid #17c3b2';
             feedback.style.color = '#ffffff';
             feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed (In-Browser)</strong><br/>' +
-              'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + ' Days' : selectedHours + 'h') + ')<br/>' +
+              'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + (selectedHours === 24 ? ' Day' : ' Days') : selectedHours + 'h') + ')<br/>' +
               '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has engaged your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
           }
           if (btnSign) {
@@ -1101,11 +1218,11 @@ function buildCooldownPage() {
           var endTimeSec = nowSec + (selectedHours * 3600);
           var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
 
-          var messageText = 'TiltCheck Voluntary Touch Grass Lock\n' +
-            'Wallet: ' + currentWallet + '\n' +
-            'Duration: ' + selectedHours + ' Hours\n' +
-            'Expires: ' + expiryDateStr + '\n' +
-            'Nonce: ' + Math.random().toString(36).substring(2, 10) + '\n' +
+          var messageText = 'TiltCheck Voluntary Touch Grass Lock\\n' +
+            'Wallet: ' + currentWallet + '\\n' +
+            'Duration: ' + selectedHours + ' Hours\\n' +
+            'Expires: ' + expiryDateStr + '\\n' +
+            'Nonce: ' + Math.random().toString(36).substring(2, 10) + '\\n' +
             'Standard: tiltcheck-cooldown-v1';
 
           try {
@@ -1113,12 +1230,13 @@ function buildCooldownPage() {
             btnSign.textContent = 'Awaiting Wallet Signature...';
 
             var encoded = new TextEncoder().encode(messageText);
-            if (typeof provider.signMessage === 'function') {
-              try {
-                await provider.signMessage(encoded, 'utf8');
-              } catch (e1) {
-                await provider.signMessage(encoded);
-              }
+            if (typeof provider.signMessage !== 'function') {
+              throw new Error('This wallet cannot sign messages. Try Phantom, Solflare, or Backpack.');
+            }
+            try {
+              await provider.signMessage(encoded, 'utf8');
+            } catch (e1) {
+              await provider.signMessage(encoded);
             }
 
             window.postMessage({
@@ -1126,7 +1244,7 @@ function buildCooldownPage() {
               type: 'LOCK_UPDATED',
               wallet: currentWallet,
               endTime: endTimeSec,
-              source: 'solana_web_wallet'
+              lockSource: 'solana_web_wallet'
             }, '*');
 
             try {
@@ -1140,7 +1258,7 @@ function buildCooldownPage() {
               feedback.style.border = '1px solid #17c3b2';
               feedback.style.color = '#ffffff';
               feedback.innerHTML = '<strong style="color:#17c3b2;">Touch Grass Lock Armed</strong><br/>' +
-                'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + ' Days' : selectedHours + 'h') + ')<br/>' +
+                'Expires: <strong>' + expiryDateStr + '</strong> (' + (selectedHours >= 24 ? (selectedHours / 24) + (selectedHours === 24 ? ' Day' : ' Days') : selectedHours + 'h') + ')<br/>' +
                 'Cryptographic commitment signed by ' + currentWallet.substring(0, 8) + '...<br/>' +
                 '<span style="font-size:0.75rem; color:#94a3b8;">The TiltCheck browser extension has received your lock and will keep all casino cashiers and deposit buttons blocked until expiration.</span>';
             }
@@ -1613,7 +1731,7 @@ function buildVerifyPage() {
   </div>
 </main>
 <script>
-var presets = JSON.parse("[{\"id\":\"stake\",\"tag\":\"STAKE DICE/LIMBO\",\"serverSeed\":\"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13\",\"committedHash\":\"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551\",\"clientSeed\":\"stake_session_verifier_audit\",\"nonce\":1,\"edge\":1},{\"id\":\"roobet\",\"tag\":\"ROOBET CRASH\",\"serverSeed\":\"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906\",\"committedHash\":\"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3\",\"clientSeed\":\"roobet_verifier_audit_alpha\",\"nonce\":42,\"edge\":1},{\"id\":\"bcgame\",\"tag\":\"BC.GAME LIMBO\",\"serverSeed\":\"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b\",\"committedHash\":\"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578\",\"clientSeed\":\"bcgame_high_roller_verifier\",\"nonce\":100,\"edge\":1}]");
+var presets = [{"id":"stake","tag":"STAKE DICE/LIMBO","serverSeed":"d01247ff421a9fbdf4ee920fb62d22a7f5a11c8cb404c278072d62ee5d7a6e13","committedHash":"8556eca62c36f651bb268841e99356e0db84d6f5609fb2c19753f3876593e551","clientSeed":"stake_session_verifier_audit","nonce":1,"edge":1},{"id":"roobet","tag":"ROOBET CRASH","serverSeed":"7b52009b64fd0a2a49e6d8a939753077792b0554372452856d7bdaf446022906","committedHash":"06b34d05f70bfdfdd0e114a1f14d4a32435634279595a3f6c9857b4732bf29c3","clientSeed":"roobet_verifier_audit_alpha","nonce":42,"edge":1},{"id":"bcgame","tag":"BC.GAME LIMBO","serverSeed":"fe8b4172776c5b96791e0a296b79743c988b4ef84ebda3f789069d30c5e7b57b","committedHash":"1a5d0fbf55362cc1d231b1e5a9550ee47bf3a9912a2a35ae3b007a6e00dcc578","clientSeed":"bcgame_high_roller_verifier","nonce":100,"edge":1}];
 var RED_ROULETTE = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
 async function sha256Hex(str) {
@@ -2148,20 +2266,37 @@ function buildToolsPage() {
 
 function buildLoginPage() {
   const discordHref = DISCORD_OAUTH_LOGIN_URL;
-  const content = `${productHero({
-    eyebrow: 'Access Portal',
-    title: 'Sign in with Discord',
-    lede: 'Sign in to access your saved settings, sync vault rules, and check staff verifications. 100% non-custodial.',
-    actionsHtml: `<a class="btn btn-primary" href="${discordHref}" data-provider="discord" style="display:inline-flex; align-items:center; gap:8px;">${DISCORD_ICON}<span>Sign in with Discord</span></a>
-    <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>`,
-  })}
+  const content = `<header class="product-hero">
+  <div class="landing-shell">
+    <span class="brand-eyebrow">Access Portal</span>
+    <div data-tc-signed-out>
+      <h1 class="product-hero__title">Sign in with Discord</h1>
+      <p class="product-hero__lede">Sign in to access your saved settings, sync vault rules, and check staff verifications. 100% non-custodial.</p>
+      <div class="hero-actions hero-actions--start">
+        <a class="btn btn-primary" href="${discordHref}" data-provider="discord" style="display:inline-flex; align-items:center; gap:8px;">${DISCORD_ICON}<span>Sign in with Discord</span></a>
+        <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>
+      </div>
+    </div>
+    <div data-tc-signed-in>
+      <h1 class="product-hero__title">You're in.</h1>
+      <div id="login-status-box" class="login-card">
+        <img class="login-card__avatar" data-tc-user-avatar src="https://cdn.discordapp.com/embed/avatars/0.png" alt="" width="56" height="56" referrerpolicy="no-referrer"/>
+        <div class="login-card__text">
+          <span class="login-card__label">Signed In with Discord</span>
+          <span id="login-username" class="login-card__name">Welcome, <span data-tc-user-name></span></span>
+          <span class="login-card__staff" data-tc-staff-badge hidden>Staff</span>
+        </div>
+      </div>
+      <div class="hero-actions hero-actions--start">
+        <a class="btn btn-primary" href="${dirHref('docs', 'dashboard')}">Your dashboard</a>
+        <a class="hero-actions__secondary-link" href="${dirHref('docs', 'login')}" id="login-signout">Sign out</a>
+      </div>
+    </div>
+  </div>
+</header>
 <main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
-      <div id="login-status-box" style="display:none; background: rgba(23,195,178,0.12); border: 1px solid #17c3b2; border-radius: 8px; padding: 16px; margin-bottom: 1.5rem; max-width: 540px;">
-        <span style="color:#17c3b2; font-weight:700; font-size:0.95rem; display:block; margin-bottom:4px;">Signed In with Discord</span>
-        <span id="login-username" style="color:#fff; font-size:0.85rem;"></span>
-      </div>
       <p id="login-error" class="error" role="alert" hidden>Discord sign-in failed or was cancelled. Try again.</p>
       <div style="background: rgba(255,255,255,0.03); border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem; max-width: 540px; margin-top: 1rem;">
         <h3 style="font-size: 0.95rem; color: #fff; margin-bottom: 0.5rem;">Looking for the Community Server?</h3>
@@ -2175,33 +2310,51 @@ function buildLoginPage() {
 </main>
 <script>
 (function () {
+  function refresh() { if (window.tcAuth) window.tcAuth.render(); }
   var params = new URLSearchParams(window.location.search);
   if (params.get('error')) {
     var el = document.getElementById('login-error');
     if (el) el.hidden = false;
+  }
+  var out = document.getElementById('login-signout');
+  if (out) {
+    out.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.tcAuth) window.tcAuth.signOut();
+      else {
+        try { localStorage.removeItem('tc_token'); localStorage.removeItem('tc_user'); localStorage.removeItem('tc_token_exp'); } catch (err) {}
+        document.documentElement.classList.remove('tc-signed-in');
+      }
+    });
   }
   var hash = window.location.hash.substring(1);
   if (hash) {
     var hashParams = new URLSearchParams(hash);
     var token = hashParams.get('access_token') || hashParams.get('token');
     if (token) {
+      var expiresIn = Number(hashParams.get('expires_in') || 0);
+      // Keep the token out of the address bar and history.
+      try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
       try {
         localStorage.setItem('tc_token', token);
+        if (expiresIn > 0) localStorage.setItem('tc_token_exp', String(Date.now() + expiresIn * 1000));
+        else localStorage.removeItem('tc_token_exp');
       } catch (e) {}
       fetch('https://discord.com/api/v10/users/@me', {
         headers: { Authorization: 'Bearer ' + token }
       })
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(user) {
-          if (user) {
-            var box = document.getElementById('login-status-box');
-            var nameEl = document.getElementById('login-username');
-            if (box) box.style.display = 'block';
-            if (nameEl) nameEl.textContent = 'Welcome, ' + (user.global_name || user.username);
+          if (user && user.id) {
             try {
               localStorage.setItem('tc_user', JSON.stringify(user));
             } catch (e) {}
+          } else {
+            try { localStorage.removeItem('tc_token'); localStorage.removeItem('tc_token_exp'); } catch (e) {}
+            var err = document.getElementById('login-error');
+            if (err) err.hidden = false;
           }
+          refresh();
         })
         .catch(function() {});
     }
