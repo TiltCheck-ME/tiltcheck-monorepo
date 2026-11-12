@@ -1863,6 +1863,260 @@ td {
   line-height: 1.6;
 }
 
+/* /cooldown/ — pick a length, one lock button */
+.cooldown-banner {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: var(--radius-sm);
+}
+.cooldown-banner__title {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+.cooldown-banner__text {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #f4f7f2;
+}
+.cooldown-banner__wallet {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #a9b6c4;
+  word-break: break-all;
+}
+.cooldown-lock {
+  margin: 1.25rem 0 0.75rem;
+}
+.cooldown-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #d7e0d8;
+}
+.cooldown-durs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+.cooldown-dur-btn {
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #d7e0d8;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.cooldown-dur-btn.active,
+.cooldown-dur-btn[aria-pressed="true"] {
+  color: #17c3b2;
+  background: rgba(23, 195, 178, 0.15);
+  border-color: #17c3b2;
+}
+.cooldown-dur-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.cooldown-dur-btn:focus-visible,
+.cooldown-optional-toggle:focus-visible {
+  outline: 2px solid #48d5c6;
+  outline-offset: 2px;
+}
+.cooldown-lock-btn {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1rem;
+  font-weight: 900;
+}
+.cooldown-lock-btn:disabled {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: none;
+  background: #0f2e2b;
+  color: #9ff0e6;
+  border: 1px solid #17c3b2;
+}
+.cooldown-lock-status {
+  margin: 0.75rem 0 0;
+  font-weight: 700;
+  color: #9ff0e6;
+}
+.cooldown-lock .cooldown-fine {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: #a9b6c4;
+}
+.cooldown-note {
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #d7e0d8;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #283347;
+  border-radius: var(--radius-sm);
+}
+.cooldown-note a {
+  color: #48d5c6;
+  font-weight: 700;
+}
+.cooldown-optional-toggle {
+  display: inline-block;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #48d5c6;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.cooldown-optional-toggle::after {
+  content: " +";
+}
+.cooldown-optional-toggle[aria-expanded="true"]::after {
+  content: " \2212";
+}
+.cooldown-wallet {
+  margin: 0.25rem 0 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #283347;
+  border-radius: var(--radius-sm);
+}
+.cooldown-wallet[hidden],
+.cooldown-note[hidden],
+.cooldown-lock-status[hidden] {
+  display: none;
+}
+.cooldown-wallet__intro {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #c4ced8;
+}
+.cooldown-wallet__btn {
+  width: 100%;
+}
+.cooldown-wallet__row {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #1e293b;
+  border-radius: var(--radius-sm);
+}
+.cooldown-wallet__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #a9b6c4;
+}
+.cooldown-wallet__addr {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.cooldown-wallet__disconnect {
+  min-height: 36px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+  color: #c4ced8;
+  background: transparent;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.cooldown-wallet__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.cooldown-wallet__link {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #48d5c6;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.cooldown-how {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #283347;
+}
+.cooldown-how h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.cooldown-how__grid {
+  display: grid;
+  gap: 1rem;
+}
+.cooldown-how__card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #283347;
+  border-radius: var(--radius-sm);
+}
+.cooldown-how__card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: #17c3b2;
+}
+.cooldown-how__card p {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #c4ced8;
+}
+.cooldown-how__card p:last-child {
+  margin-bottom: 0;
+}
+.cooldown-how__code {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #38bdf8;
+  background: #050608;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+}
+.cooldown-how__small {
+  font-size: 0.78rem;
+}
+@media (max-width: 380px) {
+  .cooldown-durs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .nudge-toast__text {
   margin: 0.85rem 0 0;
   font-family: var(--font-mono);
