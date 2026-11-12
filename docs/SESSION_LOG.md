@@ -2,6 +2,14 @@
 
 # Session Log
 
+## 2026-11-11 — fix(pages): verify page styles, footer sign-in when signed in, Phantom mobile link
+
+- /tools/verify/ rendered unstyled: it sits two folders deep but was built with the one-folder depth, so `../styles/base.css` resolved to /tools/styles/base.css (404). convert-markdown.js now has a third depth, 'nested' ('../../'), shared by assetHref/href/dirHref, and buildVerifyPage + buildHouseEdgePage use it. That also fixed their manifest, icon and every nav/footer link (all pointed under /tools/).
+- Path audit of all 60 built pages: every page linked the favicon/apple-touch-icon as styles/icon.png, which is never written (the icon is copied to /icon.png). The icon links now point at the site-root icon.png. After the fix, 0 stylesheet, script, manifest or icon refs point at a missing file.
+- Footer "Discord Sign In" now becomes "Your dashboard" (/dashboard/) when tc_token and tc_user are present and tc_token_exp has not passed; it flips back on sign-out or in another tab. The shared header script's signed-in check also respects tc_token_exp now. Signed out, the footer link is unchanged.
+- /cooldown/ on a phone (iOS/Android user agent, incl. iPadOS) with no injected wallet: the "No Solana Wallet Detected" notice now offers "Open in Phantom app", a Phantom browse deeplink (https://phantom.com/ul/browse/<encoded page URL>?ref=<encoded origin>, per docs.phantom.com Deeplinks > Browse) that reopens the page inside Phantom's in-app browser. "Lock In-Browser (No Wallet)" stays next to it. Desktop keeps Install Phantom.
+- Checked locally: all inline scripts pass node --check, jsdom passes for the footer swap (signed out, signed in, expired, sign-out) and the Phantom button (iPhone, Android, desktop, wallet injected), and no old tool names show in visible text.
+
 ## 2026-11-11 — feat(pages): tiltcheck.me quick fixes, simpler tool names, signed-in header, Discord sign-in fix
 
 - Homepage quick fixes (3e0bc59): page title is now "TiltCheck | House always wins? Not today."; the nav shows a visible "Sign in" label next to the Discord icon; removed the duplicate WinCheck section.
