@@ -95,4 +95,22 @@ describe('popup behavior', () => {
     (document.getElementById('btn-dashboard') as HTMLAnchorElement).click();
     expect(created).toContain('https://tiltcheck.me/dashboard/');
   });
+
+  it('the tagline is a quiet Ko-fi link (no id, labelled, opens a tab) and nothing else asks for tips', async () => {
+    mountPopup();
+    const { created } = mockChrome({});
+    const { initPopup } = await import('../../src/popup.js');
+    await initPopup();
+    const links = [...document.querySelectorAll<HTMLAnchorElement>('a[href*="ko-fi.com"]')];
+    expect(links).toHaveLength(1);
+    const tip = links[0]!;
+    expect(tip.getAttribute('href')).toBe('https://ko-fi.com/jmenichole7');
+    expect(tip.getAttribute('aria-label')).toBe('Tip the dev on Ko-fi');
+    expect(tip.textContent?.trim()).toBe('Made for Degens. By Degens.');
+    expect(tip.closest('.footer')).not.toBeNull();
+    tip.click();
+    expect(created).toContain('https://ko-fi.com/jmenichole7');
+    const visible = popupHtml.replace(/<style[\s\S]*?<\/style>/, '').replace(/<[^>]+>/g, ' ');
+    expect(visible).not.toMatch(/tip jar|buy me|support (us|the dev)|donate/i);
+  });
 });

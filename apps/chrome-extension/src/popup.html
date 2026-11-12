@@ -43,6 +43,9 @@
     .switch[aria-checked="true"]::after { transform: translateX(22px); }
     .footer { color: var(--muted); font-size: 11px; text-align: center; line-height: 1.5; }
     .footer a { color: var(--teal); }
+    .footer a.tip { color: var(--muted); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 0; }
+    .footer a.tip:hover, .footer a.tip:focus-visible { color: var(--teal); }
+    .footer a.tip svg { opacity: 0.7; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -81,7 +84,9 @@
   <!-- 3. Everything else lives on the dashboard -->
   <a class="btn btn-primary" id="btn-dashboard" href="https://tiltcheck.me/dashboard/" target="_blank" rel="noopener noreferrer">Open Dashboard</a>
 
-  <p class="footer">Need to talk to someone? <a href="tel:18004262537">1-800-GAMBLER</a><br />© 2024–2026 TiltCheck Ecosystem</p>
+  <p class="footer">Need to talk to someone? <a href="tel:18004262537">1-800-GAMBLER</a><br />
+    <a class="tip" href="https://ko-fi.com/jmenichole7" target="_blank" rel="noopener noreferrer" data-open-tab aria-label="Tip the dev on Ko-fi">Made for Degens. By Degens.<svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M10 11.5c-.8-.9-2.3-.6-2.3.7 0 1 1.2 1.8 2.3 2.6 1.1-.8 2.3-1.6 2.3-2.6 0-1.3-1.5-1.6-2.3-.7Z"/></svg></a><br />
+    © 2024–2026 TiltCheck Ecosystem</p>
 
   <script src="popup.js"></script>
 </body>

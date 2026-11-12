@@ -179,6 +179,31 @@ describe('dashboard Settings', () => {
     }
   });
 
+  it('the tilt setting offers a break, it does not lock on its own', () => {
+    const { doc } = open(dashboardHtml, 'https://tiltcheck.me/dashboard/');
+    const label = doc.querySelector('label[for="set-autoBreak"]')?.textContent || doc.getElementById('set-autoBreak')?.closest('label')?.textContent || '';
+    expect(label).toMatch(/Offer a break when I'm tilting/);
+    expect(label).toMatch(/asks first/);
+    const text = doc.querySelector('main')?.textContent || '';
+    expect(text).not.toMatch(/Lock me out on its own/);
+    expect(text).toContain('Tilt score that brings up the offer');
+    expect(text).toContain('How long the break lasts if I take it');
+  });
+
+  it('dashboard footer tagline is a quiet Ko-fi link; other pages keep plain text', () => {
+    const { doc } = open(dashboardHtml, 'https://tiltcheck.me/dashboard/');
+    const tip = doc.querySelector('footer a.site-footer__tag') as HTMLAnchorElement | null;
+    expect(tip).not.toBeNull();
+    expect(tip!.getAttribute('href')).toBe('https://ko-fi.com/jmenichole7');
+    expect(tip!.getAttribute('aria-label')).toBe('Tip the dev on Ko-fi');
+    expect(tip!.getAttribute('rel')).toContain('noopener');
+    expect(tip!.textContent?.trim()).toBe('Made for Degens. By Degens.');
+    expect(tip!.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+    const c = open(cooldownHtml, 'https://tiltcheck.me/cooldown/').doc;
+    expect(c.querySelector('footer a.site-footer__tag')).toBeNull();
+    expect(c.querySelector('footer span.site-footer__tag')?.textContent).toBe('Made for Degens. By Degens.');
+  });
+
   it('signed out: shows Discord sign-in and hides the form', async () => {
     const fetchImpl = vi.fn();
     const { doc } = open(dashboardHtml, 'https://tiltcheck.me/dashboard/', { fetchImpl });

@@ -238,7 +238,17 @@ function navHtml(depth, current) {
 </nav>`;
 }
 
-function footerHtml(depth) {
+const COFFEE_ICON = '<svg class="site-footer__tip-icon" aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M10 11.5c-.8-.9-2.3-.6-2.3.7 0 1 1.2 1.8 2.3 2.6 1.1-.8 2.3-1.6 2.3-2.6 0-1.3-1.5-1.6-2.3-.7Z"/></svg>';
+
+/** Footer tagline. On the dashboard it doubles as a quiet Ko-fi tip link (no popups, no nags). */
+function footerTagHtml(current) {
+  if (current === 'dashboard') {
+    return `<a class="site-footer__tag site-footer__tag--tip" href="${KOFI_URL}" target="_blank" rel="noopener noreferrer" aria-label="Tip the dev on Ko-fi">${FOOTER} ${COFFEE_ICON}</a>`;
+  }
+  return `<span class="site-footer__tag">${FOOTER}</span>`;
+}
+
+function footerHtml(depth, current) {
   return `<footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
     <p class="site-footer__more-label">Tools &amp; Resources</p>
@@ -258,7 +268,7 @@ function footerHtml(depth) {
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
-  <span class="site-footer__tag">${FOOTER}</span>
+  ${footerTagHtml(current)}
   ${COPYRIGHT}
 </footer>`;
 }
@@ -450,7 +460,7 @@ ${extraHead}
 <body>
 ${navHtml(depth, current)}
 ${body}
-${footerHtml(depth)}
+${footerHtml(depth, current)}
 ${AUTH_NAV_SCRIPT}
 ${body.includes('data-staff-only') ? STAFF_REVEAL_SCRIPT : ''}
 </body>

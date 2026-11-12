@@ -139,6 +139,14 @@ export async function initPopup(): Promise<void> {
     await setExtensionEnabled(next);
   });
 
+  // Quiet footer links (the Ko-fi tagline) open in a normal tab.
+  document.querySelectorAll<HTMLAnchorElement>('a[data-open-tab]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.tabs.create({ url: a.href });
+    });
+  });
+
   el('btn-dashboard')?.addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: DASHBOARD_URL });
