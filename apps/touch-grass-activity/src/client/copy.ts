@@ -9,8 +9,7 @@ export const COPY = {
   nobodyHere: 'Just you. Invite the group chat.',
   tiles: {
     dad: { name: 'Degens Against Decency', desc: 'Worst card wins. 3 to 8 players. Points are bragging rights.' },
-    brk: { name: 'Touch Grass break', desc: 'Pick 5, 10 or 15. One clock for the whole call.' },
-    trivia: { name: 'Trivia', desc: 'Coming soon.' },
+    trivia: { name: 'Trivia', desc: '10 questions, 15 seconds each. No host, anyone hits Start.' },
   },
   back: 'Lobby',
   guestBanner: 'Guest mode. Fake local user, nothing leaves this browser.',
@@ -41,45 +40,26 @@ export const COPY = {
     playAgain: 'Run it back',
     judgeTag: 'JUDGE',
   },
-  brk: {
-    title: 'Touch Grass break',
-    idleBody: 'One shared clock for everyone in the call. Bailing is allowed. It will be noted.',
-    pick: 'How long?',
-    minutes: (m: number) => `${m} min`,
-    start: (m: number) => `Start ${m} min break`,
-    runningTitle: 'Grass in progress',
-    runningBody: 'Phone down. Stand up. The tab will still be there.',
-    bail: 'Bail early',
-    bailedTitle: 'You bailed',
-    crew: 'Still out there',
-    doneTitle: 'Break over',
-    stuckIt: 'Stuck it out',
-    bailedList: 'Folded early',
-    nobodyStuck: 'Nobody made it. Legendary.',
-    shareCard: (m: number) => `${m} minute Touch Grass break`,
-    share: 'Share to chat',
-    copy: 'Copy result',
-    copied: 'Copied.',
-    again: 'New break',
-    left: 'left the call',
+  trivia: {
+    title: 'Trivia',
+    idleBody: '10 questions. 15 seconds each. Anyone taps Start, everyone in the call plays.',
+    scoring: 'Right answer 100, up to +50 for speed. Points are bragging rights only.',
+    start: 'Start trivia',
+    again: 'Run it back',
+    question: (n: number, total: number) => `Q${n} / ${total}`,
+    locked: 'Locked in. No take-backs.',
+    lockedCount: (done: number, all: number) => `${done}/${all} locked`,
+    spectating: "Spectating this one. You're in from the next question.",
+    notPlaying: 'Not on the board. Hit Start next game, or wait for the next question.',
+    right: (pts: number) => `Correct. +${pts}`,
+    wrong: 'Wrong. +0',
+    missed: 'No answer. +0',
+    nextUp: 'Next question in a sec.',
+    board: 'Board',
+    overTitle: 'Final board',
+    winner: (names: string) => `${names} takes it. Bragging rights only.`,
+    noWinner: 'Nobody scored. Rough table.',
+    answers: (n: number) => (n === 1 ? '1 pick' : `${n} picks`),
   },
+  away: 'away',
 } as const;
-
-/** Roasts for bailing early. {t} is the m:ss they lasted. */
-export const BAIL_ROASTS: readonly string[] = [
-  'Bailed at {t}. The grass filed a missing persons report.',
-  '{t} in. Goldfish are taking notes.',
-  'Out at {t}. Speedrun of folding, any%.',
-  'Tapped out at {t}. Bold of you to call that a break.',
-  '{t}. The couch wins again.',
-  'Lasted {t}. Your attention span wants a word.',
-  '{t} and done. The outdoors will survive the loss.',
-  'Folded at {t}. Even the pigeons stayed longer.',
-];
-
-export function roastFor(userId: string, bailedAtMs: number, clock: string): string {
-  let h = 0;
-  for (const ch of `${userId}:${bailedAtMs}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const line = BAIL_ROASTS[h % BAIL_ROASTS.length] ?? BAIL_ROASTS[0] ?? '';
-  return line.replace('{t}', clock);
-}

@@ -5,6 +5,12 @@
 import { RoomHost, type HostSocket } from './host.js';
 import { verifyToken, type AuthEnv } from './auth.js';
 import type { RoomUser } from '../../src/shared/protocol.js';
+import { LIVE_REGISTRY_NAME } from './registry-do.js';
+
+export interface RoomEnv extends AuthEnv {
+  /** Singleton live-tables registry. Optional so an older deploy without the binding keeps working. */
+  LIVE?: DurableObjectNamespace;
+}
 
 interface SocketAttachment {
   instanceId: string;
@@ -31,7 +37,7 @@ export class TouchGrassRoom implements DurableObject {
 
   constructor(
     private readonly ctx: DurableObjectState,
-    env: AuthEnv,
+    env: RoomEnv,
   ) {
     this.host = new RoomHost({
       storage: {
@@ -43,6 +49,11 @@ export class TouchGrassRoom implements DurableObject {
       setWake: async (at) => {
         if (at === null) await ctx.storage.deleteAlarm();
         else await ctx.storage.setAlarm(at);
+      },
+      report: async (r) => {
+        if (!env.LIVE) return;
+        const stub = env.LIVE.get(env.LIVE.idFromName(LIVE_REGISTRY_NAME));
+        await stub.fetch('https://live.internal/report', { method: 'POST', body: JSON.stringify(r), headers: { 'Content-Type': 'application/json' } });
       },
     });
   }
@@ -70,6 +81,7 @@ export class TouchGrassRoom implements DurableObject {
     const url = new URL(req.url);
     const instanceId = await this.instance(url);
     const op = url.pathname.slice(1);
+    await this.host.setGuild(instanceId, url.searchParams.get('guild'));
 
     if (op === 'ws') {
       const pair = new WebSocketPair();

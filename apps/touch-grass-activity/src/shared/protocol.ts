@@ -3,12 +3,17 @@
 
 import type { Card } from './deck.js';
 import type { DadPhase, DadRoundResult } from './dad.js';
-import type { BreakMinutes, BreakPhase } from './breakTimer.js';
+import type { TriviaPhase } from './trivia.js';
 
 export interface RoomUser {
   id: string;
   name: string;
   avatar: string | null;
+}
+
+/** A member as everyone sees them. `away` = connection dropped, seat held for the grace period. */
+export interface RoomMemberView extends RoomUser {
+  away: boolean;
 }
 
 export type ClientAction =
@@ -19,9 +24,10 @@ export type ClientAction =
   | { t: 'dad.pick'; entryId: string }
   | { t: 'dad.next' }
   | { t: 'dad.reset' }
-  | { t: 'break.start'; minutes: BreakMinutes }
-  | { t: 'break.bail' }
-  | { t: 'break.reset' }
+  | { t: 'trivia.start' }
+  | { t: 'trivia.answer'; qid: string; choice: number }
+  | { t: 'trivia.leave' }
+  | { t: 'leave' }
   | { t: 'ping' };
 
 /** First WebSocket message. Polling sends the token as a Bearer header instead. */
@@ -42,6 +48,7 @@ export interface DadSeatView {
   score: number;
   isJudge: boolean;
   submitted: boolean;
+  away: boolean;
 }
 
 export interface DadView {
@@ -64,15 +71,33 @@ export interface DadView {
   me: { seated: boolean; waiting: boolean; isJudge: boolean };
 }
 
-export interface BreakView {
-  phase: BreakPhase;
-  minutes: BreakMinutes | null;
-  startedBy: string | null;
-  startedAt: number | null;
+export interface TriviaRevealView {
+  questionId: string;
+  index: number;
+  text: string;
+  choices: string[];
+  correct: number;
+  counts: number[];
+  results: Array<{ id: string; choice: number | null; correct: boolean; points: number }>;
+}
+
+export interface TriviaView {
+  phase: TriviaPhase;
+  game: number;
+  /** 1-based question number, 0 before the first game. */
+  number: number;
+  total: number;
+  /** Question in flight. Never carries the correct choice. */
+  question: { id: string; text: string; choices: string[] } | null;
   endsAt: number | null;
-  endedAt: number | null;
-  crew: Array<{ id: string; bailedAt: number | null; left: boolean }>;
-  me: { inBreak: boolean; bailedAt: number | null };
+  revealEndsAt: number | null;
+  answeredCount: number;
+  playingCount: number;
+  /** Only present in reveal and over, for the question that just closed. */
+  reveal: TriviaRevealView | null;
+  scores: Array<{ id: string; score: number; away: boolean }>;
+  winnerIds: string[];
+  me: { playing: boolean; answered: number | null };
 }
 
 export interface RoomView {
@@ -80,9 +105,9 @@ export interface RoomView {
   serverNow: number;
   version: number;
   you: string;
-  members: RoomUser[];
+  members: RoomMemberView[];
   dad: DadView;
-  brk: BreakView;
+  trivia: TriviaView;
 }
 
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
@@ -107,8 +132,9 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'dad.stand':
     case 'dad.next':
     case 'dad.reset':
-    case 'break.bail':
-    case 'break.reset':
+    case 'trivia.start':
+    case 'trivia.leave':
+    case 'leave':
     case 'ping':
       return { t: m.t };
     case 'dad.start':
@@ -118,11 +144,18 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
       return typeof m.cardId === 'string' && ID_RE.test(m.cardId) ? { t: 'dad.submit', cardId: m.cardId } : null;
     case 'dad.pick':
       return typeof m.entryId === 'string' && ID_RE.test(m.entryId) ? { t: 'dad.pick', entryId: m.entryId } : null;
-    case 'break.start':
-      return m.minutes === 5 || m.minutes === 10 || m.minutes === 15 ? { t: 'break.start', minutes: m.minutes } : null;
+    case 'trivia.answer':
+      return typeof m.qid === 'string' && ID_RE.test(m.qid) && Number.isInteger(m.choice) && (m.choice as number) >= 0 && (m.choice as number) <= 3
+        ? { t: 'trivia.answer', qid: m.qid, choice: m.choice as number }
+        : null;
     default:
       return null;
   }
+}
+
+/** Discord guild ids are snowflakes. Anything else is dropped. */
+export function isValidGuildId(id: string | null | undefined): id is string {
+  return typeof id === 'string' && /^\d{5,25}$/.test(id);
 }
 
 /** Discord instance ids look like i-123-gc-456-789. Keep the key boring. */

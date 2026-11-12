@@ -4,12 +4,13 @@
 
 A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
-- **Lobby**: who's here (avatars) and three tiles.
+- **Lobby**: who's here (avatars, "away" badge) and two live tiles, each with a seated/playing count.
 - **Degens Against Decency (DA&D)**: 3 to 8 players, rotating judge, 7-card hands, anonymous shuffled answers, first to N points (default 5). Points are bragging rights only.
-- **Touch Grass break**: pick 5 / 10 / 15 minutes, one shared countdown for everyone in the Activity instance. Bailing is optional, gets roasted, and is recorded as "bailed at m:ss". Share card at the end.
-- **Trivia**: lobby tile only, "coming soon" (phase 2).
+- **Trivia**: self-running, no host. Anyone taps Start; 10 questions, 4 choices, 15 s answer window, 4 s reveal, scoreboard after each question and at the end. 100 points for a right answer plus up to 50 for speed. Late joiners spectate one question and are dealt in at the next. Bank of 116 hand-checked questions (33 from the shared arena bank, 11 from the trivia.live seed, 72 new) (`src/shared/triviaBank.ts`), drawn without repeats per instance. No AI at runtime.
 
-No money anywhere: no rewards, wallets, payments, casino links or paid features. `tests/no-money.test.ts` fails the build if those words show up in the client or the deck.
+The group break timer was removed on 2026-11-12 (Jamie's call after testing it on iPhone).
+
+No money anywhere: no rewards, prizes, extra lives, wallets, payments, ads or paid features. Points are bragging rights only. `tests/no-money.test.ts` fails the build if banned words show up in the client, the DA&D deck or the trivia bank.
 
 ## Layout
 
@@ -19,16 +20,21 @@ apps/touch-grass-activity/
   src/client/                     UI, Discord SDK setup, transports (WebSocket + polling, guest room)
   src/shared/                     room logic used by BOTH the worker and guest mode
     dad.ts                        DA&D state machine
-    breakTimer.ts                 group break timer
-    room.ts                       members, per-user views (hands never leak), rate limit
+    trivia.ts                     trivia state machine (timers, scoring, late join)
+    triviaBank.ts                 the question bank (server and tests only; the browser build swaps in
+                                  src/client/guestTriviaBank.ts so answers never ship to clients)
+    room.ts                       members + away grace, per-user views (hands/answers never leak), rate limit
+    live.ts                       anonymous live-tables report + registry board (TTL)
     deck.ts                       original TiltCheck cards (no AI generation)
   worker/                         Cloudflare Worker + Durable Object (own wrangler.toml)
     src/index.ts                  routes
     src/room-do.ts                Durable Object adapter (WebSocket Hibernation API + alarms)
+    src/registry-do.ts            LiveRegistry singleton Durable Object (GET /api/live)
     src/host.ts                   DO logic with injectable storage/sockets (unit tested)
     src/auth.ts                   code -> token exchange, token -> user lookup
-  tests/                          vitest: dad, break, room host, auth, worker (local workerd), client DOM, no-money
-  scripts/simulate-dad.ts         3-player game to a winner against the room logic
+  tests/                          vitest: dad, trivia, live registry, room host, auth, worker (local workerd), client DOM, no-money
+  scripts/simulate-dad.ts         3-player DA&D game to a winner against the room logic
+  scripts/simulate-trivia.ts      3-player 10-question trivia game with a mid-game drop and rejoin
 ```
 
 ## Run it locally
@@ -58,7 +64,7 @@ Checks:
 pnpm --filter @tiltcheck/touch-grass-activity typecheck
 pnpm --filter @tiltcheck/touch-grass-activity test
 pnpm --filter @tiltcheck/touch-grass-activity build      # -> dist/
-pnpm --filter @tiltcheck/touch-grass-activity simulate   # 3-player game to a winner
+pnpm --filter @tiltcheck/touch-grass-activity simulate   # DA&D game to a winner, then a full trivia game
 ```
 
 ## How it talks to Discord
@@ -75,10 +81,38 @@ Client ID: `VITE_DISCORD_CLIENT_ID`, falling back to "Tilt Check" `1445916179163
 ## Server rules
 
 - One Durable Object per Discord `instanceId` (`idFromName(instanceId)`).
-- The server owns hands, judge, submissions, scores and the break clock. Each client gets its own view: only its own hand, and answers are anonymous and shuffled with random ids while the judge picks.
+- The server owns hands, judge, submissions, scores and the trivia clock. Each client gets its own view: only its own hand, and answers are anonymous and shuffled with random ids while the judge picks. Trivia views never carry the correct choice (or anyone else's pick) before the reveal; one answer per player per question, inside the window, for the question in flight.
 - Every action is validated (phase, player, judge, card in hand) and rate limited per user (token bucket, 10 burst, 2/sec). Messages over 4 KB are dropped. The token endpoint has a per-isolate IP limit.
-- Leaving: a socket close (last tab for that user) removes them from the room. Polling-only users are swept after 45 s of silence. A judge leaving voids the round and returns submitted cards. Under 3 players the game pauses with scores kept.
+- A dropped connection is not leaving. When a user's last socket closes (iOS suspends the webview on an app switch) they are marked **away** and keep their seat, hand and score for 3 minutes (DO alarm). Reconnecting with the same Discord user id re-attaches to the seat and gets the private hand back. Polling-only users who go quiet for 45 s are marked away the same way. Only grace expiry, "Stand up", or an explicit `leave` removes someone.
+- DA&D: an away judge holds the round until the grace period ends, then the round is voided and submitted cards return. Under 3 players the game pauses with scores kept. Trivia: away players stay on the board and score 0 for questions they miss; they do not hold the answer window open.
+- The client reconnects with backoff (1 s doubling to 15 s), and immediately on `visibilitychange`, `pageshow` and `focus`; a socket that looks open after a resume gets a ping and is replaced if nothing comes back in 3 s.
 - Late joiners sit in line and are dealt in at the next round.
+
+## Live tables (`GET /api/live`)
+
+For the TiltCheck extension (not wired yet). Each room sends an anonymous summary to one `LiveRegistry` Durable Object on every change and on a heartbeat (at most every 50 s while anyone is in the room). Entries older than 120 s drop off; a room that empties is removed right away. Guild id comes from the Discord SDK (`sdk.guildId`, passed on the room URL as `?guild=`); DMs and guest mode report `null`.
+
+```
+GET /api/live?guild=<snowflake>      counts for that guild
+GET /api/live                        global totals
+
+200 {
+  "ok": true,
+  "guild": "<snowflake>" | null,
+  "ttlSeconds": 120,
+  "updatedAt": <ms epoch>,
+  "rooms": <instances with anyone in them>,
+  "tables": <dad tables + trivia tables>,
+  "joinable": <dad joinable + trivia joinable>,
+  "games": {
+    "dad":    { "tables": n, "seated": n,  "joinable": n },
+    "trivia": { "tables": n, "playing": n, "joinable": n }
+  }
+}
+400 {"error":"bad-guild"}   429 {"error":"rate-limited"} (Retry-After: 5)   503 {"error":"not-configured"}
+```
+
+A DA&D table is an instance with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. No user ids, names, avatars or instance ids in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
 
 ## Current test deploy (2026-11-12)
 
@@ -151,5 +185,5 @@ Delete the old "Jamie started an activity / Join" messages in the channel by han
 
 - Instance membership is not checked server-side. Anyone with a valid Discord token who knows an `instanceId` can join that room. Discord's docs say not to trust client data; a follow-up can verify membership with the activity-instance API using the bot token.
 - Room state is persisted to Durable Object storage on every change. Rate-limit buckets are in memory and reset if the object is evicted.
-- Share to chat (`openShareMomentDialog` after uploading the PNG to `/applications/<id>/attachment`) is written but untested; it falls back to copying the result text.
-- Trivia is a stub tile.
+- The guild id behind `/api/live` is client-reported (from the SDK) and not verified server-side; it only affects anonymous counts.
+- While a non-judge DA&D player is away during submitting, the round waits for them (up to the 3-minute grace) before closing.

@@ -4,15 +4,17 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Touch Grass Discord Activity: lobby, Degens Against Decency, group break timer. Draft, not deployed.",
+  "description": "Touch Grass Discord Activity: lobby, Degens Against Decency, group trivia. Test deploy on Cloudflare.",
   "scripts": {
     "dev": "vite",
     "dev:worker": "wrangler dev --config worker/wrangler.toml",
     "build": "tsc -p tsconfig.json && vite build",
     "typecheck": "tsc -p tsconfig.json && tsc -p worker/tsconfig.json && tsc -p tsconfig.tests.json",
     "test": "vitest run --config vitest.config.ts",
-    "simulate": "tsx scripts/simulate-dad.ts",
-    "preview": "vite preview"
+    "simulate": "tsx scripts/simulate-dad.ts && tsx scripts/simulate-trivia.ts",
+    "preview": "vite preview",
+    "simulate:dad": "tsx scripts/simulate-dad.ts",
+    "simulate:trivia": "tsx scripts/simulate-trivia.ts"
   },
   "dependencies": {
     "@discord/embedded-app-sdk": "^2.4.1"

@@ -1,6 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 // @vitest-environment jsdom
-// Guest-mode smoke test of the real client in jsdom: lobby -> DA&D with bots -> break.
+// Guest-mode smoke test of the real client in jsdom: lobby -> DA&D with bots -> trivia.
 import { beforeAll, describe, expect, it } from 'vitest';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -20,14 +20,17 @@ beforeAll(async () => {
 });
 
 describe('client in guest mode (no frame_id)', () => {
-  it('lobby shows the fake user and three tiles, trivia disabled', () => {
+  it('lobby shows the fake user and two live tiles with counts, no break tile', () => {
     expect(document.body.textContent).toContain('Guest mode');
     expect(document.querySelectorAll('.person')).toHaveLength(1);
     expect($('.person__name')?.textContent).toBe('Jme');
-    expect(document.querySelectorAll('.tile')).toHaveLength(3);
-    const trivia = $<HTMLButtonElement>('.tile--soon')!;
-    expect(trivia.disabled).toBe(true);
-    expect(trivia.textContent).toContain('Coming soon');
+    expect(document.querySelectorAll('.tile')).toHaveLength(2);
+    expect($('[data-count=dad]')?.textContent).toBe('0 seated');
+    expect($('[data-count=trivia]')?.textContent).toBe('0 playing');
+    const trivia = $<HTMLButtonElement>('.tile--trivia')!;
+    expect(trivia.disabled).toBe(false);
+    expect(document.body.textContent).not.toMatch(/break|soon/i);
+    expect(document.body.textContent).toContain('Step away from the reels. Sit at a table that is not a spin.');
   });
 
   it('plays DA&D against bots until someone wins', async () => {
@@ -53,15 +56,20 @@ describe('client in guest mode (no frame_id)', () => {
     expect($('[data-act="dad.reset"]')).not.toBeNull();
   }, 90_000);
 
-  it('break: start pulls you to the clock, bail shows a roast with the time', async () => {
+  it('trivia: start pulls you to question 1, answer locks, the answer is not marked before the reveal', async () => {
     await click('[data-go=lobby]');
-    await click('[data-go=break]');
-    await click('[data-minutes="5"]');
-    expect($('[data-act="break.start"]')?.textContent).toContain('5 min');
-    await click('[data-act="break.start"]');
-    expect($('[data-clock]')?.textContent).toMatch(/^[45]:\d\d$/);
-    expect(document.querySelectorAll('.break-panel .person').length).toBeGreaterThanOrEqual(1);
-    await click('[data-act="break.bail"]');
-    expect($('.roast')?.textContent).toMatch(/0:0\d/);
+    expect($('[data-count=dad]')?.textContent).toMatch(/^3 seated/);
+    await click('[data-go=trivia]');
+    await click('[data-act="trivia.start"]');
+    expect($('.bar__meta')?.textContent).toBe('Q1 / 10');
+    expect(document.querySelectorAll('[data-choice]')).toHaveLength(4);
+    expect(Number($('[data-trivia-clock]')?.textContent)).toBeGreaterThan(10);
+    expect($('.choice--correct')).toBeNull();
+    await click('[data-choice="2"]');
+    expect($('.choice--mine')?.getAttribute('data-choice')).toBe('2');
+    expect(document.body.textContent).toContain('Locked in');
+    expect(document.querySelectorAll('[data-choice]:not([disabled])')).toHaveLength(0);
+    await click('[data-go=lobby]');
+    expect($('[data-count=trivia]')?.textContent).toMatch(/^3 playing/);
   });
 });

@@ -3,8 +3,10 @@
 import { describe, expect, it } from 'vitest';
 import { RoomHost, type HostSocket } from '../worker/src/host.js';
 import type { RoomUser, ServerMessage } from '../src/shared/protocol.js';
-import type { RoomState } from '../src/shared/room.js';
+import { AWAY_GRACE_MS, type RoomState } from '../src/shared/room.js';
 import { makeRng } from '../src/shared/rng.js';
+import { ANSWER_MS, REVEAL_MS } from '../src/shared/trivia.js';
+import type { LiveReport } from '../src/shared/live.js';
 
 class FakeStorage {
   data = new Map<string, unknown>();
@@ -54,7 +56,11 @@ function setup() {
   const sockets: FakeSocket[] = [];
   let now = 1_000;
   const wakes: Array<number | null> = [];
+  const reports: LiveReport[] = [];
   const host = new RoomHost({
+    report: async (r) => {
+      reports.push(r);
+    },
     storage,
     sockets: () => sockets,
     verify: async (t) => USERS[t] ?? null,
@@ -71,7 +77,12 @@ function setup() {
     return s;
   };
   const act = (s: FakeSocket, a: object) => host.onMessage('i-test', s, JSON.stringify(a));
-  return { host, storage, sockets, connect, act, wakes, advance: (ms: number) => (now += ms), nowFn: () => now };
+  /** Simulate the socket dropping (iOS app switch): gone from the live list, then onClose. */
+  const drop = async (s: FakeSocket) => {
+    sockets.splice(sockets.indexOf(s), 1);
+    await host.onClose('i-test', s);
+  };
+  return { host, storage, sockets, connect, act, drop, wakes, reports, advance: (ms: number) => (now += ms), nowFn: () => now };
 }
 
 describe('RoomHost (Durable Object logic)', () => {
@@ -153,21 +164,100 @@ describe('RoomHost (Durable Object logic)', () => {
     expect(a.inbox.some((m) => m.t === 'error' && m.code === 'rate-limited')).toBe(true);
   });
 
-  it('closing the last socket for a user leaves the room; a second tab keeps them in', async () => {
-    const { connect, host, sockets } = setup();
+  it('a dropped socket marks the user away (not gone); a second tab keeps them fully here', async () => {
+    const { connect, drop } = setup();
     const a1 = await connect('tok-a');
     const a2 = await connect('tok-a');
     const b = await connect('tok-b');
-    sockets.splice(sockets.indexOf(a1), 1);
-    await host.onClose('i-test', a1);
-    expect(b.lastState().members).toHaveLength(2);
-    sockets.splice(sockets.indexOf(a2), 1);
-    await host.onClose('i-test', a2);
-    expect(b.lastState().members.map((m) => m.name)).toEqual(['Bo']);
+    await drop(a1);
+    expect(b.lastState().members.map((m) => [m.name, m.away])).toEqual([
+      ['Ana', false],
+      ['Bo', false],
+    ]);
+    await drop(a2);
+    expect(b.lastState().members.map((m) => [m.name, m.away])).toEqual([
+      ['Ana', true],
+      ['Bo', false],
+    ]);
   });
 
-  it('judge disconnect skips the round for everyone', async () => {
-    const { connect, act, host, sockets, storage } = setup();
+  it('away grace: disconnect then reconnect inside 3 minutes keeps the seat, hand and score', async () => {
+    const { connect, act, drop, advance, host, wakes } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c')];
+    for (const s of socks) await act(s, { t: 'dad.sit' });
+    await act(socks[0]!, { t: 'dad.start', target: 5 });
+    const a = socks[0]!;
+    const handBefore = a.lastState().dad.hand.map((c) => c.id);
+    expect(handBefore).toHaveLength(7);
+    await drop(a);
+    const seen = socks[1]!.lastState().dad;
+    expect(seen.seats).toHaveLength(3);
+    expect(seen.seats.find((x) => x.id === '100000001')?.away).toBe(true);
+    expect(wakes.at(-1)).toBe(1_000 + AWAY_GRACE_MS);
+    advance(AWAY_GRACE_MS - 10_000);
+    await host.onAlarm('i-test');
+    expect(socks[1]!.lastState().dad.seats).toHaveLength(3);
+    const back = await connect('tok-a');
+    const v = back.lastState().dad;
+    expect(v.me.seated).toBe(true);
+    expect(v.hand.map((c) => c.id)).toEqual(handBefore);
+    expect(v.seats.find((x) => x.id === '100000001')?.away).toBe(false);
+    expect(socks[1]!.lastState().members.every((m) => !m.away)).toBe(true);
+  });
+
+  it('away grace: after 3 minutes the seat is released and the player removed', async () => {
+    const { connect, act, drop, advance, host } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c'), await connect('tok-d')];
+    for (const s of socks) await act(s, { t: 'dad.sit' });
+    await act(socks[0]!, { t: 'dad.start', target: 5 });
+    const d = socks[3]!;
+    await drop(d);
+    advance(AWAY_GRACE_MS);
+    await host.onAlarm('i-test');
+    const v = socks[0]!.lastState();
+    expect(v.members.map((m) => m.name)).toEqual(['Ana', 'Bo', 'Cy']);
+    expect(v.dad.seats.map((x) => x.id)).not.toContain('100000004');
+    // Coming back after expiry is a fresh join: not seated, no hand.
+    const back = await connect('tok-d');
+    expect(back.lastState().dad.me.seated).toBe(false);
+    expect(back.lastState().dad.hand).toHaveLength(0);
+  });
+
+  it('explicit leave and stand remove right away, no grace', async () => {
+    const { connect, act } = setup();
+    const a = await connect('tok-a');
+    const b = await connect('tok-b');
+    await act(a, { t: 'dad.sit' });
+    await act(a, { t: 'dad.stand' });
+    expect(b.lastState().dad.seats).toHaveLength(0);
+    await act(a, { t: 'leave' });
+    expect(b.lastState().members.map((m) => m.name)).toEqual(['Bo']);
+    expect(a.closed).toBe(1000);
+  });
+
+  it('judge away: the round waits out the grace period, then skips', async () => {
+    const { connect, act, drop, advance, host, storage } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c'), await connect('tok-d')];
+    for (const s of socks) await act(s, { t: 'dad.sit' });
+    await act(socks[0]!, { t: 'dad.start' });
+    const judgeId = (await storage.get<RoomState>('room'))!.dad.judgeId!;
+    const judge = socks.find((s) => s.user!.id === judgeId)!;
+    const others = socks.filter((s) => s !== judge);
+    for (const p of others) await act(p, { t: 'dad.submit', cardId: p.lastState().dad.hand[0]!.id });
+    expect(others[0]!.lastState().dad.phase).toBe('judging');
+    await drop(judge);
+    advance(AWAY_GRACE_MS - 1);
+    await host.onAlarm('i-test');
+    expect(others[0]!.lastState().dad.phase).toBe('judging');
+    advance(1);
+    await host.onAlarm('i-test');
+    const v = others[0]!.lastState().dad;
+    expect(v.lastRound?.skipped).toBe('judge-left');
+    expect(v.seats).toHaveLength(3);
+  });
+
+  it('judge disconnect skips the round for everyone once the grace period ends', async () => {
+    const { connect, act, host, sockets, storage, advance } = setup();
     const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c'), await connect('tok-d')];
     for (const s of socks) await act(s, { t: 'dad.sit' });
     await act(socks[0]!, { t: 'dad.start' });
@@ -175,29 +265,102 @@ describe('RoomHost (Durable Object logic)', () => {
     const judge = socks.find((s) => s.user!.id === judgeId)!;
     sockets.splice(sockets.indexOf(judge), 1);
     await host.onClose('i-test', judge);
+    expect(socks.find((s) => s !== judge)!.lastState().dad.lastRound).toBeNull();
+    advance(AWAY_GRACE_MS);
+    await host.onAlarm('i-test');
     const v = socks.find((s) => s !== judge)!.lastState().dad;
     expect(v.lastRound?.skipped).toBe('judge-left');
     expect(v.phase).toBe('submitting');
     expect(v.seats).toHaveLength(3);
   });
 
-  it('break: alarm is scheduled at the end and the alarm finishes it', async () => {
-    const { connect, act, host, wakes, advance } = setup();
-    const a = await connect('tok-a');
-    const b = await connect('tok-b');
-    await act(a, { t: 'break.start', minutes: 5 });
-    const endsAt = a.lastState().brk.endsAt!;
-    expect(wakes.at(-1)).toBe(endsAt);
-    expect(b.lastState().brk.phase).toBe('running');
-    await act(b, { t: 'break.bail' });
-    expect(a.lastState().brk.crew.find((c) => c.id === '100000002')?.bailedAt).not.toBeNull();
-    advance(5 * 60_000);
-    await host.onAlarm('i-test');
-    expect(a.lastState().brk.phase).toBe('done');
-    expect(wakes.at(-1)).toBeNull();
+  it('trivia: 3 players over the host, alarms drive the round, answer hidden until reveal', async () => {
+    const { connect, act, host, wakes, advance, nowFn, storage } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c')];
+    await act(socks[1]!, { t: 'trivia.start' });
+    for (let q = 1; q <= 10; q += 1) {
+      const v = socks[0]!.lastState().trivia;
+      expect(v.phase).toBe('question');
+      expect(v.number).toBe(q);
+      for (const s of socks) expect(JSON.stringify(s.inbox.at(-1))).not.toContain('"correct"');
+      expect(wakes.at(-1)).toBe(v.endsAt);
+      const saved = (await storage.get<RoomState>('room'))!;
+      const correct = saved.trivia.current!.correct;
+      const qid = v.question!.id;
+      advance(1_000);
+      await act(socks[0]!, { t: 'trivia.answer', qid, choice: correct });
+      await act(socks[0]!, { t: 'trivia.answer', qid, choice: correct });
+      expect(socks[0]!.lastError()).toMatchObject({ code: 'already-answered' });
+      await act(socks[1]!, { t: 'trivia.answer', qid, choice: (correct + 1) % 4 });
+      // Cy sleeps: the window runs out on the alarm.
+      advance(ANSWER_MS);
+      await host.onAlarm('i-test');
+      const r = socks[2]!.lastState().trivia;
+      expect(r.phase).toBe('reveal');
+      expect(r.reveal!.correct).toBe(correct);
+      // Late answer after the window is refused.
+      await act(socks[2]!, { t: 'trivia.answer', qid, choice: correct });
+      expect(socks[2]!.lastError()?.code).toMatch(/not-open|too-late/);
+      advance(REVEAL_MS);
+      await host.onAlarm('i-test');
+    }
+    const end = socks[0]!.lastState().trivia;
+    expect(end.phase).toBe('over');
+    expect(end.winnerIds).toEqual(['100000001']);
+    expect(end.scores.find((x) => x.id === '100000001')!.score).toBe(10 * (100 + Math.round((50 * (ANSWER_MS - 1000)) / ANSWER_MS)));
+    expect(end.scores.find((x) => x.id === '100000003')!.score).toBe(0);
+    expect(nowFn()).toBeGreaterThan(0);
   });
 
-  it('polling fallback: state joins, action validates, quiet pollers get swept', async () => {
+  it('trivia: an away player stays on the board and scores 0 while away; back in time keeps the score', async () => {
+    const { connect, act, drop, host, advance, storage } = setup();
+    const socks = [await connect('tok-a'), await connect('tok-b'), await connect('tok-c')];
+    await act(socks[0]!, { t: 'trivia.start' });
+    let saved = (await storage.get<RoomState>('room'))!;
+    let qid = saved.trivia.current!.id;
+    for (const s of socks) await act(s, { t: 'trivia.answer', qid, choice: saved.trivia.current!.correct });
+    const afterQ1 = socks[0]!.lastState().trivia.scores.find((x) => x.id === '100000003')!.score;
+    expect(afterQ1).toBeGreaterThan(100);
+    advance(REVEAL_MS);
+    await host.onAlarm('i-test');
+    await drop(socks[2]!);
+    saved = (await storage.get<RoomState>('room'))!;
+    qid = saved.trivia.current!.id;
+    // Only the two connected players need to answer for the window to close.
+    await act(socks[0]!, { t: 'trivia.answer', qid, choice: saved.trivia.current!.correct });
+    await act(socks[1]!, { t: 'trivia.answer', qid, choice: saved.trivia.current!.correct });
+    const v = socks[0]!.lastState().trivia;
+    expect(v.phase).toBe('reveal');
+    const cy = v.scores.find((x) => x.id === '100000003')!;
+    expect(cy).toMatchObject({ away: true, score: afterQ1 });
+    const back = await connect('tok-c');
+    expect(back.lastState().trivia.me.playing).toBe(true);
+    expect(back.lastState().trivia.scores.find((x) => x.id === '100000003')!.score).toBe(afterQ1);
+  });
+
+  it('live registry: reports on change, with guild, and a zero-member report when the room empties', async () => {
+    const { connect, act, host, reports, drop, advance } = setup();
+    await host.setGuild('i-test', '123456789012345678');
+    const a = await connect('tok-a');
+    await act(a, { t: 'dad.sit' });
+    const last = reports.at(-1)!;
+    expect(last).toMatchObject({ instanceId: 'i-test', guildId: '123456789012345678', members: 1, games: { dad: { count: 1 } } });
+    const n = reports.length;
+    await act(a, { t: 'ping' });
+    expect(reports.length).toBe(n);
+    advance(60_000);
+    await act(a, { t: 'ping' });
+    expect(reports.length).toBe(n + 1);
+    await host.setGuild('i-test', '999999999999999999');
+    expect(reports.at(-1)!.guildId).toBe('123456789012345678');
+    await drop(a);
+    advance(AWAY_GRACE_MS);
+    await host.onAlarm('i-test');
+    expect(reports.at(-1)!.members).toBe(0);
+    expect(JSON.stringify(reports)).not.toMatch(/Ana|100000001/);
+  });
+
+  it('polling fallback: state joins, action validates, quiet pollers go away, then get swept', async () => {
     const { host, connect, advance } = setup();
     const ws = await connect('tok-a');
     const user = USERS['tok-b']!;
@@ -211,6 +374,12 @@ describe('RoomHost (Durable Object logic)', () => {
     const good = await host.pollAction('i-test', user, JSON.stringify({ t: 'dad.sit' }));
     expect(good.status).toBe(200);
     advance(60_000);
+    await host.onAlarm('i-test');
+    expect(ws.lastState().members.map((m) => [m.name, m.away])).toEqual([
+      ['Ana', false],
+      ['Bo', true],
+    ]);
+    advance(AWAY_GRACE_MS);
     await host.onAlarm('i-test');
     expect(ws.lastState().members.map((m) => m.name)).toEqual(['Ana']);
   });

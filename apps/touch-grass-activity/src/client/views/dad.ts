@@ -15,6 +15,7 @@ function scoreboard(view: RoomView): string {
       (s) => `<li class="score ${s.isJudge ? 'score--judge' : ''} ${s.id === view.you ? 'score--me' : ''}">
         ${avatarImg(userById(view, s.id), 'avatar avatar--sm')}
         <span class="score__name">${esc(nameOf(view, s.id))}</span>
+        ${s.away ? `<span class="tag tag--away">${COPY.away}</span>` : ''}
         ${s.isJudge ? `<span class="tag">${COPY.dad.judgeTag}</span>` : s.submitted && d.phase === 'submitting' ? '<span class="tag tag--ok">in</span>' : ''}
         <span class="score__pts">${s.score}</span>
       </li>`,

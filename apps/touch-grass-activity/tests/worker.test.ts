@@ -28,9 +28,10 @@ afterAll(async () => {
   await worker?.stop();
 });
 
-function open(name: string, room: string): Promise<{ ws: WebSocket; msgs: ServerMessage[]; last: () => RoomView }> {
+function open(name: string, room: string, guild?: string): Promise<{ ws: WebSocket; msgs: ServerMessage[]; last: () => RoomView }> {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://${worker!.address}:${worker!.port}/api/room/${room}/ws`);
+    const q = guild ? `?guild=${guild}` : '';
+    const ws = new WebSocket(`ws://${worker!.address}:${worker!.port}/api/room/${room}/ws${q}`);
     const msgs: ServerMessage[] = [];
     ws.onmessage = (e) => msgs.push(JSON.parse(String(e.data)) as ServerMessage);
     ws.onerror = reject;
@@ -121,9 +122,93 @@ describe('worker (local workerd)', () => {
     await until(() => other.msgs.some((m) => m.t === 'state'));
     expect(other.last().members).toHaveLength(1);
 
-    // Leaving: close cy, others see 2 members.
+    // Dropping: close cy, others see cy marked away (seat held), not gone.
     c.ws.close();
-    await until(() => a.last().members.length === 2);
+    await until(() => a.last().members.find((m) => m.name === 'Guest cy')?.away === true);
+    expect(a.last().members).toHaveLength(3);
     for (const p of [a, b, other]) p.ws.close();
   }, 30_000);
+
+  it('reconnect inside the grace period re-attaches the seat and the private hand', async () => {
+    if (!worker) return;
+    const room = `i-grace-${Date.now()}`;
+    const [a, b, c] = await Promise.all([open('ana', room), open('bo', room), open('cy', room)]);
+    await until(() => a.msgs.some((m) => m.t === 'state' && m.view.members.length === 3));
+    for (const p of [a, b, c]) p.ws.send('{"t":"dad.sit"}');
+    await until(() => a.last().dad.seats.length === 3);
+    a.ws.send('{"t":"dad.start","target":5}');
+    await until(() => c.last().dad.phase === 'submitting');
+    const hand = c.last().dad.hand.map((x) => x.id);
+    c.ws.close();
+    await until(() => a.last().dad.seats.find((s) => s.id === 'guest-cy')?.away === true);
+    expect(a.last().dad.seats).toHaveLength(3);
+    const c2 = await open('cy', room);
+    await until(() => c2.msgs.some((m) => m.t === 'state'));
+    expect(c2.last().dad.me.seated).toBe(true);
+    expect(c2.last().dad.hand.map((x) => x.id)).toEqual(hand);
+    await until(() => a.last().dad.seats.every((s) => !s.away));
+    for (const p of [a, b, c2]) p.ws.close();
+  }, 30_000);
+
+  it('3-player trivia over WebSockets: full 10-question game, answer hidden until reveal, live count', async () => {
+    if (!worker) return;
+    const room = `i-trivia-${Date.now()}`;
+    const guild = `55${Date.now()}`; // unique per run: local DO state persists between runs
+    const [a, b, c] = await Promise.all([open('ana', room, guild), open('bo', room, guild), open('cy', room, guild)]);
+    await until(() => a.msgs.some((m) => m.t === 'state' && m.view.members.length === 3));
+    b.ws.send('{"t":"trivia.start"}');
+    await until(() => [a, b, c].every((p) => p.last().trivia.phase === 'question'));
+
+    // Live tables: this guild shows one trivia table with 3 playing; CORS for tiltcheck.me and extensions only.
+    const live = await worker.fetch(`/api/live?guild=${guild}`, { headers: { Origin: 'https://tiltcheck.me' } });
+    expect(live.status).toBe(200);
+    expect(live.headers.get('access-control-allow-origin')).toBe('https://tiltcheck.me');
+    const body = (await live.json()) as { guild: string; games: { trivia: { tables: number; playing: number; joinable: number } } };
+    expect(body.guild).toBe(guild);
+    expect(body.games.trivia).toEqual({ tables: 1, playing: 3, joinable: 1 });
+    expect(JSON.stringify(body)).not.toMatch(/guest-|Guest |avatar|i-trivia/);
+    const ext = await worker.fetch('/api/live', { headers: { Origin: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop' } });
+    expect(ext.headers.get('access-control-allow-origin')).toBe('chrome-extension://abcdefghijklmnopabcdefghijklmnop');
+    expect(((await ext.json()) as { guild: string | null }).guild).toBeNull();
+    const evil = await worker.fetch('/api/live', { headers: { Origin: 'https://evil.example' } });
+    expect(evil.headers.get('access-control-allow-origin')).toBeNull();
+    expect((await worker.fetch('/api/live?guild=abc')).status).toBe(400);
+
+    let lastNumber = 0;
+    for (let q = 1; q <= 10; q += 1) {
+      await until(() => a.last().trivia.phase === 'question' && a.last().trivia.number === q, 10_000);
+      const v = a.last().trivia;
+      expect(v.number).toBeGreaterThan(lastNumber);
+      lastNumber = v.number;
+      // Nothing any client has received for this question carries the answer.
+      for (const p of [a, b, c]) {
+        const st = p.last();
+        expect(JSON.stringify(st.trivia)).not.toContain('"correct"');
+      }
+      const qid = v.question!.id;
+      a.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 0 }));
+      a.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 1 }));
+      b.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 1 }));
+      c.ws.send(JSON.stringify({ t: 'trivia.answer', qid, choice: 2 }));
+      await until(() => a.last().trivia.phase === 'reveal' || a.last().trivia.phase === 'over', 20_000);
+      await until(() => a.msgs.some((m) => m.t === 'error' && m.code === 'already-answered'), 3_000).catch(() => {
+        throw new Error(`errors seen: ${JSON.stringify(a.msgs.filter((m) => m.t === 'error'))}`);
+      });
+      const r = [...a.msgs].reverse().find((m) => m.t === 'state' && m.view.trivia.reveal?.questionId === qid);
+      expect(r && r.t === 'state' && typeof r.view.trivia.reveal!.correct).toBe('number');
+      if (r && r.t === 'state') {
+        const rv = r.view.trivia.reveal!;
+        expect(rv.results.find((x) => x.id === 'guest-ana')!.choice).toBe(0);
+        expect(rv.counts).toEqual([1, 1, 1, 0]);
+      }
+    }
+    await until(() => a.last().trivia.phase === 'over', 10_000);
+    const end = a.last().trivia;
+    expect(end.scores).toHaveLength(3);
+    for (const s of end.scores) expect(s.score % 1).toBe(0);
+    // Restart works.
+    c.ws.send('{"t":"trivia.start"}');
+    await until(() => a.last().trivia.phase === 'question' && a.last().trivia.game === 2);
+    for (const p of [a, b, c]) p.ws.close();
+  }, 120_000);
 });

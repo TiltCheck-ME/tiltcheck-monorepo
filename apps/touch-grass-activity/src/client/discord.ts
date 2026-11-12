@@ -25,6 +25,8 @@ export interface Session {
   instanceId: string;
   /** Discord access token, or a guest:<name> token for the dev worker. */
   token: string;
+  /** Guild the Activity runs in (null in DMs and guest mode). Only feeds the anonymous live-tables count. */
+  guildId: string | null;
   sdk: DiscordSDK | null;
 }
 
@@ -94,7 +96,7 @@ export async function startDiscord(onParticipants: (list: Participant[]) => void
       onParticipants((data.participants ?? []).map(toParticipant));
     });
 
-    return { mode: 'discord', user, instanceId: sdk.instanceId, token: access_token, sdk };
+    return { mode: 'discord', user, instanceId: sdk.instanceId, token: access_token, guildId: sdk.guildId ?? null, sdk };
   };
 
   return timeout(handshake(), HANDSHAKE_MS, 'Discord handshake');
@@ -109,27 +111,7 @@ export function startGuest(search: string = location.search): Session {
     user: { id, name, avatar: null },
     instanceId: params.get('room') || 'local-dev',
     token: `guest:${id.slice('guest-'.length)}`,
+    guildId: null,
     sdk: null,
   };
-}
-
-/**
- * Share card through Discord: upload a PNG as an app attachment, then open the share dialog.
- * Follows Discord's "share moments" guide. UNTESTED inside a real client.
- */
-export async function shareMoment(session: Session, png: Blob): Promise<boolean> {
-  if (!session.sdk) return false;
-  const form = new FormData();
-  form.append('file', png, 'touch-grass.png');
-  const res = await fetch(`https://discord.com/api/v10/applications/${CLIENT_ID}/attachment`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${session.token}` },
-    body: form,
-  });
-  if (!res.ok) return false;
-  const body = (await res.json()) as { attachment?: { url?: string } };
-  const mediaUrl = body.attachment?.url;
-  if (!mediaUrl) return false;
-  await session.sdk.commands.openShareMomentDialog({ mediaUrl });
-  return true;
 }
