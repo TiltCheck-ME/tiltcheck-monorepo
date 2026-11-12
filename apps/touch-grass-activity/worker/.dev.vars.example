@@ -1,0 +1,4 @@
+# Copy to worker/.dev.vars for `pnpm dev:worker`. Never commit the real file.
+DISCORD_CLIENT_SECRET=replace-me
+ALLOW_GUEST=true
+DEV_ORIGINS=http://localhost:5173
