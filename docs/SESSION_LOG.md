@@ -10,7 +10,7 @@
 - BETA stamp next to the TILTCHECK wordmark, same tilted stamp as CollectClock in TiltCheck teal.
 - STAFF badge on the avatar from a hardcoded Discord ID list in convert-markdown.js (STAFF_DISCORD_IDS). Cosmetic only; it gates nothing. The CollectClock worker /me needs a CollectClock session and only allows the tiltcheck-me.github.io origin, so it can't be used from tiltcheck.me yet.
 - CollectClock worker (collectclock-api, code-only deploy outside this repo): the tiltcheck.me/login link (state h.web) was landing on CollectClock's phone-app handoff and showing "Sign-in failed. Go back to CollectClock". The callback now redirects state h.web or tc to https://tiltcheck.me/login/#access_token=... Confirmed working.
-- PR #715 (branch quick-copy-fixes) holds all of the repo changes above. Not merged.
+- PR #715 (3e0bc59 + f414b54) was squash-merged to main as bd5c53d. The signed-in header work (acab5b0) and this log entry were pushed to branch quick-copy-fixes after that merge, so they are not on main yet.
 
 ## 2026-11-09 — feat(web): voice + staff-gating pass (web app and tiltcheck.me Pages twin)
 
