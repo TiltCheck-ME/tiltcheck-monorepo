@@ -25,11 +25,14 @@ apps/touch-grass-activity/
                                   src/client/guestTriviaBank.ts so answers never ship to clients)
     room.ts                       members + away grace, per-user views (hands/answers never leak), rate limit
     live.ts                       anonymous live-tables report + registry board (TTL)
+    scores.ts                     trivia high scores: best-only, top 10 week/all time, Chicago week
     deck.ts                       original TiltCheck cards (no AI generation)
   worker/                         Cloudflare Worker + Durable Object (own wrangler.toml)
     src/index.ts                  routes
     src/room-do.ts                Durable Object adapter (WebSocket Hibernation API + alarms)
-    src/registry-do.ts            LiveRegistry singleton Durable Object (GET /api/live)
+    src/registry-do.ts            LiveRegistry singleton Durable Object (GET /api/live) + table alerts alarm
+    src/scores-do.ts              TriviaScores Durable Object, one per server (GET /api/trivia/scores)
+    src/alerts.ts                 table alerts to a Discord channel webhook (dormant without the secret)
     src/host.ts                   DO logic with injectable storage/sockets (unit tested)
     src/auth.ts                   code -> token exchange, token -> user lookup
   tests/                          vitest: dad, trivia, live registry, room host, auth, worker (local workerd), client DOM, no-money
@@ -114,6 +117,24 @@ GET /api/live                        global totals
 
 A DA&D table is an instance with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. No user ids, names, avatars or instance ids in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
 
+## Trivia high scores (`GET /api/trivia/scores`)
+
+```
+GET /api/trivia/scores?guild=<snowflake>     Authorization: Bearer <Discord access token>
+200 { ok, guild, weekStart, week: [row], allTime: [row], me: { week: {score, rank|null}|null, allTime: {...}|null } }
+row = { id, name, avatar, score, at }   (Discord user id, display name, avatar hash, score, ms epoch)
+401 unauthorized   400 bad-guild   405 (anything but GET)   429 rate-limited   503 not-configured
+```
+
+- One `TriviaScores` Durable Object per server (`idFromName('guild:<id>')`, migration v3). Top 10 this week and top 10 all time, one row per player per board (their best), plus each player's personal best (id, score, date). The week resets Monday 00:00 America/Chicago.
+- Written only by the room, when it runs a 10-question game to the end (`phase: over`), with the server's own scores. There is no client message or public route that writes a score. Zero scores are not recorded.
+- Which server: Discord instance ids carry it (`i-<launch>-gc-<guild>-<channel>`), and that wins over the client's `sdk.guildId`. DMs and group DMs (`-pc-`) have no server: those games are **off the record** (not stored; the end screen and lobby say so).
+- Not in `/api/live`, which stays anonymous.
+
+## Table alerts (Discord channel webhook)
+
+The LiveRegistry posts to one channel when someone is waiting: a DA&D table with someone seated and no game going, or someone on the Trivia screen with no game running (client sends `{t:'look', at}`). Only rooms in `ALERT_GUILD_ID` count. It waits 20 s first (a room that empties sooner never alerts), posts at most once per game per 10 minutes, and edits the post to "game on" or "closed" when that changes. `allowed_mentions: {parse: []}`, no names or ids in the copy. Off unless the secret `ALERT_WEBHOOK_URL` is set.
+
 ## Current test deploy (2026-11-12, trivia build)
 
 - Worker: `touch-grass-activity` on Cloudflare account 6604734f6224c90d45b3d817f9dfab23, `https://touch-grass-activity.j-chapman7.workers.dev` (`/api/health` 200, `/api/live` 200). Bindings: Durable Objects `ROOMS` -> `TouchGrassRoom` (migration v1, unchanged namespace) and `LIVE` -> `LiveRegistry` (migration v2, new_sqlite_classes), var `DISCORD_CLIENT_ID=1445916179163250860`, secret `DISCORD_CLIENT_SECRET` (kept). No `ALLOW_GUEST`. Uploaded with the Cloudflare REST API (bundle from `wrangler deploy --dry-run --outdir`, `keep_bindings: ["secret_text"]`, migrations `old_tag v1 -> new_tag v2`).
@@ -184,5 +205,6 @@ Delete the old "Jamie started an activity / Join" messages in the channel by han
 
 - Instance membership is not checked server-side. Anyone with a valid Discord token who knows an `instanceId` can join that room. Discord's docs say not to trust client data; a follow-up can verify membership with the activity-instance API using the bot token.
 - Room state is persisted to Durable Object storage on every change. Rate-limit buckets are in memory and reset if the object is evicted.
-- The guild id behind `/api/live` is client-reported (from the SDK) and not verified server-side; it only affects anonymous counts.
+- The guild id behind `/api/live` and the high-score boards comes from the instance id when it has the `-gc-<guild>-` shape, otherwise from the client. The instance id itself is client-supplied, so a crafted id could still put a server-computed score on another server's board. Closing that needs the activity-instance API with the bot token.
+- `GET /api/trivia/scores` checks the Discord token but not membership in that server: any signed-in Discord user who knows a guild id can read that server's board (names, avatars, scores). Needs the `guilds` scope or the bot to close.
 - While a non-judge DA&D player is away during submitting, the round waits for them (up to the 3-minute grace) before closing.

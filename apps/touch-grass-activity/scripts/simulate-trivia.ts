@@ -9,6 +9,7 @@ import { makeRng } from '../src/shared/rng.js';
 import { ANSWER_MS, REVEAL_MS } from '../src/shared/trivia.js';
 import type { RoomUser, RoomView, ServerMessage } from '../src/shared/protocol.js';
 import type { LiveReport } from '../src/shared/live.js';
+import { ScoreBook, memoryBookStorage } from '../src/shared/scores.js';
 
 const args = process.argv.slice(2);
 const i = args.indexOf('--n');
@@ -43,7 +44,13 @@ let sockets: SimSocket[] = [];
 const storage = new Map<string, unknown>();
 const reports: LiveReport[] = [];
 let clock = Date.now();
+const book = new ScoreBook(memoryBookStorage());
+let posts = 0;
 const host = new RoomHost({
+  postScores: async (_guild, results) => {
+    posts += 1;
+    return book.record(results, clock);
+  },
   storage: { get: async (k) => storage.get(k) as never, put: async (k, v) => void storage.set(k, structuredClone(v)) },
   sockets: () => sockets,
   verify: async (t) => users[t] ?? null,
@@ -108,7 +115,11 @@ async function main(): Promise<void> {
   const lr = reports.at(-1)!;
   console.log(`Last live-tables report: ${JSON.stringify(lr)}`);
   console.log(`Answer window ${ANSWER_MS / 1000}s, reveal ${REVEAL_MS / 1000}s.`);
-  if (end.phase !== 'over' || leaked || unexpected || end.scores.length !== 3) process.exit(1);
+  const board = await book.view('123456789012345678', users['tok-1']!.id, clock);
+  console.log(`High scores (posted ${posts}x by the room): ${board.allTime.map((r, i) => `#${i + 1} ${r.name} ${r.score}`).join(' | ') || 'empty'}`);
+  console.log(`Ana's end screen: ${end.highScores} ${JSON.stringify(end.me.brag)}`);
+  const boardOk = end.highScores === 'posted' && posts === 1 && board.allTime.length === end.scores.filter((x) => x.score > 0).length;
+  if (end.phase !== 'over' || leaked || unexpected || end.scores.length !== 3 || !boardOk) process.exit(1);
 }
 
 main().catch((e) => {

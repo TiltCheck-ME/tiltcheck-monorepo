@@ -33,6 +33,19 @@ describe('client in guest mode (no frame_id)', () => {
     expect(document.body.textContent).toContain('Step away from the reels. Sit at a table that is not a spin.');
   });
 
+  it('lobby shows the High scores board with This week / All time tabs (guest board starts empty)', async () => {
+    await sleep(30);
+    const hs = $('[data-high-scores]')!;
+    expect(hs.textContent).toContain('High scores');
+    expect([...hs.querySelectorAll('[data-scores-tab]')].map((x) => x.textContent)).toEqual(['This week', 'All time']);
+    expect($('[data-scores-tab=week]')!.getAttribute('aria-selected')).toBe('true');
+    expect(hs.textContent).toContain('Nobody on it yet');
+    expect(hs.textContent).toContain('Bragging rights only');
+    await click('[data-scores-tab=all]');
+    expect($('[data-scores-tab=all]')!.getAttribute('aria-selected')).toBe('true');
+    await click('[data-scores-tab=week]');
+  });
+
   it('plays DA&D against bots until someone wins', async () => {
     await click('[data-go=dad]');
     await click('[data-act="dad.sit"]');

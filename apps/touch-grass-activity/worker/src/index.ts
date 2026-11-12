@@ -7,20 +7,25 @@
 //   GET  /api/room/:instanceId/state  polling fallback, Authorization: Bearer <token>
 //   POST /api/room/:instanceId/action polling fallback, Authorization: Bearer <token>
 //   GET  /api/live?guild=<id>         anonymous live-tables counts (CORS: tiltcheck.me, chrome-extension://)
+//   GET  /api/trivia/scores?guild=<id> that server's trivia high scores, Authorization: Bearer <token>
 //   GET  /api/health
 // The /api prefix is optional so either mapping style works (see README).
 
 import { exchangeCode, verifyToken, type AuthEnv } from './auth.js';
-import { isValidGuildId, isValidInstanceId } from '../../src/shared/protocol.js';
+import { guildForInstance, isValidGuildId, isValidInstanceId } from '../../src/shared/protocol.js';
 import { RateLimiter } from '../../src/shared/room.js';
-import { LIVE_REGISTRY_NAME } from './registry-do.js';
+import { LIVE_REGISTRY_NAME, type RegistryEnv } from './registry-do.js';
+import { scoresName } from './scores-do.js';
 export { TouchGrassRoom } from './room-do.js';
 export { LiveRegistry } from './registry-do.js';
+export { TriviaScores } from './scores-do.js';
 
-export interface Env extends AuthEnv {
+export interface Env extends AuthEnv, RegistryEnv {
   ROOMS: DurableObjectNamespace;
   /** Singleton live-tables registry (migration v2). */
   LIVE?: DurableObjectNamespace;
+  /** Per-server trivia high scores (migration v3). */
+  SCORES?: DurableObjectNamespace;
   /** Comma separated origins allowed for CORS in local dev. Discord traffic is same-origin via the proxy. */
   DEV_ORIGINS?: string;
 }
@@ -29,6 +34,8 @@ export interface Env extends AuthEnv {
 const tokenLimiter = new RateLimiter(5, 0.2);
 // Light per-isolate limit for the public live-tables read: 20 burst, 1 per second.
 const liveLimiter = new RateLimiter(20, 1);
+// Per-user limit for the high-score read: 10 burst, 1 every 2 seconds.
+const scoresLimiter = new RateLimiter(10, 0.5);
 
 /** Origins allowed to read /api/live from a browser: tiltcheck.me (and subdomains) and any extension. */
 export function isLiveOrigin(origin: string | null): boolean {
@@ -117,6 +124,24 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
     return json(r.body, r.status, cors);
   }
 
+  if (path === '/trivia/scores') {
+    // Read only. Scores get onto a board only from a room that ran the game to the end.
+    if (req.method !== 'GET') return json({ error: 'method-not-allowed' }, 405, { ...cors, Allow: 'GET' });
+    const token = bearer(req);
+    const user = token ? await verifyToken(token, env) : null;
+    if (!user) return json({ t: 'error', code: 'unauthorized', message: 'Discord sign-in did not check out.' }, 401, cors);
+    if (!scoresLimiter.take(user.id, Date.now())) return json({ error: 'rate-limited' }, 429, { ...cors, 'Retry-After': '5' });
+    const guild = url.searchParams.get('guild');
+    if (!isValidGuildId(guild)) return json({ error: 'bad-guild' }, 400, cors);
+    if (!env.SCORES) return json({ error: 'not-configured' }, 503, cors);
+    const stub = env.SCORES.get(env.SCORES.idFromName(scoresName(guild)));
+    const inner = new URL('https://scores.internal/board');
+    inner.searchParams.set('guild', guild);
+    inner.searchParams.set('me', user.id);
+    const res = await stub.fetch(inner.toString());
+    return new Response(res.body, { status: res.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...cors } });
+  }
+
   const m = path.match(/^\/room\/([^/]+)\/(ws|state|action)$/);
   if (m) {
     const instanceId = decodeURIComponent(m[1] as string);
@@ -125,8 +150,9 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
     const stub = env.ROOMS.get(env.ROOMS.idFromName(instanceId));
     const inner = new URL(`https://room.internal/${op}`);
     inner.searchParams.set('instanceId', instanceId);
-    const guild = url.searchParams.get('guild');
-    if (isValidGuildId(guild)) inner.searchParams.set('guild', guild);
+    // The instance id names its own guild when it is a server channel; that beats the client's word.
+    const guild = guildForInstance(instanceId, url.searchParams.get('guild'));
+    if (guild) inner.searchParams.set('guild', guild);
 
     if (op === 'ws') {
       if (req.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return json({ error: 'expected-websocket' }, 426, cors);

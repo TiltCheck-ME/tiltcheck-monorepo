@@ -5,7 +5,8 @@
 import * as dad from './dad.js';
 import * as trivia from './trivia.js';
 import type { Rng } from './rng.js';
-import type { ClientAction, RoomUser, RoomView } from './protocol.js';
+import type { ClientAction, LookAt, RoomUser, RoomView } from './protocol.js';
+import type { Brag, FinishedScore } from './scores.js';
 
 export const PRESENCE_TIMEOUT_MS = 45_000;
 /**
@@ -21,6 +22,8 @@ export interface RoomMember extends RoomUser {
   lastSeen: number;
   /** Set when the last connection dropped (or a poller went quiet). Null = here. */
   awaySince: number | null;
+  /** Screen the player has open (client says so with a 'look' action). */
+  looking?: LookAt;
 }
 
 export interface RoomState {
@@ -31,6 +34,17 @@ export interface RoomState {
   members: Record<string, RoomMember>;
   dad: dad.DadState;
   trivia: trivia.TriviaState;
+  /**
+   * High-score bookkeeping for the last finished trivia game. `brags` is null when the game was off
+   * the record (no server). Absent until a game has been run to the end.
+   */
+  triviaPosted?: { game: number; brags: Record<string, Brag> | null };
+}
+
+/** A finished trivia game's server-computed scores, waiting to go on the server's board. */
+export interface PendingHighScores {
+  game: number;
+  results: FinishedScore[];
 }
 
 export type ActionResult = { ok: true } | { ok: false; code: string; message: string };
@@ -93,6 +107,7 @@ export class Room {
       joinedAt: existing?.joinedAt ?? now,
       lastSeen: now,
       awaySince: null,
+      looking: existing?.looking,
     };
     this.bump();
   }
@@ -167,6 +182,30 @@ export class Room {
     return false;
   }
 
+  /**
+   * Scores from a trivia game the room ran to the end that have not been put on a board yet.
+   * Only phase 'over' qualifies, which is only reached after the last reveal, so an abandoned or
+   * restarted game never counts. Every number comes from server state, never from a client.
+   */
+  pendingHighScores(): PendingHighScores | null {
+    const tv = this.state.trivia;
+    if (tv.phase !== 'over' || tv.game < 1) return null;
+    if (this.state.triviaPosted?.game === tv.game) return null;
+    const results: FinishedScore[] = [];
+    for (const [id, score] of Object.entries(tv.scores)) {
+      const m = this.state.members[id];
+      if (!m) continue;
+      results.push({ id, name: m.name, avatar: m.avatar, score });
+    }
+    return { game: tv.game, results };
+  }
+
+  /** Mark a finished game as handled. `brags` null = off the record (no server to put it on). */
+  applyHighScores(game: number, brags: Record<string, Brag> | null): void {
+    this.state.triviaPosted = { game, brags };
+    this.bump();
+  }
+
   /** Next time the host should wake up: trivia timers and away-grace expiries. */
   nextWake(): number | null {
     const times: number[] = [];
@@ -186,6 +225,14 @@ export class Room {
     switch (action.t) {
       case 'ping':
         return { ok: true };
+      case 'look': {
+        const m = s.members[userId] as RoomMember;
+        if (m.looking !== action.at) {
+          m.looking = action.at;
+          this.bump();
+        }
+        return { ok: true };
+      }
       case 'dad.sit':
         r = dad.sit(s.dad, userId);
         break;
@@ -234,6 +281,7 @@ export class Room {
     const tv = s.trivia;
     const away = (id: string) => (s.members[id]?.awaySince ?? null) !== null;
     const showReveal = tv.phase === 'reveal' || tv.phase === 'over';
+    const posted = tv.phase === 'over' && s.triviaPosted?.game === tv.game ? s.triviaPosted : null;
     const seated = d.seats.includes(userId);
     const nonJudge = d.seats.filter((id) => id !== d.judgeId);
     const showEntries = d.phase === 'judging';
@@ -282,7 +330,8 @@ export class Room {
         reveal: showReveal && tv.lastReveal ? { ...tv.lastReveal, choices: [...tv.lastReveal.choices], counts: [...tv.lastReveal.counts], results: tv.lastReveal.results.map((r) => ({ ...r })) } : null,
         scores: trivia.standings(tv).map((x) => ({ ...x, away: away(x.id) })),
         winnerIds: tv.phase === 'over' ? trivia.winners(tv) : [],
-        me: { playing: tv.scores[userId] !== undefined, answered: tv.phase === 'question' ? (tv.answers[userId]?.choice ?? null) : null },
+        me: { playing: tv.scores[userId] !== undefined, answered: tv.phase === 'question' ? (tv.answers[userId]?.choice ?? null) : null, brag: posted?.brags?.[userId] ?? null },
+        highScores: tv.phase !== 'over' ? 'none' : !posted ? 'pending' : posted.brags ? 'posted' : 'off-record',
       },
     };
   }

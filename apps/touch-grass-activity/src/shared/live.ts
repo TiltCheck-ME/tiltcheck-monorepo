@@ -15,6 +15,8 @@ export interface LiveGameReport {
   /** Seated (DA&D) or playing (trivia). */
   count: number;
   joinable: boolean;
+  /** Trivia only: connected players on the Trivia screen with no game running (table alerts). */
+  waiting?: number;
 }
 
 export interface LiveReport {
@@ -45,6 +47,11 @@ export interface LiveSummary {
   };
 }
 
+function triviaWaiting(state: RoomState): number {
+  if (isRunning(state.trivia)) return 0;
+  return Object.values(state.members).filter((m) => m.awaySince === null && m.looking === 'trivia').length;
+}
+
 export function reportFor(state: RoomState, guildId: string | null): LiveReport {
   const members = Object.keys(state.members).length;
   const d = state.dad;
@@ -59,7 +66,7 @@ export function reportFor(state: RoomState, guildId: string | null): LiveReport 
       dad: { phase: d.phase, count: seated, joinable: members > 0 && seated > 0 && seated + d.waiting.length < MAX_PLAYERS },
       // Late joiners spectate one question and are dealt in at the next, so a running game is joinable
       // until its last question opens.
-      trivia: { phase: t.phase, count: playing, joinable: members > 0 && isRunning(t) && t.index + 1 < t.total },
+      trivia: { phase: t.phase, count: playing, joinable: members > 0 && isRunning(t) && t.index + 1 < t.total, waiting: triviaWaiting(state) },
     },
   };
 }
@@ -81,7 +88,12 @@ export function parseLiveReport(raw: unknown): LiveReport | null {
     if (typeof x.phase !== 'string' || !SAFE_PHASE.test(x.phase)) return null;
     if (!Number.isInteger(x.count) || (x.count as number) < 0 || (x.count as number) > 1000) return null;
     if (typeof x.joinable !== 'boolean') return null;
-    return { phase: x.phase, count: x.count as number, joinable: x.joinable };
+    const out: LiveGameReport = { phase: x.phase, count: x.count as number, joinable: x.joinable };
+    if (x.waiting !== undefined) {
+      if (!Number.isInteger(x.waiting) || (x.waiting as number) < 0 || (x.waiting as number) > 1000) return null;
+      out.waiting = x.waiting as number;
+    }
+    return out;
   };
   if (typeof r.instanceId !== 'string' || !/^[A-Za-z0-9:._-]{1,128}$/.test(r.instanceId)) return null;
   const guildId = r.guildId === null || r.guildId === undefined ? null : typeof r.guildId === 'string' && /^\d{5,25}$/.test(r.guildId) ? r.guildId : undefined;

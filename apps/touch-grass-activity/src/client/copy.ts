@@ -57,9 +57,35 @@ export const COPY = {
     nextUp: 'Next question in a sec.',
     board: 'Board',
     overTitle: 'Final board',
-    winner: (names: string) => `${names} takes it. Bragging rights only.`,
+    /** names: winners in board order, the viewer already rendered as "You". */
+    winner: (names: string[]) => `${winnerLine(names)} Bragging rights only.`,
     noWinner: 'Nobody scored. Rough table.',
     answers: (n: number) => (n === 1 ? '1 pick' : `${n} picks`),
   },
+  highScores: {
+    title: 'High scores',
+    week: 'This week',
+    allTime: 'All time',
+    loading: 'Checking the board...',
+    empty: 'Nobody on it yet. The bar is on the floor.',
+    error: "Board didn't load. It's still keeping score.",
+    noServer: 'No server, no board. Games in DMs are off the record.',
+    guest: 'Guest board. Lives in this tab, dies with it.',
+    footnote: 'Bragging rights only. The week resets Monday, midnight Central.',
+    yourBest: 'Your best',
+    offBoard: 'Off the board. For now.',
+    newBest: 'New personal best.',
+    rankWeek: (n: number) => `#${n} this week!`,
+    rankAll: (n: number) => `#${n} all time!`,
+    pending: 'Writing it into the record...',
+  },
   away: 'away',
 } as const;
+
+/** "You take it." / "Bo takes it." / "Ana and Bo split it." / "You, Ana and Bo split it." */
+export function winnerLine(names: string[]): string {
+  if (names.length === 0) return '';
+  if (names.length === 1) return names[0] === 'You' ? 'You take it.' : `${names[0]} takes it.`;
+  const list = names.length === 2 ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+  return `${list} split it.`;
+}

@@ -12,6 +12,7 @@ import { renderTrivia, secondsLeft } from './views/trivia.js';
 import { DEFAULT_TARGET } from '../shared/dad.js';
 import type { ClientAction, RoomView } from '../shared/protocol.js';
 import { esc } from './views/util.js';
+import type { ScoresResult, ScoresTab } from './views/highScores.js';
 
 type Screen = 'lobby' | 'dad' | 'trivia';
 
@@ -27,7 +28,25 @@ const ui = {
   clockOffset: 0,
   target: DEFAULT_TARGET,
   lastTriviaGame: 0,
+  scores: null as ScoresResult | null,
+  scoresTab: 'week' as ScoresTab,
+  scoresAt: 0,
+  scoresPostedGame: 0,
 };
+
+const SCORES_STALE_MS = 20_000;
+
+/** Fetch the board: on boot, on the way back to the lobby (if stale), and after a game is posted. */
+async function loadScores(force = false): Promise<void> {
+  if (!transport) return;
+  if (!force && Date.now() - ui.scoresAt < SCORES_STALE_MS) return;
+  ui.scoresAt = Date.now();
+  const r = await transport.highScores();
+  // Keep showing the last good board if a refresh fails.
+  if (r.kind === 'error' && ui.scores?.kind === 'board') return;
+  ui.scores = r;
+  render();
+}
 
 let session: Session | null = null;
 let transport: Transport | null = null;
@@ -64,8 +83,8 @@ function render(): void {
   let main: string;
   if (!v) main = `<section class="panel"><p class="muted">${esc(COPY.connecting)}</p></section>`;
   else if (ui.screen === 'dad') main = renderDad(v, ui.target);
-  else if (ui.screen === 'trivia') main = renderTrivia(v, ui.clockOffset);
-  else main = renderLobby(v, mergePeople(v, ui.participants));
+  else if (ui.screen === 'trivia') main = renderTrivia(v, ui.clockOffset, ui.scores, ui.scoresTab);
+  else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab);
   app.innerHTML = `${statusBar()}<main class="screen screen--${ui.screen}">${main}</main>${
     ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
   }`;
@@ -79,13 +98,28 @@ function tickClock(): void {
   if (el) el.textContent = String(secondsLeft(v.trivia.endsAt, ui.clockOffset));
 }
 
+let lookSent = false;
+
 function onState(view: RoomView): void {
+  // First state after (re)joining: tell the room which screen is open (feeds table alerts only).
+  if (!lookSent) {
+    lookSent = true;
+    queueMicrotask(() => send({ t: 'look', at: ui.screen }));
+  }
   ui.view = view;
   ui.clockOffset = view.serverNow - Date.now();
   // A trivia game started by anyone pulls everyone who is on the board to the questions.
   if (view.trivia.game !== ui.lastTriviaGame && (view.trivia.phase === 'question' || view.trivia.phase === 'reveal')) {
-    if (view.trivia.me.playing) ui.screen = 'trivia';
+    if (view.trivia.me.playing && ui.screen !== 'trivia') {
+      ui.screen = 'trivia';
+      send({ t: 'look', at: 'trivia' });
+    }
     ui.lastTriviaGame = view.trivia.game;
+  }
+  // A finished game just landed on the board: pull the fresh board.
+  if (view.trivia.highScores === 'posted' && view.trivia.game !== ui.scoresPostedGame) {
+    ui.scoresPostedGame = view.trivia.game;
+    void loadScores(true);
   }
   render();
 }
@@ -100,6 +134,13 @@ app.addEventListener('click', (ev) => {
   }
   if (d.go) {
     ui.screen = d.go as Screen;
+    send({ t: 'look', at: ui.screen });
+    render();
+    void loadScores();
+    return;
+  }
+  if (d.scoresTab) {
+    ui.scoresTab = d.scoresTab === 'all' ? 'all' : 'week';
     render();
     return;
   }
@@ -122,9 +163,11 @@ app.addEventListener('change', (ev) => {
 
 function wire(t: Transport): void {
   transport = t;
+  queueMicrotask(() => void loadScores(true));
   t.onState(onState);
   t.onError((_code, message) => toast(message));
   t.onStatus((s) => {
+    if (s === 'live' && ui.status !== 'live') lookSent = false;
     ui.status = s;
     render();
   });

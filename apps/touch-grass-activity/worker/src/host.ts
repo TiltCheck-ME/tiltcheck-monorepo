@@ -6,6 +6,7 @@ import { PRESENCE_TIMEOUT_MS, Room, createRoomState, upgradeRoomState, type Room
 import { makeRng, type Rng } from '../../src/shared/rng.js';
 import { isValidGuildId, parseClientMessage, type RoomUser, type ServerMessage } from '../../src/shared/protocol.js';
 import { LIVE_HEARTBEAT_MS, reportFor, reportKey, type LiveReport } from '../../src/shared/live.js';
+import type { Brag, FinishedScore } from '../../src/shared/scores.js';
 
 export interface HostStorage {
   get<T>(key: string): Promise<T | undefined>;
@@ -32,7 +33,16 @@ export interface HostDeps {
   setWake?: (at: number | null) => Promise<void>;
   /** Send this room's anonymous summary to the live-tables registry. Failures are ignored. */
   report?: (r: LiveReport) => Promise<void>;
+  /**
+   * Put a finished trivia game on this server's high-score board (TriviaScores DO). Only called by
+   * the host itself when the room has run a game to the end; never with anything a client sent.
+   */
+  postScores?: (guildId: string, results: FinishedScore[]) => Promise<Record<string, Brag>>;
 }
+
+/** If writing the board fails, try again on the alarm, a few times. Best-only makes a repeat harmless. */
+export const SCORE_RETRY_MS = 5_000;
+export const SCORE_MAX_TRIES = 5;
 
 const STORAGE_KEY = 'room';
 export const MAX_MESSAGE_BYTES = 4096;
@@ -43,6 +53,8 @@ export class RoomHost {
   private readonly rng: Rng;
   private lastReportKey = '';
   private lastReportAt = 0;
+  private scoreTries = 0;
+  private scoreRetryAt: number | null = null;
 
   constructor(private readonly deps: HostDeps) {
     this.now = deps.now ?? Date.now;
@@ -65,13 +77,53 @@ export class RoomHost {
     await this.save();
   }
 
+  /**
+   * A trivia game just ran to the end: put the server's own scores on the guild's board, and keep
+   * each player's brag for the end screen. A game with no guild (DM / group DM) is off the record.
+   */
+  private async postHighScores(): Promise<void> {
+    const room = this.room;
+    if (!room) return;
+    const pending = room.pendingHighScores();
+    if (!pending) {
+      this.scoreTries = 0;
+      this.scoreRetryAt = null;
+      return;
+    }
+    const guild = room.state.guildId;
+    if (!isValidGuildId(guild)) {
+      room.applyHighScores(pending.game, null);
+      return;
+    }
+    if (!this.deps.postScores) return;
+    if (this.scoreRetryAt !== null && this.now() < this.scoreRetryAt) return;
+    try {
+      const brags = await this.deps.postScores(guild, pending.results);
+      room.applyHighScores(pending.game, brags);
+      this.scoreTries = 0;
+      this.scoreRetryAt = null;
+    } catch {
+      this.scoreTries += 1;
+      if (this.scoreTries >= SCORE_MAX_TRIES) {
+        // Give up on this game's board write; the end screen just won't brag.
+        room.applyHighScores(pending.game, {});
+        this.scoreTries = 0;
+        this.scoreRetryAt = null;
+      } else {
+        this.scoreRetryAt = this.now() + SCORE_RETRY_MS;
+      }
+    }
+  }
+
   private async save(): Promise<void> {
     if (!this.room) return;
+    await this.postHighScores();
     await this.deps.storage.put(STORAGE_KEY, this.room.state);
     await this.maybeReport();
     if (!this.deps.setWake) return;
     // Wake for trivia timers, away-grace expiries, and quiet pollers who should be marked away.
     let wake = this.room.nextWake();
+    if (this.scoreRetryAt !== null) wake = wake === null ? this.scoreRetryAt : Math.min(wake, this.scoreRetryAt);
     const live = this.liveUserIds();
     for (const m of Object.values(this.room.state.members)) {
       if (live.has(m.id) || m.awaySince !== null) continue;
@@ -214,7 +266,7 @@ export class RoomHost {
     const live = this.liveUserIds();
     if (room.sweep(now, (id) => live.has(id) || id === user.id)) changed = true;
     await this.save();
-    if (changed) this.broadcast();
+    if (changed || room.state.version !== before) this.broadcast();
     return { status: 200, body: { t: 'state', view: room.viewFor(user.id, now) } };
   }
 
@@ -246,10 +298,10 @@ export class RoomHost {
     const room = await this.load(instanceId);
     const now = this.now();
     const live = this.liveUserIds();
-    const swept = room.sweep(now, (id) => live.has(id));
-    const ticked = room.tick(now);
-    const changed = swept || ticked;
-    await this.save();
-    if (changed) this.broadcast();
+    const before = room.state.version;
+    room.sweep(now, (id) => live.has(id));
+    room.tick(now);
+    await this.save(); // may also post a finished game's scores
+    if (room.state.version !== before) this.broadcast();
   }
 }

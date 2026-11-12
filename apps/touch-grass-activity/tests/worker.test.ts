@@ -206,6 +206,34 @@ describe('worker (local workerd)', () => {
     const end = a.last().trivia;
     expect(end.scores).toHaveLength(3);
     for (const s of end.scores) expect(s.score % 1).toBe(0);
+
+    // High scores: the finished game is on this guild's board, written by the room, not a client.
+    await until(() => a.last().trivia.highScores === 'posted', 10_000);
+    const auth = { Authorization: 'Bearer guest:ana' };
+    expect((await worker.fetch(`/api/trivia/scores?guild=${guild}`)).status).toBe(401);
+    expect((await worker.fetch('/api/trivia/scores?guild=abc', { headers: auth })).status).toBe(400);
+    const hs = await worker.fetch(`/api/trivia/scores?guild=${guild}`, { headers: auth });
+    expect(hs.status).toBe(200);
+    const board = (await hs.json()) as { week: Array<{ id: string; score: number }>; allTime: Array<{ id: string; score: number; name: string }>; me: { allTime: { score: number } | null } };
+    const scored = end.scores.filter((x) => x.score > 0);
+    expect(board.allTime.map((r) => [r.id, r.score]).sort()).toEqual(scored.map((x) => [x.id, x.score]).sort());
+    expect(board.week.length).toBe(scored.length);
+    const anaScore = end.scores.find((x) => x.id === 'guest-ana')!.score;
+    expect(board.me.allTime?.score ?? 0).toBe(anaScore);
+    const top = end.scores[0]!;
+    if (top.score > 0) {
+      const brag = [a, b, c].find((p) => p.last().you === top.id)!.last().trivia.me.brag;
+      expect(brag).toMatchObject({ personalBest: true, allTimeRank: 1, weekRank: 1 });
+    }
+    // Another guild's board is untouched, a client cannot write, and /api/live still names nobody.
+    const other = (await (await worker.fetch(`/api/trivia/scores?guild=66${Date.now()}`, { headers: auth })).json()) as { allTime: unknown[] };
+    expect(other.allTime).toEqual([]);
+    const post = await worker.fetch(`/api/trivia/scores?guild=${guild}`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ results: [{ id: 'guest-cheat', name: 'x', avatar: null, score: 9999 }] }) });
+    expect(post.status).toBe(405);
+    const after = (await (await worker.fetch(`/api/trivia/scores?guild=${guild}`, { headers: auth })).json()) as { allTime: Array<{ id: string }> };
+    expect(after.allTime.map((r) => r.id)).not.toContain('guest-cheat');
+    expect((await worker.fetch(`/api/scores/record`, { method: 'POST', body: '{}' })).status).toBe(404);
+    expect(JSON.stringify(await (await worker.fetch(`/api/live?guild=${guild}`)).json())).not.toMatch(/guest-|Guest |avatar/);
     // Restart works.
     c.ws.send('{"t":"trivia.start"}');
     await until(() => a.last().trivia.phase === 'question' && a.last().trivia.game === 2);

@@ -6,6 +6,8 @@
 import { Room, createRoomState } from '../shared/room.js';
 import { makeRng } from '../shared/rng.js';
 import type { ClientAction, RoomUser, RoomView, ServerMessage } from '../shared/protocol.js';
+import { ScoreBook, memoryBookStorage, type BoardView } from '../shared/scores.js';
+import type { ScoresResult } from './views/highScores.js';
 
 export type LinkStatus = 'connecting' | 'live' | 'polling' | 'offline';
 
@@ -16,6 +18,8 @@ export interface Transport {
   onStatus(cb: (s: LinkStatus) => void): void;
   /** App came back to the foreground (visibilitychange / pageshow / focus): get the live link back now. */
   resume(): void;
+  /** This server's trivia high scores (read only). */
+  highScores(): Promise<ScoresResult>;
   close(): void;
 }
 
@@ -63,6 +67,18 @@ export class RemoteTransport extends Emitter implements Transport {
   ) {
     super();
     queueMicrotask(() => this.connect());
+  }
+
+  async highScores(): Promise<ScoresResult> {
+    if (!this.guildId) return { kind: 'no-server' };
+    try {
+      const res = await fetch(`${this.base}/trivia/scores?guild=${encodeURIComponent(this.guildId)}`, { headers: { Authorization: `Bearer ${this.token}` } });
+      if (!res.ok) return { kind: 'error' };
+      const board = (await res.json()) as BoardView;
+      return board && board.ok ? { kind: 'board', board } : { kind: 'error' };
+    } catch {
+      return { kind: 'error' };
+    }
   }
 
   private roomPath(op: string): string {
@@ -227,6 +243,9 @@ export class LocalTransport extends Emitter implements Transport {
   private bots: RoomUser[] = [];
   private timer: ReturnType<typeof setInterval>;
   private botTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Guest mode keeps a board in this tab so the high-score UI can be tried without Discord. */
+  private readonly book = new ScoreBook(memoryBookStorage());
+  private posting = false;
 
   constructor(
     private readonly me: RoomUser,
@@ -252,6 +271,25 @@ export class LocalTransport extends Emitter implements Transport {
   private push(): void {
     this.emitState(this.room.viewFor(this.me.id, Date.now()));
     this.scheduleBots();
+    void this.postScores();
+  }
+
+  /** Same rule as the server: only a game the room ran to the end, with the room's own scores. */
+  private async postScores(): Promise<void> {
+    const pending = this.room.pendingHighScores();
+    if (!pending || this.posting) return;
+    this.posting = true;
+    try {
+      const brags = await this.book.record(pending.results, Date.now());
+      this.room.applyHighScores(pending.game, brags);
+    } finally {
+      this.posting = false;
+    }
+    this.push();
+  }
+
+  async highScores(): Promise<ScoresResult> {
+    return { kind: 'board', board: await this.book.view('guest', this.me.id, Date.now()), guest: true };
   }
 
   send(action: ClientAction): void {

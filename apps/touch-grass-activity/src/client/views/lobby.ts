@@ -4,6 +4,7 @@
 import { COPY } from '../copy.js';
 import type { RoomUser, RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc } from './util.js';
+import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
 export interface LobbyPerson extends Pick<RoomUser, 'id' | 'name' | 'avatar'> {
   away?: boolean;
@@ -17,7 +18,7 @@ export function mergePeople(view: RoomView | null, participants: LobbyPerson[]):
   return [...out.values()];
 }
 
-export function renderLobby(view: RoomView | null, people: LobbyPerson[]): string {
+export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores: ScoresResult | null = null, tab: ScoresTab = 'week'): string {
   const seated = view?.dad.seats.length ?? 0;
   const dadLive = Boolean(view && ['submitting', 'judging', 'reveal'].includes(view.dad.phase));
   const playing = view?.trivia.playingCount ?? 0;
@@ -44,5 +45,6 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[]): strin
         <span class="tile__desc">${esc(COPY.tiles.trivia.desc)}</span>
         ${triviaBadge}
       </button>
-    </section>`;
+    </section>
+    ${renderHighScores(scores, tab, view?.you ?? '')}`;
 }

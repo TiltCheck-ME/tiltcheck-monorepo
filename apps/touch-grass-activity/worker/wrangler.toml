@@ -27,7 +27,20 @@ class_name = "LiveRegistry"
 tag = "v2"
 new_sqlite_classes = ["LiveRegistry"]
 
+# Trivia high scores: one DO per Discord server. New class, new tag; v1 and v2 above are untouched.
+[[durable_objects.bindings]]
+name = "SCORES"
+class_name = "TriviaScores"
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["TriviaScores"]
+
 [vars]
 DISCORD_CLIENT_ID = "1445916179163250860"
+# Table alerts: only rooms in this server post to the channel webhook. The webhook itself is the
+# secret ALERT_WEBHOOK_URL; without it alerts stay off.
+ALERT_GUILD_ID = "1488253239643078787"
 # DISCORD_CLIENT_SECRET is a secret: wrangler secret put DISCORD_CLIENT_SECRET --config worker/wrangler.toml
+# ALERT_WEBHOOK_URL is a secret (Discord channel webhook). Never commit it.
 # ALLOW_GUEST must stay unset in production. For local dev put ALLOW_GUEST="true" in worker/.dev.vars.

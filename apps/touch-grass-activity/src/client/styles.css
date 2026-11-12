@@ -112,6 +112,21 @@ button.choice.choice--mine:disabled { opacity: 1; }
 .choice__count { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 600; }
 .score__rank { width: 18px; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
 
+/* High scores */
+.hs-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.hs-head .eyebrow { margin: 0; }
+.hs-tabs { display: inline-flex; background: var(--panel-2); border-radius: 999px; padding: 3px; gap: 2px; }
+.hs-tab { font: inherit; font-size: 12px; font-weight: 700; border: 0; background: transparent; color: var(--muted); padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+.hs-tab--on { background: var(--teal); color: var(--teal-ink); }
+.score--pb { margin-top: 6px; border: 1px dashed var(--line); }
+.hs-foot { margin: 8px 0 0; }
+.brag { margin: 0 0 10px; font-weight: 800; color: var(--muted); }
+.brag--hit { color: var(--gold); }
+/* Phone: trivia question text ~15-20% under the shared prompt size so two-line questions leave room
+   for the four choices. Still 800 weight. Choices are unchanged. DA&D prompts keep the shared size. */
+@media (max-width: 639px) {
+  .trivia-panel .prompt { font-size: clamp(15px, 3.8vw, 17px); line-height: 1.3; padding: 12px 14px; margin-bottom: 10px; }
+}
 /* Landscape / wider: tiles side by side, DA&D gets a scoreboard column. */
 @media (min-width: 640px) {
   .tiles { grid-template-columns: repeat(2, 1fr); }

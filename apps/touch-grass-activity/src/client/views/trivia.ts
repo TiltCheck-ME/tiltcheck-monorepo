@@ -4,6 +4,7 @@
 import { COPY } from '../copy.js';
 import type { RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc, nameOf, userById } from './util.js';
+import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
 const KEYS = ['A', 'B', 'C', 'D'];
 
@@ -29,21 +30,46 @@ function board(view: RoomView, highlight: Record<string, number> = {}): string {
     .join('')}</ol>`;
 }
 
-export function renderTrivia(view: RoomView, clockOffsetMs: number): string {
+/** End-screen line about the server board: rank and/or personal best, or why there is none. */
+export function bragLine(view: RoomView): string {
+  const t = view.trivia;
+  if (t.phase !== 'over') return '';
+  if (t.highScores === 'off-record') return COPY.highScores.noServer;
+  if (t.highScores === 'pending') return t.me.playing ? COPY.highScores.pending : '';
+  const b = t.me.brag;
+  if (!b) return '';
+  const bits: string[] = [];
+  if (b.allTimeRank !== null && b.allTimeRank <= 3) bits.push(COPY.highScores.rankAll(b.allTimeRank));
+  else if (b.weekRank !== null) bits.push(COPY.highScores.rankWeek(b.weekRank));
+  else if (b.allTimeRank !== null) bits.push(COPY.highScores.rankAll(b.allTimeRank));
+  if (b.personalBest) bits.push(COPY.highScores.newBest);
+  return bits.join(' ');
+}
+
+/** Winners in board order, the viewer first and shown as "You". */
+export function winnerNames(view: RoomView): string[] {
+  const ids = [...view.trivia.winnerIds].sort((a, b) => Number(b === view.you) - Number(a === view.you));
+  return ids.map((id) => nameOf(view, id));
+}
+
+export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: ScoresResult | null = null, tab: ScoresTab = 'week'): string {
   const t = view.trivia;
   const meta = t.number ? COPY.trivia.question(t.number, t.total) : '';
   const header = `<header class="bar"><button class="btn btn--ghost btn--sm" data-go="lobby">${COPY.back}</button><h1 class="bar__title">${COPY.trivia.title}</h1><span class="bar__meta">${meta}</span></header>`;
 
   if (t.phase === 'idle' || t.phase === 'over') {
     const over = t.phase === 'over';
-    const winners = t.winnerIds.map((id) => nameOf(view, id)).join(', ');
+    const winners = winnerNames(view);
+    const brag = bragLine(view);
     return `${header}
       <section class="panel trivia-panel ${over ? 'panel--win' : ''}">
-        <h2 class="h2">${over ? (winners ? esc(COPY.trivia.winner(winners)) : COPY.trivia.noWinner) : COPY.trivia.title}</h2>
+        <h2 class="h2" data-trivia-winner>${over ? (winners.length ? esc(COPY.trivia.winner(winners)) : COPY.trivia.noWinner) : COPY.trivia.title}</h2>
+        ${brag ? `<p class="brag ${t.me.brag && (t.me.brag.personalBest || t.me.brag.weekRank !== null) ? 'brag--hit' : ''}" data-brag>${esc(brag)}</p>` : ''}
         ${over ? '' : `<p class="lede">${COPY.trivia.idleBody}</p><p class="muted small">${COPY.trivia.scoring}</p>`}
         ${over ? board(view) : ''}
         <button class="btn btn--primary btn--big" data-act="trivia.start">${over ? COPY.trivia.again : COPY.trivia.start}</button>
-      </section>`;
+      </section>
+      ${renderHighScores(scores, tab, view.you)}`;
   }
 
   if (t.phase === 'question' && t.question) {

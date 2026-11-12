@@ -4,6 +4,7 @@
 import type { Card } from './deck.js';
 import type { DadPhase, DadRoundResult } from './dad.js';
 import type { TriviaPhase } from './trivia.js';
+import type { Brag } from './scores.js';
 
 export interface RoomUser {
   id: string;
@@ -28,7 +29,11 @@ export type ClientAction =
   | { t: 'trivia.answer'; qid: string; choice: number }
   | { t: 'trivia.leave' }
   | { t: 'leave' }
-  | { t: 'ping' };
+  | { t: 'ping' }
+  /** Which screen this player has open. Only feeds "someone is waiting at Trivia" for table alerts. */
+  | { t: 'look'; at: LookAt };
+
+export type LookAt = 'lobby' | 'dad' | 'trivia';
 
 /** First WebSocket message. Polling sends the token as a Bearer header instead. */
 export interface AuthMessage {
@@ -97,7 +102,13 @@ export interface TriviaView {
   reveal: TriviaRevealView | null;
   scores: Array<{ id: string; score: number; away: boolean }>;
   winnerIds: string[];
-  me: { playing: boolean; answered: number | null };
+  /** brag: the viewer's own result on the server board for the game that just ended. */
+  me: { playing: boolean; answered: number | null; brag: Brag | null };
+  /**
+   * Board status for a finished game: 'pending' while it is being written, 'posted' once on the
+   * server's board, 'off-record' when the game had no server (DM / group DM). 'none' outside 'over'.
+   */
+  highScores: 'none' | 'pending' | 'posted' | 'off-record';
 }
 
 export interface RoomView {
@@ -137,6 +148,8 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'leave':
     case 'ping':
       return { t: m.t };
+    case 'look':
+      return m.at === 'lobby' || m.at === 'dad' || m.at === 'trivia' ? { t: 'look', at: m.at } : null;
     case 'dad.start':
       if (m.target === undefined) return { t: 'dad.start' };
       return typeof m.target === 'number' && Number.isFinite(m.target) ? { t: 'dad.start', target: m.target } : null;
@@ -156,6 +169,18 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
 /** Discord guild ids are snowflakes. Anything else is dropped. */
 export function isValidGuildId(id: string | null | undefined): id is string {
   return typeof id === 'string' && /^\d{5,25}$/.test(id);
+}
+
+/**
+ * Which guild a room belongs to. Discord instance ids carry it: i-<id>-gc-<guild>-<channel> in a
+ * server channel, i-<id>-pc-<channel> in a DM or group DM. When the id says, it wins over what the
+ * client sent; otherwise (unknown id shape) the client's sdk.guildId is used.
+ */
+export function guildForInstance(instanceId: string, clientGuild: string | null | undefined): string | null {
+  const gc = /^i-\d+-gc-(\d{5,25})-\d+$/.exec(instanceId);
+  if (gc) return gc[1] as string;
+  if (/^i-\d+-pc-\d+$/.test(instanceId)) return null;
+  return isValidGuildId(clientGuild) ? clientGuild : null;
 }
 
 /** Discord instance ids look like i-123-gc-456-789. Keep the key boring. */

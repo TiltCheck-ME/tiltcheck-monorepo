@@ -23,6 +23,7 @@
     "src/client/**/*.ts",
     "src/shared/**/*.ts",
     "vite.config.ts",
-    "tests/client-dom.test.ts"
+    "tests/client-dom.test.ts",
+    "tests/high-scores-ui.test.ts"
   ]
 }

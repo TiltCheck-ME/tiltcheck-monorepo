@@ -6,10 +6,14 @@ import { RoomHost, type HostSocket } from './host.js';
 import { verifyToken, type AuthEnv } from './auth.js';
 import type { RoomUser } from '../../src/shared/protocol.js';
 import { LIVE_REGISTRY_NAME } from './registry-do.js';
+import { scoresName } from './scores-do.js';
+import type { Brag } from '../../src/shared/scores.js';
 
 export interface RoomEnv extends AuthEnv {
   /** Singleton live-tables registry. Optional so an older deploy without the binding keeps working. */
   LIVE?: DurableObjectNamespace;
+  /** Per-server trivia high scores (migration v3). Optional: without it games just aren't recorded. */
+  SCORES?: DurableObjectNamespace;
 }
 
 interface SocketAttachment {
@@ -55,6 +59,19 @@ export class TouchGrassRoom implements DurableObject {
         const stub = env.LIVE.get(env.LIVE.idFromName(LIVE_REGISTRY_NAME));
         await stub.fetch('https://live.internal/report', { method: 'POST', body: JSON.stringify(r), headers: { 'Content-Type': 'application/json' } });
       },
+      postScores: env.SCORES
+        ? async (guild, results) => {
+            const ns = env.SCORES as DurableObjectNamespace;
+            const stub = ns.get(ns.idFromName(scoresName(guild)));
+            const res = await stub.fetch('https://scores.internal/record', {
+              method: 'POST',
+              body: JSON.stringify({ guild, results }),
+              headers: { 'Content-Type': 'application/json' },
+            });
+            if (!res.ok) throw new Error(`scores ${res.status}`);
+            return ((await res.json()) as { brags: Record<string, Brag> }).brags;
+          }
+        : undefined,
     });
   }
 
