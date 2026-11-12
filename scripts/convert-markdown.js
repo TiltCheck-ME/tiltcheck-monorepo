@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -19,7 +19,10 @@ import { calculateCasinoTrust } from '@tiltcheck/intel-tools';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getGatePageBody } from './build-gate-page.mjs';
+import { lockConfirmDialogHtml, LOCK_CONFIRM_SCRIPT } from './pages-lock-confirm.mjs';
+import { dashboardSettingsHtml, dashboardSettingsScript } from './pages-dashboard-settings.mjs';
 import {
+  PLAYER_SETTINGS_DEFAULTS,
   SITE_URL,
   API_URL,
   DISCORD_URL,
@@ -1105,18 +1108,43 @@ function buildCooldownPage() {
           }, '*');
         }
 
+        // Every new lock goes through the "No take-backs" popup first.
+        function confirmLock(endMs) {
+          if (!window.TiltCheckLockConfirm) return Promise.resolve(false);
+          return window.TiltCheckLockConfirm.open({ endMs: endMs });
+        }
+
         function applyLocalLock() {
           if (lockedUntilMs > Date.now()) return;
           var endTimeSec = Math.floor(Date.now() / 1000) + (selectedHours * 3600);
-          postLock('in_browser_lockout', endTimeSec, 'local_browser_session');
-          try {
-            localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
-            localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
-          } catch (e) {}
-          showLocked(endTimeSec * 1000);
+          confirmLock(endTimeSec * 1000).then(function(ok) {
+            if (!ok || lockedUntilMs > Date.now()) return;
+            postLock('in_browser_lockout', endTimeSec, 'local_browser_session');
+            try {
+              localStorage.setItem('tiltcheck_cooldown_active_until', String(endTimeSec * 1000));
+              localStorage.setItem('tiltcheck_cooldown_source', 'local_browser_session');
+            } catch (e) {}
+            showLocked(endTimeSec * 1000);
+          });
         }
 
         btnLock && btnLock.addEventListener('click', applyLocalLock);
+
+        // The extension holds the real lock. It answers with LOCK_STATE, so a lock still
+        // shows (and still runs) after this page's localStorage is cleared.
+        window.addEventListener('message', function(event) {
+          if (event.source !== window || !event.data || event.data.source !== 'TILTCHECK_EXTENSION' || event.data.type !== 'LOCK_STATE') return;
+          var until = Number(event.data.activeUntil) || 0;
+          if (until > Date.now() && until >= lockedUntilMs) {
+            try { localStorage.setItem('tiltcheck_cooldown_active_until', String(until)); } catch (e) {}
+            showLocked(until);
+          }
+          if (event.data.rejected === 'cant_shorten' && lockStatus) {
+            lockStatus.textContent = 'Already locked until ' + fmtDate(until) + '. It only gets longer.';
+            lockStatus.hidden = false;
+          }
+        });
+        window.postMessage({ source: 'TILTCHECK_COOLDOWN_PAGE', type: 'GET_LOCK_STATE' }, window.location.origin);
 
         // Optional wallet section
         toggle && toggle.addEventListener('click', function() {
@@ -1229,6 +1257,11 @@ function buildCooldownPage() {
           if (!provider || !currentWallet) return;
           var nowMs = Date.now();
           var endTimeSec = lockedUntilMs > nowMs ? Math.floor(lockedUntilMs / 1000) : Math.floor(nowMs / 1000) + (selectedHours * 3600);
+          var startsNewLock = !(lockedUntilMs > nowMs);
+          if (startsNewLock) {
+            var ok = await confirmLock(endTimeSec * 1000);
+            if (!ok) return;
+          }
           var hours = Math.max(1, Math.round((endTimeSec * 1000 - nowMs) / 3600000));
           var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
           var messageText = 'TiltCheck Voluntary Touch Grass Lock\\n' +
@@ -1306,6 +1339,9 @@ function buildCooldownPage() {
         }, 350);
       })();
     </script>
+
+    ${lockConfirmDialogHtml()}
+    ${LOCK_CONFIRM_SCRIPT}
 
     <div class="cooldown-how">
       <h2>How it works</h2>
@@ -1426,38 +1462,31 @@ function buildAutovaultPage() {
 
 function buildDashboardPage() {
   const depth = 'docs';
+  const card = (target, title, body) => `<a href="${href(depth, target)}" class="dash-card" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
+        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">${title} &rarr;</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">${body}</p>
+      </a>`;
   const content = `<main class="cooldown-page">
   <div class="cooldown-panel" style="max-width: 720px;">
     <p class="brand-eyebrow">DASHBOARD</p>
     <h1>Your TiltCheck stuff</h1>
-    <p class="cooldown-punch">Your tools in one spot: skim the win, touch grass, check the math.</p>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; text-align: left;">
-      <a href="${href(depth, 'autovault')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">AutoVault &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Set how much of a win gets moved to your vault.</p>
-      </a>
+    <p class="cooldown-punch">Your settings and tools in one spot. The extension just follows orders.</p>
 
-      <a href="${href(depth, 'cooldown')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Touch Grass &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Sign a timer with your Solana wallet. You sign it. We never hold anything.</p>
-      </a>
+    ${dashboardSettingsHtml({ loginUrl: DISCORD_OAUTH_LOGIN_URL })}
 
-      <a href="${href(depth, 'tools/verify')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Bet Verifier &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Paste the seeds, check the bet yourself.</p>
-      </a>
-
-      <a href="${href(depth, 'nudges')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Pacing &amp; Nudges &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Two-second spin pauses, loss-speed warnings, and reality checks.</p>
-      </a>
+    <h2 class="cooldown-label" style="margin-top: 2rem;">Tools</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 12px 0 24px; text-align: left;">
+      ${card('autovault', 'Win Skim', 'How skimming a win into your casino vault works.')}
+      ${card('cooldown', 'Take a break', 'Lock yourself out of deposits for a day, a week, or a month.')}
+      ${card('tools/verify', 'Fairness Verifier', 'Paste the seeds, check the bet yourself.')}
+      ${card('nudges', 'Nudges', 'What the extension says when the spins speed up.')}
     </div>
 
     <div style="margin-top: 1.5rem;">
       <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
     </div>
   </div>
+  ${dashboardSettingsScript({ apiUrl: API_URL, defaults: PLAYER_SETTINGS_DEFAULTS })}
   <script>
     (function() {
       var p = new URLSearchParams(window.location.search);
@@ -1468,6 +1497,9 @@ function buildDashboardPage() {
         window.location.replace('../nudges/');
       } else if (tab === 'buddies') {
         window.location.replace('../collab/');
+      } else if (tab === 'settings') {
+        var el = document.getElementById('settings');
+        if (el) el.scrollIntoView();
       }
     })();
   </script>
@@ -1475,7 +1507,7 @@ function buildDashboardPage() {
 
   return shell({
     title: 'Dashboard | TiltCheck',
-    description: 'Your TiltCheck tools in one spot.',
+    description: 'Your TiltCheck settings and tools in one spot.',
     depth: 'docs',
     current: 'dashboard',
     body: content,
