@@ -1,6 +1,17 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
 
 # Session Log
+
+## 2026-11-12 — feat(activity): Touch Grass Discord Activity draft (lobby, Degens Against Decency, group break)
+
+- New app `apps/touch-grass-activity` (Vite + TS static build) on branch touch-grass-activity, draft PR only. Nothing deployed; collectclock-api, the Developer Portal, Discord channels and DNS untouched.
+- Discord setup: `ready()` -> `authorize()` (identify) -> `POST /api/activity/token` through the proxy -> `authenticate()`, then `getActivityInstanceConnectedParticipants` (2026 name) + participants updates for the avatar row. Client ID from `VITE_DISCORD_CLIENT_ID`, fallback "Tilt Check" 1445916179163250860. No `frame_id` in the URL = guest mode: fake local user, full room logic in the browser, `+ bot` button for solo testing; `?remote=1` talks to a local `wrangler dev`.
+- Lobby: who's here (room members merged with SDK participants) and three tiles: Degens Against Decency, Touch Grass break, Trivia (disabled, coming soon).
+- DA&D (`src/shared/dad.ts`): 3-8 players, 7-card hands, rotating judge, anonymous shuffled answers with random entry ids, first to N (default 5, picker 3/5/7/10). Late joiners queue and are dealt in next round; a leaver's card is dropped; the judge leaving voids the round and returns cards; under 3 players pauses with scores kept. Deck is original TiltCheck cards (apps/web dad-deck, modules/dad starter pack, plus new ones), 30 prompts / 81 answers, no AI generation.
+- Group break (`src/shared/breakTimer.ts`): 5/10/15 min shared countdown for the whole instance; starting it pulls every client to the clock; bail is optional with a roast and "bailed at m:ss"; leaving the call counts as a bail; share card at the end (Discord share dialog via app attachment upload, falls back to copying text).
+- Worker (`apps/touch-grass-activity/worker`, own wrangler.toml, worker name touch-grass-activity): token exchange with no redirect_uri, one SQLite-backed Durable Object per instanceId, WebSocket (Hibernation API) with HTTP polling fallback, DO alarm ends the break and sweeps quiet pollers. Server owns hands, judge, submissions, scores and the clock; each client gets only its own hand. Every action validated (phase, player, judge, card in hand), per-user token-bucket rate limit, 4 KB message cap, per-isolate IP limit on the token route.
+- Voice and money: short degen copy, no shield/guard framing, no crisis copy, no money mechanics; `tests/no-money.test.ts` fails on money words in client source or cards.
+- Checked locally: typecheck (client, worker, tests), vite build, 63 vitest tests (DA&D state machine, break timer, DO host with fake storage/sockets, auth, real worker + Durable Object in local workerd via wrangler unstable_dev incl. a 3-player WebSocket game, jsdom guest-mode client smoke test, no-money guard), and `pnpm simulate` playing a 3-player game to a winner. Not tested inside a real Discord client, on phones, or deployed.
 
 ## 2026-11-11 — feat(pages): simpler cooldown, pick a length and one lock button
 

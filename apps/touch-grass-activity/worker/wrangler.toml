@@ -1,0 +1,23 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+# Touch Grass Activity backend. Its OWN worker name, not collectclock-api or any other existing worker.
+# Not deployed by this PR. See ../README.md for Jamie's deploy steps.
+
+name = "touch-grass-activity"
+main = "src/index.ts"
+compatibility_date = "2026-03-01"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "TouchGrassRoom"
+
+# SQLite-backed Durable Objects (the class type available on the Workers Free plan per Cloudflare docs;
+# confirm on your account before deploying).
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TouchGrassRoom"]
+
+[vars]
+DISCORD_CLIENT_ID = "1445916179163250860"
+# DISCORD_CLIENT_SECRET is a secret: wrangler secret put DISCORD_CLIENT_SECRET --config worker/wrangler.toml
+# ALLOW_GUEST must stay unset in production. For local dev put ALLOW_GUEST="true" in worker/.dev.vars.
