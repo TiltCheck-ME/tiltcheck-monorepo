@@ -135,71 +135,12 @@ row = { id, name, avatar, score, at }   (Discord user id, display name, avatar h
 
 The LiveRegistry posts to one channel when someone is waiting: a DA&D table with someone seated and no game going, or someone on the Trivia screen with no game running (client sends `{t:'look', at}`). Only rooms in `ALERT_GUILD_ID` count. It waits 20 s first (a room that empties sooner never alerts), posts at most once per game per 10 minutes, and edits the post to "game on" or "closed" when that changes. `allowed_mentions: {parse: []}`, no names or ids in the copy. Off unless the secret `ALERT_WEBHOOK_URL` is set.
 
-## Current test deploy (2026-11-12, trivia build)
+## Current test deploy (2026-11-12, high scores + table alerts build)
 
-- Worker: `touch-grass-activity` on Cloudflare account 6604734f6224c90d45b3d817f9dfab23, `https://touch-grass-activity.j-chapman7.workers.dev` (`/api/health` 200, `/api/live` 200). Bindings: Durable Objects `ROOMS` -> `TouchGrassRoom` (migration v1, unchanged namespace) and `LIVE` -> `LiveRegistry` (migration v2, new_sqlite_classes), var `DISCORD_CLIENT_ID=1445916179163250860`, secret `DISCORD_CLIENT_SECRET` (kept). No `ALLOW_GUEST`. Uploaded with the Cloudflare REST API (bundle from `wrangler deploy --dry-run --outdir`, `keep_bindings: ["secret_text"]`, migrations `old_tag v1 -> new_tag v2`).
-- Frontend: Cloudflare Pages project `touch-grass-activity`, `https://touch-grass-activity.pages.dev`, built from 3738e659. Uploaded with the Pages direct-upload API (upload JWT -> assets/upload + upsert-hashes, then a deployment with the manifest). A new deployment can answer 500 for a minute or two while it propagates.
+- Worker: `touch-grass-activity` on Cloudflare account 6604734f6224c90d45b3d817f9dfab23, `https://touch-grass-activity.j-chapman7.workers.dev` (`/api/health` 200, `/api/live` 200, `/api/trivia/scores` 401 without a token). Bindings: Durable Objects `ROOMS` -> `TouchGrassRoom` (v1, unchanged), `LIVE` -> `LiveRegistry` (v2, unchanged), `SCORES` -> `TriviaScores` (migration v3, new_sqlite_classes); vars `DISCORD_CLIENT_ID=1445916179163250860`, `ALERT_GUILD_ID=1488253239643078787`; secrets `DISCORD_CLIENT_SECRET` (kept) and `ALERT_WEBHOOK_URL` (webhook "Tilt Check Tables" in #live-game-alerts, never committed). No `ALLOW_GUEST`. Uploaded with the Cloudflare REST API (bundle from `wrangler deploy --dry-run --outdir`, `keep_bindings: ["secret_text"]`, migrations `old_tag v2 -> new_tag v3`).
+- Frontend: Cloudflare Pages project `touch-grass-activity`, `https://touch-grass-activity.pages.dev`, built from 8f5739f1. Pages direct upload: upload JWT from the API, then `check-missing` / `assets/upload` / `upsert-hashes` sent straight to api.cloudflare.com with that JWT, `check-missing` re-run to confirm 0 missing, and only then the deployment (`manifest` as a form string). No downtime this way.
 - Discord proxy: `https://1445916179163250860.discordsays.com/.proxy/api/health` 200.
 - Developer Portal URL Mappings: `/` -> `touch-grass-activity.pages.dev`, `/api` -> `touch-grass-activity.j-chapman7.workers.dev`.
-
-## Deploy checklist for Jamie
-
-Nothing here touches `collectclock-api`, DNS, the Developer Portal or any Discord channel. These are the steps when you decide to ship.
-
-### 1. Worker
-
-```bash
-cd apps/touch-grass-activity
-npx wrangler login                                   # your Cloudflare account
-npx wrangler secret put DISCORD_CLIENT_SECRET --config worker/wrangler.toml   # "Tilt Check" app secret
-npx wrangler deploy --config worker/wrangler.toml    # creates worker "touch-grass-activity"
-```
-
-- The worker name is `touch-grass-activity`. It is a new worker, not `collectclock-api`.
-- `DISCORD_CLIENT_ID` is already set as a var in `wrangler.toml` (1445916179163250860).
-- Do **not** set `ALLOW_GUEST` in production.
-- Hostname: either the free `touch-grass-activity.<your-subdomain>.workers.dev` URL, or add a custom domain (Workers & Pages -> touch-grass-activity -> Settings -> Domains & Routes -> Add custom domain, for example `tg-api.tiltcheck.me`; tiltcheck.me DNS must be on Cloudflare for that).
-- Check it: `curl https://<worker-host>/api/health` should return `{"ok":true,...}`.
-
-Durable Objects: Cloudflare's docs say SQLite-backed Durable Objects are on the Workers Free plan (100k requests/day) and the `wrangler.toml` migration uses `new_sqlite_classes`. **Not verified on your account.** If deploy fails with a Durable Objects or plan error, that is the reason.
-
-### 2. Frontend
-
-```bash
-pnpm --filter @tiltcheck/touch-grass-activity build   # static files in apps/touch-grass-activity/dist
-```
-
-Host `dist/` anywhere static: Cloudflare Pages (`npx wrangler pages deploy dist --project-name touch-grass-activity`), or GitHub Pages on a subdomain. Assets use relative paths, so a subfolder also works, but whether a Discord URL mapping target may include a path is unverified; a dedicated host is the safe choice.
-
-### 3. Developer Portal ("Tilt Check", 1445916179163250860)
-
-Activities -> URL Mappings:
-
-| Prefix | Target |
-| --- | --- |
-| `/` | the frontend host, for example `touch-grass-activity.pages.dev` |
-| `/api` | the worker host, for example `touch-grass-activity.<sub>.workers.dev` |
-
-The worker accepts both `/api/...` and `/...` paths, so it works whether or not Discord strips the `/api` prefix before forwarding. If Discord keeps the prefix, the mapping `/api` -> `<worker-host>` is enough; if it strips it, `/api` -> `<worker-host>/api` also works.
-
-OAuth2: there must be at least one redirect URI saved (any, for example `https://127.0.0.1`). The SDK flow does not use it.
-
-### 4. iOS and Android
-
-Activities -> Settings -> Supported Platforms: tick iOS and Android. The UI uses Discord's `--discord-safe-area-inset-*` variables and has portrait and landscape layouts, but it has not been tried on a phone inside Discord yet.
-
-### 5. Stop the auto-posted "started an activity" messages
-
-The default Entry Point command uses handler `DISCORD_LAUNCH_ACTIVITY` (2), which posts a message in the channel every launch. Switch it to `APP_HANDLER` (1):
-
-1. List global commands and find the one with `type: 4` (PRIMARY_ENTRY_POINT):
-   `GET https://discord.com/api/v10/applications/1445916179163250860/commands` with `Authorization: Bot <bot token>`.
-2. Patch it: `PATCH .../applications/1445916179163250860/commands/<command_id>` with body `{"handler": 1}`.
-3. With `APP_HANDLER`, Discord sends an interaction to your Interactions Endpoint URL and your app must answer with response type 12 (`LAUNCH_ACTIVITY`). Nothing in this PR handles that interaction yet, so set this only once an interactions endpoint exists (it can be a route on the same worker). Until then keep handler 2.
-
-### 6. Old launch messages
-
-Delete the old "Jamie started an activity / Join" messages in the channel by hand.
 
 ## Known gaps
 

@@ -2,6 +2,12 @@
 
 # Session Log
 
+## 2026-11-12 — deploy(activity): Touch Grass high scores + table alerts on the same test hosts
+
+- Worker `touch-grass-activity` re-uploaded from 8f5739f1: migration v2 -> v3 adds `SCORES`/`TriviaScores` (new class only; ROOMS and LIVE untouched), new var `ALERT_GUILD_ID`, `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` kept. `/api/health` 200 before, during and after; `/api/live` 200; `/api/trivia/scores` 401 without a token, 405 on POST; token route still reaches Discord.
+- Table alerts live: the Tilt Check bot (admin in the TiltCheck server) created channel webhook "Tilt Check Tables" in #live-game-alerts; its URL went straight into the worker secret `ALERT_WEBHOOK_URL` through the Cloudflare API, never printed or committed. No test message was posted; the first alert will come from a real player.
+- Pages `touch-grass-activity` deployment 2a66b11b (8f5739f1). Assets uploaded outside the sandbox's injected auth with the upload JWT and confirmed present (check-missing empty) before the deployment was created. pages.dev polled every 2 s through the switch: every response 200, old bundle to new with no gap. discordsays.com `/.proxy/api/health` 200.
+
 ## 2026-11-12 — feat(activity): trivia high scores per server, end-screen grammar, smaller phone question text, table alerts
 
 - High scores (`src/shared/scores.ts`, `worker/src/scores-do.ts`): new `TriviaScores` Durable Object, one per Discord server (`idFromName('guild:<id>')`), migration v3 `new_sqlite_classes` only (v1 ROOMS and v2 LIVE untouched). Top 10 this week (resets Monday 00:00 America/Chicago, DST-aware via Intl) and top 10 all time; one row per player per board, best only; rows hold Discord user id, display name, avatar hash, score, date. Personal bests (id, score, date) kept for every player so someone off the board still sees theirs. Zero scores are not recorded.
