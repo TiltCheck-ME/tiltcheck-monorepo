@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-12 — deploy(activity): Touch Grass channel rooms on the same test hosts
+
+- Worker `touch-grass-activity` re-uploaded from 79e2ca6b through the REST API (deployment 4d2dfa6f): same bindings (ROOMS, LIVE, SCORES; vars DISCORD_CLIENT_ID, ALERT_GUILD_ID), secrets DISCORD_CLIENT_SECRET and ALERT_WEBHOOK_URL kept via `keep_bindings`; no new DO class, no migration (still v3). `/api/health` 200 before and on every poll after; `/api/live` 200; a channel key with a wrong-guild instance 403 `room-guild-mismatch`, without `?instance=` 400, a good key without a token 401.
+- Pages `touch-grass-activity` deployment 151fb864 (79e2ca6b): assets uploaded with the upload JWT (sent with `--noproxy` so the sandbox's injected Cloudflare auth doesn't replace it), check-missing confirmed 0 missing, then the deployment created. pages.dev polled every 2 s through the switch: all 200, old bundle to new with no gap. discordsays.com `/.proxy/api/health` 200. No Discord messages posted.
+
 ## 2026-11-12 — fix(activity): one Touch Grass room per server channel
 
 - Why: `/api/live` showed 2 DA&D tables with 1 seated each in one server. Rooms were keyed by `sdk.instanceId`, and a second person who started the Activity fresh in the same channel (instead of tapping Join) got a new instance, so a separate room.
