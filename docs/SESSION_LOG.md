@@ -1,6 +1,17 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
 
 # Session Log
+
+## 2026-11-13 — feat(extension): respect each site's minimum cash-out before saying "cash out"
+
+- Why: Jamie: "the extension should be mindful on min cash out amounts for each site before it tells players to cash out."
+- New `apps/chrome-extension/src/cashout-minimums.ts`: per-site table (amount, unit, operator source URL, last-checked date) for every route in `cashout-router.ts`, plus `evaluateCashoutGate(host, balance)` -> `clear` / `below` / `unknown` and the copy for the last two. Numbers only from the operator's own published rules/help pages, read 2026-11-13; no source, no number.
+- Sourced (cash prize minimum, Sweeps Coins): Chumba 100 (VGW Sweeps Rules v23.0 6.5), LuckyLand Slots 50 (VGW v29.0 6.5), Global Poker 50 (v26.0 6.5), WOW Vegas 50 (help center), High 5 100 (help center), McLuck 75 (operator FAQ, Sep 2026), Zula 50 (Sweepstakes Rules v2.7 5.3), Crown Coins 50 (operator glossary), LoneStar 100 (Promotional Play Rules v1.9 9.1.2), RealPrize 100 (v3.2 9.1.2).
+- Blank (treated as unknown): Stake.us (terms reserve a minimum, print none), Pulsz (rules behind login), Funzpoints, Funrize, Jackpota (rules URL 404), NoLimitCoins; crypto sites Stake, Roobet, BC.Game, Rollbit, Shuffle, Gamdom, CSGOEmpire (per-coin minimums in the cashier, not comparable with the balance on screen).
+- Behaviour: at/above the minimum every nudge is unchanged. Below: no "cash out" copy and no cashier button; the copy says how far under the minimum the balance is and offers a 5-minute break (Touch Grass timeout), never depositing or playing on. Unknown (blank site, unknown host, unreadable balance): neutral copy, "check the cashier before counting on a withdrawal".
+- Wired into: profit-lock goal toast, ratchet soft-warning modal and hard-brake message; bonus-tracker rollover-complete modal (drops "100% withdrawable" unless clear); reality HUD and streak toast hide their Cashier button only when below. `installProfitLock` and `showBonusCompleteModal` take an optional hostname override (tests).
+- Not changed: deposit-barrier's cooldown redirect to the withdraw tab, heater nudge ("lock half"), vault/auto-vault. Gate uses the displayed SC balance, which can include unplayed SC that does not count toward the minimum yet, so "clear" is a floor check, not a promise.
+- Checked: new `tests/unit/cashout-minimums.test.ts` (table integrity vs routes, host matching, gate states and shortfall, copy rules, toast/modal/hard-brake/bonus modal in jsdom). Not checked in a real browser on any casino site.
 
 ## 2026-11-12 — deploy(activity): Touch Grass channel rooms on the same test hosts
 

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 
 /**
  * streak-volatility.ts
@@ -13,6 +13,7 @@
 
 import { readBalance } from './reality-hud.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
+import { evaluateCashoutGate, shouldOfferCashier } from './cashout-minimums.js';
 import { CASINO_SELECTORS } from './extractor.js';
 import { playAudioCue } from './audio-alerts.js';
 import { findSpinControl } from './spin-pace-lock.js';
@@ -440,7 +441,10 @@ export function installStreakVolatilityTracker(
         });
 
         toast.appendChild(textEl);
-        toast.appendChild(cashierBtn);
+        // No cashier button when the balance is known to be under the site's cash-out minimum.
+        if (shouldOfferCashier(evaluateCashoutGate(doc.location?.hostname ?? '', readBalance(doc)))) {
+          toast.appendChild(cashierBtn);
+        }
         toast.appendChild(dismissBtn);
         (doc.body || doc.documentElement).appendChild(toast);
       } else {

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * reality-hud.ts
  * Reality-Grounding Wage-Hour Equivalence HUD.
@@ -8,6 +8,7 @@
 
 import { CASINO_SELECTORS } from './extractor.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
+import { evaluateCashoutGate, shouldOfferCashier } from './cashout-minimums.js';
 
 export const TILTCHECK_HOURLY_WAGE_KEY = 'tiltcheck_hourly_wage';
 export const TILTCHECK_REALITY_HUD_ENABLED_KEY = 'tiltcheck_reality_hud_enabled';
@@ -273,7 +274,7 @@ export function installRealityHud(
     }
   };
 
-  const renderOrUpdateHud = (drawdown: number, hours: number) => {
+  const renderOrUpdateHud = (drawdown: number, hours: number, currentBalance: number) => {
     let hud = doc.getElementById(REALITY_HUD_ID);
     const message = formatRealityMessage(drawdown, hours);
 
@@ -368,6 +369,13 @@ export function installRealityHud(
       }
       hud.style.display = 'flex';
     }
+
+    // No cashier button when the balance is known to be under the site's cash-out minimum.
+    const cashierBtn = hud.querySelector('.tiltcheck-reality-hud-cashout') as HTMLElement | null;
+    if (cashierBtn) {
+      const gate = evaluateCashoutGate(doc.location?.hostname ?? '', currentBalance);
+      cashierBtn.style.display = shouldOfferCashier(gate) ? '' : 'none';
+    }
   };
 
   const check = (balanceOverride?: number) => {
@@ -414,7 +422,7 @@ export function installRealityHud(
       }
     }
 
-    renderOrUpdateHud(drawdown, hours);
+    renderOrUpdateHud(drawdown, hours, currentBalance);
   };
 
   const onClickCapture = () => {
