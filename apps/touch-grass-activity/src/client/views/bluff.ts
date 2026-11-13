@@ -5,7 +5,8 @@
 import { COPY } from '../copy.js';
 import { MAX_PLAYERS, MAX_STATEMENT_CHARS, MIN_PLAYERS } from '../../shared/bluff.js';
 import type { RoomView } from '../../shared/protocol.js';
-import { avatarImg, esc, nameOf, userById } from './util.js';
+import { avatarImg, esc, nameOf, podium, userById } from './util.js';
+import { BLUFF_ART } from '../art.js';
 
 const KEYS = ['A', 'B', 'C'];
 
@@ -38,7 +39,7 @@ function board(view: RoomView): string {
         <span class="score__name">${esc(nameOf(view, s.id))}</span>
         ${s.away ? `<span class="tag tag--away">${COPY.away}</span>` : ''}
         ${s.isTeller ? `<span class="tag">${COPY.bluff.tellerTag}</span>` : s.guessed ? '<span class="tag tag--ok">in</span>' : ''}
-        <span class="score__pts">${s.score}</span>
+        <span class="score__pts" data-pts="${esc(s.id)}">${s.score}</span>
       </li>`,
     )
     .join('')}</ol>${b.waiting.length ? `<p class="muted small">Next game: ${b.waiting.map((id) => esc(nameOf(view, id))).join(', ')}</p>` : ''}`;
@@ -75,12 +76,12 @@ function revealBlock(view: RoomView): string {
     <div class="choices">${r.statements
       .map((text, i) => {
         const who = r.picks.filter((p) => p.pick === i).map((p) => nameOf(view, p.id));
-        return `<div class="choice ${i === r.lie ? 'choice--correct' : mine?.pick === i ? 'choice--wrong' : ''}" data-statement="${i}">
-          <span class="choice__key">${KEYS[i]}</span><span class="choice__text">${esc(text)}${i === r.lie ? ` <span class="tag tag--lie">${COPY.bluff.lieTag}</span>` : ''}</span>
+        return `<div class="choice fx fx-flip ${i === r.lie ? 'choice--correct choice--lie' : mine?.pick === i ? 'choice--wrong' : ''}" style="--i:${i}" data-statement="${i}">
+          <span class="choice__key">${KEYS[i]}</span><span class="choice__text">${esc(text)}${i === r.lie ? ` <span class="tag tag--lie fx fx-stamp">${COPY.bluff.lieTag}</span>` : ''}</span>
           <span class="choice__count" data-picked-by="${i}">${who.length ? esc(who.join(', ')) : COPY.bluff.nobodyPicked}</span></div>`;
       })
       .join('')}</div>
-    ${verdict ? `<p class="status ${mine?.correct ? 'status--win' : ''}">${verdict}</p>` : ''}
+    ${verdict ? `<p class="status ${mine?.correct ? 'status--win fx fx-pop' : ''}">${verdict}</p>` : ''}
     <p class="muted">${esc(COPY.bluff.tellerScored(teller, r.tellerPoints))}</p>`;
 }
 
@@ -95,6 +96,7 @@ export function renderBluff(view: RoomView, draft: BluffDraft, clockOffsetMs: nu
     const canStart = b.me.seated && b.seats.length >= MIN_PLAYERS;
     return `${header}
       <section class="panel bluff-panel">
+        <div class="game-hero" aria-hidden="true">${BLUFF_ART}</div>
         <h2 class="h2">${b.phase === 'paused' ? COPY.bluff.paused : COPY.bluff.seatingTitle}</h2>
         ${skipNote(view)}
         <p class="lede">${COPY.bluff.rules}</p>
@@ -112,8 +114,9 @@ export function renderBluff(view: RoomView, draft: BluffDraft, clockOffsetMs: nu
     const canGo = b.me.seated || b.me.waiting;
     return `${header}
       <section class="panel panel--win bluff-panel">
-        ${revealBlock(view)}
         <h2 class="h2" data-bluff-winner>${winners.length ? esc(COPY.bluff.winner(winners)) : COPY.bluff.noWinner}</h2>
+        ${podium(view, [...b.seats].sort((x, y) => y.score - x.score))}
+        ${revealBlock(view)}
         <h3 class="eyebrow">${COPY.bluff.overTitle}</h3>
         ${board(view)}
         <div class="row">${canGo ? `<button class="btn btn--primary" data-act="bluff.start" ${b.seats.length + b.waiting.length >= MIN_PLAYERS ? '' : 'disabled'}>${COPY.bluff.again}</button>` : ''}${seatControls(view)}</div>
@@ -145,14 +148,14 @@ export function renderBluff(view: RoomView, draft: BluffDraft, clockOffsetMs: nu
     if (b.me.isTeller && b.me.mine) {
       const mine = b.me.mine;
       body = `<p class="status">${COPY.bluff.yourLie}</p><div class="choices">${mine.statements
-        .map((text, i) => `<div class="choice ${i === mine.lie ? 'choice--mine' : ''}"><span class="choice__key">${KEYS[i]}</span><span class="choice__text">${esc(text)}${i === mine.lie ? ` <span class="tag tag--lie">${COPY.bluff.lieTag}</span>` : ''}</span></div>`)
+        .map((text, i) => `<div class="choice fx fx-flip ${i === mine.lie ? 'choice--mine' : ''}" style="--i:${i}"><span class="choice__key">${KEYS[i]}</span><span class="choice__text">${esc(text)}${i === mine.lie ? ` <span class="tag tag--lie">${COPY.bluff.lieTag}</span>` : ''}</span></div>`)
         .join('')}</div>`;
     } else {
       const canGuess = b.me.seated && b.me.guess === null;
       body = `<h3 class="eyebrow">${COPY.bluff.pickLie}</h3><div class="choices">${b.statements
         .map(
           (text, i) =>
-            `<button class="choice ${b.me.guess === i ? 'choice--mine' : ''}" data-rid="${esc(b.rid ?? '')}" data-pick="${i}" ${canGuess ? '' : 'disabled'}><span class="choice__key">${KEYS[i]}</span><span class="choice__text">${esc(text)}</span></button>`,
+            `<button class="choice fx fx-flip ${b.me.guess === i ? 'choice--mine' : ''}" style="--i:${i}" data-rid="${esc(b.rid ?? '')}" data-pick="${i}" ${canGuess ? '' : 'disabled'}><span class="choice__key">${KEYS[i]}</span><span class="choice__text">${esc(text)}</span></button>`,
         )
         .join('')}</div>
         <p class="status">${!b.me.seated ? (b.me.waiting ? COPY.bluff.waitingForNext : COPY.bluff.spectating) : b.me.guess !== null ? COPY.bluff.locked : ''}</p>`;
@@ -164,7 +167,7 @@ export function renderBluff(view: RoomView, draft: BluffDraft, clockOffsetMs: nu
     body = `${revealBlock(view)}${b.me.seated ? `<button class="btn btn--primary" data-act="bluff.next">${COPY.bluff.next}</button>` : ''}`;
   }
 
-  const promptBox = b.phase === 'reveal' ? '' : `<div class="prompt">${esc(b.prompt ?? '')}</div>`;
+  const promptBox = b.phase === 'reveal' ? '' : `<div class="prompt prompt--smoke">${esc(b.prompt ?? '')}</div>`;
   return `${header}
     <div class="dad-grid">
       <section class="panel dad-main bluff-panel">${skipNote(view)}<div class="trivia-top">${clock}<span class="muted small">${esc(b.tellerId ? `${COPY.bluff.tellerTag}: ${teller}` : '')}</span></div>${promptBox}${body}</section>

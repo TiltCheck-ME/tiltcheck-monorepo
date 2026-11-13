@@ -24,6 +24,7 @@
     "src/shared/**/*.ts",
     "vite.config.ts",
     "tests/client-dom.test.ts",
-    "tests/high-scores-ui.test.ts"
+    "tests/high-scores-ui.test.ts",
+    "tests/look.test.ts"
   ]
 }

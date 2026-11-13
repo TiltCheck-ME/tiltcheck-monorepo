@@ -12,7 +12,7 @@ import { renderTrivia, secondsLeft } from './views/trivia.js';
 import { bluffSecondsLeft, emptyDraft, renderBluff, type BluffDraft } from './views/bluff.js';
 import { DEFAULT_TARGET } from '../shared/dad.js';
 import type { ClientAction, RoomView } from '../shared/protocol.js';
-import { esc } from './views/util.js';
+import { esc, failedAvatars } from './views/util.js';
 import type { ScoresResult, ScoresTab } from './views/highScores.js';
 
 type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff';
@@ -83,6 +83,41 @@ function statusBar(): string {
   return bits.join('');
 }
 
+/**
+ * Motion bookkeeping. The whole screen is re-rendered on every state push, which would restart every
+ * entrance animation. Instead each phase gets a key; while the key holds, the screen carries a negative
+ * --fx-t so a running animation resumes where it was, and after FX_MS the animations are switched off.
+ */
+const FX_MS = 2200;
+const POP_MS = 900;
+const fx = { key: '', at: 0 };
+const pts = new Map<string, number>();
+const popAt = new Map<string, number>();
+
+function phaseKey(v: RoomView | null): string {
+  if (!v) return 'boot';
+  if (ui.screen === 'dad') return `dad:${v.dad.phase}:${v.dad.round}`;
+  if (ui.screen === 'trivia') return `trivia:${v.trivia.game}:${v.trivia.phase}:${v.trivia.number}`;
+  if (ui.screen === 'bluff') return `bluff:${v.bluff.game}:${v.bluff.phase}:${v.bluff.round}`;
+  return 'lobby';
+}
+
+/** Scores that went up since the last render get a short pop (kept across re-renders until it ends). */
+function popScores(now: number): void {
+  for (const el of app.querySelectorAll<HTMLElement>('[data-pts]')) {
+    const key = `${ui.screen}:${el.dataset.pts}`;
+    const val = Number(el.textContent);
+    const prev = pts.get(key);
+    pts.set(key, val);
+    if (prev !== undefined && val > prev) popAt.set(key, now);
+    const at = popAt.get(key);
+    if (at !== undefined && now - at < POP_MS) {
+      el.classList.add('pop');
+      el.style.animationDelay = `-${now - at}ms`;
+    }
+  }
+}
+
 function render(): void {
   const v = ui.view;
   let main: string;
@@ -95,9 +130,18 @@ function render(): void {
   const active = document.activeElement as HTMLInputElement | null;
   const focusDraft = active?.dataset?.draft;
   const caret = focusDraft !== undefined ? [active?.selectionStart ?? null, active?.selectionEnd ?? null] : null;
-  app.innerHTML = `${statusBar()}<main class="screen screen--${ui.screen}">${main}</main>${
+  const now = Date.now();
+  const key = phaseKey(v);
+  if (key !== fx.key) {
+    fx.key = key;
+    fx.at = now;
+  }
+  const since = now - fx.at;
+  const motion = since > FX_MS ? 'fx-done' : '';
+  app.innerHTML = `${statusBar()}<main class="screen screen--${ui.screen} ${motion}" style="--fx-t:-${since}ms;--pulse-t:-${now % 1600}ms">${main}</main>${
     ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
   }`;
+  popScores(now);
   if (focusDraft !== undefined) {
     const el = app.querySelector<HTMLInputElement>(`[data-draft="${focusDraft}"]`);
     if (el) {
@@ -120,12 +164,19 @@ function tickClock(): void {
   if (ui.screen === 'bluff') {
     const left = bluffSecondsLeft(v, ui.clockOffset);
     const el = app.querySelector('[data-bluff-clock]');
-    if (el && left !== null) el.textContent = String(left);
+    if (el && left !== null) {
+      el.textContent = String(left);
+      el.classList.toggle('clock--low', left <= 10);
+    }
     return;
   }
   if (ui.screen !== 'trivia' || v.trivia.phase !== 'question') return;
   const el = app.querySelector('[data-trivia-clock]');
-  if (el) el.textContent = String(secondsLeft(v.trivia.endsAt, ui.clockOffset));
+  if (el) {
+    const left = secondsLeft(v.trivia.endsAt, ui.clockOffset);
+    el.textContent = String(left);
+    el.classList.toggle('clock--low', left <= 5);
+  }
 }
 
 let lookSent = false;
@@ -210,6 +261,19 @@ app.addEventListener('click', (ev) => {
   if (d.act === 'dad.start') return send({ t: 'dad.start', target: ui.target });
   if (d.act) return send({ t: d.act } as ClientAction);
 });
+
+// A Discord avatar that can't load: drop the broken picture so the coloured initial shows instead.
+// 'error' doesn't bubble, so listen in the capture phase.
+app.addEventListener(
+  'error',
+  (ev) => {
+    const img = ev.target as HTMLImageElement | null;
+    if (!img || img.tagName !== 'IMG' || !img.hasAttribute('data-avatar')) return;
+    failedAvatars.add(img.getAttribute('src') ?? '');
+    img.remove();
+  },
+  true,
+);
 
 app.addEventListener('input', (ev) => {
   const el = ev.target as HTMLInputElement;
