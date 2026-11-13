@@ -1,6 +1,17 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
 
 # Session Log
+
+## 2026-11-13 — feat(activity): 1v1 Chess in Touch Grass; Scores sheet says it is trivia only
+
+- Branch `touch-grass-chess` from `touch-grass-solo` (draft #727, builds on #726; neither merged). Draft PR only, nothing deployed.
+- Chess (`src/shared/chess.ts`, rules in `src/shared/chessRules.ts`): two people claim White and Black on the Chess screen, everyone else in the room watches the same board; either player starts once both sides are taken, Rematch swaps colors. Moves go through the existing room (`chess.*` actions in `protocol.ts`, `Room.handle`, same channel-room key `g-<guild>-c-<channel>` from #725); the server checks every move and sends legal targets only to the player to move. A `ply` number on each move refuses double taps and stale boards.
+- Rules engine written in the repo instead of chess.js (chess.js is BSD-2-Clause; the ask was MIT). Check, checkmate, stalemate, castling (not out of, through or into check), en passant (including the pinned-pawn case), promotion to Q/R/B/N, threefold repetition, 50-move rule, dead positions; SAN for the move list. Verified against six standard perft positions (start to depth 4: 197,281; Kiwipete, positions 3 to 6) plus targeted tests.
+- Resign (two taps) and Offer draw (accept or decline; a move by the offered side declines). Optional clock, off by default: 5, 10 or 15 minutes each, no increment, starts after White's first move, a flag against a bare king or lone minor is a draw. A drop keeps the seat for the room's away grace; really leaving mid-game loses it. Repetition counts reset on every pawn move or capture so the stored room stays small; 600-ply cap.
+- Screen: tap a piece, then a lit square (dots for moves, rings for captures), last move and check as flat fills; inline-SVG pieces drawn for this app (no third-party piece set, no unicode chess glyphs since Brand Compliance flags U+2600-26FF). Phone-first: on a 390 px phone the board runs nearly edge to edge for 48 px squares (44 px at 360 px, 45 px in 844x390 landscape); every other control is 48 px. Calm #727 look, no new animation, reduced motion unaffected. Lobby gets a Chess row ("N seated", "· M<n>" while live). Guest mode: a bot takes the open side once you claim one and plays random legal moves.
+- Scores: the sheet is now titled "Trivia high scores" with "Trivia games only. Myth or Math keeps its own weekly board."; the header button keeps the word Scores with that title as its accessible name.
+- Checked: typecheck (client, worker, tests), vite build, 269 vitest tests (was 225): `chess-rules.test.ts` (perft, castling rights and blocks, en passant, promotion, pins, SAN, mate/stalemate, dead positions), `chess.test.ts` (seats, turns, stale ply, spectator refused, fool's mate, promotion, draws, resign, draw offers, clock and flag, leave mid-game, rematch, per-viewer legal moves, wire parsing, random games to the end), `chess-ui.test.ts` (board orientation per viewer, promotion picker, clock text), jsdom guest flow (claim, bot, select, move, two-tap resign), workerd test over WebSockets (two players and a spectator, fool's mate, reconnect). `simulate` passes. Headless Chromium screenshots at 390x844, 360x780, 844x390 and 1100x800: no horizontal overflow, no control under 44 px.
+- Not tested: real Discord clients (iOS/Android webviews, taps on the board, a real two-device game through the deployed worker, clock drift between devices).
 
 ## 2026-11-12 — feat(activity): sharper, calmer Touch Grass look; plain-copy pass; Myth or Math mixed with general cards + deploy
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Touch Grass Activity entry. Inside Discord: SDK handshake, then the worker room.
 // Plain browser (no frame_id): guest mode with a fake user and an in-browser room.
 
@@ -17,8 +17,9 @@ import type { ScoresResult, ScoresTab } from './views/highScores.js';
 import { dailyShare, renderDaily } from './views/daily.js';
 import { mythSecondsLeft, renderMyth } from './views/myth.js';
 import { inviteButton, openInvite, setInviteSdk } from './views/invite.js';
+import { chessClockLeft, emptyChessUi, fmtClock, needsPromotion, renderChess, type ChessUi } from './views/chess.js';
 
-type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth';
+type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess';
 
 const app = document.getElementById('app') as HTMLElement;
 
@@ -46,6 +47,10 @@ const ui = {
   dailyDraft: '',
   dailyRows: -1,
   dailyAsked: '',
+  /** Chess: selected square, pending promotion, armed resign. Reset whenever the position moves on. */
+  chess: emptyChessUi() as ChessUi,
+  chessKey: '',
+  lastChessGame: 0,
 };
 
 const SCORES_STALE_MS = 20_000;
@@ -106,6 +111,7 @@ function phaseKey(v: RoomView | null): string {
   if (ui.screen === 'trivia') return `trivia:${v.trivia.game}:${v.trivia.phase}:${v.trivia.number}`;
   if (ui.screen === 'bluff') return `bluff:${v.bluff.game}:${v.bluff.phase}:${v.bluff.round}`;
   if (ui.screen === 'daily') return `daily:${v.daily.me?.day ?? ''}:${v.daily.me?.rows.length ?? -1}:${v.daily.me?.status ?? ''}`;
+  if (ui.screen === 'chess') return `chess:${v.chess.game}:${v.chess.phase}`;
   if (ui.screen === 'myth') return `myth:${v.myth.run?.runId ?? ''}:${v.myth.run?.phase ?? ''}:${v.myth.run?.number ?? 0}`;
   return 'lobby';
 }
@@ -119,6 +125,7 @@ function render(): void {
   else if (ui.screen === 'bluff') main = renderBluff(v, ui.bluffDraft, ui.clockOffset);
   else if (ui.screen === 'daily') main = renderDaily(v, ui.dailyDraft, session?.mode === 'guest', inviteButton());
   else if (ui.screen === 'myth') main = renderMyth(v, ui.clockOffset, session?.mode === 'guest');
+  else if (ui.screen === 'chess') main = renderChess(v, ui.chess, ui.clockOffset);
   else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab, ui.scoresOpen);
   // Re-rendering replaces the inputs: keep focus and the caret on the statement being typed.
   const active = document.activeElement as HTMLInputElement | null;
@@ -156,6 +163,17 @@ function syncTellButton(): void {
 function tickClock(): void {
   const v = ui.view;
   if (!v) return;
+  if (ui.screen === 'chess') {
+    for (const side of ['w', 'b'] as const) {
+      const left = chessClockLeft(v, side, ui.clockOffset);
+      const el = app.querySelector(`[data-chess-clock="${side}"]`);
+      if (el && left !== null) {
+        el.textContent = fmtClock(left);
+        el.classList.toggle('clock--low', left <= 30_000);
+      }
+    }
+    return;
+  }
   if (ui.screen === 'myth') {
     const left = mythSecondsLeft(v, ui.clockOffset);
     const el = app.querySelector('[data-myth-clock]');
@@ -255,6 +273,20 @@ function onState(view: RoomView): void {
     }
     ui.lastBluffGame = view.bluff.game;
   }
+  // A chess game started by anyone pulls its two players to the board.
+  if (view.chess.game !== ui.lastChessGame && view.chess.phase === 'playing') {
+    if (view.chess.me.color && ui.screen !== 'chess') {
+      ui.screen = 'chess';
+      send({ t: 'look', at: 'chess' });
+    }
+    ui.lastChessGame = view.chess.game;
+  }
+  // The position moved on: drop any selection, pending promotion or armed resign.
+  const chessKey = `${view.chess.game}:${view.chess.phase}:${view.chess.ply}`;
+  if (chessKey !== ui.chessKey) {
+    ui.chessKey = chessKey;
+    ui.chess = emptyChessUi();
+  }
   // New turn as teller: start from a clean draft.
   const key = view.bluff.phase === 'writing' ? `${view.bluff.game}:${view.bluff.round}` : '';
   if (key && key !== ui.bluffDraftKey) {
@@ -314,6 +346,29 @@ app.addEventListener('click', (ev) => {
     if (text) void copyText(text).then((ok) => toast(ok ? COPY.daily.copied : COPY.daily.copyFailed));
     return;
   }
+  if (!el.hasAttribute('data-chess-resign') && ui.chess.resignArmed) {
+    ui.chess.resignArmed = false;
+    render();
+  }
+  if (d.sq !== undefined) return chessTap(Number(d.sq));
+  if (d.chessPromo && ui.chess.promo && ui.view) {
+    const { from, to } = ui.chess.promo;
+    send({ t: 'chess.move', ply: ui.view.chess.ply, from, to, promotion: d.chessPromo as 'q' | 'r' | 'b' | 'n' });
+    ui.chess = emptyChessUi();
+    render();
+    return;
+  }
+  if (d.chessClaim) return send({ t: 'chess.claim', color: d.chessClaim === 'b' ? 'b' : 'w' });
+  if (d.chessClockset !== undefined) return send({ t: 'chess.clock', minutes: Number(d.chessClockset) });
+  if (el.hasAttribute('data-chess-resign')) {
+    if (!ui.chess.resignArmed) {
+      ui.chess.resignArmed = true;
+      render();
+      return;
+    }
+    ui.chess.resignArmed = false;
+    return send({ t: 'chess.resign' });
+  }
   if (d.mrid && d.mcid && d.mpick) return send({ t: 'myth.answer', rid: d.mrid, cid: d.mcid, pick: d.mpick === 'true' });
   if (d.scoresTab) {
     ui.scoresTab = d.scoresTab === 'all' ? 'all' : 'week';
@@ -355,6 +410,30 @@ app.addEventListener(
   },
   true,
 );
+
+/** Tap a square: pick up one of your pieces, put it on a lit square, or let go. */
+function chessTap(sq: number): void {
+  const v = ui.view;
+  if (!v) return;
+  const ch = v.chess;
+  if (ch.phase !== 'playing' || ch.me.color !== ch.turn) return;
+  const sel = ui.chess.sel;
+  if (sel !== null && (ch.me.legal[sel] ?? []).includes(sq)) {
+    if (needsPromotion(v, sel, sq)) {
+      ui.chess.promo = { from: sel, to: sq };
+      render();
+      return;
+    }
+    send({ t: 'chess.move', ply: ch.ply, from: sel, to: sq });
+    ui.chess = emptyChessUi();
+    ui.chess.sel = null;
+    render();
+    return;
+  }
+  ui.chess.promo = null;
+  ui.chess.sel = ch.me.legal[sq]?.length && sel !== sq ? sq : null;
+  render();
+}
 
 /** Close the Scores sheet and hand focus back to the Scores button. */
 function closeScores(): void {

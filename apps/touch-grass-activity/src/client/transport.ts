@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // How the client talks to the room.
 // - RemoteTransport: WebSocket to the worker Durable Object, polling fallback over HTTP.
 // - LocalTransport: guest/dev mode. Runs the same Room logic in the browser with optional bots.
@@ -384,6 +384,18 @@ export class LocalTransport extends Emitter implements Transport {
           acted = this.room.handle(bot.id, { t: 'bluff.tell', statements: [...lines] as [string, string, string], lie: Math.floor(Math.random() * 3) }, now).ok || acted;
         } else if (bv.phase === 'guessing' && bv.me.seated && !bv.me.isTeller && bv.me.guess === null && bv.rid && Math.random() < 0.7) {
           acted = this.room.handle(bot.id, { t: 'bluff.guess', rid: bv.rid, pick: Math.floor(Math.random() * 3) }, now).ok || acted;
+        }
+        // Chess: take an open side once a person has taken the other, then play a legal move (captures first).
+        const cv = this.room.viewFor(bot.id, now).chess;
+        if (cv.phase === 'seating' && !cv.me.color && !this.bots.some((b) => b.id === cv.white || b.id === cv.black)) {
+          if (cv.white && !cv.black) acted = this.room.handle(bot.id, { t: 'chess.claim', color: 'b' }, now).ok || acted;
+          else if (cv.black && !cv.white) acted = this.room.handle(bot.id, { t: 'chess.claim', color: 'w' }, now).ok || acted;
+        } else if (cv.phase === 'playing' && cv.me.color === cv.turn) {
+          const options = Object.entries(cv.me.legal).flatMap(([from, tos]) => tos.map((to) => ({ from: Number(from), to })));
+          const captures = options.filter((o) => cv.board[o.to]);
+          const pool = captures.length && Math.random() < 0.7 ? captures : options;
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          if (pick) acted = this.room.handle(bot.id, { t: 'chess.move', ply: cv.ply, from: pick.from, to: pick.to, promotion: 'q' }, now).ok || acted;
         }
         const tv = this.room.viewFor(bot.id, now).trivia;
         if (tv.phase === 'question' && tv.question && tv.me.playing && tv.me.answered === null && Math.random() < 0.6) {

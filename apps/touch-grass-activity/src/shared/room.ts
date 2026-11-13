@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // One room per Discord Activity instance: who is here, the DA&D table, the trivia game and Bluff.
 // Runs inside the Durable Object (authoritative) and inside the guest/dev room in the browser.
 
@@ -6,6 +6,7 @@ import * as dad from './dad.js';
 import * as trivia from './trivia.js';
 import * as bluff from './bluff.js';
 import * as myth from './myth.js';
+import * as chess from './chess.js';
 import { dayKeyFor, type ScoreRow } from './scores.js';
 import type { DailyPublic, SolverRow } from './daily.js';
 import type { Rng } from './rng.js';
@@ -51,6 +52,8 @@ export interface RoomState {
   daily?: Record<string, DailyPublic>;
   /** Myth or Math runs, one per player. */
   myth?: myth.MythState;
+  /** Chess, 1v1 with the room watching. Absent in rooms stored before chess. */
+  chess?: chess.ChessState;
   /** Cached boards for the solo games (this server's). null = not loaded yet. */
   solo?: {
     solvers: { day: string; rows: SolverRow[] } | null;
@@ -84,6 +87,7 @@ export function createRoomState(instanceId: string): RoomState {
     bluff: bluff.createBluff(),
     daily: {},
     myth: myth.createMyth(),
+    chess: chess.createChess(),
     solo: { solvers: null, ranks: {}, mythWeek: null },
   };
 }
@@ -96,6 +100,7 @@ export function upgradeRoomState(saved: RoomState): RoomState {
   s.bluff ??= bluff.createBluff();
   s.daily ??= {};
   s.myth ??= myth.createMyth();
+  s.chess ??= chess.createChess();
   s.solo ??= { solvers: null, ranks: {}, mythWeek: null };
   for (const m of Object.values(s.members)) m.awaySince ??= null;
   return s;
@@ -203,6 +208,8 @@ export class Room {
     // Solo progress is kept: a Myth or Math run stays paused for when they come back (it ages out
     // after a few idle hours), and the Daily Grass board is stored per player outside the room.
     myth.pause(this.myth, userId, _now);
+    // Chess: a player who really left mid-game loses it; their seat opens.
+    chess.removePlayer(this.chess, userId);
     this.bump();
   }
 
@@ -228,6 +235,10 @@ export class Room {
     return (this.state.myth ??= myth.createMyth());
   }
 
+  get chess(): chess.ChessState {
+    return (this.state.chess ??= chess.createChess());
+  }
+
   private get solo(): NonNullable<RoomState['solo']> {
     return (this.state.solo ??= { solvers: null, ranks: {}, mythWeek: null });
   }
@@ -238,7 +249,8 @@ export class Room {
     const t = trivia.tick(this.state.trivia, now, this.rng, active);
     const b = bluff.tick(this.state.bluff, now, this.rng, active);
     const mm = myth.tick(this.myth, now);
-    if (t || b || mm) {
+    const c = chess.tick(this.chess, now);
+    if (t || b || mm || c) {
       this.bump();
       return true;
     }
@@ -332,6 +344,8 @@ export class Room {
     if (t !== null) times.push(t);
     const b = bluff.nextWake(this.state.bluff);
     if (b !== null) times.push(b);
+    const c = chess.nextWake(this.chess);
+    if (c !== null) times.push(c);
     for (const m of Object.values(this.state.members)) if (m.awaySince !== null) times.push(m.awaySince + AWAY_GRACE_MS);
     return times.length ? Math.min(...times) : null;
   }
@@ -413,6 +427,30 @@ export class Room {
       case 'myth.next':
         r = myth.next(this.myth, userId, now);
         break;
+      case 'chess.claim':
+        r = chess.claim(this.chess, userId, action.color);
+        break;
+      case 'chess.release':
+        r = chess.release(this.chess, userId);
+        break;
+      case 'chess.clock':
+        r = chess.setClock(this.chess, userId, action.minutes);
+        break;
+      case 'chess.start':
+        r = chess.start(this.chess, userId, now);
+        break;
+      case 'chess.move':
+        r = chess.move(this.chess, userId, action.ply, action.from, action.to, action.promotion ?? null, now);
+        break;
+      case 'chess.resign':
+        r = chess.resign(this.chess, userId);
+        break;
+      case 'chess.draw':
+        r = chess.offerDraw(this.chess, userId);
+        break;
+      case 'chess.decline':
+        r = chess.declineDraw(this.chess, userId);
+        break;
       case 'daily.open':
       case 'daily.guess':
         // The host runs these (they need storage); reaching here means no solo service is wired.
@@ -491,6 +529,7 @@ export class Room {
       bluff: this.bluffView(userId, away),
       daily: this.dailyView(userId, now, away),
       myth: this.mythView(userId),
+      chess: chess.viewFor(this.chess, userId, now),
     };
   }
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // @vitest-environment jsdom
 // Guest-mode smoke test of the real client in jsdom: lobby -> DA&D with bots -> trivia -> Bluff.
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -24,7 +24,9 @@ describe('client in guest mode (no frame_id)', () => {
     expect(document.body.textContent).toContain('Guest mode');
     expect(document.querySelectorAll('.person')).toHaveLength(1);
     expect($('.person__name')?.textContent).toBe('Jme');
-    expect(document.querySelectorAll('.tile')).toHaveLength(5);
+    expect(document.querySelectorAll('.tile')).toHaveLength(6);
+    expect($('.tile--chess .tile__name')?.textContent).toBe('Chess');
+    expect($('[data-count=chess]')?.textContent).toBe('0 seated');
     expect($('[data-count=daily]')?.textContent).toBe('Solo');
     expect($('[data-count=myth]')?.textContent).toBe('Solo');
     expect($('.tile--bluff .tile__name')?.textContent).toBe('Bluff');
@@ -50,7 +52,10 @@ describe('client in guest mode (no frame_id)', () => {
     await click('[data-scores-open]');
     const hs = $('[data-scores-sheet] [data-high-scores]')!;
     expect($('[data-scores-sheet] [role=dialog]')?.getAttribute('aria-modal')).toBe('true');
-    expect($('[data-scores-sheet] .sheet__title')?.textContent).toBe('High scores');
+    // The sheet says what the scores are: trivia only.
+    expect($('[data-scores-sheet] .sheet__title')?.textContent).toBe('Trivia high scores');
+    expect($('[data-scores-sheet] .sheet__scope')?.textContent).toContain('Trivia games only');
+    expect($('[data-scores-open]')?.getAttribute('aria-label')).toBe('Trivia high scores');
     expect(document.activeElement?.hasAttribute('data-scores-close')).toBe(true);
     expect([...hs.querySelectorAll('[data-scores-tab]')].map((x) => x.textContent)).toEqual(['This week', 'All time']);
     expect($('[data-scores-tab=week]')!.getAttribute('aria-selected')).toBe('true');
@@ -196,5 +201,43 @@ describe('client in guest mode (no frame_id)', () => {
     await click('[data-act="myth.next"]');
     expect($('.bar__meta')!.textContent).toBe('Card 2 / 10');
   });
-});
 
+  it('Chess: claim White, a bot takes Black, tap-to-select then tap-to-move, two-tap resign', async () => {
+    await click('[data-go=lobby]');
+    await click('[data-go=chess]');
+    expect($('.bar__title')!.textContent).toBe('Chess');
+    expect(document.querySelectorAll('[data-sq]')).toHaveLength(64);
+    // a1 sits bottom left for White and spectators.
+    expect(document.querySelectorAll('[data-sq]')[56]!.getAttribute('data-sq')).toBe('0');
+    await click('[data-chess-claim=w]');
+    await sleep(1000);
+    expect($('[data-chess-player=b] .chess-player__name')?.textContent).toMatch(/^Bot /);
+    expect($('[data-act="chess.start"]')!.hasAttribute('disabled')).toBe(false);
+    await click('[data-act="chess.start"]');
+    expect($('[data-chess-status]')!.textContent).toContain('Your move.');
+    // Tap e2: its two targets light up. Tap it again: let go.
+    await click('[data-sq="12"]');
+    expect($('[data-sq="12"]')!.classList.contains('sq--sel')).toBe(true);
+    expect([...document.querySelectorAll('.sq--dot')].map((x) => x.getAttribute('data-sq')).sort()).toEqual(['20', '28']);
+    await click('[data-sq="12"]');
+    expect(document.querySelectorAll('.sq--dot')).toHaveLength(0);
+    // A black piece can't be picked up.
+    await click('[data-sq="52"]');
+    expect(document.querySelectorAll('.sq--sel')).toHaveLength(0);
+    await click('[data-sq="12"]');
+    await click('[data-sq="28"]');
+    expect($('[data-chess-moves]')!.textContent).toContain('e4');
+    expect($('[data-sq="28"] .pc--w')).not.toBeNull();
+    await sleep(1000);
+    expect($('[data-chess-moves]')!.textContent).toMatch(/1\. e4 \S+/);
+    expect($('[data-chess-status]')!.textContent).toContain('Your move.');
+    // Resign takes two taps.
+    await click('[data-chess-resign]');
+    expect($('[data-chess-resign]')!.textContent).toBe('Tap again to resign');
+    expect($('[data-chess-status]')!.textContent).toContain('Your move.');
+    await click('[data-chess-resign]');
+    expect($('[data-chess-status]')!.textContent).toMatch(/^Resigned\. Bot \w+ wins with Black\.$/);
+    expect($('[data-act="chess.start"]')!.textContent).toBe('Rematch. Colors swap.');
+    expect(document.body.textContent).not.toContain('!');
+  });
+});
