@@ -4,7 +4,7 @@
 // Outside Discord (no frame_id in the URL) we skip all of this and run as a guest.
 
 import { DiscordSDK, Events } from '@discord/embedded-app-sdk';
-import type { RoomUser } from '../shared/protocol.js';
+import { roomKeyFor, type RoomUser } from '../shared/protocol.js';
 
 export const CLIENT_ID: string = import.meta.env.VITE_DISCORD_CLIENT_ID || '1445916179163250860';
 /** Relative on purpose: Discord's proxy maps /api to the worker. */
@@ -23,6 +23,11 @@ export interface Session {
   mode: 'discord' | 'guest';
   user: RoomUser;
   instanceId: string;
+  /**
+   * Room this session joins: g-<guild>-c-<channel> in a server channel, so every launch in that
+   * channel shares one table; the instance id in DMs, group DMs and guest mode.
+   */
+  roomId: string;
   /** Discord access token, or a guest:<name> token for the dev worker. */
   token: string;
   /** Guild the Activity runs in (null in DMs and guest mode). Only feeds the anonymous live-tables count. */
@@ -96,7 +101,7 @@ export async function startDiscord(onParticipants: (list: Participant[]) => void
       onParticipants((data.participants ?? []).map(toParticipant));
     });
 
-    return { mode: 'discord', user, instanceId: sdk.instanceId, token: access_token, guildId: sdk.guildId ?? null, sdk };
+    return { mode: 'discord', user, instanceId: sdk.instanceId, roomId: roomKeyFor(sdk.instanceId, sdk.channelId), token: access_token, guildId: sdk.guildId ?? null, sdk };
   };
 
   return timeout(handshake(), HANDSHAKE_MS, 'Discord handshake');
@@ -106,10 +111,12 @@ export function startGuest(search: string = location.search): Session {
   const params = new URLSearchParams(search);
   const name = (params.get('name') || 'Guest Degen').replace(/[^A-Za-z0-9 _-]/g, '').slice(0, 24) || 'Guest Degen';
   const id = `guest-${name.replace(/\s+/g, '').toLowerCase() || 'degen'}`;
+  const instanceId = params.get('room') || 'local-dev';
   return {
     mode: 'guest',
     user: { id, name, avatar: null },
-    instanceId: params.get('room') || 'local-dev',
+    instanceId,
+    roomId: instanceId,
     token: `guest:${id.slice('guest-'.length)}`,
     guildId: null,
     sdk: null,

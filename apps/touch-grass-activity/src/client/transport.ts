@@ -60,10 +60,13 @@ export class RemoteTransport extends Emitter implements Transport {
   private closed = false;
 
   constructor(
+    /** Room key: g-<guild>-c-<channel> or the instance id (see roomKeyFor). */
     private readonly instanceId: string,
     private readonly token: string,
     private readonly base = '/api',
     private readonly guildId: string | null = null,
+    /** The Discord instance id, sent with a channel room key so the worker can check its guild. */
+    private readonly discordInstanceId: string | null = null,
   ) {
     super();
     queueMicrotask(() => this.connect());
@@ -82,7 +85,11 @@ export class RemoteTransport extends Emitter implements Transport {
   }
 
   private roomPath(op: string): string {
-    const q = this.guildId ? `?guild=${encodeURIComponent(this.guildId)}` : '';
+    const params = new URLSearchParams();
+    if (this.guildId) params.set('guild', this.guildId);
+    if (this.discordInstanceId && this.discordInstanceId !== this.instanceId) params.set('instance', this.discordInstanceId);
+    const qs = params.toString();
+    const q = qs ? `?${qs}` : '';
     return `${this.base}/room/${encodeURIComponent(this.instanceId)}/${op}${q}`;
   }
 

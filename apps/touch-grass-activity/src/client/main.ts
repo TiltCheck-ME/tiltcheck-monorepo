@@ -244,7 +244,7 @@ async function boot(): Promise<void> {
         ui.participants = list;
         render();
       });
-      wire(new RemoteTransport(session.instanceId, session.token, '/api', session.guildId));
+      wire(new RemoteTransport(session.roomId, session.token, '/api', session.guildId, session.instanceId));
     } catch (err) {
       app.innerHTML = `<main class="screen"><section class="panel"><h1 class="h2">Could not load the table</h1><p class="muted">${esc(
         err instanceof Error ? err.message : String(err),

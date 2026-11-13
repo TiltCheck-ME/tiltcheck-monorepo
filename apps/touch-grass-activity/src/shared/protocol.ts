@@ -248,11 +248,75 @@ export function isValidGuildId(id: string | null | undefined): id is string {
 export function guildForInstance(instanceId: string, clientGuild: string | null | undefined): string | null {
   const gc = /^i-\d+-gc-(\d{5,25})-\d+$/.exec(instanceId);
   if (gc) return gc[1] as string;
+  const key = parseChannelRoomKey(instanceId);
+  if (key) return key.guild;
   if (/^i-\d+-pc-\d+$/.test(instanceId)) return null;
   return isValidGuildId(clientGuild) ? clientGuild : null;
 }
 
-/** Discord instance ids look like i-123-gc-456-789. Keep the key boring. */
+/** Discord instance ids look like i-123-gc-456-789; channel room keys g-<guild>-c-<channel> also fit. Keep the key boring. */
 export function isValidInstanceId(id: string): boolean {
   return /^[A-Za-z0-9:._-]{1,128}$/.test(id);
+}
+
+/** Discord snowflake ids (guilds, channels, users) are 5-25 digits. */
+export function isSnowflake(id: string | null | undefined): id is string {
+  return typeof id === 'string' && /^\d{5,25}$/.test(id);
+}
+
+/**
+ * Server-channel room keys: g-<guildId>-c-<channelId>. Every launch of the Activity in the same
+ * server channel shares one room, even when Discord gave it a separate instance (someone started
+ * the Activity fresh instead of tapping Join). DMs, group DMs and unknown shapes keep the instance id.
+ */
+const CHANNEL_ROOM_RE = /^g-(\d{5,25})-c-(\d{5,25})$/;
+
+export function parseChannelRoomKey(key: string): { guild: string; channel: string } | null {
+  const m = CHANNEL_ROOM_RE.exec(key);
+  return m ? { guild: m[1] as string, channel: m[2] as string } : null;
+}
+
+/**
+ * The guild an instance id names, from its own i-<n>-gc-<guild>-<n> shape only. Never the client's
+ * word: this is what a channel room key is checked against.
+ */
+export function guildFromInstanceStrict(instanceId: string | null | undefined): string | null {
+  if (typeof instanceId !== 'string') return null;
+  const gc = /^i-\d+-gc-(\d{5,25})-\d+$/.exec(instanceId);
+  return gc ? (gc[1] as string) : null;
+}
+
+/**
+ * Which room a session joins. Server channel (instance id names a guild) + a valid sdk.channelId:
+ * g-<guild>-c-<channel>. Anything else (DM, group DM, missing or junk channel, unknown instance
+ * shape, guest mode): the instance id, as before.
+ */
+export function roomKeyFor(instanceId: string, channelId: string | null | undefined): string {
+  const guild = guildFromInstanceStrict(instanceId);
+  if (guild && isSnowflake(channelId)) return `g-${guild}-c-${channelId}`;
+  return instanceId;
+}
+
+export type RoomResolution =
+  | { ok: true; roomKey: string; guild: string | null }
+  | { ok: false; status: 400 | 403; error: 'bad-instance' | 'room-guild-mismatch' };
+
+/**
+ * Server side: turn /room/:id/... into the Durable Object key. A channel key (g-<guild>-c-<channel>)
+ * is only accepted alongside the Discord instance id it came from (?instance=), and the guild in the
+ * key must equal the guild that instance id names, so a client can't walk into another server's
+ * room. The g- prefix is reserved: a malformed g- key is rejected rather than treated as an instance.
+ * Anything else is an instance id room exactly as before (guild from the id, then the client's ?guild).
+ */
+export function resolveRoom(pathId: string, presentedInstance: string | null | undefined, clientGuild: string | null | undefined): RoomResolution {
+  if (!isValidInstanceId(pathId)) return { ok: false, status: 400, error: 'bad-instance' };
+  const key = parseChannelRoomKey(pathId);
+  if (key) {
+    if (typeof presentedInstance !== 'string' || !isValidInstanceId(presentedInstance)) return { ok: false, status: 400, error: 'bad-instance' };
+    const guild = guildFromInstanceStrict(presentedInstance);
+    if (!guild || guild !== key.guild) return { ok: false, status: 403, error: 'room-guild-mismatch' };
+    return { ok: true, roomKey: pathId, guild };
+  }
+  if (pathId.startsWith('g-')) return { ok: false, status: 400, error: 'bad-instance' };
+  return { ok: true, roomKey: pathId, guild: guildForInstance(pathId, clientGuild) };
 }
