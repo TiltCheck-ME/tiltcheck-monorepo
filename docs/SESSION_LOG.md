@@ -1,6 +1,16 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
 
 # Session Log
+
+## 2026-11-13 — fix(activity): DA&D playtest fixes (score past the target, hands that never change)
+
+- Branch `touch-grass-dad-fixes` from `touch-grass-solo` (draft #727, 61c84c10). Draft PR only; nothing merged or deployed.
+- Playtest (Jamie + 3 players in Discord): "rounds went to 6/5" and "my cards in my hand were the same each time ... I only ended up with different cards maybe one of the hands".
+- Target: replaying the room (4 players, target 5, 40 seeds) the server already ended the game on the pick that reached 5, and no score went past it. What read as 6/5 was the DA&D header, `R6 / to 5` (round 6, playing to 5): the round counter keeps climbing past the target because only one player scores per round. Header now reads `Round 6 · first to 5`; the lobby tile says `round N`. Server guard added anyway: `beginRound` ends the game (phase `over`, winner = highest score at or past the target) instead of dealing when anyone is at the target, so `next` or a resume from `paused` can never start another round, including on state stored by an older build.
+- Hands: the room did replace a played card, but only at the start of the next round, appended to the end of a 7-card hand with nothing marking it, so 6 of 7 cards looked identical round to round (and the hand showed 6 on the reveal screen). Now `pick` refills every player who played straight away (before the played cards go to the discard, so a reshuffle cannot hand someone their own card back); the drawn card ids are kept in `DadState.fresh` (optional, older rooms read as none), cleared when that player plays or leaves, and sent only to their owner as `DadView.freshIds`. The hand shows fresh cards first with a `New` tag (solid ink border and label, no motion). Opening deal marks nothing. Rules unchanged otherwise: one card in, one card out per round, 7 in hand, judge plays nothing and draws nothing while judging.
+- Tests: `tests/dad-playtest.test.ts` (room rules, typechecked) and `tests/dad-playtest-ui.test.ts` (jsdom, excluded from the tests tsconfig like the other client tests): game over exactly at 5 across 40 seeds, Next refused after the win, stored 6-point state ends instead of dealing, paused resume at the target ends, header wording; refill at the pick with exactly one new card per player who played, no card in two places across hands/submissions/draw/discard every round, reshuffle over 80 rounds never returns the card just played, `New` tag first and cleared after playing, opening deal unmarked. `dad.pick` now takes the rng (callers and `tests/dad.test.ts` updated).
+- Checked: typecheck (app, worker, tests), vite build, 234 vitest tests (was 225), `simulate:dad` passes. The workerd trivia WebSocket test timed out once under load and passed on the full rerun (no trivia code touched).
+- Not tested: a real Discord game (4+ players on phones): the `New` tag and header on the iOS/Android webviews, and whether one fresh card a round feels like enough variety.
 
 ## 2026-11-12 — feat(activity): sharper, calmer Touch Grass look; plain-copy pass; Myth or Math mixed with general cards + deploy
 

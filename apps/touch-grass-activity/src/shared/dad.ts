@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Degens Against Decency round logic. Pure and serializable: the worker Durable Object
 // and the in-browser guest room both run this exact code. The server is the authority.
 //
@@ -7,7 +7,10 @@
 //   hand on screen and no top-up while judging; their cards wait server side for the next round.
 // - Judge rotates every round. Everyone else submits one card for the prompt.
 // - The judge sees the answers anonymised and shuffled, picks one, its owner scores 1.
-// - First to targetScore (default 5) wins. Points are bragging rights only.
+// - Every player who played gets their played card replaced from the deck as soon as the judge
+//   picks, so the hand is back to 7 on the reveal screen. Fresh draws are flagged for the view.
+// - First to targetScore (default 5) wins. The game ends on that pick; no round starts once anyone
+//   is at the target. Points are bragging rights only.
 // - Late joiners wait as spectators and are dealt in at the start of the next round.
 // - A player leaving mid-round drops their card. The judge leaving skips the round.
 
@@ -56,6 +59,11 @@ export interface DadState {
   entries: DadEntry[];
   lastRound: DadRoundResult | null;
   winnerId: string | null;
+  /**
+   * Card ids each player drew in their latest top-up and has not played since, so the hand can
+   * show which cards are new. Optional: rooms stored before this field read as none.
+   */
+  fresh?: Record<string, string[]>;
 }
 
 export type DadResult = { ok: true } | { ok: false; code: string; message: string };
@@ -85,6 +93,7 @@ export function createDad(targetScore = DEFAULT_TARGET): DadState {
     entries: [],
     lastRound: null,
     winnerId: null,
+    fresh: {},
   };
 }
 
@@ -149,6 +158,8 @@ export function start(s: DadState, by: string, rng: Rng, targetScore?: number): 
   s.round = 0;
   // Opening deal: everyone, the first judge included, so the judge sits on a full hand for later.
   for (const id of s.seats) dealUp(s, id, rng);
+  // The opening seven are all new; nothing to point out yet.
+  s.fresh = {};
   s.judgeCursor = Math.floor(rng() * s.seats.length) - 1;
   s.lastRound = null;
   s.winnerId = null;
@@ -175,14 +186,42 @@ function drawPrompt(s: DadState, rng: Rng): Card {
 
 function dealUp(s: DadState, playerId: string, rng: Rng): void {
   const hand = (s.hands[playerId] ??= []);
+  const drawn: string[] = [];
   while (hand.length < HAND_SIZE) {
     const c = drawWhite(s, rng);
     if (!c) break;
     hand.push(c);
+    drawn.push(c.id);
   }
+  if (drawn.length) (s.fresh ??= {})[playerId] = drawn;
+}
+
+/** The seated player at or past the target with the most points, if any (ties: seat order). */
+export function reachedTarget(s: DadState): string | null {
+  let best: string | null = null;
+  for (const id of s.seats) {
+    const pts = s.scores[id] ?? 0;
+    if (pts < s.targetScore) continue;
+    if (best === null || pts > (s.scores[best] ?? 0)) best = id;
+  }
+  return best;
+}
+
+function endGame(s: DadState, winnerId: string): void {
+  s.phase = 'over';
+  s.winnerId = winnerId;
+  s.judgeId = null;
+  s.submissions = {};
+  s.entries = [];
 }
 
 function beginRound(s: DadState, rng: Rng): void {
+  // Someone already has the target: the game is over, never deal another round.
+  const done = reachedTarget(s);
+  if (done) {
+    endGame(s, done);
+    return;
+  }
   // Late joiners come in now.
   while (s.waiting.length && s.seats.length < MAX_PLAYERS) {
     const id = s.waiting.shift() as string;
@@ -235,11 +274,12 @@ export function submit(s: DadState, playerId: string, cardId: string, rng: Rng):
   if (idx === -1) return fail('card-not-in-hand', 'That card is not in your hand.');
   const [card] = hand.splice(idx, 1);
   s.submissions[playerId] = card as Card;
+  if (s.fresh) delete s.fresh[playerId];
   maybeCloseSubmissions(s, rng);
   return ok;
 }
 
-export function pick(s: DadState, judgeId: string, entryId: string): DadResult {
+export function pick(s: DadState, judgeId: string, entryId: string, rng: Rng): DadResult {
   if (s.phase !== 'judging') return fail('wrong-phase', 'Nothing to judge yet.');
   if (judgeId !== s.judgeId) return fail('not-judge', 'Only the judge picks.');
   const entry = s.entries.find((e) => e.entryId === entryId);
@@ -252,14 +292,17 @@ export function pick(s: DadState, judgeId: string, entryId: string): DadResult {
     winningText: fillPrompt(s.prompt?.text ?? '', entry.card.text),
     skipped: null,
   };
+  if ((s.scores[entry.playerId] ?? 0) >= s.targetScore) {
+    for (const e of s.entries) s.discardPile.push(e.card);
+    endGame(s, entry.playerId);
+    return ok;
+  }
+  // Replace every played card now, before the played cards hit the discard pile, so nobody can
+  // draw back the card they just played on a reshuffle.
+  for (const e of s.entries) if (s.seats.includes(e.playerId)) dealUp(s, e.playerId, rng);
   for (const e of s.entries) s.discardPile.push(e.card);
   s.submissions = {};
-  if ((s.scores[entry.playerId] ?? 0) >= s.targetScore) {
-    s.phase = 'over';
-    s.winnerId = entry.playerId;
-  } else {
-    s.phase = 'reveal';
-  }
+  s.phase = 'reveal';
   return ok;
 }
 
@@ -301,6 +344,7 @@ export function removePlayer(s: DadState, playerId: string, rng: Rng): void {
   if (idx <= s.judgeCursor) s.judgeCursor -= 1;
   for (const c of s.hands[playerId] ?? []) s.discardPile.push(c);
   delete s.hands[playerId];
+  if (s.fresh) delete s.fresh[playerId];
   const theirCard = s.submissions[playerId];
   if (theirCard) {
     s.discardPile.push(theirCard);

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // All player-facing copy. Voice: short, blunt, degen. You run your own session.
 // No money mechanics, no rewards, no crisis copy in the main UI (tests/no-money.test.ts checks this file).
 
@@ -41,6 +41,8 @@ export const COPY = {
     submitted: 'Card played.',
     playCard: 'Play a card',
     nextRound: 'Next round',
+    roundMeta: (round: number, target: number) => `Round ${round} · first to ${target}`,
+    newCard: 'New',
     roundWinner: (name: string) => (name === 'You' ? 'You take the point.' : `${name} takes the point.`),
     judgeLeft: 'The judge left. Round skipped; cards went back to hands.',
     notEnough: 'Fewer than 3 players. Paused until someone sits down.',

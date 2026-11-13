@@ -35,7 +35,7 @@ describe('DA&D: start and dealing', () => {
     const { s, rng } = table(['a', 'b', 'c']);
     dad.start(s, 'a', rng);
     allSubmit(s, rng);
-    dad.pick(s, s.judgeId!, s.entries[0]!.entryId);
+    dad.pick(s, s.judgeId!, s.entries[0]!.entryId, rng);
     dad.next(s, 'a', rng);
     // Everyone who plays this round is back to 7; the new judge gets no top-up while judging.
     for (const id of s.seats) if (id !== s.judgeId) expect(s.hands[id]).toHaveLength(7);
@@ -57,7 +57,7 @@ describe('DA&D: judge rotation', () => {
     for (let r = 0; r < 8; r += 1) {
       judges.push(s.judgeId!);
       allSubmit(s, rng);
-      dad.pick(s, s.judgeId!, s.entries[0]!.entryId);
+      dad.pick(s, s.judgeId!, s.entries[0]!.entryId, rng);
       if (s.phase === 'over') break;
       dad.next(s, s.seats[0]!, rng);
     }
@@ -89,11 +89,11 @@ describe('DA&D: submissions', () => {
   it('only the judge can pick, and only a real entry', () => {
     const { s, rng } = table(['a', 'b', 'c']);
     dad.start(s, 'a', rng);
-    expect(dad.pick(s, s.judgeId!, 'nope')).toMatchObject({ code: 'wrong-phase' });
+    expect(dad.pick(s, s.judgeId!, 'nope', rng)).toMatchObject({ code: 'wrong-phase' });
     allSubmit(s, rng);
     const notJudge = s.seats.find((id) => id !== s.judgeId)!;
-    expect(dad.pick(s, notJudge, s.entries[0]!.entryId)).toMatchObject({ code: 'not-judge' });
-    expect(dad.pick(s, s.judgeId!, 'e-fake')).toMatchObject({ code: 'unknown-entry' });
+    expect(dad.pick(s, notJudge, s.entries[0]!.entryId, rng)).toMatchObject({ code: 'not-judge' });
+    expect(dad.pick(s, s.judgeId!, 'e-fake', rng)).toMatchObject({ code: 'unknown-entry' });
   });
 });
 
@@ -152,7 +152,7 @@ describe('DA&D: scoring and win', () => {
     dad.start(s, 'a', rng);
     allSubmit(s, rng);
     const entry = s.entries[0]!;
-    dad.pick(s, s.judgeId!, entry.entryId);
+    dad.pick(s, s.judgeId!, entry.entryId, rng);
     expect(s.scores[entry.playerId]).toBe(1);
     expect(s.phase).toBe('reveal');
     expect(s.lastRound?.winnerId).toBe(entry.playerId);
@@ -166,7 +166,7 @@ describe('DA&D: scoring and win', () => {
     while (s.phase !== 'over' && rounds < 50) {
       allSubmit(s, rng);
       const pickFor = s.entries.find((e) => e.playerId === 'a') ?? s.entries[0]!;
-      dad.pick(s, s.judgeId!, pickFor.entryId);
+      dad.pick(s, s.judgeId!, pickFor.entryId, rng);
       if (s.phase === 'reveal') dad.next(s, 'b', rng);
       rounds += 1;
     }
@@ -235,7 +235,7 @@ describe('DA&D: leaving', () => {
     dad.start(s, 'a', rng);
     allSubmit(s, rng);
     const e = s.entries[0]!;
-    dad.pick(s, s.judgeId!, e.entryId);
+    dad.pick(s, s.judgeId!, e.entryId, rng);
     const leaver = s.seats.find((id) => id !== e.playerId)!;
     dad.removePlayer(s, leaver, rng);
     expect(s.phase).toBe('paused');
@@ -260,7 +260,7 @@ describe('DA&D: late join', () => {
     // the round still closes without them
     allSubmit(s, rng);
     expect(s.phase).toBe('judging');
-    dad.pick(s, s.judgeId!, s.entries[0]!.entryId);
+    dad.pick(s, s.judgeId!, s.entries[0]!.entryId, rng);
     dad.next(s, 'a', rng);
     expect(s.seats).toContain('late');
     expect(s.waiting).toEqual([]);

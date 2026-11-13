@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Degens Against Decency table. Renders whatever the server says; never decides anything itself.
 
 import { COPY } from '../copy.js';
@@ -45,7 +45,7 @@ function seatControls(view: RoomView): string {
 
 export function renderDad(view: RoomView, target: number): string {
   const d = view.dad;
-  const header = `<header class="bar"><button class="btn btn--ghost btn--sm" data-go="lobby">${COPY.back}</button><img class="bar__logo" src="${dadLogoUrl}" alt="" width="240" height="240" /><h1 class="bar__title">${esc(COPY.tiles.dad.name)}</h1><span class="bar__meta">${d.round ? `R${d.round} / to ${d.targetScore}` : ''}</span></header>`;
+  const header = `<header class="bar"><button class="btn btn--ghost btn--sm" data-go="lobby">${COPY.back}</button><img class="bar__logo" src="${dadLogoUrl}" alt="" width="240" height="240" /><h1 class="bar__title">${esc(COPY.tiles.dad.name)}</h1><span class="bar__meta">${d.round ? esc(COPY.dad.roundMeta(d.round, d.targetScore)) : ''}</span></header>`;
 
   if (d.phase === 'seating' || d.phase === 'paused') {
     const canStart = d.me.seated && d.seats.length >= MIN_PLAYERS;
@@ -94,8 +94,16 @@ export function renderDad(view: RoomView, target: number): string {
       body = d.mySubmission
         ? `<p class="status">${COPY.dad.submitted}</p><blockquote class="answer">${esc(fillPrompt(d.prompt ?? '', d.mySubmission.text))}</blockquote>`
         : `<h3 class="eyebrow">${COPY.dad.playCard}</h3>`;
-      body += `<div class="hand">${d.hand
-        .map((c, i) => `<button class="card fx fx-deal" style="--i:${i}" data-card="${esc(c.id)}" ${d.mySubmission ? 'disabled' : ''}>${esc(c.text)}</button>`)
+      // Cards drawn since the last play go first and say so, so a refreshed hand reads as refreshed.
+      const fresh = new Set(d.freshIds ?? []);
+      const hand = [...d.hand.filter((c) => fresh.has(c.id)), ...d.hand.filter((c) => !fresh.has(c.id))];
+      body += `<div class="hand">${hand
+        .map(
+          (c, i) =>
+            `<button class="card fx fx-deal ${fresh.has(c.id) ? 'card--new' : ''}" style="--i:${i}" data-card="${esc(c.id)}" ${d.mySubmission ? 'disabled' : ''}>${
+              fresh.has(c.id) ? `<span class="card__new">${COPY.dad.newCard}</span>` : ''
+            }${esc(c.text)}</button>`,
+        )
         .join('')}</div>`;
     } else {
       body = `<p class="muted">${d.me.waiting ? COPY.dad.waitingForNext : COPY.dad.spectating}</p>${seatControls(view)}`;

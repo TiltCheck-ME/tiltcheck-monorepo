@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Wire format between the Activity client and the room (worker Durable Object or guest room).
 
 import type { Card } from './deck.js';
@@ -89,6 +89,8 @@ export interface DadView {
   neededCount: number;
   /** Only ever the viewer's own hand. */
   hand: Card[];
+  /** Ids of the cards in `hand` the viewer drew since they last played (shown as new). */
+  freshIds: string[];
   mySubmission: Card | null;
   /** Anonymised, shuffled answers. Present while judging. No player ids. */
   entries: Array<{ entryId: string; text: string }>;

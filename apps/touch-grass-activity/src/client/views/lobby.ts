@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Lobby: a compact header (Touch Grass eyebrow, TiltCheck title, who's here, Scores and Invite), then
 // a flat list of game rows: three table games (DA&D, Trivia, Bluff) with seated/playing counts and two
 // solo games (Daily Grass, Myth or Math). High scores open in a sheet from the header.
@@ -73,7 +73,7 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
       <div class="who"><span class="who__label">${esc(COPY.whoHere)} <span class="count">${people.length}</span></span><span class="people">${who}</span></div>
     </header>
     <section class="tiles" aria-label="Games">
-      ${tile('dad', `<img class="tile__logo" src="${dadLogoUrl}" alt="" width="240" height="240" />`, badge('dad', seated, 'seated', dadLive, ` · R${view?.dad.round}`))}
+      ${tile('dad', `<img class="tile__logo" src="${dadLogoUrl}" alt="" width="240" height="240" />`, badge('dad', seated, 'seated', dadLive, ` · round ${view?.dad.round}`))}
       ${tile('trivia', TRIVIA_ART, badge('trivia', playing, 'playing', triviaLive, ` · Q${view?.trivia.number}`))}
       ${tile('bluff', BLUFF_ART, badge('bluff', bluffSeated, 'seated', bluffLive, ` · T${view?.bluff.round}`))}
       ${tile('daily', DAILY_ART, soloBadge('daily', view?.daily.playingCount ?? 0))}

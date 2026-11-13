@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // One room per Discord Activity instance: who is here, the DA&D table, the trivia game and Bluff.
 // Runs inside the Durable Object (authoritative) and inside the guest/dev room in the browser.
 
@@ -367,7 +367,7 @@ export class Room {
         r = dad.submit(s.dad, userId, action.cardId, this.rng);
         break;
       case 'dad.pick':
-        r = dad.pick(s.dad, userId, action.entryId);
+        r = dad.pick(s.dad, userId, action.entryId, this.rng);
         break;
       case 'dad.next':
         r = dad.next(s.dad, userId, this.rng);
@@ -465,6 +465,7 @@ export class Room {
         submittedCount: d.phase === 'judging' ? nonJudge.length : Object.keys(d.submissions).length,
         neededCount: nonJudge.length,
         hand: seated && !judgingNow ? [...(d.hands[userId] ?? [])] : [],
+        freshIds: seated && !judgingNow ? (d.fresh?.[userId] ?? []).filter((id) => (d.hands[userId] ?? []).some((c) => c.id === id)) : [],
         mySubmission: d.submissions[userId] ?? null,
         entries: showEntries ? d.entries.map((e) => ({ entryId: e.entryId, text: e.card.text })) : [],
         lastRound: d.lastRound,
