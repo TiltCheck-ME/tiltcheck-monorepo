@@ -1,5 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// Myth or Math: true/false statements about gambling myths and real odds. SERVER AND TESTS ONLY:
+// Myth or Math: true/false statements. This file holds the gambling cards (myths and real odds);
+// src/shared/mythGeneral.ts holds the general cards, and every run deals half of each. SERVER AND TESTS ONLY:
 // the browser build swaps in src/client/guestMythBank.ts (vite.config.ts), a small practice subset,
 // so the full bank and its answers never ship to clients. Inside Discord the worker deals one card at
 // a time and only sends the answer and the "why" after you've locked in (or the clock ran out).
@@ -7,8 +8,12 @@
 // Every card is original and written to be defensible. Wording is conservative on purpose
 // ("usually", "most", "in many regulated markets") wherever the real world has exceptions.
 // No brand or venue names, no betting advice, nothing that reads like a promotion.
-// Money-words guard: this file is the one scoped exception in tests/no-money.test.ts. It may say
-// "jackpot" and "payout"; every other banned word is still banned here.
+// Money-words guard: the gambling cards are the one scoped exception in tests/no-money.test.ts. They
+// may say "jackpot" and "payout"; every other banned word is still banned. General cards get no exception.
+
+import { GENERAL_ROWS } from './mythGeneral.js';
+
+export type MythKind = 'gambling' | 'general';
 
 export interface MythCard {
   id: string;
@@ -17,6 +22,8 @@ export interface MythCard {
   truth: boolean;
   /** Plain-English reason shown after the answer. 140 characters max. */
   why: string;
+  /** Gambling myth/odds card, or a general one (everyday myths, science, maths). */
+  kind: MythKind;
 }
 
 type Row = [id: string, text: string, truth: boolean, why: string];
@@ -116,7 +123,10 @@ const ROWS: Row[] = [
   ['m64', 'Decimal odds of 4.00 imply about a 25% chance, before the margin.', true, 'Implied chance is 1 divided by the decimal odds. 1 / 4.00 is 25%.'],
 ];
 
-export const MYTH_BANK: readonly MythCard[] = ROWS.map(([id, text, truth, why]) => ({ id, text, truth, why }));
+export const MYTH_BANK: readonly MythCard[] = [
+  ...ROWS.map(([id, text, truth, why]): MythCard => ({ id, text, truth, why, kind: 'gambling' })),
+  ...GENERAL_ROWS.map(([id, text, truth, why]): MythCard => ({ id, text, truth, why, kind: 'general' })),
+];
 
 const BY_ID = new Map(MYTH_BANK.map((c) => [c.id, c]));
 

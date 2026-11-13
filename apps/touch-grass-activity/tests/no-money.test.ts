@@ -29,6 +29,8 @@ const BANNED = [/jackpot/i, /\bSOL\b/, /\brain\b/i, /\btips?\b/i, /wallet/i, /ca
  */
 const MYTH_ALLOWED = new Set([/jackpot/i.source, /\bpayout/i.source]);
 const MYTH_FILES = new Set([join(root, 'src/shared/mythBank.ts'), join(root, 'src/client/guestMythBank.ts')]);
+/** The general Myth or Math cards live in their own files, which get no exception at all. */
+const GENERAL_FILES = [join(root, 'src/shared/mythGeneral.ts'), join(root, 'src/client/guestMythGeneral.ts')];
 function bannedFor(file: string | 'myth-card'): RegExp[] {
   return file === 'myth-card' || MYTH_FILES.has(file) ? BANNED.filter((re) => !MYTH_ALLOWED.has(re.source)) : BANNED;
 }
@@ -43,12 +45,14 @@ describe('no money anywhere', () => {
     }
   });
 
-  it('Myth or Math cards: clean except the scoped jackpot/payout exception', () => {
+  it('Myth or Math cards: gambling cards clean except the scoped jackpot/payout exception; general cards get no exception', () => {
     for (const c of [...MYTH_BANK, ...GUEST_MYTH]) {
-      for (const text of [c.text, c.why]) for (const re of bannedFor('myth-card')) expect({ id: c.id, text, hit: re.test(text) ? re.source : null }).toEqual({ id: c.id, text, hit: null });
+      const list = c.kind === 'gambling' ? bannedFor('myth-card') : BANNED;
+      for (const text of [c.text, c.why]) for (const re of list) expect({ id: c.id, text, hit: re.test(text) ? re.source : null }).toEqual({ id: c.id, text, hit: null });
     }
     // The whole source files too (comments included).
     for (const f of MYTH_FILES) for (const re of bannedFor(f)) expect({ f, hit: re.test(readFileSync(f, 'utf8')) ? re.source : null }).toEqual({ f, hit: null });
+    for (const f of GENERAL_FILES) for (const re of BANNED) expect({ f, hit: re.test(readFileSync(f, 'utf8')) ? re.source : null }).toEqual({ f, hit: null });
   });
 
   it('the exception is scoped: two patterns, two files, nowhere else', () => {
@@ -56,6 +60,9 @@ describe('no money anywhere', () => {
     expect(bannedFor(join(root, 'src/client/copy.ts'))).toBe(BANNED);
     expect(bannedFor(join(root, 'src/client/views/myth.ts'))).toBe(BANNED);
     expect(bannedFor(join(root, 'src/shared/myth.ts'))).toBe(BANNED);
+    for (const f of GENERAL_FILES) expect(bannedFor(f)).toBe(BANNED);
+    // The gambling cards really use the lifted words, so the split matters.
+    expect(MYTH_BANK.filter((c) => c.kind === 'gambling' && /jackpot|payout/i.test(c.text + c.why)).length).toBeGreaterThan(0);
     // The exception really does lift only jackpot/payout: a wallet or a dollar amount in a card would still fail.
     const scoped = bannedFor('myth-card');
     expect(scoped.some((re) => re.test('a progressive jackpot'))).toBe(false);

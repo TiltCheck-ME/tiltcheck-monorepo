@@ -1,16 +1,16 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// Myth or Math: rapid true/false on gambling myths and real odds. Solo: each player runs their own
+// Myth or Math: rapid true/false, half gambling myths and real odds, half everyday myths and maths. Solo: each player runs their own
 // deck, even in a shared room. Pure and serializable: the worker Durable Object and the guest room
 // run this exact code. The server deals, times and scores; the answer (and the "why") only reach
 // the player once they've locked in or the clock ran out.
 //
 // Rules:
-// - 10 cards per run, drawn without repeats per player until the bank runs dry.
+// - 10 cards per run, 5 gambling + 5 general, drawn without repeats per player until a kind runs dry.
 // - 8 seconds per card. 100 for a right call plus up to 50 for speed (same curve as trivia).
 // - After each card: the truth and a one-line why. The player taps Next for the next card.
 // - A player who drops mid-card is paused with the time they had left; it resumes on rejoin.
 
-import { MYTH_BANK, mythById } from './mythBank.js';
+import { MYTH_BANK, mythById, type MythKind } from './mythBank.js';
 import { randomId, shuffle, type Rng } from './rng.js';
 import type { Brag } from './scores.js';
 
@@ -72,14 +72,29 @@ export function isPlaying(run: MythRun | undefined): boolean {
   return Boolean(run && (run.phase === 'card' || run.phase === 'reveal' || run.phase === 'paused'));
 }
 
-function draw(s: MythState, userId: string, rng: Rng): string[] {
+/** Cards of one kind for a run: unseen ones first; when too few are left, that kind starts over. */
+function drawKind(s: MythState, userId: string, kind: MythKind, n: number, rng: Rng): string[] {
+  const all = MYTH_BANK.filter((c) => c.kind === kind).map((c) => c.id);
   const seen = new Set(s.seen[userId] ?? []);
-  let pool = MYTH_BANK.map((c) => c.id).filter((id) => !seen.has(id));
-  if (pool.length < CARDS_PER_RUN) {
-    s.seen[userId] = [];
-    pool = MYTH_BANK.map((c) => c.id);
+  let pool = all.filter((id) => !seen.has(id));
+  if (pool.length < n) {
+    const mine = new Set(all);
+    s.seen[userId] = (s.seen[userId] ?? []).filter((id) => !mine.has(id));
+    pool = all;
   }
-  const ids = shuffle(pool, rng).slice(0, CARDS_PER_RUN);
+  return shuffle(pool, rng).slice(0, n);
+}
+
+/**
+ * A run is half gambling cards and half general ones (5 + 5), shuffled together, so it is never all
+ * one kind. A run never repeats a card: the two kinds are separate ids, each drawn without repeats.
+ * If one kind is short (small guest deck), the other fills the rest.
+ */
+export function draw(s: MythState, userId: string, rng: Rng): string[] {
+  const generalCount = MYTH_BANK.filter((c) => c.kind === 'general').length;
+  const general = Math.min(Math.floor(CARDS_PER_RUN / 2), generalCount);
+  const gambling = Math.min(CARDS_PER_RUN - general, MYTH_BANK.length - generalCount);
+  const ids = shuffle([...drawKind(s, userId, 'gambling', gambling, rng), ...drawKind(s, userId, 'general', general, rng)], rng);
   s.seen[userId] = [...(s.seen[userId] ?? []), ...ids];
   return ids;
 }
@@ -128,7 +143,7 @@ export function answer(s: MythState, userId: string, runId: string, cardId: stri
   if (!run || run.runId !== runId) return fail('no-run', 'Start a run first.');
   if (run.phase !== 'card') return fail('not-open', 'No card open right now.');
   if (run.ids[run.index] !== cardId) return fail('stale-card', 'That card already closed.');
-  if (now >= run.cardEndsAt) return fail('too-late', 'Too slow. Clock ran out.');
+  if (now >= run.cardEndsAt) return fail('too-late', "Time's up.");
   run.touchedAt = now;
   close(run, pick, now);
   return ok;

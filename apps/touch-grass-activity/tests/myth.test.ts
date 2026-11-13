@@ -4,6 +4,8 @@
 import { describe, expect, it } from 'vitest';
 import * as myth from '../src/shared/myth.js';
 import { MYTH_BANK, mythById } from '../src/shared/mythBank.js';
+import { MYTH_BANK as GUEST_MYTH } from '../src/client/guestMythBank.js';
+import { CARDS_PER_RUN, createMyth, draw } from '../src/shared/myth.js';
 import { Room, createRoomState } from '../src/shared/room.js';
 import { makeRng } from '../src/shared/rng.js';
 import { memorySoloService } from '../src/shared/solo.js';
@@ -205,5 +207,59 @@ describe('Myth or Math: the bank', () => {
   it('no venue or brand names, no "how to win" copy, no protect/shield framing', () => {
     const BAD = /\b(how to win|guaranteed win|sure thing|tip:|protect|shield|stake\.com|draftkings|fanduel|mgm|caesars|bet365|powerball|mega millions|vegas|las vegas)\b/i;
     for (const c of MYTH_BANK) for (const t of [c.text, c.why]) expect({ id: c.id, t, hit: BAD.test(t) }).toEqual({ id: c.id, t, hit: false });
+  });
+});
+
+describe('Myth or Math: mixed runs', () => {
+  const kindOf = (id: string) => mythById(id)!.kind;
+
+  it('the bank has 60+ general cards next to the gambling ones, both answers well represented in each kind', () => {
+    const general = MYTH_BANK.filter((c) => c.kind === 'general');
+    const gambling = MYTH_BANK.filter((c) => c.kind === 'gambling');
+    expect(general.length).toBeGreaterThanOrEqual(55);
+    expect(gambling.length).toBeGreaterThanOrEqual(55);
+    for (const kind of [general, gambling]) {
+      const trues = kind.filter((c) => c.truth).length;
+      expect(trues).toBeGreaterThanOrEqual(kind.length * 0.4);
+      expect(kind.length - trues).toBeGreaterThanOrEqual(kind.length * 0.4);
+    }
+  });
+
+  it('every run is 5 gambling + 5 general, shuffled together, never one kind, never a repeat', () => {
+    const s = createMyth();
+    const rng = makeRng(42);
+    for (let run = 0; run < 60; run += 1) {
+      const ids = draw(s, 'u1', rng);
+      expect(ids).toHaveLength(CARDS_PER_RUN);
+      expect(new Set(ids).size).toBe(CARDS_PER_RUN);
+      expect(ids.filter((id) => kindOf(id) === 'gambling')).toHaveLength(5);
+      expect(ids.filter((id) => kindOf(id) === 'general')).toHaveLength(5);
+    }
+  });
+
+  it('back-to-back runs do not repeat a card until that kind runs out', () => {
+    const s = createMyth();
+    const rng = makeRng(7);
+    const seenGeneral = new Set<string>();
+    const runs = Math.floor(MYTH_BANK.filter((c) => c.kind === 'general').length / 5);
+    for (let run = 0; run < runs; run += 1) {
+      for (const id of draw(s, 'u1', rng).filter((x) => kindOf(x) === 'general')) {
+        expect(seenGeneral.has(id)).toBe(false);
+        seenGeneral.add(id);
+      }
+    }
+  });
+
+  it('kinds are not always in the same slots (shuffled together)', () => {
+    const s = createMyth();
+    const rng = makeRng(3);
+    const patterns = new Set<string>();
+    for (let i = 0; i < 10; i += 1) patterns.add(draw(s, 'u1', rng).map((id) => kindOf(id)[1]).join(''));
+    expect(patterns.size).toBeGreaterThan(1);
+  });
+
+  it('the guest practice deck is mixed too', () => {
+    expect(GUEST_MYTH.filter((c) => c.kind === 'general').length).toBeGreaterThanOrEqual(5);
+    expect(GUEST_MYTH.filter((c) => c.kind === 'gambling').length).toBeGreaterThanOrEqual(5);
   });
 });
