@@ -5,6 +5,7 @@ import { COPY } from '../copy.js';
 import type { RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc, medal, nameOf, placeOf, podium, userById } from './util.js';
 import { TRIVIA_ART } from '../art.js';
+import { inviteButton } from './invite.js';
 import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
 const KEYS = ['A', 'B', 'C', 'D'];
@@ -72,6 +73,7 @@ export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: Scor
         ${over ? podium(view, t.scores) : ''}
         ${over ? board(view) : ''}
         <button class="btn btn--primary btn--big" data-act="trivia.start">${over ? COPY.trivia.again : COPY.trivia.start}</button>
+        ${inviteButton('btn--block')}
       </section>
       ${renderHighScores(scores, tab, view.you)}`;
   }
@@ -93,7 +95,7 @@ export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: Scor
           .join('')}</div>
         <p class="status">${!t.me.playing ? COPY.trivia.spectating : mine !== null ? COPY.trivia.locked : ''}</p>
       </section>
-      <aside class="panel">${board(view)}</aside>`;
+      <aside class="panel">${board(view)}${inviteButton('btn--block')}</aside>`;
   }
 
   // reveal
@@ -115,5 +117,5 @@ export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: Scor
       <p class="status ${mineResult?.correct ? 'status--win fx fx-pop' : ''}">${esc(verdict)}</p>
       <p class="muted small">${COPY.trivia.nextUp}</p>
     </section>
-    <aside class="panel">${board(view, gained)}</aside>`;
+    <aside class="panel">${board(view, gained)}${inviteButton('btn--block')}</aside>`;
 }

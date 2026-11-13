@@ -14,8 +14,11 @@ import { DEFAULT_TARGET } from '../shared/dad.js';
 import type { ClientAction, RoomView } from '../shared/protocol.js';
 import { esc, failedAvatars } from './views/util.js';
 import type { ScoresResult, ScoresTab } from './views/highScores.js';
+import { dailyShare, renderDaily } from './views/daily.js';
+import { mythSecondsLeft, renderMyth } from './views/myth.js';
+import { inviteButton, openInvite, setInviteSdk } from './views/invite.js';
 
-type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff';
+type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth';
 
 const app = document.getElementById('app') as HTMLElement;
 
@@ -37,6 +40,10 @@ const ui = {
   /** game:round the draft belongs to; a new turn starts a clean draft. */
   bluffDraftKey: '',
   lastBluffGame: 0,
+  /** Daily Grass letters typed into the current row (client only until Enter). */
+  dailyDraft: '',
+  dailyRows: -1,
+  dailyAsked: '',
 };
 
 const SCORES_STALE_MS = 20_000;
@@ -99,6 +106,8 @@ function phaseKey(v: RoomView | null): string {
   if (ui.screen === 'dad') return `dad:${v.dad.phase}:${v.dad.round}`;
   if (ui.screen === 'trivia') return `trivia:${v.trivia.game}:${v.trivia.phase}:${v.trivia.number}`;
   if (ui.screen === 'bluff') return `bluff:${v.bluff.game}:${v.bluff.phase}:${v.bluff.round}`;
+  if (ui.screen === 'daily') return `daily:${v.daily.me?.day ?? ''}:${v.daily.me?.rows.length ?? -1}:${v.daily.me?.status ?? ''}`;
+  if (ui.screen === 'myth') return `myth:${v.myth.run?.runId ?? ''}:${v.myth.run?.phase ?? ''}:${v.myth.run?.number ?? 0}`;
   return 'lobby';
 }
 
@@ -125,6 +134,8 @@ function render(): void {
   else if (ui.screen === 'dad') main = renderDad(v, ui.target);
   else if (ui.screen === 'trivia') main = renderTrivia(v, ui.clockOffset, ui.scores, ui.scoresTab);
   else if (ui.screen === 'bluff') main = renderBluff(v, ui.bluffDraft, ui.clockOffset);
+  else if (ui.screen === 'daily') main = renderDaily(v, ui.dailyDraft, session?.mode === 'guest', inviteButton());
+  else if (ui.screen === 'myth') main = renderMyth(v, ui.clockOffset, session?.mode === 'guest');
   else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab);
   // Re-rendering replaces the inputs: keep focus and the caret on the statement being typed.
   const active = document.activeElement as HTMLInputElement | null;
@@ -161,6 +172,15 @@ function syncTellButton(): void {
 function tickClock(): void {
   const v = ui.view;
   if (!v) return;
+  if (ui.screen === 'myth') {
+    const left = mythSecondsLeft(v, ui.clockOffset);
+    const el = app.querySelector('[data-myth-clock]');
+    if (el && left !== null) {
+      el.textContent = String(left);
+      el.classList.toggle('clock--low', left <= 3);
+    }
+    return;
+  }
   if (ui.screen === 'bluff') {
     const left = bluffSecondsLeft(v, ui.clockOffset);
     const el = app.querySelector('[data-bluff-clock]');
@@ -180,6 +200,52 @@ function tickClock(): void {
 }
 
 let lookSent = false;
+
+/** Load today's Daily Grass board once per Chicago day (the server makes it on first open). */
+function askDaily(view: RoomView | null): void {
+  if (!view) return;
+  const have = view.daily.me && view.daily.me.day === view.daily.today;
+  if (have || ui.dailyAsked === view.daily.today) return;
+  ui.dailyAsked = view.daily.today;
+  queueMicrotask(() => send({ t: 'daily.open' }));
+}
+
+function dailyKey(k: string): void {
+  const me = ui.view?.daily.me;
+  if (!me || me.status !== 'playing' || me.day !== ui.view?.daily.today) return;
+  if (k === 'enter') {
+    if (ui.dailyDraft.length < 5) return toast(COPY.daily.tooShort);
+    send({ t: 'daily.guess', word: ui.dailyDraft });
+    return;
+  }
+  if (k === 'back') ui.dailyDraft = ui.dailyDraft.slice(0, -1);
+  else if (/^[a-z]$/.test(k) && ui.dailyDraft.length < 5) ui.dailyDraft += k;
+  else return;
+  render();
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Older webviews: fall back to a hidden textarea.
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
 
 function onState(view: RoomView): void {
   // First state after (re)joining: tell the room which screen is open (feeds table alerts only).
@@ -211,6 +277,14 @@ function onState(view: RoomView): void {
     ui.bluffDraftKey = key;
     ui.bluffDraft = emptyDraft();
   }
+  // Daily Grass: a new row came back from the server, so the typed draft is spent.
+  const rows = view.daily.me?.rows.length ?? -1;
+  if (rows !== ui.dailyRows) {
+    if (rows > ui.dailyRows) ui.dailyDraft = '';
+    ui.dailyRows = rows;
+  }
+  // On the Daily screen with no board for today yet (first visit, or the day turned): ask once per day.
+  if (ui.screen === 'daily') askDaily(view);
   // A finished game just landed on the board: pull the fresh board.
   if (view.trivia.highScores === 'posted' && view.trivia.game !== ui.scoresPostedGame) {
     ui.scoresPostedGame = view.trivia.game;
@@ -230,10 +304,22 @@ app.addEventListener('click', (ev) => {
   if (d.go) {
     ui.screen = d.go as Screen;
     send({ t: 'look', at: ui.screen });
+    if (ui.screen === 'daily') askDaily(ui.view);
     render();
     void loadScores();
     return;
   }
+  if (el.hasAttribute('data-invite')) {
+    void openInvite(toast);
+    return;
+  }
+  if (d.dgKey) return dailyKey(d.dgKey);
+  if (el.hasAttribute('data-dg-share') && ui.view) {
+    const text = dailyShare(ui.view);
+    if (text) void copyText(text).then((ok) => toast(ok ? COPY.daily.copied : COPY.daily.copyFailed));
+    return;
+  }
+  if (d.mrid && d.mcid && d.mpick) return send({ t: 'myth.answer', rid: d.mrid, cid: d.mcid, pick: d.mpick === 'true' });
   if (d.scoresTab) {
     ui.scoresTab = d.scoresTab === 'all' ? 'all' : 'week';
     render();
@@ -275,6 +361,20 @@ app.addEventListener(
   true,
 );
 
+// Physical keyboard for Daily Grass (desktop Discord), never while typing in a field.
+document.addEventListener('keydown', (ev) => {
+  if (ui.screen !== 'daily' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if ((ev.target as HTMLElement | null)?.closest?.('input, textarea, select')) return;
+  const k = ev.key === 'Enter' ? 'enter' : ev.key === 'Backspace' ? 'back' : ev.key.length === 1 ? ev.key.toLowerCase() : '';
+  if (!k) return;
+  // Enter on a focused button should press that button, not submit the row.
+  if (k === 'enter' && (ev.target as HTMLElement | null)?.closest?.('button')) return;
+  if (k === 'enter' || k === 'back' || /^[a-z]$/.test(k)) {
+    ev.preventDefault();
+    dailyKey(k);
+  }
+});
+
 app.addEventListener('input', (ev) => {
   const el = ev.target as HTMLInputElement;
   const i = el.dataset?.draft;
@@ -308,6 +408,7 @@ async function boot(): Promise<void> {
         ui.participants = list;
         render();
       });
+      setInviteSdk(session.sdk);
       wire(new RemoteTransport(session.roomId, session.token, '/api', session.guildId, session.instanceId));
     } catch (err) {
       app.innerHTML = `<main class="screen"><section class="panel"><h1 class="h2">Could not load the table</h1><p class="muted">${esc(

@@ -17,6 +17,7 @@
     "tests/client-dom.test.ts",
     "tests/high-scores-ui.test.ts",
     "tests/look.test.ts",
-    "tests/transport-room.test.ts"
+    "tests/transport-room.test.ts",
+    "tests/solo-ui.test.ts"
   ]
 }

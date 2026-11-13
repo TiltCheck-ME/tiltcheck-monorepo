@@ -41,5 +41,27 @@ export const BLUFF_ART = `<svg class="tile__svg" viewBox="0 0 96 96" aria-hidden
 <path d="M37 72h22" fill="none" stroke="#1a0f33" stroke-width="4.5" stroke-linecap="round"/>
 </svg>`;
 
-/** Tiny leaf for the brand mark next to the lobby title. */
-export const LEAF_SVG = `<svg class="hero__leaf" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20C4 10 10 4 20 4c0 10-6 16-16 16Zm0 0 9-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+/** Quest flag for the brand mark next to the lobby title: a pennant on a pole planted in a mound. */
+export const FLAG_SVG = `<svg class="hero__leaf" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 21V3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M6.6 4h11.2l-2.9 4 2.9 4H6.6Z" fill="currentColor"/><path d="M2.5 21.2c2-1.6 5-1.6 7 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+
+/** Daily Grass: a little board of letter tiles (green, yellow, gray) with grass at its feet. */
+export const DAILY_ART = `<svg class="tile__svg" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<defs><linearGradient id="tg-dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6fe39a"/><stop offset="1" stop-color="#1e8a4c"/></linearGradient></defs>
+<rect x="6" y="6" width="84" height="84" rx="22" fill="url(#tg-dg)"/>
+<rect x="14" y="14" width="68" height="68" rx="16" fill="#0b2216"/>
+<g><rect x="20" y="21" width="16" height="16" rx="4" fill="#3fbf6e"/><rect x="40" y="21" width="16" height="16" rx="4" fill="#3b4a43"/><rect x="60" y="21" width="16" height="16" rx="4" fill="#e9c548"/>
+<rect x="20" y="41" width="16" height="16" rx="4" fill="#3b4a43"/><rect x="40" y="41" width="16" height="16" rx="4" fill="#3fbf6e"/><rect x="60" y="41" width="16" height="16" rx="4" fill="#3fbf6e"/></g>
+<path d="M18 80q3-10 5-16q1 8 3 16zM27 80q4-12 9-19q-2 10-1 19zM38 80q2-9 2-14q4 7 6 14zM50 80q4-11 9-17q-3 9-2 17zM61 80q2-8 1-13q5 6 7 13zM71 80q3-10 7-15q-2 8-1 15z" fill="#5fe08a"/>
+</svg>`;
+
+/** Myth or Math: a magnifier over a fact card with a busted-myth stamp. No chips, slots or dice. */
+export const MYTH_ART = `<svg class="tile__svg" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<defs><linearGradient id="tg-mm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc24b"/><stop offset="1" stop-color="#e2602f"/></linearGradient></defs>
+<rect x="6" y="6" width="84" height="84" rx="22" fill="url(#tg-mm)"/>
+<rect x="17" y="18" width="50" height="60" rx="8" fill="#fff6e6" transform="rotate(-6 42 48)"/>
+<path d="M26 32h28M26 41h24M26 50h18" stroke="#c9b79a" stroke-width="4" stroke-linecap="round" transform="rotate(-6 42 48)"/>
+<g transform="rotate(-14 44 62)"><rect x="24" y="54" width="40" height="17" rx="4" fill="none" stroke="#d83a2a" stroke-width="3.5"/><path d="M30 62.5h28" stroke="#d83a2a" stroke-width="4" stroke-linecap="round"/></g>
+<circle cx="64" cy="40" r="15" fill="#2a1404" fill-opacity=".18" stroke="#2a1404" stroke-width="5"/>
+<path d="M74.5 51l10 11" stroke="#2a1404" stroke-width="7" stroke-linecap="round"/>
+<path d="M57 34a9 9 0 0 1 8-4" stroke="#fff" stroke-opacity=".75" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>`;

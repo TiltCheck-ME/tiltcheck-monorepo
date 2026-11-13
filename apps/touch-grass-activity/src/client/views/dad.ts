@@ -7,6 +7,7 @@ import { MAX_PLAYERS, MIN_PLAYERS } from '../../shared/dad.js';
 import type { RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc, nameOf, podium, userById } from './util.js';
 import { dadLogoUrl } from '../art.js';
+import { inviteButton } from './invite.js';
 
 function scoreboard(view: RoomView): string {
   const d = view.dad;
@@ -57,6 +58,7 @@ export function renderDad(view: RoomView, target: number): string {
         ${scoreboard(view)}
         <div class="row">
           ${seatControls(view)}
+          ${inviteButton()}
           ${
             d.phase === 'seating'
               ? `<label class="field">${COPY.dad.target}
@@ -87,7 +89,7 @@ export function renderDad(view: RoomView, target: number): string {
 
   if (d.phase === 'submitting') {
     if (d.me.isJudge) {
-      body = `<p class="status">${COPY.dad.judgeWait(d.submittedCount, d.neededCount)}</p>`;
+      body = `<h3 class="h2 judge-note" data-judge-note>${COPY.dad.judgingRound}</h3><p class="status">${COPY.dad.judgeWait(d.submittedCount, d.neededCount)}</p>`;
     } else if (d.me.seated) {
       body = d.mySubmission
         ? `<p class="status">${COPY.dad.submitted}</p><blockquote class="answer">${esc(fillPrompt(d.prompt ?? '', d.mySubmission.text))}</blockquote>`
@@ -120,6 +122,6 @@ export function renderDad(view: RoomView, target: number): string {
   return `${header}
     <div class="dad-grid">
       <section class="panel dad-main">${lastRoundNote(view)}${promptBox}${body}</section>
-      <aside class="panel dad-side">${scoreboard(view)}${d.me.seated ? seatControls(view) : ''}</aside>
+      <aside class="panel dad-side">${scoreboard(view)}<div class="row">${d.me.seated ? seatControls(view) : ''}${inviteButton()}</div></aside>
     </div>`;
 }

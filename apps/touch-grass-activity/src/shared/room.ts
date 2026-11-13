@@ -5,6 +5,9 @@
 import * as dad from './dad.js';
 import * as trivia from './trivia.js';
 import * as bluff from './bluff.js';
+import * as myth from './myth.js';
+import { dayKeyFor, type ScoreRow } from './scores.js';
+import type { DailyPublic, SolverRow } from './daily.js';
 import type { Rng } from './rng.js';
 import type { ClientAction, LookAt, RoomUser, RoomView } from './protocol.js';
 import type { Brag, FinishedScore } from './scores.js';
@@ -41,6 +44,26 @@ export interface RoomState {
    * the record (no server). Absent until a game has been run to the end.
    */
   triviaPosted?: { game: number; brags: Record<string, Brag> | null };
+  /**
+   * Daily Grass: a mirror of each member's own board and stats (the real ones live in the SCORES
+   * DO, one instance per player). Only that member's view ever carries their letters.
+   */
+  daily?: Record<string, DailyPublic>;
+  /** Myth or Math runs, one per player. */
+  myth?: myth.MythState;
+  /** Cached boards for the solo games (this server's). null = not loaded yet. */
+  solo?: {
+    solvers: { day: string; rows: SolverRow[] } | null;
+    ranks: Record<string, { day: string; rank: number }>;
+    mythWeek: { weekStart: number; rows: ScoreRow[] } | null;
+  };
+}
+
+/** A finished Myth or Math run waiting to go on the server's week board. */
+export interface PendingMythScore {
+  userId: string;
+  runId: string;
+  result: FinishedScore;
 }
 
 /** A finished trivia game's server-computed scores, waiting to go on the server's board. */
@@ -52,7 +75,17 @@ export interface PendingHighScores {
 export type ActionResult = { ok: true } | { ok: false; code: string; message: string };
 
 export function createRoomState(instanceId: string): RoomState {
-  return { instanceId, version: 0, members: {}, dad: dad.createDad(), trivia: trivia.createTrivia(), bluff: bluff.createBluff() };
+  return {
+    instanceId,
+    version: 0,
+    members: {},
+    dad: dad.createDad(),
+    trivia: trivia.createTrivia(),
+    bluff: bluff.createBluff(),
+    daily: {},
+    myth: myth.createMyth(),
+    solo: { solvers: null, ranks: {}, mythWeek: null },
+  };
 }
 
 /** Older stored rooms (break-timer era, pre-Bluff) get trivia and Bluff slots and an away flag. */
@@ -61,6 +94,9 @@ export function upgradeRoomState(saved: RoomState): RoomState {
   delete s.brk;
   s.trivia ??= trivia.createTrivia();
   s.bluff ??= bluff.createBluff();
+  s.daily ??= {};
+  s.myth ??= myth.createMyth();
+  s.solo ??= { solvers: null, ranks: {}, mythWeek: null };
   for (const m of Object.values(s.members)) m.awaySince ??= null;
   return s;
 }
@@ -112,6 +148,8 @@ export class Room {
       awaySince: null,
       looking: existing?.looking,
     };
+    // Back from a drop: a paused Myth or Math card picks up where it was.
+    myth.resume(this.myth, user.id, now);
     this.bump();
     // A returning Bluff teller restarts a write clock that ran out while they were away.
     this.tick(now);
@@ -123,6 +161,7 @@ export class Room {
     m.lastSeen = now;
     if (m.awaySince !== null) {
       m.awaySince = null;
+      myth.resume(this.myth, userId, now);
       this.bump();
       this.tick(now);
     }
@@ -148,6 +187,8 @@ export class Room {
     const m = this.state.members[userId];
     if (!m || m.awaySince !== null) return false;
     m.awaySince = now;
+    // Solo games need no away grace: freeze an open Myth or Math card; Daily Grass lives server side.
+    myth.pause(this.myth, userId, now);
     this.bump();
     return true;
   }
@@ -159,6 +200,9 @@ export class Room {
     dad.removePlayer(this.state.dad, userId, this.rng);
     trivia.removePlayer(this.state.trivia, userId);
     bluff.removePlayer(this.state.bluff, userId, this.rng, _now);
+    // Solo progress is kept: a Myth or Math run stays paused for when they come back (it ages out
+    // after a few idle hours), and the Daily Grass board is stored per player outside the room.
+    myth.pause(this.myth, userId, _now);
     this.bump();
   }
 
@@ -180,12 +224,21 @@ export class Room {
     return changed;
   }
 
+  get myth(): myth.MythState {
+    return (this.state.myth ??= myth.createMyth());
+  }
+
+  private get solo(): NonNullable<RoomState['solo']> {
+    return (this.state.solo ??= { solvers: null, ranks: {}, mythWeek: null });
+  }
+
   /** Time-based transitions. Returns true when state changed. */
   tick(now: number): boolean {
     const active = this.activeIds();
     const t = trivia.tick(this.state.trivia, now, this.rng, active);
     const b = bluff.tick(this.state.bluff, now, this.rng, active);
-    if (t || b) {
+    const mm = myth.tick(this.myth, now);
+    if (t || b || mm) {
       this.bump();
       return true;
     }
@@ -216,9 +269,65 @@ export class Room {
     this.bump();
   }
 
+  /**
+   * Gate for actions the host runs itself (Daily Grass talks to storage, so it can't run inside
+   * handle()): same membership check, rate limit and presence touch as every other action.
+   */
+  gate(userId: string, now: number): ActionResult {
+    if (!this.isMember(userId)) return { ok: false, code: 'not-in-room', message: 'Join the room first.' };
+    if (!this.limiter.take(userId, now)) return { ok: false, code: 'rate-limited', message: 'Easy on the buttons.' };
+    this.touch(userId, now);
+    this.tick(now);
+    return { ok: true };
+  }
+
+  /** The player's own Daily Grass board, as the storage side returned it. */
+  setDaily(userId: string, pub: DailyPublic): void {
+    (this.state.daily ??= {})[userId] = pub;
+    this.bump();
+  }
+
+  setSolvers(view: { day: string; rows: SolverRow[] }): void {
+    this.solo.solvers = { day: view.day, rows: view.rows.map((r) => ({ ...r })) };
+    this.bump();
+  }
+
+  setDailyRank(userId: string, day: string, rank: number | null): void {
+    if (rank === null) delete this.solo.ranks[userId];
+    else this.solo.ranks[userId] = { day, rank };
+    this.bump();
+  }
+
+  setMythWeek(weekStart: number, rows: ScoreRow[]): void {
+    this.solo.mythWeek = { weekStart, rows: rows.map((r) => ({ ...r })) };
+    this.bump();
+  }
+
+  /** Finished Myth or Math runs not yet put on a board. Every number comes from server state. */
+  pendingMyth(): PendingMythScore[] {
+    const out: PendingMythScore[] = [];
+    for (const [userId, run] of Object.entries(this.myth.runs)) {
+      if (run.phase !== 'over' || run.board !== 'pending') continue;
+      const m = this.state.members[userId];
+      out.push({ userId, runId: run.runId, result: { id: userId, name: m?.name ?? 'someone', avatar: m?.avatar ?? null, score: run.score } });
+    }
+    return out;
+  }
+
+  /** Mark a finished run as handled. `brag` null with offRecord = no server to put it on. */
+  applyMyth(userId: string, runId: string, brag: Brag | null, offRecord = false): void {
+    const run = this.myth.runs[userId];
+    if (!run || run.runId !== runId) return;
+    run.board = offRecord ? 'off-record' : 'posted';
+    run.brag = brag;
+    this.bump();
+  }
+
   /** Next time the host should wake up: trivia timers and away-grace expiries. */
   nextWake(): number | null {
     const times: number[] = [];
+    const mw = myth.nextWake(this.myth);
+    if (mw !== null) times.push(mw);
     const t = trivia.nextWake(this.state.trivia);
     if (t !== null) times.push(t);
     const b = bluff.nextWake(this.state.bluff);
@@ -295,6 +404,19 @@ export class Room {
       case 'bluff.next':
         r = bluff.next(s.bluff, userId, now, this.rng);
         break;
+      case 'myth.start':
+        r = myth.start(this.myth, userId, now, this.rng);
+        break;
+      case 'myth.answer':
+        r = myth.answer(this.myth, userId, action.rid, action.cid, action.pick, now);
+        break;
+      case 'myth.next':
+        r = myth.next(this.myth, userId, now);
+        break;
+      case 'daily.open':
+      case 'daily.guess':
+        // The host runs these (they need storage); reaching here means no solo service is wired.
+        return { ok: false, code: 'not-configured', message: 'Daily Grass is not set up here.' };
       case 'leave':
         this.leave(userId, now);
         return { ok: true };
@@ -316,6 +438,8 @@ export class Room {
     const seated = d.seats.includes(userId);
     const nonJudge = d.seats.filter((id) => id !== d.judgeId);
     const showEntries = d.phase === 'judging';
+    // The judge holds no hand while judging: their cards stay server side until the judge rotates.
+    const judgingNow = dad.isInGame(d) && d.judgeId === userId;
     return {
       instanceId: s.instanceId,
       serverNow: now,
@@ -340,7 +464,7 @@ export class Room {
         prompt: d.prompt?.text ?? null,
         submittedCount: d.phase === 'judging' ? nonJudge.length : Object.keys(d.submissions).length,
         neededCount: nonJudge.length,
-        hand: seated ? [...(d.hands[userId] ?? [])] : [],
+        hand: seated && !judgingNow ? [...(d.hands[userId] ?? [])] : [],
         mySubmission: d.submissions[userId] ?? null,
         entries: showEntries ? d.entries.map((e) => ({ entryId: e.entryId, text: e.card.text })) : [],
         lastRound: d.lastRound,
@@ -365,6 +489,46 @@ export class Room {
         highScores: tv.phase !== 'over' ? 'none' : !posted ? 'pending' : posted.brags ? 'posted' : 'off-record',
       },
       bluff: this.bluffView(userId, away),
+      daily: this.dailyView(userId, now, away),
+      myth: this.mythView(userId),
+    };
+  }
+
+  /** Who is on a solo screen right now (connected, looking at it). */
+  lookingAt(at: LookAt): number {
+    return Object.values(this.state.members).filter((m) => m.awaySince === null && m.looking === at).length;
+  }
+
+  /** Connected players with a Myth or Math run going. */
+  mythPlaying(): number {
+    return Object.values(this.state.members).filter((m) => m.awaySince === null && myth.isPlaying(this.myth.runs[m.id])).length;
+  }
+
+  /** Daily Grass, as one viewer may see it: their own board in full, everyone else's progress only. */
+  private dailyView(userId: string, now: number, away: (id: string) => boolean): RoomView['daily'] {
+    const today = dayKeyFor(now);
+    const boards = this.state.daily ?? {};
+    const mine = boards[userId];
+    const solvers = this.solo.solvers;
+    const rank = this.solo.ranks[userId];
+    return {
+      today,
+      me: mine ? { ...mine, rows: mine.rows.map((r) => ({ word: r.word, colors: [...r.colors] })), stats: { ...mine.stats, dist: [...mine.stats.dist] } } : null,
+      friends: Object.entries(boards)
+        .filter(([id, b]) => id !== userId && this.state.members[id] && b.day === today)
+        .map(([id, b]) => ({ id, rows: b.rows.length, status: b.status, away: away(id) })),
+      playingCount: this.lookingAt('daily'),
+      solvers: !this.state.guildId ? { kind: 'no-server' } : solvers && solvers.day === today ? { kind: 'board', day: solvers.day, rows: solvers.rows.map((r) => ({ ...r })) } : { kind: 'loading' },
+      myRank: rank && rank.day === today ? rank.rank : null,
+    };
+  }
+
+  private mythView(userId: string): RoomView['myth'] {
+    const wk = this.solo.mythWeek;
+    return {
+      run: myth.runView(this.myth.runs[userId]),
+      playingCount: this.mythPlaying(),
+      board: !this.state.guildId ? { kind: 'no-server' } : wk ? { kind: 'board', weekStart: wk.weekStart, rows: wk.rows.map((r) => ({ ...r })) } : { kind: 'loading' },
     };
   }
 

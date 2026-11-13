@@ -7,6 +7,7 @@ import { MAX_PLAYERS, MAX_STATEMENT_CHARS, MIN_PLAYERS } from '../../shared/bluf
 import type { RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc, nameOf, podium, userById } from './util.js';
 import { BLUFF_ART } from '../art.js';
+import { inviteButton } from './invite.js';
 
 const KEYS = ['A', 'B', 'C'];
 
@@ -104,6 +105,7 @@ export function renderBluff(view: RoomView, draft: BluffDraft, clockOffsetMs: nu
         ${board(view)}
         <div class="row">
           ${seatControls(view)}
+          ${inviteButton()}
           <button class="btn btn--primary" data-act="bluff.start" ${canStart ? '' : 'disabled'}>${b.phase === 'paused' ? COPY.bluff.resume : COPY.bluff.start}</button>
         </div>
       </section>`;
@@ -171,6 +173,6 @@ export function renderBluff(view: RoomView, draft: BluffDraft, clockOffsetMs: nu
   return `${header}
     <div class="dad-grid">
       <section class="panel dad-main bluff-panel">${skipNote(view)}<div class="trivia-top">${clock}<span class="muted small">${esc(b.tellerId ? `${COPY.bluff.tellerTag}: ${teller}` : '')}</span></div>${promptBox}${body}</section>
-      <aside class="panel dad-side">${board(view)}${b.me.seated ? seatControls(view) : ''}</aside>
+      <aside class="panel dad-side">${board(view)}<div class="row">${b.me.seated ? seatControls(view) : ''}${inviteButton()}</div></aside>
     </div>`;
 }

@@ -105,3 +105,26 @@ describe('LiveBoard', () => {
     expect(reportFor(room.state, G1).games.bluff).toEqual({ phase: 'writing', count: 3, joinable: false });
   });
 });
+
+describe('live tables: solo games', () => {
+  const base = { phase: 'seating', count: 0, joinable: false };
+  it('summary has daily and myth playing counts; they add no tables and nothing joinable', () => {
+    const board = new LiveBoard();
+    board.report({ instanceId: 'i-a', guildId: '123456789', members: 3, games: { dad: base, trivia: { ...base, phase: 'idle' }, bluff: base, daily: { phase: 'solo', count: 2, joinable: false }, myth: { phase: 'solo', count: 1, joinable: false } } }, 1_000);
+    board.report({ instanceId: 'i-b', guildId: '123456789', members: 1, games: { dad: base, trivia: { ...base, phase: 'idle' }, bluff: base, myth: { phase: 'solo', count: 1, joinable: false } } }, 1_000);
+    const s = board.summary('123456789', 2_000);
+    expect(s.games.daily).toEqual({ playing: 2 });
+    expect(s.games.myth).toEqual({ playing: 2 });
+    expect(s.tables).toBe(0);
+    expect(s.joinable).toBe(0);
+    expect(s.rooms).toBe(2);
+  });
+
+  it('reports from rooms that predate the solo games still parse; junk solo slots are refused', () => {
+    const old = { instanceId: 'i-old', guildId: null, members: 1, games: { dad: base, trivia: base, bluff: base } };
+    expect(parseLiveReport(old)).toMatchObject({ games: { dad: base } });
+    expect(parseLiveReport(old)!.games.daily).toBeUndefined();
+    expect(parseLiveReport({ ...old, games: { ...old.games, myth: { phase: 'SOLO!', count: 1, joinable: false } } })).toBeNull();
+    expect(parseLiveReport({ ...old, games: { ...old.games, daily: { phase: 'solo', count: -1, joinable: false } } })).toBeNull();
+  });
+});

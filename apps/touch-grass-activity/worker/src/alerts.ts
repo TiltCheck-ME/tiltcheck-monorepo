@@ -29,7 +29,7 @@ export const ALERT_COPY: Record<AlertGame, { open: string; on: string; closed: s
   dad: {
     open: "🃏 Someone's at the Degens Against Decency table. Pull up a chair: start the Tilt Check activity in voice.",
     on: "🃏 Degens Against Decency: table's full, game on. Catch the next one.",
-    closed: '🃏 Degens Against Decency: table closed. Everyone wandered off to touch grass.',
+    closed: '🃏 Degens Against Decency: table closed. Everyone wandered off.',
   },
   trivia: {
     open: "🧠 Someone's waiting on Trivia. Ten questions, no host, no excuses: start the Tilt Check activity in voice.",

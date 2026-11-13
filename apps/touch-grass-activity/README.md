@@ -4,15 +4,26 @@
 
 A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
-- **Lobby**: who's here (avatars, "away" badge) and three live tiles (DA&D, Trivia, Bluff), each with a seated/playing count.
-- **Degens Against Decency (DA&D)**: 3 to 8 players, rotating judge, 7-card hands, anonymous shuffled answers, first to N points (default 5). Points are bragging rights only.
+- **Lobby**: hero card titled "TiltCheck" ("Get distracted on purpose.", quest-flag mark, night field and grass), an **Invite friends** button (Discord's own invite dialog), who's here (avatars, "away" badge), three live table tiles (DA&D, Trivia, Bluff) with seated/playing counts, and two solo tiles (Daily Grass, Myth or Math) with a "solo · N playing" pill.
+- **Degens Against Decency (DA&D)**: 3 to 8 players, rotating judge (the judge gets no hand on screen and no top-up while judging; their cards wait server side for the next round), 7-card hands, anonymous shuffled answers, first to N points (default 5). Points are bragging rights only.
 - **Trivia**: self-running, no host. Anyone taps Start; 10 questions, 4 choices, 15 s answer window, 4 s reveal, scoreboard after each question and at the end. 100 points for a right answer plus up to 50 for speed. Late joiners spectate one question and are dealt in at the next. Bank of 116 hand-checked questions (33 from the shared arena bank, 11 from the trivia.live starter set, 72 new) (`src/shared/triviaBank.ts`), drawn without repeats per instance. No AI at runtime.
 
 - **Bluff** (Jamie's "Two Truths and a Lie" from DegensAgainstDecency): 3 to 8 seated players; everyone seated at the start tells once (game length = number of players). The teller gets a prompt, writes 3 statements (max 120 characters each) and marks the lie privately; the server shuffles them and the others get 30 s to pick the lie (one guess each, teller can't guess, closes early once every connected guesser has picked). +10 for a right guess, +5 to the teller per player fooled (no guess fools nobody). Reveal shows the lie and who picked what, then the board; 10 s or tap Next. 3 minutes to write. Late joiners spectate and are seated next game. Prompts: Jamie's 5 fallbacks plus 34 new (`src/shared/bluffPrompts.ts`). No AI at runtime. No high-score board.
 
+- **Daily Grass** (solo): a daily 5-letter word, 6 guesses, green / yellow / gray tiles, on-screen and physical keyboard. Same word for everyone; the day turns at midnight America/Chicago. The worker holds the answer and sends back tile colors per guess; the answer only reaches a player once their own game is over. Stats per Discord user (played, wins, current / best streak, guess spread). "Today's solvers" per server (fewest guesses, then fastest from opening the board; DMs: "No server, no board"). Friends in the room see rows used and solved / out, never letters. "Copy result" puts a spoiler-free emoji grid on the clipboard; nothing is posted.
+- **Myth or Math** (solo): 10 true/false cards on gambling myths and real odds, 8 seconds each, a one-line why after every card. 100 per right call plus up to 50 for speed. Bank of 64 original cards (`src/shared/mythBank.ts`). Per-server weekly board (Monday 00:00 Central), its own board.
+
 The group break timer was removed on 2026-11-12 (Jamie's call after testing it on iPhone).
 
-No money anywhere: no rewards, prizes, extra lives, wallets, payments, ads or paid features. Points are bragging rights only. `tests/no-money.test.ts` fails the build if banned words show up in the client, the DA&D deck, the trivia bank or the Bluff prompts.
+No money anywhere: no rewards, prizes, extra lives, wallets, payments, ads or paid features. Points are bragging rights only. `tests/no-money.test.ts` fails the build if banned words show up in the client, the DA&D deck, the trivia bank, the Bluff prompts, the Daily Grass answers or the Myth or Math cards. One scoped exception: the Myth or Math bank (`src/shared/mythBank.ts` and its guest subset) may say "jackpot" and "payout", because busting jackpot myths needs the word; every other banned word still applies there, and nothing else gets the exception.
+
+### Solo games: word lists and storage
+
+- **Answers** (`src/shared/dailyWords.ts`): 639 common, family-friendly 5-letter words, an original list written for this app (no slurs, nothing sexual, no money or gambling words).
+- **Valid guesses** (`src/shared/dailyDictionary.ts`): every 5-letter a-z word in [word-list](https://github.com/sindresorhus/word-list) 4.1.0 (MIT License, Copyright (c) Sindre Sorhus), which is built from the Letterpress word list ([github.com/lorenbrichter/Words](https://github.com/lorenbrichter/Words), `Words/en.txt`, CC0-1.0). 12,577 words (one apology word dropped for the repo's tone check). Guesses are checked against this list on the server.
+- **The daily pick**: a SHA-256 of the worker secret `DAILY_SALT` seeds a fixed shuffle of the answers; each Chicago day takes the next slot, so no repeats until the list runs out and nobody can read ahead without the secret. Without the secret Daily Grass answers "not set up".
+- **Guest mode** (plain browser): the build swaps in `src/client/guestDailyWords.ts` (10 practice words, any five letters accepted) and `src/client/guestMythBank.ts` (10 practice cards), so the answer list, the dictionary and the full bank never ship to clients (`vite.config.ts` aliases; `tests/daily.test.ts` checks every client import is covered).
+- **Storage**: the existing `SCORES` Durable Object class (no new class, no migration). Daily boards and stats: one instance per player (`daily-user:<id>`), so it's one board a day wherever it's opened. Today's solvers and the Myth or Math week: that server's existing `guild:<id>` instance, under their own keys next to the trivia board. Myth or Math runs live in the room; a drop pauses the card with its time left and rejoining resumes it.
 
 Free text (Bluff statements) goes through `src/shared/textGuard.ts` on the server: NFKC, invisible/bidi characters stripped, whitespace collapsed, 120-character cap, and a light slur-only blocklist (whole words, leetspeak, stretched and spaced-out spellings; stems stored ROT13). DA&D has no free text and DegensAgainstDecency had no filter to copy, so this list is new. Swearing is allowed. Every view escapes text before it hits the DOM.
 
@@ -33,6 +44,10 @@ apps/touch-grass-activity/
     room.ts                       members + away grace, per-user views (hands/answers never leak), rate limit
     live.ts                       anonymous live-tables report + registry board (TTL)
     scores.ts                     trivia high scores: best-only, top 10 week/all time, Chicago week
+    daily.ts                      Daily Grass: tile colors, salted daily pick, boards + stats, Today's solvers
+    dailyWords.ts / dailyDictionary.ts  answers and valid-guess dictionary (server and tests only)
+    myth.ts / mythBank.ts         Myth or Math runs and the card bank (bank: server and tests only)
+    solo.ts / soloHost.ts         solo storage interface (SCORES DO or in-memory) and the async glue
     deck.ts                       original TiltCheck cards (no AI generation)
   worker/                         Cloudflare Worker + Durable Object (own wrangler.toml)
     src/index.ts                  routes
@@ -46,6 +61,7 @@ apps/touch-grass-activity/
   scripts/simulate-dad.ts         3-player DA&D game to a winner against the room logic
   scripts/simulate-trivia.ts      3-player 10-question trivia game with a mid-game drop and rejoin
   scripts/simulate-bluff.ts       3-player Bluff game with a guesser dropping and rejoining
+  scripts/simulate-solo.ts        Daily Grass (win, loss, DM off the record) and three Myth or Math runs
 ```
 
 ## Run it locally
@@ -119,13 +135,15 @@ GET /api/live                        global totals
   "games": {
     "dad":    { "tables": n, "seated": n,  "joinable": n },
     "trivia": { "tables": n, "playing": n, "joinable": n },
-    "bluff":  { "tables": n, "seated": n,  "joinable": n }
+    "bluff":  { "tables": n, "seated": n,  "joinable": n },
+    "daily":  { "playing": n },
+    "myth":   { "playing": n }
   }
 }
 400 {"error":"bad-guild"}   429 {"error":"rate-limited"} (Retry-After: 5)   503 {"error":"not-configured"}
 ```
 
-A DA&D table is a room with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. A Bluff table is a room with at least one seated player; joinable between games while seats + queue < 8 (mid-game joiners only spectate). No user ids, names, avatars, instance ids or room keys in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
+Solo games add `daily` (connected people on the Daily Grass screen) and `myth` (connected people mid-run) playing counts; they are not tables, never joinable, not in `tables` / `joinable`, and never trigger table alerts. A DA&D table is a room with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. A Bluff table is a room with at least one seated player; joinable between games while seats + queue < 8 (mid-game joiners only spectate). No user ids, names, avatars, instance ids or room keys in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
 
 ## Trivia high scores (`GET /api/trivia/scores`)
 
@@ -140,6 +158,10 @@ row = { id, name, avatar, score, at }   (Discord user id, display name, avatar h
 - Written only by the room, when it runs a 10-question game to the end (`phase: over`), with the server's own scores. There is no client message or public route that writes a score. Zero scores are not recorded.
 - Which server: Discord instance ids carry it (`i-<launch>-gc-<guild>-<channel>`), and that wins over the client's `sdk.guildId`. DMs and group DMs (`-pc-`) have no server: those games are **off the record** (not stored; the end screen and lobby say so).
 - Not in `/api/live`, which stays anonymous.
+
+## Invite friends
+
+`sdk.commands.openInviteDialog()` from `@discord/embedded-app-sdk` 2.4.1 (Discord's SDK reference lists no required OAuth scope, so `authorize` still asks for `identify` only). The button sits in the lobby hero and on the DA&D, Bluff and Trivia screens (seating and in game). It's hidden in guest mode and whenever the SDK lacks the command; a failed call shows a short toast.
 
 ## Table alerts (Discord channel webhook)
 

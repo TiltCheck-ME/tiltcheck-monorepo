@@ -5,7 +5,9 @@ import type { Card } from './deck.js';
 import type { DadPhase, DadRoundResult } from './dad.js';
 import type { TriviaPhase } from './trivia.js';
 import type { BluffPhase, BluffRoundResult } from './bluff.js';
-import type { Brag } from './scores.js';
+import type { Brag, ScoreRow } from './scores.js';
+import type { DailyPublic, SolverRow } from './daily.js';
+import type { MythRunView } from './myth.js';
 
 export interface RoomUser {
   id: string;
@@ -36,12 +38,20 @@ export type ClientAction =
   | { t: 'bluff.tell'; statements: [string, string, string]; lie: number }
   | { t: 'bluff.guess'; rid: string; pick: number }
   | { t: 'bluff.next' }
+  /** Daily Grass: load (or make) today's board. Solo, server-checked. */
+  | { t: 'daily.open' }
+  | { t: 'daily.guess'; word: string }
+  /** Myth or Math: start a 10-card run, call a card true (math) or false (myth), move on. */
+  | { t: 'myth.start' }
+  | { t: 'myth.answer'; rid: string; cid: string; pick: boolean }
+  | { t: 'myth.next' }
   | { t: 'leave' }
   | { t: 'ping' }
   /** Which screen this player has open. Only feeds "someone is waiting at Trivia" for table alerts. */
   | { t: 'look'; at: LookAt };
 
-export type LookAt = 'lobby' | 'dad' | 'trivia' | 'bluff';
+export type LookAt = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth';
+export const LOOK_AT: readonly LookAt[] = ['lobby', 'dad', 'trivia', 'bluff', 'daily', 'myth'];
 
 /** Raw statement text accepted off the wire; the room cleans it and enforces the real 120-char cap. */
 export const MAX_RAW_STATEMENT = 600;
@@ -165,6 +175,34 @@ export interface BluffView {
   };
 }
 
+export interface DailyFriendView {
+  id: string;
+  /** Rows used so far. Never the letters or colors. */
+  rows: number;
+  status: 'playing' | 'won' | 'lost';
+  away: boolean;
+}
+
+export interface DailyView {
+  /** Chicago day right now ('YYYY-MM-DD'). If `me.day` is older, the client asks for a fresh board. */
+  today: string;
+  /** The viewer's own board and stats. Letters only for the viewer; the answer only once they're done. */
+  me: DailyPublic | null;
+  /** Others in this room playing today's puzzle: progress only. */
+  friends: DailyFriendView[];
+  playingCount: number;
+  /** This server's "Today's solvers". */
+  solvers: { kind: 'board'; day: string; rows: SolverRow[] } | { kind: 'no-server' } | { kind: 'loading' };
+  myRank: number | null;
+}
+
+export interface MythView {
+  run: MythRunView | null;
+  playingCount: number;
+  /** This server's Myth or Math week (Monday 00:00 Central). */
+  board: { kind: 'board'; weekStart: number; rows: ScoreRow[] } | { kind: 'no-server' } | { kind: 'loading' };
+}
+
 export interface RoomView {
   instanceId: string;
   serverNow: number;
@@ -174,6 +212,8 @@ export interface RoomView {
   dad: DadView;
   trivia: TriviaView;
   bluff: BluffView;
+  daily: DailyView;
+  myth: MythView;
 }
 
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
@@ -204,11 +244,20 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'bluff.stand':
     case 'bluff.start':
     case 'bluff.next':
+    case 'daily.open':
+    case 'myth.start':
+    case 'myth.next':
     case 'leave':
     case 'ping':
       return { t: m.t };
     case 'look':
-      return m.at === 'lobby' || m.at === 'dad' || m.at === 'trivia' || m.at === 'bluff' ? { t: 'look', at: m.at } : null;
+      return typeof m.at === 'string' && (LOOK_AT as readonly string[]).includes(m.at) ? { t: 'look', at: m.at as LookAt } : null;
+    case 'daily.guess':
+      return typeof m.word === 'string' && /^[A-Za-z]{5}$/.test(m.word) ? { t: 'daily.guess', word: m.word.toLowerCase() } : null;
+    case 'myth.answer':
+      return typeof m.rid === 'string' && ID_RE.test(m.rid) && typeof m.cid === 'string' && ID_RE.test(m.cid) && typeof m.pick === 'boolean'
+        ? { t: 'myth.answer', rid: m.rid, cid: m.cid, pick: m.pick }
+        : null;
     case 'bluff.tell': {
       const st = m.statements;
       if (!Array.isArray(st) || st.length !== 3 || !st.every((x) => typeof x === 'string' && x.length <= MAX_RAW_STATEMENT)) return null;

@@ -8,6 +8,9 @@ import { makeRng } from '../shared/rng.js';
 import type { ClientAction, RoomUser, RoomView, ServerMessage } from '../shared/protocol.js';
 import { ScoreBook, memoryBookStorage, type BoardView } from '../shared/scores.js';
 import type { ScoresResult } from './views/highScores.js';
+import { memorySoloService } from '../shared/solo.js';
+import { postMyth, refreshMythWeek, runDaily } from '../shared/soloHost.js';
+import { DAILY_ANSWERS, isValidGuess } from '../shared/dailyWords.js';
 
 export type LinkStatus = 'connecting' | 'live' | 'polling' | 'offline';
 
@@ -260,6 +263,9 @@ export class LocalTransport extends Emitter implements Transport {
   /** Guest mode keeps a board in this tab so the high-score UI can be tried without Discord. */
   private readonly book = new ScoreBook(memoryBookStorage());
   private posting = false;
+  /** Solo games in guest mode: practice words, a practice deck, boards that live in this tab. */
+  private readonly solo = memorySoloService({ salt: 'guest-practice', answers: DAILY_ANSWERS, isValid: isValidGuess });
+  private soloBusy = false;
 
   constructor(
     private readonly me: RoomUser,
@@ -268,6 +274,8 @@ export class LocalTransport extends Emitter implements Transport {
     super();
     this.room = new Room(createRoomState(instanceId), makeRng());
     this.room.limiter.take = () => true;
+    // Guest boards are labelled as such in the UI; 'guest' is never a real server id.
+    this.room.state.guildId = 'guest';
     this.room.join(me, Date.now());
     this.timer = setInterval(() => {
       if (this.room.tick(Date.now())) this.push();
@@ -286,6 +294,18 @@ export class LocalTransport extends Emitter implements Transport {
     this.emitState(this.room.viewFor(this.me.id, Date.now()));
     this.scheduleBots();
     void this.postScores();
+    void this.postSolo();
+  }
+
+  private async postSolo(): Promise<void> {
+    if (this.soloBusy || !this.room.pendingMyth().length) return;
+    this.soloBusy = true;
+    try {
+      await postMyth(this.room, this.solo, 'guest', Date.now());
+    } finally {
+      this.soloBusy = false;
+    }
+    this.push();
   }
 
   /** Same rule as the server: only a game the room ran to the end, with the room's own scores. */
@@ -307,8 +327,17 @@ export class LocalTransport extends Emitter implements Transport {
   }
 
   send(action: ClientAction): void {
-    const r = this.room.handle(this.me.id, action, Date.now());
+    const now = Date.now();
+    if (action.t === 'daily.open' || action.t === 'daily.guess') {
+      void runDaily(this.room, this.solo, this.me, action, 'guest', now).then((r) => {
+        if (!r.ok) this.emitError(r.code, r.message);
+        this.push();
+      });
+      return;
+    }
+    const r = this.room.handle(this.me.id, action, now);
     if (!r.ok) this.emitError(r.code, r.message);
+    if (r.ok && action.t === 'look' && action.at === 'myth') void refreshMythWeek(this.room, this.solo, 'guest', now).then(() => this.push());
     this.push();
   }
 

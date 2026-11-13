@@ -113,8 +113,8 @@ describe('lobby tiles', () => {
 
 describe('copy grammar on the end screens', () => {
   it('"You win" and "Your lie" when the viewer is the subject', () => {
-    expect(COPY.dad.gameOver('You')).toBe('You win. Bragging rights only. Go touch grass.');
-    expect(COPY.dad.gameOver('Bo')).toBe('Bo wins. Bragging rights only. Go touch grass.');
+    expect(COPY.dad.gameOver('You')).toBe('You win. Bragging rights only.');
+    expect(COPY.dad.gameOver('Bo')).toBe('Bo wins. Bragging rights only.');
     expect(COPY.bluff.reveal('You')).toBe('Your lie');
     expect(COPY.bluff.reveal('Bo')).toBe("Bo's lie");
   });

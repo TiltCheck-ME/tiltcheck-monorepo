@@ -7,8 +7,32 @@ import { RoomHost, type HostSocket } from './host.js';
 import { verifyToken, type AuthEnv } from './auth.js';
 import type { RoomUser } from '../../src/shared/protocol.js';
 import { LIVE_REGISTRY_NAME } from './registry-do.js';
-import { scoresName } from './scores-do.js';
-import type { Brag } from '../../src/shared/scores.js';
+import { dailyUserName, scoresName } from './scores-do.js';
+import type { BoardView, Brag } from '../../src/shared/scores.js';
+import type { SoloService } from '../../src/shared/solo.js';
+import type { DailyResult, SolverRow } from '../../src/shared/daily.js';
+
+/** Solo games over SCORES DO stubs: per-player instance for Daily Grass, server instance for boards. */
+function soloOverStubs(ns: DurableObjectNamespace): SoloService {
+  const call = async <T,>(name: string, path: string, init?: { body: unknown }): Promise<T> => {
+    const stub = ns.get(ns.idFromName(name));
+    const res = await stub.fetch(`https://scores.internal${path}`, init ? { method: 'POST', body: JSON.stringify(init.body), headers: { 'Content-Type': 'application/json' } } : undefined);
+    if (res.status === 503) return { ok: false, code: 'not-configured', message: 'Daily Grass is not set up here.' } as T;
+    if (!res.ok) throw new Error(`scores ${res.status}`);
+    return (await res.json()) as T;
+  };
+  return {
+    dailyOpen: (user) => call<DailyResult>(dailyUserName(user.id), '/daily/open', { body: { user: user.id } }),
+    dailyGuess: (user, word) => call<DailyResult>(dailyUserName(user.id), '/daily/guess', { body: { user: user.id, word } }),
+    dailySolved: async (guild, row) => (await call<{ rank: number | null }>(scoresName(guild), '/daily/solved', { body: { guild, row } })).rank,
+    dailySolvers: async (guild) => {
+      const r = await call<{ day: string; rows: SolverRow[] }>(scoresName(guild), `/daily/solvers?guild=${guild}`);
+      return { day: r.day, rows: r.rows };
+    },
+    mythRecord: async (guild, results) => (await call<{ brags: Record<string, Brag> }>(scoresName(guild), '/myth/record', { body: { guild, results } })).brags,
+    mythBoard: (guild, me) => call<BoardView>(scoresName(guild), `/myth/board?guild=${guild}${me ? `&me=${encodeURIComponent(me)}` : ''}`),
+  };
+}
 
 export interface RoomEnv extends AuthEnv {
   /** Singleton live-tables registry. Optional so an older deploy without the binding keeps working. */
@@ -73,6 +97,7 @@ export class TouchGrassRoom implements DurableObject {
             return ((await res.json()) as { brags: Record<string, Brag> }).brags;
           }
         : undefined,
+      solo: env.SCORES ? soloOverStubs(env.SCORES) : undefined,
     });
   }
 

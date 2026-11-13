@@ -3,7 +3,8 @@
 // and the in-browser guest room both run this exact code. The server is the authority.
 //
 // Rules (from TiltCheck-ME/DegensAgainstDecency, Card Czar style):
-// - 3 to 8 seated players. Everyone holds 7 white cards.
+// - 3 to 8 seated players. Everyone but the judge holds 7 white cards in play. The judge gets no
+//   hand on screen and no top-up while judging; their cards wait server side for the next round.
 // - Judge rotates every round. Everyone else submits one card for the prompt.
 // - The judge sees the answers anonymised and shuffled, picks one, its owner scores 1.
 // - First to targetScore (default 5) wins. Points are bragging rights only.
@@ -146,6 +147,8 @@ export function start(s: DadState, by: string, rng: Rng, targetScore?: number): 
     s.hands[id] = [];
   }
   s.round = 0;
+  // Opening deal: everyone, the first judge included, so the judge sits on a full hand for later.
+  for (const id of s.seats) dealUp(s, id, rng);
   s.judgeCursor = Math.floor(rng() * s.seats.length) - 1;
   s.lastRound = null;
   s.winnerId = null;
@@ -194,10 +197,12 @@ function beginRound(s: DadState, rng: Rng): void {
     s.entries = [];
     return;
   }
-  for (const id of s.seats) dealUp(s, id, rng);
   s.round += 1;
   s.judgeCursor = (s.judgeCursor + 1) % s.seats.length;
   s.judgeId = s.seats[s.judgeCursor] ?? null;
+  // The judge plays no card this round, so they get no top-up. Whatever they hold stays theirs
+  // (server side only; their view shows no hand) and is topped up once the judge moves on.
+  for (const id of s.seats) if (id !== s.judgeId) dealUp(s, id, rng);
   if (s.prompt) s.promptDiscard.push(s.prompt);
   s.prompt = drawPrompt(s, rng);
   s.submissions = {};

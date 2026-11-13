@@ -20,11 +20,13 @@ beforeAll(async () => {
 });
 
 describe('client in guest mode (no frame_id)', () => {
-  it('lobby shows the fake user and three live tiles with counts, no break tile', () => {
+  it('lobby shows the fake user, three table tiles with counts and two solo tiles, no break tile', () => {
     expect(document.body.textContent).toContain('Guest mode');
     expect(document.querySelectorAll('.person')).toHaveLength(1);
     expect($('.person__name')?.textContent).toBe('Jme');
-    expect(document.querySelectorAll('.tile')).toHaveLength(3);
+    expect(document.querySelectorAll('.tile')).toHaveLength(5);
+    expect($('[data-count=daily]')?.textContent).toBe('solo · 0 playing');
+    expect($('[data-count=myth]')?.textContent).toBe('solo · 0 playing');
     expect($('.tile--bluff .tile__name')?.textContent).toBe('Bluff');
     expect($('[data-count=bluff]')?.textContent).toBe('0 seated');
     expect($('[data-count=dad]')?.textContent).toBe('0 seated');
@@ -32,7 +34,11 @@ describe('client in guest mode (no frame_id)', () => {
     const trivia = $<HTMLButtonElement>('.tile--trivia')!;
     expect(trivia.disabled).toBe(false);
     expect(document.body.textContent).not.toMatch(/break|soon/i);
-    expect(document.body.textContent).toContain('Step away from the reels. Sit at a table that is not a spin.');
+    expect($('.hero .title')?.textContent).toBe('TiltCheck');
+    expect(document.body.textContent).toContain('Get distracted on purpose.');
+    expect(document.body.textContent).not.toContain('Touch Grass');
+    // Guest mode: no Discord SDK, so no invite button anywhere.
+    expect($('[data-invite]')).toBeNull();
   });
 
   it('lobby shows the High scores board with This week / All time tabs (guest board starts empty)', async () => {
@@ -135,4 +141,39 @@ describe('client in guest mode (no frame_id)', () => {
     expect(document.body.textContent).toContain('Final board');
     expect($('[data-act="bluff.start"]')?.textContent).toBe('Run it back');
   }, 120_000);
+
+  it('Daily Grass: on-screen keys and the physical keyboard type a row; Enter sends it; colors come back', async () => {
+    if ($('[data-go=lobby]')) await click('[data-go=lobby]');
+    await click('[data-go=daily]');
+    await sleep(60);
+    expect(document.querySelectorAll('.dg-tile')).toHaveLength(30);
+    for (const k of 'cra') await click(`[data-dg-key="${k}"]`);
+    for (const k of ['n', 'e']) document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    await sleep(20);
+    expect($('[data-dg-row="0"]')!.textContent).toBe('CRANE');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await sleep(60);
+    const tiles = [...document.querySelectorAll('[data-dg-row="0"] .dg-tile')];
+    expect(tiles.every((t) => /dg-tile--[gyb]/.test(t.className))).toBe(true);
+    expect($('[data-dg-row="1"]')!.textContent).toBe('');
+    // Backspace edits the open row only.
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+    await sleep(20);
+    expect($('[data-dg-row="1"]')!.textContent).toBe('');
+    expect(document.body.textContent).toContain("Today's solvers");
+  });
+
+  it('Myth or Math: start a run, call a card, see the why, move on', async () => {
+    await click('[data-go=lobby]');
+    await click('[data-go=myth]');
+    await click('[data-act="myth.start"]');
+    expect($('[data-mm-card]')!.textContent!.length).toBeGreaterThan(5);
+    await click('[data-mpick="true"]');
+    expect(['MYTH', 'MATH']).toContain($('[data-mm-stamp]')!.textContent);
+    expect($('[data-mm-why]')!.textContent!.length).toBeGreaterThan(10);
+    await click('[data-act="myth.next"]');
+    expect($('.bar__meta')!.textContent).toBe('Card 2 / 10');
+  });
 });
+

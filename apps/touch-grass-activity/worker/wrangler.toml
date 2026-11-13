@@ -28,6 +28,8 @@ tag = "v2"
 new_sqlite_classes = ["LiveRegistry"]
 
 # Trivia high scores: one DO per Discord server. New class, new tag; v1 and v2 above are untouched.
+# The solo games reuse this class (no new class, no migration): Daily Grass boards per player under
+# 'daily-user:<id>', Today's solvers and the Myth or Math week in the server's 'guild:<id>' instance.
 [[durable_objects.bindings]]
 name = "SCORES"
 class_name = "TriviaScores"
@@ -43,4 +45,5 @@ DISCORD_CLIENT_ID = "1445916179163250860"
 ALERT_GUILD_ID = "1488253239643078787"
 # DISCORD_CLIENT_SECRET is a secret: wrangler secret put DISCORD_CLIENT_SECRET --config worker/wrangler.toml
 # ALERT_WEBHOOK_URL is a secret (Discord channel webhook). Never commit it.
+# DAILY_SALT is a secret (Daily Grass word pick). Without it Daily Grass says it isn't set up. Never commit it.
 # ALLOW_GUEST must stay unset in production. For local dev put ALLOW_GUEST="true" in worker/.dev.vars.
