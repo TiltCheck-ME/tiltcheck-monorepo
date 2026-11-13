@@ -1,0 +1,17 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13",
+  "name": "@tiltcheck/casino-ask",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Casino Q&A lookup: answers from each casino's own published pages and TiltCheck's records, with sources. Cloudflare Worker for the tiltcheck.me Casinos page and Discord /ask.",
+  "scripts": {
+    "build": "node --check src/index.js && node --check src/answer.js && node --check src/discord.js && node --check src/retrieve.js && node --check src/sources.js && node --check src/text.js && node --check src/limits.js",
+    "test": "node --test test/*.test.mjs",
+    "dev": "npx wrangler@4 dev",
+    "register:guild": "node scripts/register-command.mjs --guild"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

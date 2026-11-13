@@ -1,0 +1,30 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+# Deployed 2026-11-13 with Jamie's OK (see README.md in this folder).
+name = "tiltcheck-casino-ask"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[vars]
+# The TiltCheck Discord app's public key (Developer Portal > General Information). Public by design.
+DISCORD_PUBLIC_KEY = "55e23c5b20cb1a25838bd68dc5d75bed02407812ab6aa8769276a258a08dccfc"
+GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# Secret, set once at deploy and never committed:
+#   wrangler secret put GROQ_API_KEY
+
+# Rate limit: 6 questions a minute per IP (web) or per Discord user.
+[[ratelimits]]
+name = "ASK_LIMITER"
+namespace_id = "7301"
+  [ratelimits.simple]
+  limit = 6
+  period = 60
+
+# Optional shared cache. Without it each isolate keeps its own short memory cache.
+# [[kv_namespaces]]
+# binding = "ASK_KV"
+# id = "<create with: wrangler kv namespace create ASK_KV>"
+
+[observability]
+enabled = true
