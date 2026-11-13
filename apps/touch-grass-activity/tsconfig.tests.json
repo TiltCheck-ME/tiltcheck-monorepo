@@ -15,6 +15,7 @@
   ],
   "exclude": [
     "tests/client-dom.test.ts",
-    "tests/high-scores-ui.test.ts"
+    "tests/high-scores-ui.test.ts",
+    "tests/transport-room.test.ts"
   ]
 }
