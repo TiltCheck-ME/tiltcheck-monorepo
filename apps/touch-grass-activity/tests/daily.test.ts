@@ -297,11 +297,11 @@ describe('Daily Grass through the room host', () => {
     const host = new RoomHost({ storage: new Store(), sockets: () => sockets, verify: async () => ({ id: '100000001', name: 'Ana', avatar: null }), now: () => NOON, rng: makeRng(3), solo });
     const s = new Sock();
     sockets.push(s);
-    const key = 'i-1-gc-123456789-987654321';
-    await host.setGuild(key, '123456789');
-    await host.onMessage(key, s, JSON.stringify({ t: 'auth', token: 'x' }));
-    await host.onMessage(key, s, JSON.stringify({ t: 'daily.open' }));
-    await host.onMessage(key, s, JSON.stringify({ t: 'daily.guess', word: 'CRANE' }));
+    const roomId = 'i-1-gc-123456789-987654321';
+    await host.setGuild(roomId, '123456789');
+    await host.onMessage(roomId, s, JSON.stringify({ t: 'auth', token: 'x' }));
+    await host.onMessage(roomId, s, JSON.stringify({ t: 'daily.open' }));
+    await host.onMessage(roomId, s, JSON.stringify({ t: 'daily.guess', word: 'CRANE' }));
     const answer = answerFor(dayNumberFor(NOON), SALT, DAILY_ANSWERS);
     const states = s.inbox.filter((m) => m.t === 'state');
     const last = states.at(-1);
@@ -309,7 +309,7 @@ describe('Daily Grass through the room host', () => {
     expect(last.view.daily.me?.rows).toEqual([{ word: 'crane', colors: colorize('crane', answer) }]);
     if (answer !== 'crane') for (const m of states) expect(JSON.stringify(m)).not.toContain(`"${answer}"`);
     // Junk is refused on the wire.
-    await host.onMessage(key, s, JSON.stringify({ t: 'daily.guess', word: 'cr4ne' }));
+    await host.onMessage(roomId, s, JSON.stringify({ t: 'daily.guess', word: 'cr4ne' }));
     expect(s.inbox.at(-1)).toMatchObject({ t: 'error', code: 'bad-message' });
   });
 
