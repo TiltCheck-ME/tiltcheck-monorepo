@@ -1,0 +1,32 @@
+{
+  "_comment": "\u00a9 2024\u20132026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12",
+  "name": "@tiltcheck/touch-grass-activity",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Touch Grass Discord Activity: lobby, Degens Against Decency, group trivia, Bluff (two truths and a lie). Test deploy on Cloudflare.",
+  "scripts": {
+    "dev": "vite",
+    "dev:worker": "wrangler dev --config worker/wrangler.toml",
+    "build": "tsc -p tsconfig.json && vite build",
+    "typecheck": "tsc -p tsconfig.json && tsc -p worker/tsconfig.json && tsc -p tsconfig.tests.json",
+    "test": "vitest run --config vitest.config.ts",
+    "simulate": "tsx scripts/simulate-dad.ts && tsx scripts/simulate-trivia.ts && tsx scripts/simulate-bluff.ts",
+    "preview": "vite preview",
+    "simulate:dad": "tsx scripts/simulate-dad.ts",
+    "simulate:trivia": "tsx scripts/simulate-trivia.ts",
+    "simulate:bluff": "tsx scripts/simulate-bluff.ts"
+  },
+  "dependencies": {
+    "@discord/embedded-app-sdk": "^2.4.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261013.1",
+    "jsdom": "^30.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.5",
+    "vitest": "^4.1.2",
+    "wrangler": "^4.78.0"
+  }
+}
