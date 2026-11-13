@@ -48,7 +48,7 @@ body {
   background-color: #07080a;
   background-image:
     radial-gradient(ellipse 80% 50% at 12% 0%, rgba(23, 195, 178, 0.18), transparent 55%),
-    url("../assets/backgroundglitter.png");
+    url("../assets/backgroundglitter.webp");
   background-size: cover, cover;
   background-blend-mode: darken;
   font-family: var(--font-sans);
@@ -72,34 +72,40 @@ a:hover {
   color: var(--color-primary-light);
 }
 
-/* --- Product nav --- */
+/* --- Product nav ---
+ * One slim bar. Phones (< 720px): wordmark + Menu button, links in a drop-down panel.
+ * Wider: wordmark, Tools / Casinos / Extension, and the sign-in (or account) action.
+ */
 .site-nav {
   position: sticky;
   top: 0;
   z-index: 40;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem 1.25rem;
-  padding: 0.75rem 1.25rem;
-  min-height: 56px;
-  background: rgba(10, 12, 16, 0.88);
+  gap: 1rem;
+  padding: 0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
+  height: 56px;
+  background: rgba(10, 12, 16, 0.92);
   border-bottom: 1px solid rgba(23, 195, 178, 0.12);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .site-nav__brand {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
+  flex: none;
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .site-nav__brand:hover {
@@ -107,25 +113,84 @@ a:hover {
   opacity: 0.9;
 }
 
-.site-nav__mark {
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 1px solid rgba(23, 195, 178, 0.35);
-  background: rgba(23, 195, 178, 0.08);
+.site-nav__logo {
+  flex: none;
   color: var(--color-primary);
-  font-size: 0.65rem;
-  font-weight: 900;
+}
+
+.site-nav__toggle {
+  display: none;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  min-width: 44px;
+  margin-right: -0.5rem;
+  padding: 0 0.6rem;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.site-nav__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.site-nav__toggle-bars,
+.site-nav__toggle-bars::before,
+.site-nav__toggle-bars::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform var(--transition-base), opacity var(--transition-base);
+}
+
+.site-nav__toggle-bars {
+  position: relative;
+}
+
+.site-nav__toggle-bars::before,
+.site-nav__toggle-bars::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.site-nav__toggle-bars::before {
+  top: -6px;
+}
+
+.site-nav__toggle-bars::after {
+  top: 6px;
+}
+
+.site-nav.is-open .site-nav__toggle-bars {
+  background: transparent;
+}
+
+.site-nav.is-open .site-nav__toggle-bars::before {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.site-nav.is-open .site-nav__toggle-bars::after {
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 .site-nav__links {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.35rem 1.1rem;
+  gap: 0.25rem 1.25rem;
   font-size: 0.72rem;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
@@ -133,12 +198,21 @@ a:hover {
 }
 
 .site-nav__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .site-nav__links a:hover,
 .site-nav__links a[aria-current="page"] {
   color: var(--color-primary);
+}
+
+/* TimeCheck / RealityCheck: phone menu only; on wider screens they sit in the footer. */
+.site-nav__extra {
+  display: none !important;
 }
 
 .site-nav__discord {
@@ -149,11 +223,86 @@ a:hover {
 
 .site-nav__discord svg {
   display: block;
+  flex: none;
 }
 
 .site-nav__discord span {
   margin-left: 0.4rem;
   line-height: 1;
+}
+
+@media (min-width: 720px) {
+  .site-nav__links .site-nav__discord {
+    padding: 0 0.85rem;
+    min-height: 36px;
+    border: 1px solid rgba(23, 195, 178, 0.45);
+    border-radius: var(--radius-pill);
+    color: var(--text-primary);
+  }
+
+  .site-nav__links .site-nav__discord.site-nav__account {
+    padding: 0;
+    border: 0;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 719px) {
+  .site-nav__toggle {
+    display: inline-flex;
+  }
+
+  .site-nav__links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-height: calc(100vh - 56px);
+    max-height: calc(100dvh - 56px);
+    overflow-y: auto;
+    padding: 0.25rem max(1rem, env(safe-area-inset-left)) 1rem;
+    /* Solid on purpose: a translucent panel under the bar's backdrop-filter lets the page show through. */
+    background: #0a0c10;
+    border-bottom: 1px solid rgba(23, 195, 178, 0.18);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    font-size: 0.85rem;
+  }
+
+  .site-nav__links a {
+    min-height: 48px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+
+  .site-nav__links a:last-child {
+    border-bottom: 0;
+  }
+
+  .site-nav__extra {
+    display: inline-flex !important;
+  }
+
+  .site-nav__links .site-nav__discord {
+    margin-top: 0.5rem;
+    justify-content: center;
+    border: 1px solid rgba(23, 195, 178, 0.45);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+  }
+
+  .site-nav__links .site-nav__discord.site-nav__account {
+    justify-content: flex-start;
+    border: 0;
+    max-width: none;
+  }
+
+  /* Closed by default once JS is running; without JS the links just show as a list. */
+  html.js .site-nav:not(.is-open) .site-nav__links {
+    display: none;
+  }
 }
 
 /* BETA stamp next to the wordmark (same stamp as CollectClock, TiltCheck colors) */
@@ -304,11 +453,6 @@ html:not(.tc-signed-in) [data-tc-signed-in] {
   display: none;
 }
 
-@media (max-width: 640px) {
-  .site-nav__account {
-    max-width: 9rem;
-  }
-}
 
 .nudge-honesty {
   margin: 0 auto 2.5rem;
@@ -858,7 +1002,7 @@ td {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.75rem 1.25rem;
+  gap: 0 1.25rem;
   margin: 0.85rem 0 0.5rem;
   font-size: 0.68rem;
   letter-spacing: 0.1em;
@@ -866,7 +1010,19 @@ td {
 }
 
 .site-footer__links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .site-footer__links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 0.75rem;
+  }
 }
 
 .site-footer__links a:hover {
@@ -1541,10 +1697,6 @@ td {
 }
 
 @media (max-width: 640px) {
-  .site-nav {
-    padding: 0.7rem 1rem;
-  }
-
   .hero-actions {
     flex-direction: column;
     align-items: stretch;
@@ -1586,7 +1738,7 @@ td {
   flex-direction: column;
   gap: 0.08em;
   margin: 1.1rem 0 0;
-  max-width: 12ch;
+  max-width: 14ch;
   font-family: var(--font-display);
   font-weight: 900;
   line-height: 0.98;
@@ -1595,13 +1747,13 @@ td {
 }
 
 .landing-hero__title-q {
-  font-size: clamp(2.4rem, 6.5vw, 5.4rem);
+  font-size: clamp(1.85rem, 1.1rem + 4vw, 5.4rem);
   color: #f6fbff;
   text-shadow: 0 2px 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.55);
 }
 
 .landing-hero__title-a {
-  font-size: clamp(3.1rem, 8.4vw, 6.8rem);
+  font-size: clamp(2.5rem, 1.3rem + 6vw, 6.8rem);
   color: #17c3b2;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 42px rgba(23, 195, 178, 0.35);
 }
@@ -1816,6 +1968,158 @@ td {
   }
   .landing-moves__list {
     grid-template-columns: 1fr;
+  }
+}
+
+/* --- Homepage: hero, what it does, how to get it --- */
+.home {
+  gap: clamp(2.75rem, 7vw, 5rem);
+}
+
+.home-hero,
+.home-section {
+  width: min(100% - 2rem, 62rem);
+  margin: 0 auto;
+}
+
+.home-hero {
+  padding-top: clamp(1.5rem, 6vw, 4.5rem);
+}
+
+.home-hero .landing-hero__title {
+  margin-top: 0;
+  max-width: none;
+}
+
+.home-hero__lede {
+  margin: 0.85rem 0 0;
+  max-width: 34rem;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
+  line-height: 1.6;
+  color: #d7e0d8;
+}
+
+.home-hero__cta {
+  margin-top: 1.5rem;
+  min-height: 48px;
+  padding-inline: 2rem;
+}
+
+.home-section__title {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.2rem + 1.6vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #f4f7f2;
+}
+
+.home-does,
+.home-get {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.home-does {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+.home-does__item,
+.home-get__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.1rem 1.15rem 0.6rem;
+  background: rgba(13, 16, 23, 0.72);
+  border: 1px solid var(--border-subtle);
+  border-top: 2px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.home-get__row {
+  padding-bottom: 1.1rem;
+}
+
+.home-does__title,
+.home-get__where {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #f4f7f2;
+}
+
+.home-does__body,
+.home-get__body {
+  margin: 0;
+  color: #c5d0c8;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  flex-grow: 1;
+}
+
+.home-does__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  margin: 0;
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-link::after {
+  content: "\2192";
+  margin-left: 0.4em;
+}
+
+.home-get__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.35rem;
+}
+
+.home-get__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.home-fine {
+  margin: 1.25rem 0 0;
+  color: #8fa197;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 720px) {
+  .home-get {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .home-hero__cta {
+    width: 100%;
+  }
+
+  .home-get__actions .btn {
+    width: 100%;
   }
 }
 

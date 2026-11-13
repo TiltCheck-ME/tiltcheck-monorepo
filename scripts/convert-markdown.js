@@ -30,26 +30,21 @@ import {
   SOLSCAN_TIP_URL,
   SITE_H1_LINES,
   SITE_DOPAMINE,
-  SITE_KICKER,
   SITE_LEDE,
+  HOME_CTA,
+  HOME_DOES,
+  HOME_GET,
+  HOME_FINE_PRINT,
   SITE_ONE_LINER,
   SITE_META_DESCRIPTION,
   CTA_READY,
   CTA_LABEL,
   CTA_GATED_LABEL,
   CTA_GATED_HINT,
-  SECONDARY_CTAS,
-  TERTIARY_LINK,
-  INSTALL_EYEBROW,
-  INSTALL_TITLE,
-  INSTALL_MOVES,
-  INSTALL_NOTE,
   AUTOVAULT_PAGE,
-  LAUNCH_HONESTY,
   EXTENSION_SIGNALS,
   GRADING_STEPS,
   TOOL_REGISTRY,
-  CORE_BRAKES,
   RTP_SCANNER_PAGE,
   VERIFY_PAGE,
   HOUSE_EDGE_PAGE,
@@ -212,25 +207,22 @@ function dirHref(depth, folder) {
 }
 
 function navHtml(depth, current) {
-  const homeHref = href(depth, 'index.html');
-  const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
-  const extensionCurrent = current === 'extension' ? ' aria-current="page"' : '';
-  const toolsCurrent = current === 'tools' ? ' aria-current="page"' : '';
-  const casinosCurrent = current === 'casinos' ? ' aria-current="page"' : '';
-  const cooldownCurrent = current === 'cooldown' ? ' aria-current="page"' : '';
-  const tipCurrent = current === 'tip' ? ' aria-current="page"' : '';
+  const cur = (key) => (current === key ? ' aria-current="page"' : '');
+  const logoSvg = `<svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)"/><path d="m9 12 2 2 4-4"/></svg>`;
 
-  const shieldLogoSvg = `<svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>`;
-
+  // One bar: wordmark, 3 primary links, one sign-in/account action.
+  // Phones: wordmark + Menu button; the links drop down in a panel.
+  // TimeCheck and RealityCheck live in the menu on phones and in the footer everywhere.
   return `<nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="${homeHref}"${homeCurrent}>${shieldLogoSvg}TiltCheck<span class="site-nav__beta">Beta</span></a>
-  <div class="site-nav__links">
-    <a href="${dirHref(depth, 'gate')}"${current === 'gate' ? ' aria-current="page"' : ''} style="color:#17c3b2; font-weight:700;">TimeCheck</a>
-    <a href="${href(depth, 'extension.html')}"${extensionCurrent}>Extension</a>
-    <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
-    <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
-    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
-    <a class="site-nav__discord" data-tc-nav-auth data-account-href="${dirHref(depth, 'dashboard')}" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
+  <a class="site-nav__brand" href="${href(depth, 'index.html')}"${cur('home')}>${logoSvg}TiltCheck<span class="site-nav__beta">Beta</span></a>
+  <button type="button" class="site-nav__toggle" aria-expanded="false" aria-controls="site-nav-menu" data-tc-menu-toggle><span class="site-nav__toggle-bars" aria-hidden="true"></span><span class="site-nav__toggle-label">Menu</span></button>
+  <div class="site-nav__links" id="site-nav-menu">
+    <a href="${dirHref(depth, 'tools')}"${cur('tools')}>Tools</a>
+    <a href="${dirHref(depth, 'casinos')}"${cur('casinos')}>Casinos</a>
+    <a href="${href(depth, 'extension.html')}"${cur('extension')}>Extension</a>
+    <a class="site-nav__extra" href="${dirHref(depth, 'gate')}"${cur('gate')}>TimeCheck</a>
+    <a class="site-nav__extra" href="${dirHref(depth, 'cooldown')}"${cur('cooldown')}>RealityCheck</a>
+    <a class="site-nav__discord" data-tc-nav-auth data-account-href="${dirHref(depth, 'dashboard')}" href="${dirHref(depth, 'login')}"${cur('login')} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
   </div>
 </nav>`;
 }
@@ -238,20 +230,21 @@ function navHtml(depth, current) {
 function footerHtml(depth) {
   return `<footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
-    <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
-      <a href="${dirHref(depth, 'tools')}">All Tools</a>
+      <a href="${dirHref(depth, 'tools')}">All tools</a>
       <a href="${dirHref(depth, 'gate')}">TimeCheck</a>
       <a href="${dirHref(depth, 'cooldown')}">RealityCheck</a>
+      <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
+      <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
       <a href="${dirHref(depth, 'rtp-scanner')}">RTP Scanner</a>
       <a href="${dirHref(depth, 'house-edge-scanner')}">House Edge Scanner</a>
-      <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
       <a href="${dirHref(depth, 'wincheck')}">Win Skim</a>
-      <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
-      <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
+      <a href="${href(depth, 'extension.html')}">Extension</a>
+      <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord server</a>
       <a href="${dirHref(depth, 'login')}" data-tc-footer-auth data-signed-in-href="${dirHref(depth, 'dashboard')}" data-signed-in-text="Your dashboard">Discord Sign In</a>
-      <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord Server</a>
-      <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
+      <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
+      <a href="${KOFI_URL}" target="_blank" rel="noopener noreferrer">Tip on Ko-fi</a>
+      <a href="${dirHref(depth, 'privacy')}">Privacy</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
@@ -302,6 +295,7 @@ const STAFF_DISCORD_IDS = ['1153034319271559328'];
 // Runs in <head> so signed-in pages don't flash the signed-out header first.
 const AUTH_HEAD_SCRIPT = `<script>
 (function () {
+  document.documentElement.classList.add('js');
   try {
     var exp = Number(localStorage.getItem('tc_token_exp') || 0);
     if (exp && exp < Date.now()) {
@@ -424,6 +418,31 @@ const AUTH_NAV_SCRIPT = `<script>
 })();
 </script>`;
 
+// Phone menu: one button opens/closes the nav panel. Closes on Escape, on a link tap,
+// on a tap outside, and when the window grows past the phone breakpoint.
+const NAV_MENU_SCRIPT = `<script>
+(function () {
+  var btn = document.querySelector('[data-tc-menu-toggle]');
+  var nav = btn && btn.closest('.site-nav');
+  if (!btn || !nav) return;
+  function set(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function () { set(!nav.classList.contains('is-open')); });
+  nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.site-nav__links a')) set(false); });
+  document.addEventListener('click', function (e) { if (nav.classList.contains('is-open') && !nav.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+  });
+  if (window.matchMedia) {
+    var wide = window.matchMedia('(min-width: 720px)');
+    var onWide = function () { if (wide.matches) set(false); };
+    if (wide.addEventListener) wide.addEventListener('change', onWide); else if (wide.addListener) wide.addListener(onWide);
+  }
+})();
+</script>`;
+
 function shell({ title, description, depth, current, body, extraHead = '' }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -449,6 +468,7 @@ ${navHtml(depth, current)}
 ${body}
 ${footerHtml(depth)}
 ${AUTH_NAV_SCRIPT}
+${NAV_MENU_SCRIPT}
 ${body.includes('data-staff-only') ? STAFF_REVEAL_SCRIPT : ''}
 </body>
 </html>`;
@@ -518,96 +538,49 @@ function zipCtaHtml() {
   return `<span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
 }
 
-function secondaryCtaHtml() {
-  return SECONDARY_CTAS.map(
-    (cta) =>
-      `<a class="${cta.primary ? 'btn btn-primary' : 'btn btn-secondary'}" href="${escapeHtml(cta.href)}">${escapeHtml(cta.label)}</a>`,
-  ).join('\n        ');
+function homeLinkHtml(link, cls) {
+  const target = link.href === 'DISCORD' ? DISCORD_INVITE_URL : link.href;
+  const ext = link.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+  return `<a class="${cls}" href="${escapeHtml(target)}"${ext}>${escapeHtml(link.label)}</a>`;
 }
 
 function buildRootLanding() {
-  const moves = INSTALL_MOVES.map(
-    (move, index) => `<li class="landing-move">
-  <span class="landing-move__num">${String(index + 1).padStart(2, '0')}</span>
-  <h3 class="landing-move__title">${escapeHtml(move.title)}</h3>
-  <p>${escapeHtml(move.body)}</p>
+  const does = HOME_DOES.map(
+    (item) => `<li class="home-does__item">
+  <h3 class="home-does__title">${escapeHtml(item.title)}</h3>
+  <p class="home-does__body">${escapeHtml(item.body)}</p>
+  <p class="home-does__links">${item.links.map((l) => homeLinkHtml(l, 'home-link')).join('')}</p>
 </li>`,
   ).join('\n');
-  const honesty = LAUNCH_HONESTY.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
-  const brakes = CORE_BRAKES.map(
-    (b) => `<li class="landing-brake">
-  <span class="landing-brake__num">${escapeHtml(b.num)}</span>
-  <h3 class="landing-brake__title">${escapeHtml(b.title)}</h3>
-  <p class="landing-brake__body">${escapeHtml(b.body)}</p>
-  <span class="landing-brake__status">${escapeHtml(b.status)}</span>
+  const get = HOME_GET.map(
+    (row) => `<li class="home-get__row">
+  <h3 class="home-get__where">${escapeHtml(row.where)}</h3>
+  <p class="home-get__body">${escapeHtml(row.body)}</p>
+  ${row.note ? `<p class="home-get__note">${escapeHtml(row.note)}</p>` : ''}
+  <div class="home-get__actions">
+    ${row.cta === 'zip' ? zipCtaHtml() : ''}
+    ${homeLinkHtml(row.link, 'home-link')}
+  </div>
 </li>`,
   ).join('\n');
 
-  const content = `<main class="landing-page">
-  <section class="landing-hero" aria-label="TiltCheck">
-    <div class="landing-hero__copy">
-      <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
-      <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
-      <p class="landing-hero__kicker">${escapeHtml(SITE_KICKER)}</p>
-      <p class="landing-hero__lede">${escapeHtml(SITE_LEDE)}</p>
-      <div class="hero-actions landing-hero__actions">
-        ${zipCtaHtml()}
-        ${secondaryCtaHtml()}
-      </div>
-      <a class="hero-actions__secondary-link" href="${escapeHtml(TERTIARY_LINK.href)}">${escapeHtml(TERTIARY_LINK.label)}</a>
-    </div>
+  const content = `<main class="landing-page home">
+  <section class="home-hero" aria-label="TiltCheck">
+    <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
+    <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
+    <p class="home-hero__lede">${escapeHtml(SITE_LEDE)}</p>
+    <a class="btn btn-primary home-hero__cta" href="${escapeHtml(HOME_CTA.href)}">${escapeHtml(HOME_CTA.label)}</a>
   </section>
-  <section class="landing-moves" id="install" aria-label="How it works">
-    <p class="landing-moves__eyebrow">${escapeHtml(INSTALL_EYEBROW)}</p>
-    <h2 class="landing-moves__title">${escapeHtml(INSTALL_TITLE)}</h2>
-    <ol class="landing-moves__list">${moves}</ol>
+  <section class="home-section" aria-labelledby="home-does-title">
+    <h2 class="home-section__title" id="home-does-title">What it does</h2>
+    <ul class="home-does">${does}</ul>
   </section>
-  <section class="landing-brakes" aria-label="What the extension does">
-    <p class="landing-brakes__eyebrow">ON THE CASINO TAB</p>
-    <h2 class="landing-brakes__title">THE ANNOYING STUFF. ON PURPOSE.</h2>
-    <ul class="landing-brakes__list">${brakes}</ul>
-    <div class="landing-calc">
-      <div class="landing-calc__inputs">
-        <div class="landing-calc__slider-row">
-          <label class="landing-calc__label" for="wageSlider">Your Hourly Day-Job Wage: <strong id="wageVal">$25/hr</strong></label>
-          <input type="range" id="wageSlider" class="landing-calc__slider" min="15" max="150" value="25" step="5" oninput="updateLandingWage()"/>
-        </div>
-        <div class="landing-calc__slider-row">
-          <label class="landing-calc__label" for="lossSlider">Simulated Session Loss: <strong id="lossVal" style="color:#e63946;">-$300</strong></label>
-          <input type="range" id="lossSlider" class="landing-calc__slider" min="50" max="2500" value="300" step="50" oninput="updateLandingWage()"/>
-        </div>
-      </div>
-      <div class="landing-calc__banner">
-        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK</span>
-        <p class="landing-calc__banner-lead">Session Down: <span id="calcLossText">-$300.00</span> (<span id="calcHoursText" style="color:#f4a261;">12.0 hours</span> of labor torched)</p>
-        <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
-      </div>
-    </div>
+  <section class="home-section" id="get" aria-labelledby="home-get-title">
+    <h2 class="home-section__title" id="home-get-title">How to get it</h2>
+    <ul class="home-get">${get}</ul>
+    <p class="home-fine">${escapeHtml(HOME_FINE_PRINT)}</p>
   </section>
-  <section class="landing-tape" aria-label="Honesty">
-    <p class="landing-tape__label">THE FINE PRINT</p>
-    <ul class="landing-tape__list">${honesty}</ul>
-  </section>
-</main>
-<script>
-function updateLandingWage() {
-  var w = parseFloat(document.getElementById('wageSlider').value);
-  var l = parseFloat(document.getElementById('lossSlider').value);
-  document.getElementById('wageVal').textContent = '$' + w + '/hr';
-  document.getElementById('lossVal').textContent = '-$' + l;
-  var hrs = (l / w).toFixed(1);
-  document.getElementById('calcLossText').textContent = '-$' + l.toFixed(2);
-  document.getElementById('calcHoursText').textContent = hrs + ' hours';
-  var desc = document.getElementById('calcDescText');
-  if (hrs >= 16) {
-    desc.textContent = 'That is two full 40-hour work weeks wiped out in one session. Walk away right now.';
-  } else if (hrs >= 8) {
-    desc.textContent = 'That is an entire 8-hour shift gone. You spent all day working for the house. Close the tab.';
-  } else {
-    desc.textContent = 'That is ' + hrs + ' hours of your hard labor torched. Respect your time and slow down.';
-  }
-}
-</script>`;
+</main>`;
 
   return shell({
     title: 'TiltCheck | House always wins? Not today.',
@@ -2691,6 +2664,11 @@ function run() {
   if (fs.existsSync(glitterSrc)) {
     fs.copyFileSync(glitterSrc, path.join(assetsDir, 'backgroundglitter.png'));
   }
+  // base.css uses the WebP copy (about 65 KB instead of 2.6 MB) so phones skip the big PNG.
+  fs.copyFileSync(
+    path.join(__dirname, 'pages-assets/assets/backgroundglitter.webp'),
+    path.join(assetsDir, 'backgroundglitter.webp'),
+  );
 
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
   fs.writeFileSync(path.join(siteRoot, 'CNAME'), 'tiltcheck.me\n');
