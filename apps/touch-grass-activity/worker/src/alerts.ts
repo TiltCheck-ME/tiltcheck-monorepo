@@ -4,8 +4,8 @@
 // already sees every room's anonymous report.
 //
 // - Dormant unless ALERT_WEBHOOK_URL (secret) and ALERT_GUILD_ID (var) are both set.
-// - Posts when a DA&D table has someone seated and no game going, or someone is on the Trivia
-//   screen with no game running. Only rooms whose guild is ALERT_GUILD_ID count.
+// - Posts when a DA&D or Bluff table has someone seated and no game going, or someone is on the
+//   Trivia screen with no game running. Only rooms whose guild is ALERT_GUILD_ID count.
 // - Waits SETTLE_MS first: a room that empties inside that window never alerts.
 // - At most one post per game per THROTTLE_MS.
 // - When the game starts or the table empties, the alert is edited ("game on" / "closed") so a
@@ -19,9 +19,10 @@ export const THROTTLE_MS = 10 * 60_000;
 /** While an alert is open, re-check this often so rooms that vanish by TTL still close it. */
 export const OPEN_RECHECK_MS = 60_000;
 
-export type AlertGame = 'dad' | 'trivia';
-const GAMES: AlertGame[] = ['dad', 'trivia'];
+export type AlertGame = 'dad' | 'trivia' | 'bluff';
+const GAMES: AlertGame[] = ['dad', 'trivia', 'bluff'];
 const DAD_RUNNING = new Set(['submitting', 'judging', 'reveal']);
+const BLUFF_RUNNING = new Set(['writing', 'guessing', 'reveal']);
 const TRIVIA_RUNNING = new Set(['question', 'reveal']);
 
 export const ALERT_COPY: Record<AlertGame, { open: string; on: string; closed: string }> = {
@@ -34,6 +35,11 @@ export const ALERT_COPY: Record<AlertGame, { open: string; on: string; closed: s
     open: "🧠 Someone's waiting on Trivia. Ten questions, no host, no excuses: start the Tilt Check activity in voice.",
     on: '🧠 Trivia: game on. Late arrivals get in at the next question.',
     closed: '🧠 Trivia: lobby closed. Nobody waited around.',
+  },
+  bluff: {
+    open: "🎭 Someone's at the Bluff table. Two truths, one lie, zero shame: start the Tilt Check activity in voice.",
+    on: '🎭 Bluff: game on. Catch the next one.',
+    closed: '🎭 Bluff: table closed. Nobody stuck around to lie.',
   },
 };
 
@@ -49,7 +55,12 @@ export type AlertState = Record<AlertGame, AlertGameState>;
 
 export function emptyAlertState(): AlertState {
   const g = (): AlertGameState => ({ since: null, lastPostAt: null, messageId: null, status: 'none' });
-  return { dad: g(), trivia: g() };
+  return { dad: g(), trivia: g(), bluff: g() };
+}
+
+/** Stored state from before a game existed gets an empty slot for it. */
+export function upgradeAlertState(saved: Partial<AlertState> | undefined): AlertState {
+  return { ...emptyAlertState(), ...(saved ?? {}) };
 }
 
 export interface AlertConfig {
@@ -75,6 +86,11 @@ export function gameStatus(entries: Iterable<LiveEntry>, guildId: string, game: 
       const d = e.games.dad;
       if (d.count > 0 && DAD_RUNNING.has(d.phase)) running = true;
       else if (d.count > 0) waiting = true;
+    } else if (game === 'bluff') {
+      const b = e.games.bluff;
+      if (!b) continue;
+      if (b.count > 0 && BLUFF_RUNNING.has(b.phase)) running = true;
+      else if (b.count > 0) waiting = true;
     } else {
       const t = e.games.trivia;
       if (TRIVIA_RUNNING.has(t.phase) && t.count > 0) running = true;

@@ -1,7 +1,7 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 // Table alerts with a mocked fetch only. Nothing here talks to Discord.
 import { describe, expect, it } from 'vitest';
-import { ALERT_COPY, OPEN_RECHECK_MS, SETTLE_MS, THROTTLE_MS, alertsEnabled, emptyAlertState, evaluateAlerts, type AlertConfig } from '../worker/src/alerts.js';
+import { ALERT_COPY, OPEN_RECHECK_MS, SETTLE_MS, THROTTLE_MS, alertsEnabled, emptyAlertState, evaluateAlerts, upgradeAlertState, type AlertConfig } from '../worker/src/alerts.js';
 import { LiveRegistry } from '../worker/src/registry-do.js';
 import type { LiveEntry, LiveReport } from '../src/shared/live.js';
 import { reportFor } from '../src/shared/live.js';
@@ -30,7 +30,7 @@ function mockFetch() {
 }
 
 function entry(instanceId: string, guildId: string | null, dad: { phase: string; count: number }, trivia: { phase: string; count: number; waiting?: number } = { phase: 'idle', count: 0 }, members = 1): LiveEntry {
-  return { instanceId, guildId, members, at: 0, games: { dad: { ...dad, joinable: true }, trivia: { ...trivia, joinable: false } } };
+  return { instanceId, guildId, members, at: 0, games: { dad: { ...dad, joinable: true }, trivia: { ...trivia, joinable: false }, bluff: { phase: 'seating', count: 0, joinable: false } } };
 }
 
 const seated = (g: string | null = GUILD) => entry('i-1', g, { phase: 'seating', count: 1 });
@@ -205,7 +205,7 @@ function fakeCtx() {
 const report = (r: LiveReport) => new Request('https://live.internal/report', { method: 'POST', body: JSON.stringify(r) });
 
 describe('LiveRegistry alerts', () => {
-  const r: LiveReport = { instanceId: 'i-1', guildId: GUILD, members: 1, games: { dad: { phase: 'seating', count: 1, joinable: true }, trivia: { phase: 'idle', count: 0, joinable: false, waiting: 0 } } };
+  const r: LiveReport = { instanceId: 'i-1', guildId: GUILD, members: 1, games: { dad: { phase: 'seating', count: 1, joinable: true }, trivia: { phase: 'idle', count: 0, joinable: false, waiting: 0 }, bluff: { phase: 'seating', count: 0, joinable: false } } };
 
   it('secret unset: reports never arm an alarm and never fetch', async () => {
     const { calls, f } = mockFetch();
@@ -228,5 +228,43 @@ describe('LiveRegistry alerts', () => {
     await reg.alarm(); // starts the settle clock, sleeps ~20 s
     expect(calls).toHaveLength(0);
     expect(alarmAt()! - Date.now()).toBeGreaterThan(SETTLE_MS - 2000);
+  });
+
+});
+
+describe('table alerts: Bluff', () => {
+  const bluffEntry = (phase: string, count: number, g: string | null = GUILD): LiveEntry => ({ ...entry('i-b', g, { phase: 'seating', count: 0 }), games: { ...entry('i-b', g, { phase: 'seating', count: 0 }).games, bluff: { phase, count, joinable: true } } });
+
+  it('someone seated at Bluff with no game posts once settled, throttled on its own; game start edits to game on', async () => {
+    const { calls, f } = mockFetch();
+    const cfg: AlertConfig = { webhookUrl: HOOK, guildId: GUILD, fetch: f };
+    const st = emptyAlertState();
+    await evaluateAlerts([bluffEntry('seating', 1)], st, 0, cfg);
+    expect(calls).toHaveLength(0);
+    await evaluateAlerts([bluffEntry('seating', 1)], st, SETTLE_MS, cfg);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.body.content).toBe(ALERT_COPY.bluff.open);
+    expect(calls[0]!.body.allowed_mentions.parse).toEqual([]);
+    expect(st.dad.status).toBe('none');
+    await evaluateAlerts([bluffEntry('writing', 3)], st, SETTLE_MS + 1, cfg);
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toMatchObject({ method: 'PATCH', body: { content: ALERT_COPY.bluff.on } });
+    // Back to waiting inside the throttle: no new post.
+    await evaluateAlerts([bluffEntry('over', 3)], st, SETTLE_MS + 2, cfg);
+    await evaluateAlerts([bluffEntry('over', 3)], st, 2 * SETTLE_MS + 3, cfg);
+    expect(calls).toHaveLength(2);
+    await evaluateAlerts([bluffEntry('over', 3)], st, SETTLE_MS + THROTTLE_MS, cfg);
+    expect(calls).toHaveLength(3);
+    expect(ALERT_COPY.bluff.open).not.toMatch(/@|\$|\btips?\b|prize|wallet|casino/i);
+  });
+
+  it('other guilds and stored pre-Bluff alert state are handled', async () => {
+    const { calls, f } = mockFetch();
+    const cfg: AlertConfig = { webhookUrl: HOOK, guildId: GUILD, fetch: f };
+    const legacy = upgradeAlertState({ dad: emptyAlertState().dad, trivia: emptyAlertState().trivia });
+    expect(legacy.bluff).toEqual({ since: null, lastPostAt: null, messageId: null, status: 'none' });
+    await evaluateAlerts([bluffEntry('seating', 2, OTHER)], legacy, 0, cfg);
+    await evaluateAlerts([bluffEntry('seating', 2, OTHER)], legacy, SETTLE_MS, cfg);
+    expect(calls).toHaveLength(0);
   });
 });

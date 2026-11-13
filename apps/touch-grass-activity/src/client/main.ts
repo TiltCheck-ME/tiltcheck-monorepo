@@ -9,12 +9,13 @@ import { LocalTransport, RemoteTransport, type LinkStatus, type Transport } from
 import { mergePeople, renderLobby } from './views/lobby.js';
 import { renderDad } from './views/dad.js';
 import { renderTrivia, secondsLeft } from './views/trivia.js';
+import { bluffSecondsLeft, emptyDraft, renderBluff, type BluffDraft } from './views/bluff.js';
 import { DEFAULT_TARGET } from '../shared/dad.js';
 import type { ClientAction, RoomView } from '../shared/protocol.js';
 import { esc } from './views/util.js';
 import type { ScoresResult, ScoresTab } from './views/highScores.js';
 
-type Screen = 'lobby' | 'dad' | 'trivia';
+type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff';
 
 const app = document.getElementById('app') as HTMLElement;
 
@@ -32,6 +33,10 @@ const ui = {
   scoresTab: 'week' as ScoresTab,
   scoresAt: 0,
   scoresPostedGame: 0,
+  bluffDraft: emptyDraft() as BluffDraft,
+  /** game:round the draft belongs to; a new turn starts a clean draft. */
+  bluffDraftKey: '',
+  lastBluffGame: 0,
 };
 
 const SCORES_STALE_MS = 20_000;
@@ -84,16 +89,41 @@ function render(): void {
   if (!v) main = `<section class="panel"><p class="muted">${esc(COPY.connecting)}</p></section>`;
   else if (ui.screen === 'dad') main = renderDad(v, ui.target);
   else if (ui.screen === 'trivia') main = renderTrivia(v, ui.clockOffset, ui.scores, ui.scoresTab);
+  else if (ui.screen === 'bluff') main = renderBluff(v, ui.bluffDraft, ui.clockOffset);
   else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab);
+  // Re-rendering replaces the inputs: keep focus and the caret on the statement being typed.
+  const active = document.activeElement as HTMLInputElement | null;
+  const focusDraft = active?.dataset?.draft;
+  const caret = focusDraft !== undefined ? [active?.selectionStart ?? null, active?.selectionEnd ?? null] : null;
   app.innerHTML = `${statusBar()}<main class="screen screen--${ui.screen}">${main}</main>${
     ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
   }`;
+  if (focusDraft !== undefined) {
+    const el = app.querySelector<HTMLInputElement>(`[data-draft="${focusDraft}"]`);
+    if (el) {
+      el.focus();
+      if (caret && typeof caret[0] === 'number') el.setSelectionRange(caret[0], caret[1] ?? caret[0]);
+    }
+  }
+}
+
+/** Enable "Lock it in" without a full re-render while the teller types. */
+function syncTellButton(): void {
+  const btn = app.querySelector<HTMLButtonElement>('[data-act="bluff.tell"]');
+  if (btn) btn.disabled = !(ui.bluffDraft.lie !== null && ui.bluffDraft.statements.every((x) => x.trim().length > 0));
 }
 
 /** Only the trivia countdown digits change every tick; avoid re-rendering the whole screen. */
 function tickClock(): void {
   const v = ui.view;
-  if (!v || ui.screen !== 'trivia' || v.trivia.phase !== 'question') return;
+  if (!v) return;
+  if (ui.screen === 'bluff') {
+    const left = bluffSecondsLeft(v, ui.clockOffset);
+    const el = app.querySelector('[data-bluff-clock]');
+    if (el && left !== null) el.textContent = String(left);
+    return;
+  }
+  if (ui.screen !== 'trivia' || v.trivia.phase !== 'question') return;
   const el = app.querySelector('[data-trivia-clock]');
   if (el) el.textContent = String(secondsLeft(v.trivia.endsAt, ui.clockOffset));
 }
@@ -115,6 +145,20 @@ function onState(view: RoomView): void {
       send({ t: 'look', at: 'trivia' });
     }
     ui.lastTriviaGame = view.trivia.game;
+  }
+  // A Bluff game started by anyone pulls the seated players to the table.
+  if (view.bluff.game !== ui.lastBluffGame && view.bluff.phase === 'writing') {
+    if (view.bluff.me.seated && ui.screen !== 'bluff') {
+      ui.screen = 'bluff';
+      send({ t: 'look', at: 'bluff' });
+    }
+    ui.lastBluffGame = view.bluff.game;
+  }
+  // New turn as teller: start from a clean draft.
+  const key = view.bluff.phase === 'writing' ? `${view.bluff.game}:${view.bluff.round}` : '';
+  if (key && key !== ui.bluffDraftKey) {
+    ui.bluffDraftKey = key;
+    ui.bluffDraft = emptyDraft();
   }
   // A finished game just landed on the board: pull the fresh board.
   if (view.trivia.highScores === 'posted' && view.trivia.game !== ui.scoresPostedGame) {
@@ -152,8 +196,27 @@ app.addEventListener('click', (ev) => {
   if (d.card) return send({ t: 'dad.submit', cardId: d.card });
   if (d.entry) return send({ t: 'dad.pick', entryId: d.entry });
   if (d.qid && d.choice !== undefined) return send({ t: 'trivia.answer', qid: d.qid, choice: Number(d.choice) });
+  if (d.rid !== undefined && d.pick !== undefined) return send({ t: 'bluff.guess', rid: d.rid, pick: Number(d.pick) });
+  if (d.lie !== undefined) {
+    ui.bluffDraft.lie = Number(d.lie);
+    render();
+    return;
+  }
+  if (d.act === 'bluff.tell') {
+    const { statements, lie } = ui.bluffDraft;
+    if (lie === null) return;
+    return send({ t: 'bluff.tell', statements: [...statements] as [string, string, string], lie });
+  }
   if (d.act === 'dad.start') return send({ t: 'dad.start', target: ui.target });
   if (d.act) return send({ t: d.act } as ClientAction);
+});
+
+app.addEventListener('input', (ev) => {
+  const el = ev.target as HTMLInputElement;
+  const i = el.dataset?.draft;
+  if (i === undefined) return;
+  ui.bluffDraft.statements[Number(i) as 0 | 1 | 2] = el.value;
+  syncTellButton();
 });
 
 app.addEventListener('change', (ev) => {

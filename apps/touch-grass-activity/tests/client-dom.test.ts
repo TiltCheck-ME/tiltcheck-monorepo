@@ -1,6 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 // @vitest-environment jsdom
-// Guest-mode smoke test of the real client in jsdom: lobby -> DA&D with bots -> trivia.
+// Guest-mode smoke test of the real client in jsdom: lobby -> DA&D with bots -> trivia -> Bluff.
 import { beforeAll, describe, expect, it } from 'vitest';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -20,11 +20,13 @@ beforeAll(async () => {
 });
 
 describe('client in guest mode (no frame_id)', () => {
-  it('lobby shows the fake user and two live tiles with counts, no break tile', () => {
+  it('lobby shows the fake user and three live tiles with counts, no break tile', () => {
     expect(document.body.textContent).toContain('Guest mode');
     expect(document.querySelectorAll('.person')).toHaveLength(1);
     expect($('.person__name')?.textContent).toBe('Jme');
-    expect(document.querySelectorAll('.tile')).toHaveLength(2);
+    expect(document.querySelectorAll('.tile')).toHaveLength(3);
+    expect($('.tile--bluff .tile__name')?.textContent).toBe('Bluff');
+    expect($('[data-count=bluff]')?.textContent).toBe('0 seated');
     expect($('[data-count=dad]')?.textContent).toBe('0 seated');
     expect($('[data-count=trivia]')?.textContent).toBe('0 playing');
     const trivia = $<HTMLButtonElement>('.tile--trivia')!;
@@ -85,4 +87,52 @@ describe('client in guest mode (no frame_id)', () => {
     await click('[data-go=lobby]');
     expect($('[data-count=trivia]')?.textContent).toMatch(/^3 playing/);
   });
+
+  it('bluff: sit, start, write two truths and a lie (draft survives re-renders), guess, play to the final board', async () => {
+    await click('[data-go=bluff]');
+    expect($('[data-count=bluff]')).toBeNull();
+    await click('[data-act="bluff.sit"]');
+    expect(document.body.textContent).toContain('3 seated');
+    await click('[data-act="bluff.start"]');
+    let wrote = false;
+    let guessed = false;
+    let guard = 0;
+    while (!$('[data-bluff-winner]') && guard++ < 120) {
+      const inputs = document.querySelectorAll<HTMLInputElement>('[data-draft]');
+      if (inputs.length === 3) {
+        expect(inputs[0]!.maxLength).toBe(120);
+        const lines = ['I have been to Iceland.', 'I can play the banjo.', 'I once met a wizard.'];
+        for (let i = 0; i < 3; i += 1) {
+          const el = document.querySelector<HTMLInputElement>(`[data-draft="${i}"]`)!;
+          el.focus();
+          el.value = lines[i]!;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        expect($<HTMLButtonElement>('[data-act="bluff.tell"]')!.disabled).toBe(true);
+        await click('[data-lie="1"]');
+        // The click re-rendered the screen: what was typed is still there.
+        expect(document.querySelector<HTMLInputElement>('[data-draft="2"]')!.value).toBe(lines[2]);
+        expect($<HTMLButtonElement>('[data-act="bluff.tell"]')!.disabled).toBe(false);
+        await click('[data-act="bluff.tell"]');
+        expect(document.body.textContent).toContain('THE LIE');
+        expect(document.querySelectorAll('[data-pick]')).toHaveLength(0);
+        wrote = true;
+      }
+      const pick = $<HTMLButtonElement>('[data-pick]:not([disabled])');
+      if (pick) {
+        expect(document.body.textContent).not.toContain('THE LIE');
+        await click('[data-pick]:not([disabled])');
+        // Either still waiting on a bot (locked) or ours was the last guess and the reveal is up.
+        expect(document.body.textContent?.includes('Guess locked') || Boolean($('[data-picked-by]'))).toBe(true);
+        guessed = true;
+      }
+      if ($('[data-picked-by]') && $('[data-act="bluff.next"]')) await click('[data-act="bluff.next"]');
+      await sleep(500);
+    }
+    expect(wrote).toBe(true);
+    expect(guessed).toBe(true);
+    expect($('[data-bluff-winner]')).not.toBeNull();
+    expect(document.body.textContent).toContain('Final board');
+    expect($('[data-act="bluff.start"]')?.textContent).toBe('Run it back');
+  }, 120_000);
 });
