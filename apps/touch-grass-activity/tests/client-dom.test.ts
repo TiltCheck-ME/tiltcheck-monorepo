@@ -25,8 +25,8 @@ describe('client in guest mode (no frame_id)', () => {
     expect(document.querySelectorAll('.person')).toHaveLength(1);
     expect($('.person__name')?.textContent).toBe('Jme');
     expect(document.querySelectorAll('.tile')).toHaveLength(5);
-    expect($('[data-count=daily]')?.textContent).toBe('solo · 0 playing');
-    expect($('[data-count=myth]')?.textContent).toBe('solo · 0 playing');
+    expect($('[data-count=daily]')?.textContent).toBe('Solo');
+    expect($('[data-count=myth]')?.textContent).toBe('Solo');
     expect($('.tile--bluff .tile__name')?.textContent).toBe('Bluff');
     expect($('[data-count=bluff]')?.textContent).toBe('0 seated');
     expect($('[data-count=dad]')?.textContent).toBe('0 seated');
@@ -34,24 +34,44 @@ describe('client in guest mode (no frame_id)', () => {
     const trivia = $<HTMLButtonElement>('.tile--trivia')!;
     expect(trivia.disabled).toBe(false);
     expect(document.body.textContent).not.toMatch(/break|soon/i);
-    expect($('.hero .title')?.textContent).toBe('TiltCheck');
+    expect($('.lobby-head .title')?.textContent).toBe('TiltCheck');
     expect(document.body.textContent).toContain('Get distracted on purpose.');
-    expect(document.body.textContent).not.toContain('Touch Grass');
+    // Touch Grass is back only as the small eyebrow over the title.
+    expect($('.brand__eyebrow')?.textContent).toBe('Touch Grass');
+    expect(document.body.textContent?.match(/Touch Grass/g)).toHaveLength(1);
     // Guest mode: no Discord SDK, so no invite button anywhere.
     expect($('[data-invite]')).toBeNull();
   });
 
-  it('lobby shows the High scores board with This week / All time tabs (guest board starts empty)', async () => {
+  it('no High scores card in the lobby; the header Scores button opens a sheet with This week / All time tabs', async () => {
     await sleep(30);
-    const hs = $('[data-high-scores]')!;
-    expect(hs.textContent).toContain('High scores');
+    expect($('[data-high-scores]')).toBeNull();
+    expect($('.lobby-head [data-scores-open]')?.textContent).toBe('Scores');
+    await click('[data-scores-open]');
+    const hs = $('[data-scores-sheet] [data-high-scores]')!;
+    expect($('[data-scores-sheet] [role=dialog]')?.getAttribute('aria-modal')).toBe('true');
+    expect($('[data-scores-sheet] .sheet__title')?.textContent).toBe('High scores');
+    expect(document.activeElement?.hasAttribute('data-scores-close')).toBe(true);
     expect([...hs.querySelectorAll('[data-scores-tab]')].map((x) => x.textContent)).toEqual(['This week', 'All time']);
     expect($('[data-scores-tab=week]')!.getAttribute('aria-selected')).toBe('true');
-    expect(hs.textContent).toContain('Nobody on it yet');
-    expect(hs.textContent).toContain('Bragging rights only');
+    expect(hs.textContent).toContain('No scores yet');
+    expect(hs.textContent).toContain('No money, just bragging rights.');
     await click('[data-scores-tab=all]');
     expect($('[data-scores-tab=all]')!.getAttribute('aria-selected')).toBe('true');
     await click('[data-scores-tab=week]');
+    // Close: the button, Escape and the backdrop all close it; focus goes back to Scores.
+    await click('[data-scores-sheet] .btn[data-scores-close]');
+    expect($('[data-scores-sheet]')).toBeNull();
+    expect(document.activeElement?.hasAttribute('data-scores-open')).toBe(true);
+    await click('[data-scores-open]');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await sleep(20);
+    expect($('[data-scores-sheet]')).toBeNull();
+    await click('[data-scores-open]');
+    await click('.sheet__backdrop');
+    expect($('[data-scores-sheet]')).toBeNull();
+    // "Bragging rights" appears in one place only: the sheet footer.
+    expect(document.body.textContent).not.toMatch(/bragging/i);
   });
 
   it('plays DA&D against bots until someone wins', async () => {
@@ -66,14 +86,15 @@ describe('client in guest mode (no frame_id)', () => {
     await click('[data-act="dad.start"]');
     expect($('.prompt')?.textContent).toContain('_____');
     let guard = 0;
-    while (!document.body.textContent?.includes('Bragging rights only') && guard++ < 80) {
+    while (!$('[data-act="dad.reset"]') && guard++ < 80) {
       const card = $<HTMLButtonElement>('[data-card]:not([disabled])');
       if (card) await click('[data-card]:not([disabled])');
       if ($('[data-entry]')) await click('[data-entry]');
       if ($('[data-act="dad.next"]')) await click('[data-act="dad.next"]');
       await sleep(1000);
     }
-    expect(document.body.textContent).toContain('Bragging rights only');
+    expect(document.body.textContent).toMatch(/(You win|wins)\./);
+    expect(document.body.textContent).not.toMatch(/bragging/i);
     expect($('[data-act="dad.reset"]')).not.toBeNull();
   }, 90_000);
 
@@ -88,7 +109,7 @@ describe('client in guest mode (no frame_id)', () => {
     expect($('.choice--correct')).toBeNull();
     await click('[data-choice="2"]');
     expect($('.choice--mine')?.getAttribute('data-choice')).toBe('2');
-    expect(document.body.textContent).toContain('Locked in');
+    expect(document.body.textContent).toContain('Answer locked');
     expect(document.querySelectorAll('[data-choice]:not([disabled])')).toHaveLength(0);
     await click('[data-go=lobby]');
     expect($('[data-count=trivia]')?.textContent).toMatch(/^3 playing/);
@@ -139,7 +160,7 @@ describe('client in guest mode (no frame_id)', () => {
     expect(guessed).toBe(true);
     expect($('[data-bluff-winner]')).not.toBeNull();
     expect(document.body.textContent).toContain('Final board');
-    expect($('[data-act="bluff.start"]')?.textContent).toBe('Run it back');
+    expect($('[data-act="bluff.start"]')?.textContent).toBe('Play again');
   }, 120_000);
 
   it('Daily Grass: on-screen keys and the physical keyboard type a row; Enter sends it; colors come back', async () => {

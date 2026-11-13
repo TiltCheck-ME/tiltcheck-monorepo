@@ -252,7 +252,7 @@ const BOT_LINES: ReadonlyArray<readonly [string, string, string]> = [
   ['I hate pizza.', 'I broke my wrist falling off a couch.', 'I can whistle with two fingers.'],
 ];
 
-const BOT_NAMES = ['Bot Chad', 'Bot Becky', 'Bot Tilted Tim', 'Bot Copium Carl', 'Bot Variance Val', 'Bot Max Bet Mo', 'Bot Snooze'];
+const BOT_NAMES = ['Bot Ana', 'Bot Ben', 'Bot Cal', 'Bot Dee', 'Bot Eli', 'Bot Fay', 'Bot Gus'];
 
 /** Guest/dev mode: the full room in the browser. Bots play so DA&D and trivia can be tested solo. */
 export class LocalTransport extends Emitter implements Transport {

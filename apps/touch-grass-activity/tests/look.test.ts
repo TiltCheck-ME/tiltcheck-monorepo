@@ -63,7 +63,7 @@ describe('winner podium', () => {
     t.scores = { [ME]: 450, [BO]: 300, [CY]: 120 };
     room.state.triviaPosted = { game: 1, brags: {} };
     const el = html(renderTrivia(room.viewFor(ME, 0), 0));
-    expect(el.querySelector('[data-trivia-winner]')!.textContent).toBe('You take it. Bragging rights only.');
+    expect(el.querySelector('[data-trivia-winner]')!.textContent).toBe('You win.');
     expect(el.querySelector('[data-podium]')).not.toBeNull();
     const board = [...el.querySelectorAll('.scores .score')];
     expect(board[0]!.classList.contains('medal--1')).toBe(true);
@@ -98,13 +98,15 @@ describe('avatars', () => {
 });
 
 describe('lobby tiles', () => {
-  it('each game has its art; DA&D carries its own logo; counts at 0 do not pulse', () => {
+  it('each game has its icon; DA&D carries its own logo; flat header with no hero art', () => {
     const el = html(renderLobby(null, [{ id: ME, name: 'Jme', avatar: null }]));
     expect(el.querySelector('.tile--dad .tile__logo')).not.toBeNull();
     expect(el.querySelector('.tile--trivia svg')).not.toBeNull();
     expect(el.querySelector('.tile--bluff svg')).not.toBeNull();
-    expect(el.querySelector('.hero__grass')).not.toBeNull();
-    expect(el.querySelectorAll('.badge--on')).toHaveLength(0);
+    // Night-field hero (sun, grass blades) is gone; icons are flat line art with no gradients.
+    expect(el.querySelector('.hero, .hero__grass, .hero__sun')).toBeNull();
+    expect(el.innerHTML).not.toMatch(/Gradient/);
+    expect(el.querySelector('.lobby-head .brand__eyebrow')!.textContent).toBe('Touch Grass');
     // Art adds no text: the tile reads exactly as before.
     expect(el.querySelector('.tile--bluff .tile__name')!.textContent).toBe('Bluff');
     expect(el.querySelector('.tile--trivia .tile__art')!.textContent!.trim()).toBe('');
@@ -113,8 +115,8 @@ describe('lobby tiles', () => {
 
 describe('copy grammar on the end screens', () => {
   it('"You win" and "Your lie" when the viewer is the subject', () => {
-    expect(COPY.dad.gameOver('You')).toBe('You win. Bragging rights only.');
-    expect(COPY.dad.gameOver('Bo')).toBe('Bo wins. Bragging rights only.');
+    expect(COPY.dad.gameOver('You')).toBe('You win.');
+    expect(COPY.dad.gameOver('Bo')).toBe('Bo wins.');
     expect(COPY.bluff.reveal('You')).toBe('Your lie');
     expect(COPY.bluff.reveal('Bo')).toBe("Bo's lie");
   });
@@ -129,9 +131,27 @@ describe('styles', () => {
 
   it('no remote assets: every url() in the stylesheet is a bundled local file', () => {
     const urls = [...css.matchAll(/url\(([^)]*)\)/g)].map((m) => m[1]!.replace(/['"]/g, ''));
-    expect(urls.length).toBeGreaterThan(0);
     for (const u of urls) expect(u.startsWith('./art/')).toBe(true);
     expect(css).not.toMatch(/@import|https?:\/\//);
+  });
+
+  it('calm look: no gradients, glows, looping or long animations; transitions 150 ms or less', () => {
+    expect(css).not.toMatch(/gradient\(/);
+    expect(css).not.toMatch(/text-shadow|drop-shadow|backdrop-filter/);
+    expect(css).not.toMatch(/infinite/);
+    // Only one keyframe left, a fade.
+    expect([...css.matchAll(/@keyframes ([\w-]+)/g)].map((m) => m[1])).toEqual(['fade-in']);
+    expect(css).toMatch(/--fast: 120ms/);
+    for (const m of css.matchAll(/(?:transition|animation)[^;{}]*?(\d*\.?\d+)(m?s)\b/g)) {
+      const ms = m[2] === 's' ? Number(m[1]) * 1000 : Number(m[1]);
+      expect({ rule: m[0], ok: ms <= 150 }).toEqual({ rule: m[0], ok: true });
+    }
+  });
+
+  it('tap targets: buttons, small buttons and score tabs are at least 44-48 px tall', () => {
+    expect(css).toMatch(/\.btn \{[^}]*min-height: 48px/);
+    expect(css).toMatch(/\.btn--sm \{[^}]*min-height: 48px/);
+    expect(css).toMatch(/\.hs-tab \{[^}]*min-height: 44px/);
   });
 
   it('gold, silver and bronze are defined', () => {

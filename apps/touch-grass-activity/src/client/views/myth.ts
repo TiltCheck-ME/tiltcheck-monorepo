@@ -68,7 +68,7 @@ export function renderMyth(view: RoomView, clockOffsetMs: number, guest: boolean
         <h2 class="h2" data-mm-title>${over && r ? esc(COPY.myth.overTitle(r.score)) : COPY.myth.title}</h2>
         ${over && r ? `<p class="lede">${esc(COPY.myth.overLine(r.correctCount, r.total))}</p>${dots(r.results, r.total)}` : `<p class="lede">${COPY.myth.rules}</p>`}
         ${brag ? `<p class="brag ${r?.brag && (r.brag.personalBest || r.brag.weekRank !== null) ? 'brag--hit' : ''}" data-mm-brag>${esc(brag)}</p>` : ''}
-        <p class="muted small">${COPY.myth.bragging}${guest ? ` ${COPY.highScores.guest}` : ''}</p>
+        <p class="muted small">${guest ? COPY.highScores.guest : ''}</p>
         <button class="btn btn--primary btn--big" data-act="myth.start">${over ? COPY.myth.again : COPY.myth.start}</button>
       </section>
       ${board(view)}`;

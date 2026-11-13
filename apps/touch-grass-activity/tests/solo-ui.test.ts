@@ -55,13 +55,14 @@ describe('lobby: solo tiles', () => {
     const el = html(renderLobby(r.viewFor(ME, NOW), []));
     expect(el.querySelector('.tile--daily svg')).not.toBeNull();
     expect(el.querySelector('.tile--myth svg')).not.toBeNull();
-    expect(el.querySelector('[data-count=daily]')!.textContent).toBe('solo · 1 playing');
-    expect(el.querySelector('[data-count=myth]')!.textContent).toBe('solo · 1 playing');
+    expect(el.querySelector('[data-count=daily]')!.textContent).toBe('Solo · 1 playing');
+    expect(el.querySelector('[data-count=myth]')!.textContent).toBe('Solo · 1 playing');
     expect(el.querySelector('.tile--daily .tile__art')!.textContent!.trim()).toBe('');
-    // The new hero copy and the quest flag.
-    expect(el.querySelector('.hero .title')!.textContent).toBe('TiltCheck');
-    expect(el.querySelector('.hero .lede')!.textContent).toBe('Get distracted on purpose.');
-    expect(el.querySelector('.hero__leaf')).not.toBeNull();
+    // Header copy, the Touch Grass eyebrow and the flag mark.
+    expect(el.querySelector('.lobby-head .title')!.textContent).toBe('TiltCheck');
+    expect(el.querySelector('.lobby-head .lede')!.textContent).toBe('Get distracted on purpose.');
+    expect(el.querySelector('.lobby-head .brand__eyebrow')!.textContent).toBe('Touch Grass');
+    expect(el.querySelector('.brand__mark')).not.toBeNull();
   });
 });
 
@@ -135,10 +136,10 @@ describe('Invite friends', () => {
     expect(canInvite()).toBe(false);
     setInviteSdk({ commands: { openInviteDialog: async () => null } });
     expect(canInvite()).toBe(true);
-    expect(html(renderLobby(room().viewFor(ME, NOW), [])).querySelector('.hero [data-invite]')!.textContent).toBe(COPY.invite);
+    expect(html(renderLobby(room().viewFor(ME, NOW), [])).querySelector('.lobby-head [data-invite]')!.textContent).toBe(COPY.invite);
   });
 
-  it('on the lobby hero and on every multiplayer seating screen and in-game', () => {
+  it('in the lobby header and on every multiplayer seating screen and in-game', () => {
     setInviteSdk({ commands: { openInviteDialog: async () => null } });
     const r = room();
     const v = () => r.viewFor(ME, NOW);

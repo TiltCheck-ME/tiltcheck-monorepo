@@ -1,11 +1,12 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// Lobby: who's here, three table games (DA&D, Trivia, Bluff) with seated/playing counts, and two
-// solo games (Daily Grass, Myth or Math) with a "solo" pill showing how many people are playing.
+// Lobby: a compact header (Touch Grass eyebrow, TiltCheck title, who's here, Scores and Invite), then
+// a flat list of game rows: three table games (DA&D, Trivia, Bluff) with seated/playing counts and two
+// solo games (Daily Grass, Myth or Math). High scores open in a sheet from the header.
 
 import { COPY } from '../copy.js';
 import type { RoomUser, RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc } from './util.js';
-import { BLUFF_ART, DAILY_ART, GRASS_SVG, FLAG_SVG, MYTH_ART, SUN_SVG, TRIVIA_ART, dadLogoUrl } from '../art.js';
+import { BLUFF_ART, DAILY_ART, FLAG_SVG, MYTH_ART, TRIVIA_ART, dadLogoUrl } from '../art.js';
 import { inviteButton } from './invite.js';
 import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
@@ -21,7 +22,18 @@ export function mergePeople(view: RoomView | null, participants: LobbyPerson[]):
   return [...out.values()];
 }
 
-export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores: ScoresResult | null = null, tab: ScoresTab = 'week'): string {
+/** The Scores sheet: the same This week / All time board, in a dialog over the lobby. */
+export function renderScoresSheet(scores: ScoresResult | null, tab: ScoresTab, you: string): string {
+  return `<div class="sheet" data-scores-sheet>
+    <div class="sheet__backdrop" data-scores-close></div>
+    <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="scores-title">
+      <div class="sheet__head"><h2 class="sheet__title" id="scores-title">${COPY.highScores.title}</h2><button type="button" class="btn btn--sm btn--ghost" data-scores-close>${COPY.close}</button></div>
+      ${renderHighScores(scores, tab, you)}
+    </div>
+  </div>`;
+}
+
+export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores: ScoresResult | null = null, tab: ScoresTab = 'week', scoresOpen = false): string {
   const seated = view?.dad.seats.length ?? 0;
   const dadLive = Boolean(view && ['submitting', 'judging', 'reveal'].includes(view.dad.phase));
   const playing = view?.trivia.playingCount ?? 0;
@@ -29,41 +41,43 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
   const bluffSeated = view?.bluff.seats.length ?? 0;
   const bluffLive = Boolean(view && ['writing', 'guessing', 'reveal'].includes(view.bluff.phase));
   const badge = (game: string, n: number, word: string, live: boolean, extra: string) =>
-    `<span class="badge ${live ? 'badge--live' : ''} ${n > 0 ? 'badge--on' : ''}" data-count="${game}">${n} ${word}${live ? extra : ''}</span>`;
-  const bluffBadge = badge('bluff', bluffSeated, 'seated', bluffLive, ` / T${view?.bluff.round}`);
-  const dadBadge = badge('dad', seated, 'seated', dadLive, ` / R${view?.dad.round}`);
-  const triviaBadge = badge('trivia', playing, 'playing', triviaLive, ` / Q${view?.trivia.number}`);
-  const soloBadge = (game: 'daily' | 'myth', n: number) =>
-    `<span class="badge badge--solo ${n > 0 ? 'badge--on' : ''}" data-count="${game}">${esc(COPY.solo(n))}</span>`;
+    `<span class="badge ${live ? 'badge--live' : ''}" data-count="${game}">${n} ${word}${live ? extra : ''}</span>`;
+  const soloBadge = (game: 'daily' | 'myth', n: number) => `<span class="badge" data-count="${game}">${esc(COPY.solo(n))}</span>`;
   const tile = (game: 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth', art: string, badgeHtml: string) =>
-    `<button class="tile tile--${game}" data-go="${game}" style="--i:${['dad', 'trivia', 'bluff', 'daily', 'myth'].indexOf(game)}">
+    `<button class="tile tile--${game}" data-go="${game}">
         <span class="tile__art">${art}</span>
         <span class="tile__body">
           <span class="tile__name">${esc(COPY.tiles[game].name)}</span>
           <span class="tile__desc">${esc(COPY.tiles[game].desc)}</span>
-          ${badgeHtml}
         </span>
+        ${badgeHtml}
       </button>`;
+  const who = people.length
+    ? people
+        .map((p) => `<span class="person ${p.away ? 'person--away' : ''}">${avatarImg(p, 'avatar avatar--sm')}<span class="person__name">${esc(p.name)}</span>${p.away ? `<span class="tag tag--away">${COPY.away}</span>` : ''}</span>`)
+        .join('')
+    : `<span class="muted small">${esc(COPY.nobodyHere)}</span>`;
   return `
-    <section class="panel hero lobby-head">
-      ${SUN_SVG}
-      <div class="hero__body">
-        <h1 class="title">${FLAG_SVG}<span>${esc(COPY.appTitle)}</span></h1>
-        <p class="lede">${esc(COPY.lobbyLede)}</p>
-        ${inviteButton('hero__invite')}
-        <h2 class="eyebrow">${esc(COPY.whoHere)} <span class="count">${people.length}</span></h2>
-        <div class="people">
-          ${people.length ? people.map((p) => `<span class="person ${p.away ? 'person--away' : ''}">${avatarImg(p)}<span class="person__name">${esc(p.name)}</span>${p.away ? `<span class="tag tag--away">${COPY.away}</span>` : ''}</span>`).join('') : `<p class="muted">${esc(COPY.nobodyHere)}</p>`}
+    <header class="panel lobby-head">
+      <div class="lobby-head__top">
+        <div class="brand">
+          <p class="brand__eyebrow">${esc(COPY.eyebrow)}</p>
+          <h1 class="title">${FLAG_SVG}<span>${esc(COPY.appTitle)}</span></h1>
+          <p class="lede">${esc(COPY.lobbyLede)}</p>
+        </div>
+        <div class="lobby-head__actions">
+          <button type="button" class="btn btn--sm" data-scores-open aria-haspopup="dialog">${COPY.scores}</button>
+          ${inviteButton()}
         </div>
       </div>
-      ${GRASS_SVG}
-    </section>
-    <section class="tiles">
-      ${tile('dad', `<img class="tile__logo" src="${dadLogoUrl}" alt="" width="240" height="240" />`, dadBadge)}
-      ${tile('trivia', TRIVIA_ART, triviaBadge)}
-      ${tile('bluff', BLUFF_ART, bluffBadge)}
+      <div class="who"><span class="who__label">${esc(COPY.whoHere)} <span class="count">${people.length}</span></span><span class="people">${who}</span></div>
+    </header>
+    <section class="tiles" aria-label="Games">
+      ${tile('dad', `<img class="tile__logo" src="${dadLogoUrl}" alt="" width="240" height="240" />`, badge('dad', seated, 'seated', dadLive, ` · R${view?.dad.round}`))}
+      ${tile('trivia', TRIVIA_ART, badge('trivia', playing, 'playing', triviaLive, ` · Q${view?.trivia.number}`))}
+      ${tile('bluff', BLUFF_ART, badge('bluff', bluffSeated, 'seated', bluffLive, ` · T${view?.bluff.round}`))}
       ${tile('daily', DAILY_ART, soloBadge('daily', view?.daily.playingCount ?? 0))}
       ${tile('myth', MYTH_ART, soloBadge('myth', view?.myth.playingCount ?? 0))}
     </section>
-    ${renderHighScores(scores, tab, view?.you ?? '')}`;
+    ${scoresOpen ? renderScoresSheet(scores, tab, view?.you ?? '') : ''}`;
 }

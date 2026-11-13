@@ -34,6 +34,8 @@ const ui = {
   lastTriviaGame: 0,
   scores: null as ScoresResult | null,
   scoresTab: 'week' as ScoresTab,
+  /** Scores sheet open over the lobby. */
+  scoresOpen: false,
   scoresAt: 0,
   scoresPostedGame: 0,
   bluffDraft: emptyDraft() as BluffDraft,
@@ -91,15 +93,12 @@ function statusBar(): string {
 }
 
 /**
- * Motion bookkeeping. The whole screen is re-rendered on every state push, which would restart every
- * entrance animation. Instead each phase gets a key; while the key holds, the screen carries a negative
- * --fx-t so a running animation resumes where it was, and after FX_MS the animations are switched off.
+ * Motion bookkeeping. The whole screen is re-rendered on every state push, which would replay every
+ * entrance fade. Each phase gets a key; after FX_MS the fades are switched off (.fx-done), and while
+ * the key holds a negative --fx-t lets a running fade finish instead of restarting. Fades are 120 ms.
  */
-const FX_MS = 2200;
-const POP_MS = 900;
+const FX_MS = 400;
 const fx = { key: '', at: 0 };
-const pts = new Map<string, number>();
-const popAt = new Map<string, number>();
 
 function phaseKey(v: RoomView | null): string {
   if (!v) return 'boot';
@@ -111,22 +110,6 @@ function phaseKey(v: RoomView | null): string {
   return 'lobby';
 }
 
-/** Scores that went up since the last render get a short pop (kept across re-renders until it ends). */
-function popScores(now: number): void {
-  for (const el of app.querySelectorAll<HTMLElement>('[data-pts]')) {
-    const key = `${ui.screen}:${el.dataset.pts}`;
-    const val = Number(el.textContent);
-    const prev = pts.get(key);
-    pts.set(key, val);
-    if (prev !== undefined && val > prev) popAt.set(key, now);
-    const at = popAt.get(key);
-    if (at !== undefined && now - at < POP_MS) {
-      el.classList.add('pop');
-      el.style.animationDelay = `-${now - at}ms`;
-    }
-  }
-}
-
 function render(): void {
   const v = ui.view;
   let main: string;
@@ -136,7 +119,7 @@ function render(): void {
   else if (ui.screen === 'bluff') main = renderBluff(v, ui.bluffDraft, ui.clockOffset);
   else if (ui.screen === 'daily') main = renderDaily(v, ui.dailyDraft, session?.mode === 'guest', inviteButton());
   else if (ui.screen === 'myth') main = renderMyth(v, ui.clockOffset, session?.mode === 'guest');
-  else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab);
+  else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab, ui.scoresOpen);
   // Re-rendering replaces the inputs: keep focus and the caret on the statement being typed.
   const active = document.activeElement as HTMLInputElement | null;
   const focusDraft = active?.dataset?.draft;
@@ -149,10 +132,11 @@ function render(): void {
   }
   const since = now - fx.at;
   const motion = since > FX_MS ? 'fx-done' : '';
-  app.innerHTML = `${statusBar()}<main class="screen screen--${ui.screen} ${motion}" style="--fx-t:-${since}ms;--pulse-t:-${now % 1600}ms">${main}</main>${
+  const focusSheet = ui.scoresOpen && ui.screen === 'lobby' && !app.querySelector('[data-scores-sheet]');
+  app.innerHTML = `${statusBar()}<main class="screen screen--${ui.screen} ${motion}" style="--fx-t:-${since}ms">${main}</main>${
     ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
   }`;
-  popScores(now);
+  if (focusSheet) app.querySelector<HTMLElement>('[data-scores-sheet] [data-scores-close].btn')?.focus();
   if (focusDraft !== undefined) {
     const el = app.querySelector<HTMLInputElement>(`[data-draft="${focusDraft}"]`);
     if (el) {
@@ -294,7 +278,7 @@ function onState(view: RoomView): void {
 }
 
 app.addEventListener('click', (ev) => {
-  const el = (ev.target as HTMLElement).closest<HTMLElement>('button, [data-go]');
+  const el = (ev.target as HTMLElement).closest<HTMLElement>('button, [data-go], [data-scores-close]');
   if (!el || (el as HTMLButtonElement).disabled) return;
   const d = el.dataset;
   if (el.hasAttribute('data-reload')) {
@@ -303,10 +287,21 @@ app.addEventListener('click', (ev) => {
   }
   if (d.go) {
     ui.screen = d.go as Screen;
+    ui.scoresOpen = false;
     send({ t: 'look', at: ui.screen });
     if (ui.screen === 'daily') askDaily(ui.view);
     render();
     void loadScores();
+    return;
+  }
+  if (el.hasAttribute('data-scores-open')) {
+    ui.scoresOpen = true;
+    render();
+    void loadScores();
+    return;
+  }
+  if (el.hasAttribute('data-scores-close')) {
+    closeScores();
     return;
   }
   if (el.hasAttribute('data-invite')) {
@@ -360,6 +355,21 @@ app.addEventListener(
   },
   true,
 );
+
+/** Close the Scores sheet and hand focus back to the Scores button. */
+function closeScores(): void {
+  if (!ui.scoresOpen) return;
+  ui.scoresOpen = false;
+  render();
+  app.querySelector<HTMLElement>('[data-scores-open]')?.focus();
+}
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape' && ui.scoresOpen) {
+    ev.preventDefault();
+    closeScores();
+  }
+});
 
 // Physical keyboard for Daily Grass (desktop Discord), never while typing in a field.
 document.addEventListener('keydown', (ev) => {

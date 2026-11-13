@@ -119,8 +119,8 @@ function stats(view: RoomView): string {
 function solvers(view: RoomView): string {
   const b = view.daily.solvers;
   let body: string;
-  if (b.kind === 'no-server') body = `<p class="muted small">No server, no board. Games in DMs are off the record.</p>`;
-  else if (b.kind === 'loading') body = `<p class="muted small">Checking the board...</p>`;
+  if (b.kind === 'no-server') body = `<p class="muted small">${COPY.highScores.noServer}</p>`;
+  else if (b.kind === 'loading') body = `<p class="muted small">${COPY.highScores.loading}</p>`;
   else if (!b.rows.length) body = `<p class="muted small">${COPY.daily.solversEmpty}</p>`;
   else
     body = `<ol class="scores">${b.rows

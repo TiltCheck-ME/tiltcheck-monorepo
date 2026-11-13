@@ -11,7 +11,7 @@ import { weekStartFor } from './scores.js';
 
 export type SoloAction = { t: 'daily.open' } | { t: 'daily.guess'; word: string };
 
-const unavailable: ActionResult = { ok: false, code: 'solo-unavailable', message: "Couldn't reach the puzzle. Try again in a sec." };
+const unavailable: ActionResult = { ok: false, code: 'solo-unavailable', message: "Couldn't reach the puzzle. Try again." };
 
 /** Refresh this server's Today's solvers into the room (no-op without a server). */
 export async function refreshSolvers(room: Room, solo: SoloService, guild: string | null, now: number): Promise<void> {

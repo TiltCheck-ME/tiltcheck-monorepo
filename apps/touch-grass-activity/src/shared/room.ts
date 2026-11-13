@@ -275,7 +275,7 @@ export class Room {
    */
   gate(userId: string, now: number): ActionResult {
     if (!this.isMember(userId)) return { ok: false, code: 'not-in-room', message: 'Join the room first.' };
-    if (!this.limiter.take(userId, now)) return { ok: false, code: 'rate-limited', message: 'Easy on the buttons.' };
+    if (!this.limiter.take(userId, now)) return { ok: false, code: 'rate-limited', message: 'Slow down a little.' };
     this.touch(userId, now);
     this.tick(now);
     return { ok: true };
@@ -338,7 +338,7 @@ export class Room {
 
   handle(userId: string, action: ClientAction, now: number): ActionResult {
     if (!this.isMember(userId)) return { ok: false, code: 'not-in-room', message: 'Join the room first.' };
-    if (!this.limiter.take(userId, now)) return { ok: false, code: 'rate-limited', message: 'Easy on the buttons.' };
+    if (!this.limiter.take(userId, now)) return { ok: false, code: 'rate-limited', message: 'Slow down a little.' };
     this.touch(userId, now);
     this.tick(now);
     const s = this.state;

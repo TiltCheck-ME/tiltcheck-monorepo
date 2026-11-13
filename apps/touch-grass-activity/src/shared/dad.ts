@@ -228,8 +228,8 @@ function maybeCloseSubmissions(s: DadState, rng: Rng): void {
 export function submit(s: DadState, playerId: string, cardId: string, rng: Rng): DadResult {
   if (s.phase !== 'submitting') return fail('wrong-phase', 'Not taking cards right now.');
   if (!s.seats.includes(playerId)) return fail('not-seated', 'You are spectating this round.');
-  if (playerId === s.judgeId) return fail('judge-cannot-submit', 'You are the judge. Sit tight.');
-  if (s.submissions[playerId]) return fail('already-submitted', 'Card already in. No take-backs.');
+  if (playerId === s.judgeId) return fail('judge-cannot-submit', "The judge doesn't play a card.");
+  if (s.submissions[playerId]) return fail('already-submitted', 'Card already played.');
   const hand = s.hands[playerId] ?? [];
   const idx = hand.findIndex((c) => c.id === cardId);
   if (idx === -1) return fail('card-not-in-hand', 'That card is not in your hand.');
