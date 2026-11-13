@@ -85,13 +85,14 @@ pnpm --filter @tiltcheck/touch-grass-activity simulate   # DA&D game to a winner
 3. `POST /api/activity/token { code }` (relative URL, through the Discord proxy to the worker). The worker calls `https://discord.com/api/v10/oauth2/token` with client id, client secret, `grant_type=authorization_code` and the code. **No `redirect_uri`.**
 4. `sdk.commands.authenticate({ access_token })`
 5. `sdk.commands.getActivityInstanceConnectedParticipants()` (2026 name) plus `ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE` for the avatar row.
-6. Room: `wss://<app>.discordsays.com/api/room/<instanceId>/ws`. First frame is `{ t: 'auth', token }`; the worker checks the token against `/users/@me`. If the socket drops, the client polls `GET /api/room/<instanceId>/state` and `POST /api/room/<instanceId>/action` with `Authorization: Bearer <token>` until the socket comes back.
+6. Room: `wss://<app>.discordsays.com/api/room/<roomId>/ws?instance=<instanceId>&guild=<sdk.guildId>`. First frame is `{ t: 'auth', token }`; the worker checks the token against `/users/@me`. If the socket drops, the client polls `GET /api/room/<roomId>/state` and `POST /api/room/<roomId>/action` (same query) with `Authorization: Bearer <token>` until the socket comes back.
+   - `roomId` is `g-<guildId>-c-<channelId>` in a server channel (guild from the instance id's `-gc-<guild>-` part, channel from `sdk.channelId`, both snowflakes), so everyone who launches the Activity in that channel lands at one table, whether they tapped Join or started it fresh. DMs, group DMs, a missing or invalid channel id, or an instance id that names no guild: `roomId` is the instance id, as before (`roomKeyFor` in `src/shared/protocol.ts`).
 
 Client ID: `VITE_DISCORD_CLIENT_ID`, falling back to "Tilt Check" `1445916179163250860`.
 
 ## Server rules
 
-- One Durable Object per Discord `instanceId` (`idFromName(instanceId)`).
+- One Durable Object per room key (`idFromName(roomKey)`): `g-<guild>-c-<channel>` for a server channel, else the Discord `instanceId`. The worker re-checks a channel key on every request (`resolveRoom`): it needs `?instance=<Discord instance id>`, and the guild in the key must equal the guild that instance id names (`-gc-<guild>-`), never the client's `?guild`. Mismatch: 403 `room-guild-mismatch`; no or junk instance, or a malformed `g-` key: 400 `bad-instance`. High scores and `/api/live` still take the guild from the instance id (or the checked key).
 - The server owns hands, judge, submissions, scores and the trivia clock. Each client gets its own view: only its own hand, and answers are anonymous and shuffled with random ids while the judge picks. Trivia views never carry the correct choice (or anyone else's pick) before the reveal; one answer per player per question, inside the window, for the question in flight.
 - Every action is validated (phase, player, judge, card in hand) and rate limited per user (token bucket, 10 burst, 2/sec). Messages over 4 KB are dropped. The token endpoint has a per-isolate IP limit.
 - A dropped connection is not leaving. When a user's last socket closes (iOS suspends the webview on an app switch) they are marked **away** and keep their seat, hand and score for 3 minutes (DO alarm). Reconnecting with the same Discord user id re-attaches to the seat and gets the private hand back. Polling-only users who go quiet for 45 s are marked away the same way. Only grace expiry, "Stand up", or an explicit `leave` removes someone.
@@ -112,7 +113,7 @@ GET /api/live                        global totals
   "guild": "<snowflake>" | null,
   "ttlSeconds": 120,
   "updatedAt": <ms epoch>,
-  "rooms": <instances with anyone in them>,
+  "rooms": <rooms with anyone in them>,
   "tables": <dad + trivia + bluff tables>,
   "joinable": <dad + trivia + bluff joinable>,
   "games": {
@@ -124,7 +125,7 @@ GET /api/live                        global totals
 400 {"error":"bad-guild"}   429 {"error":"rate-limited"} (Retry-After: 5)   503 {"error":"not-configured"}
 ```
 
-A DA&D table is an instance with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. A Bluff table is an instance with at least one seated player; joinable between games while seats + queue < 8 (mid-game joiners only spectate). No user ids, names, avatars or instance ids in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
+A DA&D table is a room with at least one seated player; joinable while seats + queue < 8. A trivia table is a running game; joinable until its last question opens. A Bluff table is a room with at least one seated player; joinable between games while seats + queue < 8 (mid-game joiners only spectate). No user ids, names, avatars, instance ids or room keys in the response. CORS: `https://tiltcheck.me`, `https://*.tiltcheck.me` and `chrome-extension://<id>` only. Rate limit: 20 burst, 1/s per IP per isolate.
 
 ## Trivia high scores (`GET /api/trivia/scores`)
 
@@ -153,7 +154,8 @@ The LiveRegistry posts to one channel when someone is waiting: a DA&D or Bluff t
 
 ## Known gaps
 
-- Instance membership is not checked server-side. Anyone with a valid Discord token who knows an `instanceId` can join that room. Discord's docs say not to trust client data; a follow-up can verify membership with the activity-instance API using the bot token.
+- One room per server channel (since the channel-room change): two separate groups who launch in the same channel share one table (DA&D and Bluff cap at 8 seated; extra people queue or spectate). Rooms opened under old instance-id keys just age out. The channel half of a `g-<guild>-c-<channel>` key is the client's `sdk.channelId` and is not cross-checked against the instance id (the instance id's last segment looks like the channel, but that is unconfirmed), so a signed-in user could pick another channel's room in the same server; never another server's.
+- Instance membership is not checked server-side. Anyone with a valid Discord token who knows an `instanceId` (or a server's channel room key plus a matching-guild instance id) can join that room. Discord's docs say not to trust client data; a follow-up can verify membership with the activity-instance API using the bot token.
 - Room state is persisted to Durable Object storage on every change. Rate-limit buckets are in memory and reset if the object is evicted.
 - The guild id behind `/api/live` and the high-score boards comes from the instance id when it has the `-gc-<guild>-` shape, otherwise from the client. The instance id itself is client-supplied, so a crafted id could still put a server-computed score on another server's board. Closing that needs the activity-instance API with the bot token.
 - `GET /api/trivia/scores` checks the Discord token but not membership in that server: any signed-in Discord user who knows a guild id can read that server's board (names, avatars, scores). Needs the `guilds` scope or the bot to close.

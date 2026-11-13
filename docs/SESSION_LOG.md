@@ -2,6 +2,20 @@
 
 # Session Log
 
+## 2026-11-12 — deploy(activity): Touch Grass channel rooms on the same test hosts
+
+- Worker `touch-grass-activity` re-uploaded from 79e2ca6b through the REST API (deployment 4d2dfa6f): same bindings (ROOMS, LIVE, SCORES; vars DISCORD_CLIENT_ID, ALERT_GUILD_ID), secrets DISCORD_CLIENT_SECRET and ALERT_WEBHOOK_URL kept via `keep_bindings`; no new DO class, no migration (still v3). `/api/health` 200 before and on every poll after; `/api/live` 200; a channel key with a wrong-guild instance 403 `room-guild-mismatch`, without `?instance=` 400, a good key without a token 401.
+- Pages `touch-grass-activity` deployment 151fb864 (79e2ca6b): assets uploaded with the upload JWT (sent with `--noproxy` so the sandbox's injected Cloudflare auth doesn't replace it), check-missing confirmed 0 missing, then the deployment created. pages.dev polled every 2 s through the switch: all 200, old bundle to new with no gap. discordsays.com `/.proxy/api/health` 200. No Discord messages posted.
+
+## 2026-11-12 — fix(activity): one Touch Grass room per server channel
+
+- Why: `/api/live` showed 2 DA&D tables with 1 seated each in one server. Rooms were keyed by `sdk.instanceId`, and a second person who started the Activity fresh in the same channel (instead of tapping Join) got a new instance, so a separate room.
+- Room key (`roomKeyFor`, `src/shared/protocol.ts`): `g-<guildId>-c-<channelId>` when the instance id names a guild (`i-<n>-gc-<guild>-<n>`, strict, never the client's guild) and `sdk.channelId` is a snowflake; otherwise the instance id as before (DMs, group DMs, missing/invalid channel, guest mode). The client connects to `/api/room/<roomKey>/...?instance=<instanceId>&guild=<sdk.guildId>`.
+- Server check (`resolveRoom`, used by `worker/src/index.ts`): a channel key needs `?instance=`; the guild in the key must equal the guild that instance id names, else 403 `room-guild-mismatch`; missing/junk instance or a malformed `g-` key: 400. Instance-id paths behave exactly as before. The DO, live registry, alerts (per guild per game, so one shared room means fewer posts, never more) and high scores (guild from the instance id or the checked key) all run on the room key unchanged. No new DO class, no migration; old instance-keyed rooms age out.
+- Not cross-checked: the channel half of the key comes from the client (`sdk.channelId`). A signed-in user could pick another channel's room in the same server, never another server's. The instance id's last segment looks like the channel id; tightening to that is a follow-up once confirmed in real Discord.
+- Behaviour change: two separate groups launching in one channel now share one table (DA&D and Bluff seat 8; extras queue or spectate).
+- Checked: typecheck, vite build, 159 vitest tests (was 148): `room-key.test.ts` (same guild+channel from two instance ids = one room, other channel = other room, mismatched guild rejected, DM / junk channel fallback, old paths unchanged), `transport-room.test.ts` (client sends the key + `?instance=`; DM sends neither), workerd test with two instance ids in one channel seated at one table and one `/api/live` table, a third instance polling into it, another channel separate, wrong-guild 403 on ws and polling, DM on its instance id. `simulate` (DA&D, trivia, Bluff) passes.
+
 ## 2026-11-12 — deploy(activity): Touch Grass Bluff build on the same test hosts
 
 - Worker `touch-grass-activity` re-uploaded from 73de355f through the REST API: same bindings (ROOMS, LIVE, SCORES Durable Objects; vars DISCORD_CLIENT_ID, ALERT_GUILD_ID), secrets DISCORD_CLIENT_SECRET and ALERT_WEBHOOK_URL kept via `keep_bindings`; no new DO class, so no migration (still v3). `/api/health` 200 before and on every poll after; `/api/live` 200 with `games.bluff`; `/api/trivia/scores` 401 without a token; token route still reaches Discord.

@@ -3,16 +3,18 @@
 //
 // Routes (Discord proxies <app>.discordsays.com/api/* here through a URL Mapping):
 //   POST /api/activity/token          {code} -> {access_token}
-//   GET  /api/room/:instanceId/ws     WebSocket, first frame {t:'auth', token}
-//   GET  /api/room/:instanceId/state  polling fallback, Authorization: Bearer <token>
-//   POST /api/room/:instanceId/action polling fallback, Authorization: Bearer <token>
+//   GET  /api/room/:roomId/ws     WebSocket, first frame {t:'auth', token}
+//   GET  /api/room/:roomId/state  polling fallback, Authorization: Bearer <token>
+//   POST /api/room/:roomId/action polling fallback, Authorization: Bearer <token>
+//   :roomId is g-<guild>-c-<channel> for a server channel (with ?instance=<Discord instance id>
+//   naming the same guild), otherwise the Discord instance id as before.
 //   GET  /api/live?guild=<id>         anonymous live-tables counts (CORS: tiltcheck.me, chrome-extension://)
 //   GET  /api/trivia/scores?guild=<id> that server's trivia high scores, Authorization: Bearer <token>
 //   GET  /api/health
 // The /api prefix is optional so either mapping style works (see README).
 
 import { exchangeCode, verifyToken, type AuthEnv } from './auth.js';
-import { guildForInstance, isValidGuildId, isValidInstanceId } from '../../src/shared/protocol.js';
+import { isValidGuildId, resolveRoom } from '../../src/shared/protocol.js';
 import { RateLimiter } from '../../src/shared/room.js';
 import { LIVE_REGISTRY_NAME, type RegistryEnv } from './registry-do.js';
 import { scoresName } from './scores-do.js';
@@ -144,15 +146,23 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
 
   const m = path.match(/^\/room\/([^/]+)\/(ws|state|action)$/);
   if (m) {
-    const instanceId = decodeURIComponent(m[1] as string);
+    let pathId: string;
+    try {
+      pathId = decodeURIComponent(m[1] as string);
+    } catch {
+      return json({ error: 'bad-instance' }, 400, cors);
+    }
     const op = m[2] as 'ws' | 'state' | 'action';
-    if (!isValidInstanceId(instanceId)) return json({ error: 'bad-instance' }, 400, cors);
-    const stub = env.ROOMS.get(env.ROOMS.idFromName(instanceId));
+    // Channel rooms (g-<guild>-c-<channel>) need ?instance=<Discord instance id> naming the same
+    // guild; instance-id rooms work as before. See resolveRoom in src/shared/protocol.ts.
+    const resolved = resolveRoom(pathId, url.searchParams.get('instance'), url.searchParams.get('guild'));
+    if (!resolved.ok) return json({ error: resolved.error }, resolved.status, cors);
+    const roomKey = resolved.roomKey;
+    const stub = env.ROOMS.get(env.ROOMS.idFromName(roomKey));
     const inner = new URL(`https://room.internal/${op}`);
-    inner.searchParams.set('instanceId', instanceId);
-    // The instance id names its own guild when it is a server channel; that beats the client's word.
-    const guild = guildForInstance(instanceId, url.searchParams.get('guild'));
-    if (guild) inner.searchParams.set('guild', guild);
+    inner.searchParams.set('instanceId', roomKey);
+    // The guild comes from the instance id (or the checked channel key) when it can; that beats the client's word.
+    if (resolved.guild) inner.searchParams.set('guild', resolved.guild);
 
     if (op === 'ws') {
       if (req.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return json({ error: 'expected-websocket' }, 426, cors);

@@ -1,5 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
-// Durable Object: one per Discord Activity instanceId. Uses the WebSocket Hibernation API
+// Durable Object: one per room key (g-<guild>-c-<channel> in a server channel, else the Discord
+// Activity instanceId; the worker resolves it). The 'instanceId' below is that room key. Uses the WebSocket Hibernation API
 // so idle rooms cost nothing while sockets stay open.
 
 import { RoomHost, type HostSocket } from './host.js';

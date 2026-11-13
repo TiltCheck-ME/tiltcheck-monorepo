@@ -3,7 +3,7 @@
 // Local only: nothing is deployed. Skips itself if workerd can't start in this environment.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { unstable_dev, type Unstable_DevWorker } from 'wrangler';
-import type { RoomView, ServerMessage } from '../src/shared/protocol.js';
+import { roomKeyFor, type RoomView, type ServerMessage } from '../src/shared/protocol.js';
 import { fileURLToPath } from 'node:url';
 
 const here = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
@@ -28,9 +28,9 @@ afterAll(async () => {
   await worker?.stop();
 });
 
-function open(name: string, room: string, guild?: string): Promise<{ ws: WebSocket; msgs: ServerMessage[]; last: () => RoomView }> {
+function open(name: string, room: string, guild?: string, query?: string): Promise<{ ws: WebSocket; msgs: ServerMessage[]; last: () => RoomView }> {
   return new Promise((resolve, reject) => {
-    const q = guild ? `?guild=${guild}` : '';
+    const q = query !== undefined ? `?${query}` : guild ? `?guild=${guild}` : '';
     const ws = new WebSocket(`ws://${worker!.address}:${worker!.port}/api/room/${room}/ws${q}`);
     const msgs: ServerMessage[] = [];
     ws.onmessage = (e) => msgs.push(JSON.parse(String(e.data)) as ServerMessage);
@@ -88,6 +88,84 @@ describe('worker (local workerd)', () => {
     const bad = await worker.fetch('/api/room/i-poll/action', { method: 'POST', body: '{"t":"dad.next"}', headers: { Authorization: 'Bearer guest:a' } });
     expect(bad.status).toBe(409);
   });
+
+  it('channel rooms: two Discord instances in one server channel share one table; other channel, DM and wrong guild do not', async () => {
+    if (!worker) return;
+    const stamp = String(Date.now()).slice(-9);
+    const G = `7${stamp}12345`;
+    const OTHER_G = `8${stamp}12345`;
+    const CH = `5${stamp}11111`;
+    const CH2 = `5${stamp}22222`;
+    const instA = `i-1${stamp}1-gc-${G}-${CH}`;
+    const instB = `i-2${stamp}2-gc-${G}-${CH}`;
+    const key = roomKeyFor(instA, CH);
+    expect(key).toBe(`g-${G}-c-${CH}`);
+    expect(roomKeyFor(instB, CH)).toBe(key);
+
+    // Two separate launches (different instance ids), same guild + channel: one room.
+    const a = await open('ana', key, undefined, `instance=${instA}&guild=${G}`);
+    const b = await open('bo', key, undefined, `instance=${instB}`);
+    await until(() => a.msgs.some((m) => m.t === 'state' && m.view.members.length === 2));
+    a.ws.send('{"t":"dad.sit"}');
+    b.ws.send('{"t":"dad.sit"}');
+    await until(() => a.last().dad.seats.length === 2 && b.last().dad.seats.length === 2);
+    expect(a.last().instanceId).toBe(key);
+
+    // Live registry: one table with both seated, under the guild from the instance id.
+    type Live = { games: { dad: { tables: number; seated: number } } };
+    let live: Live | null = null;
+    for (let i = 0; i < 40; i++) {
+      live = (await (await worker.fetch(`/api/live?guild=${G}`)).json()) as Live;
+      if (live.games.dad.seated === 2) break;
+      await wait(50);
+    }
+    expect(live?.games.dad).toMatchObject({ tables: 1, seated: 2 });
+
+    // Polling with the channel key and a third instance id lands in the same room too.
+    const instC = `i-3${stamp}3-gc-${G}-${CH}`;
+    const poll = await worker.fetch(`/api/room/${key}/state?instance=${instC}`, { headers: { Authorization: 'Bearer guest:cy' } });
+    expect(poll.status).toBe(200);
+    const pv = (await poll.json()) as ServerMessage;
+    expect(pv.t === 'state' && pv.view.members.length).toBe(3);
+
+    // A different channel in the same guild is a different room.
+    const key2 = roomKeyFor(`i-4${stamp}4-gc-${G}-${CH2}`, CH2);
+    expect(key2).not.toBe(key);
+    const d = await open('dee', key2, undefined, `instance=i-4${stamp}4-gc-${G}-${CH2}`);
+    await until(() => d.msgs.some((m) => m.t === 'state'));
+    expect(d.last().members).toHaveLength(1);
+
+    // A key naming another guild than the presented instance id: refused, before any room is touched.
+    const otherGuildKey = `g-${OTHER_G}-c-${CH}`;
+    const bad = await worker.fetch(`/api/room/${otherGuildKey}/state?instance=${instA}&guild=${OTHER_G}`, { headers: { Authorization: 'Bearer guest:eve' } });
+    expect(bad.status).toBe(403);
+    expect(await bad.json()).toEqual({ error: 'room-guild-mismatch' });
+    // The ws route checks the key before anything else (403, not 426 for the missing upgrade).
+    expect((await worker.fetch(`/api/room/${otherGuildKey}/ws?instance=${instA}`)).status).toBe(403);
+    const refused = await new Promise<boolean>((resolve) => {
+      const ws = new WebSocket(`ws://${worker!.address}:${worker!.port}/api/room/${otherGuildKey}/ws?instance=${instA}`);
+      ws.onopen = () => {
+        ws.close();
+        resolve(false);
+      };
+      ws.onerror = () => resolve(true);
+    });
+    expect(refused).toBe(true);
+    // No instance at all, a DM instance, or a junk g- key: refused too.
+    expect((await worker.fetch(`/api/room/${key}/state`, { headers: { Authorization: 'Bearer guest:eve' } })).status).toBe(400);
+    expect((await worker.fetch(`/api/room/${key}/state?instance=i-9-pc-${CH}`, { headers: { Authorization: 'Bearer guest:eve' } })).status).toBe(403);
+    expect((await worker.fetch(`/api/room/g-${G}-c-nope/state?instance=${instA}`, { headers: { Authorization: 'Bearer guest:eve' } })).status).toBe(400);
+
+    // DM / group DM: the instance id stays the room, as before.
+    const dm = `i-5${stamp}5-pc-${CH}`;
+    expect(roomKeyFor(dm, CH)).toBe(dm);
+    const e = await open('eve', dm);
+    await until(() => e.msgs.some((m) => m.t === 'state'));
+    expect(e.last().instanceId).toBe(dm);
+    expect(e.last().members).toHaveLength(1);
+
+    for (const p of [a, b, d, e]) p.ws.close();
+  }, 30_000);
 
   it('3 players over WebSockets: one room per instance, hands stay private', async () => {
     if (!worker) return;
