@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * bonus-tracker.ts
  * Bonus Playthrough & Wager Traps Tracker.
@@ -15,6 +15,9 @@
 
 import { CASINO_SELECTORS } from './extractor.js';
 import { SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
+import { readBalance } from './reality-hud.js';
+import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
+import { BELOW_MINIMUM_BREAK_MS, evaluateCashoutGate, getCashoutGateCopy } from './cashout-minimums.js';
 
 export const TILTCHECK_BONUS_TRACKER_CONFIG_KEY = 'tiltcheck_bonus_tracker_config';
 
@@ -320,23 +323,42 @@ function showMaxBetTrapAlarm(doc: Document, bet: number, maxBet: number, interce
   }, 6000);
 }
 
-function showBonusCompleteModal(doc: Document, totalWagered: number, onCashout: () => void): void {
+export function showBonusCompleteModal(
+  doc: Document,
+  totalWagered: number,
+  onCashout: () => void,
+  balanceOverride?: number | null,
+  hostnameOverride?: string,
+): void {
   ensureStyles(doc);
   if (doc.getElementById(BONUS_COMPLETE_MODAL_ID)) return;
 
   const modal = doc.createElement('div');
   modal.id = BONUS_COMPLETE_MODAL_ID;
 
+  const balance = balanceOverride !== undefined ? balanceOverride : readBalance(doc);
+  const gate = evaluateCashoutGate(hostnameOverride ?? doc.location?.hostname ?? '', balance);
+  const gateCopy = getCashoutGateCopy(gate);
+  modal.setAttribute('data-cashout-gate', gate.status);
+  const bodyText = gateCopy
+    ? `You have completed <strong>$${totalWagered.toFixed(2)}</strong> in wagering, so the rollover is done. ${gateCopy.body}`
+    : `You have successfully completed <strong>$${totalWagered.toFixed(2)}</strong> in wagering. Your balance is now 100% withdrawable with zero rollover locks. Stop spinning and cash out.`;
+  const primaryIsBreak = gateCopy?.action === 'break';
+  const primaryLabel = gateCopy
+    ? (primaryIsBreak ? gateCopy.actionLabel : `${gateCopy.actionLabel} &rarr;`)
+    : 'Go to Cashier &rarr;';
+  const dismissLabel = gateCopy ? 'Dismiss' : "Dismiss (I'll cash out later)";
+
   modal.innerHTML = `
     <div class="tiltcheck-complete-card">
       <div style="font-size:11px; font-weight:800; letter-spacing:0.1em; color:#17c3b2; text-transform:uppercase; margin-bottom:8px;">Rollover 100% Complete</div>
       <div style="font-size:22px; font-weight:800; margin-bottom:12px;">Bonus Cleared to Real Cash</div>
       <div style="font-size:13px; color:rgba(200, 210, 220, 0.9); line-height:1.5; margin-bottom:20px;">
-        You have successfully completed <strong>$${totalWagered.toFixed(2)}</strong> in wagering. Your balance is now 100% withdrawable with zero rollover locks. Stop spinning and cash out.
+        ${bodyText}
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
-        <button type="button" id="tiltcheck-bonus-cashout-btn" style="background:#17c3b2; color:#000; font-weight:800; font-size:14px; padding:12px 20px; border-radius:6px; border:none; cursor:pointer; text-transform:uppercase;">Go to Cashier &rarr;</button>
-        <button type="button" id="tiltcheck-bonus-dismiss-btn" style="background:transparent; color:rgba(160, 175, 190, 0.7); font-size:12px; border:none; cursor:pointer;">Dismiss (I'll cash out later)</button>
+        <button type="button" id="tiltcheck-bonus-cashout-btn" style="background:#17c3b2; color:#000; font-weight:800; font-size:14px; padding:12px 20px; border-radius:6px; border:none; cursor:pointer; text-transform:uppercase;">${primaryLabel}</button>
+        <button type="button" id="tiltcheck-bonus-dismiss-btn" style="background:transparent; color:rgba(160, 175, 190, 0.7); font-size:12px; border:none; cursor:pointer;">${dismissLabel}</button>
       </div>
     </div>
   `;
@@ -344,6 +366,10 @@ function showBonusCompleteModal(doc: Document, totalWagered: number, onCashout: 
   modal.querySelector('#tiltcheck-bonus-cashout-btn')?.addEventListener('click', () => {
     modal.remove();
     onCashout();
+    if (primaryIsBreak) {
+      triggerTouchGrassTimeout("Five-minute break. Your balance is under this site's cash-out minimum.", BELOW_MINIMUM_BREAK_MS);
+      return;
+    }
     const cashier = doc.querySelector('a[href*="cashier"], a[href*="wallet"], button[data-test*="cashier"]') as HTMLElement | null;
     cashier?.click();
   });

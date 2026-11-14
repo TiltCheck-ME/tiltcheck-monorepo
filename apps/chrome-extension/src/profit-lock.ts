@@ -15,6 +15,11 @@
  *    groceries $120, tank of gas $50, trash bags $14, Spotify $11).
  *    Fires non-intrusive reality-anchoring HUD toasts when balance thresholds are reached.
  *
+ * 3. Cash-out minimums (cashout-minimums.ts):
+ *    Before any of the above says "cash out", the balance is checked against the
+ *    site's published minimum. Under it, the copy says how far under and points
+ *    at stopping or a break; with no minimum on file, the copy stays neutral.
+ *
  * Non-custodial: client-side DOM heuristic with zero custody of player funds.
  */
 
@@ -23,7 +28,13 @@ import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
 import { playAudioCue } from './audio-alerts.js';
 import { recordActivityFeedEvent } from './activity-feed.js';
-import { getGoalRealityCheck, getRatchetFloorCopy } from './degen-reality-copy.js';
+import { getGoalRealityCheck } from './degen-reality-copy.js';
+import {
+  BELOW_MINIMUM_BREAK_MS,
+  evaluateCashoutGate,
+  getCashoutGateCopy,
+  type CashoutGateCopy,
+} from './cashout-minimums.js';
 
 export const TILTCHECK_PROFIT_LOCK_ENABLED_KEY = 'tiltcheck_profit_lock_enabled';
 export const TILTCHECK_PROFIT_LOCK_TRAILING_PERCENT_KEY = 'tiltcheck_profit_lock_trailing_percent';
@@ -407,7 +418,18 @@ function ensureStyles(doc: Document): void {
   (doc.head || doc.documentElement).appendChild(style);
 }
 
-function showGoalToast(doc: Document, goal: CashoutGoal, balance: number): void {
+function hostOf(doc: Document, override?: string): string {
+  return override ?? doc.location?.hostname ?? '';
+}
+
+export const BELOW_MINIMUM_BREAK_REASON =
+  'Five-minute break. Your balance is under this site\'s cash-out minimum.';
+
+function startBelowMinimumBreak(): void {
+  triggerTouchGrassTimeout(BELOW_MINIMUM_BREAK_REASON, BELOW_MINIMUM_BREAK_MS);
+}
+
+function showGoalToast(doc: Document, goal: CashoutGoal, balance: number, hostnameOverride?: string): void {
   ensureStyles(doc);
   playAudioCue('heater_alert');
   let container = doc.getElementById(GOAL_TOAST_CONTAINER_ID);
@@ -421,15 +443,28 @@ function showGoalToast(doc: Document, goal: CashoutGoal, balance: number): void 
   toast.className = 'tiltcheck-goal-toast';
   toast.setAttribute('data-goal-id', goal.id);
 
-  const metricLabel = goal.metric === 'profit' ? 'Profit Goal Funded' : 'Cashout Goal Unlocked';
-  const actionButtonHtml = goal.linkUrl
+  const gate = evaluateCashoutGate(hostOf(doc, hostnameOverride), balance);
+  const gateCopy: CashoutGateCopy | null = getCashoutGateCopy(gate);
+  toast.setAttribute('data-cashout-gate', gate.status);
+
+  let tagText = goal.metric === 'profit' ? 'Profit Goal Funded' : 'Cashout Goal Unlocked';
+  let descText = getGoalRealityCheck(goal, balance);
+  let actionButtonHtml = goal.linkUrl
     ? `<a href="${goal.linkUrl}" target="_blank" rel="noopener noreferrer" class="tiltcheck-toast-btn-primary">Pay / Buy Now (${goal.targetAmount}) &rarr;</a>`
     : `<button type="button" class="tiltcheck-toast-btn-primary tiltcheck-goal-cashout-btn">Lock In Profit &rarr;</button>`;
 
+  if (gateCopy) {
+    tagText = gateCopy.tag;
+    descText = gateCopy.body;
+    actionButtonHtml = gateCopy.action === 'break'
+      ? `<button type="button" class="tiltcheck-toast-btn-primary tiltcheck-goal-break-btn">${gateCopy.actionLabel}</button>`
+      : `<button type="button" class="tiltcheck-toast-btn-primary tiltcheck-goal-cashout-btn">${gateCopy.actionLabel} &rarr;</button>`;
+  }
+
   toast.innerHTML = `
-    <div class="tiltcheck-toast-tag">${metricLabel}</div>
+    <div class="tiltcheck-toast-tag">${tagText}</div>
     <div class="tiltcheck-toast-title">${goal.name} ($${goal.targetAmount.toFixed(2)})</div>
-    <div class="tiltcheck-toast-desc">${getGoalRealityCheck(goal, balance)}</div>
+    <div class="tiltcheck-toast-desc">${descText}</div>
     <div class="tiltcheck-toast-actions">
       ${actionButtonHtml}
       <button type="button" class="tiltcheck-toast-btn-subtle tiltcheck-goal-dismiss-btn">Dismiss</button>
@@ -445,6 +480,12 @@ function showGoalToast(doc: Document, goal: CashoutGoal, balance: number): void 
   cashoutBtn?.addEventListener('click', () => {
     toast.remove();
     navigateToCashier(doc);
+  });
+
+  const breakBtn = toast.querySelector('.tiltcheck-goal-break-btn');
+  breakBtn?.addEventListener('click', () => {
+    toast.remove();
+    startBelowMinimumBreak();
   });
 
   container.appendChild(toast);
@@ -470,6 +511,7 @@ export function showSoftWarningModal(
     current: number;
     onAcknowledge: () => void;
     onCashout: () => void;
+    hostnameOverride?: string;
   }
 ): void {
   ensureStyles(doc);
@@ -481,6 +523,15 @@ export function showSoftWarningModal(
 
   const profitMade = data.current - data.baseline;
   const profitText = profitMade >= 0 ? `+$${profitMade.toFixed(2)}` : `-$${Math.abs(profitMade).toFixed(2)}`;
+
+  const gate = evaluateCashoutGate(hostOf(doc, data.hostnameOverride), data.current);
+  const gateCopy = getCashoutGateCopy(gate);
+  modal.setAttribute('data-cashout-gate', gate.status);
+  const cashLine = gateCopy ? gateCopy.body : 'Cash out now while you are ahead.';
+  const primaryLabel = gateCopy
+    ? (gateCopy.action === 'break' ? gateCopy.actionLabel : `${gateCopy.actionLabel} &rarr;`)
+    : 'Lock In Profit at Cashier &rarr;';
+  const primaryIsBreak = gateCopy?.action === 'break';
 
   modal.innerHTML = `
     <div class="tiltcheck-modal-card">
@@ -506,10 +557,10 @@ export function showSoftWarningModal(
       </div>
       <div class="tiltcheck-modal-body">
         You ran the bag up to <strong>$${data.peak.toFixed(2)}</strong> and gave back down to your floor at <strong>$${data.floor.toFixed(2)}</strong>. The heater is cooling off.
-        99% of degens rage-spin right here until the account reads zero. Cash out now while you are ahead. If you continue spinning below this floor, a 60-second hard brake will be engaged.
+        99% of degens rage-spin right here until the account reads zero. ${cashLine} If you continue spinning below this floor, a 60-second hard brake will be engaged.
       </div>
       <div class="tiltcheck-modal-actions">
-        <button type="button" class="tiltcheck-modal-btn-cashout" id="tiltcheck-modal-cashout-btn">Lock In Profit at Cashier &rarr;</button>
+        <button type="button" class="tiltcheck-modal-btn-cashout" id="tiltcheck-modal-cashout-btn">${primaryLabel}</button>
         <button type="button" class="tiltcheck-modal-btn-ack" id="tiltcheck-modal-ack-btn">I know I am risking it (Next spin drops Hard Brake)</button>
       </div>
     </div>
@@ -518,7 +569,11 @@ export function showSoftWarningModal(
   modal.querySelector('#tiltcheck-modal-cashout-btn')?.addEventListener('click', () => {
     modal.remove();
     data.onCashout();
-    navigateToCashier(doc);
+    if (primaryIsBreak) {
+      startBelowMinimumBreak();
+    } else {
+      navigateToCashier(doc);
+    }
   });
 
   modal.querySelector('#tiltcheck-modal-ack-btn')?.addEventListener('click', () => {
@@ -527,6 +582,18 @@ export function showSoftWarningModal(
   });
 
   (doc.body || doc.documentElement).appendChild(modal);
+}
+
+/** Last line of the hard-brake message: "cash out" only when the balance clears the site's minimum. */
+export function hardBrakeClosingLine(doc: Document, balance: number, hostnameOverride?: string): string {
+  const gate = evaluateCashoutGate(hostOf(doc, hostnameOverride), balance);
+  if (gate.status === 'clear') return 'Step back and cash out.';
+  if (gate.status === 'below') return `Step back. ${gateBelowShort(gate.siteName)}`;
+  return 'Step back.';
+}
+
+function gateBelowShort(siteName: string): string {
+  return `The balance is under ${siteName}'s cash-out minimum, so stopping here is the move.`;
 }
 
 export interface ProfitLockHandle {
@@ -543,8 +610,9 @@ export interface ProfitLockHandle {
 
 export function installProfitLock(
   doc: Document,
-  initialOptions?: Partial<ProfitLockOptions>
+  initialOptions?: Partial<ProfitLockOptions> & { hostnameOverride?: string }
 ): ProfitLockHandle {
+  const hostnameOverride = initialOptions?.hostnameOverride;
   let opts: ProfitLockOptions = {
     profitLockEnabled: initialOptions?.profitLockEnabled ?? DEFAULT_PROFIT_LOCK_ENABLED,
     trailingPercent: initialOptions?.trailingPercent ?? DEFAULT_TRAILING_PERCENT,
@@ -605,7 +673,7 @@ export function installProfitLock(
       if (newlyUnlocked.length > 0) {
         newlyUnlocked.sort((a, b) => b.targetAmount - a.targetAmount);
         const topGoal = newlyUnlocked[0]!;
-        showGoalToast(doc, topGoal, current);
+        showGoalToast(doc, topGoal, current, hostnameOverride);
         void recordActivityFeedEvent(`Cashout goal reached: ${topGoal.name} ($${topGoal.targetAmount})`, 'info');
       }
     }
@@ -634,12 +702,13 @@ export function installProfitLock(
             onCashout: () => {
               softWarningAcknowledged = true;
             },
+            hostnameOverride,
           });
         } else if (!hardGuardTriggered) {
           // Stage 2: Hard Guard if warning unacted upon and player is still at/below floor
           hardGuardTriggered = true;
           triggerTouchGrassTimeout(
-            `Profit lock: You reached a peak of $${peakBalance.toFixed(2)} with a floor at $${currentFloor.toFixed(2)}. 60-second brake engaged so you don't rage-dump your profit. Step back and cash out.`,
+            `Profit lock: You reached a peak of $${peakBalance.toFixed(2)} with a floor at $${currentFloor.toFixed(2)}. 60-second brake engaged so you don't rage-dump your profit. ${hardBrakeClosingLine(doc, current, hostnameOverride)}`,
             opts.hardGuardCooldownMs
           );
         }
