@@ -196,8 +196,8 @@ export function answer(s: TriviaState, playerId: string, questionId: string, cho
   if (questionId !== s.current.id) return fail('stale-question', 'That question already closed.');
   if (s.scores[playerId] === undefined) return fail('spectating', 'You are in from the next question.');
   if (!Number.isInteger(choice) || choice < 0 || choice >= s.current.choices.length) return fail('bad-choice', 'Pick one of the four.');
-  if (now >= s.current.endsAt) return fail('too-late', 'Too slow. Window closed.');
-  if (s.answers[playerId]) return fail('already-answered', 'Answer is locked. No take-backs.');
+  if (now >= s.current.endsAt) return fail('too-late', "Time's up.");
+  if (s.answers[playerId]) return fail('already-answered', 'Answer already locked.');
   s.answers[playerId] = { choice, at: now };
   return ok;
 }

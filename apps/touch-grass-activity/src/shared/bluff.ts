@@ -230,7 +230,7 @@ export function checkStatements(raw: readonly string[]): { ok: true; statements:
   const out = raw.map((x) => cleanText(typeof x === 'string' ? x : ''));
   if (out.some((x) => x.length === 0)) return { ok: false, code: 'empty-statement', message: 'All three need something in them.' };
   if (out.some((x) => charCount(x) > MAX_STATEMENT_CHARS)) return { ok: false, code: 'too-long', message: `Keep each one under ${MAX_STATEMENT_CHARS} characters.` };
-  if (new Set(out.map((x) => x.toLowerCase())).size !== STATEMENTS) return { ok: false, code: 'duplicate-statement', message: 'Three different statements. Not the same one in a fake mustache.' };
+  if (new Set(out.map((x) => x.toLowerCase())).size !== STATEMENTS) return { ok: false, code: 'duplicate-statement', message: 'Use three different statements.' };
   if (out.some((x) => hasSlur(x))) return { ok: false, code: 'blocked-words', message: 'That one has a slur in it. Rewrite it.' };
   return { ok: true, statements: out };
 }
@@ -257,11 +257,11 @@ export function tell(s: BluffState, playerId: string, statements: readonly strin
 export function guess(s: BluffState, playerId: string, rid: string, pick: number, now: number): BluffResult {
   if (s.phase !== 'guessing' || !s.statements) return fail('not-open', 'Nothing to guess right now.');
   if (rid !== s.rid) return fail('stale-round', 'That round already closed.');
-  if (playerId === s.tellerId) return fail('teller-cannot-guess', 'You wrote it. Sit tight.');
-  if (!s.seats.includes(playerId)) return fail('spectating', 'You are spectating. Next game you are in.');
+  if (playerId === s.tellerId) return fail('teller-cannot-guess', "You can't guess your own.");
+  if (!s.seats.includes(playerId)) return fail('spectating', "You're spectating. You'll be in next game.");
   if (!Number.isInteger(pick) || pick < 0 || pick >= s.statements.length) return fail('bad-pick', 'Pick one of the three.');
-  if (s.guessEndsAt !== null && now >= s.guessEndsAt) return fail('too-late', 'Too slow. Window closed.');
-  if (s.guesses[playerId] !== undefined) return fail('already-guessed', 'Guess is locked. No take-backs.');
+  if (s.guessEndsAt !== null && now >= s.guessEndsAt) return fail('too-late', "Time's up.");
+  if (s.guesses[playerId] !== undefined) return fail('already-guessed', 'Guess already locked.');
   s.guesses[playerId] = pick;
   return ok;
 }

@@ -7,6 +7,10 @@ import { makeRng, type Rng } from '../../src/shared/rng.js';
 import { isValidGuildId, parseClientMessage, type RoomUser, type ServerMessage } from '../../src/shared/protocol.js';
 import { LIVE_HEARTBEAT_MS, reportFor, reportKey, type LiveReport } from '../../src/shared/live.js';
 import type { Brag, FinishedScore } from '../../src/shared/scores.js';
+import type { SoloService } from '../../src/shared/solo.js';
+import { postMyth, refreshMythWeek, runDaily } from '../../src/shared/soloHost.js';
+import type { ActionResult } from '../../src/shared/room.js';
+import type { ClientMessage } from '../../src/shared/protocol.js';
 
 export interface HostStorage {
   get<T>(key: string): Promise<T | undefined>;
@@ -38,6 +42,8 @@ export interface HostDeps {
    * the host itself when the room has run a game to the end; never with anything a client sent.
    */
   postScores?: (guildId: string, results: FinishedScore[]) => Promise<Record<string, Brag>>;
+  /** Daily Grass storage and the solo boards (SCORES DO instances). Without it the solo games say so. */
+  solo?: SoloService;
 }
 
 /** If writing the board fails, try again on the alarm, a few times. Best-only makes a repeat harmless. */
@@ -115,9 +121,33 @@ export class RoomHost {
     }
   }
 
+  private guild(): string | null {
+    const g = this.room?.state.guildId;
+    return isValidGuildId(g) ? g : null;
+  }
+
+  /**
+   * Actions that need more than the room: Daily Grass (storage holds the answer) and a look at
+   * Myth or Math (refresh the week board). Returns null when the room handles it alone.
+   */
+  private async soloAction(room: Room, user: RoomUser, msg: ClientMessage, now: number): Promise<ActionResult | null> {
+    if (msg.t === 'daily.open' || msg.t === 'daily.guess') {
+      const g = room.gate(user.id, now);
+      if (!g.ok) return g;
+      return runDaily(room, this.deps.solo, user, msg, this.guild(), now);
+    }
+    if (msg.t === 'look' && msg.at === 'myth' && this.deps.solo) {
+      const r = room.handle(user.id, msg, now);
+      if (r.ok) await refreshMythWeek(room, this.deps.solo, this.guild(), now);
+      return r;
+    }
+    return null;
+  }
+
   private async save(): Promise<void> {
     if (!this.room) return;
     await this.postHighScores();
+    await postMyth(this.room, this.deps.solo, this.guild(), this.now());
     await this.deps.storage.put(STORAGE_KEY, this.room.state);
     await this.maybeReport();
     if (!this.deps.setWake) return;
@@ -215,7 +245,7 @@ export class RoomHost {
     }
     const before = room.state.version;
     if (!room.isMember(socket.user.id)) room.join(socket.user, now);
-    const r = room.handle(socket.user.id, msg, now);
+    const r = (await this.soloAction(room, socket.user, msg, now)) ?? room.handle(socket.user.id, msg, now);
     if (!r.ok) {
       this.sendTo(socket, { t: 'error', code: r.code, message: r.message });
       if (room.state.version !== before) {
@@ -279,7 +309,7 @@ export class RoomHost {
     const now = this.now();
     if (!room.isMember(user.id)) room.join(user, now);
     const before = room.state.version;
-    const r = room.handle(user.id, msg, now);
+    const r = (await this.soloAction(room, user, msg, now)) ?? room.handle(user.id, msg, now);
     if (!r.ok) {
       if (room.state.version !== before) {
         await this.save();

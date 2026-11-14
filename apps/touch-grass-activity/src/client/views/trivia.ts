@@ -3,7 +3,9 @@
 
 import { COPY } from '../copy.js';
 import type { RoomView } from '../../shared/protocol.js';
-import { avatarImg, esc, nameOf, userById } from './util.js';
+import { avatarImg, esc, medal, nameOf, placeOf, podium, userById } from './util.js';
+import { TRIVIA_ART } from '../art.js';
+import { inviteButton } from './invite.js';
 import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
 const KEYS = ['A', 'B', 'C', 'D'];
@@ -16,15 +18,16 @@ export function secondsLeft(endsAt: number | null, clockOffsetMs: number): numbe
 function board(view: RoomView, highlight: Record<string, number> = {}): string {
   const t = view.trivia;
   if (!t.scores.length) return '';
+  const all = t.scores.map((s) => s.score);
   return `<h3 class="eyebrow">${COPY.trivia.board}</h3><ol class="scores">${t.scores
     .map(
-      (s, i) => `<li class="score ${s.id === view.you ? 'score--me' : ''}">
-        <span class="score__rank">${i + 1}</span>
+      (s) => `<li class="score ${s.id === view.you ? 'score--me' : ''}${medal(placeOf(s.score, all), s.score)}">
+        <span class="score__rank">${placeOf(s.score, all)}</span>
         ${avatarImg(userById(view, s.id), 'avatar avatar--sm')}
         <span class="score__name">${esc(nameOf(view, s.id))}</span>
         ${s.away ? `<span class="tag tag--away">${COPY.away}</span>` : ''}
-        ${highlight[s.id] ? `<span class="tag tag--ok">+${highlight[s.id]}</span>` : ''}
-        <span class="score__pts">${s.score}</span>
+        ${highlight[s.id] ? `<span class="tag tag--ok tag--gain">+${highlight[s.id]}</span>` : ''}
+        <span class="score__pts" data-pts="${esc(s.id)}">${s.score}</span>
       </li>`,
     )
     .join('')}</ol>`;
@@ -62,12 +65,15 @@ export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: Scor
     const winners = winnerNames(view);
     const brag = bragLine(view);
     return `${header}
-      <section class="panel trivia-panel ${over ? 'panel--win' : ''}">
+      <section class="panel trivia-panel ${over ? 'panel--win' : 'trivia-idle'}">
+        ${over ? '' : `<div class="game-hero" aria-hidden="true">${TRIVIA_ART}</div>`}
         <h2 class="h2" data-trivia-winner>${over ? (winners.length ? esc(COPY.trivia.winner(winners)) : COPY.trivia.noWinner) : COPY.trivia.title}</h2>
         ${brag ? `<p class="brag ${t.me.brag && (t.me.brag.personalBest || t.me.brag.weekRank !== null) ? 'brag--hit' : ''}" data-brag>${esc(brag)}</p>` : ''}
         ${over ? '' : `<p class="lede">${COPY.trivia.idleBody}</p><p class="muted small">${COPY.trivia.scoring}</p>`}
+        ${over ? podium(view, t.scores) : ''}
         ${over ? board(view) : ''}
         <button class="btn btn--primary btn--big" data-act="trivia.start">${over ? COPY.trivia.again : COPY.trivia.start}</button>
+        ${inviteButton('btn--block')}
       </section>
       ${renderHighScores(scores, tab, view.you)}`;
   }
@@ -80,16 +86,16 @@ export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: Scor
     return `${header}
       <section class="panel trivia-panel">
         <div class="trivia-top"><span class="clock clock--sm" data-trivia-clock>${left}</span><span class="muted small">${COPY.trivia.lockedCount(t.answeredCount, t.playingCount)}</span></div>
-        <div class="prompt">${esc(q.text)}</div>
+        <div class="prompt fx fx-flip">${esc(q.text)}</div>
         <div class="choices">${q.choices
           .map(
             (c, i) =>
-              `<button class="choice ${mine === i ? 'choice--mine' : ''}" data-qid="${esc(q.id)}" data-choice="${i}" ${canAnswer ? '' : 'disabled'}><span class="choice__key">${KEYS[i]}</span>${esc(c)}</button>`,
+              `<button class="choice choice--k${i} fx fx-rise ${mine === i ? 'choice--mine' : ''}" style="--i:${i + 1}" data-qid="${esc(q.id)}" data-choice="${i}" ${canAnswer ? '' : 'disabled'}><span class="choice__key">${KEYS[i]}</span>${esc(c)}</button>`,
           )
           .join('')}</div>
         <p class="status">${!t.me.playing ? COPY.trivia.spectating : mine !== null ? COPY.trivia.locked : ''}</p>
       </section>
-      <aside class="panel">${board(view)}</aside>`;
+      <aside class="panel">${board(view)}${inviteButton('btn--block')}</aside>`;
   }
 
   // reveal
@@ -105,11 +111,11 @@ export function renderTrivia(view: RoomView, clockOffsetMs: number, scores: Scor
       <div class="choices">${r.choices
         .map(
           (c, i) =>
-            `<div class="choice ${i === r.correct ? 'choice--correct' : mineResult?.choice === i ? 'choice--wrong' : ''}"><span class="choice__key">${KEYS[i]}</span>${esc(c)}<span class="choice__count">${COPY.trivia.answers(r.counts[i] ?? 0)}</span></div>`,
+            `<div class="choice choice--k${i} ${i === r.correct ? 'choice--correct fx fx-reveal' : mineResult?.choice === i ? 'choice--wrong fx fx-nope' : ''}"><span class="choice__key">${KEYS[i]}</span>${esc(c)}<span class="choice__count">${COPY.trivia.answers(r.counts[i] ?? 0)}</span></div>`,
         )
         .join('')}</div>
-      <p class="status ${mineResult?.correct ? 'status--win' : ''}">${esc(verdict)}</p>
+      <p class="status ${mineResult?.correct ? 'status--win fx fx-pop' : ''}">${esc(verdict)}</p>
       <p class="muted small">${COPY.trivia.nextUp}</p>
     </section>
-    <aside class="panel">${board(view, gained)}</aside>`;
+    <aside class="panel">${board(view, gained)}${inviteButton('btn--block')}</aside>`;
 }
