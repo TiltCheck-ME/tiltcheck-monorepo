@@ -2,6 +2,13 @@
 
 # Session Log
 
+## 2026-11-13 — test(e2e): extension popup tests open the Pro settings tab first
+
+- "Anchor Devnet & Cooldown Smoke Test" has failed every run since 2026-11-09 at `tests/e2e/extension-e2e.spec.ts:107`: `#cooldown-wallet-sync-wrap` resolves but is hidden. Cause: the popup opens in Easy mode (f6f5f7ce), which hides the tab bar and the `panel-block` tab where the cooldown sync and auto-lock controls live. The spec was never updated; serial mode then skipped the rest of the suite.
+- A fresh profile also opens the first-run setup wizard over the popup. `openSettingsPanel(page)` marks onboarding done (`tiltcheck_onboarding_completed`), reloads, switches to Pro and opens the `block` tab; used by the three popup tests. No assertion removed.
+- The deep-link banner test still looked for the old Pages copy ("Critical Tilt Intervention…", "LEVEL 3+ TILT"); the Pages cooldown banner was reworded in ce4b55f6 ("Tilt check … Pick a length below"). Assertions now match it. All 6 extension-e2e tests pass locally (Chromium, built extension + `pnpm build:pages`).
+- E2E Tests (Playwright) in pr-test could not start: `PLAYWRIGHT_DEGENS_LOCAL` launched a Vite server for `@tiltcheck/degens-activity`, which was moved to `archive/apps/` in f2630fc7, so the webServer exited early. Its spec moved to `archive/apps/degens-activity/e2e/`, the env var and the webServer block removed.
+
 ## 2026-11-13 — ci: pnpm version comes from package.json only
 
 - "Deploy Hub to Cloudflare Workers" (run 43552635208, #731 push) failed at Set up pnpm: `pnpm/action-setup@v6` refuses to run when the workflow's `version:` (10.29.1) and root `packageManager` (pnpm@10.34.4) disagree. The hub deploy never got as far as Wrangler.

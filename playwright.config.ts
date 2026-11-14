@@ -1,9 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Playwright e2e test configuration for TiltCheck critical user paths.
 
 import { defineConfig, devices } from "@playwright/test";
 
-const degensLocal = process.env.PLAYWRIGHT_DEGENS_LOCAL === "1";
 const webLocal = process.env.PLAYWRIGHT_WEB_LOCAL === "1";
 const webLocalUrl = "http://127.0.0.1:3001";
 
@@ -28,16 +27,6 @@ if (webLocal) {
       SKIP_ENV_VALIDATION: "true",
       SKIP_DISCORD_LOGIN: "true",
     },
-  });
-}
-
-if (degensLocal) {
-  webServers.push({
-    command:
-      "pnpm --filter @tiltcheck/degens-activity exec vite --host 127.0.0.1 --port 5174 --strictPort",
-    url: "http://127.0.0.1:5174",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
   });
 }
 
