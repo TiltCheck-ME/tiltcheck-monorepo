@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 
 /**
  * Session Net PnL Mini-Sparkline & Velocity Radar
@@ -102,7 +102,7 @@ export function determineVelocityStatus(
       status: 'BLEED',
       label: 'BLEED',
       color: '#f97316',
-      reason: `Accelerating drawdown: -$${Math.abs(velocityPerMin).toFixed(2)}/min. Protect bankroll.`,
+      reason: `Accelerating drawdown: -$${Math.abs(velocityPerMin).toFixed(2)}/min. Consider stopping.`,
     };
   }
   if (velocityPerMin <= -0.5) {

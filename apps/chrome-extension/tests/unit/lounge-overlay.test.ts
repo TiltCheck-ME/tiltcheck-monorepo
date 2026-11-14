@@ -1,9 +1,15 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 /**
  * @vitest-environment jsdom
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { installLoungeOverlay } from '../../src/lounge-overlay.js';
+
+// The lounge is off until it has a backend. Turn it on here so the panel stays tested.
+vi.mock('../../src/config.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/config.ts')>()),
+  isBackendFeatureEnabled: () => true,
+}));
 
 function stubChromeStorage(data: Record<string, unknown> = {}) {
   (globalThis as unknown as { chrome: unknown }).chrome = {

@@ -174,7 +174,7 @@ export function recordSpinOutcome(
     alertMessage = `Gambler's Fallacy Trap: ${consecutiveDeadSpins} dead spins and stake raised. The next spin is NOT "due". Volatility has no memory. Step back.`;
   } else if (consecutiveDeadSpins >= DEAD_SPIN_CRITICAL_THRESHOLD) {
     streakAlertLevel = 'CRITICAL_COLD';
-    alertMessage = `Extreme Cold Run: ${consecutiveDeadSpins} dead spins without a payout. Outlier volatility active. Protect bankroll.`;
+    alertMessage = `Extreme Cold Run: ${consecutiveDeadSpins} dead spins without a payout. Outlier volatility active. Consider stopping.`;
   } else if (consecutiveDeadSpins >= DEAD_SPIN_WARN_THRESHOLD) {
     streakAlertLevel = 'WARN_COLD';
     alertMessage = `Cold Streak: ${consecutiveDeadSpins} consecutive dead spins. Hit rate down to ${hitRate}%. Do not chase.`;

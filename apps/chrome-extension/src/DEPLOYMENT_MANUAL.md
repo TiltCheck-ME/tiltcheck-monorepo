@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS users (
     *   `DISCORD_CLIENT_ID` & `DISCORD_CLIENT_SECRET`: (From Discord Developer Portal)
     *   `SOLANA_RPC_URL`: (Your RPC provider URL)
     *   `PORT`: `8080` (or your preferred port)
-4.  Deploy. Note the **Public URL** provided by Railway (e.g., `https://api.tiltcheck.railway.app`).
+4.  Deploy. Note the **Public URL** provided by Railway.
 
 ### Step 3: Frontend/PWA Deployment (Vercel)
 1.  Connect your GitHub repo to Vercel.
