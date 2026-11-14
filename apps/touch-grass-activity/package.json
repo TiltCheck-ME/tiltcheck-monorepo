@@ -1,10 +1,10 @@
 {
-  "_comment": "\u00a9 2024\u20132026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12",
+  "_comment": "\u00a9 2024\u20132026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13",
   "name": "@tiltcheck/touch-grass-activity",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Touch Grass Discord Activity: lobby, Degens Against Decency, group trivia, Bluff (two truths and a lie), solo Daily Grass and Myth or Math. Test deploy on Cloudflare.",
+  "description": "Touch Grass Discord Activity: lobby, Degens Against Decency, group trivia, Bluff (two truths and a lie), solo Daily Grass and Myth or Math, 1v1 Chess. Test deploy on Cloudflare.",
   "scripts": {
     "dev": "vite",
     "dev:worker": "wrangler dev --config worker/wrangler.toml",

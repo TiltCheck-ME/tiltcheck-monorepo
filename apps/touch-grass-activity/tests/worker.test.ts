@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Runs the real worker + Durable Object locally in workerd (wrangler unstable_dev / Miniflare).
 // Local only: nothing is deployed. Skips itself if workerd can't start in this environment.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -442,5 +442,37 @@ describe('worker (local workerd)', () => {
     a.ws.close();
     b.ws.close();
   }, 60_000);
-});
 
+  it("chess over WebSockets: two claim sides, a third watches, fool's mate, state survives a reconnect", async () => {
+    if (!worker) return;
+    const room = `i-chess-${Date.now()}`;
+    const guild = `78${Date.now()}`;
+    const ps = await Promise.all([open('wes', room, guild), open('bea', room, guild), open('sam', room, guild)]);
+    const [w, b, s] = ps as [Awaited<ReturnType<typeof open>>, Awaited<ReturnType<typeof open>>, Awaited<ReturnType<typeof open>>];
+    await until(() => w.msgs.some((m) => m.t === 'state' && m.view.members.length === 3));
+    w.ws.send('{"t":"chess.claim","color":"w"}');
+    b.ws.send('{"t":"chess.claim","color":"b"}');
+    await until(() => Boolean(s.last().chess.white && s.last().chess.black));
+    b.ws.send('{"t":"chess.start"}');
+    await until(() => ps.every((p) => p.last().chess.phase === 'playing'));
+    // Only White is told its legal moves; the spectator gets none and its move is refused.
+    expect(Object.keys(w.last().chess.me.legal)).toHaveLength(10);
+    expect(b.last().chess.me.legal).toEqual({});
+    s.ws.send('{"t":"chess.move","ply":0,"from":12,"to":28}');
+    await until(() => s.msgs.some((m) => m.t === 'error' && m.code === 'not-seated'));
+    const moves: Array<[typeof w, number, number]> = [[w, 13, 21], [b, 52, 36], [w, 14, 30], [b, 59, 31]];
+    for (const [i, [p, from, to]] of moves.entries()) {
+      p.ws.send(JSON.stringify({ t: 'chess.move', ply: i, from, to }));
+      await until(() => s.last().chess.ply === i + 1);
+    }
+    await until(() => s.last().chess.phase === 'over');
+    expect(s.last().chess.result).toEqual({ winner: 'b', reason: 'checkmate' });
+    expect(s.last().chess.moves).toEqual(['f3', 'e5', 'g4', 'Qh4#']);
+    // Reconnect: the finished board comes back from the Durable Object.
+    s.ws.close();
+    const again = await open('sam', room, guild);
+    await until(() => again.msgs.some((m) => m.t === 'state'));
+    expect(again.last().chess.moves).toHaveLength(4);
+    for (const p of [w, b, again]) p.ws.close();
+  }, 60_000);
+});

@@ -1,12 +1,13 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Lobby: a compact header (Touch Grass eyebrow, TiltCheck title, who's here, Scores and Invite), then
 // a flat list of game rows: three table games (DA&D, Trivia, Bluff) with seated/playing counts and two
-// solo games (Daily Grass, Myth or Math). High scores open in a sheet from the header.
+// solo games (Daily Grass, Myth or Math), then Chess (1v1, the room watches). Trivia high scores open in a
+// sheet from the header.
 
 import { COPY } from '../copy.js';
 import type { RoomUser, RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc } from './util.js';
-import { BLUFF_ART, DAILY_ART, FLAG_SVG, MYTH_ART, TRIVIA_ART, dadLogoUrl } from '../art.js';
+import { BLUFF_ART, CHESS_ART, DAILY_ART, FLAG_SVG, MYTH_ART, TRIVIA_ART, dadLogoUrl } from '../art.js';
 import { inviteButton } from './invite.js';
 import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
@@ -28,6 +29,7 @@ export function renderScoresSheet(scores: ScoresResult | null, tab: ScoresTab, y
     <div class="sheet__backdrop" data-scores-close></div>
     <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="scores-title">
       <div class="sheet__head"><h2 class="sheet__title" id="scores-title">${COPY.highScores.title}</h2><button type="button" class="btn btn--sm btn--ghost" data-scores-close>${COPY.close}</button></div>
+      <p class="muted small sheet__scope">${COPY.highScores.scope}</p>
       ${renderHighScores(scores, tab, you)}
     </div>
   </div>`;
@@ -40,10 +42,12 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
   const triviaLive = Boolean(view && (view.trivia.phase === 'question' || view.trivia.phase === 'reveal'));
   const bluffSeated = view?.bluff.seats.length ?? 0;
   const bluffLive = Boolean(view && ['writing', 'guessing', 'reveal'].includes(view.bluff.phase));
+  const chessSeated = view ? Number(Boolean(view.chess.white)) + Number(Boolean(view.chess.black)) : 0;
+  const chessLive = view?.chess.phase === 'playing';
   const badge = (game: string, n: number, word: string, live: boolean, extra: string) =>
     `<span class="badge ${live ? 'badge--live' : ''}" data-count="${game}">${n} ${word}${live ? extra : ''}</span>`;
   const soloBadge = (game: 'daily' | 'myth', n: number) => `<span class="badge" data-count="${game}">${esc(COPY.solo(n))}</span>`;
-  const tile = (game: 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth', art: string, badgeHtml: string) =>
+  const tile = (game: 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess', art: string, badgeHtml: string) =>
     `<button class="tile tile--${game}" data-go="${game}">
         <span class="tile__art">${art}</span>
         <span class="tile__body">
@@ -66,7 +70,7 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
           <p class="lede">${esc(COPY.lobbyLede)}</p>
         </div>
         <div class="lobby-head__actions">
-          <button type="button" class="btn btn--sm" data-scores-open aria-haspopup="dialog">${COPY.scores}</button>
+          <button type="button" class="btn btn--sm" data-scores-open aria-haspopup="dialog" aria-label="${esc(COPY.highScores.title)}">${COPY.scores}</button>
           ${inviteButton()}
         </div>
       </div>
@@ -78,6 +82,7 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
       ${tile('bluff', BLUFF_ART, badge('bluff', bluffSeated, 'seated', bluffLive, ` · T${view?.bluff.round}`))}
       ${tile('daily', DAILY_ART, soloBadge('daily', view?.daily.playingCount ?? 0))}
       ${tile('myth', MYTH_ART, soloBadge('myth', view?.myth.playingCount ?? 0))}
+      ${tile('chess', CHESS_ART, badge('chess', chessSeated, 'seated', chessLive, ` · M${Math.floor((view?.chess.ply ?? 0) / 2) + 1}`))}
     </section>
     ${scoresOpen ? renderScoresSheet(scores, tab, view?.you ?? '') : ''}`;
 }

@@ -1,10 +1,10 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
 
 # Touch Grass Activity (DRAFT, test deploy live)
 
 A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
-- **Lobby**: compact header with a small "Touch Grass" eyebrow over the title "TiltCheck" ("Get distracted on purpose.", flag mark), a **Scores** button (opens the trivia high scores, This week / All time, in a sheet) and an **Invite friends** button (Discord's own invite dialog), and who's here inline (small avatars, "away" badge). Below it a flat list of game rows: three table games (DA&D, Trivia, Bluff) with "N seated" / "N playing" text, and two solo games (Daily Grass, Myth or Math) marked "Solo". Flat look: solid surfaces, 1px borders, ~42 px icons, the game's accent only as a left border and icon tint; no gradients, glows or looping motion (only fades and presses of 150 ms or less; none at all with reduced motion).
+- **Lobby**: compact header with a small "Touch Grass" eyebrow over the title "TiltCheck" ("Get distracted on purpose.", flag mark), a **Scores** button (opens the trivia high scores, This week / All time, in a sheet titled "Trivia high scores" with a line saying it is trivia only) and an **Invite friends** button (Discord's own invite dialog), and who's here inline (small avatars, "away" badge). Below it a flat list of game rows: three table games (DA&D, Trivia, Bluff) with "N seated" / "N playing" text, two solo games (Daily Grass, Myth or Math) marked "Solo", and Chess ("N seated"). Flat look: solid surfaces, 1px borders, ~42 px icons, the game's accent only as a left border and icon tint; no gradients, glows or looping motion (only fades and presses of 150 ms or less; none at all with reduced motion).
 - **Degens Against Decency (DA&D)**: 3 to 8 players, rotating judge (the judge gets no hand on screen and no top-up while judging; their cards wait server side for the next round), 7-card hands, anonymous shuffled answers, first to N points (default 5). Points are bragging rights only.
 - **Trivia**: self-running, no host. Anyone taps Start; 10 questions, 4 choices, 15 s answer window, 4 s reveal, scoreboard after each question and at the end. 100 points for a right answer plus up to 50 for speed. Late joiners spectate one question and are dealt in at the next. Bank of 116 hand-checked questions (33 from the shared arena bank, 11 from the trivia.live starter set, 72 new) (`src/shared/triviaBank.ts`), drawn without repeats per instance. No AI at runtime.
 
@@ -12,6 +12,8 @@ A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
 - **Daily Grass** (solo): a daily 5-letter word, 6 guesses, green / yellow / gray tiles, on-screen and physical keyboard. Same word for everyone; the day turns at midnight America/Chicago. The worker holds the answer and sends back tile colors per guess; the answer only reaches a player once their own game is over. Stats per Discord user (played, wins, current / best streak, guess spread). "Today's solvers" per server (fewest guesses, then fastest from opening the board; DMs: "No server, no board"). Friends in the room see rows used and solved / out, never letters. "Copy result" puts a spoiler-free emoji grid on the clipboard; nothing is posted.
 - **Myth or Math** (solo): 10 true/false cards, 8 seconds each, a one-line why after every card. 100 per right call plus up to 50 for speed. Every run is 5 gambling cards (myths and real odds: 64 in `src/shared/mythBank.ts`) and 5 general ones (everyday myths, body and science, probability and maths, misconceptions: 60 in `src/shared/mythGeneral.ts`, each with a source note), shuffled together, no repeats. Per-server weekly board (Monday 00:00 Central), its own board.
+
+- **Chess** (1v1): two people claim White and Black from the Chess screen; everyone else in the room watches the same board. Either player starts once both sides are taken; Rematch swaps colors. Full rules in `src/shared/chessRules.ts` (check, checkmate, stalemate, castling, en passant, promotion with a Q/R/B/N pick, threefold repetition, 50-move rule, dead positions), written here rather than pulling in chess.js (BSD-2-Clause, not MIT) and checked against the standard perft counts. Tap a piece, then a lit square; 48 px squares on a 390 px phone (the board runs nearly edge to edge), about 44 px on a 360 px one. Resign (two taps) and Offer draw (the other player accepts or declines; their move declines it). Clock off by default; a player can pick 5, 10 or 15 minutes each before the game (no increment, starts after White's first move, a flag against a bare king is a draw). A player who drops keeps the seat for the room's away grace; really leaving mid-game loses it. No scores or board for chess. Guest mode: a bot takes the open side once you claim one.
 
 The group break timer was removed on 2026-11-12 (Jamie's call after testing it on iPhone).
 
@@ -47,6 +49,7 @@ apps/touch-grass-activity/
     daily.ts                      Daily Grass: tile colors, salted daily pick, boards + stats, Today's solvers
     dailyWords.ts / dailyDictionary.ts  answers and valid-guess dictionary (server and tests only)
     myth.ts / mythBank.ts         Myth or Math runs and the gambling cards (bank: server and tests only)
+    chess.ts / chessRules.ts      Chess table (seats, turns, resign/draw, clock) and the rules engine
     mythGeneral.ts                Myth or Math general cards (server and tests only; no money-words exception)
     solo.ts / soloHost.ts         solo storage interface (SCORES DO or in-memory) and the async glue
     deck.ts                       original TiltCheck cards (no AI generation)
