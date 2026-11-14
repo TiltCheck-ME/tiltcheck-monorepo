@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // All player-facing copy. Voice: short, blunt, degen. You run your own session.
 // No money mechanics, no rewards, no crisis copy in the main UI (tests/no-money.test.ts checks this file).
 
@@ -172,6 +172,13 @@ export const COPY = {
     guessesLabel: (n: number) => (n === 1 ? '1 guess' : `${n} guesses`),
     tile: { g: 'right spot', y: 'wrong spot', b: 'not in the word' } as Record<'g' | 'y' | 'b', string>,
     practice: 'Guest practice word. The real puzzle lives inside Discord.',
+    hint: 'Hint',
+    hintAria: "Use today's hint: shows one letter in its spot",
+    hintLocked: 'Hint unlocks after 3 guesses.',
+    hintReady: 'Stuck? One letter, its spot, once a day.',
+    hintShown: (pos: number, letter: string) => `Hint: spot ${pos} is ${letter.toUpperCase()}.`,
+    hintMarker: (pos: number, letter: string) => `Hint, spot ${pos}: ${letter.toUpperCase()}`,
+    hintedSolve: 'used a hint',
   },
   myth: {
     title: 'Myth or Math',

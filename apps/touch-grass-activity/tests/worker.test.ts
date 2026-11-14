@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // Runs the real worker + Durable Object locally in workerd (wrangler unstable_dev / Miniflare).
 // Local only: nothing is deployed. Skips itself if workerd can't start in this environment.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -411,6 +411,10 @@ describe('worker (local workerd)', () => {
     expect(row.colors).toHaveLength(5);
     a.ws.send('{"t":"daily.guess","word":"qzxjv"}');
     await until(() => a.msgs.some((m) => m.t === 'error' && m.code === 'not-a-word'));
+    // The hint route reaches the per-player SCORES instance: locked after one guess.
+    a.ws.send('{"t":"daily.hint"}');
+    await until(() => a.msgs.some((m) => m.t === 'error' && m.code === 'hint-locked'));
+    expect(a.last().daily.me?.hint ?? null).toBeNull();
     // Bo sees Ana's progress but never her letters.
     await until(() => b.last().daily.friends.length === 1);
     expect(b.last().daily.friends[0]).toMatchObject({ rows: 1, status: 'playing' });

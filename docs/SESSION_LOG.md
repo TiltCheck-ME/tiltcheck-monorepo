@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-14 — feat(activity): Daily Grass hint
+
+- Branch `daily-grass-hint` off main 01304301. Draft PR. Not deployed, not merged; no Discord command registrations touched.
+- One hint per player per Chicago day. The Hint button is disabled ("Hint unlocks after 3 guesses.") until the 3rd guess. The worker reveals one letter in its spot: the leftmost spot not already green in any of that player's rows (nothing to show = refused, hint not spent). New action `daily.hint`, SCORES route `POST /daily/hint` on the per-player instance; the hint is stored on that day's board (optional `hint` field, old boards load as-is). Answer still only leaves the server once the game is over.
+- UI: marker over the hinted column, ring on its key, "Hint: spot N is X." line. Today's solvers show a 💡 next to hinted solvers (`hint: true` on the solver row, flag only); "Copy result" adds 💡 to its first line. Friends' view unchanged (rows used, solved / out). Hinted solves count for stats and streaks. Guest mode runs the same code on the guest words. Checked at 360 px in guest mode (headless Chromium).
+- Storage: existing `SCORES` class and keys, no new class, no migration (tag stays v3).
+- Tests: 352 pass in 30 files (was 337): new `tests/daily-hint.test.ts` (11), `tests/daily-hint-guest.test.ts` (1), 3 new cases in `tests/solo-ui.test.ts`, hint checks in `tests/client-dom.test.ts` and `tests/worker.test.ts` (real workerd: `daily.hint` -> `hint-locked`).
+- Not tested: inside the real Discord client (desktop, iOS, Android).
+
 ## 2026-11-14 — deploy(activity): Touch Grass Hot Takes + Story Chain go live
 
 - Jamie approved. #741 squash-merged to main as 93694276; deployed from main at that commit to the same hosts: Worker `touch-grass-activity` (https://touch-grass-activity.j-chapman7.workers.dev) and Pages project `touch-grass-activity` (https://touch-grass-activity.pages.dev).

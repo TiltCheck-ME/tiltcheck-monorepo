@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // One room per Discord Activity instance: who is here, the DA&D table, the trivia game and Bluff.
 // Runs inside the Durable Object (authoritative) and inside the guest/dev room in the browser.
 
@@ -453,6 +453,7 @@ export class Room {
         break;
       case 'daily.open':
       case 'daily.guess':
+      case 'daily.hint':
         // The host runs these (they need storage); reaching here means no solo service is wired.
         return { ok: false, code: 'not-configured', message: 'Daily Grass is not set up here.' };
       case 'leave':
@@ -553,7 +554,9 @@ export class Room {
     const rank = this.solo.ranks[userId];
     return {
       today,
-      me: mine ? { ...mine, rows: mine.rows.map((r) => ({ word: r.word, colors: [...r.colors] })), stats: { ...mine.stats, dist: [...mine.stats.dist] } } : null,
+      me: mine
+        ? { ...mine, rows: mine.rows.map((r) => ({ word: r.word, colors: [...r.colors] })), hint: mine.hint ? { ...mine.hint } : null, stats: { ...mine.stats, dist: [...mine.stats.dist] } }
+        : null,
       friends: Object.entries(boards)
         .filter(([id, b]) => id !== userId && this.state.members[id] && b.day === today)
         .map(([id, b]) => ({ id, rows: b.rows.length, status: b.status, away: away(id) })),

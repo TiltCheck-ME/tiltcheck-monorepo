@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // @vitest-environment jsdom
 // Solo games and the invite button in the DOM: lobby tiles and pills, Daily Grass board and keyboard
 // labels, Myth or Math screens, and "Invite friends" calling the Discord SDK.
@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Room, createRoomState } from '../src/shared/room.js';
 import { makeRng } from '../src/shared/rng.js';
 import { renderLobby } from '../src/client/views/lobby.js';
-import { keyColors, renderDaily } from '../src/client/views/daily.js';
+import { dailyShare, keyColors, renderDaily } from '../src/client/views/daily.js';
 import { renderMyth } from '../src/client/views/myth.js';
 import { renderDad } from '../src/client/views/dad.js';
 import { renderBluff, emptyDraft } from '../src/client/views/bluff.js';
@@ -41,6 +41,7 @@ const board = (over: Partial<DailyPublic> = {}): DailyPublic => ({
   answer: null,
   startedAt: NOW,
   finishedAt: null,
+  hint: null,
   stats: { played: 0, wins: 0, current: 0, best: 0, dist: [0, 0, 0, 0, 0, 0], lastWinDay: null, lastPlayedDay: null },
   ...over,
 });
@@ -100,6 +101,79 @@ describe('Daily Grass view', () => {
     expect(el.querySelector('[data-dg-stats]')).not.toBeNull();
     expect(el.querySelector('[data-dg-share]')).not.toBeNull();
     expect(el.querySelector('[data-dg-key]')).toBeNull();
+  });
+});
+
+describe('Daily Grass view: hint', () => {
+  it('before the 3rd guess the Hint button is disabled with the unlock line', () => {
+    const r = room();
+    r.setDaily(ME, board());
+    const el = html(renderDaily(r.viewFor(ME, NOW), '', false));
+    const btn = el.querySelector<HTMLButtonElement>('[data-dg-hint]')!;
+    expect(btn.disabled).toBe(true);
+    expect(el.querySelector('[data-dg-hintbar]')!.textContent).toContain(COPY.daily.hintLocked);
+    expect(el.querySelector('[data-dg-marks]')).toBeNull();
+  });
+
+  it('after 3 guesses it is live; once used, a marker sits over its column, its key gets a ring, the button is gone', () => {
+    const rows = [
+      { word: 'crane', colors: ['b', 'y', 'g', 'b', 'b'] as Tile[] },
+      { word: 'pilot', colors: ['b', 'b', 'b', 'b', 'b'] as Tile[] },
+      { word: 'dumpy', colors: ['b', 'b', 'b', 'b', 'b'] as Tile[] },
+    ];
+    const r = room();
+    r.setDaily(ME, board({ rows }));
+    const ready = html(renderDaily(r.viewFor(ME, NOW), '', false));
+    expect(ready.querySelector<HTMLButtonElement>('[data-dg-hint]')!.disabled).toBe(false);
+    expect(ready.querySelector('[data-dg-hintbar]')!.textContent).toContain(COPY.daily.hintReady);
+
+    r.setDaily(ME, board({ rows, hint: { pos: 0, letter: 'h' } }));
+    const used = html(renderDaily(r.viewFor(ME, NOW), '', false));
+    expect(used.querySelector('[data-dg-hint]')).toBeNull();
+    const marks = used.querySelectorAll('[data-dg-marks] .dg-mark');
+    expect(marks).toHaveLength(5);
+    expect(used.querySelector('[data-dg-mark="0"]')!.textContent).toBe('H');
+    expect(used.querySelector('[data-dg-mark="0"]')!.getAttribute('aria-label')).toBe('Hint, spot 1: H');
+    expect([...marks].slice(1).every((m) => m.textContent === '')).toBe(true);
+    expect(used.querySelector('[data-dg-key="h"]')!.className).toContain('dg-key--hint');
+    expect(used.querySelector('[data-dg-key="h"]')!.getAttribute('aria-label')).toBe('H, Hint');
+    expect(used.querySelector('[data-dg-hint-used]')!.textContent).toContain('Hint: spot 1 is H.');
+    // The board still has six guess rows under the marker.
+    expect(used.querySelectorAll('[data-dg-row]')).toHaveLength(6);
+  });
+
+  it("Today's solvers show a bulb for hinted solves, no letter; Copy result adds the bulb", () => {
+    const r = room();
+    r.setSolvers({
+      day: '2026-11-12',
+      rows: [
+        { id: BO, name: 'Bo', avatar: null, guesses: 3, ms: 60_000, at: NOW },
+        { id: ME, name: 'Jme', avatar: null, guesses: 4, ms: 90_000, at: NOW, hint: true },
+      ],
+    });
+    r.setDaily(
+      ME,
+      board({
+        rows: [
+          { word: 'crane', colors: ['b', 'b', 'b', 'b', 'b'] },
+          { word: 'pilot', colors: ['b', 'b', 'b', 'b', 'b'] },
+          { word: 'dumpy', colors: ['b', 'b', 'b', 'b', 'b'] },
+          { word: 'shush', colors: ['g', 'g', 'g', 'g', 'g'] },
+        ],
+        status: 'won',
+        finishedAt: NOW,
+        hint: { pos: 0, letter: 's' },
+      }),
+    );
+    const v = r.viewFor(ME, NOW);
+    const el = html(renderDaily(v, '', false));
+    expect(el.querySelector(`[data-dg-solver="${BO}"] [data-dg-hinted]`)).toBeNull();
+    const mine = el.querySelector(`[data-dg-solver="${ME}"] [data-dg-hinted]`)!;
+    expect(mine.getAttribute('aria-label')).toBe(COPY.daily.hintedSolve);
+    expect(el.querySelector('[data-dg-solvers]')!.textContent).not.toMatch(/\bS\b/);
+    const text = dailyShare(v)!;
+    expect(text.split('\n')[0]).toMatch(/4\/6 \u{1F4A1}$/u);
+    expect(text).not.toMatch(/shush|crane/i);
   });
 });
 

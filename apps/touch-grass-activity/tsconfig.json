@@ -28,6 +28,7 @@
     "tests/look.test.ts",
     "tests/solo-ui.test.ts",
     "tests/chess-ui.test.ts",
-    "tests/social-ui.test.ts"
+    "tests/social-ui.test.ts",
+    "tests/daily-hint-guest.test.ts"
   ]
 }

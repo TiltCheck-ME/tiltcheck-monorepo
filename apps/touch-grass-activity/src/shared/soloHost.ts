@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // The async half of the solo games, shared by the worker's RoomHost and the guest-mode transport.
 // Daily Grass guesses go to storage (the answer never sits in the room); finished Myth or Math runs
 // go on the server's week board. Boards are server-run only: a game with no server (DM, group DM)
@@ -9,7 +9,7 @@ import type { RoomUser } from './protocol.js';
 import type { SoloService } from './solo.js';
 import { weekStartFor } from './scores.js';
 
-export type SoloAction = { t: 'daily.open' } | { t: 'daily.guess'; word: string };
+export type SoloAction = { t: 'daily.open' } | { t: 'daily.guess'; word: string } | { t: 'daily.hint' };
 
 const unavailable: ActionResult = { ok: false, code: 'solo-unavailable', message: "Couldn't reach the puzzle. Try again." };
 
@@ -38,7 +38,7 @@ export async function runDaily(room: Room, solo: SoloService | undefined, user: 
   if (!solo) return { ok: false, code: 'not-configured', message: 'Daily Grass is not set up here.' };
   let r;
   try {
-    r = action.t === 'daily.open' ? await solo.dailyOpen(user, now) : await solo.dailyGuess(user, action.word, now);
+    r = action.t === 'daily.open' ? await solo.dailyOpen(user, now) : action.t === 'daily.hint' ? await solo.dailyHint(user, now) : await solo.dailyGuess(user, action.word, now);
   } catch {
     return unavailable;
   }
@@ -56,6 +56,7 @@ export async function runDaily(room: Room, solo: SoloService | undefined, user: 
           guesses: r.record.rows.length,
           ms: Math.max(0, (r.record.finishedAt ?? now) - r.record.startedAt),
           at: now,
+          ...(r.record.hint ? { hint: true } : {}),
         },
         now,
       );
