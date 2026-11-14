@@ -1326,7 +1326,7 @@ function buildDashboardPage() {
   const depth = 'docs';
   // Each card points at the tool's real controls, not its explainer page.
   // Web tools: deep link to the form on the tool page. Extension tools: the
-  // settings live in the extension popup (gear icon opens Guards), which a web
+  // settings live in the extension popup (gear icon opens Settings), which a web
   // link can't open, so those cards say where to look and carry no link.
   const webTools = [
     { name: 'TimeCheck', href: dirHref(depth, 'gate') + '#timecheck-setup-card', body: 'Pick your site, session timer and stop-loss.' },
@@ -1334,11 +1334,11 @@ function buildDashboardPage() {
     { name: 'Fairness Verifier', href: dirHref(depth, 'tools/verify') + '#verify-seeds', body: 'Paste the seeds and nonce. Check the bet yourself.' },
   ];
   const extensionTools = [
-    { id: 'clickcheck', name: 'ClickCheck', body: 'Guards: switch the 2-second spin pause on or off.' },
-    { id: 'nope-list', name: 'Nope List', body: 'Guards: pick the game types and titles that stop clicking.' },
-    { id: 'sneaky-bet-alert', name: 'Sneaky Bet Alert', body: 'Guards: switch it on and set the stake that counts as sneaky.' },
-    { id: 'keep-the-win', name: 'Keep the Win', body: 'Guards: switch the cancel-withdrawal blocker on or off.' },
-    { id: 'win-skim', name: 'Win Skim', body: 'Guards: pick how much of a win to keep. Skim rules sit in the Vault tab.' },
+    { id: 'clickcheck', name: 'ClickCheck', body: 'Settings tab: switch the 2-second spin pause on or off.' },
+    { id: 'nope-list', name: 'Nope List', body: 'Settings tab: pick the game types and titles that stop clicking.' },
+    { id: 'sneaky-bet-alert', name: 'Sneaky Bet Alert', body: 'Settings tab: switch it on and set the stake that counts as sneaky.' },
+    { id: 'keep-the-win', name: 'Keep the Win', body: 'Settings tab: switch the cancel-withdrawal blocker on or off.' },
+    { id: 'win-skim', name: 'Win Skim', body: 'Settings tab: pick how much of a win to keep.' },
   ];
   const webCards = webTools
     .map((t) => `<a class="dash-card dash-card--link" href="${t.href}">
@@ -1366,7 +1366,7 @@ function buildDashboardPage() {
     </div>
 
     <h2 class="dash-heading" id="in-the-extension">Set in the extension</h2>
-    <p class="dash-note">Open the TiltCheck extension and tap the gear. That opens Guards.</p>
+    <p class="dash-note">Open the TiltCheck extension and tap the gear. That opens Settings.</p>
     <div class="dash-grid">
       ${extCards}
       <div class="dash-card dash-card--soon" id="nudges">
