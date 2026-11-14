@@ -2093,7 +2093,7 @@
 
   <!-- Main status (shown when logged in) -->
   <div id="status-content">
-    <div class="tilt-block">
+    <div class="tilt-block" id="tilt-block">
       <div class="tilt-row">
         <span class="tilt-label">Tilt Meter</span>
         <div id="tilt-gauge" class="tilt-gauge tilt-ice">ICE COLD (0/10)</div>
@@ -2104,7 +2104,7 @@
     </div>
 
     <div class="stat-grid">
-      <div class="stat-cell">
+      <div class="stat-cell" id="stat-cell-pl">
         <div class="stat-label">P/L Today</div>
         <div id="stat-pl" class="stat-value stat-neu">--</div>
       </div>
@@ -2112,7 +2112,7 @@
         <div class="stat-label">Session</div>
         <div id="stat-session" class="stat-value stat-neu">--</div>
       </div>
-      <div class="stat-cell">
+      <div class="stat-cell" id="stat-cell-blocked">
         <div class="stat-label">Blocked Games</div>
         <div id="stat-blocked" class="stat-value stat-neu">--</div>
       </div>
@@ -2424,6 +2424,9 @@
 
   <hr />
 
+  <p id="server-exclusions-off" style="display:none; margin-bottom:12px; font-size:11px; color:var(--muted);">Synced exclusions are not available yet. The filters above work in this browser without an account.</p>
+
+  <div id="server-exclusions">
   <div class="section-head">
     <span class="section-title">Dashboard sync (Discord)</span>
     <button class="btn btn-ghost" id="btn-add-toggle" style="padding:5px 10px; font-size:11px">
@@ -2444,17 +2447,21 @@
   <div id="exclusion-loading" style="display:none; text-align:center; padding:24px 0;">
     <div class="spinner" style="margin:0 auto;"></div>
   </div>
+  </div>
 
 </div>
 
 <!-- ===== VAULT PANEL ===== -->
 <div id="panel-vault" class="panel">
 
-  <div class="vault-stat-row">
+  <div class="vault-stat-row" id="vault-stat-row">
     <span class="vault-stat-label">Auto-vaulted this session</span>
     <span class="vault-stat-value" id="vault-session-total">$0.00</span>
   </div>
 
+  <p id="vault-rules-off" style="display:none; margin-bottom:12px; font-size:11px; color:var(--muted);">Vault rules are not available yet.</p>
+
+  <div id="vault-rules-section">
   <div class="section-head">
     <span class="section-title">Vault Snapshot</span>
     <button class="btn btn-ghost" id="btn-vault-add-toggle" style="padding:5px 10px; font-size:11px">
@@ -2472,6 +2479,7 @@
 
   <div id="vault-loading" style="display:none; text-align:center; padding:24px 0;">
     <div class="spinner" style="margin:0 auto;"></div>
+  </div>
   </div>
 
 </div>

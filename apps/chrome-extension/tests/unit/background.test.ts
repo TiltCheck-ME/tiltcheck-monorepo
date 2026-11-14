@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-05 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RuntimeListener = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;
@@ -12,6 +12,7 @@ function setupChromeMock() {
   const alarmListeners: Array<(alarm: { name: string }) => void> = [];
   const storageListeners: Array<(changes: any, area: string) => void> = [];
   const storageData: Record<string, any> = {};
+  const navigateListeners: Array<(details: any) => void> = [];
 
   const chromeMock = {
     runtime: {
@@ -39,7 +40,7 @@ function setupChromeMock() {
     },
     webNavigation: {
       onBeforeNavigate: {
-        addListener: vi.fn(),
+        addListener: vi.fn((listener: (details: any) => void) => navigateListeners.push(listener)),
       },
     },
     alarms: {
@@ -69,7 +70,7 @@ function setupChromeMock() {
   };
 
   (globalThis as any).chrome = chromeMock;
-  return { chromeMock, runtimeListeners, actionListeners, installListeners, alarmListeners, storageListeners, storageData, tabUpdatedListeners };
+  return { chromeMock, runtimeListeners, actionListeners, installListeners, alarmListeners, storageListeners, storageData, tabUpdatedListeners, navigateListeners };
 }
 
 describe('background service worker', () => {
@@ -327,5 +328,68 @@ describe('background service worker', () => {
       avatar: "https://cdn.discordapp.com/avatars/123456789012345678/abcdef123456.png",
     });
     expect(storageData["tiltguard_user_id"]).toBe("123456789012345678");
+  });
+
+  it('trades the Discord token for a worker session after sign-in', async () => {
+    const { storageData, tabUpdatedListeners } = setupChromeMock();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === 'https://discord.com/api/v10/users/@me') {
+        return { ok: true, json: async () => ({ id: '123456789012345678', username: 'degen', avatar: null }) };
+      }
+      if (url === 'https://collectclock-api.j-chapman7.workers.dev/auth/token') {
+        return { ok: true, json: async () => ({ session: 'worker-session-abc', name: 'degen' }) };
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await import('../../src/background.js');
+    const testUrl = 'https://collectclock-api.j-chapman7.workers.dev/auth/callback#access_token=tok_1&token_type=Bearer&state=h.n';
+    tabUpdatedListeners[0]!(7, { url: testUrl }, { url: testUrl });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://collectclock-api.j-chapman7.workers.dev/auth/token',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ access_token: 'tok_1' }) }),
+    );
+    expect(storageData['authToken']).toBe('tok_1');
+    expect(storageData['workerSession']).toBe('worker-session-abc');
+  });
+
+  it('keeps the Discord sign-in when the worker session exchange fails', async () => {
+    const { storageData, tabUpdatedListeners } = setupChromeMock();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === 'https://discord.com/api/v10/users/@me') {
+        return { ok: true, json: async () => ({ id: '42', username: 'degen', avatar: null }) };
+      }
+      throw new Error('network down');
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await import('../../src/background.js');
+    const testUrl = 'https://collectclock-api.j-chapman7.workers.dev/auth/callback#access_token=tok_2&state=h.n';
+    tabUpdatedListeners[0]!(8, { url: testUrl }, { url: testUrl });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(storageData['authToken']).toBe('tok_2');
+    expect(storageData['tiltguard_user_id']).toBe('42');
+    expect(storageData['workerSession']).toBeUndefined();
+  });
+
+  it('makes no calls for cooldown sync or link scan, which have no backend', async () => {
+    const { runtimeListeners, navigateListeners } = setupChromeMock();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await import('../../src/background.js');
+    runtimeListeners[0]!(
+      { type: 'sync_cooldown_wallet', wallet: '7guGrKGy9BoTDe7kC9ng5Yn9B1Ykaa7uAp6e4TRZYeB2' },
+      {},
+      vi.fn(),
+    );
+    await navigateListeners[0]!({ frameId: 0, tabId: 1, url: 'https://stake.com/casino/games/plinko' });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
