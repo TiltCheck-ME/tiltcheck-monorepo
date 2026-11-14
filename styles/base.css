@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /*
  * GitHub Pages shell — static twin of tiltcheck.me landing tokens/layout.
  * Absolute /paths break on project Pages; HTML uses relative asset hrefs.
@@ -1082,6 +1082,109 @@ td {
 
 .public-page-list li + li {
   margin-top: 0.45rem;
+}
+
+/* Casino Ask box (/casinos/#ask). Phone first, 48px targets. */
+.casino-ask__lede,
+.casino-ask__covered {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.casino-ask__covered {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.casino-ask__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.casino-ask__input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: rgba(8, 10, 13, 0.85);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+.casino-ask__input:focus {
+  outline: none;
+  border-color: rgba(23, 195, 178, 0.55);
+  box-shadow: 0 0 0 1px rgba(23, 195, 178, 0.25);
+}
+
+.casino-ask__btn {
+  min-height: 48px;
+  width: 100%;
+}
+
+.casino-ask__btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.casino-ask__result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: rgba(13, 16, 23, 0.9);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.casino-ask__answer,
+.casino-ask__nearest {
+  margin: 0 0 0.75rem;
+}
+
+.casino-ask__nearest {
+  color: var(--text-secondary);
+}
+
+.casino-ask__sources-title {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.casino-ask__links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.casino-ask__link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  color: var(--color-primary-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 720px) {
+  .casino-ask__form {
+    flex-direction: row;
+  }
+
+  .casino-ask__btn {
+    width: auto;
+    min-width: 8rem;
+  }
 }
 
 .casino-toolbar {
