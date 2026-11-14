@@ -6,6 +6,7 @@ import { MAX_PLAYERS } from './dad.js';
 import { isRunning } from './trivia.js';
 import { MAX_PLAYERS as BLUFF_MAX, isInGame as bluffInGame } from './bluff.js';
 import type { RoomState } from './room.js';
+import { isPlaying as mythPlaying } from './myth.js';
 
 export const LIVE_TTL_MS = 120_000;
 /** Rooms re-report at least this often while anyone is in them, so the TTL never drops a live room. */
@@ -25,7 +26,7 @@ export interface LiveReport {
   guildId: string | null;
   members: number;
   /** `bluff` is optional on the wire so a report from a pre-Bluff room still parses (counts as empty). */
-  games: { dad: LiveGameReport; trivia: LiveGameReport; bluff: LiveGameReport };
+  games: { dad: LiveGameReport; trivia: LiveGameReport; bluff: LiveGameReport; daily?: LiveGameReport; myth?: LiveGameReport };
 }
 
 export interface LiveEntry extends LiveReport {
@@ -47,7 +48,22 @@ export interface LiveSummary {
     dad: { tables: number; seated: number; joinable: number };
     trivia: { tables: number; playing: number; joinable: number };
     bluff: { tables: number; seated: number; joinable: number };
+    /** Solo games: people playing right now (no tables, no joinable, no table alerts). */
+    daily: { playing: number };
+    myth: { playing: number };
   };
+}
+
+/** Solo counts for the live report: Daily Grass = connected people on its screen, Myth or Math = connected people mid-run. */
+export function soloCounts(state: RoomState): { daily: number; myth: number } {
+  let daily = 0;
+  let myth = 0;
+  for (const m of Object.values(state.members)) {
+    if (m.awaySince !== null) continue;
+    if (m.looking === 'daily') daily += 1;
+    if (mythPlaying(state.myth?.runs[m.id])) myth += 1;
+  }
+  return { daily, myth };
 }
 
 function triviaWaiting(state: RoomState): number {
@@ -63,6 +79,7 @@ export function reportFor(state: RoomState, guildId: string | null): LiveReport 
   const playing = isRunning(t) ? Object.keys(t.scores).length : 0;
   const b = state.bluff;
   const bluffSeated = b ? b.seats.length : 0;
+  const solo = soloCounts(state);
   return {
     instanceId: state.instanceId,
     guildId,
@@ -78,13 +95,15 @@ export function reportFor(state: RoomState, guildId: string | null): LiveReport 
         count: bluffSeated,
         joinable: Boolean(b) && members > 0 && bluffSeated > 0 && !bluffInGame(b) && bluffSeated + b.waiting.length < BLUFF_MAX,
       },
+      daily: { phase: 'solo', count: solo.daily, joinable: false },
+      myth: { phase: 'solo', count: solo.myth, joinable: false },
     },
   };
 }
 
 /** Change detection: the parts a reader would notice. */
 export function reportKey(r: LiveReport): string {
-  return JSON.stringify([r.guildId, r.members, r.games.dad, r.games.trivia, r.games.bluff]);
+  return JSON.stringify([r.guildId, r.members, r.games.dad, r.games.trivia, r.games.bluff, r.games.daily ?? null, r.games.myth ?? null]);
 }
 
 const SAFE_PHASE = /^[a-z]{1,16}$/;
@@ -115,7 +134,15 @@ export function parseLiveReport(raw: unknown): LiveReport | null {
   const trivia = game(gs?.trivia);
   const bluff = gs?.bluff === undefined ? { phase: 'seating', count: 0, joinable: false } : game(gs.bluff);
   if (!dad || !trivia || !bluff) return null;
-  return { instanceId: r.instanceId, guildId, members: r.members as number, games: { dad, trivia, bluff } };
+  const games: LiveReport['games'] = { dad, trivia, bluff };
+  // Solo slots are optional so reports from rooms that predate them still parse.
+  for (const k of ['daily', 'myth'] as const) {
+    if (gs?.[k] === undefined) continue;
+    const g = game(gs[k]);
+    if (!g) return null;
+    games[k] = g;
+  }
+  return { instanceId: r.instanceId, guildId, members: r.members as number, games };
 }
 
 /** The registry's brain: entries keyed by instance id, dropped after the TTL. */
@@ -151,7 +178,13 @@ export class LiveBoard {
       rooms: 0,
       tables: 0,
       joinable: 0,
-      games: { dad: { tables: 0, seated: 0, joinable: 0 }, trivia: { tables: 0, playing: 0, joinable: 0 }, bluff: { tables: 0, seated: 0, joinable: 0 } },
+      games: {
+        dad: { tables: 0, seated: 0, joinable: 0 },
+        trivia: { tables: 0, playing: 0, joinable: 0 },
+        bluff: { tables: 0, seated: 0, joinable: 0 },
+        daily: { playing: 0 },
+        myth: { playing: 0 },
+      },
     };
     for (const e of this.entries.values()) {
       if (guild !== null && e.guildId !== guild) continue;
@@ -174,6 +207,8 @@ export class LiveBoard {
         out.games.bluff.seated += bluff.count;
         if (bluff.joinable) out.games.bluff.joinable += 1;
       }
+      out.games.daily.playing += e.games.daily?.count ?? 0;
+      out.games.myth.playing += e.games.myth?.count ?? 0;
     }
     out.tables = out.games.dad.tables + out.games.trivia.tables + out.games.bluff.tables;
     out.joinable = out.games.dad.joinable + out.games.trivia.joinable + out.games.bluff.joinable;

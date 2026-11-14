@@ -3,7 +3,7 @@
 
 import { COPY } from '../copy.js';
 import type { BoardView, ScoreRow } from '../../shared/scores.js';
-import { avatarImg, esc } from './util.js';
+import { avatarImg, esc, medal, placeOf } from './util.js';
 
 export type ScoresTab = 'week' | 'all';
 
@@ -11,7 +11,7 @@ export type ScoresTab = 'week' | 'all';
 export type ScoresResult = { kind: 'board'; board: BoardView; guest?: boolean } | { kind: 'no-server' } | { kind: 'error' };
 
 function row(r: ScoreRow, rank: number, you: string): string {
-  return `<li class="score ${r.id === you ? 'score--me' : ''}" data-hs-row="${esc(r.id)}">
+  return `<li class="score ${r.id === you ? 'score--me' : ''}${medal(rank, r.score)}" data-hs-row="${esc(r.id)}">
     <span class="score__rank">${rank}</span>
     ${avatarImg({ id: r.id, avatar: r.avatar, name: r.name }, 'avatar avatar--sm')}
     <span class="score__name">${esc(r.name)}</span>
@@ -37,7 +37,7 @@ export function renderHighScores(result: ScoresResult | null, tab: ScoresTab, yo
     const rows = tab === 'week' ? b.week : b.allTime;
     const mine = tab === 'week' ? b.me.week : b.me.allTime;
     const onBoard = rows.some((r) => r.id === you);
-    const list = rows.length ? `<ol class="scores">${rows.map((r, i) => row(r, i + 1, you)).join('')}</ol>` : `<p class="muted small">${COPY.highScores.empty}</p>`;
+    const list = rows.length ? `<ol class="scores">${rows.map((r) => row(r, placeOf(r.score, rows.map((x) => x.score)), you)).join('')}</ol>` : `<p class="muted small">${COPY.highScores.empty}</p>`;
     const me =
       mine && !onBoard
         ? `<div class="score score--me score--pb" data-hs-mine><span class="score__rank">-</span><span class="score__name">${COPY.highScores.yourBest} <span class="muted small">${COPY.highScores.offBoard}</span></span><span class="score__pts">${mine.score}</span></div>`

@@ -27,19 +27,19 @@ const TRIVIA_RUNNING = new Set(['question', 'reveal']);
 
 export const ALERT_COPY: Record<AlertGame, { open: string; on: string; closed: string }> = {
   dad: {
-    open: "🃏 Someone's at the Degens Against Decency table. Pull up a chair: start the Tilt Check activity in voice.",
-    on: "🃏 Degens Against Decency: table's full, game on. Catch the next one.",
-    closed: '🃏 Degens Against Decency: table closed. Everyone wandered off to touch grass.',
+    open: "🃏 Someone's at the Degens Against Decency table. Start the Tilt Check activity in voice to join.",
+    on: '🃏 Degens Against Decency: game started.',
+    closed: '🃏 Degens Against Decency: table closed.',
   },
   trivia: {
-    open: "🧠 Someone's waiting on Trivia. Ten questions, no host, no excuses: start the Tilt Check activity in voice.",
-    on: '🧠 Trivia: game on. Late arrivals get in at the next question.',
-    closed: '🧠 Trivia: lobby closed. Nobody waited around.',
+    open: "🧠 Someone's waiting on Trivia. Start the Tilt Check activity in voice to play.",
+    on: '🧠 Trivia: game started. Late arrivals join at the next question.',
+    closed: '🧠 Trivia: lobby closed.',
   },
   bluff: {
-    open: "🎭 Someone's at the Bluff table. Two truths, one lie, zero shame: start the Tilt Check activity in voice.",
-    on: '🎭 Bluff: game on. Catch the next one.',
-    closed: '🎭 Bluff: table closed. Nobody stuck around to lie.',
+    open: "🎭 Someone's at the Bluff table. Start the Tilt Check activity in voice to join.",
+    on: '🎭 Bluff: game started.',
+    closed: '🎭 Bluff: table closed.',
   },
 };
 

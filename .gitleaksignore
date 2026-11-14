@@ -1,3 +1,5 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 # Provably-fair HMAC-SHA256 test key fixture in unit test
 1cbe91e9dbcc1c18764f77441f6c26f1d3a0874a:apps/web/src/lib/provably-fair.test.ts:generic-api-key:37
+# Touch Grass test room id ('i-1-gc-...'), not a key; renamed to roomId in f0807609, still in 0621d716's history
+0621d71694517b0a18d6c0b68af0fc6dd56cd3dd:apps/touch-grass-activity/tests/daily.test.ts:generic-api-key:300

@@ -382,6 +382,8 @@ Never generate Manifest V2 code.
 
 ## Part 2 — Publishing to the Chrome Web Store
 
+> **TiltCheck note (2026-11-13):** TiltCheck no longer publishes to the Chrome Web Store; the extension ships as a zip from tiltcheck.me. Do not create or update `CHROMEWEBSTORE.md` in this repo (it was removed, and `tools/check-root-cleanliness.sh` fails on unexpected root markdown files). The guidance below is kept for reference only.
+
 Manage `CHROMEWEBSTORE.md` — the single source of truth for all Chrome Web Store listing
 metadata, permissions justifications, privacy disclosures, version history, and publishing
 readiness for a Chrome extension project.

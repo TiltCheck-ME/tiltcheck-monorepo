@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 
 export const SITE_URL = 'https://tiltcheck.me';
 export const API_URL = 'https://collectclock-api.j-chapman7.workers.dev';
@@ -149,6 +149,17 @@ export const EXTENSION_SIGNALS = [
     body: 'Locks cashier and spin buttons for 24 hours, 3, 7 or 30 days when you need a hard reset.',
   },
 ];
+
+/** Casino Ask box on /casinos/. The worker lives in workers/casino-ask (not deployed until Jamie OKs it). */
+export const CASINO_ASK = {
+  endpoint: 'https://tiltcheck-casino-ask.j-chapman7.workers.dev/ask',
+  eyebrow: 'Ask',
+  title: 'Ask about a casino.',
+  lede: "Answers come only from the casino's own terms and help pages, TiltCheck's audits and CollectClock player reports, with links. If none of them say, it says I don't know.",
+  placeholder: 'How long does Acebet take to redeem?',
+  button: 'Ask',
+  covered: "Covers Acebet's own pages and the casinos TiltCheck has audited. More casinos as their pages get added.",
+};
 
 export const GRADING_STEPS = [
   {

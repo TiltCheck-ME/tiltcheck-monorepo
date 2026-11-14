@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Degens Against Decency deck. Original TiltCheck cards only, no AI generation.
 // Sources: apps/web/src/lib/touch-grass/dad-deck.ts and modules/dad starter pack, plus new cards.
 // Rule for this deck: no money mechanics in the copy (see tests/no-money.test.ts).
@@ -9,6 +9,131 @@ export interface Card {
 }
 
 export const BLANK = '_____';
+
+/**
+ * Millennial mix (Jamie, 2026-11-13): 90s/2000s kid culture, early internet, flip phones, student loans,
+ * adulting. Not gambling cards; they are shuffled in with the gambling ones in PROMPTS and WHITE_CARDS below. Party-safe: nothing hateful
+ * or sexual, and the same no-money rule (tests/no-money.test.ts, tests/deck-millennial.test.ts).
+ */
+export const MILLENNIAL_PROMPTS: readonly string[] = [
+  'My Tamagotchi died because I was busy with _____.',
+  'MySpace Top 8, but all eight spots are _____.',
+  'AIM away message: "brb, _____."',
+  'My AIM screen name was xXx_____xXx.',
+  "Blowing on the cartridge didn't fix it. _____ did.",
+  'My student loan servicer just sent me _____.',
+  'Adulting is 10% bills and 90% _____.',
+  'The dial-up noise was secretly the sound of _____.',
+  'My 2007 Facebook status: "is _____."',
+  'Snake on my Nokia was interrupted by _____.',
+  'Lisa Frank folder, gel pens, and _____.',
+  'Scholastic Book Fair, but the only thing left is _____.',
+  'The real millennial retirement plan: _____.',
+  "Experts say I can't afford a house because of _____.",
+  'Track 1 on the mix CD I burned for my crush: _____.',
+  'My parents still think my job is _____.',
+  'Age 30-something, my idea of a wild Friday is _____.',
+  'Friday night in 1999: Blockbuster, pizza, and _____.',
+  "Calling my friend's house phone and their dad answers with _____.",
+  'Oregon Trail cause of death: _____.',
+  'Group project: I did everything, they did _____.',
+  "My LinkedIn says I'm passionate about _____.",
+  'Y2K was supposed to end the world. Instead we got _____.',
+  'The Sims taught me everything I know about _____.',
+  "Nothing says \"I'm an adult now\" like _____.",
+  "Limewire download, 3 hours left: turns out it's _____.",
+  'I threw my back out doing _____.',
+  'My Neopet is still waiting on _____.',
+  'Kids today will never understand _____.',
+  'Lunchables, Gushers, and _____: the 90s food pyramid.',
+  'My therapist and I are working through _____.',
+  'My entire personality in 2006 was _____.',
+  "The group chat's new name is \"_____ survivors\".",
+  'Me explaining _____ to someone born after 2005.',
+];
+
+export const MILLENNIAL_WHITE_CARDS: readonly string[] = [
+  'a Tamagotchi funeral at recess',
+  'the dial-up handshake noise',
+  'a burned CD labeled in Sharpie',
+  'MySpace Top 8 drama',
+  'an AIM away message full of song lyrics',
+  'snapping a Razr flip phone shut for drama',
+  'T9 texting under the desk',
+  'student loan interest that never sleeps',
+  'adulting, but badly',
+  'a Blockbuster late fee from 2004',
+  'Lisa Frank everything',
+  'dying of dysentery on the Oregon Trail',
+  'Snake on a Nokia brick phone',
+  'a Furby talking in the dark at 3 AM',
+  'a Lunchable as a whole personality',
+  'skinny jeans I refuse to retire',
+  'the side part, defended to the death',
+  'Avril Lavigne on repeat',
+  'a LiveJournal I pray stays deleted',
+  'avocado toast, apparently',
+  'a participation trophy',
+  'a Sims house with no doors',
+  'a VHS taped over the family wedding',
+  'blowing into a game cartridge',
+  'a Neopet I abandoned in 2003',
+  'a Limewire virus',
+  'a MySpace angle selfie',
+  'a Discman that skipped on every bump',
+  "the \"You've got mail\" voice",
+  'a Webkinz with trust issues',
+  'a voicemail nobody will ever listen to',
+  'my back hurting from sleeping wrong',
+  'living with three roommates at 32',
+  'the millennial pause at the start of every video',
+  "a Pinterest board for a life I'll never live",
+  'still being loyal to my Hogwarts house',
+  'a side hustle that is just a second job',
+  'a gap year that became a gap decade',
+  'a Ring Pop as fine jewelry',
+  'a Game Boy Color running on fumes',
+  'Pokemon cards in sheet protectors',
+  'emo bangs and too much eyeliner',
+  'a scrunchie on my wrist since 1998',
+  'yelling along to the TRL countdown',
+  'a velour tracksuit',
+  'Crocs, unironically',
+  'a Facebook poke war',
+  'FarmVille requests from my aunt',
+  'doing the Harlem Shake at the office',
+  'planking in a public place',
+  'a Vine I can still quote word for word',
+  'a 12-step skincare routine',
+  'an emotional support houseplant',
+  'a sourdough starter with a name',
+  'my parents commenting on everything I post',
+  'being on hold with the loan servicer',
+  'an entry-level job that wants 10 years of experience',
+  'brunch as a coping mechanism',
+  'the Macarena at every wedding',
+  'Dunkaroos, the original recipe',
+  'a Gushers trade negotiation at lunch',
+  'a slap bracelet used as a weapon',
+  'a 2006 Facebook album of 300 blurry photos',
+  'cargo shorts with too many pockets',
+  'a Nintendo 64 cord stretched across the living room',
+  'Mom yelling "get off the internet, I need the phone"',
+  'a Spice Girls personality quiz',
+  'the snooze button, nine times',
+  'flat-pack furniture with three extra screws',
+  'a quick call that could have been an email',
+  'the ice bucket challenge',
+  'Dance Dance Revolution sweat',
+  'a Zune, proudly',
+  'a Bop It screaming commands at me',
+  'a Livestrong bracelet',
+  'Myspace HTML skills on my resume',
+  'Napster guilt',
+  'the Windows XP startup sound',
+  'a Hit Clip of one song',
+  'Clippy asking if I need help',
+];
 
 export const PROMPTS: readonly string[] = [
   // from apps/web dad-deck.ts
@@ -44,6 +169,7 @@ export const PROMPTS: readonly string[] = [
   'Peak performance looks like _____.',
   'Tonight on Degen Documentaries: _____.',
   'Doctors are baffled by _____.',
+  ...MILLENNIAL_PROMPTS,
 ];
 
 export const WHITE_CARDS: readonly string[] = [
@@ -131,6 +257,7 @@ export const WHITE_CARDS: readonly string[] = [
   'a vibe check I failed out loud',
   'the "I can stop whenever" speech',
   'speedrunning a bad mood',
+  ...MILLENNIAL_WHITE_CARDS,
 ];
 
 export function promptCards(): Card[] {

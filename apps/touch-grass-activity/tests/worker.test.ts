@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Runs the real worker + Durable Object locally in workerd (wrangler unstable_dev / Miniflare).
 // Local only: nothing is deployed. Skips itself if workerd can't start in this environment.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -15,7 +15,7 @@ beforeAll(async () => {
   try {
     worker = await unstable_dev(here('../worker/src/index.ts'), {
       config: here('../worker/wrangler.toml'),
-      vars: { ALLOW_GUEST: 'true' },
+      vars: { ALLOW_GUEST: 'true', DAILY_SALT: 'workerd-test-salt' },
       experimental: { disableExperimentalWarning: true },
       logLevel: 'error',
     });
@@ -177,8 +177,9 @@ describe('worker (local workerd)', () => {
     a.ws.send('{"t":"dad.start","target":1}');
     await until(() => [a, b, c].every((p) => p.last().dad.phase === 'submitting'));
     const hands = [a, b, c].map((p) => p.last().dad.hand.map((x) => x.id));
-    hands.forEach((h) => expect(h).toHaveLength(7));
-    expect(new Set(hands.flat()).size).toBe(21);
+    // The judge's view carries no hand; the two players hold 7 each.
+    [a, b, c].forEach((p, i) => expect(hands[i]).toHaveLength(p.last().dad.me.isJudge ? 0 : 7));
+    expect(new Set(hands.flat()).size).toBe(14);
     for (const [i, p] of [a, b, c].entries()) {
       const seen = JSON.stringify(p.msgs);
       hands.forEach((h, j) => {
@@ -389,4 +390,89 @@ describe('worker (local workerd)', () => {
     expect((await worker.fetch(`/api/bluff/scores?guild=${guild}`)).status).toBe(404);
     for (const p of ps) p.ws.close();
   }, 120_000);
+
+  it('solo games over WebSockets: Daily Grass colors from the server, no answer on the wire, Myth or Math run, /api/live keys', async () => {
+    if (!worker) return;
+    const guild = `7777${Date.now()}`; // fresh server each run: local registry state persists between runs
+    const room = `i-${Date.now()}-gc-${guild}-888888888888888881`;
+    // Fresh players every run: Daily Grass boards persist per player in local workerd state.
+    const tag = Date.now().toString(36);
+    const a = await open(`ana${tag}`, room);
+    const b = await open(`bo${tag}`, room);
+    await until(() => a.msgs.some((m) => m.t === 'state' && m.view.members.length === 2));
+    a.ws.send('{"t":"look","at":"daily"}');
+    a.ws.send('{"t":"daily.open"}');
+    await until(() => a.last().daily.me !== null);
+    expect(a.last().daily.me).toMatchObject({ status: 'playing', rows: [], answer: null });
+    a.ws.send('{"t":"daily.guess","word":"crane"}');
+    await until(() => (a.last().daily.me?.rows.length ?? 0) === 1);
+    const row = a.last().daily.me!.rows[0]!;
+    expect(row.word).toBe('crane');
+    expect(row.colors).toHaveLength(5);
+    a.ws.send('{"t":"daily.guess","word":"qzxjv"}');
+    await until(() => a.msgs.some((m) => m.t === 'error' && m.code === 'not-a-word'));
+    // Bo sees Ana's progress but never her letters.
+    await until(() => b.last().daily.friends.length === 1);
+    expect(b.last().daily.friends[0]).toMatchObject({ rows: 1, status: 'playing' });
+    expect(JSON.stringify(b.msgs)).not.toContain('crane');
+    // No answer anywhere on Ana's wire while she is still playing.
+    for (const m of a.msgs) if (m.t === 'state') expect(m.view.daily.me?.answer ?? null).toBeNull();
+    // Myth or Math: a run of her own.
+    b.ws.send('{"t":"myth.start"}');
+    await until(() => b.last().myth.run?.phase === 'card');
+    const run = b.last().myth.run!;
+    expect(JSON.stringify(run)).not.toContain('"truth"');
+    b.ws.send(JSON.stringify({ t: 'myth.answer', rid: run.runId, cid: run.card!.id, pick: true }));
+    await until(() => b.last().myth.run?.phase === 'reveal');
+    expect(typeof b.last().myth.run!.reveal!.truth).toBe('boolean');
+    // /api/live: daily (Ana on the screen) and myth (Bo mid-run) playing counts.
+    type SoloLive = { games: { daily: { playing: number }; myth: { playing: number } } };
+    let live: SoloLive = { games: { daily: { playing: -1 }, myth: { playing: -1 } } };
+    for (let i = 0; i < 30; i += 1) {
+      const res = await worker.fetch(`/api/live?guild=${guild}`);
+      // The public live read is rate limited per IP and earlier tests used the burst: wait it out.
+      if (res.ok) {
+        live = (await res.json()) as SoloLive;
+        if (live.games.daily.playing === 1 && live.games.myth.playing === 1) break;
+      }
+      await wait(500);
+    }
+    expect(live.games.daily).toEqual({ playing: 1 });
+    expect(live.games.myth).toEqual({ playing: 1 });
+    a.ws.close();
+    b.ws.close();
+  }, 60_000);
+
+  it("chess over WebSockets: two claim sides, a third watches, fool's mate, state survives a reconnect", async () => {
+    if (!worker) return;
+    const room = `i-chess-${Date.now()}`;
+    const guild = `78${Date.now()}`;
+    const ps = await Promise.all([open('wes', room, guild), open('bea', room, guild), open('sam', room, guild)]);
+    const [w, b, s] = ps as [Awaited<ReturnType<typeof open>>, Awaited<ReturnType<typeof open>>, Awaited<ReturnType<typeof open>>];
+    await until(() => w.msgs.some((m) => m.t === 'state' && m.view.members.length === 3));
+    w.ws.send('{"t":"chess.claim","color":"w"}');
+    b.ws.send('{"t":"chess.claim","color":"b"}');
+    await until(() => Boolean(s.last().chess.white && s.last().chess.black));
+    b.ws.send('{"t":"chess.start"}');
+    await until(() => ps.every((p) => p.last().chess.phase === 'playing'));
+    // Only White is told its legal moves; the spectator gets none and its move is refused.
+    expect(Object.keys(w.last().chess.me.legal)).toHaveLength(10);
+    expect(b.last().chess.me.legal).toEqual({});
+    s.ws.send('{"t":"chess.move","ply":0,"from":12,"to":28}');
+    await until(() => s.msgs.some((m) => m.t === 'error' && m.code === 'not-seated'));
+    const moves: Array<[typeof w, number, number]> = [[w, 13, 21], [b, 52, 36], [w, 14, 30], [b, 59, 31]];
+    for (const [i, [p, from, to]] of moves.entries()) {
+      p.ws.send(JSON.stringify({ t: 'chess.move', ply: i, from, to }));
+      await until(() => s.last().chess.ply === i + 1);
+    }
+    await until(() => s.last().chess.phase === 'over');
+    expect(s.last().chess.result).toEqual({ winner: 'b', reason: 'checkmate' });
+    expect(s.last().chess.moves).toEqual(['f3', 'e5', 'g4', 'Qh4#']);
+    // Reconnect: the finished board comes back from the Durable Object.
+    s.ws.close();
+    const again = await open('sam', room, guild);
+    await until(() => again.msgs.some((m) => m.t === 'state'));
+    expect(again.last().chess.moves).toHaveLength(4);
+    for (const p of [w, b, again]) p.ws.close();
+  }, 60_000);
 });

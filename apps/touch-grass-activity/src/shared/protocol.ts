@@ -1,11 +1,14 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Wire format between the Activity client and the room (worker Durable Object or guest room).
 
 import type { Card } from './deck.js';
 import type { DadPhase, DadRoundResult } from './dad.js';
 import type { TriviaPhase } from './trivia.js';
 import type { BluffPhase, BluffRoundResult } from './bluff.js';
-import type { Brag } from './scores.js';
+import type { Brag, ScoreRow } from './scores.js';
+import type { DailyPublic, SolverRow } from './daily.js';
+import type { MythRunView } from './myth.js';
+import type { ChessViewData } from './chess.js';
 
 export interface RoomUser {
   id: string;
@@ -36,12 +39,30 @@ export type ClientAction =
   | { t: 'bluff.tell'; statements: [string, string, string]; lie: number }
   | { t: 'bluff.guess'; rid: string; pick: number }
   | { t: 'bluff.next' }
+  /** Daily Grass: load (or make) today's board. Solo, server-checked. */
+  | { t: 'daily.open' }
+  | { t: 'daily.guess'; word: string }
+  /** Myth or Math: start a 10-card run, call a card true (math) or false (myth), move on. */
+  | { t: 'myth.start' }
+  | { t: 'myth.answer'; rid: string; cid: string; pick: boolean }
+  | { t: 'myth.next' }
+  /** Chess: claim a side, give it up, set the clock (minutes, 0 = off), start, move, resign, draw. */
+  | { t: 'chess.claim'; color: 'w' | 'b' }
+  | { t: 'chess.release' }
+  | { t: 'chess.clock'; minutes: number }
+  | { t: 'chess.start' }
+  | { t: 'chess.move'; ply: number; from: number; to: number; promotion?: 'q' | 'r' | 'b' | 'n' }
+  | { t: 'chess.resign' }
+  /** Offer a draw, or accept the one on the table. */
+  | { t: 'chess.draw' }
+  | { t: 'chess.decline' }
   | { t: 'leave' }
   | { t: 'ping' }
   /** Which screen this player has open. Only feeds "someone is waiting at Trivia" for table alerts. */
   | { t: 'look'; at: LookAt };
 
-export type LookAt = 'lobby' | 'dad' | 'trivia' | 'bluff';
+export type LookAt = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess';
+export const LOOK_AT: readonly LookAt[] = ['lobby', 'dad', 'trivia', 'bluff', 'daily', 'myth', 'chess'];
 
 /** Raw statement text accepted off the wire; the room cleans it and enforces the real 120-char cap. */
 export const MAX_RAW_STATEMENT = 600;
@@ -79,6 +100,8 @@ export interface DadView {
   neededCount: number;
   /** Only ever the viewer's own hand. */
   hand: Card[];
+  /** Ids of the cards in `hand` the viewer drew since they last played (shown as new). */
+  freshIds: string[];
   mySubmission: Card | null;
   /** Anonymised, shuffled answers. Present while judging. No player ids. */
   entries: Array<{ entryId: string; text: string }>;
@@ -165,6 +188,34 @@ export interface BluffView {
   };
 }
 
+export interface DailyFriendView {
+  id: string;
+  /** Rows used so far. Never the letters or colors. */
+  rows: number;
+  status: 'playing' | 'won' | 'lost';
+  away: boolean;
+}
+
+export interface DailyView {
+  /** Chicago day right now ('YYYY-MM-DD'). If `me.day` is older, the client asks for a fresh board. */
+  today: string;
+  /** The viewer's own board and stats. Letters only for the viewer; the answer only once they're done. */
+  me: DailyPublic | null;
+  /** Others in this room playing today's puzzle: progress only. */
+  friends: DailyFriendView[];
+  playingCount: number;
+  /** This server's "Today's solvers". */
+  solvers: { kind: 'board'; day: string; rows: SolverRow[] } | { kind: 'no-server' } | { kind: 'loading' };
+  myRank: number | null;
+}
+
+export interface MythView {
+  run: MythRunView | null;
+  playingCount: number;
+  /** This server's Myth or Math week (Monday 00:00 Central). */
+  board: { kind: 'board'; weekStart: number; rows: ScoreRow[] } | { kind: 'no-server' } | { kind: 'loading' };
+}
+
 export interface RoomView {
   instanceId: string;
   serverNow: number;
@@ -174,6 +225,10 @@ export interface RoomView {
   dad: DadView;
   trivia: TriviaView;
   bluff: BluffView;
+  daily: DailyView;
+  myth: MythView;
+  /** Chess: the board everyone sees; legal moves only for the player to move. */
+  chess: ChessViewData;
 }
 
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
@@ -204,11 +259,37 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'bluff.stand':
     case 'bluff.start':
     case 'bluff.next':
+    case 'daily.open':
+    case 'myth.start':
+    case 'myth.next':
+    case 'chess.release':
+    case 'chess.start':
+    case 'chess.resign':
+    case 'chess.draw':
+    case 'chess.decline':
     case 'leave':
     case 'ping':
       return { t: m.t };
     case 'look':
-      return m.at === 'lobby' || m.at === 'dad' || m.at === 'trivia' || m.at === 'bluff' ? { t: 'look', at: m.at } : null;
+      return typeof m.at === 'string' && (LOOK_AT as readonly string[]).includes(m.at) ? { t: 'look', at: m.at as LookAt } : null;
+    case 'chess.claim':
+      return m.color === 'w' || m.color === 'b' ? { t: 'chess.claim', color: m.color } : null;
+    case 'chess.clock':
+      return Number.isInteger(m.minutes) && (m.minutes as number) >= 0 && (m.minutes as number) <= 60 ? { t: 'chess.clock', minutes: m.minutes as number } : null;
+    case 'chess.move': {
+      const sq = (x: unknown) => Number.isInteger(x) && (x as number) >= 0 && (x as number) < 64;
+      if (!Number.isInteger(m.ply) || (m.ply as number) < 0 || (m.ply as number) > 10_000 || !sq(m.from) || !sq(m.to)) return null;
+      if (m.promotion !== undefined && !['q', 'r', 'b', 'n'].includes(m.promotion as string)) return null;
+      const out: ClientAction = { t: 'chess.move', ply: m.ply as number, from: m.from as number, to: m.to as number };
+      if (m.promotion !== undefined) out.promotion = m.promotion as 'q' | 'r' | 'b' | 'n';
+      return out;
+    }
+    case 'daily.guess':
+      return typeof m.word === 'string' && /^[A-Za-z]{5}$/.test(m.word) ? { t: 'daily.guess', word: m.word.toLowerCase() } : null;
+    case 'myth.answer':
+      return typeof m.rid === 'string' && ID_RE.test(m.rid) && typeof m.cid === 'string' && ID_RE.test(m.cid) && typeof m.pick === 'boolean'
+        ? { t: 'myth.answer', rid: m.rid, cid: m.cid, pick: m.pick }
+        : null;
     case 'bluff.tell': {
       const st = m.statements;
       if (!Array.isArray(st) || st.length !== 3 || !st.every((x) => typeof x === 'string' && x.length <= MAX_RAW_STATEMENT)) return null;
