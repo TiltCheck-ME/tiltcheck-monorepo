@@ -25,9 +25,15 @@ interface ExtensionHarness {
   cleanup: () => Promise<void>;
 }
 
-// The popup opens in Easy mode, which hides the tabbed panels. The cooldown sync and
-// auto-lock controls live on the Pro "block" tab (labelled Guards, later Settings).
+// A fresh profile opens the first-run setup wizard over the popup, then Easy mode, which
+// hides the tabbed panels. These tests cover a returning user's settings: mark onboarding
+// done, reload, then open the Pro "block" tab (labelled Guards, later Settings), where the
+// cooldown sync and auto-lock controls live.
 async function openSettingsPanel(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    await chrome.storage.local.set({ tiltcheck_onboarding_completed: true });
+  });
+  await page.reload();
   const proBtn = page.locator("#btn-mode-pro");
   if (await proBtn.isVisible()) {
     await proBtn.click();
@@ -213,9 +219,9 @@ test.describe("Cooldown Web Deep-Link Integration", () => {
     const alertBanner = page.locator("#auto-tilt-alert-banner");
     await expect(alertBanner).toBeVisible();
 
-    // Verify critical alert messaging and Level 3+ tilt indicator.
-    await expect(alertBanner).toContainText("Critical Tilt Intervention: 24h Auto-Lock Triggered");
-    await expect(alertBanner).toContainText("LEVEL 3+ TILT");
+    // Verify the auto-tilt alert copy (Pages wording since ce4b55f6, "dejargon cooldown page").
+    await expect(alertBanner).toContainText("Tilt check");
+    await expect(alertBanner).toContainText("Pick a length below");
 
     // Verify configured wallet address is rendered in banner details.
     const walletText = page.locator("#auto-tilt-wallet");
