@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 name: Research Ops Employee
 
 on:
@@ -24,8 +24,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 10.29.1
 
       - name: Setup Node
         uses: actions/setup-node@v4

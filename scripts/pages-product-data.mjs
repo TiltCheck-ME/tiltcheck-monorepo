@@ -15,15 +15,13 @@ export const SITE_HERO_HEADLINE = 'House always wins? NOT TODAY.';
 export const SITE_DOPAMINE = "The math isn't rigged. Your dopamine is.";
 export const SITE_KICKER = 'Chasing losses and thinking you are due is how the casino eats your balance.';
 export const SITE_LEDE =
-  'Simple tools to keep you in control: ClickCheck for 2-second spin pauses, Nope List to block the games that rinse you, and RealityCheck when you need to walk away and touch grass.';
+  'Free tools that put a little friction between you and the next deposit. You switch them on. You make the calls.';
 export const SITE_ONE_LINER =
   'Free tools for casino players: TrustCheck, TimeCheck, ClickCheck, and RealityCheck.';
 export const SITE_META_DESCRIPTION = SITE_ONE_LINER;
-export const SITE_PRIVACY =
-  'We never ask for passwords or private keys. The extension and web tools run client-side in your own browser.';
 
 export const CTA_READY = true;
-export const CTA_LABEL = 'DOWNLOAD EXTENSION (ZIP)';
+export const CTA_LABEL = 'Download the extension';
 export const CTA_GATED_LABEL = 'DIRECT DOWNLOAD';
 export const CTA_GATED_HINT = 'Free manual sideload for Chrome, Brave, and Edge.';
 
@@ -37,25 +35,52 @@ export const TERTIARY_LINK = {
   href: 'tools/',
 };
 
-export const INSTALL_EYEBROW = 'How it works';
-export const INSTALL_TITLE = 'Three simple habits.';
-export const INSTALL_MOVES = [
+// Homepage: one hero CTA, then what it does (each thing said once), then how to get it.
+export const HOME_CTA = { label: 'Get it free', href: '#get' };
+
+export const HOME_DOES = [
   {
-    title: 'Check the house first',
-    body: 'Use TrustCheck to review payout complaints, license status, and scam flags before depositing.',
+    title: 'Check a casino pays',
+    body: 'Payout complaints, licenses and red flags, graded. Look before you deposit.',
+    links: [{ label: 'See the grades', href: 'casinos/' }],
   },
   {
-    title: 'Set your limits',
-    body: 'Use TimeCheck to lock in your session time and stop-loss before you spin.',
+    title: 'Verify your rolls',
+    body: 'Paste the server seed, client seed and nonce. See if that dice, crash or plinko result adds up.',
+    links: [{ label: 'Verify a roll', href: 'tools/verify/' }],
   },
   {
-    title: 'Slow your rolls',
-    body: 'Use ClickCheck in the extension for a forced 2-second pause so you cannot turbo-mash away your balance.',
+    title: 'Take a break',
+    body: 'Set a session timer and a stop-loss before you start, or lock yourself out of the cashier for 24 hours up to 30 days.',
+    links: [
+      { label: 'TimeCheck', href: 'gate/' },
+      { label: 'RealityCheck', href: 'cooldown/' },
+    ],
+  },
+  {
+    title: 'Touch grass with friends',
+    body: 'Trivia, Bluff and Degens Against Decency in a Discord voice channel. Points are bragging rights. Nothing to bet.',
+    links: [{ label: 'Join the Discord', href: 'DISCORD', external: true }],
   },
 ];
 
-export const INSTALL_NOTE =
-  'Free web tools live right now: TimeCheck, RealityCheck, Fairness Verifier, RTP Scanner, House Edge Scanner, and TrustCheck.';
+export const HOME_GET = [
+  {
+    where: 'On a computer',
+    body: 'The extension works on the casino tab: a 2-second pause between spins, a Nope List for the games that rinse you, a heads-up when a slot opens at a big bet, and the rest.',
+    note: 'Desktop Chrome, Brave or Edge.',
+    cta: 'zip',
+    link: { label: "What's in it", href: 'extension.html' },
+  },
+  {
+    where: 'On your phone',
+    body: 'The web tools run in your browser. Add TimeCheck to your home screen and it opens like an app.',
+    link: { label: 'All tools', href: 'tools/' },
+  },
+];
+
+export const HOME_FINE_PRINT =
+  'No passwords, no keys, no deposits. TiltCheck never holds your money, and every limit runs in your own browser.';
 
 export const VAULT = {
   title: 'Win Skim — Skim your wins.',
@@ -98,12 +123,6 @@ export const HOUSE_EDGE_PAGE = {
   fine: 'Calculates expected house edge loss against comp return ratios.',
 };
 
-export const LAUNCH_HONESTY = [
-  'Zero keys, zero deposits: we never take custody of player funds.',
-  'Client-side harm reduction: all limits and delays run in your browser.',
-  'Non-custodial cooldowns: 24-hour locks are voluntary and self-enforced.',
-];
-
 export const EXTENSION_SIGNALS = [
   {
     title: 'ClickCheck (Spin Delay)',
@@ -127,7 +146,7 @@ export const EXTENSION_SIGNALS = [
   },
   {
     title: 'RealityCheck (Touch Grass)',
-    body: 'Locks cashier and spin buttons for 24 hours straight when you need a hard reset.',
+    body: 'Locks cashier and spin buttons for 24 hours, 3, 7 or 30 days when you need a hard reset.',
   },
 ];
 
@@ -162,14 +181,14 @@ export const TOOL_REGISTRY = [
     href: '/gate/',
     label: 'TIMECHECK',
     title: 'TimeCheck',
-    description: 'Pre-session limit setter and countdown timer for your phone.',
+    description: 'Session timer and stop-loss for your phone. Add it to your home screen, no app store.',
     status: 'live',
   },
   {
     href: '/cooldown/',
     label: 'REALITYCHECK',
     title: 'RealityCheck',
-    description: 'Lock your cashier and spin buttons for 24 hours to touch grass.',
+    description: 'Lock your cashier and spin buttons for 24 hours, 3, 7 or 30 days. Go touch grass.',
     status: 'live',
   },
   {
@@ -241,59 +260,5 @@ export const TOOL_REGISTRY = [
     title: 'Tip Jar',
     description: 'Keep TiltCheck 100% free with an optional SOL tip.',
     status: 'live',
-  },
-];
-
-export const INSTALL_SURFACES = [
-  {
-    href: '/extension',
-    label: 'DESKTOP EXTENSION',
-    title: 'TiltCheck Desktop Extension',
-    description: 'Direct ZIP download. Sideload in Developer Mode in 30 seconds.',
-  },
-  {
-    href: '/gate/',
-    label: 'MOBILE PWA',
-    title: 'TimeCheck for iOS & Android',
-    description: 'Install directly to your home screen from your browser menu. Zero downloads.',
-  },
-];
-
-export const CORE_BRAKES = [
-  {
-    num: '01',
-    title: 'ClickCheck',
-    body: 'A mandatory 2-second pause between spins to kill the auto-spin daze.',
-    status: 'On by default',
-  },
-  {
-    num: '02',
-    title: 'Nope List',
-    body: 'Add the slots and games that rinse you to your list and they stop clicking.',
-    status: 'Custom list',
-  },
-  {
-    num: '03',
-    title: 'Sneaky Bet Alert',
-    body: 'Spots slots that sneakily open at $1.00–$2.00 instead of $0.10 before spin one.',
-    status: 'Active on game open',
-  },
-  {
-    num: '04',
-    title: 'Keep the Win',
-    body: 'Hides cancel-withdrawal buttons while payouts are pending so you keep your win.',
-    status: 'Active on pending payouts',
-  },
-  {
-    num: '05',
-    title: 'RealityCheck',
-    body: 'Cashier and spin buttons stay dead while your 24-hour Touch Grass lock is active.',
-    status: '24-hour timelock',
-  },
-  {
-    num: '06',
-    title: 'Win Skim',
-    body: "Auto-skims a cut of big wins into your casino's own vault before you give it back.",
-    status: 'Configurable %',
   },
 ];

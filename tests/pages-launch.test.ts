@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -75,7 +75,7 @@ describe('GitHub Pages launch twin', () => {
 
   it('renders audited evidence and RTP profiles for Stake, Roobet, BC.Game, Shuffle, and audited operators', () => {
     expect(convertMarkdown).toContain('buildAuditedShowcase');
-    expect(convertMarkdown).toContain('Stake, Roobet & BC.Game: The Receipts.');
+    expect(convertMarkdown).toContain('Every operator, graded.');
     expect(convertMarkdown).toContain('data-audited');
 
     const casinosData = JSON.parse(
