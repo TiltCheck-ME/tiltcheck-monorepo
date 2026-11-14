@@ -132,7 +132,7 @@ describe('RoomHost (Durable Object logic)', () => {
     for (const s of socks) {
       const v = s.lastState();
       expect(v.dad.phase).toBe('submitting');
-      expect(v.dad.hand).toHaveLength(7);
+      expect(v.dad.hand).toHaveLength(s.user!.id === saved.dad.judgeId ? 0 : 7);
       for (const [owner, hand] of Object.entries(saved.dad.hands)) {
         if (owner === s.user!.id) continue;
         const json = JSON.stringify(s.inbox);
@@ -189,7 +189,7 @@ describe('RoomHost (Durable Object logic)', () => {
     await act(socks[0]!, { t: 'dad.start', target: 5 });
     const a = socks[0]!;
     const handBefore = a.lastState().dad.hand.map((c) => c.id);
-    expect(handBefore).toHaveLength(7);
+    expect(handBefore).toHaveLength(a.lastState().dad.me.isJudge ? 0 : 7);
     await drop(a);
     const seen = socks[1]!.lastState().dad;
     expect(seen.seats).toHaveLength(3);

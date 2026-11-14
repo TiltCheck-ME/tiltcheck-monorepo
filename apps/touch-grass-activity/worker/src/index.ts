@@ -17,12 +17,12 @@ import { exchangeCode, verifyToken, type AuthEnv } from './auth.js';
 import { isValidGuildId, resolveRoom } from '../../src/shared/protocol.js';
 import { RateLimiter } from '../../src/shared/room.js';
 import { LIVE_REGISTRY_NAME, type RegistryEnv } from './registry-do.js';
-import { scoresName } from './scores-do.js';
+import { scoresName, type ScoresEnv } from './scores-do.js';
 export { TouchGrassRoom } from './room-do.js';
 export { LiveRegistry } from './registry-do.js';
 export { TriviaScores } from './scores-do.js';
 
-export interface Env extends AuthEnv, RegistryEnv {
+export interface Env extends AuthEnv, RegistryEnv, ScoresEnv {
   ROOMS: DurableObjectNamespace;
   /** Singleton live-tables registry (migration v2). */
   LIVE?: DurableObjectNamespace;

@@ -37,32 +37,32 @@ function html(s: string): HTMLElement {
 }
 
 describe('end screen', () => {
-  it('"You take it." when the viewer wins, "<Name> takes it." otherwise, ties split it', () => {
+  it('"You win." when the viewer wins, "<Name> wins." otherwise, ties tie', () => {
     const win = html(renderTrivia(overView({ [ME]: 809, [BO]: 300 }), 0));
-    expect(win.querySelector('[data-trivia-winner]')!.textContent).toBe('You take it. Bragging rights only.');
-    expect(win.textContent).not.toContain('You takes');
+    expect(win.querySelector('[data-trivia-winner]')!.textContent).toBe('You win.');
+    expect(win.textContent).not.toContain('You wins');
     const lose = html(renderTrivia(overView({ [ME]: 100, [BO]: 300 }), 0));
-    expect(lose.querySelector('[data-trivia-winner]')!.textContent).toBe('Bo takes it. Bragging rights only.');
+    expect(lose.querySelector('[data-trivia-winner]')!.textContent).toBe('Bo wins.');
     const tie = html(renderTrivia(overView({ [ME]: 10, [BO]: 300, [CY]: 300 }), 0));
-    expect(tie.querySelector('[data-trivia-winner]')!.textContent).toBe('Bo and Cy split it. Bragging rights only.');
+    expect(tie.querySelector('[data-trivia-winner]')!.textContent).toBe('Bo and Cy tie.');
     const tieMe = html(renderTrivia(overView({ [ME]: 300, [BO]: 300 }), 0));
-    expect(tieMe.querySelector('[data-trivia-winner]')!.textContent).toBe('You and Bo split it. Bragging rights only.');
-    expect(winnerLine(['A', 'B', 'C'])).toBe('A, B and C split it.');
+    expect(tieMe.querySelector('[data-trivia-winner]')!.textContent).toBe('You and Bo tie.');
+    expect(winnerLine(['A', 'B', 'C'])).toBe('A, B and C tie.');
   });
 
-  it('brags: "#3 this week!", "New personal best.", pending and off the record', () => {
+  it('brags: "#3 this week.", "New personal best.", pending and off the record', () => {
     const wk = html(renderTrivia(overView({ [ME]: 500 }, { brags: { [ME]: { personalBest: false, weekRank: 3, allTimeRank: null } } }), 0));
-    expect(wk.querySelector('[data-brag]')!.textContent).toBe('#3 this week!');
+    expect(wk.querySelector('[data-brag]')!.textContent).toBe('#3 this week.');
     const pb = html(renderTrivia(overView({ [ME]: 809 }, { brags: { [ME]: { personalBest: true, weekRank: 1, allTimeRank: 1 } } }), 0));
-    expect(pb.querySelector('[data-brag]')!.textContent).toBe('#1 all time! New personal best.');
+    expect(pb.querySelector('[data-brag]')!.textContent).toBe('#1 all time. New personal best.');
     const pbOnly = html(renderTrivia(overView({ [ME]: 120 }, { brags: { [ME]: { personalBest: true, weekRank: null, allTimeRank: null } } }), 0));
     expect(pbOnly.querySelector('[data-brag]')!.textContent).toBe('New personal best.');
     const none = html(renderTrivia(overView({ [ME]: 120 }, { brags: {} }), 0));
     expect(none.querySelector('[data-brag]')).toBeNull();
     const pending = html(renderTrivia(overView({ [ME]: 120 }, null), 0));
-    expect(pending.querySelector('[data-brag]')!.textContent).toContain('Writing it into the record');
+    expect(pending.querySelector('[data-brag]')!.textContent).toContain('Saving score');
     const off = html(renderTrivia(overView({ [ME]: 120 }, { brags: null }), 0));
-    expect(off.querySelector('[data-brag]')!.textContent).toContain('No server, no board');
+    expect(off.querySelector('[data-brag]')!.textContent).toContain("Games in DMs aren't recorded");
   });
 });
 
@@ -86,8 +86,8 @@ describe('board', () => {
   });
 
   it('no server, loading and error states', () => {
-    expect(html(renderHighScores({ kind: 'no-server' }, 'week', ME)).textContent).toContain('No server, no board');
-    expect(html(renderHighScores(null, 'week', ME)).textContent).toContain('Checking the board');
+    expect(html(renderHighScores({ kind: 'no-server' }, 'week', ME)).textContent).toContain("Games in DMs aren't recorded");
+    expect(html(renderHighScores(null, 'week', ME)).textContent).toContain('Loading scores');
     expect(html(renderHighScores({ kind: 'error' }, 'week', ME)).textContent).toContain("didn't load");
   });
 

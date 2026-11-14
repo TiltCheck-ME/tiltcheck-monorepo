@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -20,6 +20,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { getGatePageBody } from './build-gate-page.mjs';
 import {
+  CASINO_ASK,
   SITE_URL,
   API_URL,
   DISCORD_URL,
@@ -30,28 +31,21 @@ import {
   SOLSCAN_TIP_URL,
   SITE_H1_LINES,
   SITE_DOPAMINE,
-  SITE_KICKER,
   SITE_LEDE,
+  HOME_CTA,
+  HOME_DOES,
+  HOME_GET,
+  HOME_FINE_PRINT,
   SITE_ONE_LINER,
   SITE_META_DESCRIPTION,
-  SITE_PRIVACY,
   CTA_READY,
   CTA_LABEL,
   CTA_GATED_LABEL,
   CTA_GATED_HINT,
-  SECONDARY_CTAS,
-  TERTIARY_LINK,
-  INSTALL_EYEBROW,
-  INSTALL_TITLE,
-  INSTALL_MOVES,
-  INSTALL_NOTE,
   AUTOVAULT_PAGE,
-  LAUNCH_HONESTY,
   EXTENSION_SIGNALS,
   GRADING_STEPS,
   TOOL_REGISTRY,
-  INSTALL_SURFACES,
-  CORE_BRAKES,
   RTP_SCANNER_PAGE,
   VERIFY_PAGE,
   HOUSE_EDGE_PAGE,
@@ -97,6 +91,8 @@ function renderMarkdown(md) {
   let listOpen = false;
 
   for (const raw of lines) {
+    // File copyright headers repeat the site footer's copyright line. Skip them outside code.
+    if (!inCode && /^©\s*20\d\d.*All Rights Reserved/i.test(raw.trim())) continue;
     const line = raw.replace(/\t/g, '    ');
     const fenceMatch = line.match(/^```(.*)$/);
     if (fenceMatch) {
@@ -212,25 +208,22 @@ function dirHref(depth, folder) {
 }
 
 function navHtml(depth, current) {
-  const homeHref = href(depth, 'index.html');
-  const homeCurrent = current === 'home' ? ' aria-current="page"' : '';
-  const extensionCurrent = current === 'extension' ? ' aria-current="page"' : '';
-  const toolsCurrent = current === 'tools' ? ' aria-current="page"' : '';
-  const casinosCurrent = current === 'casinos' ? ' aria-current="page"' : '';
-  const cooldownCurrent = current === 'cooldown' ? ' aria-current="page"' : '';
-  const tipCurrent = current === 'tip' ? ' aria-current="page"' : '';
+  const cur = (key) => (current === key ? ' aria-current="page"' : '');
+  const logoSvg = `<svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)"/><path d="m9 12 2 2 4-4"/></svg>`;
 
-  const shieldLogoSvg = `<svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>`;
-
+  // One bar: wordmark, 3 primary links, one sign-in/account action.
+  // Phones: wordmark + Menu button; the links drop down in a panel.
+  // TimeCheck and RealityCheck live in the menu on phones and in the footer everywhere.
   return `<nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="${homeHref}"${homeCurrent}>${shieldLogoSvg}TiltCheck<span class="site-nav__beta">Beta</span></a>
-  <div class="site-nav__links">
-    <a href="${dirHref(depth, 'gate')}"${current === 'gate' ? ' aria-current="page"' : ''} style="color:#17c3b2; font-weight:700;">TimeCheck</a>
-    <a href="${href(depth, 'extension.html')}"${extensionCurrent}>Extension</a>
-    <a href="${dirHref(depth, 'tools')}"${toolsCurrent}>Tools</a>
-    <a href="${dirHref(depth, 'casinos')}"${casinosCurrent}>TrustCheck</a>
-    <a href="${dirHref(depth, 'cooldown')}"${cooldownCurrent}>RealityCheck</a>
-    <a class="site-nav__discord" data-tc-nav-auth data-account-href="${dirHref(depth, 'dashboard')}" href="${dirHref(depth, 'login')}"${current === 'login' ? ' aria-current="page"' : ''} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
+  <a class="site-nav__brand" href="${href(depth, 'index.html')}"${cur('home')}>${logoSvg}TiltCheck<span class="site-nav__beta">Beta</span></a>
+  <button type="button" class="site-nav__toggle" aria-expanded="false" aria-controls="site-nav-menu" data-tc-menu-toggle><span class="site-nav__toggle-bars" aria-hidden="true"></span><span class="site-nav__toggle-label">Menu</span></button>
+  <div class="site-nav__links" id="site-nav-menu">
+    <a href="${dirHref(depth, 'tools')}"${cur('tools')}>Tools</a>
+    <a href="${dirHref(depth, 'casinos')}"${cur('casinos')}>Casinos</a>
+    <a href="${href(depth, 'extension.html')}"${cur('extension')}>Extension</a>
+    <a class="site-nav__extra" href="${dirHref(depth, 'gate')}"${cur('gate')}>TimeCheck</a>
+    <a class="site-nav__extra" href="${dirHref(depth, 'cooldown')}"${cur('cooldown')}>RealityCheck</a>
+    <a class="site-nav__discord" data-tc-nav-auth data-account-href="${dirHref(depth, 'dashboard')}" href="${dirHref(depth, 'login')}"${cur('login')} aria-label="Sign in with Discord" title="Sign in with Discord">${DISCORD_ICON}<span>Sign in</span></a>
   </div>
 </nav>`;
 }
@@ -238,20 +231,21 @@ function navHtml(depth, current) {
 function footerHtml(depth) {
   return `<footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
-    <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
-      <a href="${dirHref(depth, 'tools')}">All Tools</a>
+      <a href="${dirHref(depth, 'tools')}">All tools</a>
       <a href="${dirHref(depth, 'gate')}">TimeCheck</a>
       <a href="${dirHref(depth, 'cooldown')}">RealityCheck</a>
+      <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
+      <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
       <a href="${dirHref(depth, 'rtp-scanner')}">RTP Scanner</a>
       <a href="${dirHref(depth, 'house-edge-scanner')}">House Edge Scanner</a>
-      <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
       <a href="${dirHref(depth, 'wincheck')}">Win Skim</a>
-      <a href="${dirHref(depth, 'casinos')}">TrustCheck</a>
-      <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
+      <a href="${href(depth, 'extension.html')}">Extension</a>
+      <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord server</a>
       <a href="${dirHref(depth, 'login')}" data-tc-footer-auth data-signed-in-href="${dirHref(depth, 'dashboard')}" data-signed-in-text="Your dashboard">Discord Sign In</a>
-      <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord Server</a>
-      <a href="${dirHref(depth, 'privacy')}">Privacy Policy</a>
+      <a href="${dirHref(depth, 'tip')}">Tip Jar</a>
+      <a href="${KOFI_URL}" target="_blank" rel="noopener noreferrer">Tip on Ko-fi</a>
+      <a href="${dirHref(depth, 'privacy')}">Privacy</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
@@ -302,6 +296,7 @@ const STAFF_DISCORD_IDS = ['1153034319271559328'];
 // Runs in <head> so signed-in pages don't flash the signed-out header first.
 const AUTH_HEAD_SCRIPT = `<script>
 (function () {
+  document.documentElement.classList.add('js');
   try {
     var exp = Number(localStorage.getItem('tc_token_exp') || 0);
     if (exp && exp < Date.now()) {
@@ -424,6 +419,31 @@ const AUTH_NAV_SCRIPT = `<script>
 })();
 </script>`;
 
+// Phone menu: one button opens/closes the nav panel. Closes on Escape, on a link tap,
+// on a tap outside, and when the window grows past the phone breakpoint.
+const NAV_MENU_SCRIPT = `<script>
+(function () {
+  var btn = document.querySelector('[data-tc-menu-toggle]');
+  var nav = btn && btn.closest('.site-nav');
+  if (!btn || !nav) return;
+  function set(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function () { set(!nav.classList.contains('is-open')); });
+  nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.site-nav__links a')) set(false); });
+  document.addEventListener('click', function (e) { if (nav.classList.contains('is-open') && !nav.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+  });
+  if (window.matchMedia) {
+    var wide = window.matchMedia('(min-width: 720px)');
+    var onWide = function () { if (wide.matches) set(false); };
+    if (wide.addEventListener) wide.addEventListener('change', onWide); else if (wide.addListener) wide.addListener(onWide);
+  }
+})();
+</script>`;
+
 function shell({ title, description, depth, current, body, extraHead = '' }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -449,6 +469,7 @@ ${navHtml(depth, current)}
 ${body}
 ${footerHtml(depth)}
 ${AUTH_NAV_SCRIPT}
+${NAV_MENU_SCRIPT}
 ${body.includes('data-staff-only') ? STAFF_REVEAL_SCRIPT : ''}
 </body>
 </html>`;
@@ -518,97 +539,49 @@ function zipCtaHtml() {
   return `<span class="gated-zip-cta"><button type="button" class="btn btn-primary btn-disabled" disabled aria-disabled="true" aria-describedby="gated-zip-why">${escapeHtml(CTA_GATED_LABEL)}</button><span id="gated-zip-why" class="gated-zip-cta__why">${escapeHtml(CTA_GATED_HINT)}</span></span>`;
 }
 
-function secondaryCtaHtml() {
-  return SECONDARY_CTAS.map(
-    (cta) =>
-      `<a class="${cta.primary ? 'btn btn-primary' : 'btn btn-secondary'}" href="${escapeHtml(cta.href)}">${escapeHtml(cta.label)}</a>`,
-  ).join('\n        ');
+function homeLinkHtml(link, cls) {
+  const target = link.href === 'DISCORD' ? DISCORD_INVITE_URL : link.href;
+  const ext = link.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+  return `<a class="${cls}" href="${escapeHtml(target)}"${ext}>${escapeHtml(link.label)}</a>`;
 }
 
 function buildRootLanding() {
-  const moves = INSTALL_MOVES.map(
-    (move, index) => `<li class="landing-move">
-  <span class="landing-move__num">${String(index + 1).padStart(2, '0')}</span>
-  <h3 class="landing-move__title">${escapeHtml(move.title)}</h3>
-  <p>${escapeHtml(move.body)}</p>
+  const does = HOME_DOES.map(
+    (item) => `<li class="home-does__item">
+  <h3 class="home-does__title">${escapeHtml(item.title)}</h3>
+  <p class="home-does__body">${escapeHtml(item.body)}</p>
+  <p class="home-does__links">${item.links.map((l) => homeLinkHtml(l, 'home-link')).join('')}</p>
 </li>`,
   ).join('\n');
-  const honesty = LAUNCH_HONESTY.map((line) => `<li>${escapeHtml(line)}</li>`).join('\n');
-  const brakes = CORE_BRAKES.map(
-    (b) => `<li class="landing-brake">
-  <span class="landing-brake__num">${escapeHtml(b.num)}</span>
-  <h3 class="landing-brake__title">${escapeHtml(b.title)}</h3>
-  <p class="landing-brake__body">${escapeHtml(b.body)}</p>
-  <span class="landing-brake__status">${escapeHtml(b.status)}</span>
+  const get = HOME_GET.map(
+    (row) => `<li class="home-get__row">
+  <h3 class="home-get__where">${escapeHtml(row.where)}</h3>
+  <p class="home-get__body">${escapeHtml(row.body)}</p>
+  ${row.note ? `<p class="home-get__note">${escapeHtml(row.note)}</p>` : ''}
+  <div class="home-get__actions">
+    ${row.cta === 'zip' ? zipCtaHtml() : ''}
+    ${homeLinkHtml(row.link, 'home-link')}
+  </div>
 </li>`,
   ).join('\n');
 
-  const content = `<main class="landing-page">
-  <section class="landing-hero" aria-label="TiltCheck">
-    <div class="landing-hero__copy">
-      <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
-      <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
-      <p class="landing-hero__kicker">${escapeHtml(SITE_KICKER)}</p>
-      <p class="landing-hero__lede">${escapeHtml(SITE_LEDE)}</p>
-      <div class="hero-actions landing-hero__actions">
-        ${zipCtaHtml()}
-        ${secondaryCtaHtml()}
-      </div>
-      <a class="hero-actions__secondary-link" href="${escapeHtml(TERTIARY_LINK.href)}">${escapeHtml(TERTIARY_LINK.label)}</a>
-      <p class="landing-hero__privacy">${escapeHtml(SITE_PRIVACY)}</p>
-    </div>
+  const content = `<main class="landing-page home">
+  <section class="home-hero" aria-label="TiltCheck">
+    <h1 class="landing-hero__title"><span class="landing-hero__title-q">${escapeHtml(SITE_H1_LINES[0])}</span><span class="landing-hero__title-a">${escapeHtml(SITE_H1_LINES[1])}</span></h1>
+    <p class="landing-hero__dopamine">${escapeHtml(SITE_DOPAMINE)}</p>
+    <p class="home-hero__lede">${escapeHtml(SITE_LEDE)}</p>
+    <a class="btn btn-primary home-hero__cta" href="${escapeHtml(HOME_CTA.href)}">${escapeHtml(HOME_CTA.label)}</a>
   </section>
-  <section class="landing-moves" id="install" aria-label="How it works">
-    <p class="landing-moves__eyebrow">${escapeHtml(INSTALL_EYEBROW)}</p>
-    <h2 class="landing-moves__title">${escapeHtml(INSTALL_TITLE)}</h2>
-    <ol class="landing-moves__list">${moves}</ol>
+  <section class="home-section" aria-labelledby="home-does-title">
+    <h2 class="home-section__title" id="home-does-title">What it does</h2>
+    <ul class="home-does">${does}</ul>
   </section>
-  <section class="landing-brakes" aria-label="What the extension does">
-    <p class="landing-brakes__eyebrow">ON THE CASINO TAB</p>
-    <h2 class="landing-brakes__title">THE ANNOYING STUFF. ON PURPOSE.</h2>
-    <ul class="landing-brakes__list">${brakes}</ul>
-    <div class="landing-calc">
-      <div class="landing-calc__inputs">
-        <div class="landing-calc__slider-row">
-          <label class="landing-calc__label" for="wageSlider">Your Hourly Day-Job Wage: <strong id="wageVal">$25/hr</strong></label>
-          <input type="range" id="wageSlider" class="landing-calc__slider" min="15" max="150" value="25" step="5" oninput="updateLandingWage()"/>
-        </div>
-        <div class="landing-calc__slider-row">
-          <label class="landing-calc__label" for="lossSlider">Simulated Session Loss: <strong id="lossVal" style="color:#e63946;">-$300</strong></label>
-          <input type="range" id="lossSlider" class="landing-calc__slider" min="50" max="2500" value="300" step="50" oninput="updateLandingWage()"/>
-        </div>
-      </div>
-      <div class="landing-calc__banner">
-        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK</span>
-        <p class="landing-calc__banner-lead">Session Down: <span id="calcLossText">-$300.00</span> (<span id="calcHoursText" style="color:#f4a261;">12.0 hours</span> of labor torched)</p>
-        <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
-      </div>
-    </div>
+  <section class="home-section" id="get" aria-labelledby="home-get-title">
+    <h2 class="home-section__title" id="home-get-title">How to get it</h2>
+    <ul class="home-get">${get}</ul>
+    <p class="home-fine">${escapeHtml(HOME_FINE_PRINT)}</p>
   </section>
-  <section class="landing-tape" aria-label="Honesty">
-    <p class="landing-tape__label">THE FINE PRINT</p>
-    <ul class="landing-tape__list">${honesty}</ul>
-  </section>
-</main>
-<script>
-function updateLandingWage() {
-  var w = parseFloat(document.getElementById('wageSlider').value);
-  var l = parseFloat(document.getElementById('lossSlider').value);
-  document.getElementById('wageVal').textContent = '$' + w + '/hr';
-  document.getElementById('lossVal').textContent = '-$' + l;
-  var hrs = (l / w).toFixed(1);
-  document.getElementById('calcLossText').textContent = '-$' + l.toFixed(2);
-  document.getElementById('calcHoursText').textContent = hrs + ' hours';
-  var desc = document.getElementById('calcDescText');
-  if (hrs >= 16) {
-    desc.textContent = 'That is two full 40-hour work weeks wiped out in one session. Walk away right now.';
-  } else if (hrs >= 8) {
-    desc.textContent = 'That is an entire 8-hour shift gone. You spent all day working for the house. Close the tab.';
-  } else {
-    desc.textContent = 'That is ' + hrs + ' hours of your hard labor torched. Respect your time and slow down.';
-  }
-}
-</script>`;
+</main>`;
 
   return shell({
     title: 'TiltCheck | House always wins? Not today.',
@@ -650,15 +623,14 @@ function buildExtensionPage() {
   const content = `${productHero({
     eyebrow: 'Desktop Companion',
     title: 'TiltCheck Browser Extension',
-    lede: 'Direct, free browser companion: enforces a 2-second pause between spins, blocks high-risk games, and locks cashier buttons during cooldowns. Zero store dependencies.',
+    lede: 'Free brakes for your casino tab. Add it in 30 seconds, then pick which ones run.',
     actionsHtml: actions,
   })}
 <main class="product-main">
   <section class="public-page-section">
     <div class="landing-shell">
       <article class="public-page-card" style="border: 1px solid rgba(23,195,178,0.35); background: rgba(23,195,178,0.04);">
-        <p class="public-page-card__eyebrow" style="color:#17c3b2;">3-Step Sideload Guide</p>
-        <h2 class="public-page-card__title">How to Install in 30 Seconds</h2>
+        <h2 class="public-page-card__title">How to install</h2>
         <ol style="color:var(--text-secondary); line-height:1.75; padding-left:1.25rem; margin:1rem 0;">
           <li><strong>Download and extract</strong> the <a href="/downloads/tiltcheck-extension.zip" download style="color:#17c3b2; text-decoration:underline;">tiltcheck-extension.zip</a> file to your computer.</li>
           <li>Open Chrome, Brave, or Edge and go to <code>chrome://extensions</code> in your address bar.</li>
@@ -681,7 +653,7 @@ function buildExtensionPage() {
 
   return shell({
     title: 'Direct Extension Download | TiltCheck',
-    description: 'Download the TiltCheck desktop extension: 2-second spin pause, custom game block lists, and 24-hour cashier cooldowns.',
+    description: 'Download the TiltCheck desktop extension: 2-second spin pause, custom game block lists, and cashier cooldowns from 24 hours to 30 days.',
     depth: 'root',
     current: 'extension',
     body: content,
@@ -697,7 +669,7 @@ function gradeClass(grade) {
   return 'grade-f';
 }
 
-function buildAuditedShowcase(auditedCasinos) {
+function buildAuditedShowcase(auditedCasinos, toolbarHtml) {
   const showcaseCards = auditedCasinos
     .map((c) => {
       const trust = calculateCasinoTrust(c);
@@ -705,7 +677,12 @@ function buildAuditedShowcase(auditedCasinos) {
         .map((e) => '<li>' + escapeHtml(e) + '</li>')
         .join('\n');
 
-      return '<article class="audit-card">\n' +
+      const keywords = [c.name, c.category, trust.grade, trust.risk, c.license, c.rtpSummary, ...(c.evidence || [])]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return '<article class="audit-card" data-casino-card data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(trust.grade) + '" data-audited="true" data-keywords="' + escapeHtml(keywords) + '">\n' +
         '  <div class="audit-card__header">\n' +
         '    <div class="audit-card__title-row">\n' +
         '      <h3 class="audit-card__name">' + escapeHtml(c.name) + '</h3>\n' +
@@ -762,10 +739,10 @@ function buildAuditedShowcase(auditedCasinos) {
   return '<section class="public-page-section audited-showcase-section">\n' +
     '  <div class="landing-shell">\n' +
     '    <div class="public-page-section-heading">\n' +
-    '      <span class="brand-eyebrow">Audited deep dives</span>\n' +
-    '      <h2 class="public-page-section-heading__title">Audited Operator Receipts — Stake, Roobet & BC.Game: The Receipts.</h2>\n' +
-    '      <p class="public-page-section-heading__sub">Deterministic 5-pillar trust scoring, provably fair verification, certified slot RTP profiles, and documented friction across ' + auditedCasinos.length + ' audited operators.</p>\n' +
+    '      <span class="brand-eyebrow">The directory</span>\n' +
+    '      <h2 class="public-page-section-heading__title">Every operator, graded.</h2>\n' +
     '    </div>\n' +
+    (toolbarHtml || '') + '\n' +
     '    <div class="audited-grid">\n' +
     showcaseCards + '\n' +
     '    </div>\n' +
@@ -773,80 +750,98 @@ function buildAuditedShowcase(auditedCasinos) {
     '</section>';
 }
 
+function buildCasinoAsk() {
+  const a = CASINO_ASK;
+  return `<section class="public-page-section casino-ask" id="ask" aria-labelledby="casino-ask-title">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">${escapeHtml(a.eyebrow)}</span>
+        <h2 class="public-page-section-heading__title" id="casino-ask-title">${escapeHtml(a.title)}</h2>
+      </div>
+      <p class="casino-ask__lede">${escapeHtml(a.lede)}</p>
+      <form class="casino-ask__form" id="casino-ask-form" data-endpoint="${escapeHtml(a.endpoint)}" novalidate>
+        <label class="sr-only" for="casino-ask-q">Your question</label>
+        <input class="casino-ask__input" id="casino-ask-q" name="question" type="text" maxlength="300" required autocomplete="off" enterkeyhint="send" placeholder="${escapeHtml(a.placeholder)}"/>
+        <button class="btn btn-primary casino-ask__btn" id="casino-ask-btn" type="submit">${escapeHtml(a.button)}</button>
+      </form>
+      <p class="casino-ask__covered">${escapeHtml(a.covered)}</p>
+      <div class="casino-ask__result" id="casino-ask-result" aria-live="polite" hidden></div>
+    </div>
+  </section>`;
+}
+
+const CASINO_ASK_SCRIPT = `<script>
+(function () {
+  var form = document.getElementById('casino-ask-form');
+  if (!form) return;
+  var input = document.getElementById('casino-ask-q');
+  var btn = document.getElementById('casino-ask-btn');
+  var out = document.getElementById('casino-ask-result');
+  var endpoint = form.getAttribute('data-endpoint');
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text) n.textContent = text;
+    return n;
+  }
+  function safeUrl(u) {
+    try { var x = new URL(u); return x.protocol === 'https:' ? x.href : ''; } catch (e) { return ''; }
+  }
+  function links(title, list) {
+    if (!list || !list.length) return null;
+    var wrap = el('div', 'casino-ask__sources');
+    wrap.appendChild(el('p', 'casino-ask__sources-title', title));
+    var ul = el('ul', 'casino-ask__links');
+    list.slice(0, 6).forEach(function (s) {
+      var href = safeUrl(s.url);
+      if (!href) return;
+      var li = el('li');
+      var a = el('a', 'casino-ask__link', s.title || href);
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+    return wrap;
+  }
+  function show(data) {
+    out.textContent = '';
+    out.hidden = false;
+    out.setAttribute('data-status', data.status || 'error');
+    out.appendChild(el('p', 'casino-ask__answer', data.answer || "I don't know."));
+    if (data.nearest) out.appendChild(el('p', 'casino-ask__nearest', 'Closest thing on record: ' + data.nearest));
+    var src = links(data.sources && data.sources.length > 1 ? 'Sources' : 'Source', data.sources);
+    if (src) out.appendChild(src);
+    else {
+      var chk = links('Checked', data.checked);
+      if (chk) out.appendChild(chk);
+    }
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = (input.value || '').trim();
+    if (q.length < 3) { input.focus(); return; }
+    btn.disabled = true;
+    btn.textContent = 'Checking';
+    out.hidden = false;
+    out.textContent = 'Reading the fine print.';
+    fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) })
+      .then(function (r) { return r.json().catch(function () { return { status: 'error' }; }); })
+      .then(function (data) {
+        if (!data || !data.answer) data = { status: 'error', answer: 'Ask is offline right now. Try again later.' };
+        show(data);
+      })
+      .catch(function () { show({ status: 'error', answer: 'Ask is offline right now. Try again later.' }); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Ask'; });
+  });
+})();
+<\/script>`;
+
 function buildCasinosPage(casinos) {
   const auditedCasinos = casinos.filter((c) => Boolean(c.audited));
   const categories = [...new Set(auditedCasinos.map((c) => c.category))].sort();
-  const cards = auditedCasinos
-    .map((c) => {
-      const isAudited = Boolean(c.audited);
-      const keywords = [
-        c.name,
-        c.category,
-        c.grade,
-        c.risk,
-        c.license,
-        c.rtpSummary,
-        ...(c.evidence || []),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      let extraContent = '';
-      if (isAudited) {
-        const evidenceItems = (c.evidence || [])
-          .map((e) => '<li>' + escapeHtml(e) + '</li>')
-          .join('');
-
-        const detailsHtml =
-          '  <details class="casino-card__details">\n' +
-          '    <summary class="casino-card__details-toggle">View verified evidence (' + (c.evidence || []).length + ')</summary>\n' +
-          '    <div class="casino-card__details-body">\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Originals RTP</span>\n' +
-          '        <span class="stat-value text-accent">' + escapeHtml(c.rtpOriginals || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Slot Tiers</span>\n' +
-          '        <span class="stat-value">' + escapeHtml(c.rtpSlots || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Extension Support</span>\n' +
-          '        <span class="stat-value">' + escapeHtml(c.vaultSupport || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <div class="casino-card__stat">\n' +
-          '        <span class="stat-label">Playthrough</span>\n' +
-          '        <span class="stat-value">' + escapeHtml(c.playthrough || 'N/A') + '</span>\n' +
-          '      </div>\n' +
-          '      <h4 class="evidence-subheading">Verified Receipts</h4>\n' +
-          '      <ul class="casino-card__evidence-list">' + evidenceItems + '</ul>\n' +
-          '    </div>\n' +
-          '  </details>';
-
-        extraContent = '\n' +
-          '  <div class="casino-card__meta-tags">\n' +
-          '    <span class="badge-audited">Audited</span>\n' +
-          (c.rtpSummary ? '    <span class="badge-rtp">' + escapeHtml(c.rtpSummary) + '</span>\n' : '') +
-          '  </div>\n' +
-          '  <p class="casino-card__license">' + escapeHtml(c.license || '') + '</p>\n' +
-          staffOnly(detailsHtml, 'TrustCheck Team — Audit Evidence');
-      }
-
-      const trust = calculateCasinoTrust(c);
-      return '<article class="casino-card' + (isAudited ? ' casino-card--audited' : '') + '" data-name="' + escapeHtml(c.name.toLowerCase()) + '" data-category="' + escapeHtml(c.category) + '" data-grade="' + escapeHtml(trust.grade) + '" data-audited="' + (isAudited ? 'true' : 'false') + '" data-keywords="' + escapeHtml(keywords) + '">\n' +
-        '  <div class="casino-card__top">\n' +
-        '    <div class="casino-card__grade-block">\n' +
-        '      <span class="casino-card__grade ' + gradeClass(trust.grade) + '">' + escapeHtml(trust.grade) + '</span>\n' +
-        '      <span class="casino-card__score-label">' + trust.score + '/100</span>\n' +
-        '    </div>\n' +
-        '    <span class="casino-card__cat">' + escapeHtml(c.category) + '</span>\n' +
-        '  </div>\n' +
-        '  <h3 class="casino-card__name">' + escapeHtml(c.name) + '</h3>\n' +
-        '  <p class="casino-card__risk">Risk: <strong>' + escapeHtml(trust.risk) + '</strong></p>' + extraContent + '\n' +
-        '</article>';
-    })
-    .join('\n');
-
   const filters = ['All', ...categories]
     .map(
       (cat, i) =>
@@ -862,7 +857,7 @@ function buildCasinosPage(casinos) {
 (function () {
   var input = document.getElementById('casino-search');
   var chips = document.querySelectorAll('.filter-chip');
-  var cards = Array.prototype.slice.call(document.querySelectorAll('.casino-card'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-casino-card]'));
   var count = document.getElementById('casino-count');
   var activeCat = 'All';
   function apply() {
@@ -901,20 +896,15 @@ function buildCasinosPage(casinos) {
     actionsHtml: '<a class="btn btn-primary" href="' + href('docs', 'index.html') + '">Back home</a>',
   })}
 <main class="product-main">
-  ${buildAuditedShowcase(auditedCasinos)}
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <div class="casino-toolbar">
+  ${buildCasinoAsk()}
+  ${buildAuditedShowcase(auditedCasinos, `      <div class="casino-toolbar">
         <label class="casino-search">
           <span class="sr-only">Search casinos</span>
           <input id="casino-search" type="search" placeholder="Search operator name, license, RTP, or provider…" autocomplete="off"/>
         </label>
         <div class="filter-row" role="group" aria-label="Category filters">${filters}</div>
         <p class="casino-count" id="casino-count">${auditedCasinos.length} audited operators</p>
-      </div>
-      <div class="casino-grid">${cards}</div>
-    </div>
-  </section>
+      </div>`)}
   <section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
@@ -926,7 +916,8 @@ function buildCasinosPage(casinos) {
     </div>
   </section>
 </main>
-${script}`;
+${script}
+${CASINO_ASK_SCRIPT}`;
 
   return shell({
     title: 'TrustCheck — Casino Directory & Payout Audits | TiltCheck',
@@ -960,7 +951,7 @@ function buildCooldownPage() {
   <div class="cooldown-panel">
     <p class="brand-eyebrow">RealityCheck</p>
     <h1>Take a break</h1>
-    <p class="cooldown-punch">Pick how long. TiltCheck blocks casino deposit buttons until it's over.</p>
+    <p class="cooldown-punch">TiltCheck blocks casino deposit buttons until your break is over.</p>
 
     <div id="auto-tilt-alert-banner" class="cooldown-banner" style="display:none;">
       <p class="cooldown-banner__title">Tilt check</p>
@@ -983,7 +974,7 @@ function buildCooldownPage() {
       })();
     </script>
 
-    <div class="cooldown-lock">
+    <div class="cooldown-lock" id="cooldown-length">
       <p class="cooldown-label" id="cooldown-dur-label">How long?</p>
       <div class="cooldown-durs" role="group" aria-labelledby="cooldown-dur-label">
         <button type="button" class="cooldown-dur-btn" data-hours="24" aria-pressed="false">24h</button>
@@ -1327,7 +1318,7 @@ function buildCooldownPage() {
         </div>
         <div class="cooldown-how__card">
           <h3>3. The fine print</h3>
-          <p>Not a deposit. We never hold your money or keys. Casinos don't have to honor your lock. You do. The optional wallet signature just adds a signed note with your lock's end time, for your own records.</p>
+          <p>Casinos don't have to honor your lock. You do. The optional wallet signature just adds a signed note with your lock's end time, for your own records.</p>
         </div>
       </div>
     </div>
@@ -1370,7 +1361,6 @@ function buildNudgesPage() {
       return `<section class="public-page-section">
     <div class="landing-shell">
       <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Toast</span>
         <h2 class="public-page-section-heading__title">${escapeHtml(group.when)}</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${cards}</div>
@@ -1426,56 +1416,77 @@ function buildAutovaultPage() {
 
 function buildDashboardPage() {
   const depth = 'docs';
+  // Each card points at the tool's real controls, not its explainer page.
+  // Web tools: deep link to the form on the tool page. Extension tools: the
+  // settings live in the extension popup (gear icon opens Settings), which a web
+  // link can't open, so those cards say where to look and carry no link.
+  const webTools = [
+    { name: 'TimeCheck', href: dirHref(depth, 'gate') + '#timecheck-setup-card', body: 'Pick your site, session timer and stop-loss.' },
+    { name: 'RealityCheck', href: dirHref(depth, 'cooldown') + '#cooldown-length', body: 'Pick 24 hours, 3, 7 or 30 days, then lock.' },
+    { name: 'Fairness Verifier', href: dirHref(depth, 'tools/verify') + '#verify-seeds', body: 'Paste the seeds and nonce. Check the bet yourself.' },
+  ];
+  const extensionTools = [
+    { id: 'clickcheck', name: 'ClickCheck', body: 'Settings tab: switch the 2-second spin pause on or off.' },
+    { id: 'nope-list', name: 'Nope List', body: 'Settings tab: pick the game types and titles that stop clicking.' },
+    { id: 'sneaky-bet-alert', name: 'Sneaky Bet Alert', body: 'Settings tab: switch it on and set the stake that counts as sneaky.' },
+    { id: 'keep-the-win', name: 'Keep the Win', body: 'Settings tab: switch the cancel-withdrawal blocker on or off.' },
+    { id: 'win-skim', name: 'Win Skim', body: 'Settings tab: pick how much of a win to keep.' },
+  ];
+  const webCards = webTools
+    .map((t) => `<a class="dash-card dash-card--link" href="${t.href}">
+        <h3 class="dash-card__name">${escapeHtml(t.name)} &rarr;</h3>
+        <p class="dash-card__body">${escapeHtml(t.body)}</p>
+      </a>`)
+    .join('\n      ');
+  const extCards = extensionTools
+    .map((t) => `<div class="dash-card" id="${t.id}">
+        <h3 class="dash-card__name">${escapeHtml(t.name)}</h3>
+        <p class="dash-card__body">${escapeHtml(t.body)}</p>
+        <span class="dash-card__tag">In the extension</span>
+      </div>`)
+    .join('\n      ');
+
   const content = `<main class="cooldown-page">
-  <div class="cooldown-panel" style="max-width: 720px;">
+  <div class="cooldown-panel dash-panel">
     <p class="brand-eyebrow">DASHBOARD</p>
     <h1>Your TiltCheck stuff</h1>
-    <p class="cooldown-punch">Your tools in one spot: skim the win, touch grass, check the math.</p>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 24px 0; text-align: left;">
-      <a href="${href(depth, 'autovault')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">AutoVault &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Set how much of a win gets moved to your vault.</p>
-      </a>
+    <p class="cooldown-punch">Where each tool's settings live.</p>
 
-      <a href="${href(depth, 'cooldown')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Touch Grass &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Sign a timer with your Solana wallet. You sign it. We never hold anything.</p>
-      </a>
-
-      <a href="${href(depth, 'tools/verify')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Bet Verifier &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Paste the seeds, check the bet yourself.</p>
-      </a>
-
-      <a href="${href(depth, 'nudges')}" style="display: block; background: rgba(255,255,255,0.04); border: 1px solid rgba(23,195,178,0.3); border-radius: 12px; padding: 20px; text-decoration: none; color: inherit;">
-        <h3 style="color: #17c3b2; margin: 0 0 8px 0; font-size: 1.1rem;">Pacing &amp; Nudges &rarr;</h3>
-        <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">Two-second spin pauses, loss-speed warnings, and reality checks.</p>
-      </a>
+    <h2 class="dash-heading">Set it here</h2>
+    <div class="dash-grid">
+      ${webCards}
     </div>
 
-    <div style="margin-top: 1.5rem;">
-      <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
+    <h2 class="dash-heading" id="in-the-extension">Set in the extension</h2>
+    <p class="dash-note">Open the TiltCheck extension and tap the gear. That opens Settings.</p>
+    <div class="dash-grid">
+      ${extCards}
+      <div class="dash-card dash-card--soon" id="nudges">
+        <h3 class="dash-card__name">Nudges</h3>
+        <p class="dash-card__body">No settings yet. They pop up on their own.</p>
+        <span class="dash-card__tag">Coming soon</span>
+      </div>
     </div>
+
+    <p class="dash-note">No extension yet? <a href="${href(depth, 'extension.html')}">Get it here</a>.</p>
   </div>
   <script>
     (function() {
-      var p = new URLSearchParams(window.location.search);
-      var tab = p.get('tab');
-      if (tab === 'vault') {
-        window.location.replace('../autovault/');
-      } else if (tab === 'safety') {
-        window.location.replace('../nudges/');
-      } else if (tab === 'buddies') {
-        window.location.replace('../collab/');
-      }
+      // Old links (and the extension's block screen) use ?tab=. Land on the matching card.
+      var tab = new URLSearchParams(window.location.search).get('tab');
+      var target = { safety: 'nope-list', vault: 'win-skim' }[tab];
+      var el = target && document.getElementById(target);
+      if (!el) return;
+      el.classList.add('dash-card--focus');
+      if (!window.location.hash && history.replaceState) history.replaceState(null, '', window.location.pathname + window.location.search + '#' + target);
+      if (el.scrollIntoView) el.scrollIntoView({ block: 'center' });
     })();
   </script>
 </main>`;
 
   return shell({
     title: 'Dashboard | TiltCheck',
-    description: 'Your TiltCheck tools in one spot.',
+    description: 'Where each TiltCheck tool is set up.',
     depth: 'docs',
     current: 'dashboard',
     body: content,
@@ -1658,7 +1669,7 @@ function buildVerifyPage() {
     <h1>${escapeHtml(VERIFY_PAGE.title)}</h1>
     <p class="cooldown-punch">${escapeHtml(VERIFY_PAGE.punch)}</p>
 
-    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
+    <div id="verify-seeds" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem; border-radius: 6px; margin: 1.5rem 0;">
       <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid #283347; padding-bottom: 0.75rem;">
         <span style="font-size: 11px; font-family: monospace; text-transform: uppercase; color: #a0afbe;">Sample Presets:</span>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -2217,24 +2228,14 @@ function buildNudgesRedirect() {
 
 function buildToolsPage() {
   const depth = 'docs';
-  const install = INSTALL_SURFACES.map(
-    (t) => `<article class="public-page-card">
-  <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
-  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
-  <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
-  <a class="feature-card__link" href="${mapPublicHref(depth, t.href)}">Open install →</a>
-</article>`,
-  ).join('\n');
-
   const tools = TOOL_REGISTRY.map(
     (t) => `<article class="public-page-card tool-card">
   <div class="tool-card__meta">
-    <p class="public-page-card__eyebrow">${escapeHtml(t.label)}</p>
+    <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
     <span class="status-pill status-pill--${escapeHtml(t.status)}">${escapeHtml(t.status)}</span>
   </div>
-  <h3 class="public-page-card__title">${escapeHtml(t.title)}</h3>
   <p class="public-page-card__copy">${escapeHtml(t.description)}</p>
-  <a class="feature-card__link" href="${mapPublicHref(depth, t.href)}">Launch tool &rarr;</a>
+  <a class="feature-card__link" href="${mapPublicHref(depth, t.href)}">${t.href === '/extension' ? 'In the extension' : 'Launch tool'} &rarr;</a>
 </article>`,
   ).join('\n');
 
@@ -2242,8 +2243,7 @@ function buildToolsPage() {
     eyebrow: 'Degen-built tools',
     title: 'The Anti-Tilt Toolkit',
     lede: 'Friction, receipts, and a little trash talk. Every tool we built, in one place. No login. We never hold your money. The willpower part is still on you.',
-    actionsHtml: `<a class="btn btn-primary" href="${href(depth, 'extension.html')}">The Extension</a>
-    <a class="hero-actions__secondary-link" href="${dirHref(depth, 'cooldown')}">Touch Grass</a>`,
+    actionsHtml: `<a class="btn btn-primary" href="${href(depth, 'extension.html')}">The Extension</a>`,
   })}
 <main class="product-main">
   <section class="public-page-section">
@@ -2253,15 +2253,6 @@ function buildToolsPage() {
         <h2 class="public-page-section-heading__title">Pick your poison.</h2>
       </div>
       <div class="public-page-grid public-page-grid--2">${tools}</div>
-    </div>
-  </section>
-  <section class="public-page-section">
-    <div class="landing-shell">
-      <div class="public-page-section-heading">
-        <span class="brand-eyebrow">Phone setup</span>
-        <h2 class="public-page-section-heading__title">AutoVault on your phone.</h2>
-      </div>
-      <div class="public-page-grid public-page-grid--2">${install}</div>
     </div>
   </section>
 </main>`;
@@ -2497,16 +2488,10 @@ function buildTipPage() {
         </div>
       </div>
 
-      <div class="public-page-grid public-page-grid--2" style="max-width:760px; margin:0 auto;">
+      <div style="max-width:760px; margin:0 auto;">
         <article class="public-page-card">
-          <p class="public-page-card__eyebrow">100% Non-Custodial</p>
-          <h3 class="public-page-card__title">Zero Fund Custody</h3>
-          <p class="public-page-card__copy">TiltCheck never holds player casino bankrolls, deposits, or private keys. Tipping is purely voluntary and client-side.</p>
-        </article>
-        <article class="public-page-card">
-          <p class="public-page-card__eyebrow">Nothing paywalled</p>
-          <h3 class="public-page-card__title">Free for Every Degen</h3>
-          <p class="public-page-card__copy">Spin pause, streak spotter, cancel-withdrawal blocker, AutoVault: all free whether you tip or not.</p>
+          <h3 class="public-page-card__title">Your money stays yours</h3>
+          <p class="public-page-card__copy">We never hold bankrolls, deposits or private keys. A tip goes straight from your wallet to ours.</p>
         </article>
       </div>
     </div>
@@ -2771,6 +2756,11 @@ function run() {
   if (fs.existsSync(glitterSrc)) {
     fs.copyFileSync(glitterSrc, path.join(assetsDir, 'backgroundglitter.png'));
   }
+  // base.css uses the WebP copy (about 65 KB instead of 2.6 MB) so phones skip the big PNG.
+  fs.copyFileSync(
+    path.join(__dirname, 'pages-assets/assets/backgroundglitter.webp'),
+    path.join(assetsDir, 'backgroundglitter.webp'),
+  );
 
   fs.writeFileSync(path.join(siteRoot, '.nojekyll'), '');
   fs.writeFileSync(path.join(siteRoot, 'CNAME'), 'tiltcheck.me\n');
