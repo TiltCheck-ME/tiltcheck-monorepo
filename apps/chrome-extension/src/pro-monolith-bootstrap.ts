@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -49,6 +49,7 @@ import { updateMobileLicenseHud } from './mobile-license-hud.js';
 import { Analyzer } from './analyzer.js';
 import { FairnessService } from './FairnessService.js';
 import { postRoundTelemetry, postWinSecureTelemetry } from './telemetry-client.js';
+import { isBackendFeatureEnabled } from './config.js';
 import { GameBlocker } from './game-blocker.js';
 import { installLocalGameBlocker, LocalGameBlocker } from './pro/local-game-blocker.js';
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './pro/containment.js';
@@ -138,6 +139,7 @@ type TiltCheckWindow = Window & {
 };
 
 // Configuration
+// No analyzer backend yet (api.tiltcheck.me does not resolve). Gated by BACKEND_FEATURES.analyzer.
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
 
 // State
@@ -827,7 +829,8 @@ function initialize() {
       chrome.storage.local.get(['authToken']),
     ]).then(([discordId, authState]) => {
       const authToken = typeof authState.authToken === 'string' ? authState.authToken : '';
-      if (!discordId || !authToken) {
+      // Synced exclusions have no backend yet; the local game blocker above still runs.
+      if (!isBackendFeatureEnabled('serverExclusions') || !discordId || !authToken) {
         return;
       }
 
@@ -886,7 +889,7 @@ async function startMonitoring() {
   // Initialize tilt detector
   tiltDetector = new TiltDetector(initialBalance, riskLevel, redeemThreshold);
 
-  if (authToken) {
+  if (authToken && isBackendFeatureEnabled('analyzer')) {
     const wsUrlWithAuth = `${ANALYZER_WS_URL}?token=${authToken}`;
     client = new AnalyzerClient(wsUrlWithAuth, (error) => {
       // Surface post-open disconnect/reconnect failures to UI and logs.
@@ -907,7 +910,7 @@ async function startMonitoring() {
       if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
     }
   } else {
-    if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Analyzer disabled until Discord auth is connected');
+    if (process.env.NODE_ENV !== 'production') console.log('[TiltGuard] Analyzer off: no backend yet, or Discord not connected');
     sidebar?.updateRealityCheck(false);
   }
 
@@ -1928,7 +1931,8 @@ async function relayWinSecure(amount: number) {
   const userId = await getUserId();
   const response = await postWinSecureTelemetry({ amount, userId });
 
-  if (!response.ok) {
+  // null: no telemetry backend yet, so there is nothing to relay. Quit still works.
+  if (response && !response.ok) {
     console.error('[TiltCheck] Win secure relay returned non-OK status:', response.status);
     throw new Error(`Win secure relay failed with status ${response.status}`);
   }

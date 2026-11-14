@@ -1,6 +1,7 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-02 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 
 import { readPresenceGameTitle } from './presence-game-title.js';
+import { isBackendFeatureEnabled } from './config.js';
 
 const HOST_ID = 'tiltcheck-lounge-host';
 const STORAGE_ID_KEY = 'tiltcheck_lounge_user';
@@ -44,6 +45,11 @@ async function saveIdentity(user: { userId: string; username: string }): Promise
 }
 
 export function installLoungeOverlay(doc: Document = document): () => void {
+  // No lounge backend yet (activity.tiltcheck.me does not resolve): show no
+  // panel and poll nothing until one exists.
+  if (!isBackendFeatureEnabled('lounge')) {
+    return () => undefined;
+  }
   if (doc.getElementById(HOST_ID)) {
     return () => undefined;
   }

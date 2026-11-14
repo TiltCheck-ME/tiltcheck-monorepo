@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * Game Blocker — Game block / category block for the Chrome Extension.`r`n * Blocks games on the user's tab only. This is a browser-level game block, not a casino-registered lock.
  *
@@ -14,7 +14,7 @@
  *  4. DOM metadata and hostname matching blocked provider/casino slugs
  */
 
-import { EXT_CONFIG } from './config.js';
+import { EXT_CONFIG, isBackendFeatureEnabled } from './config.js';
 import type { ForbiddenGamesProfile, GameCategory } from '@tiltcheck/types';
 import { CATEGORY_KEYWORDS } from './exclusion-taxonomy.js';
 
@@ -81,6 +81,8 @@ export class GameBlocker {
   private async refreshProfile(force = false): Promise<void> {
     const now = Date.now();
     if (!force && this.profile && now - this.profileFetchedAt < CACHE_TTL_MS) return;
+    // No exclusions backend yet: skip the call instead of hitting a host that does not resolve.
+    if (!isBackendFeatureEnabled('serverExclusions')) return;
     try {
       const resp = await fetch(
         `${EXT_CONFIG.API_BASE_URL}/user/${encodeURIComponent(this.discordId)}/exclusions`,

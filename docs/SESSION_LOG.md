@@ -1,6 +1,15 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
 
 # Session Log
+
+## 2026-11-13 — fix(extension): data calls to the collectclock-api worker; features with no backend switched off
+
+- Why: `api.tiltcheck.me` does not resolve (NXDOMAIN), so popup status, onboarding status, logout, synced exclusions, vault rules, analyzer socket, telemetry, cooldown check/stream, link scan and the lounge panel all failed. Sign-in already went through the worker.
+- `src/config.ts`: `API_BASE_URL` / `HUB_URL` now the worker (`collectclock-api.j-chapman7.workers.dev`); `AI_GATEWAY_URL` and the unused `getDiscordLoginUrl` (pointed at a route the worker lacks) removed. `WORKER_ROUTES` lists the only routes used: `POST /auth/token`, `GET /me`, `POST /logout` (checked against the worker source as deployed Nov 12 and live: `/me` 401 signed out, `/logout` 200). The worker answers unknown paths with 200 + health JSON, so nothing else is called. `BACKEND_FEATURES` holds every feature without a route, all off.
+- Sign-in unchanged. After it stores the Discord token, `background.js` also trades it for a worker session (`POST /auth/token`, stored as `workerSession`, never logged); a failure there leaves sign-in as it was. Logout posts `/logout` with that session, then clears local keys; sessions from before this change have nothing to revoke and log out locally.
+- Off, no network call: server tilt meter, P/L and blocked count on Status (hidden); onboarding check; synced exclusions (section replaced by "Synced exclusions are not available yet. The filters above work in this browser without an account."); Vault tab (hidden; note "Vault rules are not available yet."); analyzer socket; round and win telemetry (`postRoundTelemetry` / `postWinSecureTelemetry` resolve to null, "Redeem Now & Quit" still quits); cooldown check/stream; link scan; lounge panel (was polling `activity.tiltcheck.me` every 3 s). `api.tiltcheck.me` removed from host permissions and CSP in both manifests. Railway example URL dropped from DEPLOYMENT_MANUAL.
+- Brand Compliance: the custodial-word rule scans whole changed files, and popup.ts holds the provably-fair client seed UI, so those lines carry a "client seed" note (two toasts reworded). No behaviour change there.
+- Checked: 43 vitest files / 323 tests in apps/chrome-extension (new: config routes and flags, background session exchange and failure, no calls for cooldown/link scan, popup sections hidden, telemetry/exclusions/lounge make no calls), `node build.js`, `tsc --noEmit` (no new errors; 7 existing ones in content/popup/default-bet-breaker untouched). Not checked in a real Chrome: the popup layout with the hidden sections, and a live sign-in getting a worker session.
 
 ## 2026-11-12 — deploy(activity): Touch Grass channel rooms on the same test hosts
 

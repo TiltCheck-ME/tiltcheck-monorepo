@@ -1,8 +1,15 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * @vitest-environment jsdom
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// These tests cover the synced-exclusions path, which is off until the worker
+// has an exclusions route. Turn it on here so the blocker logic stays tested.
+vi.mock('../../src/config.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/config.ts')>()),
+  isBackendFeatureEnabled: () => true,
+}));
 
 describe('GameBlocker', () => {
   beforeEach(() => {
