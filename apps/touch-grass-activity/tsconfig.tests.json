@@ -20,6 +20,7 @@
     "tests/transport-room.test.ts",
     "tests/solo-ui.test.ts",
     "tests/dad-playtest-ui.test.ts",
-    "tests/chess-ui.test.ts"
+    "tests/chess-ui.test.ts",
+    "tests/social-ui.test.ts"
   ]
 }

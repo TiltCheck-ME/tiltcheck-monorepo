@@ -20,11 +20,13 @@ beforeAll(async () => {
 });
 
 describe('client in guest mode (no frame_id)', () => {
-  it('lobby shows the fake user, three table tiles with counts and two solo tiles, no break tile', () => {
+  it('lobby shows the fake user, three table tiles with counts, two solo tiles, chess, Hot Takes and Story Chain, no break tile', () => {
     expect(document.body.textContent).toContain('Guest mode');
     expect(document.querySelectorAll('.person')).toHaveLength(1);
     expect($('.person__name')?.textContent).toBe('Jme');
-    expect(document.querySelectorAll('.tile')).toHaveLength(6);
+    expect(document.querySelectorAll('.tile')).toHaveLength(8);
+    expect($('.tile--hot .tile__name')?.textContent).toBe('Hot Takes');
+    expect($('.tile--story .tile__name')?.textContent).toBe('Story Chain');
     expect($('.tile--chess .tile__name')?.textContent).toBe('Chess');
     expect($('[data-count=chess]')?.textContent).toBe('0 seated');
     expect($('[data-count=daily]')?.textContent).toBe('Solo');

@@ -15,6 +15,10 @@ A Discord Activity for the "Touch Grass" games hub. Phase 1:
 
 - **Chess** (1v1): two people claim White and Black from the Chess screen; everyone else in the room watches the same board. Either player starts once both sides are taken; Rematch swaps colors. Full rules in `src/shared/chessRules.ts` (check, checkmate, stalemate, castling, en passant, promotion with a Q/R/B/N pick, threefold repetition, 50-move rule, dead positions), written here rather than pulling in chess.js (BSD-2-Clause, not MIT) and checked against the standard perft counts. Tap a piece, then a lit square; 48 px squares on a 390 px phone (the board runs nearly edge to edge), about 44 px on a 360 px one. Resign (two taps) and Offer draw (the other player accepts or declines; their move declines it). Clock off by default; a player can pick 5, 10 or 15 minutes each before the game (no increment, starts after White's first move, a flag against a bare king is a draw). A player who drops keeps the seat for the room's away grace; really leaving mid-game loses it. No scores or board for chess. Guest mode: a bot takes the open side once you claim one.
 
+- **Hot Takes** (not a game, no rounds): anyone submits an anonymous take (200 characters, 3 a day per player, Chicago day) into a queue. One featured take per slot; slots are fixed windows of `HOT_TAKES_ROTATE_HOURS` (default 8, so 3 a day, turning at 00:00 / 08:00 / 16:00 UTC = 6 PM / 2 AM / 10 AM Central in winter). The turn happens on the first read after a slot ends: the old take goes to the archive with its final split, the next visible queued take is featured, and an empty queue falls back to 16 house takes in the millennial card voice (`HOUSE_TAKES` in `src/shared/social.ts`). A quiet day uses one queued take, not one per missed slot. Agree / Disagree, one vote per player per take, no changing it; the split and a 5-step spice meter (100 = dead even, 0 = unanimous) only come back once you've voted. Past takes (last 30) show final splits. The author is stored only as a salted hash (salt made once per server and kept in storage); no author id, name or hash is in any response, mods included.
+- **Story Chain** (not a game): one running story per server. Anyone adds a line (140 characters); nobody adds two in a row. At `STORY_MAX_LINES` visible lines (default 20) or when a mod ends it, the story is archived (last 10, "Read it back" sheet) and a new one starts on a random opening line (12 in `STORY_OPENERS`). Lines show the writer's display name. The screen shows the latest 8 lines with "Show the whole story so far".
+- **Hot Takes / Story Chain safety**: the same `textGuard.ts` cleaner and slur list as Bluff, plus no links, invites, @mentions or 10+ digit runs (phone numbers). Mods hide / unhide / remove takes and lines and end stories; a hidden take never features (hiding the featured one swaps in the next right away), hidden lines don't count toward the limit. The app had no staff check to reuse and only asks Discord for `identify`, so mods come from config: `SOCIAL_MOD_USER_IDS` (user ids), or `SOCIAL_MOD_ROLE_IDS` checked through the bot (`GET /guilds/{guild}/members/{user}`, only when the secret `DISCORD_BOT_TOKEN` is set). Neither set = no mods. DMs: "lives in a server". Guest mode keeps both in the tab and makes the guest a mod so the tools can be tried.
+
 The group break timer was removed on 2026-11-12 (Jamie's call after testing it on iPhone).
 
 No money anywhere: no rewards, prizes, extra lives, wallets, payments, ads or paid features. Points are bragging rights only. `tests/no-money.test.ts` fails the build if banned words show up in the client, the DA&D deck, the trivia bank, the Bluff prompts, the Daily Grass answers or the Myth or Math cards. One scoped exception: the Myth or Math gambling cards (`src/shared/mythBank.ts` and its guest subset) may say "jackpot" and "payout", because busting jackpot myths needs the word; every other banned word still applies there, and nothing else gets the exception.
@@ -49,6 +53,7 @@ apps/touch-grass-activity/
     daily.ts                      Daily Grass: tile colors, salted daily pick, boards + stats, Today's solvers
     dailyWords.ts / dailyDictionary.ts  answers and valid-guess dictionary (server and tests only)
     myth.ts / mythBank.ts         Myth or Math runs and the gambling cards (bank: server and tests only)
+    social.ts                     Hot Takes (queue, rotation, votes) and Story Chain; storage-agnostic
     chess.ts / chessRules.ts      Chess table (seats, turns, resign/draw, clock) and the rules engine
     mythGeneral.ts                Myth or Math general cards (server and tests only; no money-words exception)
     solo.ts / soloHost.ts         solo storage interface (SCORES DO or in-memory) and the async glue
@@ -163,6 +168,22 @@ row = { id, name, avatar, score, at }   (Discord user id, display name, avatar h
 - Which server: Discord instance ids carry it (`i-<launch>-gc-<guild>-<channel>`), and that wins over the client's `sdk.guildId`. DMs and group DMs (`-pc-`) have no server: those games are **off the record** (not stored; the end screen and the Scores sheet say so).
 - Not in `/api/live`, which stays anonymous.
 
+## Hot Takes and Story Chain (`GET` / `POST /api/social`)
+
+```
+GET  /api/social?guild=<snowflake>&instance=<Discord instance id>     Authorization: Bearer <token>
+POST /api/social?guild=...&instance=...   {op:'hot.submit', text} | {op:'hot.vote', pollId, vote:'agree'|'disagree'}
+                                          | {op:'story.add', storyId, text} | {op:'mod.hide', kind:'take'|'line', id, hidden}
+                                          | {op:'mod.remove', kind, id} | {op:'mod.endStory', storyId}
+200 { ok, mod, hot: { rotateMs, featured, queued, submitsLeft, archive, modQueue? }, story: {...}, storyArchive: [...] }
+409 same view plus { error: 'daily-limit' | 'too-long' | 'blocked' | 'no-links' | 'already-voted' | 'poll-closed' | 'your-line-last' | 'story-moved' | 'not-mod' | ... }
+401 unauthorized   400 bad-guild / bad-op / bad-json   404 no-server (DM)   413 too-large   429 rate-limited   503 not-configured
+```
+
+- Stored in the existing `SCORES` class, in that server's `guild:<id>` instance, under `hot:*`, `story:*` and `social:salt` keys (no new class, no migration; existing keys untouched). Which server: the instance id's `-gc-<guild>-` wins; a client `?guild` that disagrees is a 400; DM instances have none.
+- Per user per isolate: reads 10 burst / 1 per 2 s, writes 6 burst / 1 per 3 s. Bodies over 4 KB are refused.
+- The client polls `GET /api/social` every 20 s while either screen is open (no socket), and once when the lobby loads for the tile badges.
+
 ## Invite friends
 
 `sdk.commands.openInviteDialog()` from `@discord/embedded-app-sdk` 2.4.1 (Discord's SDK reference lists no required OAuth scope, so `authorize` still asks for `identify` only). The button sits in the lobby header and on the DA&D, Bluff and Trivia screens (seating and in game). It's hidden in guest mode and whenever the SDK lacks the command; a failed call shows a short toast.
@@ -188,4 +209,5 @@ The LiveRegistry posts to one channel when someone is waiting: a DA&D or Bluff t
 - `GET /api/trivia/scores` checks the Discord token but not membership in that server: any signed-in Discord user who knows a guild id can read that server's board (names, avatars, scores). Needs the `guilds` scope or the bot to close.
 - Bluff: a present teller who never writes holds the table for up to 3 minutes; a guesser who is connected but idle holds the guess window for its full 30 s.
 - The Brand Compliance check flags the emoji in the table-alert copy (`worker/src/alerts.ts`) as MEDIUM ("Emojis in source code"); it does not fail the job. Left as is (intended copy); Jamie's call.
+- Hot Takes / Story Chain: the guild comes from the client-supplied instance id, the same gap as the high-score boards (a crafted id could read or write another server's takes and story). Mod roles need the bot token and the bot in that server; without it only `SOCIAL_MOD_USER_IDS` works. A player with two Discord accounts gets two sets of 3 takes and two votes. Rotation is lazy: nothing turns over while nobody has it open, and the archived take's end time is its slot end.
 - While a non-judge DA&D player is away during submitting, the round waits for them (up to the 3-minute grace) before closing.

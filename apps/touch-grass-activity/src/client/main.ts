@@ -18,8 +18,17 @@ import { dailyShare, renderDaily } from './views/daily.js';
 import { mythSecondsLeft, renderMyth } from './views/myth.js';
 import { inviteButton, openInvite, setInviteSdk } from './views/invite.js';
 import { chessClockLeft, emptyChessUi, fmtClock, needsPromotion, renderChess, type ChessUi } from './views/chess.js';
+import { fmtLeft, renderHotTakes, type SocialFetch } from './views/hotTakes.js';
+import { emptyStoryUi, renderStory, type StoryUi } from './views/story.js';
+import { TAKE_MAX, LINE_MAX, type SocialOp } from '../shared/social.js';
+import type { LookAt } from '../shared/protocol.js';
 
-type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess';
+type Screen = 'lobby' | 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess' | 'hot' | 'story';
+
+/** Hot Takes and Story Chain aren't room screens; the room (table alerts) just hears "lobby". */
+function lookAt(screen: Screen): LookAt {
+  return screen === 'hot' || screen === 'story' ? 'lobby' : screen;
+}
 
 const app = document.getElementById('app') as HTMLElement;
 
@@ -51,7 +60,56 @@ const ui = {
   chess: emptyChessUi() as ChessUi,
   chessKey: '',
   lastChessGame: 0,
+  /** Hot Takes + Story Chain, fetched over HTTP (not part of the room). */
+  social: null as SocialFetch | null,
+  socialAt: 0,
+  socialJson: '',
+  socialBusy: false,
+  hotDraft: '',
+  story: emptyStoryUi() as StoryUi,
 };
+
+const SOCIAL_POLL_MS = 20_000;
+const SOCIAL_LOBBY_STALE_MS = 60_000;
+
+/** Fetch Hot Takes + Story Chain. Skips the re-render when nothing changed (keeps typing smooth). */
+async function loadSocial(force = false, staleMs = SOCIAL_POLL_MS): Promise<void> {
+  if (!transport) return;
+  if (!force && Date.now() - ui.socialAt < staleMs) return;
+  ui.socialAt = Date.now();
+  const r = await transport.social();
+  if (r.kind === 'error' && ui.social?.kind === 'ok') return;
+  applySocial(r);
+}
+
+function applySocial(r: SocialFetch): void {
+  const json = JSON.stringify(r.kind === 'ok' ? { ...r, error: undefined } : r);
+  if (json === ui.socialJson && !(r.kind === 'ok' && r.error)) return;
+  ui.socialJson = json;
+  ui.social = r.kind === 'ok' && r.error ? { ...r, error: undefined } : r;
+  // A story the reader had open that is gone from the archive: close the sheet.
+  if (ui.story.reading && !(r.kind === 'ok' && r.view.storyArchive.some((st) => st.id === ui.story.reading))) ui.story.reading = null;
+  render();
+}
+
+async function socialAct(op: SocialOp, okToast?: string): Promise<boolean> {
+  if (!transport || ui.socialBusy) return false;
+  ui.socialBusy = true;
+  try {
+    const r = await transport.socialAct(op);
+    ui.socialAt = Date.now();
+    if (r.kind === 'ok') applySocial(r);
+    const code = r.kind === 'ok' ? r.error : r.kind === 'error' ? (r.code ?? 'fallback') : 'fallback';
+    if (code) {
+      toast(COPY.socialErrors[code] ?? COPY.socialErrors.fallback ?? '');
+      return false;
+    }
+    if (okToast) toast(okToast);
+    return true;
+  } finally {
+    ui.socialBusy = false;
+  }
+}
 
 const SCORES_STALE_MS = 20_000;
 
@@ -112,6 +170,8 @@ function phaseKey(v: RoomView | null): string {
   if (ui.screen === 'bluff') return `bluff:${v.bluff.game}:${v.bluff.phase}:${v.bluff.round}`;
   if (ui.screen === 'daily') return `daily:${v.daily.me?.day ?? ''}:${v.daily.me?.rows.length ?? -1}:${v.daily.me?.status ?? ''}`;
   if (ui.screen === 'chess') return `chess:${v.chess.game}:${v.chess.phase}`;
+  if (ui.screen === 'hot') return `hot:${ui.social?.kind === 'ok' ? (ui.social.view.hot.featured?.id ?? '') : ui.social?.kind ?? ''}`;
+  if (ui.screen === 'story') return `story:${ui.social?.kind === 'ok' ? ui.social.view.story.id : ui.social?.kind ?? ''}`;
   if (ui.screen === 'myth') return `myth:${v.myth.run?.runId ?? ''}:${v.myth.run?.phase ?? ''}:${v.myth.run?.number ?? 0}`;
   return 'lobby';
 }
@@ -119,18 +179,22 @@ function phaseKey(v: RoomView | null): string {
 function render(): void {
   const v = ui.view;
   let main: string;
-  if (!v) main = `<section class="panel"><p class="muted">${esc(COPY.connecting)}</p></section>`;
+  if (!v && ui.screen !== 'hot' && ui.screen !== 'story') main = `<section class="panel"><p class="muted">${esc(COPY.connecting)}</p></section>`;
+  else if (!v) main = ui.screen === 'hot' ? renderHotTakes(ui.social, ui.hotDraft, Date.now()) : renderStory(ui.social, ui.story);
   else if (ui.screen === 'dad') main = renderDad(v, ui.target);
   else if (ui.screen === 'trivia') main = renderTrivia(v, ui.clockOffset, ui.scores, ui.scoresTab);
   else if (ui.screen === 'bluff') main = renderBluff(v, ui.bluffDraft, ui.clockOffset);
   else if (ui.screen === 'daily') main = renderDaily(v, ui.dailyDraft, session?.mode === 'guest', inviteButton());
   else if (ui.screen === 'myth') main = renderMyth(v, ui.clockOffset, session?.mode === 'guest');
   else if (ui.screen === 'chess') main = renderChess(v, ui.chess, ui.clockOffset);
-  else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab, ui.scoresOpen);
+  else if (ui.screen === 'hot') main = renderHotTakes(ui.social, ui.hotDraft, Date.now());
+  else if (ui.screen === 'story') main = renderStory(ui.social, ui.story);
+  else main = renderLobby(v, mergePeople(v, ui.participants), ui.scores, ui.scoresTab, ui.scoresOpen, ui.social);
   // Re-rendering replaces the inputs: keep focus and the caret on the statement being typed.
   const active = document.activeElement as HTMLInputElement | null;
   const focusDraft = active?.dataset?.draft;
-  const caret = focusDraft !== undefined ? [active?.selectionStart ?? null, active?.selectionEnd ?? null] : null;
+  const focusSocial = active?.dataset?.sdraft;
+  const caret = focusDraft !== undefined || focusSocial !== undefined ? [active?.selectionStart ?? null, active?.selectionEnd ?? null] : null;
   const now = Date.now();
   const key = phaseKey(v);
   if (key !== fx.key) {
@@ -144,6 +208,13 @@ function render(): void {
     ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
   }`;
   if (focusSheet) app.querySelector<HTMLElement>('[data-scores-sheet] [data-scores-close].btn')?.focus();
+  if (focusSocial !== undefined) {
+    const el = app.querySelector<HTMLTextAreaElement>(`[data-sdraft="${focusSocial}"]`);
+    if (el && !el.disabled) {
+      el.focus();
+      if (caret && typeof caret[0] === 'number') el.setSelectionRange(caret[0], caret[1] ?? caret[0]);
+    }
+  }
   if (focusDraft !== undefined) {
     const el = app.querySelector<HTMLInputElement>(`[data-draft="${focusDraft}"]`);
     if (el) {
@@ -161,6 +232,16 @@ function syncTellButton(): void {
 
 /** Only the trivia countdown digits change every tick; avoid re-rendering the whole screen. */
 function tickClock(): void {
+  if (ui.screen === 'hot' && ui.social?.kind === 'ok') {
+    const f = ui.social.view.hot.featured;
+    const el = app.querySelector('[data-hot-left]');
+    if (f) {
+      const left = f.endsAt - Date.now();
+      if (el) el.textContent = COPY.hot.nextIn(fmtLeft(Math.max(0, left)));
+      // The slot turned: pull the new take (once a second at most, via loadSocial's own spacing).
+      if (left <= 0) void loadSocial(false, 5_000);
+    }
+  }
   const v = ui.view;
   if (!v) return;
   if (ui.screen === 'chess') {
@@ -253,7 +334,7 @@ function onState(view: RoomView): void {
   // First state after (re)joining: tell the room which screen is open (feeds table alerts only).
   if (!lookSent) {
     lookSent = true;
-    queueMicrotask(() => send({ t: 'look', at: ui.screen }));
+    queueMicrotask(() => send({ t: 'look', at: lookAt(ui.screen) }));
   }
   ui.view = view;
   ui.clockOffset = view.serverNow - Date.now();
@@ -310,7 +391,7 @@ function onState(view: RoomView): void {
 }
 
 app.addEventListener('click', (ev) => {
-  const el = (ev.target as HTMLElement).closest<HTMLElement>('button, [data-go], [data-scores-close]');
+  const el = (ev.target as HTMLElement).closest<HTMLElement>('button, [data-go], [data-scores-close], [data-story-close]');
   if (!el || (el as HTMLButtonElement).disabled) return;
   const d = el.dataset;
   if (el.hasAttribute('data-reload')) {
@@ -320,11 +401,67 @@ app.addEventListener('click', (ev) => {
   if (d.go) {
     ui.screen = d.go as Screen;
     ui.scoresOpen = false;
-    send({ t: 'look', at: ui.screen });
+    ui.story.reading = null;
+    ui.story.endArmed = false;
+    send({ t: 'look', at: lookAt(ui.screen) });
     if (ui.screen === 'daily') askDaily(ui.view);
     render();
     void loadScores();
+    if (ui.screen === 'hot' || ui.screen === 'story') void loadSocial(true);
+    else if (ui.screen === 'lobby') void loadSocial(false, SOCIAL_LOBBY_STALE_MS);
     return;
+  }
+  // Hot Takes and Story Chain.
+  if (!el.hasAttribute('data-mod-end') && ui.story.endArmed) {
+    ui.story.endArmed = false;
+    render();
+  }
+  if (d.hotVote && d.poll) return void socialAct({ op: 'hot.vote', pollId: d.poll, vote: d.hotVote === 'agree' ? 'agree' : 'disagree' });
+  if (el.hasAttribute('data-hot-submit')) {
+    const text = ui.hotDraft;
+    void socialAct({ op: 'hot.submit', text }, COPY.hot.submitted).then((ok) => {
+      if (ok) {
+        ui.hotDraft = '';
+        render();
+      }
+    });
+    return;
+  }
+  if (el.hasAttribute('data-story-add') && d.storyId) {
+    const text = ui.story.draft;
+    void socialAct({ op: 'story.add', storyId: d.storyId, text }).then((ok) => {
+      if (ok) {
+        ui.story.draft = '';
+        render();
+      }
+    });
+    return;
+  }
+  if (el.hasAttribute('data-story-all')) {
+    ui.story.showAll = !ui.story.showAll;
+    render();
+    return;
+  }
+  if (d.storyRead) {
+    ui.story.reading = d.storyRead;
+    render();
+    app.querySelector<HTMLElement>('[data-story-sheet] .btn[data-story-close]')?.focus();
+    return;
+  }
+  if (el.hasAttribute('data-story-close')) {
+    closeStorySheet();
+    return;
+  }
+  if (d.modHide && (d.modKind === 'take' || d.modKind === 'line')) return void socialAct({ op: 'mod.hide', kind: d.modKind, id: d.modHide, hidden: d.modHidden === 'true' });
+  if (d.modRemove && (d.modKind === 'take' || d.modKind === 'line')) return void socialAct({ op: 'mod.remove', kind: d.modKind, id: d.modRemove });
+  if (d.modEnd) {
+    if (!ui.story.endArmed) {
+      ui.story.endArmed = true;
+      render();
+      return;
+    }
+    ui.story.endArmed = false;
+    return void socialAct({ op: 'mod.endStory', storyId: d.modEnd });
   }
   if (el.hasAttribute('data-scores-open')) {
     ui.scoresOpen = true;
@@ -435,6 +572,15 @@ function chessTap(sq: number): void {
   render();
 }
 
+/** Close the Read it back sheet and hand focus back to the list. */
+function closeStorySheet(): void {
+  if (!ui.story.reading) return;
+  const id = ui.story.reading;
+  ui.story.reading = null;
+  render();
+  app.querySelector<HTMLElement>(`[data-story-read="${CSS.escape(id)}"]`)?.focus();
+}
+
 /** Close the Scores sheet and hand focus back to the Scores button. */
 function closeScores(): void {
   if (!ui.scoresOpen) return;
@@ -447,6 +593,10 @@ document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape' && ui.scoresOpen) {
     ev.preventDefault();
     closeScores();
+  }
+  if (ev.key === 'Escape' && ui.story.reading) {
+    ev.preventDefault();
+    closeStorySheet();
   }
 });
 
@@ -466,6 +616,18 @@ document.addEventListener('keydown', (ev) => {
 
 app.addEventListener('input', (ev) => {
   const el = ev.target as HTMLInputElement;
+  const sd = el.dataset?.sdraft;
+  if (sd === 'hot' || sd === 'story') {
+    // Update the draft, counter and button in place: no re-render while typing.
+    if (sd === 'hot') ui.hotDraft = el.value;
+    else ui.story.draft = el.value;
+    const max = sd === 'hot' ? TAKE_MAX : LINE_MAX;
+    const counter = app.querySelector(`[data-count-for="${sd}"]`);
+    if (counter) counter.textContent = `${[...el.value].length}/${max}`;
+    const btn = app.querySelector<HTMLButtonElement>(sd === 'hot' ? '[data-hot-submit]' : '[data-story-add]');
+    if (btn) btn.disabled = !el.value.trim() || (sd === 'hot' && ui.social?.kind === 'ok' && ui.social.view.hot.submitsLeft === 0);
+    return;
+  }
   const i = el.dataset?.draft;
   if (i === undefined) return;
   ui.bluffDraft.statements[Number(i) as 0 | 1 | 2] = el.value;
@@ -480,6 +642,7 @@ app.addEventListener('change', (ev) => {
 function wire(t: Transport): void {
   transport = t;
   queueMicrotask(() => void loadScores(true));
+  queueMicrotask(() => void loadSocial(true));
   t.onState(onState);
   t.onError((_code, message) => toast(message));
   t.onStatus((s) => {
@@ -510,6 +673,11 @@ async function boot(): Promise<void> {
     wire(remote ? new RemoteTransport(session.instanceId, session.token) : new LocalTransport(session.user, session.instanceId));
   }
   setInterval(tickClock, 250);
+  // Hot Takes / Story Chain have no socket: poll while one of them is open.
+  setInterval(() => {
+    if (document.visibilityState === 'hidden') return;
+    if (ui.screen === 'hot' || ui.screen === 'story') void loadSocial();
+  }, SOCIAL_POLL_MS);
   // iOS suspends the Discord webview on an app switch and the socket dies. Coming back, reconnect
   // right away instead of waiting out the backoff; the server held the seat meanwhile.
   const resume = () => {

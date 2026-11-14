@@ -1,13 +1,14 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Lobby: a compact header (Touch Grass eyebrow, TiltCheck title, who's here, Scores and Invite), then
 // a flat list of game rows: three table games (DA&D, Trivia, Bluff) with seated/playing counts and two
-// solo games (Daily Grass, Myth or Math), then Chess (1v1, the room watches). Trivia high scores open in a
-// sheet from the header.
+// solo games (Daily Grass, Myth or Math), then Chess (1v1, the room watches), then Hot Takes and Story
+// Chain (not games: server-wide polls and a shared story). Trivia high scores open in a sheet from the header.
 
 import { COPY } from '../copy.js';
 import type { RoomUser, RoomView } from '../../shared/protocol.js';
 import { avatarImg, esc } from './util.js';
-import { BLUFF_ART, CHESS_ART, DAILY_ART, FLAG_SVG, MYTH_ART, TRIVIA_ART, dadLogoUrl } from '../art.js';
+import { BLUFF_ART, CHESS_ART, DAILY_ART, FLAG_SVG, HOT_ART, MYTH_ART, STORY_ART, TRIVIA_ART, dadLogoUrl } from '../art.js';
+import type { SocialFetch } from './hotTakes.js';
 import { inviteButton } from './invite.js';
 import { renderHighScores, type ScoresResult, type ScoresTab } from './highScores.js';
 
@@ -35,7 +36,14 @@ export function renderScoresSheet(scores: ScoresResult | null, tab: ScoresTab, y
   </div>`;
 }
 
-export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores: ScoresResult | null = null, tab: ScoresTab = 'week', scoresOpen = false): string {
+export function renderLobby(
+  view: RoomView | null,
+  people: LobbyPerson[],
+  scores: ScoresResult | null = null,
+  tab: ScoresTab = 'week',
+  scoresOpen = false,
+  social: SocialFetch | null = null,
+): string {
   const seated = view?.dad.seats.length ?? 0;
   const dadLive = Boolean(view && ['submitting', 'judging', 'reveal'].includes(view.dad.phase));
   const playing = view?.trivia.playingCount ?? 0;
@@ -47,7 +55,12 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
   const badge = (game: string, n: number, word: string, live: boolean, extra: string) =>
     `<span class="badge ${live ? 'badge--live' : ''}" data-count="${game}">${n} ${word}${live ? extra : ''}</span>`;
   const soloBadge = (game: 'daily' | 'myth', n: number) => `<span class="badge" data-count="${game}">${esc(COPY.solo(n))}</span>`;
-  const tile = (game: 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess', art: string, badgeHtml: string) =>
+  const sv = social?.kind === 'ok' ? social.view : null;
+  const hotBadge = sv?.hot.featured
+    ? `<span class="badge ${sv.hot.featured.myVote ? '' : 'badge--live'}" data-count="hot">${esc(sv.hot.featured.myVote ? COPY.hot.badgeVoted : COPY.hot.badgeVote)}</span>`
+    : '';
+  const storyBadge = sv ? `<span class="badge" data-count="story">${esc(COPY.story.badge(sv.story.count, sv.story.max))}</span>` : '';
+  const tile = (game: 'dad' | 'trivia' | 'bluff' | 'daily' | 'myth' | 'chess' | 'hot' | 'story', art: string, badgeHtml: string) =>
     `<button class="tile tile--${game}" data-go="${game}">
         <span class="tile__art">${art}</span>
         <span class="tile__body">
@@ -83,6 +96,8 @@ export function renderLobby(view: RoomView | null, people: LobbyPerson[], scores
       ${tile('daily', DAILY_ART, soloBadge('daily', view?.daily.playingCount ?? 0))}
       ${tile('myth', MYTH_ART, soloBadge('myth', view?.myth.playingCount ?? 0))}
       ${tile('chess', CHESS_ART, badge('chess', chessSeated, 'seated', chessLive, ` · M${Math.floor((view?.chess.ply ?? 0) / 2) + 1}`))}
+      ${tile('hot', HOT_ART, hotBadge)}
+      ${tile('story', STORY_ART, storyBadge)}
     </section>
     ${scoresOpen ? renderScoresSheet(scores, tab, view?.you ?? '') : ''}`;
 }
