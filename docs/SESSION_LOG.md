@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-13 — ci: pnpm version comes from package.json only
+
+- "Deploy Hub to Cloudflare Workers" (run 43552635208, #731 push) failed at Set up pnpm: `pnpm/action-setup@v6` refuses to run when the workflow's `version:` (10.29.1) and root `packageManager` (pnpm@10.34.4) disagree. The hub deploy never got as far as Wrangler.
+- Removed the `version:` input from every workflow that pinned one (deploy-hub, deploy-web, audit-us-operators, research-ops, frontend-suggestions, publish-on-push, publish-package), so they all use `packageManager`. The other workflows already did.
+
 ## 2026-11-13 — chore: drop CHROMEWEBSTORE.md, allowlist the casino-ask Discord public key in gitleaks
 
 - Jamie dropped the Chrome Web Store. Root `CHROMEWEBSTORE.md` removed; main had 9 root markdown files, so `tools/check-root-cleanliness.sh` (Validate Changed Packages) failed on every PR. Now 8, within the limit. No live references to the file outside past session-log entries; the devkit chrome-extensions skill now says not to recreate it here.

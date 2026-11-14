@@ -30,8 +30,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 8
 
       - name: Audit Landing Page
         if: github.event.inputs.area == 'all' || github.event.inputs.area == 'landing'
