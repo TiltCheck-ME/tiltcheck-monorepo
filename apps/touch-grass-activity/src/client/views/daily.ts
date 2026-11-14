@@ -1,11 +1,12 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // Daily Grass. Renders whatever the server says: the viewer's own rows and colors, friends' progress
 // (rows used, solved or not, never letters) and this server's Today's solvers. The answer only shows
-// up in the view once the viewer's own game is over.
+// up in the view once the viewer's own game is over. Today's hint (one letter, the server picks it)
+// shows as a marker over its column and a ring on its key; solvers who took one get a bulb, no letter.
 
 import { COPY } from '../copy.js';
 import type { RoomView } from '../../shared/protocol.js';
-import { MAX_GUESSES, WORD_LEN, puzzleNumber, shareText, type Tile } from '../../shared/daily.js';
+import { HINT_AFTER, HINT_MARK, MAX_GUESSES, WORD_LEN, puzzleNumber, shareText, type DailyHint, type Tile } from '../../shared/daily.js';
 import { avatarImg, esc, medal, nameOf, userById } from './util.js';
 import { DAILY_ART } from '../art.js';
 
@@ -44,11 +45,23 @@ function tileHtml(ch: string, color: Tile | null, i: number, state: 'done' | 'ty
   return `<span class="dg-tile ${cls}" role="gridcell" aria-label="${label}" style="--i:${i}">${esc(letter)}</span>`;
 }
 
+/** The marker row over the board: the hinted column shows its letter, the rest stay blank. */
+function hintMarks(hint: DailyHint): string {
+  let cells = '';
+  for (let i = 0; i < WORD_LEN; i += 1)
+    cells +=
+      i === hint.pos
+        ? `<span class="dg-mark dg-mark--on" data-dg-mark="${i}" aria-label="${esc(COPY.daily.hintMarker(i + 1, hint.letter))}">${esc(hint.letter.toUpperCase())}</span>`
+        : '<span class="dg-mark" aria-hidden="true"></span>';
+  return `<div class="dg-marks" role="row" data-dg-marks>${cells}</div>`;
+}
+
 function grid(view: RoomView, draft: string): string {
   const me = view.daily.me;
   const rows = me?.rows ?? [];
   const playing = me?.status === 'playing';
-  const out: string[] = [];
+  const hint = me?.hint ?? null;
+  const out: string[] = hint ? [hintMarks(hint)] : [];
   for (let r = 0; r < MAX_GUESSES; r += 1) {
     const done = rows[r];
     let cells = '';
@@ -65,11 +78,12 @@ function grid(view: RoomView, draft: string): string {
     }
     out.push(`<div class="dg-row ${done ? 'dg-row--done' : ''}" role="row" aria-label="${label}" data-dg-row="${r}">${cells}</div>`);
   }
-  return `<div class="dg-grid" role="grid" aria-label="Daily Grass board" data-dg-grid>${out.join('')}</div>`;
+  return `<div class="dg-grid ${hint ? 'dg-grid--hint' : ''}" role="grid" aria-label="Daily Grass board" data-dg-grid>${out.join('')}</div>`;
 }
 
 function keyboard(view: RoomView, enabled: boolean): string {
   const colors = keyColors(view.daily.me?.rows ?? []);
+  const hinted = view.daily.me?.hint?.letter ?? '';
   return `<div class="dg-keys" role="group" aria-label="Keyboard">${KEY_ROWS.map(
     (row) =>
       `<div class="dg-keyrow">${[...row]
@@ -78,11 +92,25 @@ function keyboard(view: RoomView, enabled: boolean): string {
           if (k === '-')
             return `<button type="button" class="dg-key dg-key--wide" data-dg-key="back" aria-label="${COPY.daily.back}" ${enabled ? '' : 'disabled'}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6h11v12H9l-6-6zM12 9l6 6M18 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg></button>`;
           const c = colors[k];
-          const state = c ? `, ${COPY.daily.tile[c]}` : '';
-          return `<button type="button" class="dg-key ${c ? `dg-key--${c}` : ''}" data-dg-key="${k}" aria-label="${k.toUpperCase()}${state}" ${enabled ? '' : 'disabled'}>${k.toUpperCase()}</button>`;
+          const hint = k === hinted && c !== 'g';
+          const state = `${c ? `, ${COPY.daily.tile[c]}` : ''}${hint ? `, ${COPY.daily.hint}` : ''}`;
+          return `<button type="button" class="dg-key ${c ? `dg-key--${c}` : ''} ${hint ? 'dg-key--hint' : ''}" data-dg-key="${k}" aria-label="${k.toUpperCase()}${state}" ${enabled ? '' : 'disabled'}>${k.toUpperCase()}</button>`;
         })
         .join('')}</div>`,
   ).join('')}</div>`;
+}
+
+/** The Hint control: locked before the 3rd guess, one tap after, then the revealed letter in words. */
+function hintBar(view: RoomView): string {
+  const me = view.daily.me;
+  if (!me) return '';
+  if (me.hint) return `<p class="dg-hint dg-hint--used muted small" data-dg-hint-used><span aria-hidden="true">${HINT_MARK}</span> ${esc(COPY.daily.hintShown(me.hint.pos + 1, me.hint.letter))}</p>`;
+  if (me.status !== 'playing') return '';
+  const locked = me.rows.length < HINT_AFTER;
+  return `<div class="dg-hint" data-dg-hintbar>
+      <button type="button" class="btn btn--sm dg-hint__btn" data-dg-hint aria-label="${esc(COPY.daily.hintAria)}" ${locked ? 'disabled' : ''}><span aria-hidden="true">${HINT_MARK}</span> ${COPY.daily.hint}</button>
+      <span class="muted small">${locked ? COPY.daily.hintLocked : COPY.daily.hintReady}</span>
+    </div>`;
 }
 
 function friends(view: RoomView): string {
@@ -127,7 +155,7 @@ function solvers(view: RoomView): string {
       .map(
         (r, i) => `<li class="score ${r.id === view.you ? 'score--me' : ''}${medal(i + 1)}" data-dg-solver="${esc(r.id)}">
         <span class="score__rank">${i + 1}</span>${avatarImg({ id: r.id, avatar: r.avatar, name: r.name }, 'avatar avatar--sm')}
-        <span class="score__name">${esc(r.id === view.you ? 'You' : r.name)}</span>
+        <span class="score__name">${esc(r.id === view.you ? 'You' : r.name)}${r.hint ? ` <span class="dg-bulb" data-dg-hinted role="img" aria-label="${COPY.daily.hintedSolve}" title="${COPY.daily.hintedSolve}">${HINT_MARK}</span>` : ''}</span>
         <span class="muted small">${COPY.daily.guessesLabel(r.guesses)}</span><span class="score__pts">${mmss(r.ms)}</span></li>`,
       )
       .join('')}</ol>`;
@@ -165,6 +193,7 @@ export function renderDaily(view: RoomView, draft: string, guest: boolean, invit
       ${grid(view, playing ? draft : '')}
       <p class="sr-only" aria-live="polite" data-dg-live>${playing ? `Guess ${me.rows.length + 1} of ${MAX_GUESSES}` : ''}</p>
       ${status}
+      ${hintBar(view)}
       ${playing ? keyboard(view, true) : ''}
       ${share}
       ${stats(view)}

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // The solo games' storage side, behind one interface so the room host doesn't care where it lives.
 // - Worker: SCORES Durable Object instances (worker/src/room-do.ts). Daily boards and stats live in
 //   one instance per player ('daily-user:<id>'), so a player gets one board a day no matter which
@@ -16,6 +16,8 @@ export const MYTH_BOOK_PREFIX = 'myth:';
 export interface SoloService {
   dailyOpen(user: RoomUser, now: number): Promise<DailyResult>;
   dailyGuess(user: RoomUser, word: string, now: number): Promise<DailyResult>;
+  /** Today's one hint for this player (the storage side holds the answer and picks the letter). */
+  dailyHint(user: RoomUser, now: number): Promise<DailyResult>;
   /** Put a solve on that server's "Today's solvers". Returns the player's rank. */
   dailySolved(guild: string, row: SolverRow, now: number): Promise<number | null>;
   dailySolvers(guild: string, now: number): Promise<{ day: string; rows: SolverRow[] }>;
@@ -41,6 +43,7 @@ export function memorySoloService(rules: DailyRules): SoloService & { users: Boo
     guilds,
     dailyOpen: (user, now) => daily.open(user.id, now),
     dailyGuess: (user, word, now) => daily.guess(user.id, word, now),
+    dailyHint: (user, now) => daily.hint(user.id, now),
     dailySolved: (guild, row, now) => new DailySolvers(guildStore(guild)).record(row, now),
     dailySolvers: (guild, now) => new DailySolvers(guildStore(guild)).view(now),
     mythRecord: (guild, results, now) => new ScoreBook(guildStore(guild), MYTH_BOOK_PREFIX).record(results, now),

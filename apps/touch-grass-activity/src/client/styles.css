@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14 */
 /* Touch Grass look: flat and calm. Solid dark surfaces, 1px borders, small line icons. Each game keeps
    its accent only as a thin left border, an icon tint and its primary button. No gradients, glows or
    looping motion; the only motion is a quick (<= 150 ms) fade or press. prefers-reduced-motion turns
@@ -336,6 +336,15 @@ button.choice.choice--mine:disabled { opacity: 1; }
 .dg-tile--g { background: #3fbf6e; border-color: #3fbf6e; color: #04210f; }
 .dg-tile--y { background: #e9c548; border-color: #e9c548; color: #2a1f00; }
 .dg-tile--b { background: #3b4643; border-color: #3b4643; color: #eef3f1; }
+/* Hint: a marker row over the board (the hinted column shows its letter) and a ring on its key. */
+.dg-grid--hint { grid-template-rows: auto repeat(6, 1fr); }
+.dg-marks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.dg-mark { height: 22px; }
+.dg-mark--on { display: grid; place-items: center; border-radius: 6px; background: var(--accent-soft); border: 1px dashed #3fbf6e; color: #6fe39a; font-weight: 800; font-size: 13px; line-height: 1; }
+.dg-hint { display: flex; align-items: center; gap: 10px; align-self: stretch; flex-wrap: wrap; margin: 0; min-width: 0; }
+.dg-hint__btn { flex: 0 0 auto; }
+.dg-hint > .muted { flex: 1 1 140px; min-width: 0; }
+.dg-bulb { font-size: 12px; }
 .dg-keys { display: grid; gap: 6px; width: 100%; max-width: 500px; user-select: none; -webkit-user-select: none; }
 .dg-keyrow { display: flex; gap: 5px; justify-content: center; }
 .dg-key { flex: 1 1 0; min-width: 0; height: 50px; border-radius: 6px; border: 1px solid var(--line-2); background: #232d2a; color: var(--text); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; display: grid; place-items: center; padding: 0; touch-action: manipulation;
@@ -346,6 +355,7 @@ button.choice.choice--mine:disabled { opacity: 1; }
 .dg-key--g { background: #3fbf6e; border-color: #3fbf6e; color: #04210f; }
 .dg-key--y { background: #e9c548; border-color: #e9c548; color: #2a1f00; }
 .dg-key--b { background: #151b1a; border-color: #151b1a; color: #8d9b96; }
+.dg-key--hint { box-shadow: inset 0 0 0 2px #3fbf6e; }
 .dg-friends { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .dg-friend { display: flex; align-items: center; gap: 8px; background: var(--panel-2); border-radius: 10px; padding: 6px 10px; min-height: 44px; min-width: 0; }
 .dg-dots { display: inline-flex; gap: 3px; }

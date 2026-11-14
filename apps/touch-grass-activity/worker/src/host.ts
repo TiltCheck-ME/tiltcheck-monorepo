@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // RoomHost: the Durable Object's brain, with storage, sockets and auth injected so it can be
 // unit tested with fakes. The DO class in room-do.ts is a thin adapter around this.
 
@@ -131,7 +131,7 @@ export class RoomHost {
    * Myth or Math (refresh the week board). Returns null when the room handles it alone.
    */
   private async soloAction(room: Room, user: RoomUser, msg: ClientMessage, now: number): Promise<ActionResult | null> {
-    if (msg.t === 'daily.open' || msg.t === 'daily.guess') {
+    if (msg.t === 'daily.open' || msg.t === 'daily.guess' || msg.t === 'daily.hint') {
       const g = room.gate(user.id, now);
       if (!g.ok) return g;
       return runDaily(room, this.deps.solo, user, msg, this.guild(), now);

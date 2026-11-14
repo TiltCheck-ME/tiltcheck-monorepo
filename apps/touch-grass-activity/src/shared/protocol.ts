@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // Wire format between the Activity client and the room (worker Durable Object or guest room).
 
 import type { Card } from './deck.js';
@@ -42,6 +42,8 @@ export type ClientAction =
   /** Daily Grass: load (or make) today's board. Solo, server-checked. */
   | { t: 'daily.open' }
   | { t: 'daily.guess'; word: string }
+  /** Today's one hint (after 3 guesses). The server picks the letter. */
+  | { t: 'daily.hint' }
   /** Myth or Math: start a 10-card run, call a card true (math) or false (myth), move on. */
   | { t: 'myth.start' }
   | { t: 'myth.answer'; rid: string; cid: string; pick: boolean }
@@ -260,6 +262,7 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'bluff.start':
     case 'bluff.next':
     case 'daily.open':
+    case 'daily.hint':
     case 'myth.start':
     case 'myth.next':
     case 'chess.release':

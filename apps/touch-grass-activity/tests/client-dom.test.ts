@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // @vitest-environment jsdom
 // Guest-mode smoke test of the real client in jsdom: lobby -> DA&D with bots -> trivia -> Bluff.
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -184,6 +184,11 @@ describe('client in guest mode (no frame_id)', () => {
     const tiles = [...document.querySelectorAll('[data-dg-row="0"] .dg-tile')];
     expect(tiles.every((t) => /dg-tile--[gyb]/.test(t.className))).toBe(true);
     expect($('[data-dg-row="1"]')!.textContent).toBe('');
+    // One guess in: the hint is still locked (unless CRANE happened to be today's practice word).
+    if ($('[data-dg-key]')) {
+      expect($<HTMLButtonElement>('[data-dg-hint]')!.disabled).toBe(true);
+      expect($('[data-dg-hintbar]')!.textContent).toContain('Hint unlocks after 3 guesses.');
+    }
     // Backspace edits the open row only.
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', bubbles: true }));
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));

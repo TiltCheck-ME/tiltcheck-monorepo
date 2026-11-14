@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // How the client talks to the room.
 // - RemoteTransport: WebSocket to the worker Durable Object, polling fallback over HTTP.
 // - LocalTransport: guest/dev mode. Runs the same Room logic in the browser with optional bots.
@@ -376,7 +376,7 @@ export class LocalTransport extends Emitter implements Transport {
 
   send(action: ClientAction): void {
     const now = Date.now();
-    if (action.t === 'daily.open' || action.t === 'daily.guess') {
+    if (action.t === 'daily.open' || action.t === 'daily.guess' || action.t === 'daily.hint') {
       void runDaily(this.room, this.solo, this.me, action, 'guest', now).then((r) => {
         if (!r.ok) this.emitError(r.code, r.message);
         this.push();

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // TriviaScores: the SCORES Durable Object class (migration v3). One instance per Discord server
 // (idFromName('guild:<id>')) holds that server's boards: trivia high scores (top 10 all time and this
 // week, Monday 00:00 America/Chicago, plus personal bests), Daily Grass "Today's solvers" and the
@@ -11,6 +11,7 @@
 //   GET  /board?guild=&me=                  trivia: for GET /api/trivia/scores (token already checked)
 //   POST /daily/open  {user}                per-player instance: today's board (made on first open)
 //   POST /daily/guess {user, word}          per-player instance: server-checked guess, colors back
+//   POST /daily/hint  {user}                per-player instance: today's one hint (after 3 guesses)
 //   POST /daily/solved {guild, row}         server instance: a solve for Today's solvers
 //   GET  /daily/solvers?guild=              server instance
 //   POST /myth/record {guild, results}      server instance: a finished Myth or Math run
@@ -100,12 +101,13 @@ export class TriviaScores implements DurableObject {
       return json(await this.book.view(guild, url.searchParams.get('me'), now));
     }
 
-    if ((url.pathname === '/daily/open' || url.pathname === '/daily/guess') && req.method === 'POST') {
+    if ((url.pathname === '/daily/open' || url.pathname === '/daily/guess' || url.pathname === '/daily/hint') && req.method === 'POST') {
       if (!this.daily) return json({ error: 'not-configured' }, 503);
       const b = await body();
       const user = typeof b?.user === 'string' && USER_ID.test(b.user) ? b.user : null;
       if (!user) return json({ error: 'bad-user' }, 400);
       if (url.pathname === '/daily/open') return json(await this.daily.open(user, now));
+      if (url.pathname === '/daily/hint') return json(await this.daily.hint(user, now));
       if (typeof b?.word !== 'string') return json({ error: 'bad-word' }, 400);
       return json(await this.daily.guess(user, b.word, now));
     }

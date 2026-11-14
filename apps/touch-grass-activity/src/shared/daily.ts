@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // Daily Grass: one 5-letter word a day, six guesses, green / yellow / gray tiles. Solo: every
 // player has their own board, even in a shared room. Pure and storage-agnostic: the worker runs it
 // inside the SCORES Durable Object (one instance per player for boards and stats, one per server for
@@ -11,6 +11,9 @@
 // - The answer only ever leaves the server once that player's game is over (won or out of guesses).
 // - Stats per Discord user: played, wins, current / best streak, guess distribution.
 // - Today's solvers (per server): fewest guesses, then fastest time from opening the board.
+// - One hint per player per Chicago day, after their 3rd guess: the server reveals one letter in its
+//   right spot (the leftmost spot not already green on their board). Hinted solves still count for
+//   stats and streaks; Today's solvers and the share text carry a light-bulb mark, never the letter.
 
 import { dayKeyFor, dayNumberFor, type BookStorage } from './scores.js';
 import { makeRng, shuffle } from './rng.js';
@@ -18,6 +21,8 @@ import { makeRng, shuffle } from './rng.js';
 export const WORD_LEN = 5;
 export const MAX_GUESSES = 6;
 export const SOLVERS_SHOWN = 10;
+/** The Hint button unlocks once a player has made this many guesses. */
+export const HINT_AFTER = 3;
 /** Chicago day number of 2026-11-11, so 2026-11-12 (launch) is puzzle #1. */
 export const DAILY_EPOCH_DAY = 20768;
 
@@ -30,6 +35,12 @@ const SOLVERS_KEPT = 50;
 /** g = right letter, right spot; y = in the word, wrong spot; b = not in the word (gray). */
 export type Tile = 'g' | 'y' | 'b';
 
+/** A revealed letter: `pos` is 0-based, `letter` is the answer's letter in that spot. */
+export interface DailyHint {
+  pos: number;
+  letter: string;
+}
+
 export interface DailyBoard {
   day: string;
   dayNumber: number;
@@ -38,6 +49,8 @@ export interface DailyBoard {
   status: 'playing' | 'won' | 'lost';
   startedAt: number;
   finishedAt: number | null;
+  /** Today's hint, once taken. Optional so boards stored before hints existed still load. */
+  hint?: DailyHint | null;
 }
 
 export interface DailyStats {
@@ -65,6 +78,8 @@ export interface DailyPublic {
   answer: string | null;
   startedAt: number;
   finishedAt: number | null;
+  /** The player's own hint for today (null until they take it). Only ever in their own view. */
+  hint: DailyHint | null;
   stats: DailyStats;
 }
 
@@ -75,6 +90,8 @@ export interface SolverRow {
   guesses: number;
   ms: number;
   at: number;
+  /** Solved with today's hint. Only the flag goes on the board, never the letter. */
+  hint?: boolean;
 }
 
 export type DailyResult = { ok: true; record: DailyPublic; justFinished: boolean } | { ok: false; code: string; message: string };
@@ -187,6 +204,17 @@ export function answerFor(dayNumber: number, salt: string, answers: readonly str
   return answers[order[slot] as number] as string;
 }
 
+// ---------- hints ----------
+
+/**
+ * Which spot a hint reveals: the leftmost one the player hasn't already got green in any row.
+ * Deterministic, so the same board always gets the same hint. -1 when every spot is green somewhere.
+ */
+export function hintPosition(colors: readonly Tile[][]): number {
+  for (let i = 0; i < WORD_LEN; i += 1) if (!colors.some((row) => row[i] === 'g')) return i;
+  return -1;
+}
+
 // ---------- streaks ----------
 
 /** Streak as of `today`: a streak survives only if the last win was today or yesterday. */
@@ -220,6 +248,7 @@ export function toPublic(board: DailyBoard, stats: DailyStats, answer: string | 
     answer: over ? answer : null,
     startedAt: board.startedAt,
     finishedAt: board.finishedAt,
+    hint: board.hint ? { pos: board.hint.pos, letter: board.hint.letter } : null,
     stats: { ...stats, dist: [...stats.dist], current: effectiveStreak(stats, board.dayNumber) },
   };
 }
@@ -280,6 +309,24 @@ export class DailyBook {
     await this.storage.put(recordKey(userId), rec);
     return { ok: true, record: toPublic(board, rec.stats, board.status === 'playing' ? null : answer), justFinished };
   }
+
+  /**
+   * Today's one hint: after HINT_AFTER guesses, while still playing, once per Chicago day. Reveals one
+   * letter of the answer in its spot (the leftmost spot not yet green) and stores it on the board.
+   * The rest of the answer stays here.
+   */
+  async hint(userId: string, now: number): Promise<DailyResult> {
+    const { rec, board } = await this.load(userId, now);
+    if (board.status !== 'playing') return { ok: false, code: 'daily-done', message: "You're done for today. New word at midnight Central." };
+    if (board.hint) return { ok: false, code: 'hint-used', message: 'One hint a day, and you already took it.' };
+    if (board.guesses.length < HINT_AFTER) return { ok: false, code: 'hint-locked', message: `Hint unlocks after ${HINT_AFTER} guesses.` };
+    const pos = hintPosition(board.colors);
+    if (pos < 0) return { ok: false, code: 'hint-nothing', message: 'Every spot is already green somewhere. Put it together.' };
+    const answer = this.answer(board.dayNumber);
+    board.hint = { pos, letter: answer[pos] as string };
+    await this.storage.put(recordKey(userId), rec);
+    return { ok: true, record: toPublic(board, rec.stats, null), justFinished: false };
+  }
 }
 
 // ---------- today's solvers (one per server) ----------
@@ -297,8 +344,11 @@ export function validSolver(x: unknown): SolverRow | null {
   if (!Number.isInteger(r.guesses) || (r.guesses as number) < 1 || (r.guesses as number) > MAX_GUESSES) return null;
   if (!Number.isInteger(r.ms) || (r.ms as number) < 0 || (r.ms as number) > 86_400_000 * 2) return null;
   if (typeof r.at !== 'number' || !Number.isFinite(r.at)) return null;
+  if (r.hint !== undefined && typeof r.hint !== 'boolean') return null;
   const name = r.name.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 64) || 'someone';
-  return { id: r.id, name, avatar: r.avatar as string | null, guesses: r.guesses as number, ms: r.ms as number, at: r.at as number };
+  const row: SolverRow = { id: r.id, name, avatar: r.avatar as string | null, guesses: r.guesses as number, ms: r.ms as number, at: r.at as number };
+  if (r.hint === true) row.hint = true;
+  return row;
 }
 
 interface SolversState {
@@ -338,10 +388,13 @@ export class DailySolvers {
   }
 }
 
-/** The spoiler-free share grid: one emoji row per guess, no letters. */
-export function shareText(name: string, pub: Pick<DailyPublic, 'dayNumber' | 'rows' | 'status'>): string {
+/** Light bulb: marks a hinted solve on Today's solvers and in the share text. */
+export const HINT_MARK = String.fromCodePoint(0x1f4a1);
+
+/** The spoiler-free share grid: one emoji row per guess, no letters. A used hint adds the bulb, never the letter. */
+export function shareText(name: string, pub: Pick<DailyPublic, 'dayNumber' | 'rows' | 'status'> & { hint?: DailyHint | null }): string {
   const sq: Record<Tile, string> = { g: String.fromCodePoint(0x1f7e9), y: String.fromCodePoint(0x1f7e8), b: String.fromCodePoint(0x2b1b) };
   const score = pub.status === 'won' ? `${pub.rows.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`;
   const grid = pub.rows.map((r) => r.colors.map((c) => sq[c]).join('')).join('\n');
-  return `${name} #${puzzleNumber(pub.dayNumber)} ${score}\n${grid}`;
+  return `${name} #${puzzleNumber(pub.dayNumber)} ${score}${pub.hint ? ` ${HINT_MARK}` : ''}\n${grid}`;
 }

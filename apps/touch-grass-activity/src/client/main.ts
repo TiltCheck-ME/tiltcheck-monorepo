@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // Touch Grass Activity entry. Inside Discord: SDK handshake, then the worker room.
 // Plain browser (no frame_id): guest mode with a fake user and an in-browser room.
 
@@ -168,7 +168,7 @@ function phaseKey(v: RoomView | null): string {
   if (ui.screen === 'dad') return `dad:${v.dad.phase}:${v.dad.round}`;
   if (ui.screen === 'trivia') return `trivia:${v.trivia.game}:${v.trivia.phase}:${v.trivia.number}`;
   if (ui.screen === 'bluff') return `bluff:${v.bluff.game}:${v.bluff.phase}:${v.bluff.round}`;
-  if (ui.screen === 'daily') return `daily:${v.daily.me?.day ?? ''}:${v.daily.me?.rows.length ?? -1}:${v.daily.me?.status ?? ''}`;
+  if (ui.screen === 'daily') return `daily:${v.daily.me?.day ?? ''}:${v.daily.me?.rows.length ?? -1}:${v.daily.me?.status ?? ''}:${v.daily.me?.hint ? 'h' : ''}`;
   if (ui.screen === 'chess') return `chess:${v.chess.game}:${v.chess.phase}`;
   if (ui.screen === 'hot') return `hot:${ui.social?.kind === 'ok' ? (ui.social.view.hot.featured?.id ?? '') : ui.social?.kind ?? ''}`;
   if (ui.screen === 'story') return `story:${ui.social?.kind === 'ok' ? ui.social.view.story.id : ui.social?.kind ?? ''}`;
@@ -478,6 +478,11 @@ app.addEventListener('click', (ev) => {
     return;
   }
   if (d.dgKey) return dailyKey(d.dgKey);
+  if (el.hasAttribute('data-dg-hint')) {
+    const me = ui.view?.daily.me;
+    if (me && me.status === 'playing' && !me.hint) send({ t: 'daily.hint' });
+    return;
+  }
   if (el.hasAttribute('data-dg-share') && ui.view) {
     const text = dailyShare(ui.view);
     if (text) void copyText(text).then((ok) => toast(ok ? COPY.daily.copied : COPY.daily.copyFailed));

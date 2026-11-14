@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14
 // Durable Object: one per room key (g-<guild>-c-<channel> in a server channel, else the Discord
 // Activity instanceId; the worker resolves it). The 'instanceId' below is that room key. Uses the WebSocket Hibernation API
 // so idle rooms cost nothing while sockets stay open.
@@ -24,6 +24,7 @@ function soloOverStubs(ns: DurableObjectNamespace): SoloService {
   return {
     dailyOpen: (user) => call<DailyResult>(dailyUserName(user.id), '/daily/open', { body: { user: user.id } }),
     dailyGuess: (user, word) => call<DailyResult>(dailyUserName(user.id), '/daily/guess', { body: { user: user.id, word } }),
+    dailyHint: (user) => call<DailyResult>(dailyUserName(user.id), '/daily/hint', { body: { user: user.id } }),
     dailySolved: async (guild, row) => (await call<{ rank: number | null }>(scoresName(guild), '/daily/solved', { body: { guild, row } })).rank,
     dailySolvers: async (guild) => {
       const r = await call<{ day: string; rows: SolverRow[] }>(scoresName(guild), `/daily/solvers?guild=${guild}`);
