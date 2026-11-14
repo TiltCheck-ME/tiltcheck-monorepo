@@ -1,6 +1,16 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14 -->
 
 # Session Log
+
+## 2026-11-14 — deploy(activity): Touch Grass Hot Takes + Story Chain go live
+
+- Jamie approved. #741 squash-merged to main as 93694276; deployed from main at that commit to the same hosts: Worker `touch-grass-activity` (https://touch-grass-activity.j-chapman7.workers.dev) and Pages project `touch-grass-activity` (https://touch-grass-activity.pages.dev).
+- From main: app, worker and tests typecheck clean, `vite build` OK, 337 vitest tests pass (two chunks: 316 + 21).
+- Before: Worker version 0777e412-b5f0-451e-b5f0-0b0c24e273c6 (deployment d6dd4cc4); Pages deployment 1726b408-950a-412e-a55e-7fc6ed16bda2 (built from 4b2cd14b).
+- After: Worker version 866571d5-d66f-42ac-a500-5044db5edf74 (deployment f67fafd3), uploaded through the REST API from `wrangler deploy --dry-run --outdir`: same ROOMS / LIVE / SCORES bindings, vars DISCORD_CLIENT_ID and ALERT_GUILD_ID, new var SOCIAL_MOD_USER_IDS (Jamie); secrets DISCORD_CLIENT_SECRET, ALERT_WEBHOOK_URL and DAILY_SALT kept via `keep_bindings: ["secret_text"]`; no migration (tag stays v3). No DISCORD_BOT_TOKEN, so SOCIAL_MOD_ROLE_IDS is off. Pages deployment bd5cbe07-9d91-4819-8e32-25d3bb15326e (93694276): check-missing confirmed 0 missing before the deployment was created.
+- Smoke: `/api/health` 200, `/api/live` 200, `/api/social` GET and POST 401 `unauthorized` without a token, `/api/trivia/scores` 401; pages.dev and the deployment URL 200 serving `index-BIARBj7V.js` with the Hot Takes and Story Chain tiles; discordsays.com `/.proxy/api/health` 200.
+- Rollback: Worker: `wrangler rollback 0777e412-b5f0-451e-b5f0-0b0c24e273c6 --name touch-grass-activity`, or POST `/accounts/<acct>/workers/scripts/touch-grass-activity/deployments` with `{"strategy":"percentage","versions":[{"version_id":"0777e412-b5f0-451e-b5f0-0b0c24e273c6","percentage":100}]}`. Pages: POST `/accounts/<acct>/pages/projects/touch-grass-activity/deployments/1726b408-950a-412e-a55e-7fc6ed16bda2/rollback`, or dashboard Deployments > 1726b408 > Rollback. The new `hot:*` / `story:*` / `social:salt` keys are ignored by the old build.
+- Not tested: submitting, voting, adding a story line or mod hide inside a real Discord server (desktop, iOS, Android) after this deploy.
 
 ## 2026-11-13 — feat(activity): Touch Grass Hot Takes (anonymous polls) and Story Chain
 
