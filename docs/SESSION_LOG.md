@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-13 — chore: drop CHROMEWEBSTORE.md, allowlist the casino-ask Discord public key in gitleaks
+
+- Jamie dropped the Chrome Web Store. Root `CHROMEWEBSTORE.md` removed; main had 9 root markdown files, so `tools/check-root-cleanliness.sh` (Validate Changed Packages) failed on every PR. Now 8, within the limit. No live references to the file outside past session-log entries; the devkit chrome-extensions skill now says not to recreate it here.
+- Gitleaks (`discord-api-token`) flagged `workers/casino-ask/wrangler.toml` line 10 on the #731 push: `DISCORD_PUBLIC_KEY`, the app's Ed25519 verify key, public by design. Added a path + line allowlist in `.gitleaks.toml` scoped to that file and that variable (a 64-hex value). Checked with gitleaks 8.30.1 over `598b7bf7..0af8bdb2`: 1 finding before, none after.
+
 ## 2026-11-13 — deploy(activity): Touch Grass chess goes live (with the DA&D fixes and millennial cards)
 
 - Jamie (9:28 PM CST): chess can go live. Same hosts as the test build: Worker `touch-grass-activity` (https://touch-grass-activity.j-chapman7.workers.dev) and Pages project `touch-grass-activity` (https://touch-grass-activity.pages.dev). Nothing merged to main; the Activity deploys from a branch build, so no merge was needed.
