@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 
 title = "TiltCheck Gitleaks Overrides"
 
@@ -36,4 +36,15 @@ paths = [
 regexTarget = "line"
 regexes = [
   '''b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9''',
+]
+
+[[allowlists]]
+description = "Discord application public key in the casino-ask Worker config (Ed25519 verify key, public by design)"
+condition = "AND"
+paths = [
+  '''^workers/casino-ask/wrangler\.toml$''',
+]
+regexTarget = "line"
+regexes = [
+  '''DISCORD_PUBLIC_KEY\s*=\s*"[0-9a-f]{64}"''',
 ]
