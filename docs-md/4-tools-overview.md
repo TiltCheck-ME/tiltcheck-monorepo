@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 
 # 4. TiltCheck Tools Overview
 
@@ -220,7 +220,7 @@ The lightweight Manifest V3 browser extension delivers real-time client-side int
 2. **Strategic Game Filters**: Identifies trap conditions in Mines, Chicken, Plinko, and high-volatility slots, displaying immediate mathematical house-edge awareness.
 3. **Reality-Grounding Wage-Hour HUD**: Injects a clean session drawdown counter converting credits directly into equivalent real-world working hours ($25/hr baseline default, fully customizable in settings).
 4. **DOM Deposit Barrier**: Intercepts and blocks cashier and deposit button clicks during active cooldowns and Touch Grass timeouts to eliminate reflexive reload impulses.
-5. **Reverse-Withdrawal Shield**: Neutralizes "Cancel Withdrawal" and "Cancel Redemption" buttons on cashier and transaction history tables to prevent players on tilt from undoing cashouts back into playable balance.
+5. **Payout Lock**: Neutralizes "Cancel Withdrawal" and "Cancel Redemption" buttons on cashier and transaction history tables to prevent players on tilt from undoing cashouts back into playable balance.
 6. **Profit-Lock Ratchet**: Locks in a trailing profit floor (50% default) when session balance climbs. Escalates from an in-page soft warning to a 60-second hard brake if unacted upon.
 7. **Reality Cashout Goals**: Connects casino chip thresholds directly to tangible bills and essentials (Power bill $250, groceries $120, tank of gas $50, trash bags $14, Spotify $11) with one-click payment links.
 8. **Touch Grass Timeout**: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.
