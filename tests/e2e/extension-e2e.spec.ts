@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // E2E test: Chrome extension packaging, unpacked loading, popup settings, and cooldown auto-lock deep-link.
 
 import { test, expect, chromium, type BrowserContext, type Page } from "@playwright/test";
@@ -23,6 +23,17 @@ interface ExtensionHarness {
   extensionId: string;
   userDataDir: string;
   cleanup: () => Promise<void>;
+}
+
+// The popup opens in Easy mode, which hides the tabbed panels. The cooldown sync and
+// auto-lock controls live on the Pro "block" tab (labelled Guards, later Settings).
+async function openSettingsPanel(page: Page): Promise<void> {
+  const proBtn = page.locator("#btn-mode-pro");
+  if (await proBtn.isVisible()) {
+    await proBtn.click();
+  }
+  await page.locator('.tab[data-tab="block"]').click();
+  await expect(page.locator("#panel-block")).toBeVisible();
 }
 
 async function createExtensionHarness(): Promise<ExtensionHarness> {
@@ -97,6 +108,7 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      await openSettingsPanel(page);
 
       // Verify title.
       const pageTitle = await page.title();
@@ -130,6 +142,7 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      await openSettingsPanel(page);
 
       const autoLockToggle = page.locator("#auto-lock-on-tilt-toggle");
       await expect(autoLockToggle).toBeChecked();
@@ -165,6 +178,7 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      await openSettingsPanel(page);
 
       const walletInput = page.locator("#cooldown-wallet-input");
       const syncBtn = page.locator("#btn-sync-cooldown");

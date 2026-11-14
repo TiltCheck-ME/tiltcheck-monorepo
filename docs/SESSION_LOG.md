@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-13 — test(e2e): extension popup tests open the Pro settings tab first
+
+- "Anchor Devnet & Cooldown Smoke Test" has failed every run since 2026-11-09 at `tests/e2e/extension-e2e.spec.ts:107`: `#cooldown-wallet-sync-wrap` resolves but is hidden. Cause: the popup opens in Easy mode (f6f5f7ce), which hides the tab bar and the `panel-block` tab where the cooldown sync and auto-lock controls live. The spec was never updated; serial mode then skipped the rest of the suite.
+- Added `openSettingsPanel(page)` (Pro mode, then the `block` tab) to the three popup tests. No assertion removed or loosened.
+
 ## 2026-11-13 — ci: pnpm version comes from package.json only
 
 - "Deploy Hub to Cloudflare Workers" (run 43552635208, #731 push) failed at Set up pnpm: `pnpm/action-setup@v6` refuses to run when the workflow's `version:` (10.29.1) and root `packageManager` (pnpm@10.34.4) disagree. The hub deploy never got as far as Wrangler.
