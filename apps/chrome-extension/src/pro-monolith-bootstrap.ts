@@ -1358,7 +1358,7 @@ function removeCooldownOverlay() {
  * Show vault prompt
  */
 function showVaultPrompt(vaultData: VaultPromptData) {
-  const message = `Your balance is ${vaultData.suggestedAmount.toFixed(2)}. Consider vaulting to protect your winnings.`;
+  const message = `Your balance is ${vaultData.suggestedAmount.toFixed(2)}. Consider vaulting some of it.`;
   showInteractiveNotification(message, [
     { text: 'Vault Now', action: () => openVaultInterface(vaultData.suggestedAmount) },
     { text: 'Later', action: () => { } }
@@ -1946,7 +1946,7 @@ export function deactivateProMonolith(): void {
   teardownInjectedRuntime();
   proMonolithActive = false;
   if (process.env.NODE_ENV !== 'production') {
-    console.log('[TiltCheck Pro] Monolith surface safely defused. Core shield remains active.');
+    console.log('[TiltCheck Pro] Monolith surface removed. Core spin lock stays on.');
   }
 }
 

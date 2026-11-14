@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * reverse-withdrawal-shield.ts
  * DOM Reverse-Withdrawal Shield (Cashier Protection).
@@ -192,7 +192,7 @@ export function neutralizeCancelElement(el: Element): void {
   );
   el.setAttribute(
     'title',
-    'Cashout Protected: TiltCheck Reverse-Withdrawal Shield is Active. Let your hit clear.'
+    'TiltCheck Payout Lock is on. Cancel stays off until this cashout clears.'
   );
 }
 
@@ -299,7 +299,7 @@ export function installReverseWithdrawalShield(
     neutralizeCancelElement(target);
 
     showAlert(
-      'Cashout Protected: Reverse-Withdrawal Shield is active. Do not donate your hit back to the house. Let your cashout clear.'
+      'TiltCheck Payout Lock is on. Do not donate your hit back to the house. Let the cashout clear.'
     );
   };
 
@@ -319,7 +319,7 @@ export function installReverseWithdrawalShield(
     neutralizeCancelElement(target);
 
     showAlert(
-      'Cashout Protected: Reverse-Withdrawal Shield is active. Do not donate your hit back to the house. Let your cashout clear.'
+      'TiltCheck Payout Lock is on. Do not donate your hit back to the house. Let the cashout clear.'
     );
   };
 

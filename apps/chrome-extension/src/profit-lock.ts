@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * profit-lock.ts
  * Profit-Lock & Step-Ladder Ratchet with Reality Cashout Goals.
@@ -505,7 +505,7 @@ export function showSoftWarningModal(
         </div>
       </div>
       <div class="tiltcheck-modal-body">
-        You ran the bag up to <strong>$${data.peak.toFixed(2)}</strong> and gave back down to your protected floor at <strong>$${data.floor.toFixed(2)}</strong>. The heater is cooling off.
+        You ran the bag up to <strong>$${data.peak.toFixed(2)}</strong> and gave back down to your floor at <strong>$${data.floor.toFixed(2)}</strong>. The heater is cooling off.
         99% of degens rage-spin right here until the account reads zero. Cash out now while you are ahead. If you continue spinning below this floor, a 60-second hard brake will be engaged.
       </div>
       <div class="tiltcheck-modal-actions">
@@ -639,7 +639,7 @@ export function installProfitLock(
           // Stage 2: Hard Guard if warning unacted upon and player is still at/below floor
           hardGuardTriggered = true;
           triggerTouchGrassTimeout(
-            `Profit-Lock Hard Guard: You reached a peak of $${peakBalance.toFixed(2)} with a floor at $${currentFloor.toFixed(2)}. 60-second brake engaged so you don't rage-dump your profit. Step back and cash out.`,
+            `Profit lock: You reached a peak of $${peakBalance.toFixed(2)} with a floor at $${currentFloor.toFixed(2)}. 60-second brake engaged so you don't rage-dump your profit. Step back and cash out.`,
             opts.hardGuardCooldownMs
           );
         }
@@ -664,7 +664,7 @@ export function installProfitLock(
     if (current !== null && current <= currentFloor && !hardGuardTriggered) {
       hardGuardTriggered = true;
       triggerTouchGrassTimeout(
-        `Profit-Lock Hard Guard: Floor touched at $${currentFloor.toFixed(2)}. 60-second brake engaged so you don't burn your profit.`,
+        `Profit lock: Floor touched at $${currentFloor.toFixed(2)}. 60-second brake engaged so you don't burn your profit.`,
         opts.hardGuardCooldownMs
       );
     }

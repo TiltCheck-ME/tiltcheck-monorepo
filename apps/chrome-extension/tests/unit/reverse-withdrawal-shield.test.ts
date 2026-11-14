@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * @vitest-environment jsdom
  * DOM Reverse-Withdrawal Shield tests.
@@ -119,7 +119,7 @@ describe('neutralizeCancelElement', () => {
     expect(btn.getAttribute('data-tiltcheck-shield')).toBe('blocked');
     expect(btn.disabled).toBe(true);
     expect(btn.getAttribute('style')).toContain('pointer-events: none');
-    expect(btn.getAttribute('title')).toContain('Reverse-Withdrawal Shield');
+    expect(btn.getAttribute('title')).toContain('TiltCheck Payout Lock is on');
   });
 });
 
@@ -161,7 +161,7 @@ describe('installReverseWithdrawalShield interception and lifecycle', () => {
 
     const alertEl = document.getElementById(ALERT_ID);
     expect(alertEl).not.toBeNull();
-    expect(alertEl?.textContent).toContain('Reverse-Withdrawal Shield is active');
+    expect(alertEl?.textContent).toContain('TiltCheck Payout Lock is on');
 
     shield.stop();
   });

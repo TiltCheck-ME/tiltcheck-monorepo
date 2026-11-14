@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * degen-reality-copy.ts
  * Culturally fluent, sharp, witty reality checks and spotter interventions.
@@ -87,8 +87,8 @@ export function getRatchetFloorCopy(peak: number, floor: number, current: number
 } {
   return {
     tag: 'Profit-Lock Ratchet Alert',
-    title: 'Ratchet Floor Touched (Protected Floor Breached)',
-    bodyHtml: `You ran the bag up to <strong>$${peak.toFixed(2)}</strong> and gave back down to your protected floor of <strong>$${floor.toFixed(2)}</strong> (current: <strong>$${current.toFixed(2)}</strong>).<br/><br/>The heater is cooling off. 99% of degens rage-spin right here until the account reads zero. Cash out now while you are still ahead. One more spin below this floor drops the 60-second hard brake.`,
+    title: 'Ratchet Floor Touched',
+    bodyHtml: `You ran the bag up to <strong>$${peak.toFixed(2)}</strong> and gave back down to your floor of <strong>$${floor.toFixed(2)}</strong> (current: <strong>$${current.toFixed(2)}</strong>).<br/><br/>The heater is cooling off. 99% of degens rage-spin right here until the account reads zero. Cash out now while you are still ahead. One more spin below this floor drops the 60-second hard brake.`,
     cashoutBtn: 'Lock In Profit at Cashier &rarr;',
     ackBtn: 'I know I am risking it (Next spin drops Hard Brake)',
   };

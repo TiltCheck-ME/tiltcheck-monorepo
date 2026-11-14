@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,8 +9,8 @@ const popupHtml = readFileSync(join(root, '../../src/popup.html'), 'utf8');
 const popupTs = readFileSync(join(root, '../../src/popup.ts'), 'utf8');
 
 describe('popup guest-first copy', () => {
-  it('opens on Guards, not a Discord wall', () => {
-    expect(popupHtml).toContain('data-tab="block">Guards');
+  it('opens on Settings, not a Discord wall', () => {
+    expect(popupHtml).toContain('data-tab="block">Settings');
     expect(popupHtml).toMatch(/class="tab active"[^>]*data-tab="block"/);
     expect(popupHtml).toContain('id="panel-block" class="panel active"');
     expect(popupHtml).not.toContain('id="panel-status" class="panel active"');
@@ -22,7 +22,7 @@ describe('popup guest-first copy', () => {
     expect(popupHtml).toContain('tiltcheck.me/cooldown');
   });
 
-  it('lands guests on Guards after init', () => {
+  it('lands guests on Settings after init', () => {
     expect(popupTs).toContain("activateTab(userId ? 'status' : 'block')");
     expect(popupTs).not.toContain('Open the sidebar on your casino tab to finish Discord sign-in.');
   });
@@ -122,5 +122,23 @@ describe('popup guest-first copy', () => {
 
     expect(popupTs).toContain('applyUiSizePreset');
     expect(popupTs).toContain('detachToStandaloneWindow');
+  });
+
+  it('uses plain wording: no guard, shield or protect framing in what users read', () => {
+    const visibleHtml = popupHtml
+      .replace(/<style[\s\S]*?<\/style>/g, '')
+      .replace(/<script[\s\S]*?<\/script>/g, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // drop tag internals except user-facing attributes
+      .replace(/<[^>]*>/g, (tag) => (tag.match(/\b(title|alt|aria-label|placeholder)="[^"]*"/g) || []).join(' '));
+    const banned = /\b(guards?|guardrails?|shield(ed)?|protect(ion|ed|s)?|armed|armory)\b/i;
+    expect(visibleHtml).not.toMatch(banned);
+
+    // Sentence-like string literals in popup.ts (toasts, labels), tags stripped.
+    const literals = popupTs.match(/'[^'\n]* [^'\n]*'|`[^`\n]* [^`\n]*`/g) || [];
+    for (const literal of literals) {
+      const text = literal.replace(/<[^>]*>/g, ' ').replace(/\$\{[^}]*\}/g, ' ');
+      expect(text, literal).not.toMatch(banned);
+    }
   });
 });

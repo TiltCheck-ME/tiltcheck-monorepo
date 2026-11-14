@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * deposit-barrier.ts
  * DOM Deposit Barrier.
@@ -424,7 +424,7 @@ export function installDepositBarrier(doc: Document = document): DepositBarrierH
     if (cooldownUntil > now) {
       const remainingMins = Math.max(1, Math.ceil((cooldownUntil - now) / 60000));
       if (inMemoryCooldownSource === 'auto_tilt') {
-        message = `Deposit Barrier Active: Level 3+ tilt auto-lock engaged (${remainingMins}m remaining). Cool down and protect your capital.`;
+        message = `Deposit Barrier Active: Level 3+ tilt auto-lock engaged (${remainingMins}m remaining). Cool down.`;
       } else {
         message = `Deposit Barrier Active: Voluntary lock engaged (${remainingMins}m remaining). Don't reload. Step away.`;
       }
