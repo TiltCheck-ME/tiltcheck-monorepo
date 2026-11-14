@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 name: Validate Changed Packages (PR)
 
 on:
@@ -157,7 +157,6 @@ jobs:
           # Validate this PR's Next.js app, not live GitHub Pages.
           BASE_URL: http://127.0.0.1:3001
           PLAYWRIGHT_WEB_LOCAL: '1'
-          PLAYWRIGHT_DEGENS_LOCAL: '1'
           SKIP_ENV_VALIDATION: 'true'
           SKIP_DISCORD_LOGIN: 'true'
 

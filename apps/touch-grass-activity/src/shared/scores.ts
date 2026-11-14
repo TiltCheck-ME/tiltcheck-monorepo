@@ -74,8 +74,6 @@ export interface BookStorage {
   put<T>(key: string, value: T): Promise<void>;
 }
 
-const BOOK_KEY = 'book';
-const pbKey = (id: string) => `pb:${id}`;
 
 // ---------- Chicago week boundary ----------
 
@@ -113,6 +111,18 @@ export function weekStartFor(ms: number): number {
   // Midnight is never inside a US DST gap (changes happen at 02:00), so one correction is exact.
   const guess = mondayLocalAsUtc - chicagoOffset(mondayLocalAsUtc);
   return mondayLocalAsUtc - chicagoOffset(guess);
+}
+
+/** Chicago calendar day containing `ms`, as 'YYYY-MM-DD'. The Daily Grass day turns at midnight Central. */
+export function dayKeyFor(ms: number): string {
+  const p = chicagoParts(ms);
+  return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`;
+}
+
+/** Days since 1970-01-01 for the Chicago calendar day containing `ms` (consecutive days differ by 1). */
+export function dayNumberFor(ms: number): number {
+  const p = chicagoParts(ms);
+  return Math.round(Date.UTC(p.y, p.m - 1, p.d) / 86_400_000);
 }
 
 // ---------- pure board helpers ----------
@@ -180,12 +190,24 @@ export function validFinished(x: unknown): FinishedScore | null {
 
 export class ScoreBook {
   private book: BookState | null = null;
+  private readonly bookKey: string;
+  private readonly pbKey: (id: string) => string;
 
-  constructor(private readonly storage: BookStorage) {}
+  /**
+   * `prefix` keeps a second book in the same storage (Myth or Math uses 'myth:'). Trivia keeps the
+   * original unprefixed keys ('book', 'pb:<id>') so stored boards carry on unchanged.
+   */
+  constructor(
+    private readonly storage: BookStorage,
+    prefix = '',
+  ) {
+    this.bookKey = `${prefix}book`;
+    this.pbKey = (id) => `${prefix}pb:${id}`;
+  }
 
   private async load(now: number): Promise<BookState> {
-    if (!this.book) this.book = (await this.storage.get<BookState>(BOOK_KEY)) ?? emptyBook(now);
-    if (rollWeek(this.book, now)) await this.storage.put(BOOK_KEY, this.book);
+    if (!this.book) this.book = (await this.storage.get<BookState>(this.bookKey)) ?? emptyBook(now);
+    if (rollWeek(this.book, now)) await this.storage.put(this.bookKey, this.book);
     return this.book;
   }
 
@@ -201,7 +223,7 @@ export class ScoreBook {
       const r = validFinished(raw);
       if (!r || r.score <= 0) continue;
       const row: ScoreRow = { ...r, at: now };
-      const pb = (await this.storage.get<PersonalBest>(pbKey(r.id))) ?? { all: null, week: null };
+      const pb = (await this.storage.get<PersonalBest>(this.pbKey(r.id))) ?? { all: null, week: null };
       const personalBest = !pb.all || r.score > pb.all.score;
       let pbChanged = false;
       if (personalBest) {
@@ -213,7 +235,7 @@ export class ScoreBook {
         pb.week = { score: r.score, at: now, weekStart: book.week.start };
         pbChanged = true;
       }
-      if (pbChanged) await this.storage.put(pbKey(r.id), pb);
+      if (pbChanged) await this.storage.put(this.pbKey(r.id), pb);
       changed = placeRow(book.allTime, row) || changed;
       changed = placeRow(book.week.rows, row) || changed;
       out[r.id] = { personalBest, weekRank: null, allTimeRank: null };
@@ -225,7 +247,7 @@ export class ScoreBook {
       b.weekRank = book.week.rows.find((x) => x.id === id)?.at === now ? rankOf(book.week.rows, id) : null;
       b.allTimeRank = book.allTime.find((x) => x.id === id)?.at === now ? rankOf(book.allTime, id) : null;
     }
-    if (changed) await this.storage.put(BOOK_KEY, book);
+    if (changed) await this.storage.put(this.bookKey, book);
     return out;
   }
 
@@ -233,7 +255,7 @@ export class ScoreBook {
     const book = await this.load(now);
     let me: BoardMine = { week: null, allTime: null };
     if (meId) {
-      const pb = await this.storage.get<PersonalBest>(pbKey(meId));
+      const pb = await this.storage.get<PersonalBest>(this.pbKey(meId));
       me = {
         allTime: pb?.all ? { score: pb.all.score, rank: rankOf(book.allTime, meId) } : null,
         week: pb?.week && pb.week.weekStart === book.week.start ? { score: pb.week.score, rank: rankOf(book.week.rows, meId) } : null,

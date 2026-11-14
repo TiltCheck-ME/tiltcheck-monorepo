@@ -35,9 +35,11 @@ describe('DA&D: start and dealing', () => {
     const { s, rng } = table(['a', 'b', 'c']);
     dad.start(s, 'a', rng);
     allSubmit(s, rng);
-    dad.pick(s, s.judgeId!, s.entries[0]!.entryId);
+    dad.pick(s, s.judgeId!, s.entries[0]!.entryId, rng);
     dad.next(s, 'a', rng);
-    for (const id of s.seats) expect(s.hands[id]).toHaveLength(7);
+    // Everyone who plays this round is back to 7; the new judge gets no top-up while judging.
+    for (const id of s.seats) if (id !== s.judgeId) expect(s.hands[id]).toHaveLength(7);
+    expect(s.hands[s.judgeId!]!.length).toBeLessThanOrEqual(7);
   });
 
   it('clamps the target score', () => {
@@ -55,7 +57,7 @@ describe('DA&D: judge rotation', () => {
     for (let r = 0; r < 8; r += 1) {
       judges.push(s.judgeId!);
       allSubmit(s, rng);
-      dad.pick(s, s.judgeId!, s.entries[0]!.entryId);
+      dad.pick(s, s.judgeId!, s.entries[0]!.entryId, rng);
       if (s.phase === 'over') break;
       dad.next(s, s.seats[0]!, rng);
     }
@@ -87,11 +89,11 @@ describe('DA&D: submissions', () => {
   it('only the judge can pick, and only a real entry', () => {
     const { s, rng } = table(['a', 'b', 'c']);
     dad.start(s, 'a', rng);
-    expect(dad.pick(s, s.judgeId!, 'nope')).toMatchObject({ code: 'wrong-phase' });
+    expect(dad.pick(s, s.judgeId!, 'nope', rng)).toMatchObject({ code: 'wrong-phase' });
     allSubmit(s, rng);
     const notJudge = s.seats.find((id) => id !== s.judgeId)!;
-    expect(dad.pick(s, notJudge, s.entries[0]!.entryId)).toMatchObject({ code: 'not-judge' });
-    expect(dad.pick(s, s.judgeId!, 'e-fake')).toMatchObject({ code: 'unknown-entry' });
+    expect(dad.pick(s, notJudge, s.entries[0]!.entryId, rng)).toMatchObject({ code: 'not-judge' });
+    expect(dad.pick(s, s.judgeId!, 'e-fake', rng)).toMatchObject({ code: 'unknown-entry' });
   });
 });
 
@@ -106,7 +108,9 @@ describe('DA&D: anonymity', () => {
     const s = room.state.dad;
     for (const id of s.seats) {
       const v = room.viewFor(id, 0);
-      expect(v.dad.hand.map((c) => c.id).sort()).toEqual(s.hands[id]!.map((c) => c.id).sort());
+      // The judge's view carries no hand at all; everyone else sees exactly their own.
+      const expected = id === s.judgeId ? [] : s.hands[id]!.map((c) => c.id).sort();
+      expect(v.dad.hand.map((c) => c.id).sort()).toEqual(expected);
       const json = JSON.stringify(v);
       for (const other of s.seats.filter((o) => o !== id)) {
         for (const c of s.hands[other]!) expect(json).not.toContain(`"${c.id}"`);
@@ -148,7 +152,7 @@ describe('DA&D: scoring and win', () => {
     dad.start(s, 'a', rng);
     allSubmit(s, rng);
     const entry = s.entries[0]!;
-    dad.pick(s, s.judgeId!, entry.entryId);
+    dad.pick(s, s.judgeId!, entry.entryId, rng);
     expect(s.scores[entry.playerId]).toBe(1);
     expect(s.phase).toBe('reveal');
     expect(s.lastRound?.winnerId).toBe(entry.playerId);
@@ -162,7 +166,7 @@ describe('DA&D: scoring and win', () => {
     while (s.phase !== 'over' && rounds < 50) {
       allSubmit(s, rng);
       const pickFor = s.entries.find((e) => e.playerId === 'a') ?? s.entries[0]!;
-      dad.pick(s, s.judgeId!, pickFor.entryId);
+      dad.pick(s, s.judgeId!, pickFor.entryId, rng);
       if (s.phase === 'reveal') dad.next(s, 'b', rng);
       rounds += 1;
     }
@@ -231,7 +235,7 @@ describe('DA&D: leaving', () => {
     dad.start(s, 'a', rng);
     allSubmit(s, rng);
     const e = s.entries[0]!;
-    dad.pick(s, s.judgeId!, e.entryId);
+    dad.pick(s, s.judgeId!, e.entryId, rng);
     const leaver = s.seats.find((id) => id !== e.playerId)!;
     dad.removePlayer(s, leaver, rng);
     expect(s.phase).toBe('paused');
@@ -240,7 +244,8 @@ describe('DA&D: leaving', () => {
     expect(dad.start(s, 'z', rng)).toEqual({ ok: true });
     expect(s.phase).toBe('submitting');
     expect(s.scores[e.playerId]).toBe(1);
-    expect(s.hands.z).toHaveLength(7);
+    // Dealt in unless z opens as the judge (no hand needed while judging).
+    expect(s.hands.z ?? []).toHaveLength(s.judgeId === 'z' ? 0 : 7);
   });
 });
 
@@ -255,11 +260,11 @@ describe('DA&D: late join', () => {
     // the round still closes without them
     allSubmit(s, rng);
     expect(s.phase).toBe('judging');
-    dad.pick(s, s.judgeId!, s.entries[0]!.entryId);
+    dad.pick(s, s.judgeId!, s.entries[0]!.entryId, rng);
     dad.next(s, 'a', rng);
     expect(s.seats).toContain('late');
     expect(s.waiting).toEqual([]);
-    expect(s.hands.late).toHaveLength(7);
+    expect(s.hands.late ?? []).toHaveLength(s.judgeId === 'late' ? 0 : 7);
     expect(s.scores.late).toBe(0);
   });
 
@@ -268,5 +273,55 @@ describe('DA&D: late join', () => {
     dad.start(s, 'a', rng);
     expect(dad.sit(s, 'h').ok).toBe(true);
     expect(dad.sit(s, 'i')).toMatchObject({ code: 'table-full' });
+  });
+});
+
+describe('DA&D: the judge holds no hand', () => {
+  function table4() {
+    const room = new Room(createRoomState('i-judge'), makeRng(11));
+    for (const id of ['a', 'b', 'c', 'd']) {
+      room.join({ id, name: id.toUpperCase(), avatar: null }, 0);
+      room.handle(id, { t: 'dad.sit' }, 0);
+    }
+    room.handle('a', { t: 'dad.start', target: 10 }, 0);
+    return room;
+  }
+
+  it('judge view has an empty hand while judging; the cards stay server side', () => {
+    const room = table4();
+    const s = room.state.dad;
+    const judge = s.judgeId!;
+    const v = room.viewFor(judge, 0).dad;
+    expect(v.me.isJudge).toBe(true);
+    expect(v.hand).toEqual([]);
+    expect(s.hands[judge]).toHaveLength(dad.HAND_SIZE);
+    for (const c of s.hands[judge]!) expect(JSON.stringify(room.viewFor(judge, 0))).not.toContain(`"${c.id}"`);
+    for (const id of s.seats.filter((x) => x !== judge)) expect(room.viewFor(id, 0).dad.hand).toHaveLength(dad.HAND_SIZE);
+  });
+
+  it('server rejects a judge submission, even with a card they really hold', () => {
+    const room = table4();
+    const s = room.state.dad;
+    const judge = s.judgeId!;
+    const held = s.hands[judge]![0]!.id;
+    expect(room.handle(judge, { t: 'dad.submit', cardId: held }, 0)).toMatchObject({ ok: false, code: 'judge-cannot-submit' });
+    expect(s.hands[judge]).toHaveLength(dad.HAND_SIZE);
+  });
+
+  it('no top-up to the judge mid-round, and the ex-judge has a full hand next round', () => {
+    const room = table4();
+    const s = room.state.dad;
+    const judge = s.judgeId!;
+    const before = s.hands[judge]!.map((c) => c.id);
+    allSubmit(s, makeRng(5));
+    expect(s.hands[judge]!.map((c) => c.id)).toEqual(before);
+    room.handle(judge, { t: 'dad.pick', entryId: s.entries[0]!.entryId }, 0);
+    room.handle(judge, { t: 'dad.next' }, 0);
+    expect(s.judgeId).not.toBe(judge);
+    const v = room.viewFor(judge, 0).dad;
+    expect(v.hand).toHaveLength(dad.HAND_SIZE);
+    expect(v.hand.map((c) => c.id).sort()).toEqual([...before].sort());
+    // Players who played a card were topped back up; the new judge's view is empty.
+    expect(room.viewFor(s.judgeId!, 0).dad.hand).toEqual([]);
   });
 });

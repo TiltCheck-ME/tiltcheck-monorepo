@@ -2,7 +2,7 @@
 
 # 4. TiltCheck Tools Overview
 
-**Custody reference:** [../legal/custody-matrix.md](../legal/custody-matrix.md) — canonical per-flow custody truth for marketing and support.
+**Custody reference:** [Custody matrix](https://github.com/TiltCheck-ME/tiltcheck-monorepo/blob/main/docs/legal/custody-matrix.md) — canonical per-flow custody truth for marketing and support.
 
 TiltCheck is composed of eight primary user-facing tools and two global trust engines.  
 Each tool solves a specific frustration in the degen ecosystem: tipping, swapping, scam links, bonus cycles, free spins, survey screening, community games, and tilt management.

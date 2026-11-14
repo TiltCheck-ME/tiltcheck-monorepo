@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 # Deploy the standalone hub Worker with Wrangler (`apps/hub`).
 # Public hub.tiltcheck.me may route to user-dashboard or this Worker depending on
 # active production ingress (Railway custom domain, proxy, or optional Cloudflare Tunnel).
@@ -30,8 +30,6 @@ jobs:
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 10.29.1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // How the client talks to the room.
 // - RemoteTransport: WebSocket to the worker Durable Object, polling fallback over HTTP.
 // - LocalTransport: guest/dev mode. Runs the same Room logic in the browser with optional bots.
@@ -8,6 +8,9 @@ import { makeRng } from '../shared/rng.js';
 import type { ClientAction, RoomUser, RoomView, ServerMessage } from '../shared/protocol.js';
 import { ScoreBook, memoryBookStorage, type BoardView } from '../shared/scores.js';
 import type { ScoresResult } from './views/highScores.js';
+import { memorySoloService } from '../shared/solo.js';
+import { postMyth, refreshMythWeek, runDaily } from '../shared/soloHost.js';
+import { DAILY_ANSWERS, isValidGuess } from '../shared/dailyWords.js';
 
 export type LinkStatus = 'connecting' | 'live' | 'polling' | 'offline';
 
@@ -249,7 +252,7 @@ const BOT_LINES: ReadonlyArray<readonly [string, string, string]> = [
   ['I hate pizza.', 'I broke my wrist falling off a couch.', 'I can whistle with two fingers.'],
 ];
 
-const BOT_NAMES = ['Bot Chad', 'Bot Becky', 'Bot Tilted Tim', 'Bot Copium Carl', 'Bot Variance Val', 'Bot Max Bet Mo', 'Bot Snooze'];
+const BOT_NAMES = ['Bot Ana', 'Bot Ben', 'Bot Cal', 'Bot Dee', 'Bot Eli', 'Bot Fay', 'Bot Gus'];
 
 /** Guest/dev mode: the full room in the browser. Bots play so DA&D and trivia can be tested solo. */
 export class LocalTransport extends Emitter implements Transport {
@@ -260,6 +263,9 @@ export class LocalTransport extends Emitter implements Transport {
   /** Guest mode keeps a board in this tab so the high-score UI can be tried without Discord. */
   private readonly book = new ScoreBook(memoryBookStorage());
   private posting = false;
+  /** Solo games in guest mode: practice words, a practice deck, boards that live in this tab. */
+  private readonly solo = memorySoloService({ salt: 'guest-practice', answers: DAILY_ANSWERS, isValid: isValidGuess });
+  private soloBusy = false;
 
   constructor(
     private readonly me: RoomUser,
@@ -268,6 +274,8 @@ export class LocalTransport extends Emitter implements Transport {
     super();
     this.room = new Room(createRoomState(instanceId), makeRng());
     this.room.limiter.take = () => true;
+    // Guest boards are labelled as such in the UI; 'guest' is never a real server id.
+    this.room.state.guildId = 'guest';
     this.room.join(me, Date.now());
     this.timer = setInterval(() => {
       if (this.room.tick(Date.now())) this.push();
@@ -286,6 +294,18 @@ export class LocalTransport extends Emitter implements Transport {
     this.emitState(this.room.viewFor(this.me.id, Date.now()));
     this.scheduleBots();
     void this.postScores();
+    void this.postSolo();
+  }
+
+  private async postSolo(): Promise<void> {
+    if (this.soloBusy || !this.room.pendingMyth().length) return;
+    this.soloBusy = true;
+    try {
+      await postMyth(this.room, this.solo, 'guest', Date.now());
+    } finally {
+      this.soloBusy = false;
+    }
+    this.push();
   }
 
   /** Same rule as the server: only a game the room ran to the end, with the room's own scores. */
@@ -307,8 +327,17 @@ export class LocalTransport extends Emitter implements Transport {
   }
 
   send(action: ClientAction): void {
-    const r = this.room.handle(this.me.id, action, Date.now());
+    const now = Date.now();
+    if (action.t === 'daily.open' || action.t === 'daily.guess') {
+      void runDaily(this.room, this.solo, this.me, action, 'guest', now).then((r) => {
+        if (!r.ok) this.emitError(r.code, r.message);
+        this.push();
+      });
+      return;
+    }
+    const r = this.room.handle(this.me.id, action, now);
     if (!r.ok) this.emitError(r.code, r.message);
+    if (r.ok && action.t === 'look' && action.at === 'myth') void refreshMythWeek(this.room, this.solo, 'guest', now).then(() => this.push());
     this.push();
   }
 
@@ -355,6 +384,18 @@ export class LocalTransport extends Emitter implements Transport {
           acted = this.room.handle(bot.id, { t: 'bluff.tell', statements: [...lines] as [string, string, string], lie: Math.floor(Math.random() * 3) }, now).ok || acted;
         } else if (bv.phase === 'guessing' && bv.me.seated && !bv.me.isTeller && bv.me.guess === null && bv.rid && Math.random() < 0.7) {
           acted = this.room.handle(bot.id, { t: 'bluff.guess', rid: bv.rid, pick: Math.floor(Math.random() * 3) }, now).ok || acted;
+        }
+        // Chess: take an open side once a person has taken the other, then play a legal move (captures first).
+        const cv = this.room.viewFor(bot.id, now).chess;
+        if (cv.phase === 'seating' && !cv.me.color && !this.bots.some((b) => b.id === cv.white || b.id === cv.black)) {
+          if (cv.white && !cv.black) acted = this.room.handle(bot.id, { t: 'chess.claim', color: 'b' }, now).ok || acted;
+          else if (cv.black && !cv.white) acted = this.room.handle(bot.id, { t: 'chess.claim', color: 'w' }, now).ok || acted;
+        } else if (cv.phase === 'playing' && cv.me.color === cv.turn) {
+          const options = Object.entries(cv.me.legal).flatMap(([from, tos]) => tos.map((to) => ({ from: Number(from), to })));
+          const captures = options.filter((o) => cv.board[o.to]);
+          const pool = captures.length && Math.random() < 0.7 ? captures : options;
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          if (pick) acted = this.room.handle(bot.id, { t: 'chess.move', ply: cv.ply, from: pick.from, to: pick.to, promotion: 'q' }, now).ok || acted;
         }
         const tv = this.room.viewFor(bot.id, now).trivia;
         if (tv.phase === 'question' && tv.question && tv.me.playing && tv.me.answered === null && Math.random() < 0.6) {
