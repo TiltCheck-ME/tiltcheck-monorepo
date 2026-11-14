@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-13 — feat(activity): DA&D millennial mix (34 prompts, 80 answers) on top of the playtest fixes
+
+- Branch `touch-grass-dad-millennial` from `touch-grass-dad-fixes` (draft #729, 63a6f24d). Draft PR, base main.
+- Jamie: a mix of millennial cards, not only gambling ones. New `MILLENNIAL_PROMPTS` (34) and `MILLENNIAL_WHITE_CARDS` (80) in `src/shared/deck.ts`: 90s/2000s kid culture (Tamagotchi, Lisa Frank, Oregon Trail, Lunchables, Furby), early internet (MySpace Top 8, AIM away messages, dial-up, Limewire, Clippy), flip phones and T9, student loans, adulting. Spread into `PROMPTS` / `WHITE_CARDS`, so they shuffle into the one deck with the gambling cards (no separate mode). Deck is now 64 prompts and 181 answers. Card ids stay index-based; the new cards are appended, so existing ids do not move.
+- Party-safe: nothing hateful or sexual. New `tests/deck-millennial.test.ts`: batch size, cards present in the real deck, one blank per prompt, no duplicates (case-insensitive), no gambling words and a blunt unsafe-word list, length caps. The existing no-money guard covers the new cards too (one prompt reworded off "slot").
+- `tests/dad-playtest.test.ts` reshuffle test: it relied on a 15-point game drawing past the whole deck, which the bigger deck no longer does. It now moves all but 5 draw cards to the discard pile first and asserts a recycle actually happened (same rule checked: the card just played never comes back, hands stay at 7, no card in two places).
+- Checked: typecheck (app, worker, tests), 239 vitest tests (was 234), `simulate:dad`.
+- Not tested: how the new cards play at a real table (whether the mix lands, card text wrapping on phones).
+
 ## 2026-11-13 — fix(activity): DA&D playtest fixes (score past the target, hands that never change)
 
 - Branch `touch-grass-dad-fixes` from `touch-grass-solo` (draft #727, 61c84c10). Draft PR only; nothing merged or deployed.

@@ -116,18 +116,25 @@ describe('DA&D playtest: hands change every round', () => {
   it('reshuffles the discard pile when the deck runs low, without handing back the card just played', () => {
     const room = room4(15, 4);
     const s = room.state.dad;
+    // The deck is big (the millennial mix took it past what a 15-point game draws), so run the draw pile low on
+    // purpose: everything but 5 cards goes to the discard pile. No card leaves the game, so the duplicate check holds.
+    s.discardPile.push(...s.drawPile.splice(5));
+    let recycled = 0;
     for (let r = 0; r < 80 && s.phase !== 'over'; r += 1) {
       allSubmit(s, makeRng(r));
       const played = new Map(Object.entries(s.submissions).map(([id, c]) => [id, c.id]));
+      const drawBefore = s.drawPile.length;
       room.handle(s.judgeId!, { t: 'dad.pick', entryId: s.entries[0]!.entryId }, tick());
+      if (s.drawPile.length > drawBefore) recycled += 1;
       if ((s.phase as string) === 'over') break;
       for (const [id, cardId] of played) expect(s.hands[id]!.map((c) => c.id)).not.toContain(cardId);
       for (const id of s.seats) expect(s.hands[id]!.length).toBe(dad.HAND_SIZE);
       expectNoDuplicates(s);
       room.handle('a', { t: 'dad.next' }, tick());
     }
-    // 80 rounds x 3 cards is far more than the deck: the discard pile must have been recycled.
-    expect(s.round).toBeGreaterThan(Math.ceil(whiteCards().length / 3));
+    // The discard pile was recycled into the draw pile at least once, and every hand stayed full and unique.
+    expect(recycled).toBeGreaterThan(0);
+    expect(s.round).toBeGreaterThan(2);
   });
 
 
