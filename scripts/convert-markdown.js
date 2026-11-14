@@ -20,6 +20,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { getGatePageBody } from './build-gate-page.mjs';
 import {
+  CASINO_ASK,
   SITE_URL,
   API_URL,
   DISCORD_URL,
@@ -773,6 +774,95 @@ function buildAuditedShowcase(auditedCasinos) {
     '</section>';
 }
 
+function buildCasinoAsk() {
+  const a = CASINO_ASK;
+  return `<section class="public-page-section casino-ask" id="ask" aria-labelledby="casino-ask-title">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">${escapeHtml(a.eyebrow)}</span>
+        <h2 class="public-page-section-heading__title" id="casino-ask-title">${escapeHtml(a.title)}</h2>
+      </div>
+      <p class="casino-ask__lede">${escapeHtml(a.lede)}</p>
+      <form class="casino-ask__form" id="casino-ask-form" data-endpoint="${escapeHtml(a.endpoint)}" novalidate>
+        <label class="sr-only" for="casino-ask-q">Your question</label>
+        <input class="casino-ask__input" id="casino-ask-q" name="question" type="text" maxlength="300" required autocomplete="off" enterkeyhint="send" placeholder="${escapeHtml(a.placeholder)}"/>
+        <button class="btn btn-primary casino-ask__btn" id="casino-ask-btn" type="submit">${escapeHtml(a.button)}</button>
+      </form>
+      <p class="casino-ask__covered">${escapeHtml(a.covered)}</p>
+      <div class="casino-ask__result" id="casino-ask-result" aria-live="polite" hidden></div>
+    </div>
+  </section>`;
+}
+
+const CASINO_ASK_SCRIPT = `<script>
+(function () {
+  var form = document.getElementById('casino-ask-form');
+  if (!form) return;
+  var input = document.getElementById('casino-ask-q');
+  var btn = document.getElementById('casino-ask-btn');
+  var out = document.getElementById('casino-ask-result');
+  var endpoint = form.getAttribute('data-endpoint');
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text) n.textContent = text;
+    return n;
+  }
+  function safeUrl(u) {
+    try { var x = new URL(u); return x.protocol === 'https:' ? x.href : ''; } catch (e) { return ''; }
+  }
+  function links(title, list) {
+    if (!list || !list.length) return null;
+    var wrap = el('div', 'casino-ask__sources');
+    wrap.appendChild(el('p', 'casino-ask__sources-title', title));
+    var ul = el('ul', 'casino-ask__links');
+    list.slice(0, 6).forEach(function (s) {
+      var href = safeUrl(s.url);
+      if (!href) return;
+      var li = el('li');
+      var a = el('a', 'casino-ask__link', s.title || href);
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+    return wrap;
+  }
+  function show(data) {
+    out.textContent = '';
+    out.hidden = false;
+    out.setAttribute('data-status', data.status || 'error');
+    out.appendChild(el('p', 'casino-ask__answer', data.answer || "I don't know."));
+    if (data.nearest) out.appendChild(el('p', 'casino-ask__nearest', 'Closest thing on record: ' + data.nearest));
+    var src = links(data.sources && data.sources.length > 1 ? 'Sources' : 'Source', data.sources);
+    if (src) out.appendChild(src);
+    else {
+      var chk = links('Checked', data.checked);
+      if (chk) out.appendChild(chk);
+    }
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = (input.value || '').trim();
+    if (q.length < 3) { input.focus(); return; }
+    btn.disabled = true;
+    btn.textContent = 'Checking';
+    out.hidden = false;
+    out.textContent = 'Reading the fine print.';
+    fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) })
+      .then(function (r) { return r.json().catch(function () { return { status: 'error' }; }); })
+      .then(function (data) {
+        if (!data || !data.answer) data = { status: 'error', answer: 'Ask is offline right now. Try again later.' };
+        show(data);
+      })
+      .catch(function () { show({ status: 'error', answer: 'Ask is offline right now. Try again later.' }); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Ask'; });
+  });
+})();
+<\/script>`;
+
 function buildCasinosPage(casinos) {
   const auditedCasinos = casinos.filter((c) => Boolean(c.audited));
   const categories = [...new Set(auditedCasinos.map((c) => c.category))].sort();
@@ -901,6 +991,7 @@ function buildCasinosPage(casinos) {
     actionsHtml: '<a class="btn btn-primary" href="' + href('docs', 'index.html') + '">Back home</a>',
   })}
 <main class="product-main">
+  ${buildCasinoAsk()}
   ${buildAuditedShowcase(auditedCasinos)}
   <section class="public-page-section">
     <div class="landing-shell">
@@ -926,7 +1017,8 @@ function buildCasinosPage(casinos) {
     </div>
   </section>
 </main>
-${script}`;
+${script}
+${CASINO_ASK_SCRIPT}`;
 
   return shell({
     title: 'TrustCheck — Casino Directory & Payout Audits | TiltCheck',
