@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="../styles/base.css"/>
 <script>
 (function () {
+  document.documentElement.classList.add('js');
   try {
     var exp = Number(localStorage.getItem('tc_token_exp') || 0);
     if (exp && exp < Date.now()) {
@@ -33,13 +34,14 @@
 </head>
 <body>
 <nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="../index.html"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>TiltCheck<span class="site-nav__beta">Beta</span></a>
-  <div class="site-nav__links">
-    <a href="../gate/" style="color:#17c3b2; font-weight:700;">TimeCheck</a>
-    <a href="../extension.html">Extension</a>
+  <a class="site-nav__brand" href="../index.html"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)"/><path d="m9 12 2 2 4-4"/></svg>TiltCheck<span class="site-nav__beta">Beta</span></a>
+  <button type="button" class="site-nav__toggle" aria-expanded="false" aria-controls="site-nav-menu" data-tc-menu-toggle><span class="site-nav__toggle-bars" aria-hidden="true"></span><span class="site-nav__toggle-label">Menu</span></button>
+  <div class="site-nav__links" id="site-nav-menu">
     <a href="../tools/">Tools</a>
-    <a href="../casinos/" aria-current="page">TrustCheck</a>
-    <a href="../cooldown/">RealityCheck</a>
+    <a href="../casinos/" aria-current="page">Casinos</a>
+    <a href="../extension.html">Extension</a>
+    <a class="site-nav__extra" href="../gate/">TimeCheck</a>
+    <a class="site-nav__extra" href="../cooldown/">RealityCheck</a>
     <a class="site-nav__discord" data-tc-nav-auth data-account-href="../dashboard/" href="../login/" aria-label="Sign in with Discord" title="Sign in with Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><span>Sign in</span></a>
   </div>
 </nav>
@@ -71,12 +73,22 @@
   <section class="public-page-section audited-showcase-section">
   <div class="landing-shell">
     <div class="public-page-section-heading">
-      <span class="brand-eyebrow">Audited deep dives</span>
-      <h2 class="public-page-section-heading__title">Audited Operator Receipts — Stake, Roobet & BC.Game: The Receipts.</h2>
-      <p class="public-page-section-heading__sub">Deterministic 5-pillar trust scoring, provably fair verification, certified slot RTP profiles, and documented friction across 30 audited operators.</p>
+      <span class="brand-eyebrow">The directory</span>
+      <h2 class="public-page-section-heading__title">Every operator, graded.</h2>
     </div>
+      <div class="casino-toolbar">
+        <label class="casino-search">
+          <span class="sr-only">Search casinos</span>
+          <input id="casino-search" type="search" placeholder="Search operator name, license, RTP, or provider…" autocomplete="off"/>
+        </label>
+        <div class="filter-row" role="group" aria-label="Category filters"><button type="button" class="filter-chip is-active" data-filter="All">All</button>
+<button type="button" class="filter-chip" data-filter="Crypto">Crypto</button>
+<button type="button" class="filter-chip" data-filter="Regulated">Regulated</button>
+<button type="button" class="filter-chip" data-filter="Sweeps">Sweeps</button></div>
+        <p class="casino-count" id="casino-count">30 audited operators</p>
+      </div>
     <div class="audited-grid">
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="chumba casino" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="chumba casino sweeps b medium vgw holdings — sweepstakes model (us/canada) in-house 95.50%–97.00% rtp · slots 94.00%–96.50% variable operating under us sweepstakes law with alternative method of entry (amoe) offering 5 sc per postal envelope. redemption minimums: 100 sc for eft bank transfer; 10 sc for electronic gift cards. eft redemption speed: 24–72 hours approval, followed by 1–3 business days bank clearing. dual-currency model (gold coins vs sweeps coins) can cause accidental spend of promotional currency. restricted states: idaho, michigan, montana, nevada, and washington.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Chumba Casino</h3>
@@ -131,7 +143,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="global poker" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="global poker sweeps b+ medium sweepstakes model (us/canada). vgw games limited peer-to-peer tables 97.00%–99.00% effective rtp · rake 5% max cap licensed sweepstakes poker platform operated by vgw group under us sweepstakes regulations. amoe compliance: free postal requests provide 5 sweeps coins per compliant mail-in envelope. direct bank wire redemptions process within 24–48 hours to verified bank accounts. certified peer-to-peer card dealing rng audited and certified by itech labs. restricted states: idaho, michigan, montana, nevada, and washington.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Global Poker</h3>
@@ -186,7 +198,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="luckyland slots" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="luckyland slots sweeps b medium sweepstakes model (us/canada). vgw holdings limited in-house slots 95.50%–96.50% rtp · casuals 97.00% rtp operated by vgw holdings (parent company of chumba casino and global poker). amoe postal compliance: 5 free sweeps coins per handwritten mail-in request card. redemption options: digital gift cards starting at 50 sc (24h) and eft bank transfers starting at 50 sc (48–72h). independent rng certified by gaming associates ensuring fair and unpredictable outcomes. restricted jurisdictions: washington, idaho, michigan, nevada, and montana.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">LuckyLand Slots</h3>
@@ -241,7 +253,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="pulsz" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="pulsz sweeps b+ medium sweepstakes model (us/canada). yellow social interactive limited (gibraltar) table games 99.50% rtp · slots 94.50%–96.50% variable amoe mail-in compliance: 5 sweepstakes coins granted per compliant handwritten postcard. redemption threshold: 100 sc for online bank wire; 10 sc for digital gift cards. fast prize distribution: trustly online banking typically clears within 24–48 hours. bmm testlabs certification confirms independent rng fairness and outcome unpredictability. restricted in idaho, michigan, nevada, washington, and montana.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Pulsz</h3>
@@ -296,7 +308,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="wow vegas" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="wow vegas sweeps b+ medium sweepstakes model (us/canada). mw services limited tables 99.50% rtp · slots 94.50%–96.80% certified us sweepstakes compliance: mail-in amoe offers 3 sweepstakes coins per postal submission. redemption turnaround: skrill and trustly online banking settle within 24–48 hours. minimum cash prize redemption is 100 sc; gift card redemptions start at 25 sc. rng audited by gaming labs international (gli) and bmm testlabs. excludes players from idaho, michigan, nevada, washington, and connecticut.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">WOW Vegas</h3>
@@ -351,7 +363,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="high 5 casino" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="high 5 casino sweeps b+ medium sweepstakes model (us/canada). high 5 entertainment llc / high 5 games proprietary slots 95.50%–97.00% rtp · tables 99.50% rtp operated by established land-based slot developer high 5 games (30-year gaming history). amoe postal request provides 3 sweeps coins per compliant mail-in card. payout rails: paypal, trustly ach, and digital gift cards process in 24–48 hours. egr top social casino operator award winner with verified gli rng certifications. restricted states: idaho, michigan, nevada, and washington.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">High 5 Casino</h3>
@@ -406,7 +418,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="stake.us" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="stake.us sweeps b medium sweepstakes model (us/canada). sweepsteaks limited (cyprus) / medium rare n.v. originals 99.00% rtp · slots 94.50%–96.50% variable restricted in 7 us states: idaho, kentucky, michigan, nevada, new york, vermont, washington. redemption speed: crypto redemptions (btc, eth, ltc, usdt, doge) typically 10–60 minutes after identity verification. provably fair seed hygiene: server seed hash published prior to play; client seed customizable at any time. us sweepstakes amoe compliance: mail-in postcard request code provides 5 stake cash. dual-currency model creates high accidental burn: users often wager sc thinking it is gc. tiltcheck extension provides native autovault button to skim wins directly into vault balance.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Stake.us</h3>
@@ -462,7 +474,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="mcluck" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="mcluck sweeps b medium sweepstakes model (us/canada). b2services oü (estonia, registry code 16579410) live tables 99.50% rtp · slots 94.50%–96.50% variable compliant us sweepstakes model with alternative method of entry (amoe) offering 4 sc per handwritten request. redemption minimums: 75 sc for online bank transfer (eft); 10 sc for electronic gift cards. redemption processing speed: 24–72 hours following initial kyc identity approval. restricted states: alabama, delaware, georgia, idaho, kentucky, michigan, montana, nevada, washington. dual-currency separation maintains distinction between recreational gold coins and redeemable sweeps coins.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">McLuck</h3>
@@ -517,7 +529,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="fortune coins" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="fortune coins sweeps b medium sweepstakes model (us/canada). social gaming llc (delaware entity) originals 97.00% rtp · slots 94.20%–96.00% certified delaware registered corporate entity operating compliant sweepstakes promotional contests. amoe compliance: free mail-in request grants 500 fortune coins ($5.00 redeemable value). redemption threshold: minimum 5,000 fc ($50.00 usd) via trustly online banking or skrill. redemption turnaround: bank transfers typically approve and clear within 24–72 hours. restricted in washington, idaho, and michigan per published terms and conditions.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Fortune Coins</h3>
@@ -572,7 +584,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="hello millions" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="hello millions sweeps b medium sweepstakes model (us/canada). b2services oü (estonia, registry code 16579410) table games 99.50% rtp · slots 94.50%–96.50% certified compliant us sweepstakes framework with no purchase necessary amoe offering 4 sc per mail-in envelope. prize redemption processing: 24–72 business hours via eft bank deposit or digital gift vouchers. minimum cash prize redemption threshold set at 75 sc; gift cards available at 10 sc. independent rng testing provided by accredited testing laboratories gli and bmm. excluded us jurisdictions: id, mi, mt, nv, wa, al, ga, and de.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Hello Millions</h3>
@@ -627,7 +639,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="modo casino" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="modo casino sweeps b medium sweepstakes model (us/canada). arb gaming llc (delaware, entity file #7438992) table games 99.50% rtp · slots 94.50%–96.50% variable us incorporated operator (arb gaming llc) operating under legal sweepstakes regulations. free entry method (amoe): mail-in request code provides 3 free sweeps coins. redemption speeds: ach online banking transfers process within 24–48 hours; debit card cashouts supported. redemption thresholds: 100 sc minimum for bank transfer, 20 sc minimum for gift cards. state exclusions: idaho, michigan, nevada, washington per official sweepstakes rules.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Modo Casino</h3>
@@ -682,7 +694,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="funrize" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="funrize sweeps b+ medium sweepstakes model (us/canada). a1 development llc (delaware entity) netgame slots 95.50%–96.50% rtp · gli certified delaware incorporated sweepstakes operator running certified promotional gaming. amoe mail-in program offers 100 free entries ($1.00) per handwritten request card. redemption floor: low 25.00 usd minimum for gift cards; 100.00 usd for bank transfers. eft payouts typically clear in 24–48 business hours via trustly banking rails. restricted in idaho, michigan, nevada, washington, and wyoming.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Funrize</h3>
@@ -737,7 +749,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="zula casino" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="zula casino sweeps b medium sweepstakes model (us/canada). scps llc (delaware entity) / blazesoft certified slots 95.00%–96.80% rtp · casuals 97.00% operated by blazesoft affiliate scps llc with legal us sweepstakes structure. amoe mail-in program provides 5 sweeps coins per compliant written request. redemption threshold: minimum 50 sc ($50 usd) for bank deposits and gift cards. bank transfer turnaround: settle within 24–72 hours following initial kyc approval. excluded states: washington, idaho, michigan, and georgia per terms.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Zula Casino</h3>
@@ -792,7 +804,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="crown coins casino" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="crown coins casino sweeps b+ medium sweepstakes model (us/canada). sunflower limited (manchester, uk / us operations) in-house casuals 97.00% rtp · slots 94.50%–96.50% certified compliant sweepstakes gaming platform with free daily login rewards and mail-in amoe submissions. fast prize redemptions: skrill and instant ach options process within 24–48 hours. accessible redemption floor: minimum 50 sc ($50 usd) for cash redemptions. rng and payout mechanics verified by bmm testlabs. excluded territories: idaho, michigan, nevada, washington.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Crown Coins Casino</h3>
@@ -847,7 +859,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="real prize" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="real prize sweeps b medium sweepstakes model (us/canada). realplay tech inc. multi-studio slots 95.00%–96.50% rtp · casuals 97.00% operated by realplay tech inc following standard us sweepstakes compliance. amoe postal entry grants 3 sweeps coins per compliant handwritten index card. redemption speeds: 24–72 hours via ach direct bank transfer. games supplied by pragmatic play and relax gaming running certified provider math. restricted in idaho, michigan, nevada, and washington.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Real Prize</h3>
@@ -902,7 +914,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="jackpota" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="jackpota sweeps b medium sweepstakes model (us/canada). b2services oü (estonia, registry code 16579410) provider slots 95.00%–96.80% rtp · tables 99.50% operated by b2services oü (sister brand to mcluck and hello millions). amoe mail-in program offers 4 free sweeps coins per handwritten request. redemption minimums: 75 sc for eft bank deposit; 10 sc for electronic gift cards. turnaround speed: 24 hours for digital gift cards; 48–72 hours for bank eft. excluded states: id, mi, mt, nv, wa, al, ga, and de.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Jackpota</h3>
@@ -957,7 +969,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="nolimitcoins" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="nolimitcoins sweeps b medium sweepstakes model (us/canada). a1 development llc (delaware entity) certified slots 95.00%–96.50% rtp · casuals 95.50% operating under us sweepstakes regulations managed by a1 development llc. amoe mail-in requests award 100 super coins ($1.00 usd) without purchase. low redemption floor: minimum 25 usd for digital gift cards; 100 usd for bank transfers. payout clearance: electronic bank transfers process within 24–72 hours. restricted states: idaho, michigan, nevada, washington, and wyoming.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">NoLimitCoins</h3>
@@ -1012,7 +1024,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="funzpoints" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="funzpoints sweeps b medium sweepstakes model (us/canada). woopla inc. (canada / us operations) proprietary slots 95.50%–96.50% rtp · certified rng operated by woopla inc under long-standing us promotional sweepstakes compliance. industry-low redemption minimum of 2,000 premium funzpoints ($20.00 usd). amoe compliance: mail-in requests award 500 premium funzpoints ($5.00) with no purchase required. direct bank transfer redemptions typically process in 24–48 business hours. restricted states: idaho per published official rules.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Funzpoints</h3>
@@ -1067,7 +1079,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="roobet" data-category="Crypto" data-grade="B" data-audited="true" data-keywords="roobet crypto b medium curaçao egaming (raw entertainment b.v. / tekhou5 b.v., license 8048/jaz) originals 97.00%–99.00% rtp · slots 91.20%–96.50% variable blocked in us, uk, australia, germany, netherlands, spain; aggressive vpn detection can result in account lock. significant slot rtp tier downgrade on major providers (play&#39;n go, pragmatic) compared to default manufacturer maximums. fast crypto withdrawals (btc, eth, ltc, usdt, usdc), but high-tier sums trigger intrusive tier-2 kyc checks. snoop dogg and influencer brand ambassadors drove massive retail adoption. tiltcheck extension provides spin brake and game filters to stop rapid-fire slot spin cycles.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Roobet</h3>
@@ -1122,7 +1134,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="stake.com" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="stake.com crypto b+ medium curaçao egaming (medium rare n.v., master license 8048/jaz) originals 99.00% rtp · slots 94.50%–96.50% variable strictly blocked in us, uk, australia, france, germany, netherlands, and multiple tier-1 regulated jurisdictions. no independent third-party certification (e.g. ecogra or gli) published for proprietary originals. aggressive streamer/influencer sponsorship campaigns historically targeting young and degen audiences. crypto withdrawal processing is high-speed (automated on-chain release) when account is not flagged for manual kyc. tiltcheck extension autovault directly interacts with stake graphql endpoint to secure profit instantly.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Stake.com</h3>
@@ -1177,7 +1189,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="rollbit" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="rollbit crypto b+ medium curaçao egaming (bull gaming n.v., license 8048/jaz) originals 97.00%–99.00% rtp · slots 96.00% standard tier instant crypto withdrawals across btc, eth, sol, and ltc networks with automated processing. custom casino, crypto futures trading, and nft liquidity hybrid; high roller liquidity with proven solvency. vip rank-up rewards: turnover directly advances vip tier rank providing instant rakeback and rank-up chests. curaçao egaming license; token (rlb) mechanics introduce financial exposure outside traditional casino play. tiltcheck extension adds a vault button and the 2-second spin pause.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Rollbit</h3>
@@ -1232,7 +1244,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="gamdom" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="gamdom crypto b+ medium curaçao egaming (smein hosting n.v., master license 365/jaz) originals 99.00% rtp · slots 96.50% standard tier immediate crypto withdrawals processed through automated payment hot wallets across major chains. established track record operating since 2016 without documented insolvency or non-payment scandals. royalty club vip levels: xp earned based on wager amount and house edge; tiers grant daily surprise and instant rakeback. restricted in us, uk, and tier-1 jurisdictions; requires kyc level verification upon suspicious activity flag. tiltcheck extension provides spin brake and bet acceleration warnings during downswings.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Gamdom</h3>
@@ -1287,7 +1299,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="bc.game" data-category="Crypto" data-grade="C-" data-audited="true" data-keywords="bc.game crypto c- medium-high curaçao egaming (blockdance b.v., cil master license #5536/jaz; sub-license disputes) / kahnawake originals 99.00% rtp · slots 92.00%–96.50% variable predatory reward unlocking: advertised 300%+ deposit matches are delivered in locked bcd that releases at only 0.2% per wager. community withdrawal disputes: frequent reports of delayed cashouts, extended verification loops, and customer support friction. historical licensing and corporate restructuring confusion between curaçao and other offshore shell entities. supports 50+ cryptocurrencies, but high minimum withdrawal thresholds on smaller altcoins. tiltcheck extension injects spin brake and chase warning alerts when bet sizing accelerates.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">BC.Game</h3>
@@ -1342,7 +1354,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="shuffle" data-category="Crypto" data-grade="A-" data-audited="true" data-keywords="shuffle crypto a- low curaçao egaming (natural nine b.v., license 8048/jaz2023-017) originals 99.00% rtp · slots 96.50% default maximum instant automated crypto withdrawals across btc, eth, sol, ltc, and usdt with sub-1-hour typical confirmation. provably fair seed transparency: server seed hash published prior to wager; client seed customizable anytime. vip progression: transparent volume contribution on all casino bets toward bronze through diamond vip ranks. zero reported non-payment disputes; active and responsive leadership presence in crypto community. tiltcheck extension adds a vault button and the 2-second spin pause to slow rapid-fire spins.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Shuffle</h3>
@@ -1397,7 +1409,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="duelbits" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="duelbits crypto b+ medium curaçao egaming (liquid gaming n.v., master license 365/jaz) originals 99.00% rtp · slots 96.00%–96.50% standard tier automated instant crypto withdrawals across btc, eth, ltc, sol, and doge networks. provably fair verification tool allows manual reproduction of rolls from server and client seeds. ace&#39;s vip lounge provides transparent rakeback tiers (up to 50% house edge rebate). restricted in us, uk, australia, and regulated european markets; enforces kyc on high-tier withdrawals. tiltcheck extension provides spin brake and game filtering to stop compulsive click cycles.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Duelbits</h3>
@@ -1452,7 +1464,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="draftkings casino" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="draftkings casino regulated a low nj dge / pa pgcb / mi mgcb / wv lcb / ct dcp state gaming commissions in-house 97.00%–99.50% rtp · certified slots 94.00%–96.50% variable authorized and regulated by nj division of gaming enforcement, pa gaming control board, and mi gaming control board. rng testing and math models certified by gaming laboratories international (gli-19). payout speed: ach and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly. strict 21+ identity and geolocation verification required per state gaming regulations. responsible gaming integration includes mandatory 1-800-gambler helpline and state self-exclusion registry links.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">DraftKings Casino</h3>
@@ -1507,7 +1519,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="fanduel casino" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="fanduel casino regulated a low nj dge / pa pgcb / mi mgcb / wv lcb state gaming enforcement in-house 99.50% rtp · certified slots 94.00%–96.80% manufacturer tiers operating under active state casino licenses in new jersey, pennsylvania, michigan, and west virginia. all games certified fair by accredited independent testing labs under state regulatory oversight. automated banking rails via vip preferred ach, paypal, and retail partner casino cage pick-up within 1–24 hours. real-time state geolocation boundary enforcement blocks unapproved multi-state play. mandatory state self-exclusion and player cool-off limits integrated into account settings.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">FanDuel Casino</h3>
@@ -1562,7 +1574,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="betmgm" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="betmgm regulated a low nj dge / pa pgcb / mi mgcb / wv lcb — mgm resorts international &amp; entain plc exclusive tables 99.50% rtp · slots 94.10%–96.20% certified profiles fully licensed and regulated by nj dge, pa pgcb, mi mgcb, and wv lottery commission. instant physical cage redemption available at borgata hotel casino (atlantic city) and mgm grand properties. electronic ach bank transfers clear in 24–48 hours following standard security approval. integrated with the american gaming association recognized gamesense responsible gaming program. mandatory 21+ geolocation fencing with hardware-level boundary verification.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">BetMGM</h3>
@@ -1617,7 +1629,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="caesars casino" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="caesars casino regulated a low nj dge / pa pgcb / mi mgcb / wv lcb — caesars entertainment inc. classic tables 99.50% rtp · slots 94.00%–96.50% variable licensed by tier-1 us state gaming authorities with rigorous financial and aml audits. instant cash pickup at caesars, harrah&#39;s, and tropicana physical casino cages. vip preferred ach and online banking payments processed within 24–48 business hours. comprehensive rg limiters: daily deposit, spending, and time limits with enforceable cool-off intervals. audited rtp payouts compliant with state gaming control board publication standards.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">Caesars Casino</h3>
@@ -1672,7 +1684,7 @@
     </div>
   </div>
 </article>
-<article class="audit-card">
+<article class="audit-card" data-casino-card data-name="betrivers" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="betrivers regulated a low nj dge / pa pgcb / mi mgcb / wv lcb / il igb — rush street interactive single-deck tables 99.50% rtp · slots standard 95.00%–96.50% regulated by premier state gaming commissions with public monthly revenue and tax reporting. rushpay automated withdrawal processing approves over 80% of cashout requests instantly. clean 1x playthrough on all promotional offers with no hidden rollover multiplier locks. independent rng validation conducted by gli and bmm testlabs across all interactive titles. active integration with state problem gambling councils and self-exclusion directories.">
   <div class="audit-card__header">
     <div class="audit-card__title-row">
       <h3 class="audit-card__name">BetRivers</h3>
@@ -1732,1281 +1744,6 @@
 </section>
   <section class="public-page-section">
     <div class="landing-shell">
-      <div class="casino-toolbar">
-        <label class="casino-search">
-          <span class="sr-only">Search casinos</span>
-          <input id="casino-search" type="search" placeholder="Search operator name, license, RTP, or provider…" autocomplete="off"/>
-        </label>
-        <div class="filter-row" role="group" aria-label="Category filters"><button type="button" class="filter-chip is-active" data-filter="All">All</button>
-<button type="button" class="filter-chip" data-filter="Crypto">Crypto</button>
-<button type="button" class="filter-chip" data-filter="Regulated">Regulated</button>
-<button type="button" class="filter-chip" data-filter="Sweeps">Sweeps</button></div>
-        <p class="casino-count" id="casino-count">30 audited operators</p>
-      </div>
-      <div class="casino-grid"><article class="casino-card casino-card--audited" data-name="chumba casino" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="chumba casino sweeps b medium vgw holdings — sweepstakes model (us/canada) in-house 95.50%–97.00% rtp · slots 94.00%–96.50% variable operating under us sweepstakes law with alternative method of entry (amoe) offering 5 sc per postal envelope. redemption minimums: 100 sc for eft bank transfer; 10 sc for electronic gift cards. eft redemption speed: 24–72 hours approval, followed by 1–3 business days bank clearing. dual-currency model (gold coins vs sweeps coins) can cause accidental spend of promotional currency. restricted states: idaho, michigan, montana, nevada, and washington.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Chumba Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">In-House 95.50%–97.00% RTP · Slots 94.00%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">VGW Holdings — Sweepstakes model (US/Canada)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">VGW In-House Classic Tables &amp; Fireshot slots: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play and Relax Gaming slot titles running on provider math; no live in-game RTP badge.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session timer and spend brake notifications</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operating under US sweepstakes law with alternative method of entry (AMOE) offering 5 SC per postal envelope.</li><li>Redemption minimums: 100 SC for EFT bank transfer; 10 SC for electronic gift cards.</li><li>EFT redemption speed: 24–72 hours approval, followed by 1–3 business days bank clearing.</li><li>Dual-currency model (Gold Coins vs Sweeps Coins) can cause accidental spend of promotional currency.</li><li>Restricted states: Idaho, Michigan, Montana, Nevada, and Washington.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="global poker" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="global poker sweeps b+ medium sweepstakes model (us/canada). vgw games limited peer-to-peer tables 97.00%–99.00% effective rtp · rake 5% max cap licensed sweepstakes poker platform operated by vgw group under us sweepstakes regulations. amoe compliance: free postal requests provide 5 sweeps coins per compliant mail-in envelope. direct bank wire redemptions process within 24–48 hours to verified bank accounts. certified peer-to-peer card dealing rng audited and certified by itech labs. restricted states: idaho, michigan, montana, nevada, and washington.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">80/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Global Poker</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Peer-to-Peer Tables 97.00%–99.00% effective RTP · Rake 5% max cap</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). VGW Games Limited</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Global Poker In-House Tables: 97.00% to 99.00% effective RTP. iTech Labs certified dealing RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Classic social poker and jackpot sit-and-go tournaments with peer-to-peer liquidity.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck table time limiter and session spend alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweeps Coins before prize redemption</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Licensed sweepstakes poker platform operated by VGW Group under US sweepstakes regulations.</li><li>AMOE compliance: Free postal requests provide 5 Sweeps Coins per compliant mail-in envelope.</li><li>Direct bank wire redemptions process within 24–48 hours to verified bank accounts.</li><li>Certified peer-to-peer card dealing RNG audited and certified by iTech Labs.</li><li>Restricted states: Idaho, Michigan, Montana, Nevada, and Washington.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="luckyland slots" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="luckyland slots sweeps b medium sweepstakes model (us/canada). vgw holdings limited in-house slots 95.50%–96.50% rtp · casuals 97.00% rtp operated by vgw holdings (parent company of chumba casino and global poker). amoe postal compliance: 5 free sweeps coins per handwritten mail-in request card. redemption options: digital gift cards starting at 50 sc (24h) and eft bank transfers starting at 50 sc (48–72h). independent rng certified by gaming associates ensuring fair and unpredictable outcomes. restricted jurisdictions: washington, idaho, michigan, nevada, and montana.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">LuckyLand Slots</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">In-House Slots 95.50%–96.50% RTP · Casuals 97.00% RTP</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). VGW Holdings Limited</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">VGW In-House Slots &amp; Casuals: 95.50% to 97.00% RTP. Certified RNG by Gaming Associates.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Proprietary instant-win games and social slots running certified mathematical models.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session timer and spend limit alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweeps Coins (SC) before redemption eligibility</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operated by VGW Holdings (parent company of Chumba Casino and Global Poker).</li><li>AMOE postal compliance: 5 free Sweeps Coins per handwritten mail-in request card.</li><li>Redemption options: Digital gift cards starting at 50 SC (24h) and EFT bank transfers starting at 50 SC (48–72h).</li><li>Independent RNG certified by Gaming Associates ensuring fair and unpredictable outcomes.</li><li>Restricted jurisdictions: Washington, Idaho, Michigan, Nevada, and Montana.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="pulsz" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="pulsz sweeps b+ medium sweepstakes model (us/canada). yellow social interactive limited (gibraltar) table games 99.50% rtp · slots 94.50%–96.50% variable amoe mail-in compliance: 5 sweepstakes coins granted per compliant handwritten postcard. redemption threshold: 100 sc for online bank wire; 10 sc for digital gift cards. fast prize distribution: trustly online banking typically clears within 24–48 hours. bmm testlabs certification confirms independent rng fairness and outcome unpredictability. restricted in idaho, michigan, nevada, washington, and montana.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">80/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Pulsz</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Table Games 99.50% RTP · Slots 94.50%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). Yellow Social Interactive Limited (Gibraltar)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Pulsz in-house tables: 99.50% Blackjack RTP. Certified RNG by BMM Testlabs.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, NetEnt, and Booming Games slots deployed on certified default tiers.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck auto-vault and session timer</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough on Sweepstakes Coins (SC) prior to redemption</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>AMOE mail-in compliance: 5 Sweepstakes Coins granted per compliant handwritten postcard.</li><li>Redemption threshold: 100 SC for online bank wire; 10 SC for digital gift cards.</li><li>Fast prize distribution: Trustly online banking typically clears within 24–48 hours.</li><li>BMM Testlabs certification confirms independent RNG fairness and outcome unpredictability.</li><li>Restricted in Idaho, Michigan, Nevada, Washington, and Montana.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="wow vegas" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="wow vegas sweeps b+ medium sweepstakes model (us/canada). mw services limited tables 99.50% rtp · slots 94.50%–96.80% certified us sweepstakes compliance: mail-in amoe offers 3 sweepstakes coins per postal submission. redemption turnaround: skrill and trustly online banking settle within 24–48 hours. minimum cash prize redemption is 100 sc; gift card redemptions start at 25 sc. rng audited by gaming labs international (gli) and bmm testlabs. excludes players from idaho, michigan, nevada, washington, and connecticut.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">80/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">WOW Vegas</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Tables 99.50% RTP · Slots 94.50%–96.80% certified</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). MW Services Limited</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Single-Deck and Multi-Hand Blackjack: 99.50% RTP. GLI certified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Over 800+ slots from Pragmatic Play, Betsoft, and BGaming running certified manufacturer RTP profiles.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session timer and spend brake controls</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on promotional Sweepstakes Coins</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>US sweepstakes compliance: Mail-in AMOE offers 3 Sweepstakes Coins per postal submission.</li><li>Redemption turnaround: Skrill and Trustly online banking settle within 24–48 hours.</li><li>Minimum cash prize redemption is 100 SC; gift card redemptions start at 25 SC.</li><li>RNG audited by Gaming Labs International (GLI) and BMM Testlabs.</li><li>Excludes players from Idaho, Michigan, Nevada, Washington, and Connecticut.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="high 5 casino" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="high 5 casino sweeps b+ medium sweepstakes model (us/canada). high 5 entertainment llc / high 5 games proprietary slots 95.50%–97.00% rtp · tables 99.50% rtp operated by established land-based slot developer high 5 games (30-year gaming history). amoe postal request provides 3 sweeps coins per compliant mail-in card. payout rails: paypal, trustly ach, and digital gift cards process in 24–48 hours. egr top social casino operator award winner with verified gli rng certifications. restricted states: idaho, michigan, nevada, and washington.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">80/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">High 5 Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Proprietary Slots 95.50%–97.00% RTP · Tables 99.50% RTP</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). High 5 Entertainment LLC / High 5 Games</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">High 5 In-House Studio Titles &amp; Tables: 95.50% to 99.50% RTP. Independent RNG audits by GLI.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Catalog of 1,200+ games powered by High 5 Games proprietary licensed studio math.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button and Touch Grass reminders</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweeps Coins</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operated by established land-based slot developer High 5 Games (30-year gaming history).</li><li>AMOE postal request provides 3 Sweeps Coins per compliant mail-in card.</li><li>Payout rails: PayPal, Trustly ACH, and digital gift cards process in 24–48 hours.</li><li>EGR Top Social Casino Operator award winner with verified GLI RNG certifications.</li><li>Restricted states: Idaho, Michigan, Nevada, and Washington.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="stake.us" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="stake.us sweeps b+ medium sweepstakes model (us/canada). sweepsteaks limited (cyprus) / medium rare n.v. originals 99.00% rtp · slots 94.50%–96.50% variable restricted in 7 us states: idaho, kentucky, michigan, nevada, new york, vermont, washington. redemption speed: crypto redemptions (btc, eth, ltc, usdt, doge) typically 10–60 minutes after identity verification. provably fair seed hygiene: server seed hash published prior to play; client seed customizable at any time. us sweepstakes amoe compliance: mail-in postcard request code provides 5 stake cash. dual-currency model creates high accidental burn: users often wager sc thinking it is gc. tiltcheck extension provides native autovault button to skim wins directly into vault balance.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Stake.us</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 99.00% RTP · Slots 94.50%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). Sweepsteaks Limited (Cyprus) / Medium Rare N.V.</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (6)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Stake Originals (Dice, Crash, Plinko, Mines, Limbo, Hilo, Keno, Roulette): 99.00% RTP / 1.00% house edge. Video Poker: 99.17% RTP. Blackjack: 99.50% RTP (0.50% house edge). Provably fair HMAC-SHA256 seed pairs.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play and Hacksaw Gaming slots deployed at standard 96.50% tier or lowered 94.50% tier depending on game title. No live RTP display inside game iframe.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">Native GraphQL session API (createVaultDeposit) + TiltCheck fallback vault button</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough required on Stake Cash (SC) before redemption. Gold Coins (GC) have zero monetary value.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Restricted in 7 US states: Idaho, Kentucky, Michigan, Nevada, New York, Vermont, Washington.</li><li>Redemption speed: Crypto redemptions (BTC, ETH, LTC, USDT, DOGE) typically 10–60 minutes after identity verification.</li><li>Provably fair seed hygiene: Server seed hash published prior to play; client seed customizable at any time.</li><li>US sweepstakes AMOE compliance: Mail-in postcard request code provides 5 Stake Cash.</li><li>Dual-currency model creates high accidental burn: Users often wager SC thinking it is GC.</li><li>TiltCheck extension provides native AutoVault button to skim wins directly into vault balance.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="mcluck" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="mcluck sweeps b medium sweepstakes model (us/canada). b2services oü (estonia, registry code 16579410) live tables 99.50% rtp · slots 94.50%–96.50% variable compliant us sweepstakes model with alternative method of entry (amoe) offering 4 sc per handwritten request. redemption minimums: 75 sc for online bank transfer (eft); 10 sc for electronic gift cards. redemption processing speed: 24–72 hours following initial kyc identity approval. restricted states: alabama, delaware, georgia, idaho, kentucky, michigan, montana, nevada, washington. dual-currency separation maintains distinction between recreational gold coins and redeemable sweeps coins.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">78/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">McLuck</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Live Tables 99.50% RTP · Slots 94.50%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Pragmatic Play / 3 Oaks in-house tables: 99.50% Blackjack RTP.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, NetEnt, and Playson slot titles with provider-certified mathematical models.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button and auto-session brake notifications</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweepstakes Coins (SC) before redemption</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Compliant US sweepstakes model with alternative method of entry (AMOE) offering 4 SC per handwritten request.</li><li>Redemption minimums: 75 SC for online bank transfer (EFT); 10 SC for electronic gift cards.</li><li>Redemption processing speed: 24–72 hours following initial KYC identity approval.</li><li>Restricted states: Alabama, Delaware, Georgia, Idaho, Kentucky, Michigan, Montana, Nevada, Washington.</li><li>Dual-currency separation maintains distinction between recreational Gold Coins and redeemable Sweeps Coins.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="fortune coins" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="fortune coins sweeps b medium sweepstakes model (us/canada). social gaming llc (delaware entity) originals 97.00% rtp · slots 94.20%–96.00% certified delaware registered corporate entity operating compliant sweepstakes promotional contests. amoe compliance: free mail-in request grants 500 fortune coins ($5.00 redeemable value). redemption threshold: minimum 5,000 fc ($50.00 usd) via trustly online banking or skrill. redemption turnaround: bank transfers typically approve and clear within 24–72 hours. restricted in washington, idaho, and michigan per published terms and conditions.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Fortune Coins</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 97.00% RTP · Slots 94.20%–96.00% certified</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). Social Gaming LLC (Delaware entity)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Fortune Coins Originals: 97.00% average RTP. BMM Testlabs certified.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Proprietary in-house slots and third-party titles operating on BMM certified RNG math.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session timer and spend brake warnings</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Fortune Coins (FC, 100 FC = $1.00 USD)</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Delaware registered corporate entity operating compliant sweepstakes promotional contests.</li><li>AMOE compliance: Free mail-in request grants 500 Fortune Coins ($5.00 redeemable value).</li><li>Redemption threshold: Minimum 5,000 FC ($50.00 USD) via Trustly online banking or Skrill.</li><li>Redemption turnaround: Bank transfers typically approve and clear within 24–72 hours.</li><li>Restricted in Washington, Idaho, and Michigan per published terms and conditions.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="hello millions" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="hello millions sweeps b+ medium sweepstakes model (us/canada). b2services oü (estonia, registry code 16579410) table games 99.50% rtp · slots 94.50%–96.50% certified compliant us sweepstakes framework with no purchase necessary amoe offering 4 sc per mail-in envelope. prize redemption processing: 24–72 business hours via eft bank deposit or digital gift vouchers. minimum cash prize redemption threshold set at 75 sc; gift cards available at 10 sc. independent rng testing provided by accredited testing laboratories gli and bmm. excluded us jurisdictions: id, mi, mt, nv, wa, al, ga, and de.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Hello Millions</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Table Games 99.50% RTP · Slots 94.50%–96.50% certified</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Pragmatic Play / Evoplay tables: 99.50% Blackjack RTP.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, Relax Gaming, and BGaming titles running certified slot RTP configurations.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button and Touch Grass lock support</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough required on Sweepstakes Coins (SC) prior to redemption</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Compliant US sweepstakes framework with no purchase necessary AMOE offering 4 SC per mail-in envelope.</li><li>Prize redemption processing: 24–72 business hours via EFT bank deposit or digital gift vouchers.</li><li>Minimum cash prize redemption threshold set at 75 SC; gift cards available at 10 SC.</li><li>Independent RNG testing provided by accredited testing laboratories GLI and BMM.</li><li>Excluded US jurisdictions: ID, MI, MT, NV, WA, AL, GA, and DE.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="modo casino" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="modo casino sweeps b medium sweepstakes model (us/canada). arb gaming llc (delaware, entity file #7438992) table games 99.50% rtp · slots 94.50%–96.50% variable us incorporated operator (arb gaming llc) operating under legal sweepstakes regulations. free entry method (amoe): mail-in request code provides 3 free sweeps coins. redemption speeds: ach online banking transfers process within 24–48 hours; debit card cashouts supported. redemption thresholds: 100 sc minimum for bank transfer, 20 sc minimum for gift cards. state exclusions: idaho, michigan, nevada, washington per official sweepstakes rules.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Modo Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Table Games 99.50% RTP · Slots 94.50%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). ARB Gaming LLC (Delaware, entity file #7438992)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Hacksaw / Relax table games: 99.50% Blackjack RTP.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Catalog powered by Hacksaw Gaming, Relax, and Pragmatic Play running certified manufacturer RTPs.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck auto-vault and session timer</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">Strict 1x playthrough on Sweeps Coins (SC) before redemption eligibility</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>US incorporated operator (ARB Gaming LLC) operating under legal sweepstakes regulations.</li><li>Free entry method (AMOE): Mail-in request code provides 3 free Sweeps Coins.</li><li>Redemption speeds: ACH online banking transfers process within 24–48 hours; debit card cashouts supported.</li><li>Redemption thresholds: 100 SC minimum for bank transfer, 20 SC minimum for gift cards.</li><li>State exclusions: Idaho, Michigan, Nevada, Washington per official sweepstakes rules.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="funrize" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="funrize sweeps b+ medium sweepstakes model (us/canada). a1 development llc (delaware entity) netgame slots 95.50%–96.50% rtp · gli certified delaware incorporated sweepstakes operator running certified promotional gaming. amoe mail-in program offers 100 free entries ($1.00) per handwritten request card. redemption floor: low 25.00 usd minimum for gift cards; 100.00 usd for bank transfers. eft payouts typically clear in 24–48 business hours via trustly banking rails. restricted in idaho, michigan, nevada, washington, and wyoming.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">80/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Funrize</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">NetGame Slots 95.50%–96.50% RTP · GLI certified</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). A1 Development LLC (Delaware entity)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">NetGame In-House Titles: 95.50% to 96.50% RTP. Certified RNG by GLI.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">NetGame entertainment social gaming catalog running certified RNG algorithms.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck spin pause and Touch Grass lock</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on promotional entries (100 entries = $1.00 USD)</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Delaware incorporated sweepstakes operator running certified promotional gaming.</li><li>AMOE mail-in program offers 100 free entries ($1.00) per handwritten request card.</li><li>Redemption floor: Low 25.00 USD minimum for gift cards; 100.00 USD for bank transfers.</li><li>EFT payouts typically clear in 24–48 business hours via Trustly banking rails.</li><li>Restricted in Idaho, Michigan, Nevada, Washington, and Wyoming.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="zula casino" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="zula casino sweeps b medium sweepstakes model (us/canada). scps llc (delaware entity) / blazesoft certified slots 95.00%–96.80% rtp · casuals 97.00% operated by blazesoft affiliate scps llc with legal us sweepstakes structure. amoe mail-in program provides 5 sweeps coins per compliant written request. redemption threshold: minimum 50 sc ($50 usd) for bank deposits and gift cards. bank transfer turnaround: settle within 24–72 hours following initial kyc approval. excluded states: washington, idaho, michigan, and georgia per terms.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Zula Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Certified Slots 95.00%–96.80% RTP · Casuals 97.00%</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). SCPS LLC (Delaware entity) / Blazesoft</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Zula Casuals &amp; Tables: 97.00% average RTP. Certified RNG by BMM Testlabs.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Multi-studio slot library featuring Pragmatic Play, Relax, and Booming Games at certified RTP tiers.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck auto-vault and session timer</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweeps Coins prior to redemption</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operated by Blazesoft affiliate SCPS LLC with legal US sweepstakes structure.</li><li>AMOE mail-in program provides 5 Sweeps Coins per compliant written request.</li><li>Redemption threshold: Minimum 50 SC ($50 USD) for bank deposits and gift cards.</li><li>Bank transfer turnaround: Settle within 24–72 hours following initial KYC approval.</li><li>Excluded states: Washington, Idaho, Michigan, and Georgia per terms.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="crown coins casino" data-category="Sweeps" data-grade="B+" data-audited="true" data-keywords="crown coins casino sweeps b+ medium sweepstakes model (us/canada). sunflower limited (manchester, uk / us operations) in-house casuals 97.00% rtp · slots 94.50%–96.50% certified compliant sweepstakes gaming platform with free daily login rewards and mail-in amoe submissions. fast prize redemptions: skrill and instant ach options process within 24–48 hours. accessible redemption floor: minimum 50 sc ($50 usd) for cash redemptions. rng and payout mechanics verified by bmm testlabs. excluded territories: idaho, michigan, nevada, washington.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">80/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Crown Coins Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">In-House Casuals 97.00% RTP · Slots 94.50%–96.50% certified</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). Sunflower Limited (Manchester, UK / US operations)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Crown Coins in-house casuals: 97.00% average RTP. BMM Testlabs certified.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Ruby Play, Pragmatic Play, and Hacksaw Gaming certified slots.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck spin pause and Touch Grass lock</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweeps Coins (SC)</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Compliant sweepstakes gaming platform with free daily login rewards and mail-in AMOE submissions.</li><li>Fast prize redemptions: Skrill and Instant ACH options process within 24–48 hours.</li><li>Accessible redemption floor: Minimum 50 SC ($50 USD) for cash redemptions.</li><li>RNG and payout mechanics verified by BMM Testlabs.</li><li>Excluded territories: Idaho, Michigan, Nevada, Washington.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="real prize" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="real prize sweeps b medium sweepstakes model (us/canada). realplay tech inc. multi-studio slots 95.00%–96.50% rtp · casuals 97.00% operated by realplay tech inc following standard us sweepstakes compliance. amoe postal entry grants 3 sweeps coins per compliant handwritten index card. redemption speeds: 24–72 hours via ach direct bank transfer. games supplied by pragmatic play and relax gaming running certified provider math. restricted in idaho, michigan, nevada, and washington.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">78/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Real Prize</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Multi-Studio Slots 95.00%–96.50% RTP · Casuals 97.00%</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). RealPlay Tech Inc.</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Real Prize Casuals &amp; Tables: 97.00% average RTP. Certified provider math.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Games supplied by Pragmatic Play and Relax Gaming running certified provider math.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck auto-vault and session timer</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough on Sweeps Coins prior to redemption</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operated by RealPlay Tech Inc following standard US sweepstakes compliance.</li><li>AMOE postal entry grants 3 Sweeps Coins per compliant handwritten index card.</li><li>Redemption speeds: 24–72 hours via ACH direct bank transfer.</li><li>Games supplied by Pragmatic Play and Relax Gaming running certified provider math.</li><li>Restricted in Idaho, Michigan, Nevada, and Washington.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="jackpota" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="jackpota sweeps b+ medium sweepstakes model (us/canada). b2services oü (estonia, registry code 16579410) provider slots 95.00%–96.80% rtp · tables 99.50% operated by b2services oü (sister brand to mcluck and hello millions). amoe mail-in program offers 4 free sweeps coins per handwritten request. redemption minimums: 75 sc for eft bank deposit; 10 sc for electronic gift cards. turnaround speed: 24 hours for digital gift cards; 48–72 hours for bank eft. excluded states: id, mi, mt, nv, wa, al, ga, and de.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Jackpota</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Provider Slots 95.00%–96.80% RTP · Tables 99.50%</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). B2Services OÜ (Estonia, registry code 16579410)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Jackpota In-House Tables: 99.50% Blackjack RTP. GLI and BMM certified.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play and 3 Oaks Gaming slots with independent fairness certificates.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button and auto-session brake notifications</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Sweepstakes Coins (SC)</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operated by B2Services OÜ (sister brand to McLuck and Hello Millions).</li><li>AMOE mail-in program offers 4 free Sweeps Coins per handwritten request.</li><li>Redemption minimums: 75 SC for EFT bank deposit; 10 SC for electronic gift cards.</li><li>Turnaround speed: 24 hours for digital gift cards; 48–72 hours for bank EFT.</li><li>Excluded states: ID, MI, MT, NV, WA, AL, GA, and DE.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="nolimitcoins" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="nolimitcoins sweeps b medium sweepstakes model (us/canada). a1 development llc (delaware entity) certified slots 95.00%–96.50% rtp · casuals 95.50% operating under us sweepstakes regulations managed by a1 development llc. amoe mail-in requests award 100 super coins ($1.00 usd) without purchase. low redemption floor: minimum 25 usd for digital gift cards; 100 usd for bank transfers. payout clearance: electronic bank transfers process within 24–72 hours. restricted states: idaho, michigan, nevada, washington, and wyoming.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">78/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">NoLimitCoins</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Certified Slots 95.00%–96.50% RTP · Casuals 95.50%</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). A1 Development LLC (Delaware entity)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">NoLimitCoins NetGame Titles: 95.50% to 96.50% RTP. Certified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Slot portfolio running NetGame certified mathematical models with verified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session timer and spend limit alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough requirement on Super Coins (100 Super Coins = $1.00 USD)</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operating under US sweepstakes regulations managed by A1 Development LLC.</li><li>AMOE mail-in requests award 100 Super Coins ($1.00 USD) without purchase.</li><li>Low redemption floor: Minimum 25 USD for digital gift cards; 100 USD for bank transfers.</li><li>Payout clearance: Electronic bank transfers process within 24–72 hours.</li><li>Restricted states: Idaho, Michigan, Nevada, Washington, and Wyoming.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="funzpoints" data-category="Sweeps" data-grade="B" data-audited="true" data-keywords="funzpoints sweeps b medium sweepstakes model (us/canada). woopla inc. (canada / us operations) proprietary slots 95.50%–96.50% rtp · certified rng operated by woopla inc under long-standing us promotional sweepstakes compliance. industry-low redemption minimum of 2,000 premium funzpoints ($20.00 usd). amoe compliance: mail-in requests award 500 premium funzpoints ($5.00) with no purchase required. direct bank transfer redemptions typically process in 24–48 business hours. restricted states: idaho per published official rules.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">79/100</span>
-    </div>
-    <span class="casino-card__cat">Sweeps</span>
-  </div>
-  <h3 class="casino-card__name">Funzpoints</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Proprietary Slots 95.50%–96.50% RTP · Certified RNG</span>
-  </div>
-  <p class="casino-card__license">Sweepstakes model (US/Canada). Woopla Inc. (Canada / US operations)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Funzpoints Proprietary Slots: 95.50% to 96.50% RTP. Independent certified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Custom slot portfolio built specifically for sweepstakes compliance with no third-party iframe math.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session timer and loss brake alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x playthrough on Premium Funzpoints (100 Premium Points = $1.00 USD)</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operated by Woopla Inc under long-standing US promotional sweepstakes compliance.</li><li>Industry-low redemption minimum of 2,000 Premium Funzpoints ($20.00 USD).</li><li>AMOE compliance: Mail-in requests award 500 Premium Funzpoints ($5.00) with no purchase required.</li><li>Direct bank transfer redemptions typically process in 24–48 business hours.</li><li>Restricted states: Idaho per published official rules.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="roobet" data-category="Crypto" data-grade="B" data-audited="true" data-keywords="roobet crypto b medium curaçao egaming (raw entertainment b.v. / tekhou5 b.v., license 8048/jaz) originals 97.00%–99.00% rtp · slots 91.20%–96.50% variable blocked in us, uk, australia, germany, netherlands, spain; aggressive vpn detection can result in account lock. significant slot rtp tier downgrade on major providers (play&#39;n go, pragmatic) compared to default manufacturer maximums. fast crypto withdrawals (btc, eth, ltc, usdt, usdc), but high-tier sums trigger intrusive tier-2 kyc checks. snoop dogg and influencer brand ambassadors drove massive retail adoption. tiltcheck extension provides spin brake and game filters to stop rapid-fire slot spin cycles.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B</span>
-      <span class="casino-card__score-label">78/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">Roobet</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 97.00%–99.00% RTP · Slots 91.20%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (Raw Entertainment B.V. / TekHou5 B.V., License 8048/JAZ)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Roobet Originals: Crash (dynamic curve, ~97.00%–99.00% RTP), Roulette (97.30% RTP), Dice (99.00% RTP), Mines (97.00%–99.00% RTP), Towers (97.50% RTP). Provably fair HMAC-SHA256.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Multi-tier RTP deployment: Pragmatic Play slots deployed at 96.50% or 94.50% tier; Play&#39;n GO slots deployed at reduced tiers (94.20% and 91.20% vs 96.20% default max). Push Gaming and Hacksaw variable by title.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button (identifies Iron Bank / vault interface elements)</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x deposit turnover required before withdrawal; promotional rewards subject to variable rollover.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Blocked in US, UK, Australia, Germany, Netherlands, Spain; aggressive VPN detection can result in account lock.</li><li>Significant slot RTP tier downgrade on major providers (Play&#39;n GO, Pragmatic) compared to default manufacturer maximums.</li><li>Fast crypto withdrawals (BTC, ETH, LTC, USDT, USDC), but high-tier sums trigger intrusive tier-2 KYC checks.</li><li>Snoop Dogg and influencer brand ambassadors drove massive retail adoption.</li><li>TiltCheck extension provides spin brake and game filters to stop rapid-fire slot spin cycles.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="stake.com" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="stake.com crypto b+ medium curaçao egaming (medium rare n.v., master license 8048/jaz) originals 99.00% rtp · slots 94.50%–96.50% variable strictly blocked in us, uk, australia, france, germany, netherlands, and multiple tier-1 regulated jurisdictions. no independent third-party certification (e.g. ecogra or gli) published for proprietary originals. aggressive streamer/influencer sponsorship campaigns historically targeting young and degen audiences. crypto withdrawal processing is high-speed (automated on-chain release) when account is not flagged for manual kyc. tiltcheck extension autovault directly interacts with stake graphql endpoint to secure profit instantly.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">81/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">Stake.com</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 99.00% RTP · Slots 94.50%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (Medium Rare N.V., Master License 8048/JAZ)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Stake Originals (Dice, Crash, Plinko, Mines, Limbo, Hilo, Keno, Roulette): 99.00% RTP (1.00% house edge). Blackjack: 99.50% RTP (0.50% house edge). Provably fair HMAC-SHA256.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, Hacksaw Gaming, and NoLimit City slots configured primarily at 96.50% tier, with select titles at 94.50% or 92.00% tier. Certified tier verification requires iframe inspection.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">Native GraphQL session API (createVaultDeposit) + TiltCheck AutoVault engine</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">Varies by promotion; deposit turnover generally requires 1x before fee-free crypto withdrawal.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Strictly blocked in US, UK, Australia, France, Germany, Netherlands, and multiple tier-1 regulated jurisdictions.</li><li>No independent third-party certification (e.g. eCOGRA or GLI) published for proprietary Originals.</li><li>Aggressive streamer/influencer sponsorship campaigns historically targeting young and degen audiences.</li><li>Crypto withdrawal processing is high-speed (automated on-chain release) when account is not flagged for manual KYC.</li><li>TiltCheck extension AutoVault directly interacts with Stake GraphQL endpoint to secure profit instantly.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="rollbit" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="rollbit crypto b+ medium curaçao egaming (bull gaming n.v., license 8048/jaz) originals 97.00%–99.00% rtp · slots 96.00% standard tier instant crypto withdrawals across btc, eth, sol, and ltc networks with automated processing. custom casino, crypto futures trading, and nft liquidity hybrid; high roller liquidity with proven solvency. vip rank-up rewards: turnover directly advances vip tier rank providing instant rakeback and rank-up chests. curaçao egaming license; token (rlb) mechanics introduce financial exposure outside traditional casino play. tiltcheck extension adds a vault button and the 2-second spin pause.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">83/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">Rollbit</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 97.00%–99.00% RTP · Slots 96.00% standard tier</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (Bull Gaming N.V., License 8048/JAZ)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Rollbit Originals: X-Roulette (97.30% RTP), Rollercoaster (97.00% RTP), Crash (99.00% RTP), Plinko (99.00% RTP), NFT Jackpot. Provably fair cryptographic verification.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play and Hacksaw Gaming slots deployed predominantly at standard 96.00%+ tiers. Select custom crypto trading instruments carry variable spread costs.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button (triggers native vault transfer) + loss limit alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x deposit turnover required before withdrawal; Rank-up chests and RLB staking rewards subject to specific holding terms.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Instant crypto withdrawals across BTC, ETH, SOL, and LTC networks with automated processing.</li><li>Custom casino, crypto futures trading, and NFT liquidity hybrid; high roller liquidity with proven solvency.</li><li>VIP Rank-up rewards: Turnover directly advances VIP tier rank providing instant rakeback and rank-up chests.</li><li>Curaçao eGaming license; token (RLB) mechanics introduce financial exposure outside traditional casino play.</li><li>TiltCheck extension adds a vault button and the 2-second spin pause.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="gamdom" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="gamdom crypto b+ medium curaçao egaming (smein hosting n.v., master license 365/jaz) originals 99.00% rtp · slots 96.50% standard tier immediate crypto withdrawals processed through automated payment hot wallets across major chains. established track record operating since 2016 without documented insolvency or non-payment scandals. royalty club vip levels: xp earned based on wager amount and house edge; tiers grant daily surprise and instant rakeback. restricted in us, uk, and tier-1 jurisdictions; requires kyc level verification upon suspicious activity flag. tiltcheck extension provides spin brake and bet acceleration warnings during downswings.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">84/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">Gamdom</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 99.00% RTP · Slots 96.50% standard tier</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (Smein Hosting N.V., Master License 365/JAZ)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Gamdom Originals: Crash, Dice, Roulette, Hilo, Table Games at 99.00% RTP (1.00% house edge). Provably fair SHA-256 with verifiable game history.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, Hacksaw, and Push Gaming slots configured at standard 96.50% tier. In-game RTP visible on supported provider paytables.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button + spin brake alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x deposit rollover required before crypto withdrawal. Promotional rewards claimable with no hidden wagering locks.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Immediate crypto withdrawals processed through automated payment hot wallets across major chains.</li><li>Established track record operating since 2016 without documented insolvency or non-payment scandals.</li><li>Royalty Club VIP levels: XP earned based on wager amount and house edge; tiers grant daily surprise and instant rakeback.</li><li>Restricted in US, UK, and tier-1 jurisdictions; requires KYC level verification upon suspicious activity flag.</li><li>TiltCheck extension provides spin brake and bet acceleration warnings during downswings.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="bc.game" data-category="Crypto" data-grade="C-" data-audited="true" data-keywords="bc.game crypto c- medium-high curaçao egaming (blockdance b.v., cil master license #5536/jaz; sub-license disputes) / kahnawake originals 99.00% rtp · slots 92.00%–96.50% variable predatory reward unlocking: advertised 300%+ deposit matches are delivered in locked bcd that releases at only 0.2% per wager. community withdrawal disputes: frequent reports of delayed cashouts, extended verification loops, and customer support friction. historical licensing and corporate restructuring confusion between curaçao and other offshore shell entities. supports 50+ cryptocurrencies, but high minimum withdrawal thresholds on smaller altcoins. tiltcheck extension injects spin brake and chase warning alerts when bet sizing accelerates.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-c">C-</span>
-      <span class="casino-card__score-label">59/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">BC.Game</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium-High</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 99.00% RTP · Slots 92.00%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (BlockDance B.V., CIL Master License #5536/JAZ; sub-license disputes) / Kahnawake</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">BC Originals (Classic Dice, Crash, Limbo, HashDice, Plinko, Keno): 99.00% RTP (1.00% house edge). Provably fair cryptographic verification supported.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Enormous catalog of 8,000+ slots across 60+ providers. Extensive deployment of lower RTP tiers (92% and 94% tiers common on Pragmatic Play and Hacksaw titles).</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button (triggers native vault deposit prompt)</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">Predatory promo mechanics: BCD (BC Dollar) locked reward requires ~500x wager turnover (Unlock = Wager * 1% * 20% = 0.2% return).</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Predatory reward unlocking: Advertised 300%+ deposit matches are delivered in locked BCD that releases at only 0.2% per wager.</li><li>Community withdrawal disputes: Frequent reports of delayed cashouts, extended verification loops, and customer support friction.</li><li>Historical licensing and corporate restructuring confusion between Curaçao and other offshore shell entities.</li><li>Supports 50+ cryptocurrencies, but high minimum withdrawal thresholds on smaller altcoins.</li><li>TiltCheck extension injects spin brake and chase warning alerts when bet sizing accelerates.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="shuffle" data-category="Crypto" data-grade="A-" data-audited="true" data-keywords="shuffle crypto a- low curaçao egaming (natural nine b.v., license 8048/jaz2023-017) originals 99.00% rtp · slots 96.50% default maximum instant automated crypto withdrawals across btc, eth, sol, ltc, and usdt with sub-1-hour typical confirmation. provably fair seed transparency: server seed hash published prior to wager; client seed customizable anytime. vip progression: transparent volume contribution on all casino bets toward bronze through diamond vip ranks. zero reported non-payment disputes; active and responsive leadership presence in crypto community. tiltcheck extension adds a vault button and the 2-second spin pause to slow rapid-fire spins.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-a">A-</span>
-      <span class="casino-card__score-label">86/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">Shuffle</h3>
-  <p class="casino-card__risk">Risk: <strong>Low</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 99.00% RTP · Slots 96.50% default maximum</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (Natural Nine B.V., License 8048/JAZ2023-017)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Shuffle Originals (Dice, Limbo, Mines, Crash, Plinko, Keno, Roulette): 99.00% RTP / 1.00% house edge. Provably fair HMAC-SHA256 with verifiable client/server seed pairs.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, Hacksaw Gaming, and NoLimit City slots configured at standard manufacturer maximums (96.50% tier). No silent downgrades detected in current telemetry.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button + spin brake compatibility</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x deposit turnover required before fee-free crypto withdrawal. Zero fee deductions on automated releases.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Instant automated crypto withdrawals across BTC, ETH, SOL, LTC, and USDT with sub-1-hour typical confirmation.</li><li>Provably fair seed transparency: Server seed hash published prior to wager; client seed customizable anytime.</li><li>VIP progression: Transparent volume contribution on all casino bets toward Bronze through Diamond VIP ranks.</li><li>Zero reported non-payment disputes; active and responsive leadership presence in crypto community.</li><li>TiltCheck extension adds a vault button and the 2-second spin pause to slow rapid-fire spins.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="duelbits" data-category="Crypto" data-grade="B+" data-audited="true" data-keywords="duelbits crypto b+ medium curaçao egaming (liquid gaming n.v., master license 365/jaz) originals 99.00% rtp · slots 96.00%–96.50% standard tier automated instant crypto withdrawals across btc, eth, ltc, sol, and doge networks. provably fair verification tool allows manual reproduction of rolls from server and client seeds. ace&#39;s vip lounge provides transparent rakeback tiers (up to 50% house edge rebate). restricted in us, uk, australia, and regulated european markets; enforces kyc on high-tier withdrawals. tiltcheck extension provides spin brake and game filtering to stop compulsive click cycles.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-b">B+</span>
-      <span class="casino-card__score-label">83/100</span>
-    </div>
-    <span class="casino-card__cat">Crypto</span>
-  </div>
-  <h3 class="casino-card__name">Duelbits</h3>
-  <p class="casino-card__risk">Risk: <strong>Medium</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Originals 99.00% RTP · Slots 96.00%–96.50% standard tier</span>
-  </div>
-  <p class="casino-card__license">Curaçao eGaming (Liquid Gaming N.V., Master License 365/JAZ)</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Duelbits Originals: Dice (99.00% RTP), Crash (99.00% RTP), Roulette (97.30% RTP), Mines (99.00% RTP), Plinko (99.00% RTP). Provably fair SHA-256 cryptographic verification.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Pragmatic Play, Hacksaw, and Play&#39;n GO slots deployed at default 96.00%+ manufacturer tiers.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck vault button + spin brake alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x deposit turnover required before withdrawal; Ace&#39;s VIP Lounge rakeback released without wagering strings.</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Automated instant crypto withdrawals across BTC, ETH, LTC, SOL, and DOGE networks.</li><li>Provably fair verification tool allows manual reproduction of rolls from server and client seeds.</li><li>Ace&#39;s VIP Lounge provides transparent rakeback tiers (up to 50% house edge rebate).</li><li>Restricted in US, UK, Australia, and regulated European markets; enforces KYC on high-tier withdrawals.</li><li>TiltCheck extension provides spin brake and game filtering to stop compulsive click cycles.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="draftkings casino" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="draftkings casino regulated a low nj dge / pa pgcb / mi mgcb / wv lcb / ct dcp state gaming commissions in-house 97.00%–99.50% rtp · certified slots 94.00%–96.50% variable authorized and regulated by nj division of gaming enforcement, pa gaming control board, and mi gaming control board. rng testing and math models certified by gaming laboratories international (gli-19). payout speed: ach and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly. strict 21+ identity and geolocation verification required per state gaming regulations. responsible gaming integration includes mandatory 1-800-gambler helpline and state self-exclusion registry links.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-a">A</span>
-      <span class="casino-card__score-label">91/100</span>
-    </div>
-    <span class="casino-card__cat">Regulated</span>
-  </div>
-  <h3 class="casino-card__name">DraftKings Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Low</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">In-House 97.00%–99.50% RTP · Certified slots 94.00%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">NJ DGE / PA PGCB / MI MGCB / WV LCB / CT DCP state gaming commissions</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">DraftKings In-House Table Games &amp; Rocket: 99.50% RTP (Blackjack), 97.00% (Rocket). GLI-19 certified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Regulated slot catalog (IGT, NetEnt, Light &amp; Wonder) operating on state-approved RTP profiles with mandatory minimum 85% statutory floor.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session overlay + state-mandated responsible gaming deposit/loss limiters</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x turnover on real money deposits; 1x to 15x on promotional bonus credit</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Authorized and regulated by NJ Division of Gaming Enforcement, PA Gaming Control Board, and MI Gaming Control Board.</li><li>RNG testing and math models certified by Gaming Laboratories International (GLI-19).</li><li>Payout speed: ACH and debit withdrawals process within 1–24 hours; physical casino cage cashouts available instantly.</li><li>Strict 21+ identity and geolocation verification required per state gaming regulations.</li><li>Responsible gaming integration includes mandatory 1-800-GAMBLER helpline and state self-exclusion registry links.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="fanduel casino" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="fanduel casino regulated a low nj dge / pa pgcb / mi mgcb / wv lcb state gaming enforcement in-house 99.50% rtp · certified slots 94.00%–96.80% manufacturer tiers operating under active state casino licenses in new jersey, pennsylvania, michigan, and west virginia. all games certified fair by accredited independent testing labs under state regulatory oversight. automated banking rails via vip preferred ach, paypal, and retail partner casino cage pick-up within 1–24 hours. real-time state geolocation boundary enforcement blocks unapproved multi-state play. mandatory state self-exclusion and player cool-off limits integrated into account settings.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-a">A</span>
-      <span class="casino-card__score-label">92/100</span>
-    </div>
-    <span class="casino-card__cat">Regulated</span>
-  </div>
-  <h3 class="casino-card__name">FanDuel Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Low</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">In-House 99.50% RTP · Certified slots 94.00%–96.80% manufacturer tiers</span>
-  </div>
-  <p class="casino-card__license">NJ DGE / PA PGCB / MI MGCB / WV LCB state gaming enforcement</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">FanDuel In-House Blackjack: 99.50% RTP. State gaming lab certified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Regulated slot libraries from Evolution, NetEnt, and Scientific Games deployed at certified manufacturer tiers.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">TiltCheck session overlay + mandatory daily/weekly deposit and session limit controls</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">Clean 1x playthrough requirement on Play-It-Again refund promotions and site credit</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Operating under active state casino licenses in New Jersey, Pennsylvania, Michigan, and West Virginia.</li><li>All games certified fair by accredited independent testing labs under state regulatory oversight.</li><li>Automated banking rails via VIP Preferred ACH, PayPal, and retail partner casino cage pick-up within 1–24 hours.</li><li>Real-time state geolocation boundary enforcement blocks unapproved multi-state play.</li><li>Mandatory state self-exclusion and player cool-off limits integrated into account settings.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="betmgm" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="betmgm regulated a low nj dge / pa pgcb / mi mgcb / wv lcb — mgm resorts international &amp; entain plc exclusive tables 99.50% rtp · slots 94.10%–96.20% certified profiles fully licensed and regulated by nj dge, pa pgcb, mi mgcb, and wv lottery commission. instant physical cage redemption available at borgata hotel casino (atlantic city) and mgm grand properties. electronic ach bank transfers clear in 24–48 hours following standard security approval. integrated with the american gaming association recognized gamesense responsible gaming program. mandatory 21+ geolocation fencing with hardware-level boundary verification.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-a">A</span>
-      <span class="casino-card__score-label">91/100</span>
-    </div>
-    <span class="casino-card__cat">Regulated</span>
-  </div>
-  <h3 class="casino-card__name">BetMGM</h3>
-  <p class="casino-card__risk">Risk: <strong>Low</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Exclusive Tables 99.50% RTP · Slots 94.10%–96.20% certified profiles</span>
-  </div>
-  <p class="casino-card__license">NJ DGE / PA PGCB / MI MGCB / WV LCB — MGM Resorts International &amp; Entain plc</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">BetMGM Exclusive Blackjack: 99.50% RTP. GLI certified RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Exclusive BetMGM progressive slots and studio games audited by Gaming Laboratories International.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">GameSense responsible gaming framework + TiltCheck session timer and spin pause</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">15x playthrough on standard welcome bonuses; 1x on real money bankroll</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Fully licensed and regulated by NJ DGE, PA PGCB, MI MGCB, and WV Lottery Commission.</li><li>Instant physical cage redemption available at Borgata Hotel Casino (Atlantic City) and MGM Grand properties.</li><li>Electronic ACH bank transfers clear in 24–48 hours following standard security approval.</li><li>Integrated with the American Gaming Association recognized GameSense responsible gaming program.</li><li>Mandatory 21+ geolocation fencing with hardware-level boundary verification.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="caesars casino" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="caesars casino regulated a low nj dge / pa pgcb / mi mgcb / wv lcb — caesars entertainment inc. classic tables 99.50% rtp · slots 94.00%–96.50% variable licensed by tier-1 us state gaming authorities with rigorous financial and aml audits. instant cash pickup at caesars, harrah&#39;s, and tropicana physical casino cages. vip preferred ach and online banking payments processed within 24–48 business hours. comprehensive rg limiters: daily deposit, spending, and time limits with enforceable cool-off intervals. audited rtp payouts compliant with state gaming control board publication standards.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-a">A</span>
-      <span class="casino-card__score-label">91/100</span>
-    </div>
-    <span class="casino-card__cat">Regulated</span>
-  </div>
-  <h3 class="casino-card__name">Caesars Casino</h3>
-  <p class="casino-card__risk">Risk: <strong>Low</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Classic Tables 99.50% RTP · Slots 94.00%–96.50% variable</span>
-  </div>
-  <p class="casino-card__license">NJ DGE / PA PGCB / MI MGCB / WV LCB — Caesars Entertainment Inc.</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Caesars In-House Classic Blackjack: 99.50% RTP. State tested RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Caesars branded slots and third-party catalogs governed by state gaming division RNG regulations.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">Caesars RG limit tools + TiltCheck Touch Grass reminders</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x to 15x rollover requirements depending on selected game category</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Licensed by Tier-1 US state gaming authorities with rigorous financial and AML audits.</li><li>Instant cash pickup at Caesars, Harrah&#39;s, and Tropicana physical casino cages.</li><li>VIP Preferred ACH and online banking payments processed within 24–48 business hours.</li><li>Comprehensive RG limiters: daily deposit, spending, and time limits with enforceable cool-off intervals.</li><li>Audited RTP payouts compliant with state gaming control board publication standards.</li></ul>
-    </div>
-  </details>
-</div>
-</article>
-<article class="casino-card casino-card--audited" data-name="betrivers" data-category="Regulated" data-grade="A" data-audited="true" data-keywords="betrivers regulated a low nj dge / pa pgcb / mi mgcb / wv lcb / il igb — rush street interactive single-deck tables 99.50% rtp · slots standard 95.00%–96.50% regulated by premier state gaming commissions with public monthly revenue and tax reporting. rushpay automated withdrawal processing approves over 80% of cashout requests instantly. clean 1x playthrough on all promotional offers with no hidden rollover multiplier locks. independent rng validation conducted by gli and bmm testlabs across all interactive titles. active integration with state problem gambling councils and self-exclusion directories.">
-  <div class="casino-card__top">
-    <div class="casino-card__grade-block">
-      <span class="casino-card__grade grade-a">A</span>
-      <span class="casino-card__score-label">92/100</span>
-    </div>
-    <span class="casino-card__cat">Regulated</span>
-  </div>
-  <h3 class="casino-card__name">BetRivers</h3>
-  <p class="casino-card__risk">Risk: <strong>Low</strong></p>
-  <div class="casino-card__meta-tags">
-    <span class="badge-audited">Audited</span>
-    <span class="badge-rtp">Single-Deck Tables 99.50% RTP · Slots standard 95.00%–96.50%</span>
-  </div>
-  <p class="casino-card__license">NJ DGE / PA PGCB / MI MGCB / WV LCB / IL IGB — Rush Street Interactive</p>
-<div class="staff-only" data-staff-only hidden>
-  <span class="staff-only__label">TrustCheck Team — Audit Evidence</span>
-    <details class="casino-card__details">
-    <summary class="casino-card__details-toggle">View verified evidence (5)</summary>
-    <div class="casino-card__details-body">
-      <div class="casino-card__stat">
-        <span class="stat-label">Originals RTP</span>
-        <span class="stat-value text-accent">Rush Street Single-Deck Blackjack: 99.50% RTP. GLI tested RNG.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Slot Tiers</span>
-        <span class="stat-value">Multi-provider catalog featuring certified RTP configurations without unannounced stealth downgrades.</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Extension Support</span>
-        <span class="stat-value">RushPay automated payout approval + TiltCheck spend alerts</span>
-      </div>
-      <div class="casino-card__stat">
-        <span class="stat-label">Playthrough</span>
-        <span class="stat-value">1x industry-leading playthrough requirement on all bonus credits</span>
-      </div>
-      <h4 class="evidence-subheading">Verified Receipts</h4>
-      <ul class="casino-card__evidence-list"><li>Regulated by premier state gaming commissions with public monthly revenue and tax reporting.</li><li>RushPay automated withdrawal processing approves over 80% of cashout requests instantly.</li><li>Clean 1x playthrough on all promotional offers with no hidden rollover multiplier locks.</li><li>Independent RNG validation conducted by GLI and BMM Testlabs across all interactive titles.</li><li>Active integration with state problem gambling councils and self-exclusion directories.</li></ul>
-    </div>
-  </details>
-</div>
-</article></div>
-    </div>
-  </section>
-  <section class="public-page-section">
-    <div class="landing-shell">
       <div class="public-page-section-heading">
         <span class="brand-eyebrow">Methodology</span>
         <h2 class="public-page-section-heading__title">How letter grades are built.</h2>
@@ -3025,7 +1762,7 @@
 (function () {
   var input = document.getElementById('casino-search');
   var chips = document.querySelectorAll('.filter-chip');
-  var cards = Array.prototype.slice.call(document.querySelectorAll('.casino-card'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-casino-card]'));
   var count = document.getElementById('casino-count');
   var activeCat = 'All';
   function apply() {
@@ -3126,20 +1863,21 @@
 </script>
 <footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
-    <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
-      <a href="../tools/">All Tools</a>
+      <a href="../tools/">All tools</a>
       <a href="../gate/">TimeCheck</a>
       <a href="../cooldown/">RealityCheck</a>
+      <a href="../casinos/">TrustCheck</a>
+      <a href="../verify/">Fairness Verifier</a>
       <a href="../rtp-scanner/">RTP Scanner</a>
       <a href="../house-edge-scanner/">House Edge Scanner</a>
-      <a href="../verify/">Fairness Verifier</a>
       <a href="../wincheck/">Win Skim</a>
-      <a href="../casinos/">TrustCheck</a>
-      <a href="../tip/">Tip Jar</a>
+      <a href="../extension.html">Extension</a>
+      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord server</a>
       <a href="../login/" data-tc-footer-auth data-signed-in-href="../dashboard/" data-signed-in-text="Your dashboard">Discord Sign In</a>
-      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord Server</a>
-      <a href="../privacy/">Privacy Policy</a>
+      <a href="../tip/">Tip Jar</a>
+      <a href="https://ko-fi.com/jmenichole7" target="_blank" rel="noopener noreferrer">Tip on Ko-fi</a>
+      <a href="../privacy/">Privacy</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
@@ -3251,6 +1989,28 @@
   window.addEventListener('storage', function (e) {
     if (!e.key || e.key === 'tc_token' || e.key === 'tc_user' || e.key === 'tc_token_exp') render();
   });
+})();
+</script>
+<script>
+(function () {
+  var btn = document.querySelector('[data-tc-menu-toggle]');
+  var nav = btn && btn.closest('.site-nav');
+  if (!btn || !nav) return;
+  function set(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function () { set(!nav.classList.contains('is-open')); });
+  nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.site-nav__links a')) set(false); });
+  document.addEventListener('click', function (e) { if (nav.classList.contains('is-open') && !nav.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+  });
+  if (window.matchMedia) {
+    var wide = window.matchMedia('(min-width: 720px)');
+    var onWide = function () { if (wide.matches) set(false); };
+    if (wide.addEventListener) wide.addEventListener('change', onWide); else if (wide.addListener) wide.addListener(onWide);
+  }
 })();
 </script>
 <script>

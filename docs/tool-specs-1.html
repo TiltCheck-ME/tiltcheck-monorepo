@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="../styles/base.css"/>
 <script>
 (function () {
+  document.documentElement.classList.add('js');
   try {
     var exp = Number(localStorage.getItem('tc_token_exp') || 0);
     if (exp && exp < Date.now()) {
@@ -33,13 +34,14 @@
 </head>
 <body>
 <nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="../index.html"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>TiltCheck<span class="site-nav__beta">Beta</span></a>
-  <div class="site-nav__links">
-    <a href="../gate/" style="color:#17c3b2; font-weight:700;">TimeCheck</a>
-    <a href="../extension.html">Extension</a>
+  <a class="site-nav__brand" href="../index.html"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)"/><path d="m9 12 2 2 4-4"/></svg>TiltCheck<span class="site-nav__beta">Beta</span></a>
+  <button type="button" class="site-nav__toggle" aria-expanded="false" aria-controls="site-nav-menu" data-tc-menu-toggle><span class="site-nav__toggle-bars" aria-hidden="true"></span><span class="site-nav__toggle-label">Menu</span></button>
+  <div class="site-nav__links" id="site-nav-menu">
     <a href="../tools/">Tools</a>
-    <a href="../casinos/">TrustCheck</a>
-    <a href="../cooldown/">RealityCheck</a>
+    <a href="../casinos/">Casinos</a>
+    <a href="../extension.html">Extension</a>
+    <a class="site-nav__extra" href="../gate/">TimeCheck</a>
+    <a class="site-nav__extra" href="../cooldown/">RealityCheck</a>
     <a class="site-nav__discord" data-tc-nav-auth data-account-href="../dashboard/" href="../login/" aria-label="Sign in with Discord" title="Sign in with Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><span>Sign in</span></a>
   </div>
 </nav>
@@ -48,8 +50,7 @@
 <h1>5. Tool Specifications (Part 1)</h1>
 <p class="lede">This document covers the detailed specifications for the first three TiltCheck modules:</p>
 </div></header>
-<main class="doc-main" id="content"><p>© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p>
-
+<main class="doc-main" id="content">
 <h1>5. Tool Specifications (Part 1)</h1>
 <p>This document covers the detailed specifications for the first three TiltCheck modules:</p>
 
@@ -144,54 +145,6 @@
 </ul>
 
 <p>Mapping:</p>
-
-<h3><strong>2. Airdrop → Multi-Send</strong></h3>
-<p>Mass sends with flat fee per action (not per user).</p>
-
-<h3><strong>3. Optional Swap → Jupiter Integration</strong></h3>
-<p>After fee deduction, user may perform an on-chain swap.</p>
-
-<p>Swap is:</p>
-<ul>
-<li>optional</li>
-<li>available only when liquidity is healthy</li>
-<li>always non-custodial (contract handles balances)</li>
-</ul>
-
-<p><strong>No swapping fees except the base flat fee for the action.</strong></p>
-
-<p>---</p>
-
-<h2>5.1.3 Fee Structure</h2>
-
-<h3><strong>Flat Fee Only</strong></h3>
-<p>No percentages.</p>
-<p>No dynamic scaling.</p>
-<p>No special tiers.</p>
-
-<p>Default recommended:</p>
-<ul>
-<li><strong>$0.07</strong> per tip/airdrop/withdraw (USD equivalent)</li>
-<li>Gas is separate and unavoidable (fractions of a cent on Solana)</li>
-</ul>
-
-<h3><strong>Legal Reason:</strong></h3>
-<p>Flat fees avoid triggering “money transmitter” classifications.</p>
-
-<p>---</p>
-
-<h2>5.1.4 Wallet System</h2>
-
-<p>TiltCheck must NEVER store user keys.</p>
-
-<p>Supported:</p>
-<ul>
-<li>Magic.link non-custodial wallets tied to Discord ID</li>
-<li>User-submitted existing wallets</li>
-<li>No custodial balances held by TiltCheck</li>
-</ul>
-
-<p>Mapping:</p>
 <ul>
 <li>Discord ID ↔ Magic wallet address</li>
 </ul>
@@ -215,324 +168,6 @@
 <p>/swap <amount> <from-token> <to-token></p>
 <p>/setwallet <address></p>
 <p>/mywallet</p>
-
-
-<p>---</p>
-
-<h2>5.1.6 Integration With Trust Engines</h2>
-<p>(Two-way optional)</p>
-
-<ul>
-<li>Reports high-risk user behavior</li>
-<li>Receives warnings about users with low trust score</li>
-<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
-</ul>
-
-<p>---</p>
-
-<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
-
-<h2>5.2.1 Purpose</h2>
-<p>Degen servers are full of:</p>
-
-<ul>
-<li>fake promos</li>
-<li>phishing links</li>
-<li>malware redirects</li>
-<li>impersonation domains</li>
-<li>throwaway scam URLs</li>
-</ul>
-
-<p>SusLink scans and scores links automatically.</p>
-
-<p>---</p>
-
-<h2>5.2.2 Inputs</h2>
-
-<p>Users submit:</p>
-<ul>
-<li>raw URL</li>
-<li>optional context (“free spins”, “casino login”, etc.)</li>
-</ul>
-
-<p>Bots may auto-scan messages containing URLs.</p>
-
-<p>---</p>
-
-<h2>5.2.3 Data Pipeline</h2>
-
-<p>SusLink performs:</p>
-
-<h3>1. <strong>Domain Reputation Check</strong></h3>
-<ul>
-<li>Newly registered domain flag</li>
-<li>Blacklist checks</li>
-<li>TLD risk analysis</li>
-<li>Subdomain spoof detection</li>
-</ul>
-
-<h3>2. <strong>Redirect Chain Walk</strong></h3>
-<p>Follows link until final destination, checks for:</p>
-<ul>
-<li>mismatched content type</li>
-<li>malicious JS</li>
-<li>tracker payloads</li>
-<li>invisible redirects</li>
-</ul>
-
-<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
-<p>Flags:</p>
-<ul>
-<li>repeated scam keywords</li>
-<li>casino impersonations</li>
-<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
-<li>crypto drainers</li>
-<li>wallet connect spoofers</li>
-</ul>
-
-<h3>4. <strong>AI Context Evaluation</strong></h3>
-<p>Assesses:</p>
-<ul>
-<li>relevance</li>
-<li>safety</li>
-<li>predicted user intent</li>
-<li>likelihood of abuse</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.2.4 Risk Levels</h2>
-<p>Risk is returned as:</p>
-
-<ul>
-<li><strong>Safe</strong></li>
-<li><strong>Suspicious</strong></li>
-<li><strong>High Risk</strong></li>
-<li><strong>Critical</strong></li>
-</ul>
-
-<p>Used by:</p>
-<ul>
-<li>FreeSpinScan</li>
-<li>Moderation tools</li>
-<li>Casino Trust Engine (if casino URL involved)</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.2.5 Discord Commands</h2>
-
-
-<p>---</p>
-
-<h2>5.1.6 Integration With Trust Engines</h2>
-<p>(Two-way optional)</p>
-
-<ul>
-<li>Reports high-risk user behavior</li>
-<li>Receives warnings about users with low trust score</li>
-<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
-</ul>
-
-<p>---</p>
-
-<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
-
-<h2>5.2.1 Purpose</h2>
-<p>Degen servers are full of:</p>
-
-<ul>
-<li>fake promos</li>
-<li>phishing links</li>
-<li>malware redirects</li>
-<li>impersonation domains</li>
-<li>throwaway scam URLs</li>
-</ul>
-
-<p>SusLink scans and scores links automatically.</p>
-
-<p>---</p>
-
-<h2>5.2.2 Inputs</h2>
-
-<p>Users submit:</p>
-<ul>
-<li>raw URL</li>
-<li>optional context (“free spins”, “casino login”, etc.)</li>
-</ul>
-
-<p>Bots may auto-scan messages containing URLs.</p>
-
-<p>---</p>
-
-<h2>5.2.3 Data Pipeline</h2>
-
-<p>SusLink performs:</p>
-
-<h3>1. <strong>Domain Reputation Check</strong></h3>
-<ul>
-<li>Newly registered domain flag</li>
-<li>Blacklist checks</li>
-<li>TLD risk analysis</li>
-<li>Subdomain spoof detection</li>
-</ul>
-
-<h3>2. <strong>Redirect Chain Walk</strong></h3>
-<p>Follows link until final destination, checks for:</p>
-<ul>
-<li>mismatched content type</li>
-<li>malicious JS</li>
-<li>tracker payloads</li>
-<li>invisible redirects</li>
-</ul>
-
-<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
-<p>Flags:</p>
-<ul>
-<li>repeated scam keywords</li>
-<li>casino impersonations</li>
-<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
-<li>crypto drainers</li>
-<li>wallet connect spoofers</li>
-</ul>
-
-<h3>4. <strong>AI Context Evaluation</strong></h3>
-<p>Assesses:</p>
-<ul>
-<li>relevance</li>
-<li>safety</li>
-<li>predicted user intent</li>
-<li>likelihood of abuse</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.2.4 Risk Levels</h2>
-<p>Risk is returned as:</p>
-
-<ul>
-<li><strong>Safe</strong></li>
-<li><strong>Suspicious</strong></li>
-<li><strong>High Risk</strong></li>
-<li><strong>Critical</strong></li>
-</ul>
-
-<p>Used by:</p>
-<ul>
-<li>FreeSpinScan</li>
-<li>Moderation tools</li>
-<li>Casino Trust Engine (if casino URL involved)</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.2.5 Discord Commands</h2>
-
-
-<p>---</p>
-
-<h2>5.1.6 Integration With Trust Engines</h2>
-<p>(Two-way optional)</p>
-
-<ul>
-<li>Reports high-risk user behavior</li>
-<li>Receives warnings about users with low trust score</li>
-<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
-</ul>
-
-<p>---</p>
-
-<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
-
-<h2>5.2.1 Purpose</h2>
-<p>Degen servers are full of:</p>
-
-<ul>
-<li>fake promos</li>
-<li>phishing links</li>
-<li>malware redirects</li>
-<li>impersonation domains</li>
-<li>throwaway scam URLs</li>
-</ul>
-
-<p>SusLink scans and scores links automatically.</p>
-
-<p>---</p>
-
-<h2>5.2.2 Inputs</h2>
-
-<p>Users submit:</p>
-<ul>
-<li>raw URL</li>
-<li>optional context (“free spins”, “casino login”, etc.)</li>
-</ul>
-
-<p>Bots may auto-scan messages containing URLs.</p>
-
-<p>---</p>
-
-<h2>5.2.3 Data Pipeline</h2>
-
-<p>SusLink performs:</p>
-
-<h3>1. <strong>Domain Reputation Check</strong></h3>
-<ul>
-<li>Newly registered domain flag</li>
-<li>Blacklist checks</li>
-<li>TLD risk analysis</li>
-<li>Subdomain spoof detection</li>
-</ul>
-
-<h3>2. <strong>Redirect Chain Walk</strong></h3>
-<p>Follows link until final destination, checks for:</p>
-<ul>
-<li>mismatched content type</li>
-<li>malicious JS</li>
-<li>tracker payloads</li>
-<li>invisible redirects</li>
-</ul>
-
-<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
-<p>Flags:</p>
-<ul>
-<li>repeated scam keywords</li>
-<li>casino impersonations</li>
-<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
-<li>crypto drainers</li>
-<li>wallet connect spoofers</li>
-</ul>
-
-<h3>4. <strong>AI Context Evaluation</strong></h3>
-<p>Assesses:</p>
-<ul>
-<li>relevance</li>
-<li>safety</li>
-<li>predicted user intent</li>
-<li>likelihood of abuse</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.2.4 Risk Levels</h2>
-<p>Risk is returned as:</p>
-
-<ul>
-<li><strong>Safe</strong></li>
-<li><strong>Suspicious</strong></li>
-<li><strong>High Risk</strong></li>
-<li><strong>Critical</strong></li>
-</ul>
-
-<p>Used by:</p>
-<ul>
-<li>FreeSpinScan</li>
-<li>Moderation tools</li>
-<li>Casino Trust Engine (if casino URL involved)</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.2.5 Discord Commands</h2>
 
 
 <p>---</p>
@@ -741,198 +376,6 @@
 
 <h2>5.3.4 Discord Commands</h2>
 
-
-<p>Bot can optionally auto-scan all links.</p>
-
-<p>---</p>
-
-<h1>5.3 CollectClock — Bonus Tracking & Nerf Analysis</h1>
-
-<h2>5.3.1 Purpose</h2>
-<p>Casinos change bonuses without transparency:</p>
-
-<ul>
-<li>daily bonus amounts</li>
-<li>cooldown windows</li>
-<li>region rules</li>
-<li>spin value</li>
-<li>minimum wager</li>
-<li>total payout</li>
-</ul>
-
-<p>CollectClock provides clear, predictable bonus visibility.</p>
-
-<p>---</p>
-
-<h2>5.3.2 Core Features</h2>
-
-<h3><strong>1. Countdown Timers</strong></h3>
-<p>User gets timers for:</p>
-<ul>
-<li>next bonus</li>
-<li>streak bonuses</li>
-<li>deposit bonuses</li>
-<li>regional promos</li>
-</ul>
-
-<h3><strong>2. Nerf Detection</strong></h3>
-<p>Detects when casinos silently reduce:</p>
-
-<ul>
-<li>daily SC amounts</li>
-<li>free spin values</li>
-<li>eligibility scores</li>
-<li>min deposits</li>
-</ul>
-
-<p>Example:</p>
-<ul>
-<li>“1.00 SC daily bonus → 0.10 SC today”</li>
-<p>→ flagged and logged</p>
-</ul>
-
-<h3><strong>3. Bonus Pattern Prediction</strong></h3>
-<p>Uses:</p>
-<ul>
-<li>user reports</li>
-<li>collected timestamps</li>
-<li>casino behavior trends</li>
-<li>machine learning pattern detection</li>
-</ul>
-
-<p>Predicts:</p>
-<ul>
-<li>frequency</li>
-<li>typical time window</li>
-<li>cycles (e.g., peak days)</li>
-<li>probability of reversion after a nerf</li>
-</ul>
-
-<h3><strong>4. User-Customizable Bonus Categories</strong></h3>
-<p>Supports:</p>
-<ul>
-<li>casinos without APIs</li>
-<li>user-defined bonus timers</li>
-<li>manual verification (if autoscan unsupported)</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.3.3 Inputs</h2>
-
-<p>Users may submit:</p>
-<ul>
-<li>bonus timestamp</li>
-<li>bonus amount</li>
-<li>notes (“nerfed today from 1.0 → 0.2”)</li>
-</ul>
-
-<p>Bot may scrape:</p>
-<ul>
-<li>casino daily bonus pages</li>
-<li>timestamped user reports</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.3.4 Discord Commands</h2>
-
-
-<p>Bot can optionally auto-scan all links.</p>
-
-<p>---</p>
-
-<h1>5.3 CollectClock — Bonus Tracking & Nerf Analysis</h1>
-
-<h2>5.3.1 Purpose</h2>
-<p>Casinos change bonuses without transparency:</p>
-
-<ul>
-<li>daily bonus amounts</li>
-<li>cooldown windows</li>
-<li>region rules</li>
-<li>spin value</li>
-<li>minimum wager</li>
-<li>total payout</li>
-</ul>
-
-<p>CollectClock provides clear, predictable bonus visibility.</p>
-
-<p>---</p>
-
-<h2>5.3.2 Core Features</h2>
-
-<h3><strong>1. Countdown Timers</strong></h3>
-<p>User gets timers for:</p>
-<ul>
-<li>next bonus</li>
-<li>streak bonuses</li>
-<li>deposit bonuses</li>
-<li>regional promos</li>
-</ul>
-
-<h3><strong>2. Nerf Detection</strong></h3>
-<p>Detects when casinos silently reduce:</p>
-
-<ul>
-<li>daily SC amounts</li>
-<li>free spin values</li>
-<li>eligibility scores</li>
-<li>min deposits</li>
-</ul>
-
-<p>Example:</p>
-<ul>
-<li>“1.00 SC daily bonus → 0.10 SC today”</li>
-<p>→ flagged and logged</p>
-</ul>
-
-<h3><strong>3. Bonus Pattern Prediction</strong></h3>
-<p>Uses:</p>
-<ul>
-<li>user reports</li>
-<li>collected timestamps</li>
-<li>casino behavior trends</li>
-<li>machine learning pattern detection</li>
-</ul>
-
-<p>Predicts:</p>
-<ul>
-<li>frequency</li>
-<li>typical time window</li>
-<li>cycles (e.g., peak days)</li>
-<li>probability of reversion after a nerf</li>
-</ul>
-
-<h3><strong>4. User-Customizable Bonus Categories</strong></h3>
-<p>Supports:</p>
-<ul>
-<li>casinos without APIs</li>
-<li>user-defined bonus timers</li>
-<li>manual verification (if autoscan unsupported)</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.3.3 Inputs</h2>
-
-<p>Users may submit:</p>
-<ul>
-<li>bonus timestamp</li>
-<li>bonus amount</li>
-<li>notes (“nerfed today from 1.0 → 0.2”)</li>
-</ul>
-
-<p>Bot may scrape:</p>
-<ul>
-<li>casino daily bonus pages</li>
-<li>timestamped user reports</li>
-</ul>
-
-<p>---</p>
-
-<h2>5.3.4 Discord Commands</h2>
-
 <p>bonus</p>
 <p>/bonus set <casino> <amount></p>
 <p>/bonus history <casino></p>
@@ -962,20 +405,21 @@
 </main>
 <footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
-    <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
-      <a href="../tools/">All Tools</a>
+      <a href="../tools/">All tools</a>
       <a href="../gate/">TimeCheck</a>
       <a href="../cooldown/">RealityCheck</a>
+      <a href="../casinos/">TrustCheck</a>
+      <a href="../verify/">Fairness Verifier</a>
       <a href="../rtp-scanner/">RTP Scanner</a>
       <a href="../house-edge-scanner/">House Edge Scanner</a>
-      <a href="../verify/">Fairness Verifier</a>
       <a href="../wincheck/">Win Skim</a>
-      <a href="../casinos/">TrustCheck</a>
-      <a href="../tip/">Tip Jar</a>
+      <a href="../extension.html">Extension</a>
+      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord server</a>
       <a href="../login/" data-tc-footer-auth data-signed-in-href="../dashboard/" data-signed-in-text="Your dashboard">Discord Sign In</a>
-      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord Server</a>
-      <a href="../privacy/">Privacy Policy</a>
+      <a href="../tip/">Tip Jar</a>
+      <a href="https://ko-fi.com/jmenichole7" target="_blank" rel="noopener noreferrer">Tip on Ko-fi</a>
+      <a href="../privacy/">Privacy</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
@@ -1087,6 +531,28 @@
   window.addEventListener('storage', function (e) {
     if (!e.key || e.key === 'tc_token' || e.key === 'tc_user' || e.key === 'tc_token_exp') render();
   });
+})();
+</script>
+<script>
+(function () {
+  var btn = document.querySelector('[data-tc-menu-toggle]');
+  var nav = btn && btn.closest('.site-nav');
+  if (!btn || !nav) return;
+  function set(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function () { set(!nav.classList.contains('is-open')); });
+  nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.site-nav__links a')) set(false); });
+  document.addEventListener('click', function (e) { if (nav.classList.contains('is-open') && !nav.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+  });
+  if (window.matchMedia) {
+    var wide = window.matchMedia('(min-width: 720px)');
+    var onWide = function () { if (wide.matches) set(false); };
+    if (wide.addEventListener) wide.addEventListener('change', onWide); else if (wide.addListener) wide.addListener(onWide);
+  }
 })();
 </script>
 

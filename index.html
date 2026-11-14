@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="styles/base.css"/>
 <script>
 (function () {
+  document.documentElement.classList.add('js');
   try {
     var exp = Number(localStorage.getItem('tc_token_exp') || 0);
     if (exp && exp < Date.now()) {
@@ -33,150 +34,87 @@
 </head>
 <body>
 <nav class="site-nav" aria-label="Primary">
-  <a class="site-nav__brand" href="index.html" aria-current="page"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#17c3b2; flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)" stroke="#17c3b2"/><path d="m9 12 2 2 4-4" stroke="#17c3b2"/></svg>TiltCheck<span class="site-nav__beta">Beta</span></a>
-  <div class="site-nav__links">
-    <a href="gate/" style="color:#17c3b2; font-weight:700;">TimeCheck</a>
-    <a href="extension.html">Extension</a>
+  <a class="site-nav__brand" href="index.html" aria-current="page"><svg class="site-nav__logo" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(23,195,178,0.18)"/><path d="m9 12 2 2 4-4"/></svg>TiltCheck<span class="site-nav__beta">Beta</span></a>
+  <button type="button" class="site-nav__toggle" aria-expanded="false" aria-controls="site-nav-menu" data-tc-menu-toggle><span class="site-nav__toggle-bars" aria-hidden="true"></span><span class="site-nav__toggle-label">Menu</span></button>
+  <div class="site-nav__links" id="site-nav-menu">
     <a href="tools/">Tools</a>
-    <a href="casinos/">TrustCheck</a>
-    <a href="cooldown/">RealityCheck</a>
+    <a href="casinos/">Casinos</a>
+    <a href="extension.html">Extension</a>
+    <a class="site-nav__extra" href="gate/">TimeCheck</a>
+    <a class="site-nav__extra" href="cooldown/">RealityCheck</a>
     <a class="site-nav__discord" data-tc-nav-auth data-account-href="dashboard/" href="login/" aria-label="Sign in with Discord" title="Sign in with Discord"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037 12.3 12.3 0 0 0-.608 1.25 18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><span>Sign in</span></a>
   </div>
 </nav>
-<main class="landing-page">
-  <section class="landing-hero" aria-label="TiltCheck">
-    <div class="landing-hero__copy">
-      <h1 class="landing-hero__title"><span class="landing-hero__title-q">House always wins?</span><span class="landing-hero__title-a">NOT TODAY.</span></h1>
-      <p class="landing-hero__dopamine">The math isn&#39;t rigged. Your dopamine is.</p>
-      <p class="landing-hero__kicker">Chasing losses and thinking you are due is how the casino eats your balance.</p>
-      <p class="landing-hero__lede">Simple tools to keep you in control: ClickCheck for 2-second spin pauses, Nope List to block the games that rinse you, and RealityCheck when you need to walk away and touch grass.</p>
-      <div class="hero-actions landing-hero__actions">
-        <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>DOWNLOAD EXTENSION (ZIP)</a>
-        <a class="btn btn-primary" href="gate/">TIMECHECK (TIMER)</a>
-        <a class="btn btn-secondary" href="cooldown/">REALITYCHECK (TOUCH GRASS)</a>
-      </div>
-      <a class="hero-actions__secondary-link" href="tools/">Browse all tools</a>
-      <p class="landing-hero__privacy">We never ask for passwords or private keys. The extension and web tools run client-side in your own browser.</p>
-    </div>
+<main class="landing-page home">
+  <section class="home-hero" aria-label="TiltCheck">
+    <h1 class="landing-hero__title"><span class="landing-hero__title-q">House always wins?</span><span class="landing-hero__title-a">NOT TODAY.</span></h1>
+    <p class="landing-hero__dopamine">The math isn&#39;t rigged. Your dopamine is.</p>
+    <p class="home-hero__lede">Free tools that put a little friction between you and the next deposit. You switch them on. You make the calls.</p>
+    <a class="btn btn-primary home-hero__cta" href="#get">Get it free</a>
   </section>
-  <section class="landing-moves" id="install" aria-label="How it works">
-    <p class="landing-moves__eyebrow">How it works</p>
-    <h2 class="landing-moves__title">Three simple habits.</h2>
-    <ol class="landing-moves__list"><li class="landing-move">
-  <span class="landing-move__num">01</span>
-  <h3 class="landing-move__title">Check the house first</h3>
-  <p>Use TrustCheck to review payout complaints, license status, and scam flags before depositing.</p>
+  <section class="home-section" aria-labelledby="home-does-title">
+    <h2 class="home-section__title" id="home-does-title">What it does</h2>
+    <ul class="home-does"><li class="home-does__item">
+  <h3 class="home-does__title">Check a casino pays</h3>
+  <p class="home-does__body">Payout complaints, licenses and red flags, graded. Look before you deposit.</p>
+  <p class="home-does__links"><a class="home-link" href="casinos/">See the grades</a></p>
 </li>
-<li class="landing-move">
-  <span class="landing-move__num">02</span>
-  <h3 class="landing-move__title">Set your limits</h3>
-  <p>Use TimeCheck to lock in your session time and stop-loss before you spin.</p>
+<li class="home-does__item">
+  <h3 class="home-does__title">Verify your rolls</h3>
+  <p class="home-does__body">Paste the server seed, client seed and nonce. See if that dice, crash or plinko result adds up.</p>
+  <p class="home-does__links"><a class="home-link" href="tools/verify/">Verify a roll</a></p>
 </li>
-<li class="landing-move">
-  <span class="landing-move__num">03</span>
-  <h3 class="landing-move__title">Slow your rolls</h3>
-  <p>Use ClickCheck in the extension for a forced 2-second pause so you cannot turbo-mash away your balance.</p>
-</li></ol>
-  </section>
-  <section class="landing-brakes" aria-label="What the extension does">
-    <p class="landing-brakes__eyebrow">ON THE CASINO TAB</p>
-    <h2 class="landing-brakes__title">THE ANNOYING STUFF. ON PURPOSE.</h2>
-    <ul class="landing-brakes__list"><li class="landing-brake">
-  <span class="landing-brake__num">01</span>
-  <h3 class="landing-brake__title">ClickCheck</h3>
-  <p class="landing-brake__body">A mandatory 2-second pause between spins to kill the auto-spin daze.</p>
-  <span class="landing-brake__status">On by default</span>
+<li class="home-does__item">
+  <h3 class="home-does__title">Take a break</h3>
+  <p class="home-does__body">Set a session timer and a stop-loss before you start, or lock yourself out of the cashier for 24 hours up to 30 days.</p>
+  <p class="home-does__links"><a class="home-link" href="gate/">TimeCheck</a><a class="home-link" href="cooldown/">RealityCheck</a></p>
 </li>
-<li class="landing-brake">
-  <span class="landing-brake__num">02</span>
-  <h3 class="landing-brake__title">Nope List</h3>
-  <p class="landing-brake__body">Add the slots and games that rinse you to your list and they stop clicking.</p>
-  <span class="landing-brake__status">Custom list</span>
-</li>
-<li class="landing-brake">
-  <span class="landing-brake__num">03</span>
-  <h3 class="landing-brake__title">Sneaky Bet Alert</h3>
-  <p class="landing-brake__body">Spots slots that sneakily open at $1.00–$2.00 instead of $0.10 before spin one.</p>
-  <span class="landing-brake__status">Active on game open</span>
-</li>
-<li class="landing-brake">
-  <span class="landing-brake__num">04</span>
-  <h3 class="landing-brake__title">Keep the Win</h3>
-  <p class="landing-brake__body">Hides cancel-withdrawal buttons while payouts are pending so you keep your win.</p>
-  <span class="landing-brake__status">Active on pending payouts</span>
-</li>
-<li class="landing-brake">
-  <span class="landing-brake__num">05</span>
-  <h3 class="landing-brake__title">RealityCheck</h3>
-  <p class="landing-brake__body">Cashier and spin buttons stay dead while your 24-hour Touch Grass lock is active.</p>
-  <span class="landing-brake__status">24-hour timelock</span>
-</li>
-<li class="landing-brake">
-  <span class="landing-brake__num">06</span>
-  <h3 class="landing-brake__title">Win Skim</h3>
-  <p class="landing-brake__body">Auto-skims a cut of big wins into your casino&#39;s own vault before you give it back.</p>
-  <span class="landing-brake__status">Configurable %</span>
+<li class="home-does__item">
+  <h3 class="home-does__title">Touch grass with friends</h3>
+  <p class="home-does__body">Trivia, Bluff and Degens Against Decency in a Discord voice channel. Points are bragging rights. Nothing to bet.</p>
+  <p class="home-does__links"><a class="home-link" href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Join the Discord</a></p>
 </li></ul>
-    <div class="landing-calc">
-      <div class="landing-calc__inputs">
-        <div class="landing-calc__slider-row">
-          <label class="landing-calc__label" for="wageSlider">Your Hourly Day-Job Wage: <strong id="wageVal">$25/hr</strong></label>
-          <input type="range" id="wageSlider" class="landing-calc__slider" min="15" max="150" value="25" step="5" oninput="updateLandingWage()"/>
-        </div>
-        <div class="landing-calc__slider-row">
-          <label class="landing-calc__label" for="lossSlider">Simulated Session Loss: <strong id="lossVal" style="color:#e63946;">-$300</strong></label>
-          <input type="range" id="lossSlider" class="landing-calc__slider" min="50" max="2500" value="300" step="50" oninput="updateLandingWage()"/>
-        </div>
-      </div>
-      <div class="landing-calc__banner">
-        <span class="landing-calc__banner-tag">REALITY WAGE CLOCK</span>
-        <p class="landing-calc__banner-lead">Session Down: <span id="calcLossText">-$300.00</span> (<span id="calcHoursText" style="color:#f4a261;">12.0 hours</span> of labor torched)</p>
-        <p class="landing-calc__banner-desc" id="calcDescText">That is an entire 8-hour shift plus a half day of hard labor gone. You spent all day working for the house. Close the tab.</p>
-      </div>
-    </div>
   </section>
-  <section class="landing-tape" aria-label="Honesty">
-    <p class="landing-tape__label">THE FINE PRINT</p>
-    <ul class="landing-tape__list"><li>Zero keys, zero deposits: we never take custody of player funds.</li>
-<li>Client-side harm reduction: all limits and delays run in your browser.</li>
-<li>Non-custodial cooldowns: 24-hour locks are voluntary and self-enforced.</li></ul>
+  <section class="home-section" id="get" aria-labelledby="home-get-title">
+    <h2 class="home-section__title" id="home-get-title">How to get it</h2>
+    <ul class="home-get"><li class="home-get__row">
+  <h3 class="home-get__where">On a computer</h3>
+  <p class="home-get__body">The extension works on the casino tab: a 2-second pause between spins, a Nope List for the games that rinse you, a heads-up when a slot opens at a big bet, and the rest.</p>
+  <p class="home-get__note">Desktop Chrome, Brave or Edge.</p>
+  <div class="home-get__actions">
+    <a class="btn btn-primary" href="downloads/tiltcheck-extension.zip" download>Download the extension</a>
+    <a class="home-link" href="extension.html">What&#39;s in it</a>
+  </div>
+</li>
+<li class="home-get__row">
+  <h3 class="home-get__where">On your phone</h3>
+  <p class="home-get__body">The web tools run in your browser. Add TimeCheck to your home screen and it opens like an app.</p>
+  
+  <div class="home-get__actions">
+    
+    <a class="home-link" href="tools/">All tools</a>
+  </div>
+</li></ul>
+    <p class="home-fine">No passwords, no keys, no deposits. TiltCheck never holds your money, and every limit runs in your own browser.</p>
   </section>
 </main>
-<script>
-function updateLandingWage() {
-  var w = parseFloat(document.getElementById('wageSlider').value);
-  var l = parseFloat(document.getElementById('lossSlider').value);
-  document.getElementById('wageVal').textContent = '$' + w + '/hr';
-  document.getElementById('lossVal').textContent = '-$' + l;
-  var hrs = (l / w).toFixed(1);
-  document.getElementById('calcLossText').textContent = '-$' + l.toFixed(2);
-  document.getElementById('calcHoursText').textContent = hrs + ' hours';
-  var desc = document.getElementById('calcDescText');
-  if (hrs >= 16) {
-    desc.textContent = 'That is two full 40-hour work weeks wiped out in one session. Walk away right now.';
-  } else if (hrs >= 8) {
-    desc.textContent = 'That is an entire 8-hour shift gone. You spent all day working for the house. Close the tab.';
-  } else {
-    desc.textContent = 'That is ' + hrs + ' hours of your hard labor torched. Respect your time and slow down.';
-  }
-}
-</script>
 <footer class="site-footer">
   <nav class="site-footer__more" aria-label="More tools">
-    <p class="site-footer__more-label">Tools &amp; Resources</p>
     <div class="site-footer__links">
-      <a href="tools/">All Tools</a>
+      <a href="tools/">All tools</a>
       <a href="gate/">TimeCheck</a>
       <a href="cooldown/">RealityCheck</a>
+      <a href="casinos/">TrustCheck</a>
+      <a href="verify/">Fairness Verifier</a>
       <a href="rtp-scanner/">RTP Scanner</a>
       <a href="house-edge-scanner/">House Edge Scanner</a>
-      <a href="verify/">Fairness Verifier</a>
       <a href="wincheck/">Win Skim</a>
-      <a href="casinos/">TrustCheck</a>
-      <a href="tip/">Tip Jar</a>
+      <a href="extension.html">Extension</a>
+      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord server</a>
       <a href="login/" data-tc-footer-auth data-signed-in-href="dashboard/" data-signed-in-text="Your dashboard">Discord Sign In</a>
-      <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">Discord Server</a>
-      <a href="privacy/">Privacy Policy</a>
+      <a href="tip/">Tip Jar</a>
+      <a href="https://ko-fi.com/jmenichole7" target="_blank" rel="noopener noreferrer">Tip on Ko-fi</a>
+      <a href="privacy/">Privacy</a>
     </div>
   </nav>
   <p class="rg-disclaimer">TiltCheck is not a casino and not a bank. This is not financial advice. If gambling has stopped being fun, call <strong>1-800-GAMBLER</strong> or visit <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer">NCPG.org</a>.</p>
@@ -288,6 +226,28 @@ function updateLandingWage() {
   window.addEventListener('storage', function (e) {
     if (!e.key || e.key === 'tc_token' || e.key === 'tc_user' || e.key === 'tc_token_exp') render();
   });
+})();
+</script>
+<script>
+(function () {
+  var btn = document.querySelector('[data-tc-menu-toggle]');
+  var nav = btn && btn.closest('.site-nav');
+  if (!btn || !nav) return;
+  function set(open) {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function () { set(!nav.classList.contains('is-open')); });
+  nav.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.site-nav__links a')) set(false); });
+  document.addEventListener('click', function (e) { if (nav.classList.contains('is-open') && !nav.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+  });
+  if (window.matchMedia) {
+    var wide = window.matchMedia('(min-width: 720px)');
+    var onWide = function () { if (wide.matches) set(false); };
+    if (wide.addEventListener) wide.addEventListener('change', onWide); else if (wide.addListener) wide.addListener(onWide);
+  }
 })();
 </script>
 
