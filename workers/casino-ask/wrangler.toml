@@ -8,7 +8,7 @@ workers_dev = true
 [vars]
 # The TiltCheck Discord app's public key (Developer Portal > General Information). Public by design.
 DISCORD_PUBLIC_KEY = "55e23c5b20cb1a25838bd68dc5d75bed02407812ab6aa8769276a258a08dccfc"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-120b"
 
 # Secret, set once at deploy and never committed:
 #   wrangler secret put GROQ_API_KEY
