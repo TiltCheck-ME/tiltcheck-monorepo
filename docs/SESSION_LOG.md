@@ -2,6 +2,17 @@
 
 # Session Log
 
+## 2026-11-13 — deploy(activity): Touch Grass chess goes live (with the DA&D fixes and millennial cards)
+
+- Jamie (9:28 PM CST): chess can go live. Same hosts as the test build: Worker `touch-grass-activity` (https://touch-grass-activity.j-chapman7.workers.dev) and Pages project `touch-grass-activity` (https://touch-grass-activity.pages.dev). Nothing merged to main; the Activity deploys from a branch build, so no merge was needed.
+- Built from branch `touch-grass-live` (4b2cd14b): `touch-grass-dad-millennial` (#733, on #729) merged with `touch-grass-chess` (#730), plus main (#731 Ask, no Activity files). Conflicts were only `docs/SESSION_LOG.md` and the `tsconfig.tests.json` exclude list (both kept). Chess and the DA&D fixes share the #727 / #726 base, so deploying chess means deploying the DA&D code; the fixes and cards went in because their tests pass.
+- Before: Worker version 4f4ebf41-96ef-4dfa-94ed-c3a0e2da3459 (deployment 72f4ef6c, 2026-11-12 9:57 PM CST); Pages deployment 12ea89ff-70c1-4c21-84ed-c0581418def1 (built from f6ef8b5f). That build already had #726 and #727.
+- After: Worker version 0777e412-b5f0-451e-b5f0-0b0c24e273c6 (deployment d6dd4cc4); Pages deployment 1726b408-950a-412e-a55e-7fc6ed16bda2. Same bindings, secrets kept (`keep_bindings: ["secret_text"]`), no migration (tag stays v3). `/api/health` 200, `/api/live` 200, `/api/trivia/scores` 401 without a token, Discord proxy health 200, Pages serves the new bundle.
+- Newly live: 1v1 Chess and the "Trivia high scores" label (#730); DA&D header "Round N · first to 5", end-at-target guard, hand refill at the pick with the New tag (#729); 34 + 80 millennial cards (#733).
+- Rollback: Worker: `wrangler rollback 4f4ebf41-96ef-4dfa-94ed-c3a0e2da3459 --name touch-grass-activity`, or POST `/accounts/<acct>/workers/scripts/touch-grass-activity/deployments` with `{"strategy":"percentage","versions":[{"version_id":"4f4ebf41-96ef-4dfa-94ed-c3a0e2da3459","percentage":100}]}`. Pages: POST `/accounts/<acct>/pages/projects/touch-grass-activity/deployments/12ea89ff-70c1-4c21-84ed-c0581418def1/rollback`, or dashboard Deployments > 12ea89ff > Rollback. Rooms stored by the new build carry a chess table and DA&D `fresh` ids; the old build ignores fields it does not know (not exercised).
+- Checked before deploy: typecheck (app, worker, tests), 283 vitest tests, all four simulations, vite build. #733 CI: Brand Law Enforcer and Secret Scanning pass; Validate Changed Packages fails on main's 9 root .md files (pre-existing, same as #727 / #729 / #730).
+- Not tested: a real chess game or DA&D table inside Discord on desktop, iOS or Android after this deploy.
+
 ## 2026-11-13 — feat(activity): DA&D millennial mix (34 prompts, 80 answers) on top of the playtest fixes
 
 - Branch `touch-grass-dad-millennial` from `touch-grass-dad-fixes` (draft #729, 63a6f24d). Draft PR, base main.
