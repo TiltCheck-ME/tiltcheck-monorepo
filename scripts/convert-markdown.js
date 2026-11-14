@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -2022,7 +2022,7 @@ function buildHouseEdgePage() {
 
       <div style="margin-top: 2.5rem; background: #090d13; border: 1px solid var(--border-default); border-radius: 12px; padding: 1.75rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem;">
         <div>
-          <span class="brand-eyebrow">On-Device Protection</span>
+          <span class="brand-eyebrow">In your browser</span>
           <h3 style="color: #f6fbff; margin: 0.25rem 0 0.5rem; font-size: 1.25rem;">Kill the churn in real-time.</h3>
           <p style="color: #94a3b8; margin: 0; font-size: 0.9rem; max-width: 34rem; line-height: 1.5;">Install the TiltCheck browser extension. Our client-side spotter detects hidden RTP drops, limits bet velocity, and enforces non-custodial session cooldowns.</p>
         </div>

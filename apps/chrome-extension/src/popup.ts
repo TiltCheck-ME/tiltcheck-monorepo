@@ -458,7 +458,7 @@ async function updateSessionStatusPill(): Promise<void> {
       if (hasLiveSpins || isRecentlyActive) {
         pillText.textContent = `Live (${siteName})`;
       } else {
-        pillText.textContent = `Guards on (${siteName})`;
+        pillText.textContent = `On (${siteName})`;
       }
       return;
     }
@@ -1349,7 +1349,7 @@ function syncRiskSliderUi(value: number): void {
 function renderSlugRegistry(): void {
   const registry = $('slug-registry');
   if (guardSlugs.length === 0) {
-    registry.innerHTML = '<span class="guard-note" style="margin:0">No slugs armed.</span>';
+    registry.innerHTML = '<span class="guard-note" style="margin:0">No slugs on the list.</span>';
   } else {
     registry.innerHTML = guardSlugs
       .map(
@@ -1597,7 +1597,7 @@ function initGuardSettingsPanel(): void {
     const enabled = (e.target as HTMLInputElement).checked;
     await saveTouchGrassOptIn(enabled);
     setTouchGrassControlsEnabled(enabled);
-    toast(enabled ? 'Spin brake armed.' : 'Spin brake off.');
+    toast(enabled ? 'Spin brake on.' : 'Spin brake off.');
   });
 
   const defaultBetToggle = document.getElementById('default-bet-breaker-toggle') as HTMLInputElement | null;
@@ -1605,7 +1605,7 @@ function initGuardSettingsPanel(): void {
     defaultBetToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveDefaultBetBreakerEnabled(enabled);
-      toast(enabled ? 'Default bet breaker armed.' : 'Default bet breaker off.');
+      toast(enabled ? 'Default bet breaker on.' : 'Default bet breaker off.');
     });
   }
 
@@ -1681,7 +1681,7 @@ function initGuardSettingsPanel(): void {
     autoLockToggleInput.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveAutoLockOnTilt(enabled);
-      toast(enabled ? 'Tilt auto-lock armed.' : 'Tilt auto-lock disabled.');
+      toast(enabled ? 'Tilt auto-lock on.' : 'Tilt auto-lock disabled.');
     });
   }
 
@@ -1717,7 +1717,7 @@ function initGuardSettingsPanel(): void {
     goalsToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveCashoutGoalsEnabled(enabled);
-      toast(enabled ? 'Reality cashout goals armed.' : 'Reality cashout goals disabled.');
+      toast(enabled ? 'Reality cashout goals on.' : 'Reality cashout goals disabled.');
     });
   }
 
@@ -1762,7 +1762,7 @@ function initGuardSettingsPanel(): void {
       const enabled = (e.target as HTMLInputElement).checked;
       currentBonusConfig.active = enabled;
       await saveBonusTrackerConfig(currentBonusConfig);
-      toast(enabled ? 'Bonus playthrough tracker armed.' : 'Bonus playthrough tracker off.');
+      toast(enabled ? 'Bonus playthrough tracker on.' : 'Bonus playthrough tracker off.');
     });
   }
 
@@ -1785,7 +1785,7 @@ function initGuardSettingsPanel(): void {
 
       if (bonusToggle) bonusToggle.checked = true;
       await saveBonusTrackerConfig(currentBonusConfig);
-      toast('Bonus tracker armed (' + name + ').');
+      toast('Bonus tracker on (' + name + ').');
     });
   }
 
@@ -1842,7 +1842,7 @@ function initGuardSettingsPanel(): void {
     const enabled = (e.target as HTMLInputElement).checked;
     await saveGameBlockOptIn(enabled);
     setGameBlockControlsEnabled(enabled);
-    toast(enabled ? 'Strategic filters armed.' : 'Strategic filters off.');
+    toast(enabled ? 'Strategic filters on.' : 'Strategic filters off.');
   });
 
   document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-slug]').forEach((btn) => {
@@ -2086,7 +2086,7 @@ async function renderEasyModeState(): Promise<void> {
 
     const hostLabel = document.getElementById('easy-platform-sub');
     if (hostLabel && stored['currentHostname']) {
-      hostLabel.textContent = `Active protection on ${stored['currentHostname']}`;
+      hostLabel.textContent = `Running on ${stored['currentHostname']}`;
     }
 
     const cooldownUntil = stored['tiltcheck_cooldown_active_until'];
@@ -2127,19 +2127,19 @@ function initEasyModeListeners(): void {
   document.getElementById('preset-card-casual')?.addEventListener('click', async () => {
     await applyPlayerPreset('casual');
     await renderEasyModeState();
-    toast('Casual Spinner preset armed.');
+    toast('Casual Spinner preset applied.');
     void refreshGuardSettingsUi();
   });
   document.getElementById('preset-card-bag-securer')?.addEventListener('click', async () => {
     await applyPlayerPreset('bag_securer');
     await renderEasyModeState();
-    toast('Bag Securer preset armed (Recommended).');
+    toast('Bag Securer preset applied (Recommended).');
     void refreshGuardSettingsUi();
   });
   document.getElementById('preset-card-hard-lockdown')?.addEventListener('click', async () => {
     await applyPlayerPreset('hard_lockdown');
     await renderEasyModeState();
-    toast('Hard Lockdown preset armed (Max Discipline).');
+    toast('Hard Lockdown preset applied (Max Discipline).');
     void refreshGuardSettingsUi();
   });
 

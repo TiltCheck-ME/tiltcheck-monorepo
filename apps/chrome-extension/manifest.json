@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TiltCheck",
   "version": "1.2.3",
-  "description": "Core guardrail: 2-second spin brake and custom game filters on supported casino tabs. Read-only. No wallet keys.",
+  "description": "Client-side brakes and checks for casino players: 2-second spin pauses, game blocking, default bet breaker, and cashier locks. Read-only.",
   "permissions": [
     "storage",
     "tabs",
@@ -41,7 +41,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "TiltCheck Guards",
+    "default_title": "TiltCheck",
     "default_popup": "popup.html"
   },
   "content_scripts": [

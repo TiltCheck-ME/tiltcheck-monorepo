@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-28 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 
 /**
  * User-configured game/category filter. Nothing is blocked until the popup list is armed.
@@ -323,7 +323,7 @@ export class LocalGameBlocker {
           <strong style="color: #ff4a4a;">${slug}</strong> is on your local exclusion list.
         </p>
         <p style="margin: 0 0 20px; font-size: 12px; line-height: 1.45; color: #666;">
-          You put this on your list. It does not click. Edit the list in the extension Guards tab.
+          You put this on your list. It does not click. Edit the list in the extension Settings tab.
         </p>
         <button type="button" id="tiltcheck-local-block-back" style="
           background: transparent;
