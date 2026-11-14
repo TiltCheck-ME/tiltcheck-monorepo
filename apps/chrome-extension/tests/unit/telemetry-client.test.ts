@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
 /**
  * @vitest-environment jsdom
  */
@@ -11,6 +11,13 @@ import {
   postRoundTelemetry,
   postWinSecureTelemetry,
 } from '../../src/telemetry-client.ts';
+
+// These tests cover the telemetry path, which is off until the worker
+// has a telemetry route. Turn it on here so the client stays tested.
+vi.mock('../../src/config.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/config.ts')>()),
+  isBackendFeatureEnabled: () => true,
+}));
 
 describe('telemetry client', () => {
   afterEach(() => {

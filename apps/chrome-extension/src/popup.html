@@ -1811,7 +1811,7 @@
         <line x1="10" y1="14" x2="21" y2="3"/>
       </svg>
     </button>
-    <button class="icon-btn" id="btn-settings" title="Settings &amp; Guards">
+    <button class="icon-btn" id="btn-settings" title="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -1865,7 +1865,7 @@
 
 <div class="tabs" id="main-tabs" style="display:none;">
   <button class="tab" data-tab="status">Status</button>
-  <button class="tab active" data-tab="block">Guards</button>
+  <button class="tab active" data-tab="block">Settings</button>
   <button class="tab" data-tab="vault">Vault</button>
   <button class="tab" data-tab="activity">Activity</button>
 </div>
@@ -1877,17 +1877,17 @@
     <div class="easy-status-header">
       <div class="easy-shield-indicator">
         <span class="dot-pulse"></span>
-        <span id="easy-shield-status">Shield Armed</span>
+        <span id="easy-shield-status">On</span>
       </div>
       <span class="easy-active-preset-badge" id="easy-active-preset-badge">Bag Securer</span>
     </div>
-    <p class="easy-status-sub" id="easy-platform-sub">Active protection on Stake, Roobet, and supported casinos.</p>
+    <p class="easy-status-sub" id="easy-platform-sub">Running on Stake, Roobet and other supported casinos.</p>
   </div>
 
   <!-- 3 One-Click Presets -->
   <div class="easy-section-title">
     <span>Player Presets</span>
-    <span style="font-size:10px; color:var(--muted); font-weight:normal;">1-Click Protect</span>
+    <span style="font-size:10px; color:var(--muted); font-weight:normal;">One click to apply</span>
   </div>
 
   <div class="presets-grid">
@@ -1895,7 +1895,7 @@
     <div class="preset-card" id="preset-card-casual" data-preset="casual">
       <div class="preset-card-header">
         <div class="preset-name">Casual Spinner</div>
-        <span class="preset-pill">Light Guard</span>
+        <span class="preset-pill">Light</span>
       </div>
       <div class="preset-desc">Reality HUD, sound cues &amp; bet breaker. High tilt allowance.</div>
       <div class="preset-specs">
@@ -1924,7 +1924,7 @@
         <div class="preset-name">Hard Lockdown</div>
         <span class="preset-pill pill-max">Max Discipline</span>
       </div>
-      <div class="preset-desc">Zero reload churn, fast 40% tilt freeze, tight profit protection.</div>
+      <div class="preset-desc">Zero reload churn, fast 40% tilt freeze, tight profit floor.</div>
       <div class="preset-specs">
         <span>Drawdown: 40%</span>
         <span>Auto-Freeze: Fast</span>
@@ -2052,7 +2052,7 @@
   <section class="goals-card" id="cashout-goals-progress-card">
     <div class="goals-header">
       <span class="goals-title">Cashout Goals Progress</span>
-      <button type="button" class="btn-config-goals" id="btn-config-goals" title="Configure goals in Guards tab">Edit Goals</button>
+      <button type="button" class="btn-config-goals" id="btn-config-goals" title="Edit goals in the Settings tab">Edit Goals</button>
     </div>
     <div class="goals-progress-list" id="cashout-goals-progress-list">
       <!-- Populated dynamically via popup.ts -->
@@ -2076,7 +2076,7 @@
     </div>
     <h2>Connect your account</h2>
     <div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:6px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#fbbf24;text-align:left;">
-      <strong>Core runs guest.</strong> Guards tab is the 2s spin lock. Discord is optional — vault, buddies, dashboard sync. Sidebar HUD is Pro monolith, not this extension.
+      <strong>Core runs guest.</strong> The Settings tab holds the 2s spin lock. Discord is optional — vault, buddies, dashboard sync. Sidebar HUD is Pro monolith, not this extension.
     </div>
     <p>Use Discord to sync vault, sessions, and community tools. Skip it if you just want the spin lock.</p>
     <p style="margin-bottom:16px; font-size:12px;">
@@ -2093,7 +2093,7 @@
 
   <!-- Main status (shown when logged in) -->
   <div id="status-content">
-    <div class="tilt-block">
+    <div class="tilt-block" id="tilt-block">
       <div class="tilt-row">
         <span class="tilt-label">Tilt Meter</span>
         <div id="tilt-gauge" class="tilt-gauge tilt-ice">ICE COLD (0/10)</div>
@@ -2104,7 +2104,7 @@
     </div>
 
     <div class="stat-grid">
-      <div class="stat-cell">
+      <div class="stat-cell" id="stat-cell-pl">
         <div class="stat-label">P/L Today</div>
         <div id="stat-pl" class="stat-value stat-neu">--</div>
       </div>
@@ -2112,7 +2112,7 @@
         <div class="stat-label">Session</div>
         <div id="stat-session" class="stat-value stat-neu">--</div>
       </div>
-      <div class="stat-cell">
+      <div class="stat-cell" id="stat-cell-blocked">
         <div class="stat-label">Blocked Games</div>
         <div id="stat-blocked" class="stat-value stat-neu">--</div>
       </div>
@@ -2138,7 +2138,7 @@
 
 </div>
 
-<!-- ===== GUARDS PANEL ===== -->
+<!-- ===== SETTINGS PANEL ===== -->
 <div id="panel-block" class="panel active">
 
   <section class="guard-panel" id="touch-grass-panel">
@@ -2238,10 +2238,10 @@
     </p>
     <label class="guard-opt-row" for="profit-lock-toggle">
       <input type="checkbox" id="profit-lock-toggle" />
-      <span>Protect profit with a trailing floor.</span>
+      <span>Keep a trailing floor under your profit.</span>
     </label>
     <div class="form-row" style="margin-top:8px;">
-      <label for="trailing-percent-select">Protected Profit Share</label>
+      <label for="trailing-percent-select">Floor (share of profit kept)</label>
       <select id="trailing-percent-select" style="background:#080a0e; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-family:inherit;">
         <option value="25">25% floor (Aggressive)</option>
         <option value="50" selected>50% floor (Recommended)</option>
@@ -2424,13 +2424,16 @@
 
   <hr />
 
+  <p id="server-exclusions-off" style="display:none; margin-bottom:12px; font-size:11px; color:var(--muted);">Synced exclusions are not available yet. The filters above work in this browser without an account.</p>
+
+  <div id="server-exclusions">
   <div class="section-head">
     <span class="section-title">Dashboard sync (Discord)</span>
     <button class="btn btn-ghost" id="btn-add-toggle" style="padding:5px 10px; font-size:11px">
       Manage in dashboard
     </button>
   </div>
-  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Server-backed exclusions when Discord is linked. Local guards above work without login.</p>
+  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Server-backed exclusions when Discord is linked. The settings above work without login.</p>
 
   <!-- List -->
   <div id="exclusion-list-wrap">
@@ -2444,24 +2447,28 @@
   <div id="exclusion-loading" style="display:none; text-align:center; padding:24px 0;">
     <div class="spinner" style="margin:0 auto;"></div>
   </div>
+  </div>
 
 </div>
 
 <!-- ===== VAULT PANEL ===== -->
 <div id="panel-vault" class="panel">
 
-  <div class="vault-stat-row">
+  <div class="vault-stat-row" id="vault-stat-row">
     <span class="vault-stat-label">Auto-vaulted this session</span>
     <span class="vault-stat-value" id="vault-session-total">$0.00</span>
   </div>
 
+  <p id="vault-rules-off" style="display:none; margin-bottom:12px; font-size:11px; color:var(--muted);">Vault rules are not available yet.</p>
+
+  <div id="vault-rules-section">
   <div class="section-head">
     <span class="section-title">Vault Snapshot</span>
     <button class="btn btn-ghost" id="btn-vault-add-toggle" style="padding:5px 10px; font-size:11px">
       Manage in dashboard
     </button>
   </div>
-  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Summary only here. Durable LockVault rules and wallet safety settings live in the dashboard. The extension just shows what is already armed.</p>
+  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Summary only here. Durable LockVault rules and wallet safety settings live in the dashboard. The extension just shows what is already set.</p>
 
   <!-- Rule list -->
   <div id="vault-rule-list"></div>
@@ -2472,6 +2479,7 @@
 
   <div id="vault-loading" style="display:none; text-align:center; padding:24px 0;">
     <div class="spinner" style="margin:0 auto;"></div>
+  </div>
   </div>
 
 </div>
@@ -2527,7 +2535,7 @@
     </div>
 
     <p style="font-size:9.5px; color:#64748b; line-height:1.35; margin:0; text-align:center;">
-      Pure client-side harm reduction. Voluntary tipping does not alter odds, unlock features, or compromise non-custodial protection.
+      Pure client-side harm reduction. Voluntary tipping does not alter odds, unlock features, or change custody. TiltCheck never holds your funds.
     </p>
   </div>
 </div>
@@ -2547,7 +2555,7 @@
     <!-- Step 1: Welcome & Philosophy -->
     <div class="onboarding-step" id="onboarding-step-1">
       <div style="display:flex; align-items:center; gap:10px;">
-        <img src="icons/icon48.png" width="36" height="36" style="border-radius:8px;" alt="TiltCheck Shield" />
+        <img src="icons/icon48.png" width="36" height="36" style="border-radius:8px;" alt="TiltCheck" />
         <div>
           <h2>Welcome to TiltCheck</h2>
           <p class="onboarding-tagline">Client-side brakes and checks for casino players.</p>
@@ -2629,7 +2637,7 @@
           <span class="summary-value" id="wizard-summary-preset">Bag Securer</span>
         </div>
         <div class="summary-row">
-          <span class="summary-label">Target Defense</span>
+          <span class="summary-label">Main checks</span>
           <span class="summary-value" id="wizard-summary-defense">Loss Chase &amp; Deposit Barrier</span>
         </div>
         <div class="summary-row">
@@ -2661,7 +2669,7 @@
     </p>
     <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 14px; font-size: 11px; color: var(--muted); line-height: 1.4;">
       <div style="color: #ffffff; font-weight: 600; margin-bottom: 4px;">Zero crypto wallet required:</div>
-      Takes effect instantly inside your browser. Step away, cool off, and protect your capital.
+      Takes effect instantly inside your browser. Step away and cool off.
     </div>
     <div style="display: flex; gap: 8px;">
       <button type="button" class="btn btn-ghost" id="btn-cancel-emergency-cooldown" style="flex: 1;">Cancel</button>

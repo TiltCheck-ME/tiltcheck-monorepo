@@ -115,7 +115,13 @@ The extension never uses `https://<extension-id>.chromiumapp.org/` for this flow
 
 ### Log out
 
-Sidebar header control and popup **Log out** call `POST /auth/logout` with the bearer token when present, then clear the same `chrome.storage.local` keys so UI returns to signed-out state everywhere.
+Popup **Log out** calls the collectclock-api worker's `POST /logout` with the worker session (`workerSession` in `chrome.storage.local`) when there is one, then clears `authToken`, `workerSession`, `userData` and `tiltguard_user_id` so the UI returns to signed-out state everywhere.
+
+### Backend (Nov 2026)
+
+`api.tiltcheck.me` does not resolve, so the extension's data calls go to the live Cloudflare worker `collectclock-api` (`EXT_CONFIG` in `src/config.ts`). It only calls the routes listed in `WORKER_ROUTES`: `POST /auth/token` (Discord token to worker session, right after sign-in), `GET /me`, `POST /logout`. The worker answers unknown paths with 200 and its health JSON, so never point a feature at a route it does not have.
+
+Features with no backend yet are switched off in `BACKEND_FEATURES` (no network call, UI hidden or replaced by a one-line note): server tilt score and P/L, onboarding status, synced exclusions, vault rules, analyzer socket, round and win telemetry, on-chain cooldown check and stream through the API, link scan, and the lounge panel. Local features (spin delay, local game filters, cooldown lock set from tiltcheck.me) are unchanged. Sections below that describe `api.tiltcheck.me` routes are the old design.
 
 ---
 

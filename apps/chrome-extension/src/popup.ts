@@ -1,5 +1,12 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
-import { EXT_CONFIG, getDiscordLoginUrl, getDirectDiscordOAuthUrl } from './config.js';
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+import {
+  EXT_CONFIG,
+  WORKER_ROUTES,
+  getDirectDiscordOAuthUrl,
+  getWorkerEndpoint,
+  isBackendFeatureEnabled,
+} from './config.js';
+import { applyBackendAvailability } from './backend-availability.js';
 import {
   addCustomSlug,
   clampRisk,
@@ -79,7 +86,7 @@ import {
 import {
   extensionSeedManager,
   normalizeSiteKey,
-} from './seed-manager-extension.js';
+} from './seed-manager-extension.js'; // client seed (provably fair)
 
 // ---------------------------------------------------------------------------
 // Types
@@ -108,6 +115,7 @@ interface PopupStorageSnapshot {
   userData?: UserData | null;
   tiltguard_user_id?: string | null;
   authToken?: string | null;
+  workerSession?: string | null;
   activityFeed?: Array<{ msg: string; type?: string; ts?: number }>;
   vaultSessionTotal?: number;
 }
@@ -235,6 +243,7 @@ function renderAuthState() {
 }
 
 async function checkOnboardingStatus(): Promise<void> {
+  if (!isBackendFeatureEnabled('onboardingStatus')) return;
   const linkedDiscordId = getLinkedDiscordRouteId();
   if (!linkedDiscordId) return;
 
@@ -295,7 +304,7 @@ function syncCapabilityState() {
   }
 
   blockTab.style.display = '';
-  vaultTab.style.display = '';
+  vaultTab.style.display = isBackendFeatureEnabled('vaultRules') ? '' : 'none';
   hide('limited-auth-note');
 }
 
@@ -323,25 +332,29 @@ function attachAuthStorageSync(): void {
 }
 
 async function performLogout(): Promise<void> {
-  const token = await getToken();
+  const workerSession = await getWorkerSession();
   let serverLogoutFailed = false;
-  try {
-    const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!response.ok) {
+  // Only a worker session can be revoked server-side. Without one (signed in
+  // before the worker session existed) there is nothing to revoke.
+  if (workerSession) {
+    try {
+      const response = await fetch(getWorkerEndpoint(WORKER_ROUTES.LOGOUT), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${workerSession}` },
+      });
+      if (!response.ok) {
+        serverLogoutFailed = true;
+      }
+    } catch {
       serverLogoutFailed = true;
     }
-  } catch {
-    serverLogoutFailed = true;
   }
 
   await new Promise<void>((resolve) => {
     chrome.storage.local.set(
       {
         authToken: null,
+        workerSession: null,
         userData: null,
         tiltguard_user_id: null,
       },
@@ -355,7 +368,7 @@ async function performLogout(): Promise<void> {
   loadFeed();
   toast(
     serverLogoutFailed
-      ? 'Logged out locally. Shared session may still be active.'
+      ? 'Logged out here. The server session could not be closed and expires on its own.'
       : 'Logged out.',
   );
 }
@@ -445,7 +458,7 @@ async function updateSessionStatusPill(): Promise<void> {
       if (hasLiveSpins || isRecentlyActive) {
         pillText.textContent = `Live (${siteName})`;
       } else {
-        pillText.textContent = `Guards on (${siteName})`;
+        pillText.textContent = `On (${siteName})`;
       }
       return;
     }
@@ -466,7 +479,8 @@ async function updateSessionStatusPill(): Promise<void> {
 
 async function loadStatus() {
   const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) {
+  // No server status backend yet: the pill uses local session data only.
+  if (!linkedDiscordId || !isBackendFeatureEnabled('serverStatus')) {
     void updateSessionStatusPill();
     return;
   }
@@ -1051,17 +1065,17 @@ async function loadSeedManagerState(): Promise<void> {
   const site = await detectActiveTabSite();
   currentSiteSeed = site;
 
-  const siteBadge = document.getElementById('seed-site-badge');
+  const siteBadge = document.getElementById('seed-site-badge'); // client seed (provably fair)
   if (siteBadge) {
     siteBadge.textContent = site.toUpperCase();
   }
 
   const meta = await extensionSeedManager.getActiveSeed(site);
-  activeSeedValue = meta.seed;
+  activeSeedValue = meta.seed; // client seed (provably fair)
 
   const display = document.getElementById('active-client-seed-display') as HTMLInputElement | null;
   if (display) {
-    display.value = meta.seed;
+    display.value = meta.seed; // client seed (provably fair)
   }
 
   const hygieneBadge = document.getElementById('seed-hygiene-badge');
@@ -1079,7 +1093,7 @@ async function loadSeedManagerState(): Promise<void> {
     }
   }
 
-  const countLabel = document.getElementById('seed-rotation-count-label');
+  const countLabel = document.getElementById('seed-rotation-count-label'); // client seed (provably fair)
   if (countLabel) {
     countLabel.textContent = `${meta.rotationCount} rotations`;
   }
@@ -1088,14 +1102,14 @@ async function loadSeedManagerState(): Promise<void> {
 function initSeedManagerPanel(): void {
   const copyBtn = document.getElementById('btn-copy-client-seed');
   const rotateBtn = document.getElementById('btn-rotate-client-seed');
-  const applyBtn = document.getElementById('btn-apply-seed-page');
-  const confirmApplyBtn = document.getElementById('btn-confirm-apply-seed');
-  const cancelApplyBtn = document.getElementById('btn-cancel-apply-seed');
-  const confirmBox = document.getElementById('seed-apply-confirmation-box');
-  const statusMsg = document.getElementById('seed-apply-status-msg');
-  const toggleHistoryBtn = document.getElementById('btn-toggle-seed-history');
-  const historyDrawer = document.getElementById('seed-history-drawer');
-  const historyList = document.getElementById('seed-history-list');
+  const applyBtn = document.getElementById('btn-apply-seed-page'); // client seed (provably fair)
+  const confirmApplyBtn = document.getElementById('btn-confirm-apply-seed'); // client seed (provably fair)
+  const cancelApplyBtn = document.getElementById('btn-cancel-apply-seed'); // client seed (provably fair)
+  const confirmBox = document.getElementById('seed-apply-confirmation-box'); // client seed (provably fair)
+  const statusMsg = document.getElementById('seed-apply-status-msg'); // client seed (provably fair)
+  const toggleHistoryBtn = document.getElementById('btn-toggle-seed-history'); // client seed (provably fair)
+  const historyDrawer = document.getElementById('seed-history-drawer'); // client seed (provably fair)
+  const historyList = document.getElementById('seed-history-list'); // client seed (provably fair)
 
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
@@ -1108,7 +1122,7 @@ function initSeedManagerPanel(): void {
           copyBtn.textContent = originalText || 'Copy Seed';
         }, 1500);
       } catch {
-        toast('Failed to copy seed to clipboard', true);
+        toast('Could not copy the client seed', true);
       }
     });
   }
@@ -1121,7 +1135,7 @@ function initSeedManagerPanel(): void {
           length: 32,
           reason: 'manual-rotation',
         });
-        activeSeedValue = newSeed.seed;
+        activeSeedValue = newSeed.seed; // client seed (provably fair)
         await loadSeedManagerState();
         toast('New client seed generated on-device');
       } catch {
@@ -1157,7 +1171,7 @@ function initSeedManagerPanel(): void {
         tabId,
         {
           type: 'apply_client_seed_to_page',
-          seed: activeSeedValue,
+          seed: activeSeedValue, // client seed (provably fair)
           confirmed: true,
         },
         (res) => {
@@ -1170,7 +1184,7 @@ function initSeedManagerPanel(): void {
                 toast('Client seed applied to page.');
               } else {
                 statusMsg.style.color = '#fbbf24';
-                statusMsg.textContent = res?.message || 'Open casino Fairness modal first, then click Apply (or copy seed).';
+                statusMsg.textContent = res?.message || 'Open the casino Fairness modal first, then click Apply, or copy the client seed.';
               }
             }
           }
@@ -1197,7 +1211,7 @@ function initSeedManagerPanel(): void {
             .map(
               (item) => `
               <div style="padding:4px 0; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
-                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.seed}</span>
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.seed /* client seed */}</span>
                 <span style="color:#64748b; font-size:8px;">${new Date(item.retiredAt).toLocaleTimeString()}</span>
               </div>
             `
@@ -1214,6 +1228,7 @@ function initSeedManagerPanel(): void {
 // ---------------------------------------------------------------------------
 
 async function loadExclusions() {
+  if (!isBackendFeatureEnabled('serverExclusions')) return;
   const linkedDiscordId = getLinkedDiscordRouteId();
   if (!linkedDiscordId) return;
 
@@ -1334,7 +1349,7 @@ function syncRiskSliderUi(value: number): void {
 function renderSlugRegistry(): void {
   const registry = $('slug-registry');
   if (guardSlugs.length === 0) {
-    registry.innerHTML = '<span class="guard-note" style="margin:0">No slugs armed.</span>';
+    registry.innerHTML = '<span class="guard-note" style="margin:0">No slugs on the list.</span>';
   } else {
     registry.innerHTML = guardSlugs
       .map(
@@ -1582,7 +1597,7 @@ function initGuardSettingsPanel(): void {
     const enabled = (e.target as HTMLInputElement).checked;
     await saveTouchGrassOptIn(enabled);
     setTouchGrassControlsEnabled(enabled);
-    toast(enabled ? 'Spin brake armed.' : 'Spin brake off.');
+    toast(enabled ? 'Spin brake on.' : 'Spin brake off.');
   });
 
   const defaultBetToggle = document.getElementById('default-bet-breaker-toggle') as HTMLInputElement | null;
@@ -1590,7 +1605,7 @@ function initGuardSettingsPanel(): void {
     defaultBetToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveDefaultBetBreakerEnabled(enabled);
-      toast(enabled ? 'Default bet breaker armed.' : 'Default bet breaker off.');
+      toast(enabled ? 'Default bet breaker on.' : 'Default bet breaker off.');
     });
   }
 
@@ -1666,7 +1681,7 @@ function initGuardSettingsPanel(): void {
     autoLockToggleInput.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveAutoLockOnTilt(enabled);
-      toast(enabled ? 'Tilt auto-lock armed.' : 'Tilt auto-lock disabled.');
+      toast(enabled ? 'Tilt auto-lock on.' : 'Tilt auto-lock disabled.');
     });
   }
 
@@ -1702,7 +1717,7 @@ function initGuardSettingsPanel(): void {
     goalsToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveCashoutGoalsEnabled(enabled);
-      toast(enabled ? 'Reality cashout goals armed.' : 'Reality cashout goals disabled.');
+      toast(enabled ? 'Reality cashout goals on.' : 'Reality cashout goals disabled.');
     });
   }
 
@@ -1747,7 +1762,7 @@ function initGuardSettingsPanel(): void {
       const enabled = (e.target as HTMLInputElement).checked;
       currentBonusConfig.active = enabled;
       await saveBonusTrackerConfig(currentBonusConfig);
-      toast(enabled ? 'Bonus playthrough tracker armed.' : 'Bonus playthrough tracker off.');
+      toast(enabled ? 'Bonus playthrough tracker on.' : 'Bonus playthrough tracker off.');
     });
   }
 
@@ -1770,7 +1785,7 @@ function initGuardSettingsPanel(): void {
 
       if (bonusToggle) bonusToggle.checked = true;
       await saveBonusTrackerConfig(currentBonusConfig);
-      toast('Bonus tracker armed (' + name + ').');
+      toast('Bonus tracker on (' + name + ').');
     });
   }
 
@@ -1827,7 +1842,7 @@ function initGuardSettingsPanel(): void {
     const enabled = (e.target as HTMLInputElement).checked;
     await saveGameBlockOptIn(enabled);
     setGameBlockControlsEnabled(enabled);
-    toast(enabled ? 'Strategic filters armed.' : 'Strategic filters off.');
+    toast(enabled ? 'Strategic filters on.' : 'Strategic filters off.');
   });
 
   document.querySelectorAll<HTMLButtonElement>('.slug-chip[data-slug]').forEach((btn) => {
@@ -2071,7 +2086,7 @@ async function renderEasyModeState(): Promise<void> {
 
     const hostLabel = document.getElementById('easy-platform-sub');
     if (hostLabel && stored['currentHostname']) {
-      hostLabel.textContent = `Active protection on ${stored['currentHostname']}`;
+      hostLabel.textContent = `Running on ${stored['currentHostname']}`;
     }
 
     const cooldownUntil = stored['tiltcheck_cooldown_active_until'];
@@ -2112,19 +2127,19 @@ function initEasyModeListeners(): void {
   document.getElementById('preset-card-casual')?.addEventListener('click', async () => {
     await applyPlayerPreset('casual');
     await renderEasyModeState();
-    toast('Casual Spinner preset armed.');
+    toast('Casual Spinner preset applied.');
     void refreshGuardSettingsUi();
   });
   document.getElementById('preset-card-bag-securer')?.addEventListener('click', async () => {
     await applyPlayerPreset('bag_securer');
     await renderEasyModeState();
-    toast('Bag Securer preset armed (Recommended).');
+    toast('Bag Securer preset applied (Recommended).');
     void refreshGuardSettingsUi();
   });
   document.getElementById('preset-card-hard-lockdown')?.addEventListener('click', async () => {
     await applyPlayerPreset('hard_lockdown');
     await renderEasyModeState();
-    toast('Hard Lockdown preset armed (Max Discipline).');
+    toast('Hard Lockdown preset applied (Max Discipline).');
     void refreshGuardSettingsUi();
   });
 
@@ -2436,6 +2451,7 @@ async function detachToStandaloneWindow(size?: PopupSize): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function init() {
+  applyBackendAvailability();
   await loadAuth();
   renderAuthState();
   attachAuthStorageSync();
@@ -2637,6 +2653,7 @@ async function loadVaultRules() {
     $('vault-session-total').textContent = `$${vaultSessionTotal.toFixed(2)}`;
   });
 
+  if (!isBackendFeatureEnabled('vaultRules')) return;
   const linkedDiscordId = getLinkedDiscordRouteId();
   if (!linkedDiscordId) {
     hide('vault-loading');
@@ -2682,6 +2699,12 @@ function renderVaultRules() {
       <div class="vault-rule-desc">${describeVaultRule(r)}</div>
     </div>
   `).join('');
+}
+
+async function getWorkerSession(): Promise<string> {
+  return new Promise(resolve => {
+    chrome.storage.local.get(['workerSession'], (d: PopupStorageSnapshot) => resolve(d.workerSession ?? ''));
+  });
 }
 
 async function getToken(): Promise<string> {

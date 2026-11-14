@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // E2E test: Chrome extension packaging, unpacked loading, popup settings, and cooldown auto-lock deep-link.
 
 import { test, expect, chromium, type BrowserContext, type Page } from "@playwright/test";
@@ -23,6 +23,23 @@ interface ExtensionHarness {
   extensionId: string;
   userDataDir: string;
   cleanup: () => Promise<void>;
+}
+
+// A fresh profile opens the first-run setup wizard over the popup, then Easy mode, which
+// hides the tabbed panels. These tests cover a returning user's settings: mark onboarding
+// done, reload, then open the Pro "block" tab (labelled Guards, later Settings), where the
+// cooldown sync and auto-lock controls live.
+async function openSettingsPanel(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    await chrome.storage.local.set({ tiltcheck_onboarding_completed: true });
+  });
+  await page.reload();
+  const proBtn = page.locator("#btn-mode-pro");
+  if (await proBtn.isVisible()) {
+    await proBtn.click();
+  }
+  await page.locator('.tab[data-tab="block"]').click();
+  await expect(page.locator("#panel-block")).toBeVisible();
 }
 
 async function createExtensionHarness(): Promise<ExtensionHarness> {
@@ -97,6 +114,7 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      await openSettingsPanel(page);
 
       // Verify title.
       const pageTitle = await page.title();
@@ -130,6 +148,7 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      await openSettingsPanel(page);
 
       const autoLockToggle = page.locator("#auto-lock-on-tilt-toggle");
       await expect(autoLockToggle).toBeChecked();
@@ -165,6 +184,7 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
     try {
       const page: Page = await harness.context.newPage();
       await page.goto(`chrome-extension://${harness.extensionId}/popup.html`);
+      await openSettingsPanel(page);
 
       const walletInput = page.locator("#cooldown-wallet-input");
       const syncBtn = page.locator("#btn-sync-cooldown");
@@ -199,9 +219,9 @@ test.describe("Cooldown Web Deep-Link Integration", () => {
     const alertBanner = page.locator("#auto-tilt-alert-banner");
     await expect(alertBanner).toBeVisible();
 
-    // Verify critical alert messaging and Level 3+ tilt indicator.
-    await expect(alertBanner).toContainText("Critical Tilt Intervention: 24h Auto-Lock Triggered");
-    await expect(alertBanner).toContainText("LEVEL 3+ TILT");
+    // Verify the auto-tilt alert copy (Pages wording since ce4b55f6, "dejargon cooldown page").
+    await expect(alertBanner).toContainText("Tilt check");
+    await expect(alertBanner).toContainText("Pick a length below");
 
     // Verify configured wallet address is rendered in banner details.
     const walletText = page.locator("#auto-tilt-wallet");

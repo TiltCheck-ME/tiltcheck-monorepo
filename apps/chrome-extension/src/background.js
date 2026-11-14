@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 /**
  * MV3 service worker.
  * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
@@ -10,7 +10,17 @@ const ALLOWED_AUTH_ORIGINS = new Set([
   'https://collectclock-api.j-chapman7.workers.dev',
   'https://discord.com',
 ]);
-const API_BASE = 'https://api.tiltcheck.me';
+// Live backend for the extension: the collectclock-api worker. api.tiltcheck.me
+// does not resolve. Keep in sync with EXT_CONFIG / WORKER_ROUTES in config.ts.
+const WORKER_API_BASE = 'https://collectclock-api.j-chapman7.workers.dev';
+const WORKER_AUTH_TOKEN_PATH = '/auth/token';
+const WORKER_SESSION_KEY = 'workerSession';
+
+// No backend yet for these, so they make no network calls. Mirrors
+// BACKEND_FEATURES.cooldownApi and BACKEND_FEATURES.linkScan in config.ts.
+const COOLDOWN_API_ENABLED = false;
+const LINK_SCAN_ENABLED = false;
+const API_BASE = WORKER_API_BASE;
 
 const TILTCHECK_COOLDOWN_ACTIVE_UNTIL_KEY = 'tiltcheck_cooldown_active_until';
 const TILTCHECK_COOLDOWN_WALLET_KEY = 'tiltcheck_cooldown_wallet';
@@ -72,6 +82,7 @@ function buildVaultUrl(suggestedAmount) {
 // ── On-Chain Cooldown Verification & Real-Time SSE Stream ────────────────────
 
 async function syncCooldownStatus(wallet) {
+  if (!COOLDOWN_API_ENABLED) return;
   if (!wallet || typeof wallet !== 'string' || wallet.length < 32) return;
   try {
     const res = await fetch(`${API_BASE}/cooldown/check?wallet=${encodeURIComponent(wallet)}&verbose=true`);
@@ -150,6 +161,7 @@ function handleSseMessageBlock(block) {
 }
 
 async function startCooldownStream(wallet) {
+  if (!COOLDOWN_API_ENABLED) return;
   if (!wallet || typeof wallet !== 'string' || wallet.length < 32) return;
   if (activeCooldownWallet === wallet && currentStreamAbortController && !currentStreamAbortController.signal.aborted) {
     return;
@@ -410,6 +422,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * Real-time Phishing & Scam Block Logic
  */
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (!LINK_SCAN_ENABLED) return; // No link-scan backend yet
   if (details.frameId !== 0) return; // Only main frame
   const url = details.url;
 
@@ -446,6 +459,30 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     console.error('[TiltCheck] Safety API check failed:', e);
   }
 });
+
+/**
+ * Trade the Discord access token for a collectclock-api session
+ * (POST /auth/token). Stores it as `workerSession`; never logs it.
+ */
+async function exchangeWorkerSession(accessToken) {
+  if (!accessToken) return null;
+  try {
+    const res = await fetch(`${WORKER_API_BASE}${WORKER_AUTH_TOKEN_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const session = data && typeof data.session === 'string' ? data.session : null;
+    if (!session) return null;
+    await chrome.storage.local.set({ [WORKER_SESSION_KEY]: session });
+    return session;
+  } catch (err) {
+    console.warn('[TiltCheck] Worker session exchange failed:', err?.message || err);
+    return null;
+  }
+}
 
 // ── Discord OAuth Callback Interceptor ───────────────────────────────────────────
 if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
@@ -487,6 +524,10 @@ if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
             userData: userObj,
             tiltguard_user_id: String(discordUser.id),
           });
+
+          // Worker session for /me and /logout. Best effort: sign-in above
+          // already succeeded, so a failure here only means logout stays local.
+          await exchangeWorkerSession(accessToken);
 
           console.log("[TiltCheck] Discord auth synced:", userObj.username);
 
