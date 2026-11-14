@@ -46,4 +46,10 @@ export function pieceSvg(piece: string): string {
 }
 
 /** Small flag mark next to the lobby title. */
+/** Hot Takes: a flame. */
+export const HOT_ART = icon(`<path d="M20 35c-6.6 0-11-4.4-11-10.4 0-5.2 3.4-8.3 5.8-11.4.6 2.6 2 4.4 3.8 5.4-.6-5.6 1.6-10.4 5.6-13.6.4 5 3.2 7.8 5.6 10.6 2 2.4 3.2 5 3.2 8.8C33 30.6 28 35 20 35z"/><path d="M20 35c-2.8 0-4.6-1.9-4.6-4.4 0-2.4 1.6-3.8 3-5.6.6 1.6 1.6 2.4 2.8 2.8.4-1.4 1-2.6 2-3.4.6 1.6 1.4 2.8 1.4 4.6 0 3.6-2 6-4.6 6z"/>`);
+
+/** Story Chain: three lines of text with a pen nib on the last one. */
+export const STORY_ART = icon(`<path d="M7 11h26M7 18h26M7 25h14"/><path d="M25 33l2-6 8-8 4 4-8 8-6 2z"/>`);
+
 export const FLAG_SVG = `<svg class="brand__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 21V3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M6.6 4h11.2l-2.9 4 2.9 4H6.6Z" fill="currentColor"/><path d="M2.5 21.2c2-1.6 5-1.6 7 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;

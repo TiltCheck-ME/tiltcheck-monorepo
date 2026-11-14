@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Guard: the Activity has no money mechanics and no crisis copy in the main UI (client, DA&D deck, trivia bank, Bluff prompts).
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,6 +10,7 @@ import { MYTH_BANK } from '../src/shared/mythBank.js';
 import { MYTH_BANK as GUEST_MYTH } from '../src/client/guestMythBank.js';
 import { DAILY_ANSWERS } from '../src/shared/dailyWords.js';
 import { COPY } from '../src/client/copy.js';
+import { HOUSE_TAKES, STORY_OPENERS } from '../src/shared/social.js';
 
 const root = new URL('..', import.meta.url).pathname;
 
@@ -80,6 +81,13 @@ describe('no money anywhere', () => {
     for (const w of DAILY_ANSWERS) for (const re of BANNED) expect({ w, hit: re.test(w) }).toEqual({ w, hit: false });
     const texts = JSON.stringify([COPY.daily, COPY.myth, COPY.tiles.daily, COPY.tiles.myth, COPY.solo(3), COPY.invite]);
     for (const re of BANNED) expect({ hit: re.test(texts) ? re.source : null }).toEqual({ hit: null });
+  });
+
+  it('Hot Takes house takes, Story Chain openers and their copy are clean', () => {
+    for (const t of [...HOUSE_TAKES, ...STORY_OPENERS]) for (const re of BANNED) expect({ t, hit: re.test(t) ? re.source : null }).toEqual({ t, hit: null });
+    const texts = JSON.stringify([COPY.hot, COPY.story, COPY.mod, COPY.socialErrors, COPY.tiles.hot, COPY.tiles.story]);
+    for (const re of BANNED) expect({ hit: re.test(texts) ? re.source : null }).toEqual({ hit: null });
+    for (const re of BANNED) expect({ hit: re.test(readFileSync(join(root, 'src/shared/social.ts'), 'utf8')) ? re.source : null }).toEqual({ hit: null });
   });
 
   it('every card is clean', () => {

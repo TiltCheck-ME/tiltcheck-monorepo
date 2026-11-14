@@ -11,6 +11,8 @@ import type { ScoresResult } from './views/highScores.js';
 import { memorySoloService } from '../shared/solo.js';
 import { postMyth, refreshMythWeek, runDaily } from '../shared/soloHost.js';
 import { DAILY_ANSWERS, isValidGuess } from '../shared/dailyWords.js';
+import { SocialBook, memorySocialStorage, type SocialOp, type SocialView } from '../shared/social.js';
+import type { SocialFetch } from './views/hotTakes.js';
 
 export type LinkStatus = 'connecting' | 'live' | 'polling' | 'offline';
 
@@ -23,6 +25,10 @@ export interface Transport {
   resume(): void;
   /** This server's trivia high scores (read only). */
   highScores(): Promise<ScoresResult>;
+  /** Hot Takes + Story Chain for this server. */
+  social(): Promise<SocialFetch>;
+  /** One Hot Takes / Story Chain action; answers with the fresh view (and an error code on refusal). */
+  socialAct(op: SocialOp): Promise<SocialFetch>;
   close(): void;
 }
 
@@ -85,6 +91,37 @@ export class RemoteTransport extends Emitter implements Transport {
     } catch {
       return { kind: 'error' };
     }
+  }
+
+  private socialPath(): string {
+    const params = new URLSearchParams();
+    if (this.guildId) params.set('guild', this.guildId);
+    if (this.discordInstanceId) params.set('instance', this.discordInstanceId);
+    return `${this.base}/social?${params.toString()}`;
+  }
+
+  private async socialCall(init?: RequestInit): Promise<SocialFetch> {
+    if (!this.guildId) return { kind: 'no-server' };
+    try {
+      const res = await fetch(this.socialPath(), { ...init, headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': 'application/json' } });
+      if (res.status === 404) return { kind: 'no-server' };
+      if (res.status === 429) return { kind: 'error', code: 'rate-limited' };
+      if (!res.ok && res.status !== 409) return { kind: 'error' };
+      const body = (await res.json()) as SocialView & { error?: string };
+      if (!body || body.ok !== true) return { kind: 'error' };
+      const { error, ...view } = body;
+      return error ? { kind: 'ok', view: view as SocialView, error } : { kind: 'ok', view: view as SocialView };
+    } catch {
+      return { kind: 'error' };
+    }
+  }
+
+  social(): Promise<SocialFetch> {
+    return this.socialCall();
+  }
+
+  socialAct(op: SocialOp): Promise<SocialFetch> {
+    return this.socialCall({ method: 'POST', body: JSON.stringify(op) });
   }
 
   private roomPath(op: string): string {
@@ -266,6 +303,8 @@ export class LocalTransport extends Emitter implements Transport {
   /** Solo games in guest mode: practice words, a practice deck, boards that live in this tab. */
   private readonly solo = memorySoloService({ salt: 'guest-practice', answers: DAILY_ANSWERS, isValid: isValidGuess });
   private soloBusy = false;
+  /** Hot Takes and Story Chain in guest mode: this tab only, and the guest is a mod so hiding can be tried. */
+  private readonly socialBook = new SocialBook(memorySocialStorage());
 
   constructor(
     private readonly me: RoomUser,
@@ -324,6 +363,15 @@ export class LocalTransport extends Emitter implements Transport {
 
   async highScores(): Promise<ScoresResult> {
     return { kind: 'board', board: await this.book.view('guest', this.me.id, Date.now()), guest: true };
+  }
+
+  async social(): Promise<SocialFetch> {
+    return { kind: 'ok', view: await this.socialBook.view(this.me.id, true, Date.now()), guest: true };
+  }
+
+  async socialAct(op: SocialOp): Promise<SocialFetch> {
+    const r = await this.socialBook.act({ id: this.me.id, name: this.me.name }, true, op, Date.now());
+    return r.ok ? { kind: 'ok', view: r.view, guest: true } : { kind: 'ok', view: r.view, error: r.code, guest: true };
   }
 
   send(action: ClientAction): void {

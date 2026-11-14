@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 # Touch Grass Activity backend. Its OWN worker name, not collectclock-api or any other existing worker.
 # Deployed 2026-11-12 to https://touch-grass-activity.j-chapman7.workers.dev (see ../README.md).
 
@@ -46,4 +46,11 @@ ALERT_GUILD_ID = "1488253239643078787"
 # DISCORD_CLIENT_SECRET is a secret: wrangler secret put DISCORD_CLIENT_SECRET --config worker/wrangler.toml
 # ALERT_WEBHOOK_URL is a secret (Discord channel webhook). Never commit it.
 # DAILY_SALT is a secret (Daily Grass word pick). Without it Daily Grass says it isn't set up. Never commit it.
+# Hot Takes + Story Chain (no new binding: they live in the SCORES 'guild:<id>' instance under hot:* /
+# story:* / social:* keys, so no migration). Optional vars; the defaults apply when unset:
+# HOT_TAKES_ROTATE_HOURS = "8"     # featured take rotates every N hours (1-24), slots counted from 00:00 UTC
+# STORY_MAX_LINES = "20"           # a story is archived at N visible lines (5-100)
+SOCIAL_MOD_USER_IDS = "1153034319271559328"  # Jamie. comma separated Discord user ids who can hide/remove and end stories
+# SOCIAL_MOD_ROLE_IDS = ""         # comma separated role ids; only used if the secret DISCORD_BOT_TOKEN is set
+# DISCORD_BOT_TOKEN is a secret (only for the role check above). Never commit it.
 # ALLOW_GUEST must stay unset in production. For local dev put ALLOW_GUEST="true" in worker/.dev.vars.

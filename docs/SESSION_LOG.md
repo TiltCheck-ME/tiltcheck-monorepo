@@ -2,6 +2,17 @@
 
 # Session Log
 
+## 2026-11-13 — feat(activity): Touch Grass Hot Takes (anonymous polls) and Story Chain
+
+- Branch `touch-grass-hot-takes-story` off main 4afdf3b8. Draft PR. Not deployed, not merged; no Discord command registrations touched.
+- **Hot Takes**: anonymous takes (200 chars, 3 a day per player, Chicago day) go into a queue; one featured take per slot of `HOT_TAKES_ROTATE_HOURS` (default 8, slots from 00:00 UTC). Lazy rotation on the first read after a slot ends; empty queue falls back to 16 house takes in the millennial card voice. Agree / Disagree, one vote per player per take, split + spice meter only after voting, archive of the last 30 with final splits. Author stored only as a salted hash (per-server salt kept in storage); no author in any response, mods included.
+- **Story Chain**: one story per server, 140-char lines, no two lines in a row by the same player, archived at `STORY_MAX_LINES` (default 20) visible lines or by a mod, new story on a random opening line, "Read it back" sheet for the last 10.
+- Safety: Bluff's `textGuard.ts` cleaner + slur list, plus no links, invites, @mentions or 10+ digit runs. Mod hide / unhide / remove and End story. No staff check existed in the Activity (identify scope only), so mods come from `SOCIAL_MOD_USER_IDS`, or `SOCIAL_MOD_ROLE_IDS` via the bot member lookup when the secret `DISCORD_BOT_TOKEN` is set.
+- Storage: the existing `SCORES` class, the server's `guild:<id>` instance, new `hot:*` / `story:*` / `social:salt` keys. No new class, no migration (tag stays v3), no existing keys touched. Routes `GET` / `POST /api/social`.
+- UI: Hot Takes and Story Chain tiles after Chess in the lobby list, same flat panels, accents #ff7a59 / #7fb7ff. Checked at 360 px in guest mode (headless Chromium).
+- Tests: 337 pass (was 283): new `tests/social.test.ts` (34), `tests/social-worker.test.ts` (10), `tests/social-ui.test.ts` (9), one new no-money case, and the client-dom lobby tile count 6 -> 8.
+- Not tested: inside the real Discord client (desktop, iOS, Android), real phone text wrap, the bot role lookup against Discord, two isolates racing the same Durable Object.
+
 ## 2026-11-13 — test(e2e): extension popup tests open the Pro settings tab first
 
 - "Anchor Devnet & Cooldown Smoke Test" has failed every run since 2026-11-09 at `tests/e2e/extension-e2e.spec.ts:107`: `#cooldown-wallet-sync-wrap` resolves but is hidden. Cause: the popup opens in Easy mode (f6f5f7ce), which hides the tab bar and the `panel-block` tab where the cooldown sync and auto-lock controls live. The spec was never updated; serial mode then skipped the rest of the suite.

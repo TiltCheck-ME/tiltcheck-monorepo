@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // Touch Grass Activity worker. Code only: NOT deployed, NOT bound to any existing worker.
 //
 // Routes (Discord proxies <app>.discordsays.com/api/* here through a URL Mapping):
@@ -10,11 +10,14 @@
 //   naming the same guild), otherwise the Discord instance id as before.
 //   GET  /api/live?guild=<id>         anonymous live-tables counts (CORS: tiltcheck.me, chrome-extension://)
 //   GET  /api/trivia/scores?guild=<id> that server's trivia high scores, Authorization: Bearer <token>
+//   GET  /api/social?guild=<id>&instance=<id>   Hot Takes + Story Chain for that server, Bearer token
+//   POST /api/social?guild=<id>&instance=<id>   {op, ...} one Hot Takes / Story Chain action, Bearer token
 //   GET  /api/health
 // The /api prefix is optional so either mapping style works (see README).
 
 import { exchangeCode, verifyToken, type AuthEnv } from './auth.js';
-import { isValidGuildId, resolveRoom } from '../../src/shared/protocol.js';
+import { guildForInstance, isValidGuildId, isValidInstanceId, resolveRoom } from '../../src/shared/protocol.js';
+import { isMod, type ModEnv } from './mods.js';
 import { RateLimiter } from '../../src/shared/room.js';
 import { LIVE_REGISTRY_NAME, type RegistryEnv } from './registry-do.js';
 import { scoresName, type ScoresEnv } from './scores-do.js';
@@ -22,7 +25,7 @@ export { TouchGrassRoom } from './room-do.js';
 export { LiveRegistry } from './registry-do.js';
 export { TriviaScores } from './scores-do.js';
 
-export interface Env extends AuthEnv, RegistryEnv, ScoresEnv {
+export interface Env extends AuthEnv, RegistryEnv, ScoresEnv, ModEnv {
   ROOMS: DurableObjectNamespace;
   /** Singleton live-tables registry (migration v2). */
   LIVE?: DurableObjectNamespace;
@@ -38,6 +41,22 @@ const tokenLimiter = new RateLimiter(5, 0.2);
 const liveLimiter = new RateLimiter(20, 1);
 // Per-user limit for the high-score read: 10 burst, 1 every 2 seconds.
 const scoresLimiter = new RateLimiter(10, 0.5);
+// Hot Takes / Story Chain: reads 10 burst, 1 every 2 s; writes 6 burst, 1 every 3 s, per user.
+const socialReadLimiter = new RateLimiter(10, 0.5);
+const socialWriteLimiter = new RateLimiter(6, 1 / 3);
+
+/**
+ * Which server a Hot Takes / Story Chain call is for. The instance id wins when it names a guild
+ * (i-<n>-gc-<guild>-<n>); a DM instance (-pc-) has none. Only an instance id of another shape (or
+ * none, local dev) falls back to the client's ?guild. A client ?guild that disagrees with the
+ * instance id is refused.
+ */
+export function socialGuild(instance: string | null, clientGuild: string | null): { ok: true; guild: string | null } | { ok: false } {
+  if (instance !== null && instance !== '' && !isValidInstanceId(instance)) return { ok: false };
+  const guild = guildForInstance(instance ?? '', clientGuild);
+  if (guild && clientGuild && isValidGuildId(clientGuild) && clientGuild !== guild) return { ok: false };
+  return { ok: true, guild };
+}
 
 /** Origins allowed to read /api/live from a browser: tiltcheck.me (and subdomains) and any extension. */
 export function isLiveOrigin(origin: string | null): boolean {
@@ -141,6 +160,38 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
     inner.searchParams.set('guild', guild);
     inner.searchParams.set('me', user.id);
     const res = await stub.fetch(inner.toString());
+    return new Response(res.body, { status: res.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...cors } });
+  }
+
+  if (path === '/social') {
+    if (req.method !== 'GET' && req.method !== 'POST') return json({ error: 'method-not-allowed' }, 405, { ...cors, Allow: 'GET, POST' });
+    const token = bearer(req);
+    const user = token ? await verifyToken(token, env) : null;
+    if (!user) return json({ t: 'error', code: 'unauthorized', message: 'Discord sign-in did not check out.' }, 401, cors);
+    const limiter = req.method === 'GET' ? socialReadLimiter : socialWriteLimiter;
+    if (!limiter.take(user.id, Date.now())) return json({ error: 'rate-limited' }, 429, { ...cors, 'Retry-After': '5' });
+    const g = socialGuild(url.searchParams.get('instance'), url.searchParams.get('guild'));
+    if (!g.ok) return json({ error: 'bad-guild' }, 400, cors);
+    if (!g.guild) return json({ error: 'no-server' }, 404, cors);
+    if (!env.SCORES) return json({ error: 'not-configured' }, 503, cors);
+    let op: unknown = undefined;
+    if (req.method === 'POST') {
+      const raw = await req.text();
+      if (raw.length > 4096) return json({ error: 'too-large' }, 413, cors);
+      try {
+        op = JSON.parse(raw) as unknown;
+      } catch {
+        return json({ error: 'bad-json' }, 400, cors);
+      }
+    }
+    const mod = await isMod(user.id, g.guild, env);
+    const stub = env.SCORES.get(env.SCORES.idFromName(scoresName(g.guild)));
+    const inner = `https://scores.internal/social/${req.method === 'GET' ? 'view' : 'act'}`;
+    const res = await stub.fetch(inner, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guild: g.guild, user: { id: user.id, name: user.name }, mod, op }),
+    });
     return new Response(res.body, { status: res.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...cors } });
   }
 

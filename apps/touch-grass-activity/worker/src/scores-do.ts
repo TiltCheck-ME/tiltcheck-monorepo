@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
 // TriviaScores: the SCORES Durable Object class (migration v3). One instance per Discord server
 // (idFromName('guild:<id>')) holds that server's boards: trivia high scores (top 10 all time and this
 // week, Monday 00:00 America/Chicago, plus personal bests), Daily Grass "Today's solvers" and the
@@ -15,6 +15,10 @@
 //   GET  /daily/solvers?guild=              server instance
 //   POST /myth/record {guild, results}      server instance: a finished Myth or Math run
 //   GET  /myth/board?guild=&me=             server instance
+//   POST /social/view {guild, user, mod}            server instance: Hot Takes + Story Chain view
+//   POST /social/act  {guild, user, mod, op}        server instance: one Hot Takes / Story Chain op
+//   (Hot Takes and Story Chain are in the same 'guild:<id>' instance under hot:* / story:* /
+//   social:* keys: same class, no migration. The worker checks the token and the mod list first.)
 // The public worker never forwards a client body to any of these: scores and boards only come
 // from a room's own game state.
 
@@ -23,6 +27,7 @@ import { isValidGuildId } from '../../src/shared/protocol.js';
 import { DailyBook, DailySolvers, validSolver } from '../../src/shared/daily.js';
 import { DAILY_ANSWERS, isValidGuess } from '../../src/shared/dailyWords.js';
 import { MYTH_BOOK_PREFIX } from '../../src/shared/solo.js';
+import { SocialBook, parseSocialOp, rotateMsFrom, storyMaxFrom } from '../../src/shared/social.js';
 
 export function scoresName(guildId: string): string {
   return `guild:${guildId}`;
@@ -36,6 +41,10 @@ export function dailyUserName(userId: string): string {
 export interface ScoresEnv {
   /** Secret salt for the daily word pick. Unset = Daily Grass answers 503 not-configured. */
   DAILY_SALT?: string;
+  /** Hot Takes rotation in hours (1-24). Unset = 8. */
+  HOT_TAKES_ROTATE_HOURS?: string;
+  /** Story Chain length in lines (5-100). Unset = 20. */
+  STORY_MAX_LINES?: string;
 }
 
 const USER_ID = /^[A-Za-z0-9_-]{1,64}$/;
@@ -45,6 +54,7 @@ export class TriviaScores implements DurableObject {
   private readonly myth: ScoreBook;
   private readonly solvers: DailySolvers;
   private readonly daily: DailyBook | null;
+  private readonly social: SocialBook;
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -53,11 +63,13 @@ export class TriviaScores implements DurableObject {
     const storage = {
       get: <T,>(k: string) => ctx.storage.get<T>(k),
       put: <T,>(k: string, v: T) => ctx.storage.put(k, v),
+      delete: (k: string) => ctx.storage.delete(k),
     };
     this.book = new ScoreBook(storage);
     this.myth = new ScoreBook(storage, MYTH_BOOK_PREFIX);
     this.solvers = new DailySolvers(storage);
     const salt = env?.DAILY_SALT;
+    this.social = new SocialBook(storage, { rotateMs: rotateMsFrom(env?.HOT_TAKES_ROTATE_HOURS), storyMax: storyMaxFrom(env?.STORY_MAX_LINES) });
     this.daily = salt ? new DailyBook(storage, { salt, answers: DAILY_ANSWERS, isValid: isValidGuess }) : null;
   }
 
@@ -121,6 +133,19 @@ export class TriviaScores implements DurableObject {
       const guild = url.searchParams.get('guild');
       if (!isValidGuildId(guild)) return json({ error: 'bad-guild' }, 400);
       return json(await this.myth.view(guild, url.searchParams.get('me'), now));
+    }
+
+    if ((url.pathname === '/social/view' || url.pathname === '/social/act') && req.method === 'POST') {
+      const b = await body();
+      const u = b?.user as { id?: unknown; name?: unknown } | undefined;
+      const user = u && typeof u.id === 'string' && USER_ID.test(u.id) ? { id: u.id, name: typeof u.name === 'string' ? u.name : 'someone' } : null;
+      if (!b || !isValidGuildId(b.guild as string) || !user) return json({ error: 'bad-request' }, 400);
+      const mod = b.mod === true;
+      if (url.pathname === '/social/view') return json(await this.social.view(user.id, mod, now));
+      const op = parseSocialOp(b.op);
+      if (!op) return json({ error: 'bad-op' }, 400);
+      const r = await this.social.act(user, mod, op, now);
+      return json(r.ok ? r.view : { ...r.view, error: r.code }, r.ok ? 200 : 409);
     }
 
     return json({ error: 'not-found' }, 404);
