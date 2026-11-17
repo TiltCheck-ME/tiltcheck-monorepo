@@ -1402,6 +1402,13 @@ function buildAutovaultPage() {
     <div style="margin-top: 1.5rem;">
       <a class="btn btn-primary" href="${href(depth, 'extension.html')}">THE EXTENSION</a>
     </div>
+    <h2 class="dash-heading" id="autovault-script">On your phone: AutoVault script</h2>
+    <p class="cooldown-fine">Stake.us and nuts.gg. Needs a userscript manager: Firefox or Edge on Android, Safari with Userscripts or Tampermonkey on iPhone. Chrome on Android can't run it.</p>
+    <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem;">
+      <a class="btn btn-primary" href="${href(depth, 'userscripts/tiltcheck-autovault-share.user.js')}">INSTALL AUTOVAULT</a>
+      <a class="btn btn-secondary" href="${href(depth, 'userscripts/android-install.html')}">ANDROID STEPS</a>
+      <a class="btn btn-ghost" href="${href(depth, 'userscripts/install.html')}">QR INSTALL</a>
+    </div>
   </div>
 </main>`;
 

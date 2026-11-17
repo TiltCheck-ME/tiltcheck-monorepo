@@ -13,6 +13,7 @@ on:
       - 'scripts/pages-assets/**'
       - 'apps/web/src/data/casinos.json'
       - 'apps/chrome-extension/tiltcheck-extension.zip'
+      - 'apps/web/public/userscripts/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -52,6 +53,12 @@ jobs:
           cp apps/web/public/assets/backgroundglitter.png out/assets/backgroundglitter.png
           mkdir -p out/docs-md
           rsync -av docs/tiltcheck/ out/docs-md/
+
+      - name: Publish userscripts
+        # Scripts' @downloadURL/@updateURL point at tiltcheck.me/userscripts/.
+        run: |
+          mkdir -p out/userscripts
+          rsync -av apps/web/public/userscripts/ out/userscripts/
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
