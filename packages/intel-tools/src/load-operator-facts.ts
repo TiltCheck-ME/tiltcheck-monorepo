@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -8,6 +8,7 @@ export type {
   OperatorFactStatus,
   OperatorFactRecord,
   OperatorFactsFile,
+  PayoutBenchmarkFact,
   RedemptionFact,
   VipCurrencyRule,
   WelcomeBonusFact,

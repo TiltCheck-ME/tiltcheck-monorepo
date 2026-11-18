@@ -1,5 +1,5 @@
 {
-  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-14",
+  "copyright": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18",
   "operators": [
     {
       "slug": "chumba-casino",
@@ -744,6 +744,9 @@
     {
       "slug": "draftkings-casino",
       "name": "DraftKings Casino",
+      "aliases": [
+        "DraftKings"
+      ],
       "category": "Regulated",
       "domains": [
         "draftkings.com",
@@ -757,6 +760,17 @@
         "minHours": 1,
         "maxHours": 24
       },
+      "payoutBenchmark": {
+        "fastestSpeed": "1 business day",
+        "topMethods": [
+          "Debit Card",
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "RotoWire summary table lists >5 minutes via debit card or Play+; its DraftKings table gives an average of 1 business day, debit withdrawals on business days only. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
       "welcomeBonusSummary": {
         "summary": "100% deposit match up to $2,000 in casino bonus funds or $50 in casino credits.",
         "sourceUrl": "https://casino.draftkings.com",
@@ -768,6 +782,9 @@
     {
       "slug": "fanduel-casino",
       "name": "FanDuel Casino",
+      "aliases": [
+        "FanDuel"
+      ],
       "category": "Regulated",
       "domains": [
         "fanduel.com",
@@ -781,6 +798,17 @@
         "minHours": 1,
         "maxHours": 24
       },
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (sometimes under 1 hour)",
+        "topMethods": [
+          "Apple Pay",
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "RotoWire summary table lists Instant via Apple Pay; its FanDuel table gives an average of up to 24 hours (sometimes under 1 hour), top method Play+, business days only. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
       "welcomeBonusSummary": {
         "summary": "Play It Again up to $1,000 back in casino bonus funds on net losses in first 24 hours.",
         "sourceUrl": "https://casino.fanduel.com",
@@ -792,6 +820,10 @@
     {
       "slug": "betmgm",
       "name": "BetMGM",
+      "aliases": [
+        "BetMGM Online Casino",
+        "BetMGM Casino"
+      ],
       "category": "Regulated",
       "domains": [
         "betmgm.com",
@@ -805,6 +837,19 @@
         "minHours": 1,
         "maxHours": 48
       },
+      "payoutBenchmark": {
+        "fastestSpeed": "Within 24 hours",
+        "topMethods": [
+          "Play+",
+          "Visa Debit",
+          "Venmo",
+          "PayPal"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Play+ usually lands in 4-6 hours. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
       "welcomeBonusSummary": {
         "summary": "100% deposit match up to $1,000 plus $25 on the house on sign-up.",
         "sourceUrl": "https://casino.betmgm.com",
@@ -816,6 +861,10 @@
     {
       "slug": "caesars-casino",
       "name": "Caesars Casino",
+      "aliases": [
+        "Caesars Palace Online Casino",
+        "Caesars Palace"
+      ],
       "category": "Regulated",
       "domains": [
         "caesarscasino.com",
@@ -829,6 +878,16 @@
         "minHours": 1,
         "maxHours": 48
       },
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 1 hour",
+        "topMethods": [
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "RotoWire summary table lists Instant via Play+; its Caesars Palace table gives an average of up to 1 hour after approval. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
       "welcomeBonusSummary": {
         "summary": "100% deposit match up to $2,500 with 2,500 Reward Credits on $25 wager.",
         "sourceUrl": "https://www.caesarscasino.com",
@@ -840,6 +899,9 @@
     {
       "slug": "betrivers",
       "name": "BetRivers",
+      "aliases": [
+        "BetRivers Casino"
+      ],
       "category": "Regulated",
       "domains": [
         "betrivers.com"
@@ -851,6 +913,16 @@
         "asOf": "2026-11-04",
         "minHours": 1,
         "maxHours": 24
+      },
+      "payoutBenchmark": {
+        "fastestSpeed": "Instant",
+        "topMethods": [
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Play+ cashouts typically land within seconds of approval; PayPal and Venmo usually under 30 minutes. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
       },
       "welcomeBonusSummary": {
         "summary": "100% deposit match up to $500 with 1x playthrough requirement.",
@@ -882,6 +954,319 @@
       },
       "verifiedBy": "tiltcheck-us-auditor",
       "lastVerifiedAt": "2026-11-04"
+    },
+    {
+      "slug": "hollywood-casino",
+      "name": "Hollywood Casino",
+      "aliases": [
+        "Hollywood",
+        "Hollywood Online Casino"
+      ],
+      "category": "Regulated",
+      "domains": [
+        "hollywoodcasino.com"
+      ],
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Instant",
+        "topMethods": [
+          "Debit Card",
+          "PayPal",
+          "Skrill",
+          "Venmo"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "RotoWire names PayPal the quickest option and lists PA, MI, NJ and WV. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "betparx-casino",
+      "name": "betPARX Casino",
+      "aliases": [
+        "betPARX"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Instant",
+        "topMethods": [
+          "Play+",
+          "PayPal"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Instant applies to Play+ once the account is verified. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "horseshoe-casino",
+      "name": "Horseshoe Casino",
+      "aliases": [
+        "Horseshoe",
+        "Horseshoe Online Casino"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Instant",
+        "topMethods": [
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "hard-rock-bet-casino",
+      "name": "Hard Rock Bet Casino",
+      "aliases": [
+        "Hard Rock Bet",
+        "Hard Rock Casino",
+        "Hard Rock"
+      ],
+      "category": "Regulated",
+      "domains": [
+        "hardrock.bet"
+      ],
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Instant",
+        "topMethods": [
+          "Debit Card",
+          "PayPal",
+          "Venmo"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "monopoly-casino",
+      "name": "Monopoly Casino",
+      "aliases": [
+        "Monopoly"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": ">5 Minutes",
+        "topMethods": [
+          "Debit Card",
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "golden-nugget-casino",
+      "name": "Golden Nugget Casino",
+      "aliases": [
+        "Golden Nugget",
+        "Golden Nugget Online Casino"
+      ],
+      "category": "Regulated",
+      "domains": [
+        "goldennuggetcasino.com"
+      ],
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": ">5 Minutes",
+        "topMethods": [
+          "Debit Card",
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "bet365-casino",
+      "name": "bet365 Casino",
+      "aliases": [
+        "bet365"
+      ],
+      "category": "Regulated",
+      "domains": [
+        "bet365.com"
+      ],
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "1-4 hours",
+        "topMethods": [
+          "Debit Card",
+          "Online Banking",
+          "PayPal",
+          "Skrill"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "fanatics-casino",
+      "name": "Fanatics Casino",
+      "aliases": [
+        "Fanatics"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (often faster)",
+        "topMethods": [
+          "PayPal"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "PayPal can take as little as 5 minutes. Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "bally-casino",
+      "name": "Bally Casino",
+      "aliases": [
+        "Bally",
+        "Bally Bet Casino"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (same day)",
+        "topMethods": [
+          "PayPal"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "borgata-casino",
+      "name": "Borgata Casino",
+      "aliases": [
+        "Borgata",
+        "Borgata Online Casino"
+      ],
+      "category": "Regulated",
+      "domains": [
+        "borgataonline.com"
+      ],
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (same day)",
+        "topMethods": [
+          "Visa",
+          "Play+",
+          "PayPal"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "betocean-casino",
+      "name": "betOcean Casino",
+      "aliases": [
+        "betOcean"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (same day)",
+        "topMethods": [
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "playstar-casino",
+      "name": "PlayStar Casino",
+      "aliases": [
+        "PlayStar"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (same day)",
+        "topMethods": [
+          "Debit Card",
+          "PayPal"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
+    },
+    {
+      "slug": "wheel-of-fortune-casino",
+      "name": "Wheel of Fortune Casino",
+      "aliases": [
+        "Wheel of Fortune",
+        "Wheel of Fortune Online Casino"
+      ],
+      "category": "Regulated",
+      "status": "live",
+      "payoutBenchmark": {
+        "fastestSpeed": "Up to 24 hours (same day)",
+        "topMethods": [
+          "Debit Card",
+          "PayPal",
+          "Venmo",
+          "Play+"
+        ],
+        "source": "RotoWire",
+        "sourceUrl": "https://www.rotowire.com/betting/casinos/instant-withdrawals",
+        "asOf": "2026-11-17",
+        "note": "Regulated real-money casino; RotoWire covers the 7 regulated states (CT, DE, MI, NJ, PA, RI, WV), not Florida. Availability varies by state."
+      },
+      "verifiedBy": "rotowire-payout-benchmark (third-party, RotoWire 2026-11-17)",
+      "lastVerifiedAt": "2026-11-18"
     }
   ]
 }

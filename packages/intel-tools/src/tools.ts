@@ -1,12 +1,14 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import { applyListFilters, findCasinoByName } from './filters.js';
 import { filterLiveOperatorFacts } from './operator-facts.js';
 import {
+  getPayoutBenchmarkAnswer,
   getRedemptionAnswer,
   getVipCurrencyAnswer,
   getWelcomeBonusAnswer,
   listAvailableFactTypesAnswer,
+  rankPayoutBenchmarks,
 } from './operator-facts.js';
 import type { OperatorFactRecord } from './operator-facts-types.js';
 import type {
@@ -72,6 +74,14 @@ export class IntelTools {
 
   getOperatorRedemptionFacts(query: string) {
     return getRedemptionAnswer(this.operatorFacts, query);
+  }
+
+  getOperatorPayoutBenchmark(query: string) {
+    return getPayoutBenchmarkAnswer(this.operatorFacts, query);
+  }
+
+  rankPayoutBenchmarks(now?: Date) {
+    return rankPayoutBenchmarks(this.operatorFacts, now);
   }
 
   getOperatorWelcomeBonusFacts(query: string, geoTag?: string) {

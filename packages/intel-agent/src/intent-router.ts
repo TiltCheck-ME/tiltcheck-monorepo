@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import {
   extractCasinoNameCandidate,
@@ -66,6 +66,8 @@ function extractGeoTag(text: string): string | undefined {
   return undefined;
 }
 
+const PRONOUN_SUBJECTS = new Set(['it', 'a withdrawal', 'a cash out', 'a cashout', 'a payout', 'a redemption']);
+
 function extractOperatorName(text: string): string | null {
   const fromCandidate = extractCasinoNameCandidate(text);
   if (fromCandidate) {
@@ -77,12 +79,15 @@ function extractOperatorName(text: string): string | null {
     return domain.split('.')[0] ?? domain;
   }
 
-  const howLongMatch = text.match(/\bhow long does\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+redemption\b|\s+take\s+for\s+redemption\b|\?|$)/i);
+  const howLongMatch = text.match(/\bhow long does\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+redemption\b|\s+take\b|\?|$)/i);
   if (howLongMatch?.[1]) {
-    return stripTrailingPunctuation(howLongMatch[1]).trim();
+    const candidate = stripTrailingPunctuation(howLongMatch[1]).trim();
+    if (!PRONOUN_SUBJECTS.has(candidate.toLowerCase())) {
+      return candidate;
+    }
   }
 
-  const onMatch = text.match(/\bon\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+in\b|\?|$)/i);
+  const onMatch = text.match(/\b(?:on|at|from)\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+in\b|\?|$)/i);
   if (onMatch?.[1]) {
     return stripTrailingPunctuation(onMatch[1]).trim();
   }
@@ -113,7 +118,64 @@ function matchesVipCurrencyFact(lower: string): boolean {
 }
 
 function matchesRedemptionFact(lower: string): boolean {
-  return /\b(redemption|redeem|payout|cash\s?out|withdraw(?:al)?)\b/.test(lower);
+  return /\b(redemptions?|redeem|payouts?|pays? out|cash(?:es)?[\s-]?out|withdraw(?:al|als|s)?)\b/.test(lower);
+}
+
+function includesAny(lower: string, terms: readonly string[]): boolean {
+  return terms.some((term) => lower.includes(term));
+}
+
+const PAYOUT_TERMS = [
+  'payout',
+  'pay out',
+  'pays out',
+  'paying out',
+  'cash out',
+  'cashout',
+  'cash-out',
+  'cashes out',
+  'withdraw',
+] as const;
+
+const SPEED_RANKING_TERMS = [
+  'fastest',
+  'quickest',
+  'instant',
+  'same day',
+  'same-day',
+  'fast payout',
+  'quick payout',
+  'fast cash',
+  'quick cash',
+  'fast withdraw',
+] as const;
+
+const GENERIC_CASINO_TERMS = [
+  'casinos',
+  'which casino',
+  'what casino',
+  'sites',
+  'apps',
+  'list',
+  'top ',
+  'best ',
+  'ranking',
+  'ranked',
+] as const;
+
+/** "fastest payout casinos", "which casinos pay out instantly", "fastest cash out". Plain string checks (ReDoS-safe). */
+function matchesPayoutSpeedRanking(lower: string, trimmed: string): boolean {
+  if (!includesAny(lower, PAYOUT_TERMS) || !includesAny(lower, SPEED_RANKING_TERMS)) {
+    return false;
+  }
+  // The benchmark covers regulated real-money casinos only; sweeps questions stay on their own path.
+  if (lower.includes('sweep')) {
+    return false;
+  }
+  if (includesAny(lower, GENERIC_CASINO_TERMS)) {
+    return true;
+  }
+  return extractOperatorName(trimmed) === null;
 }
 
 function matchesWelcomeBonusFact(lower: string): boolean {
@@ -158,6 +220,10 @@ export function routeIntelIntent(message: string): RoutedIntent {
       const currencyHint = extractCurrencyHint(trimmed);
       return { kind: 'operator_vip_fact', name, ...(currencyHint ? { currencyHint } : {}) };
     }
+  }
+
+  if (matchesPayoutSpeedRanking(lower, trimmed)) {
+    return { kind: 'payout_speed_ranking' };
   }
 
   if (matchesRedemptionFact(lower)) {

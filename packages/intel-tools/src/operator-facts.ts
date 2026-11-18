@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import type {
   OperatorFactRecord,
+  PayoutBenchmarkFact,
   RedemptionFact,
   VipCurrencyRule,
   WelcomeBonusFact,
@@ -25,7 +26,7 @@ export type VipCurrencyAnswer =
   | { kind: 'none' }
   | { kind: 'ambiguous'; matches: OperatorFactRecord[] };
 
-export type OperatorFactType = 'vip' | 'redemption' | 'welcome';
+export type OperatorFactType = 'vip' | 'redemption' | 'welcome' | 'payout_benchmark';
 
 function normalizeFactQuery(query: string): string {
   return query
@@ -248,6 +249,9 @@ function availableFactTypesForRecord(record: OperatorFactRecord): OperatorFactTy
   if (record.welcomeBonusSummary) {
     types.push('welcome');
   }
+  if (record.payoutBenchmark) {
+    types.push('payout_benchmark');
+  }
   return types;
 }
 
@@ -262,6 +266,9 @@ function availableFactTypesAreStale(record: OperatorFactRecord, now?: Date): boo
   }
   if (record.welcomeBonusSummary?.asOf) {
     asOfValues.push(record.welcomeBonusSummary.asOf);
+  }
+  if (record.payoutBenchmark?.asOf) {
+    asOfValues.push(record.payoutBenchmark.asOf);
   }
 
   return asOfValues.some((asOf) => isFactStale(asOf, now));
@@ -291,4 +298,87 @@ export function listAvailableFactTypesAnswer(
     payload: types,
     stale: availableFactTypesAreStale(resolved.record, now),
   };
+}
+
+export function getPayoutBenchmarkAnswer(
+  records: OperatorFactRecord[],
+  query: string,
+  now?: Date,
+): FactAnswer<PayoutBenchmarkFact> {
+  const resolved = resolveSingleMatch(records, query);
+  if (resolved.kind === 'none') {
+    return { kind: 'none' };
+  }
+  if (resolved.kind === 'ambiguous') {
+    return { kind: 'ambiguous', matches: resolved.matches };
+  }
+
+  const benchmark = resolved.record.payoutBenchmark;
+  if (!benchmark) {
+    return { kind: 'miss', record: resolved.record };
+  }
+
+  return {
+    kind: 'hit',
+    record: resolved.record,
+    payload: benchmark,
+    stale: isFactStale(benchmark.asOf, now),
+  };
+}
+
+/**
+ * Coarse speed tier for a third-party payout figure, lower is faster.
+ * Plain string checks only (no regex), so input length cannot cause backtracking.
+ * 0 instant · 1 minutes · 2 up to 1 hour · 3 a few hours · 4 within 24 hours · 5 business days · 6 unknown
+ */
+export function payoutSpeedTier(speed: string): number {
+  const value = speed.trim().toLowerCase();
+  if (value.startsWith('instant')) {
+    return 0;
+  }
+  if (value.includes('minute')) {
+    return 1;
+  }
+  if (value.startsWith('up to 1 hour') || value.startsWith('under 1 hour') || value.startsWith('within 1 hour')) {
+    return 2;
+  }
+  if (value.includes('business day')) {
+    return 5;
+  }
+  if (value.includes('24')) {
+    return 4;
+  }
+  if (value.includes('hour')) {
+    return 3;
+  }
+  return 6;
+}
+
+export interface RankedPayoutBenchmark {
+  record: OperatorFactRecord;
+  benchmark: PayoutBenchmarkFact;
+  tier: number;
+  stale: boolean;
+}
+
+/** Records with a payout benchmark, fastest tier first, then by name. */
+export function rankPayoutBenchmarks(
+  records: OperatorFactRecord[],
+  now?: Date,
+): RankedPayoutBenchmark[] {
+  const ranked: RankedPayoutBenchmark[] = [];
+  for (const record of records) {
+    const benchmark = record.payoutBenchmark;
+    if (!benchmark) {
+      continue;
+    }
+    ranked.push({
+      record,
+      benchmark,
+      tier: payoutSpeedTier(benchmark.fastestSpeed),
+      stale: isFactStale(benchmark.asOf, now),
+    });
+  }
+
+  return ranked.sort((a, b) => a.tier - b.tier || a.record.name.localeCompare(b.record.name));
 }

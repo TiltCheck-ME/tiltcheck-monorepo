@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import {
   createIntelTools,
+  isFactStale,
   type CasinoRecord,
   type CasinoSummary,
   type IntelTools,
@@ -16,6 +17,8 @@ import {
   buildOperatorFactMissBlocks,
   buildOperatorFactNoneBlocks,
   buildOperatorFactTypeBlocks,
+  buildPayoutRankingBlocks,
+  buildRedemptionAnswerBlocks,
   resolveDataSource,
 } from './block-builder.js';
 import { routeIntelIntent } from './intent-router.js';
@@ -195,26 +198,36 @@ export function createIntelAgent(options: IntelAgentOptions) {
       return operatorFactResponse(buildOperatorFactNoneBlocks(intent.name), false);
     }
 
+    if (intent.kind === 'payout_speed_ranking') {
+      const ranked = tools.rankPayoutBenchmarks();
+      return operatorFactResponse(buildPayoutRankingBlocks(ranked), ranked.length > 0);
+    }
+
     if (intent.kind === 'operator_redemption_fact') {
       const answer = tools.getOperatorRedemptionFacts(intent.name);
-      if (answer.kind === 'hit') {
+      if (answer.kind === 'hit' || answer.kind === 'miss') {
+        const benchmark = answer.record.payoutBenchmark;
+        if (answer.kind === 'miss' && !benchmark) {
+          return operatorFactResponse(buildOperatorFactMissBlocks(answer.record.name, answer.record.slug), true);
+        }
         return operatorFactResponse(
-          buildOperatorFactHitBlocks(
-            [
-              {
-                content: answer.payload.claim,
-                sourceUrl: answer.payload.sourceUrl,
-                asOf: answer.payload.asOf,
-              },
-            ],
-            answer.record.slug,
-            answer.stale,
-          ),
+          buildRedemptionAnswerBlocks({
+            name: answer.record.name,
+            slug: answer.record.slug,
+            ...(answer.kind === 'hit'
+              ? {
+                  operatorClaim: {
+                    content: answer.payload.claim,
+                    sourceUrl: answer.payload.sourceUrl,
+                    asOf: answer.payload.asOf,
+                  },
+                  operatorClaimStale: answer.stale,
+                }
+              : {}),
+            ...(benchmark ? { benchmark, benchmarkStale: isFactStale(benchmark.asOf) } : {}),
+          }),
           true,
         );
-      }
-      if (answer.kind === 'miss') {
-        return operatorFactResponse(buildOperatorFactMissBlocks(answer.record.name, answer.record.slug), true);
       }
       if (answer.kind === 'ambiguous') {
         return operatorFactResponse(buildOperatorFactAmbiguousBlocks(answer.matches), false);
