@@ -434,10 +434,10 @@ async function updateSessionStatusPill(): Promise<void> {
       if (clean.includes('crowncoins')) siteName = 'Crown Coins';
       else if (clean.includes('lonestar')) siteName = 'LoneStar';
       else if (clean.includes('realprize')) siteName = 'Real Prize';
-      else if (clean.includes('stake.us')) siteName = 'Stake.us';
-      else if (clean.includes('stake.com')) siteName = 'Stake';
+      else if (clean === 'stake.us') siteName = 'Stake.us';
+      else if (clean === 'stake.com') siteName = 'Stake';
       else if (clean.includes('roobet')) siteName = 'Roobet';
-      else if (clean.includes('bc.game')) siteName = 'BC.Game';
+      else if (clean === 'bc.game') siteName = 'BC.Game';
       else if (clean.includes('rollbit')) siteName = 'Rollbit';
       else if (clean.includes('shuffle')) siteName = 'Shuffle';
       else if (clean.includes('gamdom')) siteName = 'Gamdom';

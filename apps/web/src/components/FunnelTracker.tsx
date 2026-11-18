@@ -27,13 +27,19 @@ const PAGE_STEPS: Record<string, { step: string; source: string }> = {
   '/stake': { step: 'stake_install_page_view', source: 'dm-install-stake' },
 };
 
+function randomHex(length: number): string {
+  const bytes = new Uint8Array(Math.ceil(length / 2));
+  window.crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('').slice(0, length);
+}
+
 function getSessionId(): string {
   const existing = window.sessionStorage.getItem('tiltcheck_funnel_session_id');
   if (existing) {
     return existing;
   }
 
-  const created = `funnel_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
+  const created = `funnel_${Date.now()}_${randomHex(8)}`;
   window.sessionStorage.setItem('tiltcheck_funnel_session_id', created);
   return created;
 }

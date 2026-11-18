@@ -419,6 +419,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /**
+ * True only for https URLs whose hostname is exactly tiltcheck.me or api.tiltcheck.me
+ * (prefix matching would also accept e.g. https://tiltcheck.me.evil.com).
+ */
+function isTiltCheckOwnedUrl(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'https:') return false;
+    const host = parsed.hostname.toLowerCase();
+    return host === 'tiltcheck.me' || host === 'api.tiltcheck.me';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Real-time Phishing & Scam Block Logic
  */
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
@@ -427,11 +442,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   const url = details.url;
 
   // Skip safe origins
-  if (
-    url.startsWith('chrome://') ||
-    url.startsWith('https://tiltcheck.me') ||
-    url.startsWith('https://api.tiltcheck.me')
-  ) {
+  if (url.startsWith('chrome://') || isTiltCheckOwnedUrl(url)) {
     return;
   }
 

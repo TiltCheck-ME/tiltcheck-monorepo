@@ -7,13 +7,45 @@ import { useAuth } from '@/hooks/useAuth';
 import { getDiscordLoginApiBase, getDiscordLoginUrl } from '@/lib/discord-login';
 import { getDashboardHandoffUrl, getDashboardLaneLabel } from '@/lib/dashboard-handoff';
 import { signInWithMagicEmail } from '@/lib/magicAuth';
+import { isSafeRelativePath } from '@/lib/safe-url';
+
+// Login only hands off to the canonical dashboard, so the redirect param only selects a lane.
+// Map it onto a fixed allowlist of same-origin paths so no user-supplied value reaches navigation.
+const SAFE_REDIRECT_TARGETS: Record<string, string> = {
+  profile: '/dashboard',
+  analytics: '/dashboard?tab=analytics',
+  safety: '/dashboard?tab=safety',
+  vault: '/dashboard?tab=vault',
+  buddies: '/dashboard?tab=buddies',
+  bonuses: '/dashboard?tab=bonuses',
+  agent: '/dashboard?tab=agent',
+};
+
+const ROUTE_LANES: Record<string, string> = {
+  '/dashboard': 'profile',
+  '/tools/auto-vault': 'vault',
+  '/tools/buddy-system': 'buddies',
+};
 
 function isSafeRedirect(value: string | null): string {
-  if (!value || !value.startsWith('/')) {
+  if (!value || !isSafeRelativePath(value)) {
     return '/dashboard';
   }
 
-  return value;
+  let lane = 'profile';
+  try {
+    const parsed = new URL(value, 'https://tiltcheck.local');
+    const tab = parsed.searchParams.get('tab');
+    if (tab && Object.prototype.hasOwnProperty.call(SAFE_REDIRECT_TARGETS, tab)) {
+      lane = tab;
+    } else if (Object.prototype.hasOwnProperty.call(ROUTE_LANES, parsed.pathname)) {
+      lane = ROUTE_LANES[parsed.pathname];
+    }
+  } catch {
+    return '/dashboard';
+  }
+
+  return SAFE_REDIRECT_TARGETS[lane] ?? '/dashboard';
 }
 
 export default function LoginPage() {
