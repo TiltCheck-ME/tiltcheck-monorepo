@@ -48,8 +48,10 @@ Object.entries(fileMap).forEach(([oldName, newName]) => {
 
     Object.entries(fileMap).forEach(([linkOld, linkNew]) => {
         const wikiLink = linkNew.replace('.md', '');
-        const regex1 = new RegExp(`\\(\\./${linkOld.replace(/\./g, '\\.')}\\)`, 'g');
-        const regex2 = new RegExp(`\\(${linkOld.replace(/\./g, '\\.')}\\)`, 'g');
+        // Escape every RegExp metacharacter (backslash included), not just '.'.
+        const escapedLinkOld = linkOld.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex1 = new RegExp(`\\(\\./${escapedLinkOld}\\)`, 'g');
+        const regex2 = new RegExp(`\\(${escapedLinkOld}\\)`, 'g');
         content = content.replace(regex1, `(${wikiLink})`).replace(regex2, `(${wikiLink})`);
     });
 

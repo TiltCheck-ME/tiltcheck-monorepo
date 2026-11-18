@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 import { describe, expect, it, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 import fs from 'node:fs';
@@ -8,13 +9,20 @@ const repoRoot = process.cwd();
 
 function loadSuslinkInlineScript() {
   const html = fs.readFileSync(path.join(repoRoot, 'apps/web/tools/suslink.html'), 'utf8');
-  const inlineScriptMatch = html.match(/<script>\s*\/\/ LinkCheck Scanner Script[\s\S]*?\)\(\);\s*<\/script>/);
+  const inlineScriptMatch = html.match(
+    /<script\b[^>]*>\s*\/\/ LinkCheck Scanner Script[\s\S]*?\)\(\);\s*<\/script[^>]*>/i,
+  );
   if (!inlineScriptMatch) {
     throw new Error('Could not locate LinkCheck scanner inline script');
   }
-  return inlineScriptMatch[0]
-    .replace(/^<script>\s*/, '')
-    .replace(/\s*<\/script>$/, '');
+  return extractScriptBody(inlineScriptMatch[0]);
+}
+
+/** Body between the opening <script ...> tag and the closing </script> tag, trimmed. */
+function extractScriptBody(block: string): string {
+  const bodyStart = block.indexOf('>') + 1;
+  const bodyEnd = block.toLowerCase().lastIndexOf('</script');
+  return block.slice(bodyStart, bodyEnd).trim();
 }
 
 function setupDom() {

@@ -98,19 +98,80 @@ export function extractDomainCandidate(text: string): string | null {
   return null;
 }
 
+/** Strip trailing ?, . and ! characters without a backtracking regex (ReDoS-safe). */
+function stripTrailingPunctuation(value: string): string {
+  let end = value.length;
+  while (end > 0) {
+    const ch = value[end - 1];
+    if (ch !== '?' && ch !== '.' && ch !== '!') break;
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
+/**
+ * Linear-time replacement for `/is\s+(.+?)\s+a\s+scam/i` (CodeQL polynomial ReDoS).
+ * Mirrors the original's backtracking order and returns its capture (without trailing
+ * whitespace), or null when the original pattern would not match.
+ */
+function matchIsAScam(text: string): string | null {
+  const isRe = /is\s+/gi;
+  const scamRe = /\sa\s+scam/gi;
+  const scamAtStart = /a\s+scam/iy;
+  let cached: RegExpExecArray | null = null;
+  let searchedFrom = Infinity;
+  let isMatch: RegExpExecArray | null;
+  while ((isMatch = isRe.exec(text)) !== null) {
+    const isEnd = isMatch.index + 2;
+    const captureStart = isMatch.index + isMatch[0].length;
+
+    // 1) Greedy `\s+`: capture starts at the first non-space char and ends before the
+    //    first later " a scam" (lazy). It cannot cross a newline.
+    const minScamIndex = captureStart + 1;
+    if (minScamIndex < searchedFrom || (cached && cached.index < minScamIndex)) {
+      scamRe.lastIndex = minScamIndex;
+      cached = scamRe.exec(text);
+      searchedFrom = minScamIndex;
+    }
+    if (cached && cached.index >= minScamIndex) {
+      const capture = text.slice(captureStart, cached.index).trimEnd();
+      if (!capture.includes('\n')) {
+        return capture;
+      }
+    }
+
+    // 2) Backtracked `\s+`: a whitespace-only capture inside the run when "a scam" follows it.
+    const run = text.slice(isEnd, captureStart);
+    scamAtStart.lastIndex = captureStart;
+    if (run.length >= 3 && scamAtStart.test(text)) {
+      for (let j = 1; j <= run.length - 2; j += 1) {
+        if (run[j] !== '\n') return run[j];
+      }
+    }
+  }
+  return null;
+}
+
 export function extractCasinoNameCandidate(text: string): string | null {
+  // Each capture must start with a non-space character so `\s+` and the capture cannot
+  // overlap, and it stops at the first '?' (as the old lazy `(.+?)(?:\?|$)` did) without a
+  // trailing anchor, which keeps the match linear (CodeQL polynomial ReDoS).
   const patterns = [
-    /is\s+(.+?)\s+a\s+scam/i,
-    /about\s+(.+?)(?:\?|$)/i,
-    /lookup\s+(.+?)(?:\?|$)/i,
-    /grade\s+(?:for|on)\s+(.+?)(?:\?|$)/i,
-    /trust\s+(?:on|for)\s+(.+?)(?:\?|$)/i,
+    /about\s+(\S[^?\n]*)/i,
+    /lookup\s+(\S[^?\n]*)/i,
+    /grade\s+(?:for|on)\s+(\S[^?\n]*)/i,
+    /trust\s+(?:on|for)\s+(\S[^?\n]*)/i,
   ];
+
+  const scamCapture = matchIsAScam(text);
+  if (scamCapture !== null) {
+    return stripTrailingPunctuation(scamCapture).trim();
+  }
 
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (match?.[1]) {
-      return match[1].replace(/[?.!]+$/, '').trim();
+      return stripTrailingPunctuation(match[1]).trim();
     }
   }
 

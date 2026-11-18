@@ -8,6 +8,17 @@ const root = dirname(fileURLToPath(import.meta.url));
 const popupHtml = readFileSync(join(root, '../../src/popup.html'), 'utf8');
 const popupTs = readFileSync(join(root, '../../src/popup.ts'), 'utf8');
 
+/** Apply a removal regex until the string stops changing (no nested/reassembled leftovers). */
+function removeUntilStable(input: string, pattern: RegExp): string {
+  let previous: string;
+  let output = input;
+  do {
+    previous = output;
+    output = output.replace(pattern, '');
+  } while (output !== previous);
+  return output;
+}
+
 describe('popup guest-first copy', () => {
   it('opens on Settings, not a Discord wall', () => {
     expect(popupHtml).toContain('data-tab="block">Settings');
@@ -125,10 +136,15 @@ describe('popup guest-first copy', () => {
   });
 
   it('uses plain wording: no guard, shield or protect framing in what users read', () => {
-    const visibleHtml = popupHtml
-      .replace(/<style[\s\S]*?<\/style>/g, '')
-      .replace(/<script[\s\S]*?<\/script>/g, '')
-      .replace(/<!--[\s\S]*?-->/g, '')
+    let stripped = popupHtml;
+    let previousStripped: string;
+    do {
+      previousStripped = stripped;
+      stripped = removeUntilStable(stripped, /<style\b[\s\S]*?<\/style[^>]*>/gi);
+      stripped = removeUntilStable(stripped, /<script\b[\s\S]*?<\/script[^>]*>/gi);
+      stripped = removeUntilStable(stripped, /<!--[\s\S]*?--!?>/g);
+    } while (stripped !== previousStripped);
+    const visibleHtml = stripped
       // drop tag internals except user-facing attributes
       .replace(/<[^>]*>/g, (tag) => (tag.match(/\b(title|alt|aria-label|placeholder)="[^"]*"/g) || []).join(' '));
     const banned = /\b(guards?|guardrails?|shield(ed)?|protect(ion|ed|s)?|armed|armory)\b/i;

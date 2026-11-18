@@ -2,6 +2,13 @@
 
 # Session Log
 
+## 2026-11-18 — fix(security): ReDoS, sanitization, workflow permissions (CodeQL)
+
+- Least-privilege `permissions: contents: read` on six workflows (pr-test changes job also gets `pull-requests: read`).
+- Linear-time rewrites or input caps for ReDoS-flagged regexes in intel-agent, intel-tools, natural-language-parser, shared, utils, collectclock, channel-watcher.
+- Global/looped sanitization fixes in wiki build scripts, research-brief formatter, and tests; hostname checks via `new URL()`.
+- Brand-law: copyright headers on touched files; reworded a channel-watcher log line that tripped the custodial-keyword check.
+- Archive alerts left for dismissal (CodeQL default setup has no paths-ignore).
 ## 2026-11-17 — fix(pages): publish AutoVault userscripts on tiltcheck.me
 
 Every tiltcheck.me/userscripts/* URL returned 404. tiltcheck.me is GitHub Pages (pages.yml), which built only docs/tiltcheck, and the scripts live in apps/web/public/userscripts (Next app, not deployed). The scripts' @downloadURL/@updateURL pointed at the dead URLs, so installed copies could not update.

@@ -3,6 +3,16 @@
 
 import { test, expect } from "@playwright/test";
 
+/** True when the URL's hostname is discord.com or a subdomain (not a substring match). */
+function isDiscordUrl(rawUrl: string): boolean {
+  try {
+    const { hostname } = new URL(rawUrl);
+    return hostname === "discord.com" || hostname.endsWith(".discord.com");
+  } catch {
+    return false;
+  }
+}
+
 test.describe("Discord Login Flow", () => {
   test("Discord login button is visible on the login page", async ({
     page,
@@ -37,7 +47,7 @@ test.describe("Discord Login Flow", () => {
       // Wait for either a navigation or a new page request.
       page.waitForResponse(
         (resp) =>
-          resp.url().includes("discord.com") ||
+          isDiscordUrl(resp.url()) ||
           resp.url().includes("/auth") ||
           resp.status() === 302,
         { timeout: 8000 }

@@ -8,6 +8,26 @@ import {
 import type { ListFilters } from '@tiltcheck/intel-tools';
 import type { RoutedIntent } from './types.js';
 
+/** Strip trailing ?, . and ! characters without a backtracking regex (ReDoS-safe). */
+function stripTrailingPunctuation(value: string): string {
+  let end = value.length;
+  while (end > 0) {
+    const ch = value[end - 1];
+    if (ch !== '?' && ch !== '.' && ch !== '!') break;
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
+// Linear equivalent of replacing /\s+a\s+scam.*/i with '' ('.' stops at a newline).
+function stripScamSuffix(value: string): string {
+  const idx = value.search(/\sa\s+scam/i);
+  if (idx === -1) return value;
+  const newline = value.indexOf('\n', idx + 1);
+  const rest = newline === -1 ? '' : value.slice(newline);
+  return value.slice(0, idx).trimEnd() + rest;
+}
+
 function buildListTitle(filters: ListFilters): string {
   if (filters.geo === 'us-crypto') {
     return 'US crypto casinos';
@@ -59,12 +79,12 @@ function extractOperatorName(text: string): string | null {
 
   const howLongMatch = text.match(/\bhow long does\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+redemption\b|\s+take\s+for\s+redemption\b|\?|$)/i);
   if (howLongMatch?.[1]) {
-    return howLongMatch[1].replace(/[?.!]+$/, '').trim();
+    return stripTrailingPunctuation(howLongMatch[1]).trim();
   }
 
   const onMatch = text.match(/\bon\s+([A-Za-z][A-Za-z0-9.\s-]{1,30}?)(?:\s+in\b|\?|$)/i);
   if (onMatch?.[1]) {
-    return onMatch[1].replace(/[?.!]+$/, '').trim();
+    return stripTrailingPunctuation(onMatch[1]).trim();
   }
 
   const coinsMatch = text.match(/\b([a-z]+(?:\s+[a-z]+)?)\s+coins?\b/i);
@@ -72,9 +92,9 @@ function extractOperatorName(text: string): string | null {
     return coinsMatch[1].trim();
   }
 
-  const dealMatch = text.match(/\b(?:deal|program)\s+on\s+(.+?)(?:\?|$)/i);
+  const dealMatch = text.match(/\b(?:deal|program)\s+on\s+(\S.*?)(?:\?|$)/i);
   if (dealMatch?.[1]) {
-    return dealMatch[1].replace(/[?.!]+$/, '').trim();
+    return stripTrailingPunctuation(dealMatch[1]).trim();
   }
 
   return null;
@@ -185,11 +205,9 @@ export function routeIntelIntent(message: string): RoutedIntent {
   }
 
   if (scamCheck) {
-    const fallbackName = trimmed
-      .replace(/is\s+/i, '')
-      .replace(/\s+a\s+scam.*/i, '')
-      .replace(/[?.!]+$/, '')
-      .trim();
+    const fallbackName = stripTrailingPunctuation(
+      stripScamSuffix(trimmed.replace(/is\s+/i, '')),
+    ).trim();
     if (fallbackName.length >= 2) {
       return { kind: 'lookup', name: fallbackName, checkScam: true };
     }

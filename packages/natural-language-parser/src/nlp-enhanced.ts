@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * Enhanced Natural Language Parser
  * Handles comprehensive NL input for JustTheTip bot
@@ -210,8 +210,14 @@ export interface ParsedTriviaCommand {
   category: string;
 }
 
+/** Commands are short chat phrases; longer input is rejected before any regex runs (ReDoS guard). */
+const MAX_NL_COMMAND_LENGTH = 500;
+
 export function parseTriviaCommand(input: string): ParseResult<ParsedTriviaCommand> {
   const lower = input.toLowerCase().trim();
+  if (lower.length > MAX_NL_COMMAND_LENGTH) {
+    return { success: false, error: 'Command is too long' };
+  }
   
   // Try to extract components
   // This is a best-effort parser for natural input
@@ -231,7 +237,7 @@ export function parseTriviaCommand(input: string): ParseResult<ParsedTriviaComma
   
   // Try to find duration patterns
   const durationPatterns = [
-    /(\d+)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes)/i,
+    /(?<!\d)(\d+)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes)/i,
     /(half\s*(a\s*)?(min|minute))/i,
     /(a\s+minute)/i,
   ];
@@ -341,10 +347,13 @@ export interface ParsedVaultCommand {
 
 export function parseVaultCommand(input: string): ParseResult<ParsedVaultCommand> {
   const lower = input.toLowerCase().trim();
+  if (lower.length > MAX_NL_COMMAND_LENGTH) {
+    return { success: false, error: 'Command is too long' };
+  }
   
   // Check for reason phrases
   const reasonPatterns = [
-    /(?:for|because|reason:?)\s+(.+)$/i,
+    /(?:for|because|reason:?)\s+(\S.*)$/i,
     /(anti[- ]?tilt|savings?|break|cooldown)$/i,
   ];
   
@@ -362,7 +371,7 @@ export function parseVaultCommand(input: string): ParseResult<ParsedVaultCommand
   
   // Find duration
   const durationPatterns = [
-    /(\d+)\s*(h|hr|hrs|hour|hours|d|day|days|w|week|weeks|m|min|mins|minute|minutes)/i,
+    /(?<!\d)(\d+)\s*(h|hr|hrs|hour|hours|d|day|days|w|week|weeks|m|min|mins|minute|minutes)/i,
     /(a\s+(day|week|hour))/i,
     /(all\s*day)/i,
   ];

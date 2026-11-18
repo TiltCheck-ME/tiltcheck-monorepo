@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
@@ -16,6 +17,19 @@ import request from 'supertest';
 import express from 'express';
 import path from 'path';
 import fs from 'fs/promises';
+
+/**
+ * Same acceptance as /^[^@\s]+@[^@\s]+\.[^@\s]+$/ without the overlapping quantifiers
+ * (`[^@\s]+\.[^@\s]+`) that CodeQL flagged as polynomial ReDoS.
+ */
+function isValidEmail(email: string): boolean {
+  if (/\s/.test(email)) return false;
+  const parts = email.split('@');
+  if (parts.length !== 2 || parts[0].length === 0) return false;
+  const domain = parts[1];
+  const dot = domain.indexOf('.', 1);
+  return dot !== -1 && dot < domain.length - 1;
+}
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const TEST_FILE = path.join(DATA_DIR, 'newsletter-subscribers-test.json');
@@ -56,7 +70,7 @@ describe('Newsletter API', () => {
         return res.status(400).json({ ok: false, error: 'Bot detected' });
       }
       
-      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      if (!email || !isValidEmail(email)) {
         return res.status(400).json({ ok: false, error: 'Invalid email' });
       }
 
@@ -91,7 +105,7 @@ describe('Newsletter API', () => {
     app.post('/api/newsletter/unsubscribe', async (req, res) => {
       const email = (req.body.email || '').trim().toLowerCase();
       
-      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      if (!email || !isValidEmail(email)) {
         return res.status(400).json({ ok: false, error: 'Invalid email' });
       }
 

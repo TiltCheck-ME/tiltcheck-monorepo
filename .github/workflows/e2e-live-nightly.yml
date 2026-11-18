@@ -6,6 +6,9 @@ on:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   e2e-live:
     runs-on: ubuntu-24.04

@@ -30,9 +30,12 @@ async function createSession() {
         // Persist only Discord-scoped cookies. Do not persist token-bearing
         // localStorage entries or unrelated third-party cookies.
         const allCookies = await context.cookies();
-        const discordCookies = allCookies.filter(c =>
-            c.domain.includes('discord.com')
-        );
+        // Match the cookie domain exactly (or as a subdomain), not as a substring.
+        const isDiscordDomain = (domain) => {
+            const host = String(domain || '').replace(/^\./, '').toLowerCase();
+            return host === 'discord.com' || host.endsWith('.discord.com');
+        };
+        const discordCookies = allCookies.filter(c => isDiscordDomain(c.domain));
 
         // Build a minimal storageState Playwright can consume directly without
         // persisting attacker-abusable localStorage auth material.
@@ -45,7 +48,7 @@ async function createSession() {
 
         const sizeKB = (Buffer.byteLength(JSON.stringify(minimalSession)) / 1024).toFixed(1);
         console.log(`Session saved to ${SESSION_FILE} (${sizeKB} KB — sanitized cookie format)`);
-        console.log('Base64-encode this file if you need to seed DISCORD_SESSION_JSON for Railway.');
+        console.log('Base64-encode this file if you need to populate DISCORD_SESSION_JSON for Railway.');
     } catch {
         console.error('Login timeout (5 minutes). Run `npm run session:create` again.');
         process.exitCode = 1;

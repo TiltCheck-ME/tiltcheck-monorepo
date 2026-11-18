@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * Target Parser
  * Parses natural language user targeting
@@ -16,6 +16,9 @@ const POOR_PATTERNS = /poor|broke|lowest|poorest/i;
 const LAST_DAY_PATTERNS = /last\s*(24h|day|24\s*hours)/i;
 const LAST_WEEK_PATTERNS = /last\s*(week|7\s*days)/i;
 const LAST_HOUR_PATTERNS = /last\s*(hour|60\s*min)/i;
+
+/** Upper bound on target text we regex-parse for a count (ReDoS guard). */
+const MAX_TARGET_INPUT_LENGTH = 500;
 
 /**
  * Parse target from natural language input
@@ -37,7 +40,9 @@ export function parseTarget(input: string, mentionedUserIds?: string[]): ParseRe
   }
 
   // Extract count if present
-  const countMatch = trimmed.match(/(\d+)\s+/);
+  // Length guard + digit lookbehind keep this linear (ReDoS-safe); same first match as before.
+  const countMatch =
+    trimmed.length <= MAX_TARGET_INPUT_LENGTH ? trimmed.match(/(?<!\d)(\d+)\s/) : null;
   const count = countMatch ? parseInt(countMatch[1]) : undefined;
 
   // Determine target type

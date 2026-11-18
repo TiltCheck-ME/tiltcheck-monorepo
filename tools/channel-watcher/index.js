@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * TiltCheck Channel Scraper
  * ─────────────────────────
@@ -645,7 +646,8 @@ async function run() {
 
             // Regex to detect emoji-only content (unicode emoji + discord :name: syntax + whitespace)
             const emojiOnlyRe = /^[\s\u00A9\u00AE\u200d\u2000-\u3300\uD800-\uDFFF\uFE0F\u20E3:a-z0-9_]+$/i;
-            const customEmojiRe = /^(\s*<a?:\w+:\d+>\s*|\s*:\w+:\s*)*$/; // Discord custom emoji markup
+            // Discord custom emoji markup. Written without adjacent \s* across repetitions to avoid exponential backtracking (ReDoS).
+            const customEmojiRe = /^(?:\s*(?:<a?:\w+:\d+>|:\w+:)(?:\s*(?:<a?:\w+:\d+>|:\w+:))*\s*)?$/;
 
             const filtered = Array.from(items).flatMap(li => {
                 const idParts = li.id.split('-');
