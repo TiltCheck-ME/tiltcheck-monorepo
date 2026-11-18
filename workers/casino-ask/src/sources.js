@@ -1,9 +1,11 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * Where answers are allowed to come from:
  *  1. The casino's own published pages (terms, rules, help), listed in OFFICIAL_PAGES.
  *  2. TiltCheck's casino audit data (apps/web/src/data/casinos.json, shown on tiltcheck.me/casinos/).
  *  3. CollectClock player reports (/casino-reports/summary on the collectclock-api worker).
+ *  4. RotoWire payout-speed benchmarks (data/trust-engine/operator-facts.live.json, see payout.js),
+ *     labeled as third-party figures.
  *
  * Adding a casino's pages: use pages on the casino's own domain that a plain fetch can read
  * (no sign-in, not an empty app shell). Check with:
@@ -11,6 +13,7 @@
  * Pages that come back empty or blocked only make the lookup say "I don't know".
  */
 import auditData from '../../../apps/web/src/data/casinos.json' with { type: 'json' };
+import { BENCHMARKS } from './payout.js';
 
 export const SITE_CASINOS_URL = 'https://tiltcheck.me/casinos/';
 export const REPORTS_SUMMARY_URL = 'https://collectclock-api.j-chapman7.workers.dev/casino-reports/summary';
@@ -61,17 +64,25 @@ export function auditText(c) {
   return lines.join(' ');
 }
 
-/** One entry per casino: { slug, name, aliases, pages, audit } */
-export function buildCatalog(audits = auditData, official = OFFICIAL_PAGES) {
+/** One entry per casino: { slug, name, aliases, pages, audit, benchmark } */
+export function buildCatalog(audits = auditData, official = OFFICIAL_PAGES, benchmarks = BENCHMARKS) {
   const bySlug = new Map();
   for (const c of audits) {
     if (!c || !c.audited || !c.name) continue;
     const slug = slugify(c.name);
-    bySlug.set(slug, { slug, name: c.name, aliases: defaultAliases(c.name), pages: [], audit: c });
+    bySlug.set(slug, { slug, name: c.name, aliases: defaultAliases(c.name), pages: [], audit: c, benchmark: null });
+  }
+  for (const b of benchmarks) {
+    const slug = slugify(b.name);
+    const cur = bySlug.get(slug) || { slug, name: b.name, aliases: [], pages: [], audit: null, benchmark: null };
+    const extra = b.aliases.flatMap((a) => [a.toLowerCase(), ...defaultAliases(a)]).filter((a) => a.length >= 3);
+    cur.aliases = [...new Set([...cur.aliases, ...defaultAliases(b.name), ...extra])];
+    cur.benchmark = b.benchmark;
+    bySlug.set(slug, cur);
   }
   for (const o of official) {
     const slug = slugify(o.name);
-    const cur = bySlug.get(slug) || { slug, name: o.name, aliases: [], pages: [], audit: null };
+    const cur = bySlug.get(slug) || { slug, name: o.name, aliases: [], pages: [], audit: null, benchmark: null };
     cur.aliases = [...new Set([...cur.aliases, ...defaultAliases(o.name), ...(o.aliases || [])])];
     cur.pages = [...cur.pages, ...o.pages];
     bySlug.set(slug, cur);

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * tiltcheck-casino-ask: answers casino questions from the casino's own pages and TiltCheck's records.
  *
@@ -68,7 +68,7 @@ export function makeIo(env, store, fetchImpl = fetch) {
 
 export async function answerCached(question, env, store, fetchImpl = fetch) {
   const q = normalizeQuestion(question);
-  const key = `answer:v1:${q.toLowerCase()}`;
+  const key = `answer:v2:${q.toLowerCase()}`;
   const io = makeIo(env, store, fetchImpl);
   const hit = await store.get(key);
   if (hit) return { ...JSON.parse(hit), cached: true };

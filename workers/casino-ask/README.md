@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
 
 # casino-ask (draft, not deployed)
 
@@ -11,6 +11,7 @@ Only these, and every answer links the page it came from:
 1. The casino's own published pages (terms, rules, help), listed in `src/sources.js` `OFFICIAL_PAGES`. Fetched live, text cached 6 hours.
 2. TiltCheck's audit data, `apps/web/src/data/casinos.json` (the cards on tiltcheck.me/casinos/).
 3. CollectClock player reports, `GET /casino-reports/summary` on collectclock-api (only shown once 3+ players report the same thing).
+4. RotoWire payout-speed benchmarks (from PR #751), `payoutBenchmark` in `data/trust-engine/operator-facts.live.json`, 18 regulated real-money casinos. Always labeled third-party, with RotoWire's as-of date (`src/payout.js`). "Which casino pays out fastest?" is answered straight from this data with no model call: it lists the casinos in RotoWire's quickest listed tier and links the full table at tiltcheck.me/casinos/#payout-speed.
 
 When none of them say, the answer is "I don't know", with the pages that were checked.
 

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 export const SITE_URL = 'https://tiltcheck.me';
 export const API_URL = 'https://collectclock-api.j-chapman7.workers.dev';
@@ -159,6 +159,16 @@ export const CASINO_ASK = {
   placeholder: 'How long does Acebet take to redeem?',
   button: 'Ask',
   covered: "Covers Acebet's own pages and the casinos TiltCheck has audited. More casinos as their pages get added.",
+};
+
+/** Payout-speed section on /casinos/. Rows come from data/trust-engine/operator-facts.live.json (payoutBenchmark, PR #751). */
+export const PAYOUT_SPEED = {
+  eyebrow: 'Payout speed',
+  title: 'Payout times, from RotoWire.',
+  lede: "RotoWire's published payout times for regulated real-money casinos. Third-party figures, not TiltCheck tests or the casinos' own terms.",
+  method: 'Times run from casino approval until funds land, for a verified account. A first withdrawal can take 24-48 hours while KYC is checked.',
+  scope: 'Covers the 7 states RotoWire tracks (CT, DE, MI, NJ, PA, RI, WV). Florida is not one of them. Availability varies by state.',
+  columns: ['Casino', 'Payout time', 'Methods'],
 };
 
 export const GRADING_STEPS = [

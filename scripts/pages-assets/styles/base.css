@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /*
  * GitHub Pages shell — static twin of tiltcheck.me landing tokens/layout.
  * Absolute /paths break on project Pages; HTML uses relative asset hrefs.
@@ -1252,6 +1252,30 @@ td {
   margin: 0.75rem 0 0;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.payout-speed__lede,
+.payout-speed__note,
+.payout-speed__source {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.payout-speed__note,
+.payout-speed__source {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.payout-speed__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.payout-speed__table {
+  min-width: 32rem;
 }
 
 .casino-ask__form {

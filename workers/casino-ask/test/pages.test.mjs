@@ -1,9 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 // The Ask box on tiltcheck.me/casinos/ (scripts/convert-markdown.js + scripts/pages-product-data.mjs).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { CASINO_ASK } from '../../../scripts/pages-product-data.mjs';
+import { CASINO_ASK, PAYOUT_SPEED } from '../../../scripts/pages-product-data.mjs';
 
 const root = new URL('../../../', import.meta.url);
 const builder = readFileSync(new URL('scripts/convert-markdown.js', root), 'utf8');
@@ -36,4 +36,16 @@ test('copy: plain, no exclamation marks, TiltCheck spelled right, no shield fram
   assert.doesNotMatch(userFacing, /\b(shield|armou?ry|guard(ian)?|protect(ion|s)?)\b/i);
   assert.doesNotMatch(userFacing, /Tilt Check|Tiltcheck|TILTCHECK/);
   assert.match(copy, /I don't know/);
+});
+
+test('Casinos page has the RotoWire payout-speed table, credited and dated', () => {
+  assert.match(builder, /\$\{buildPayoutSpeed\(\)\}/);
+  assert.match(builder, /id="payout-speed"/);
+  assert.match(builder, /data\/trust-engine\/operator-facts\.live\.json/);
+  assert.match(builder, /Source: \$\{credit\}\. As of /);
+  const copy = Object.values(PAYOUT_SPEED).flat().join(' ');
+  assert.doesNotMatch(copy, /!/);
+  assert.doesNotMatch(copy, /\b(fastest|best|top)\b/i, 'no ranking claims in the section copy');
+  assert.match(copy, /RotoWire/);
+  assert.match(copy, /not TiltCheck tests/);
 });
