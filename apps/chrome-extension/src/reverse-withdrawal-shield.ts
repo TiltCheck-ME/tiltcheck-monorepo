@@ -202,7 +202,7 @@ export function markGuardedCancelElement(el: Element): void {
   el.setAttribute('data-tiltcheck-shield', 'guarded');
   el.setAttribute(
     'title',
-    'TiltCheck PocketCheck: reversing this cashout takes a confirm and a 10-second hold.'
+    'TiltCheck Keep the Win: reversing this cashout takes a confirm and a 10-second hold.'
   );
 }
 
@@ -299,7 +299,7 @@ export function installReverseWithdrawalShield(
     ].join(';');
 
     const eyebrow = doc.createElement('div');
-    eyebrow.textContent = 'PocketCheck';
+    eyebrow.textContent = 'Keep the Win';
     eyebrow.style.cssText = 'font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:#17c3b2;font-weight:800;';
 
     const question = doc.createElement('p');

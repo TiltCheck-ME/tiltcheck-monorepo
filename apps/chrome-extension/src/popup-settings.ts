@@ -445,7 +445,7 @@ export const PRESET_BAG_SECURER: PlayerPresetConfig = {
   id: 'bag_securer',
   name: 'Bag Securer',
   badge: 'Recommended',
-  tagline: 'Cashier barrier on, PocketCheck payout lock, 15% WinCheck profit floor.',
+  tagline: 'Cashier barrier on, Keep the Win payout hold, 15% WinCheck profit floor.',
   depositBarrierEnabled: true,
   reverseWithdrawalShieldEnabled: true,
   realityHudEnabled: true,
