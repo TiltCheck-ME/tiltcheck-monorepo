@@ -9,12 +9,13 @@
  *
  * Privacy: the screen renders only on this device. The choice log is
  * chrome.storage.local, holds no amounts, game names, or balances, and is never sent.
- * A buddy ping (when its backend exists) carries only the trigger kind.
+ * A buddy ping carries only the trigger kind ('walk_away' or 'tilt'), nothing else.
  */
 
 import { isTouchGrassActive, triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { triggerAutoVault, triggerCashoutNavigation } from './cashout-router.js';
 import { recordActivityFeedEvent } from './activity-feed.js';
+import { isBackendFeatureEnabled } from './config.js';
 
 export const CHOICES_ROOT_ID = 'tiltcheck-choices-root';
 export const CHOICE_LOG_KEY = 'tiltcheck_choice_log';
@@ -24,10 +25,40 @@ export const TOUCH_GRASS_CHOICE_MS = 5 * 60_000;
 /** Same trigger will not re-open the screen inside this window. */
 export const CHOICES_REPEAT_COOLDOWN_MS = 3 * 60_000;
 /**
- * Cash-out Buddy has no backend route yet (see docs/specs/cashout-buddy.md).
- * While false the "Ping my buddy" button is not rendered and nothing is sent.
+ * Set by the background worker from GET /buddy/status (true only while the
+ * player has at least one active buddy). Read here so the button only shows
+ * when a ping can go somewhere.
  */
-export const BUDDY_PING_AVAILABLE = false;
+export const BUDDY_PAIRED_KEY = 'tiltcheck_buddy_paired';
+
+let buddyPaired = false;
+let buddySyncStarted = false;
+
+/** "Ping my buddy" shows only with the backend feature on and an active pair. */
+export function isBuddyPingAvailable(): boolean {
+  return isBackendFeatureEnabled('buddyPing') && buddyPaired;
+}
+
+/**
+ * Mirror the paired flag from chrome.storage.local into this bundle. Call once
+ * at content-script boot (each bundle keeps its own copy). Safe to call again.
+ */
+export function syncBuddyPingAvailability(): void {
+  if (buddySyncStarted) return;
+  buddySyncStarted = true;
+  try {
+    void Promise.resolve(chrome.storage.local.get([BUDDY_PAIRED_KEY]))
+      .then((res) => {
+        buddyPaired = res?.[BUDDY_PAIRED_KEY] === true;
+      })
+      .catch(() => {});
+    chrome.storage.onChanged?.addListener?.((changes, area) => {
+      if (area === 'local' && BUDDY_PAIRED_KEY in changes) buddyPaired = changes[BUDDY_PAIRED_KEY]?.newValue === true;
+    });
+  } catch {
+    // No extension context (tests, detached frames).
+  }
+}
 
 export type ChoiceTrigger = 'walk_away_up' | 'walk_away_down' | 'tilt';
 export type ChoiceId = 'cash_out' | 'lock_half' | 'ping_buddy' | 'touch_grass' | 'keep_playing' | 'dismissed';
@@ -53,6 +84,8 @@ export interface ChoicesScreenOptions {
 const lastShownAt: Partial<Record<ChoiceTrigger, number>> = {};
 
 export function resetChoicesScreenForTests(): void {
+  buddyPaired = false;
+  buddySyncStarted = false;
   for (const key of Object.keys(lastShownAt) as ChoiceTrigger[]) {
     delete lastShownAt[key];
   }
@@ -156,7 +189,7 @@ export function showChoicesScreen(doc: Document, opts: ChoicesScreenOptions): bo
   lastShownAt[opts.trigger] = now;
 
   const host = doc.location?.hostname ?? '';
-  const buddyAvailable = opts.buddyPingAvailable ?? BUDDY_PING_AVAILABLE;
+  const buddyAvailable = opts.buddyPingAvailable ?? isBuddyPingAvailable();
   const lockHalf = opts.lockHalfAmount?.() ?? null;
 
   const root = doc.createElement('div');
@@ -243,6 +276,7 @@ export function showChoicesScreen(doc: Document, opts: ChoicesScreenOptions): bo
   if (buddyAvailable) {
     add('ping_buddy', 'Ping my buddy', () => {
       try {
+        // Only buildBuddyPingMessage() goes out: { type, reason }. No amounts.
         chrome.runtime?.sendMessage?.(buildBuddyPingMessage(opts.trigger));
       } catch {
         // Extension context gone; the choice is still logged.

@@ -2223,7 +2223,7 @@
   <section class="guard-panel" id="walk-away-panel">
     <h3>Walk-Away Number</h3>
     <p class="guard-policy">
-      Pick your lines before the session talks you out of them. Hit one and you get a private prompt: Cash out, Lock half, Touch Grass 5 min, or keep playing (logged). No lockout. Private: stays on this device, never shared.
+      Pick your lines before the session talks you out of them. Hit one and you get a private prompt: Cash out, Lock half, Ping my buddy (once paired), Touch Grass 5 min, or keep playing (logged). No lockout. Your lines and amounts stay on this device, never shared.
     </p>
     <div style="display:flex; gap:8px;">
       <div class="form-row" style="flex:1;">
@@ -2238,6 +2238,27 @@
     <div style="margin-top:8px; display:flex; gap:6px;">
       <button type="button" id="btn-save-walk-away" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;">Set lines</button>
       <button type="button" id="btn-clear-walk-away" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;">Clear</button>
+    </div>
+  </section>
+
+  <section class="guard-panel" id="buddy-panel">
+    <h3>Cash-out Buddy</h3>
+    <p class="guard-policy">
+      Buddies only ever see that you hit your walk-away or could use a nudge. Never amounts, balances, games or sites.
+    </p>
+    <p class="guard-policy" id="buddy-status-line" aria-live="polite"></p>
+    <ul id="buddy-list" style="list-style:none; margin:0; padding:0; font-size:11px;"></ul>
+    <div id="buddy-controls">
+      <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
+        <button type="button" id="btn-buddy-invite" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;">Invite code</button>
+        <code id="buddy-invite-code" style="font-size:12px; letter-spacing:0.06em;"></code>
+        <button type="button" id="btn-buddy-copy" class="btn btn-ghost" style="padding:5px 10px; font-size:11px; display:none;">Copy</button>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:6px;">
+        <label for="buddy-accept-input" class="sr-only" style="position:absolute; left:-9999px;">Buddy's invite code</label>
+        <input type="text" id="buddy-accept-input" maxlength="12" autocomplete="off" placeholder="Buddy's code" style="flex:1; background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-size:11px;" />
+        <button type="button" id="btn-buddy-accept" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;">Accept code</button>
+      </div>
     </div>
   </section>
 

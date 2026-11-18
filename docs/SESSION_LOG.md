@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-18 — feat(buddy): Cash-out Buddy pairing + ping wired to collectclock-api (draft PR #753, feat/cashout-buddy)
+- `workers/collectclock-api/`: worker source now versioned (deployed version + new `src/buddy.js`). Routes `/buddy/invite|accept|status|unpair|ping`, Bearer `workerSession`, KV `CC`, bot DM via `BOT_TOKEN`. Ping is plain text ("<name> hit their walk-away." / "<name> could use a nudge."), 1 per 10 min per pair, amount-like fields refused. Deploy by hand with `deploy.sh`; Git build must stay disconnected. Not deployed.
+- Extension: background `buddy_*` messages, popup Cash-out Buddy section (invite/accept/status/unpair), "Ping my buddy" shows only when paired. `notifySupportIntervention`/`notifyBuddy` now carry the intervention kind only (balances, risk, wallet stripped).
+- Tests: chrome-extension 48 files / 386 pass; worker `node --test` 34 pass; extension build OK. Open product questions listed in docs/specs/cashout-buddy.md section 7.
+
 ## 2026-11-18 — feat(extension): walk-away targets, choices instead of tilt lockouts, redemption hold (draft PR, feat/cashout-buddy)
 - Spec: docs/specs/cashout-buddy.md (flows, data/privacy, extension-to-worker buddy plan, tests, open questions). Discord buddy pairing is spec only; heater tip cap is a follow-up note.
 - New `walk-away.ts`: up/down session lines from the popup; crossing one opens the private choices screen. Local only.

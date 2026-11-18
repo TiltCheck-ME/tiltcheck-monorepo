@@ -60,6 +60,7 @@ import {
 } from './popup-settings.js';
 import { DEFAULT_CASHOUT_GOALS } from './profit-lock.js';
 import { loadWalkAwayTargets, saveWalkAwayTargets } from './walk-away.js';
+import { initBuddyPanel } from './buddy-panel.js';
 import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
 import {
@@ -356,6 +357,7 @@ async function performLogout(): Promise<void> {
       {
         authToken: null,
         workerSession: null,
+        tiltcheck_buddy_paired: false,
         userData: null,
         tiltguard_user_id: null,
       },
@@ -2624,6 +2626,7 @@ async function init() {
   });
 
   initGuardSettingsPanel();
+  initBuddyPanel(document);
   initSessionRadarListeners();
   initCashoutRouterListeners();
   initStreakVolatilityListeners();

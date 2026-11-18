@@ -22,16 +22,20 @@ import {
   CHOICES_ROOT_ID,
   CHOICE_LOG_KEY,
   TOUCH_GRASS_CHOICE_MS,
+  BUDDY_PAIRED_KEY,
   buildBuddyPingMessage,
   computeLockHalfAmount,
+  isBuddyPingAvailable,
   resetChoicesScreenForTests,
   sanitizeChoiceLog,
   showChoicesScreen,
+  syncBuddyPingAvailability,
 } from '../../src/choices-screen.js';
 import { triggerAutoVault, triggerCashoutNavigation } from '../../src/cashout-router.js';
 import { isTouchGrassActive, resetTouchGrassTimeoutForTests } from '../../src/touch-grass-timeout.js';
 
 let storage: Record<string, unknown>;
+let storageListeners: Array<(changes: any, area: string) => void> = [];
 const flush = async () => {
   for (let i = 0; i < 5; i++) await Promise.resolve();
 };
@@ -46,9 +50,11 @@ beforeEach(() => {
   resetTouchGrassTimeoutForTests();
   vi.clearAllMocks();
   storage = {};
+  storageListeners = [];
   vi.stubGlobal('chrome', {
     runtime: { sendMessage: vi.fn() },
     storage: {
+      onChanged: { addListener: vi.fn((fn: (c: any, a: string) => void) => storageListeners.push(fn)) },
       local: {
         get: vi.fn(async (keys: string[]) => {
           const out: Record<string, unknown> = {};
@@ -108,9 +114,31 @@ describe('showChoicesScreen', () => {
     showChoicesScreen(document, { trigger: 'walk_away_down', reason: 'x', buddyPingAvailable: true });
     button('ping_buddy')!.click();
     expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({ type: 'buddy_ping', reason: 'walk_away' });
+    const sent = (chrome.runtime.sendMessage as any).mock.calls[0][0];
+    expect(Object.keys(sent).sort()).toEqual(['reason', 'type']);
     await flush();
     expect(storage[CHOICE_LOG_KEY]).toEqual([expect.objectContaining({ choice: 'ping_buddy', trigger: 'walk_away_down' })]);
   });
+
+  it('shows "Ping my buddy" by default only once the background says a buddy is paired', async () => {
+    expect(isBuddyPingAvailable()).toBe(false);
+    showChoicesScreen(document, { trigger: 'walk_away_up', reason: 'x', now: 1 });
+    expect(button('ping_buddy')).toBeNull();
+    document.getElementById(CHOICES_ROOT_ID)?.remove();
+
+    storage[BUDDY_PAIRED_KEY] = true;
+    syncBuddyPingAvailability();
+    await flush();
+    expect(isBuddyPingAvailable()).toBe(true);
+    showChoicesScreen(document, { trigger: 'walk_away_down', reason: 'x', now: 2 });
+    expect(button('ping_buddy')).not.toBeNull();
+    document.getElementById(CHOICES_ROOT_ID)?.remove();
+
+    // unpaired elsewhere (popup) -> hidden again
+    storageListeners.forEach((fn) => fn({ [BUDDY_PAIRED_KEY]: { newValue: false } }, 'local'));
+    expect(isBuddyPingAvailable()).toBe(false);
+  });
+
 
   it('hides "Lock half" with nothing to lock', () => {
     showChoicesScreen(document, { trigger: 'tilt', reason: 'x', lockHalfAmount: () => null });

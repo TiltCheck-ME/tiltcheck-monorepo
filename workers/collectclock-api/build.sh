@@ -1,0 +1,11 @@
+#!/bin/sh
+# Bundle src/push.js + src/buddy.js + src/index.js into one module (dist/index.js), so deploy keeps the single-file
+# upload that is known to work with the code-only content endpoint.
+set -e
+cd "$(dirname "$0")"
+mkdir -p dist
+{
+  for m in push buddy; do echo "// ---- $m.js (bundled) ----"; sed -E 's/^export (async function|function|const) /\1 /' "src/$m.js"; echo; done
+  echo "// ---- index.js ----"; grep -vE "^import \{[^}]*\} from '\./(push|buddy)\.js';" src/index.js
+} > dist/index.js
+node --check dist/index.js

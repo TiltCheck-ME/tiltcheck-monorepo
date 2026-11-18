@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * @vitest-environment jsdom
  */
@@ -28,13 +28,25 @@ describe('extension backend config', () => {
   });
 
   it('builds worker endpoints only for the routes the worker serves', () => {
-    expect(WORKER_ROUTES).toEqual({ AUTH_TOKEN: '/auth/token', ME: '/me', LOGOUT: '/logout' });
+    expect(WORKER_ROUTES).toEqual({
+      AUTH_TOKEN: '/auth/token',
+      ME: '/me',
+      LOGOUT: '/logout',
+      BUDDY_STATUS: '/buddy/status',
+      BUDDY_INVITE: '/buddy/invite',
+      BUDDY_ACCEPT: '/buddy/accept',
+      BUDDY_UNPAIR: '/buddy/unpair',
+      BUDDY_PING: '/buddy/ping',
+    });
+    expect(getWorkerEndpoint(WORKER_ROUTES.BUDDY_PING)).toBe(`${WORKER}/buddy/ping`);
     expect(getWorkerEndpoint(WORKER_ROUTES.LOGOUT)).toBe(`${WORKER}/logout`);
     expect(getWorkerEndpoint('me')).toBe(`${WORKER}/me`);
   });
 
-  it('keeps every feature without a backend switched off', () => {
+  it('keeps every feature without a backend switched off (buddyPing has worker routes)', () => {
+    expect(BACKEND_FEATURES.buddyPing).toBe(true);
     for (const [name, on] of Object.entries(BACKEND_FEATURES)) {
+      if (name === 'buddyPing') continue;
       expect(on, name).toBe(false);
       expect(isBackendFeatureEnabled(name as keyof typeof BACKEND_FEATURES)).toBe(false);
     }

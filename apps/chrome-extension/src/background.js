@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * MV3 service worker.
  * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
@@ -15,6 +15,18 @@ const ALLOWED_AUTH_ORIGINS = new Set([
 const WORKER_API_BASE = 'https://collectclock-api.j-chapman7.workers.dev';
 const WORKER_AUTH_TOKEN_PATH = '/auth/token';
 const WORKER_SESSION_KEY = 'workerSession';
+
+// Cash-out Buddy (collectclock-api /buddy/*). Mirrors WORKER_ROUTES.BUDDY_* in config.ts.
+// A ping body is rebuilt here from the reason alone: { type: 'buddy_ping', reason }. Nothing
+// else from the page or the message is ever forwarded, so no amount can leave the device.
+const BUDDY_PAIRED_KEY = 'tiltcheck_buddy_paired';
+const BUDDY_CALLS = Object.freeze({
+  buddy_status: ['GET', '/buddy/status'],
+  buddy_invite: ['POST', '/buddy/invite'],
+  buddy_accept: ['POST', '/buddy/accept'],
+  buddy_unpair: ['POST', '/buddy/unpair'],
+  buddy_ping: ['POST', '/buddy/ping'],
+});
 
 // No backend yet for these, so they make no network calls. Mirrors
 // BACKEND_FEATURES.cooldownApi and BACKEND_FEATURES.linkScan in config.ts.
@@ -276,8 +288,96 @@ if (typeof chrome !== 'undefined') {
 
 initCooldownSync();
 
+// ── Cash-out Buddy ───────────────────────────────────────────────────────────
+function setBuddyPaired(paired) {
+  try {
+    chrome.storage?.local?.set?.({ [BUDDY_PAIRED_KEY]: paired === true });
+  } catch {
+    // storage unavailable
+  }
+}
+
+/** Body for each buddy call, built only from allowed, validated fields. */
+function buddyBody(type, message) {
+  if (type === 'buddy_ping') {
+    return { type: 'buddy_ping', reason: message?.reason === 'tilt' ? 'tilt' : 'walk_away' };
+  }
+  if (type === 'buddy_accept') {
+    const code = typeof message?.code === 'string' ? message.code.trim() : '';
+    return /^[A-Za-z0-9 -]{4,20}$/.test(code) ? { code } : null;
+  }
+  if (type === 'buddy_unpair') {
+    const id = typeof message?.buddy === 'string' ? message.buddy : '';
+    if (id && !/^[a-f0-9]{16}$/.test(id)) return null;
+    return id ? { buddy: id } : {};
+  }
+  if (type === 'buddy_invite') return {};
+  return undefined;
+}
+
+/** Shape check: the old worker answers unknown paths with 200 + health JSON. */
+function buddyShapeOk(type, data) {
+  if (!data || typeof data !== 'object' || data.service === 'collectclock-api') return false;
+  if (type === 'buddy_status') return typeof data.paired === 'boolean' && Array.isArray(data.buddies);
+  if (type === 'buddy_invite') return typeof data.code === 'string';
+  if (type === 'buddy_ping') return typeof data.sent === 'number';
+  return data.ok === true;
+}
+
+async function buddyRequest(type, message) {
+  const call = BUDDY_CALLS[type];
+  const body = buddyBody(type, message);
+  if (body === null) return { success: false, error: type === 'buddy_accept' ? 'That code does not look right.' : 'Bad request.' };
+  let session = null;
+  try {
+    const stored = await chrome.storage.local.get([WORKER_SESSION_KEY]);
+    session = stored?.[WORKER_SESSION_KEY] || null;
+  } catch {
+    session = null;
+  }
+  if (!session) return { success: false, signedIn: false, error: 'Sign in with Discord first.' };
+  let res;
+  try {
+    res = await fetch(`${WORKER_API_BASE}${call[1]}`, {
+      method: call[0],
+      headers: body === undefined
+        ? { Authorization: `Bearer ${session}` }
+        : { Authorization: `Bearer ${session}`, 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    return { success: false, error: 'Could not reach the server.' };
+  }
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+  if (res.status === 401) return { success: false, signedIn: false, error: 'Sign in with Discord again.' };
+  if (!res.ok) {
+    if (type === 'buddy_ping' && res.status === 409) setBuddyPaired(false);
+    const error = data && typeof data.error === 'string' ? data.error.slice(0, 200) : `Server said ${res.status}.`;
+    return { success: false, status: res.status, error };
+  }
+  if (!buddyShapeOk(type, data)) {
+    if (type === 'buddy_status') setBuddyPaired(false);
+    return { success: false, unavailable: true, error: 'Cash-out Buddy is not live on the server yet.' };
+  }
+  if (type === 'buddy_status') setBuddyPaired(data.paired);
+  if (type === 'buddy_accept') setBuddyPaired(true);
+  if (type === 'buddy_unpair') setBuddyPaired(Number(data.count) > 0);
+  if (type === 'buddy_ping') return { success: true, sent: data.sent, skipped: data.skipped || 0 };
+  return { success: true, data };
+}
+
 // ── Handle extension-wide actions requested from content scripts ─────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message && Object.prototype.hasOwnProperty.call(BUDDY_CALLS, message.type)) {
+    void buddyRequest(message.type, message).then(sendResponse);
+    return true;
+  }
+
   if (message.type === 'open_auth_bridge') {
     const authUrl = typeof message.url === 'string' ? message.url : null;
     if (!authUrl || !isAllowedAuthUrl(authUrl)) {
@@ -538,7 +638,8 @@ if (typeof chrome !== 'undefined' && chrome.tabs?.onUpdated) {
 
           // Worker session for /me and /logout. Best effort: sign-in above
           // already succeeded, so a failure here only means logout stays local.
-          await exchangeWorkerSession(accessToken);
+          const workerSession = await exchangeWorkerSession(accessToken);
+          if (workerSession) void buddyRequest('buddy_status', {});
 
           console.log("[TiltCheck] Discord auth synced:", userObj.username);
 

@@ -73,7 +73,7 @@ import {
   normalizeSiteKey,
 } from './seed-manager-extension.js';
 import { recordActivityFeedEvent } from './activity-feed.js';
-import { computeLockHalfAmount, showChoicesScreen } from './choices-screen.js';
+import { computeLockHalfAmount, showChoicesScreen, syncBuddyPingAvailability } from './choices-screen.js';
 import { readBalance } from './reality-hud.js';
 import {
   installWalkAwayWatcher,
@@ -567,6 +567,7 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncReverseWithdrawalShield(opts);
   syncProfitLock(opts);
   syncWalkAway(opts);
+  syncBuddyPingAvailability();
   syncBonusTracker(opts);
   syncDefaultBetBreaker(opts);
   if (!sessionRadar) {

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RuntimeListener = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;
@@ -391,5 +391,101 @@ describe('background service worker', () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+  describe('Cash-out Buddy', () => {
+    const W = 'https://collectclock-api.j-chapman7.workers.dev';
+    const ask = (listener: any, message: any) =>
+      new Promise<any>((resolve) => {
+        const keepOpen = listener(message, {}, resolve);
+        expect(keepOpen).toBe(true);
+      });
+
+    it('pings with only { type, reason } and the worker session, whatever the message carried', async () => {
+      const { runtimeListeners, storageData } = setupChromeMock();
+      storageData['workerSession'] = 'sess-1';
+      const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, sent: 1, skipped: 0, failed: 0 }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      await import('../../src/background.js');
+      const res = await ask(runtimeListeners[0], { type: 'buddy_ping', reason: 'walk_away', balance: 812.5, casino: 'stake.us', amount: 40 });
+      expect(res).toEqual({ success: true, sent: 1, skipped: 0 });
+      const [url, init] = fetchMock.mock.calls[0] as any;
+      expect(url).toBe(`${W}/buddy/ping`);
+      expect(init.method).toBe('POST');
+      expect(init.headers.Authorization).toBe('Bearer sess-1');
+      expect(JSON.parse(init.body)).toEqual({ type: 'buddy_ping', reason: 'walk_away' });
+      expect(init.body).not.toMatch(/\d/);
+    });
+
+    it('maps any reason other than tilt to walk_away', async () => {
+      const { runtimeListeners, storageData } = setupChromeMock();
+      storageData['workerSession'] = 'sess-1';
+      const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, sent: 1 }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      await import('../../src/background.js');
+      await ask(runtimeListeners[0], { type: 'buddy_ping', reason: 'tilt' });
+      await ask(runtimeListeners[0], { type: 'buddy_ping', reason: 'won 500 on plinko' });
+      expect(JSON.parse((fetchMock.mock.calls[0] as any)[1].body).reason).toBe('tilt');
+      expect(JSON.parse((fetchMock.mock.calls[1] as any)[1].body).reason).toBe('walk_away');
+    });
+
+    it('makes no call when signed out', async () => {
+      const { runtimeListeners } = setupChromeMock();
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      await import('../../src/background.js');
+      const res = await ask(runtimeListeners[0], { type: 'buddy_status' });
+      expect(res).toEqual(expect.objectContaining({ success: false, signedIn: false }));
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('stores the paired flag from status, and treats the old worker health JSON as not live', async () => {
+      const { runtimeListeners, storageData } = setupChromeMock();
+      storageData['workerSession'] = 'sess-1';
+      let reply: any = { paired: true, count: 1, max: 3, buddies: [{ id: 'abcdef0123456789', name: 'Pal' }], invite: null };
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => reply })));
+      await import('../../src/background.js');
+      const ok = await ask(runtimeListeners[0], { type: 'buddy_status' });
+      expect(ok.success).toBe(true);
+      expect(storageData['tiltcheck_buddy_paired']).toBe(true);
+      reply = { ok: true, service: 'collectclock-api' };
+      const old = await ask(runtimeListeners[0], { type: 'buddy_status' });
+      expect(old).toEqual(expect.objectContaining({ success: false, unavailable: true }));
+      expect(storageData['tiltcheck_buddy_paired']).toBe(false);
+      const ping = await ask(runtimeListeners[0], { type: 'buddy_ping', reason: 'tilt' });
+      expect(ping.success).toBe(false);
+    });
+
+    it('passes server errors through, and a 409 ping clears the paired flag', async () => {
+      const { runtimeListeners, storageData } = setupChromeMock();
+      storageData['workerSession'] = 'sess-1';
+      storageData['tiltcheck_buddy_paired'] = true;
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 409, json: async () => ({ error: 'No buddy yet. Pair up in the extension first.' }) })));
+      await import('../../src/background.js');
+      const res = await ask(runtimeListeners[0], { type: 'buddy_ping', reason: 'walk_away' });
+      expect(res).toEqual({ success: false, status: 409, error: 'No buddy yet. Pair up in the extension first.' });
+      expect(storageData['tiltcheck_buddy_paired']).toBe(false);
+    });
+
+    it('accept / unpair / invite send only validated fields', async () => {
+      const { runtimeListeners, storageData } = setupChromeMock();
+      storageData['workerSession'] = 'sess-1';
+      const fetchMock = vi.fn(async (url: string) => ({
+        ok: true,
+        status: 200,
+        json: async () => (url.endsWith('/invite') ? { ok: true, code: 'ABCD-EFGH' } : url.endsWith('/unpair') ? { ok: true, removed: 1, count: 0 } : { ok: true, buddy: { id: 'abcdef0123456789', name: 'Pal' } }),
+      }));
+      vi.stubGlobal('fetch', fetchMock);
+      await import('../../src/background.js');
+      expect((await ask(runtimeListeners[0], { type: 'buddy_invite' })).data.code).toBe('ABCD-EFGH');
+      await ask(runtimeListeners[0], { type: 'buddy_accept', code: 'abcd-efgh', extra: 1 });
+      expect(storageData['tiltcheck_buddy_paired']).toBe(true);
+      expect(JSON.parse((fetchMock.mock.calls[1] as any)[1].body)).toEqual({ code: 'abcd-efgh' });
+      const bad = await ask(runtimeListeners[0], { type: 'buddy_accept', code: '<script>' });
+      expect(bad.success).toBe(false);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      await ask(runtimeListeners[0], { type: 'buddy_unpair', buddy: 'abcdef0123456789' });
+      expect(JSON.parse((fetchMock.mock.calls[2] as any)[1].body)).toEqual({ buddy: 'abcdef0123456789' });
+      expect(storageData['tiltcheck_buddy_paired']).toBe(false);
+    });
   });
 });
