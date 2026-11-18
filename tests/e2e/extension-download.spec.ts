@@ -1,48 +1,29 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-16
-// E2E test: Chrome extension download page — asserts download link and sideload instructions exist.
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
+// E2E test: Chrome extension page. The extension is not public yet (gated since #693/#714),
+// so anonymous visitors must see the "not public" notice and no zip download or sideload steps.
 
 import { test, expect } from "@playwright/test";
 
-test.describe("Extension Download Page", () => {
-  test("download link is present and not a 404", async ({ page, request }) => {
+test.describe("Extension Page (gated)", () => {
+  test("loads and tells visitors the extension is not public yet", async ({ page }) => {
     await page.goto("/extension");
 
-    // Assert the page itself loaded successfully.
     await expect(page).not.toHaveTitle(/404|not found/i);
+    await expect(page.getByRole("heading", { name: /not public yet/i })).toBeVisible();
 
-    // Find the primary download link (an <a> pointing to a .zip or .crx file).
-    const downloadLink = page
-      .locator("a[href*='.zip'], a[href*='.crx'], a[download]")
-      .first();
-    await expect(downloadLink).toBeVisible();
-
-    // Resolve the href and confirm the resource does not return 404.
-    const href = await downloadLink.getAttribute("href");
-    expect(href).toBeTruthy();
-
-    const resolvedHref = href!.startsWith("http")
-      ? href!
-      : new URL(href!, page.url()).href;
-
-    const response = await request.head(resolvedHref);
-    expect(
-      response.status(),
-      `Download link ${resolvedHref} returned ${response.status()}`
-    ).not.toBe(404);
+    // The waitlist path is the Discord invite.
+    const discordLink = page.locator("a[href*='discord.gg']").first();
+    await expect(discordLink).toBeVisible();
   });
 
-  test("page contains sideload install instructions", async ({ page }) => {
+  test("does not expose a public zip download or sideload steps", async ({ page }) => {
     await page.goto("/extension");
+    await expect(page.getByRole("heading", { name: /not public yet/i })).toBeVisible();
 
-    // The page must include guidance on how to sideload the extension.
-    // Acceptable keywords: "sideload", "load unpacked", "developer mode".
-    const bodyText = await page.locator("body").innerText();
-    const hasInstructions =
-      /sideload|load unpacked|developer mode/i.test(bodyText);
+    // No raw build artifacts linked for anonymous visitors.
+    await expect(page.locator("a[href$='.zip'], a[href$='.crx']")).toHaveCount(0);
 
-    expect(
-      hasInstructions,
-      "Page should contain sideload or developer mode installation instructions"
-    ).toBe(true);
+    // Sideload steps live behind the staff gate.
+    await expect(page.getByText(/load unpacked/i)).toHaveCount(0);
   });
 });

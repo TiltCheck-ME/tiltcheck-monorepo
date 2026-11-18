@@ -2,6 +2,11 @@
 
 # Session Log
 
+## 2026-11-18 — test(e2e): match the gated extension page; de-flake access_denied
+
+- extension-download.spec now checks the intended gated state (#693/#714): "Not public yet" notice and Discord link visible, no public .zip/.crx link, no sideload steps for anonymous visitors.
+- discord-login access_denied test waits for the client-side error text instead of reading the body once before hydration.
+
 ## 2026-11-18 — fix(security): ReDoS, sanitization, workflow permissions (CodeQL)
 
 - Least-privilege `permissions: contents: read` on six workflows (pr-test changes job also gets `pull-requests: read`).
