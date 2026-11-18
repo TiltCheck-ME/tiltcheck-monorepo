@@ -2,6 +2,15 @@
 
 # Session Log
 
+## 2026-11-17 — fix(pages): publish AutoVault userscripts on tiltcheck.me
+
+Every tiltcheck.me/userscripts/* URL returned 404. tiltcheck.me is GitHub Pages (pages.yml), which built only docs/tiltcheck, and the scripts live in apps/web/public/userscripts (Next app, not deployed). The scripts' @downloadURL/@updateURL pointed at the dead URLs, so installed copies could not update.
+
+- pages.yml copies apps/web/public/userscripts/ to out/userscripts/ and redeploys when that folder changes.
+- /autovault gets an "On your phone" section: Install AutoVault (Share Edition), Android steps, QR install.
+- install.html and android-install.html no longer link the Next-only routes /tools/auto-vault/android and /tools/auto-vault/share.
+- Still Next-only and still 404 on Pages: /nuts and /tools/auto-vault/android.
+
 ## 2026-11-14 — deploy(activity): Touch Grass Hot Takes + Story Chain go live
 
 - Jamie approved. #741 squash-merged to main as 93694276; deployed from main at that commit to the same hosts: Worker `touch-grass-activity` (https://touch-grass-activity.j-chapman7.workers.dev) and Pages project `touch-grass-activity` (https://touch-grass-activity.pages.dev).
