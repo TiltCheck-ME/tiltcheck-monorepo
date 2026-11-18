@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 import { describe, expect, it, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 import fs from 'node:fs';

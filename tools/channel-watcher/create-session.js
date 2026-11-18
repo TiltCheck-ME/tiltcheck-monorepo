@@ -48,7 +48,7 @@ async function createSession() {
 
         const sizeKB = (Buffer.byteLength(JSON.stringify(minimalSession)) / 1024).toFixed(1);
         console.log(`Session saved to ${SESSION_FILE} (${sizeKB} KB — sanitized cookie format)`);
-        console.log('Base64-encode this file if you need to seed DISCORD_SESSION_JSON for Railway.');
+        console.log('Base64-encode this file if you need to populate DISCORD_SESSION_JSON for Railway.');
     } catch {
         console.error('Login timeout (5 minutes). Run `npm run session:create` again.');
         process.exitCode = 1;
