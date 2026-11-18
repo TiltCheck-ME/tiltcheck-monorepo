@@ -45,7 +45,7 @@ router.post('/apply', async (req, res) => {
   }
 
   const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
-  if (!cleanEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) {
+  if (!cleanEmail || cleanEmail.length > 254 || !/^[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+$/.test(cleanEmail)) {
     res.status(400).json({ success: false, error: 'Valid email required.' });
     return;
   }

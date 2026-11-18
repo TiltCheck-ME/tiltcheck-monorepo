@@ -107,9 +107,26 @@ app.post('/stripe/webhook', express.raw({ type: 'application/json' }), handleStr
 // ============================================================================
 
 // Security headers
+// CSP: this service returns JSON plus a few self-contained HTML pages (the
+// Discord OAuth callback / error pages, which hand off via inline postMessage
+// scripts). Lock everything down except those inline scripts/styles.
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false, // Handled by individual services
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["'none'"],
+      baseUri: ["'none'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      objectSrc: ["'none'"],
+      imgSrc: ["'self'", 'data:'],
+      // Inline OAuth handoff script + "SYNC HANDSHAKE NOW" onclick in routes/auth.ts.
+      scriptSrc: ["'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'unsafe-inline'"],
+    },
+  },
 }));
 
 // CORS configuration for subdomain cookies.

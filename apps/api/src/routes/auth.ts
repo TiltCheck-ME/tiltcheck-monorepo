@@ -7,6 +7,7 @@
 import { Router, type Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
+import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 
 import {
   getDiscordAuthUrl,
@@ -190,6 +191,31 @@ function consumeOAuthState(state: string): OAuthStateEntry | null {
   return Date.now() - entry.createdAt <= OAUTH_STATE_TTL_MS ? entry : null;
 }
 
+/**
+ * The oauth_state cookie stores a SHA-256 digest of the state rather than the
+ * raw value, so the CSRF nonce is never persisted in clear text client-side.
+ */
+const OAUTH_STATE_COOKIE_PREFIX = 'sha256.';
+
+function digestOAuthStateForCookie(state: string): string {
+  return `${OAUTH_STATE_COOKIE_PREFIX}${createHash('sha256').update(state, 'utf8').digest('hex')}`;
+}
+
+/**
+ * Compares the callback `state` against the oauth_state cookie. Accepts the
+ * hashed cookie format, plus the legacy raw format for flows started before
+ * this change was deployed (cookie maxAge is 10 minutes).
+ */
+function oauthStateMatchesCookie(stateValue: string, storedState: unknown): boolean {
+  if (!stateValue || typeof storedState !== 'string' || !storedState) return false;
+  const expected = storedState.startsWith(OAUTH_STATE_COOKIE_PREFIX)
+    ? digestOAuthStateForCookie(stateValue)
+    : stateValue;
+  const a = Buffer.from(expected, 'utf8');
+  const b = Buffer.from(storedState, 'utf8');
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 function resolveOAuthStateFailureDetail(
   stateValue: string,
   storedState: string | undefined,
@@ -209,7 +235,7 @@ function resolveOAuthStateFailureDetail(
       hint: 'Start Connect Discord again.',
     };
   }
-  if (storedState && stateValue !== storedState) {
+  if (storedState && !oauthStateMatchesCookie(stateValue, storedState)) {
     return {
       code: 'OAUTH_STATE_MISMATCH',
       message: 'This browser session does not match the sign-in you started.',
@@ -392,11 +418,25 @@ function isAllowedActivityRedirectUri(value: string): boolean {
   }
 }
 
+/**
+ * Same-host relative path only. Rejects protocol-relative ("//evil.com") and
+ * backslash variants ("/\\evil.com") that browsers resolve to another host.
+ */
+function isLocalUrl(value: string): boolean {
+  return (
+    value.startsWith('/') &&
+    !value.startsWith('//') &&
+    !value.startsWith('/\\') &&
+    !/[\u0000-\u001f\u007f]/.test(value)
+  );
+}
+
 function isAllowedPostAuthRedirect(value: string): boolean {
   if (!value) return false;
 
   // Relative path redirects are constrained to this host.
-  if (value.startsWith('/')) return true;
+  if (isLocalUrl(value)) return true;
+  if (value.startsWith('/')) return false;
 
   try {
     const parsed = new URL(value);
@@ -411,6 +451,24 @@ function isAllowedPostAuthRedirect(value: string): boolean {
     return isHttpsTiltcheck || isLocalDev;
   } catch {
     return false;
+  }
+}
+
+const DEFAULT_POST_AUTH_REDIRECT = 'https://tiltcheck.me/play/profile.html';
+
+/**
+ * Final gate before res.redirect(): re-validates against the allow-list and
+ * re-serializes absolute URLs from their parsed form so the Location header is
+ * always either a same-host path or an https *.tiltcheck.me (or local dev) URL.
+ */
+function toSafePostAuthRedirect(value: string): string {
+  if (!isAllowedPostAuthRedirect(value)) return DEFAULT_POST_AUTH_REDIRECT;
+  if (isLocalUrl(value)) return value;
+  try {
+    const parsed = new URL(value);
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return DEFAULT_POST_AUTH_REDIRECT;
   }
 }
 
@@ -432,8 +490,10 @@ router.post('/register', authLimiter, async (req, res, next) => {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Linear-time pattern (domain labels cannot contain '.') plus a length cap
+    // to avoid polynomial backtracking on crafted input.
+    const emailRegex = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
+    if (typeof email !== 'string' || email.length > 254 || !emailRegex.test(email)) {
       return next(new ValidationError('Invalid email format', 'email'));
     }
 
@@ -649,8 +709,8 @@ router.post('/solana/verify', authLimiter, async (req, res) => {
 router.post('/guest', async (req, res) => {
   try {
     const { username } = req.body;
-    const guestUsername = username || `Guest_${Math.floor(Math.random() * 10000)}`;
-    const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const guestUsername = username || `Guest_${randomInt(10000)}`;
+    const guestId = `guest_${Date.now()}_${randomBytes(6).toString('hex')}`;
 
     // Generate a guest JWT
     const jwtConfig = getJWTConfig();
@@ -741,7 +801,7 @@ router.get('/discord/login', authLimiter, (req, res) => {
     // NOTE: No domain parameter = same-site only. This allows extension OAuth to work in production
     // since extension content scripts cannot access domain-scoped cookies (e.g., domain: .tiltcheck.me).
     // The callback validates: (1) state matches cookie if present, OR (2) state prefix is valid (ext_/web_).
-    res.cookie('oauth_state', state, {
+    res.cookie('oauth_state', digestOAuthStateForCookie(state), {
       httpOnly: true,
       secure: isSecure,
       sameSite: isSecure ? 'none' : 'lax',
@@ -893,7 +953,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     let stateValid = false;
     let flowExtras: OAuthStateEntry | null = null;
     if (stateValue) {
-      if (stateValue === storedState) {
+      if (oauthStateMatchesCookie(stateValue, storedState)) {
         stateValid = true;
         flowExtras = consumeOAuthState(stateValue); // keep registry in sync; grab redirect / PKCE extras
       } else {
@@ -1241,17 +1301,11 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       resolvedRedirect = registryRedirect;
       console.log('[Auth] Post-auth redirect recovered from state registry (oauth_redirect cookie was absent).');
     } else {
-      resolvedRedirect = 'https://tiltcheck.me/play/profile.html';
+      resolvedRedirect = DEFAULT_POST_AUTH_REDIRECT;
     }
 
     res.clearCookie('oauth_redirect');
-    // Defense-in-depth: re-validate immediately before the redirect so CodeQL
-    // can trace that no user-controlled value ever reaches res.redirect()
-    // without passing the allow-list check.
-    if (!isAllowedPostAuthRedirect(resolvedRedirect)) {
-      resolvedRedirect = 'https://tiltcheck.me/play/profile.html';
-    }
-    res.redirect(resolvedRedirect);
+    res.redirect(toSafePostAuthRedirect(resolvedRedirect));
   } catch (error) {
     console.error('[Auth] Discord callback error:', error);
     if (source === 'extension') {

@@ -406,6 +406,31 @@ describe('Auth callback state/source validation', () => {
     expect(response.body.code).toBe('INVALID_REDIRECT');
   });
 
+  it.each(['//evil.example/pwn', '/\\evil.example/pwn', '/\t/evil.example'])(
+    'rejects protocol-relative / backslash redirect %j at login entrypoint',
+    async (redirect) => {
+      const response = await request(app).get(
+        `/auth/discord/login?redirect=${encodeURIComponent(redirect)}`,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe('INVALID_REDIRECT');
+    },
+  );
+
+  it('stores only a SHA-256 digest of the OAuth state in the oauth_state cookie', async () => {
+    const response = await request(app).get('/auth/discord/login?source=web');
+
+    expect(response.status).toBe(302);
+    const authCalls = vi.mocked(getDiscordAuthUrl).mock.calls;
+    const state = authCalls[authCalls.length - 1]![1] as string;
+    const cookies = ([] as string[]).concat(response.headers['set-cookie'] ?? []);
+    const stateCookie = cookies.find((c) => c.startsWith('oauth_state='));
+    expect(stateCookie).toBeDefined();
+    expect(stateCookie).not.toContain(state);
+    expect(stateCookie).toMatch(/^oauth_state=sha256\.[0-9a-f]{64};/);
+  });
+
   it('falls back to default redirect when oauth_redirect cookie is unsafe', async () => {
     vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
       valid: true,

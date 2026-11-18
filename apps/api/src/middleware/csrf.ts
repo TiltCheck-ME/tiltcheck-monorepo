@@ -8,7 +8,7 @@ import { Request, Response, NextFunction } from 'express';
  * Browsers' Same-Origin Policy (SOP) prevents cross-origin requests from adding custom headers
  * unless the server explicitly allows it via CORS.
  */
-export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
+export function csrfProtection(req: Request, res: Response, next: NextFunction) {
   // Skip CSRF check for GET, HEAD, OPTIONS (safe methods)
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
@@ -31,4 +31,4 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
   }
 
   next();
-};
+}

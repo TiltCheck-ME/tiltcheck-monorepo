@@ -29,7 +29,7 @@ router.post('/bulk', async (req, res) => {
                 const key = t.toUpperCase();
                 results[key] = await getPriceUsd(key);
             } catch (err) {
-                console.warn(`[API] Failed to fetch bulk price for ${t}:`, err);
+                console.warn('[API] Failed to fetch bulk price for %s:', String(t), err);
             }
         }));
 
