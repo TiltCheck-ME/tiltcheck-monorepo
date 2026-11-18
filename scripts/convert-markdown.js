@@ -2280,7 +2280,7 @@ function buildLoginPage() {
     <span class="brand-eyebrow">Access Portal</span>
     <div data-tc-signed-out>
       <h1 class="product-hero__title">Sign in with Discord</h1>
-      <p class="product-hero__lede">Sign in to access your saved settings, sync vault rules, and check staff verifications. 100% non-custodial.</p>
+      <p class="product-hero__lede">Sign in to access your saved settings and check staff verifications. 100% non-custodial.</p>
       <div class="hero-actions hero-actions--start">
         <a class="btn btn-primary" href="${discordHref}" data-provider="discord" style="display:inline-flex; align-items:center; gap:8px;">${DISCORD_ICON}<span>Sign in with Discord</span></a>
         <a class="hero-actions__secondary-link" href="${href('docs', 'index.html')}">Back home</a>
@@ -2549,8 +2549,8 @@ function buildPagesSitemapXml() {
     { loc: `${SITE_URL}/casinos/`, changefreq: 'weekly', priority: '0.9' },
     { loc: `${SITE_URL}/cooldown/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/rtp-scanner/`, changefreq: 'weekly', priority: '0.8' },
-    { loc: `${SITE_URL}/house-edge-scanner/`, changefreq: 'weekly', priority: '0.8' },
-    { loc: `${SITE_URL}/verify/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/tools/house-edge-scanner/`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${SITE_URL}/tools/verify/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/wincheck/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/autovault/`, changefreq: 'weekly', priority: '0.7' },
     { loc: `${SITE_URL}/tip/`, changefreq: 'weekly', priority: '0.8' },
