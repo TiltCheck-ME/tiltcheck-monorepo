@@ -148,9 +148,18 @@ function normalizeLabel(value: unknown, fallback: string): string {
   return fallback;
 }
 
+/** Trim leading/trailing '-' without a backtracking regex (ReDoS-safe). */
+function trimDashes(value: string): string {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value[start] === '-') start += 1;
+  while (end > start && value[end - 1] === '-') end -= 1;
+  return value.slice(start, end);
+}
+
 function normalizeKey(value: unknown, fallback: string): string {
   const label = normalizeLabel(value, fallback);
-  return label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || fallback;
+  return trimDashes(label.toLowerCase().replace(/[^a-z0-9]+/g, '-')) || fallback;
 }
 
 function roundProbability(value: number | null): number | null {

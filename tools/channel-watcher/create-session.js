@@ -30,9 +30,12 @@ async function createSession() {
         // Persist only Discord-scoped cookies. Do not persist token-bearing
         // localStorage entries or unrelated third-party cookies.
         const allCookies = await context.cookies();
-        const discordCookies = allCookies.filter(c =>
-            c.domain.includes('discord.com')
-        );
+        // Match the cookie domain exactly (or as a subdomain), not as a substring.
+        const isDiscordDomain = (domain) => {
+            const host = String(domain || '').replace(/^\./, '').toLowerCase();
+            return host === 'discord.com' || host.endsWith('.discord.com');
+        };
+        const discordCookies = allCookies.filter(c => isDiscordDomain(c.domain));
 
         // Build a minimal storageState Playwright can consume directly without
         // persisting attacker-abusable localStorage auth material.

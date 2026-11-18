@@ -113,6 +113,9 @@ export interface CollectClockLogger {
   error?(msg: string, meta?: any): void;
 }
 
+/** Upper bound on static bonus text we regex-parse (ReDoS guard). */
+const MAX_BONUS_TEXT_LENGTH = 500;
+
 const defaultConfig: CollectClockConfig = {
   defaultCooldownMs: 24 * 60 * 60 * 1000,
   nerfThresholdPercent: 0.15,
@@ -173,7 +176,12 @@ export class CollectClockService {
     for (const data of bonusData) {
       // Try to parse amount from bonus string if possible, otherwise default to 1
       let amount = 1;
-      const amountMatch = data.bonus.match(/(\d+(?:\.\d+)?)\s*(?:SC|Sweeps|Cash)/i);
+      // Length guard + digit lookbehind keep this match linear (ReDoS-safe).
+      const bonusText = typeof data.bonus === 'string' ? data.bonus : '';
+      const amountMatch =
+        bonusText.length <= MAX_BONUS_TEXT_LENGTH
+          ? bonusText.match(/(?<!\d)(\d+(?:\.\d+)?)\s*(?:SC|Sweeps|Cash)/i)
+          : null;
       if (amountMatch) {
         amount = parseFloat(amountMatch[1]);
       }

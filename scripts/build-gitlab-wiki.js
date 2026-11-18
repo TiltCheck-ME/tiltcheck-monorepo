@@ -60,9 +60,11 @@ Object.entries(fileMap).forEach(([oldName, newName]) => {
     // Rewrite internal links: [text](./old-file.md) -> [text](New-File)
     Object.entries(fileMap).forEach(([linkOld, linkNew]) => {
         const wikiLink = linkNew.replace('.md', '');
+        // Escape every RegExp metacharacter (backslash included), not just '.'.
+        const escapedLinkOld = linkOld.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         // regex to replace ./old-file.md or old-file.md
-        const regex1 = new RegExp(`\\(\\./${linkOld.replace(/\./g, '\\.')}\\)`, 'g');
-        const regex2 = new RegExp(`\\(${linkOld.replace(/\./g, '\\.')}\\)`, 'g');
+        const regex1 = new RegExp(`\\(\\./${escapedLinkOld}\\)`, 'g');
+        const regex2 = new RegExp(`\\(${escapedLinkOld}\\)`, 'g');
         content = content.replace(regex1, `(${wikiLink})`).replace(regex2, `(${wikiLink})`);
     });
 

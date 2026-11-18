@@ -68,6 +68,24 @@ function clamp(value: number, min = 5, max = 100): number {
   return Math.max(min, Math.min(max, Math.round(value)));
 }
 
+/**
+ * Case-insensitive, linear-time equivalent of the regex `a.*b.*c` (`.` excludes newlines):
+ * true when the parts appear in order on a single line. Replaces `x.*y` alternations that
+ * CodeQL flagged as polynomial ReDoS.
+ */
+function hasInOrder(text: string, ...parts: string[]): boolean {
+  const lines = text.toLowerCase().split('\n');
+  return lines.some((line) => {
+    let from = 0;
+    for (const part of parts) {
+      const idx = line.indexOf(part.toLowerCase(), from);
+      if (idx === -1) return false;
+      from = idx + part.length;
+    }
+    return true;
+  });
+}
+
 export function gradeFromScore(score: number): string {
   if (score >= 95) return 'A+';
   if (score >= 90) return 'A';
@@ -107,7 +125,7 @@ export function calculateFinancialPayouts(input: CasinoTrustInput): { score: num
     const isInstant =
       (input.redemptionMaxHours !== undefined && input.redemptionMaxHours <= 2) ||
       /instant|immediate|<1h|<2h|automated hot wallet|sub-1-hour/i.test(input.playthrough || '') ||
-      (input.evidence || []).some((e) => /instant|automated.*crypto.*withdrawal|sub-1-hour/i.test(e));
+      (input.evidence || []).some((e) => /instant|sub-1-hour/i.test(e) || hasInOrder(e, 'automated', 'crypto', 'withdrawal'));
 
     if (isInstant) {
       base += 8;
@@ -133,7 +151,9 @@ export function calculateFinancialPayouts(input: CasinoTrustInput): { score: num
 
   // Playthrough evaluation
   const playthroughText = (input.playthrough || '') + ' ' + (input.evidence || []).join(' ');
-  if (/500x|predatory.*turnover|unlock.*0\.2%/i.test(playthroughText)) {
+  if (/500x/i.test(playthroughText) ||
+    hasInOrder(playthroughText, 'predatory', 'turnover') ||
+    hasInOrder(playthroughText, 'unlock', '0.2%')) {
     base -= 25;
     notes.push('Predatory bonus turnover lock detected.');
   } else if (/1x playthrough|1x deposit turnover|1x rollover/i.test(playthroughText)) {
@@ -149,7 +169,7 @@ export function calculateFinancialPayouts(input: CasinoTrustInput): { score: num
 
   // Known violation deductions
   const violationsText = (input.violations || []).join(' ');
-  if (/withdrawal.*delay|dispute|stall/i.test(violationsText)) {
+  if (/dispute|stall/i.test(violationsText) || hasInOrder(violationsText, 'withdrawal', 'delay')) {
     base -= 8;
     notes.push('Documented withdrawal friction reports.');
   }
@@ -186,7 +206,8 @@ export function calculateFairnessTransparency(input: CasinoTrustInput): { score:
     if (hasDowngrade) {
       base -= 7;
       notes.push('Slot RTP downgrade profiles deployed on third-party titles.');
-    } else if (/96\.50% tier|96\.00% standard|standard manufacturer maximums|no.*downgrades/i.test(slotsText)) {
+    } else if (/96\.50% tier|96\.00% standard|standard manufacturer maximums/i.test(slotsText) ||
+      hasInOrder(slotsText, 'no', 'downgrades')) {
       base += 6;
       notes.push('Standard 96%+ slot manufacturer RTP tiers deployed.');
     }
@@ -222,17 +243,21 @@ export function calculatePromotionalHonesty(input: CasinoTrustInput): { score: n
   } else if (input.category === 'Sweeps' || input.category === 'Sweeps Hybrid') {
     base = 78;
     notes.push('Free daily login coins and compliant AMOE alternative entry.');
-    if (/dual-currency.*accidental burn/i.test((input.evidence || []).join(' '))) {
+    if (hasInOrder((input.evidence || []).join(' '), 'dual-currency', 'accidental burn')) {
       base -= 4;
       notes.push('Dual-currency layout risks accidental real-coin burn.');
     }
   } else if (input.category === 'Crypto') {
     base = 76;
     const fullText = (input.playthrough || '') + ' ' + (input.evidence || []).join(' ') + ' ' + (input.violations || []).join(' ');
-    if (/500x|predatory.*turnover|bcd.*locked|0\.2% per wager/i.test(fullText)) {
+    if (/500x|0\.2% per wager/i.test(fullText) ||
+      hasInOrder(fullText, 'predatory', 'turnover') ||
+      hasInOrder(fullText, 'bcd', 'locked')) {
       base -= 36;
       notes.push('Predatory bonus lock: Advertised match requires ~500x turnover to release.');
-    } else if (/rakeback|vip.*rewards|rank-up|vip.*progression/i.test(fullText)) {
+    } else if (/rakeback|rank-up/i.test(fullText) ||
+      hasInOrder(fullText, 'vip', 'rewards') ||
+      hasInOrder(fullText, 'vip', 'progression')) {
       base += 2;
       notes.push('Transparent rakeback and wager-based VIP tiering.');
     }

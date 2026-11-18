@@ -243,15 +243,22 @@ export function parseDuration(duration: string): number {
 /**
  * Format lamports (bigint) to a SOL string
  */
+/** Trim trailing '0' characters without a backtracking regex (ReDoS-safe). */
+function trimTrailingZeros(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === '0') end -= 1;
+  return value.slice(0, end);
+}
+
 export function formatSol(lamports: bigint): string {
   const s = lamports.toString();
   if (s.length <= 9) {
     const padded = s.padStart(9, '0');
-    const fractionalPart = padded.replace(/0+$/, '');
+    const fractionalPart = trimTrailingZeros(padded);
     return fractionalPart.length > 0 ? `0.${fractionalPart}` : '0';
   }
   const integerPart = s.slice(0, -9);
-  const fractionalPart = s.slice(-9).replace(/0+$/, '');
+  const fractionalPart = trimTrailingZeros(s.slice(-9));
   return fractionalPart.length > 0 ? `${integerPart}.${fractionalPart}` : integerPart;
 }
 

@@ -95,13 +95,16 @@ describe('web XSS hardening', () => {
 
   it('sanitizes casino directory values before table render', async () => {
     const html = fs.readFileSync(path.join(repoRoot, 'apps/web/casinos.html'), 'utf8');
-    const inlineScriptMatch = html.match(/<script>\s*\(function\(\)\{[\s\S]*?\}\)\(\);\s*<\/script>/);
+    const inlineScriptMatch = html.match(
+      /<script\b[^>]*>\s*\(function\(\)\{[\s\S]*?\}\)\(\);\s*<\/script[^>]*>/i,
+    );
     if (!inlineScriptMatch) {
       throw new Error('Could not locate casinos inline script');
     }
-    const inlineScript = inlineScriptMatch[0]
-      .replace(/^<script>\s*/, '')
-      .replace(/\s*<\/script>$/, '');
+    const scriptBlock = inlineScriptMatch[0];
+    const inlineScript = scriptBlock
+      .slice(scriptBlock.indexOf('>') + 1, scriptBlock.toLowerCase().lastIndexOf('</script'))
+      .trim();
 
     const dom = new JSDOM(
       `<!doctype html><body>

@@ -7,17 +7,29 @@
 
 import type { ParsedDuration, ParseResult } from './types.js';
 
-// Time unit patterns
-const SECOND_PATTERNS = /(\d+)\s*(?:s|sec|secs|second|seconds)/i;
-const MINUTE_PATTERNS = /(\d+)\s*(?:m|min|mins|minute|minutes)/i;
-const HOUR_PATTERNS = /(\d+)\s*(?:h|hr|hrs|hour|hours)/i;
+// Time unit patterns. `(?<!\d)` only lets a match start at the beginning of a digit run
+// (same results, no quadratic rescans of long digit strings).
+const SECOND_PATTERNS = /(?<!\d)(\d+)\s*(?:s|sec|secs|second|seconds)/i;
+const MINUTE_PATTERNS = /(?<!\d)(\d+)\s*(?:m|min|mins|minute|minutes)/i;
+const HOUR_PATTERNS = /(?<!\d)(\d+)\s*(?:h|hr|hrs|hour|hours)/i;
 const DAY_PATTERNS = /(\d+)?\s*(?:d|day|days|all\s*day)/i;
+
+/** Durations are short phrases; longer input is rejected before any regex runs (ReDoS guard). */
+const MAX_DURATION_INPUT_LENGTH = 200;
 
 /**
  * Parse duration from natural language input
  */
 export function parseDuration(input: string): ParseResult<ParsedDuration> {
   const trimmed = input.trim().toLowerCase();
+
+  if (trimmed.length > MAX_DURATION_INPUT_LENGTH) {
+    return {
+      success: false,
+      error: 'Duration input is too long',
+      suggestions: ['Examples: "15s", "30 seconds", "5m", "1 hour", "all day"'],
+    };
+  }
 
   // Check for "all day" special case
   if (/^(all\s*day|whole\s*day)$/i.test(trimmed)) {

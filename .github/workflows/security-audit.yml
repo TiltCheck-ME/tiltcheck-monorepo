@@ -12,6 +12,9 @@ on:
     - cron: '0 5 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   audit-deps:
     runs-on: ubuntu-24.04
