@@ -59,7 +59,7 @@ export const HOME_DOES = [
   },
   {
     title: 'Touch grass with friends',
-    body: 'Trivia, Bluff and Degens Against Decency in a Discord voice channel. Points are bragging rights. Nothing to bet.',
+    body: 'Trivia, Bluff, Degens Against Decency, Hot Takes and Story Chain in a Discord voice channel. Points are bragging rights. Nothing to bet.',
     links: [{ label: 'Join the Discord', href: 'DISCORD', external: true }],
   },
 ];
@@ -126,7 +126,7 @@ export const HOUSE_EDGE_PAGE = {
 export const EXTENSION_SIGNALS = [
   {
     title: 'ClickCheck (Spin Delay)',
-    body: 'A mandatory 2-second pause between spins to kill the auto-spin daze and stop bankroll bleed.',
+    body: 'An optional 2-second pause between spins to kill the auto-spin daze and stop bankroll bleed. Switch it on or off in the extension Settings tab.',
   },
   {
     title: 'Nope List (Rinse Blocker)',
@@ -223,7 +223,7 @@ export const TOOL_REGISTRY = [
     href: '/extension',
     label: 'CLICKCHECK',
     title: 'ClickCheck',
-    description: 'Mandatory 2-second pause after every spin to prevent turbo-mashing.',
+    description: 'Optional 2-second pause after every spin to prevent turbo-mashing. Switch it on or off in Settings.',
     status: 'live',
   },
   {

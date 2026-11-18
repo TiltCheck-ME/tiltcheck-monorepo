@@ -2,7 +2,7 @@
 
 > Non-custodial responsible gambling intelligence for degens. On-chain Cooldown wallet locks, Chrome session monitoring, Trust Engine casino scores, and browser extension guardrails.
 
-TiltCheck is not a casino and does not custody funds or wallet keys. It tracks tilt signals, scores operators from public data, and ships self-sovereign brakes (Cooldown locks, Touch Grass extension lockouts, dashboard guardrails).
+TiltCheck is not a casino and does not custody funds or wallet keys. It tracks tilt signals, scores operators from public data, and ships self-sovereign brakes (Cooldown locks, browser extension guardrails, dashboard guardrails).
 
 ## What TiltCheck Does
 
@@ -38,32 +38,14 @@ The house has the math. TiltCheck is the audit layer that gives players the same
 
 - `/` — Home / landing page (Cooldown + extension + trust intel positioning)
 - `/cooldown` — On-chain voluntary wallet lock UI (Solana devnet)
-- `/cooldown/casino-demo` — Demo game grid that respects Cooldown checks
 - `/casinos` — Casino Trust Engine. Full list of rated operators. Default filter: Sweeps. Live trust scores overlaid when trust-rollup service is online.
-- `/ask` — Intel chat agent. Natural-language casino trust lookups, filtered lists (e.g. US crypto casinos), and domain scans. Tool-backed grades — not LLM hallucination.
-- `/ask/v/{token}` — Shared intel view (read-only list/card snapshot, 7-day TTL).
-- `/bonuses` — Daily sweepstakes bonus tracker. Collectible cooldowns for major platforms.
-- `/tools/domain-verifier` — Domain + license checker. Paste any casino domain. Also accepts raw email for intel extraction.
 - `/tools/auto-vault` — LockVault interface. Requires legal consent and Chrome extension for auto-triggers.
-- `/tools/scan-scams` — Shadow-ban / casino flag tracker. Community-reported.
 - `/tools/house-edge-scanner` — RTP and house edge lookup tool.
-- `/tools/session-stats` — Session nerf radar. Tracks losing streaks and flags statistically unusual runs.
-- `/tools/degens-arena` — Trivia arena (in development, Discord bot version live).
 - `/tools/verify` — Provably fair seed verification.
-- `/tools/collectclock` — Sweepstakes bonus collector.
-- `/intel/rtp` — RTP scanner and community reports.
-- `/intel/scanner` — Threat scanner.
-- `/intel/scams` — Known scam domain registry.
+- `/rtp-scanner` — Slot RTP downgrade scanner.
 - `/extension` — Chrome extension info and install.
 - `/dashboard` — User dashboard for durable locks and guardrails.
-- `/about` — About TiltCheck.
-- `/how-it-works` — Explainer for new users.
 - `/touch-grass` — Touch Grass Protocol. Responsible gambling resource.
-- `/sos` — Crisis / help resources.
-- `/collab` — Affiliate / collab application.
-- `/microgrant` — Recovery microgrant program.
-- `/beta-tester` — Beta signup.
-- `/blog` — Blog.
 
 ## API Endpoints (Public RGaaS)
 
