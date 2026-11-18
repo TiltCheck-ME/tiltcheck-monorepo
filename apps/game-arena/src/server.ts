@@ -15,6 +15,7 @@
  */
 
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 let createAdapter: any; // loaded dynamically when a Redis client is available
@@ -80,34 +81,38 @@ validateConfig();
 // Initialize Express app
 const app = express();
 const httpServer = createServer(app);
+// Deployed behind a single reverse proxy (Railway / Cloud Run); trust one hop
+// so per-IP rate limits key on the real client address.
+app.set('trust proxy', 1);
 
 // Simple CORS middleware with whitelisting
+const CORS_ALLOWED_ORIGINS = [
+  'https://tiltcheck.me',
+  'https://api.tiltcheck.me',
+  'https://activity.tiltcheck.me',
+  'https://dev-activity.tiltcheck.me',
+  'https://arena.tiltcheck.me',
+  'https://game-arena.tiltcheck.me',
+  'https://game.tiltcheck.me',
+  'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
+];
+
 app.use((req, res, next) => {
-  const allowedOrigins = [
-    'https://tiltcheck.me',
-    'https://api.tiltcheck.me',
-    'https://activity.tiltcheck.me',
-    'https://dev-activity.tiltcheck.me',
-    'https://game-arena.tiltcheck.me',
-    'https://game.tiltcheck.me',
-    'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
-  ];
+  const origin = typeof req.headers.origin === 'string' ? req.headers.origin : '';
 
-  const origin = req.headers.origin;
+  // Only allowlisted origins get CORS + credentials; never reflect arbitrary
+  // origins or pair a wildcard with Access-Control-Allow-Credentials.
+  const allowedOrigin = CORS_ALLOWED_ORIGINS.find((candidate) => candidate === origin)
+    ?? (config.isDev && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin) ? origin : undefined);
 
-  // Check if origin is allowed
-  const isAllowed = origin
-    ? allowedOrigins.includes(origin) ||
-      (config.isDev && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')))
-    : true;
-
-  if (isAllowed) {
-    res.header('Access-Control-Allow-Origin', origin || '*');
+  res.vary('Origin');
+  if (allowedOrigin) {
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
+    res.header('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
-  res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
@@ -232,6 +237,25 @@ const jwtConfig: JWTConfig = {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+
+// App-wide per-IP rate limit. Generous because the lounge polls every few
+// seconds and players often share an IP; health/metrics probes are exempt.
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/health' || req.path === '/health/trivia' || req.path === '/metrics',
+  message: { error: 'Too many requests' },
+});
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts' },
+});
+app.use(generalLimiter);
 
 // ── Director's Booth endpoints (called by control-room trivia-director.js) ────
 
@@ -531,7 +555,7 @@ app.get('/lounge/whoami', optionalAuth, (req, res) => {
   });
 });
 
-app.post('/lounge/login', optionalAuth, (req, res) => {
+app.post('/lounge/login', authLimiter, optionalAuth, (req, res) => {
   const discord = identityFromDiscord(req.user);
   const body = req.body as { handle?: string; useDiscord?: boolean };
   const user = body.useDiscord && discord ? discord : identityFromHandle(body.handle);
@@ -927,7 +951,7 @@ app.get('/game/:gameId', requireAuth, (_req, res) => {
 });
 
 // Auth routes (Unified with Ecosystem API)
-app.get('/auth/discord', (req, res) => {
+app.get('/auth/discord', authLimiter, (req, res) => {
   const redirectBase = config.isDev ? 'http://localhost:3000' : 'https://api.tiltcheck.me';
   const nextPath = req.query.redirect === '/lounge' ? '/lounge' : '/arena';
   const myUrl = config.isDev

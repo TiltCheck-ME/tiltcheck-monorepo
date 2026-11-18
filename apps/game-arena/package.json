@@ -23,6 +23,7 @@
     "@tiltcheck/types": "workspace:*",
     "connect-redis": "^9.0.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
     "express-session": "^1.19.0",
     "redis": "^5.11.0",
     "ioredis": "^5.3.2",

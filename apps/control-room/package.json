@@ -17,6 +17,7 @@
     "@tiltcheck/prize-payout": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
     "express-session": "^1.19.0",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",

@@ -173,6 +173,9 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
+// Deployed behind a single reverse proxy (Railway / Cloud Run); trust one hop
+// so per-IP rate limits key on the real client address.
+app.set('trust proxy', 1);
 const PORT = resolveDashboardPort(process.env);
 const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback';
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
@@ -250,23 +253,97 @@ app.use((req, res, next) => {
   const activeHost = forwardedHost || requestHost;
 
   if (isProd && activeHost === 'hub.tiltcheck.me') {
-    res.redirect(308, `https://dashboard.tiltcheck.me${req.originalUrl}`);
+    // Only ever redirect to the canonical dashboard origin; resolve the path
+    // against it and reject anything that would escape (e.g. "//evil.example").
+    const canonicalOrigin = 'https://dashboard.tiltcheck.me';
+    let target = `${canonicalOrigin}/`;
+    try {
+      const parsed = new URL(req.originalUrl, canonicalOrigin);
+      if (parsed.origin === canonicalOrigin) {
+        target = `${canonicalOrigin}${parsed.pathname}${parsed.search}`;
+      }
+    } catch {
+      // fall back to dashboard root
+    }
+    res.redirect(308, target);
     return;
   }
 
   next();
 });
 
+// Allowed browser origins (shared by CORS and the CSRF origin check below)
+const DASHBOARD_ALLOWED_ORIGINS = [
+  'https://tiltcheck.me',
+  'https://dashboard.tiltcheck.me',
+  'https://api.tiltcheck.me',
+  'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
+];
+
+function isAllowedDashboardOrigin(origin: string): boolean {
+  if (DASHBOARD_ALLOWED_ORIGINS.includes(origin)) return true;
+  return !isProd && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
+}
+
+// CSRF protection for cookie-authenticated, state-changing requests.
+// Browsers always send Origin (or at least Referer) on cross-site POST/PUT/
+// PATCH/DELETE, so a request whose Origin/Referer is not one of our hosts is
+// rejected. Requests with neither header (server-to-server, CLI) carry no
+// ambient browser credentials and pass through unchanged.
+function csrfOriginCheck(req: Request, res: Response, next: NextFunction) {
+  const method = req.method.toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    next();
+    return;
+  }
+
+  let source = typeof req.headers.origin === 'string' ? req.headers.origin : '';
+  if (!source && typeof req.headers.referer === 'string' && req.headers.referer) {
+    try {
+      source = new URL(req.headers.referer).origin;
+    } catch {
+      source = 'invalid';
+    }
+  }
+
+  if (!source) {
+    next();
+    return;
+  }
+
+  const requestHost = (typeof req.headers['x-forwarded-host'] === 'string'
+    ? req.headers['x-forwarded-host'].split(',')[0]?.trim()
+    : req.headers.host || '').toLowerCase();
+  let sameHost = false;
+  try {
+    sameHost = Boolean(requestHost) && new URL(source).host.toLowerCase() === requestHost;
+  } catch {
+    sameHost = false;
+  }
+
+  if (sameHost || isAllowedDashboardOrigin(source)) {
+    next();
+    return;
+  }
+
+  res.status(403).json({ error: 'Cross-site request blocked', code: 'CSRF_ORIGIN_REJECTED' });
+}
+
+// App-wide rate limit (per IP). Route-specific limiters above stay stricter.
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/health',
+  message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
     // Allowed origins for user dashboard
-    const allowedOrigins = [
-      'https://tiltcheck.me',
-      'https://dashboard.tiltcheck.me',
-      'https://api.tiltcheck.me',
-      'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
-    ];
+    const allowedOrigins = DASHBOARD_ALLOWED_ORIGINS;
 
     // Allow requests with no origin (like mobile apps)
     if (!origin) {
@@ -290,8 +367,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+app.use(csrfOriginCheck);
 app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
+app.use(generalLimiter);
 
 // === Auth Middleware (Shared Ecosystem) ===
 function authenticateToken(req: DashboardRequest, res: Response, next: NextFunction) {

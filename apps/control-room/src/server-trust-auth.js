@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
 import passport from 'passport';
+import rateLimit from 'express-rate-limit';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { exec, spawn } from 'child_process';
@@ -140,7 +141,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: isProd ? 'auto' : false,
+    // HTTPS-only in production (proxy: true + trust proxy honours X-Forwarded-Proto).
+    // sameSite 'lax' (not 'strict') so the Discord OAuth callback keeps its session.
+    secure: isProd,
     httpOnly: true,
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000,
@@ -149,6 +152,58 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// CSRF protection for the cookie session: reject state-changing requests whose
+// Origin/Referer is a different host. Browsers always attach Origin/Referer to
+// cross-site POSTs; header-less callers (server-to-server, x-internal-secret)
+// are unaffected. Extra trusted origins: CONTROL_ROOM_ALLOWED_ORIGINS (comma list).
+const CONTROL_ROOM_ALLOWED_ORIGINS = (process.env.CONTROL_ROOM_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((entry) => entry.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+function csrfOriginCheck(req, res, next) {
+  const method = req.method.toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    next();
+    return;
+  }
+
+  let source = typeof req.headers.origin === 'string' ? req.headers.origin : '';
+  if (!source && typeof req.headers.referer === 'string' && req.headers.referer) {
+    try {
+      source = new URL(req.headers.referer).origin;
+    } catch {
+      source = 'invalid';
+    }
+  }
+
+  if (!source) {
+    next();
+    return;
+  }
+
+  const forwardedHost = typeof req.headers['x-forwarded-host'] === 'string'
+    ? req.headers['x-forwarded-host'].split(',')[0].trim()
+    : '';
+  const requestHost = (forwardedHost || req.headers.host || '').toLowerCase();
+  let sameHost = false;
+  try {
+    sameHost = Boolean(requestHost) && new URL(source).host.toLowerCase() === requestHost;
+  } catch {
+    sameHost = false;
+  }
+
+  if (sameHost || CONTROL_ROOM_ALLOWED_ORIGINS.includes(source)) {
+    next();
+    return;
+  }
+
+  console.warn(`[control-room] Blocked cross-site ${req.method} ${req.path} from origin ${source}`);
+  res.status(403).json({ error: 'Cross-site request blocked' });
+}
+
+app.use(csrfOriginCheck);
 
 app.use((req, res, next) => {
   if (req.path === '/health' || CONTROL_ROOM_ALLOWED_IPS.length === 0) {
@@ -167,6 +222,39 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Rate limiting (per client IP). 'trust proxy' is already enabled above, so
+// express-rate-limit's permissive-trust-proxy warning is acknowledged here.
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/health',
+  validate: { trustProxy: false },
+  message: { error: 'Too many requests' },
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  validate: { trustProxy: false },
+  message: { error: 'Too many login attempts, try again later' },
+});
+
+const oauthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false },
+  message: { error: 'Too many authentication attempts' },
+});
+
+app.use(generalLimiter);
 
 const requireAuth = (req, res, next) => {
   // Support both session auth (legacy) and passport auth
@@ -222,7 +310,7 @@ function auditPrivilegedAction(req, action, metadata = {}) {
 }
 
 // ─── Auth Routes ───────────────────────────────────────────────────────────────
-app.get('/auth/discord', (req, res, next) => {
+app.get('/auth/discord', oauthLimiter, (req, res, next) => {
   if (!DISCORD_AUTH_ENABLED) {
     res.status(503).json({ error: 'Discord OAuth is not configured for Control Room' });
     return;
@@ -240,7 +328,7 @@ app.get('/auth/discord', (req, res, next) => {
   });
 });
 
-app.get('/auth/discord/callback', (req, res, next) => {
+app.get('/auth/discord/callback', oauthLimiter, (req, res, next) => {
   if (!DISCORD_AUTH_ENABLED) {
     res.status(503).json({ error: 'Discord OAuth is not configured for Control Room' });
     return;
@@ -273,7 +361,7 @@ app.get('/auth/discord/callback', (req, res, next) => {
   })(req, res, next);
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', loginLimiter, (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
     req.session.authenticated = true;
