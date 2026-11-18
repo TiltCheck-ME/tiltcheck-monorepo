@@ -44,9 +44,11 @@ export function speedWithMethods(b) {
 export function benchmarkText(name, b) {
   return [
     `Third-party payout speed benchmark from ${b.source} for ${name}, as of ${formatAsOf(b.asOf)} (${b.asOf}).`,
-    `${b.source} lists the payout (withdrawal, cashout) speed as ${speedWithMethods(b)}.`,
+    `${b.source} lists the payout (withdrawal, cash out, cashout) speed as ${speedWithMethods(b)}.`,
     b.note || '',
-    PAYOUT_METHOD_TEXT,
+    // The KYC 24-48 hour line stays out of per-casino excerpts: the model mixed it into answers
+    // citing other sources, and the number check then turned them into I don't know.
+    'Benchmark times run from casino approval until funds land, for a verified account.',
     `This is ${b.source}'s figure, not the casino's own terms and not a TiltCheck test.`,
   ]
     .filter(Boolean)

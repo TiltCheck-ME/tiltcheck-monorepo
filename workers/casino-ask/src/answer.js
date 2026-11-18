@@ -8,7 +8,7 @@
  *  - every number in the reply appears in the excerpts it cites;
  *  - if the question names something none of the sources mention, the answer is "I don't know".
  */
-import { isPayoutRankingQuestion, payoutRankingAnswer } from './payout.js';
+import { formatAsOf, isPayoutRankingQuestion, payoutRankingAnswer } from './payout.js';
 import { CATALOG, findCasinos } from './sources.js';
 import { gatherDocs, selectExcerpts } from './retrieve.js';
 import { numberSet, numbersIn } from './text.js';
@@ -54,7 +54,10 @@ export async function callGroq({ apiKey, model, question, casinos, excerpts, fet
       body: JSON.stringify({
         model: model || DEFAULT_MODEL,
         temperature: 0,
-        max_tokens: 400,
+        // Reasoning models (gpt-oss) spend completion tokens thinking; 400 ran out before the JSON
+        // when two sources disagreed (Groq json_validate_failed), so allow more and keep effort low.
+        max_tokens: 1200,
+        ...(String(model || DEFAULT_MODEL).startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}),
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
@@ -90,7 +93,15 @@ export function checkClaim(text, ids, excerpts) {
   for (const n of numbersIn(claim)) {
     if (!allowed.has(n) && !allowed.has(n.replace(/%$/, ''))) return null;
   }
-  return { text: claim, excerpts: cited };
+  return { text: withThirdPartyCredit(claim, cited), excerpts: cited };
+}
+
+/** A claim that cites a RotoWire excerpt always names RotoWire and its date, even if the model left it out. */
+export function withThirdPartyCredit(text, cited) {
+  const bench = cited.find((e) => e.kind === 'benchmark');
+  if (!bench || /rotowire/i.test(text)) return text;
+  const date = bench.asOf ? `, as of ${formatAsOf(bench.asOf)}` : '';
+  return `${text.replace(/\s*$/, '')} (Payout speed per RotoWire${date}.)`;
 }
 
 function linksFor(excerpts) {

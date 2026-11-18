@@ -125,3 +125,31 @@ test('POST /ask: ranking question over HTTP', async () => {
   assert.equal(b.status, 'answered');
   assert.equal(b.sources[0].url, ROTOWIRE);
 });
+
+test('a model answer that leaves RotoWire out gets the credit and date added', async () => {
+  const groq = (body) => {
+    const id = /\[(S\d+)\] RotoWire payout speed: BetRivers/.exec(body.messages[1].content)[1];
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({
+      known: true, answer: 'BetRivers payouts are Instant via Play+.', sources: [id], nearest: '', nearest_sources: [],
+    }) } }] }));
+  };
+  const { d } = deps(KEY, { groq });
+  const r = await answerQuestion('How fast does BetRivers pay out?', d);
+  assert.equal(r.status, 'answered');
+  assert.equal(r.answer, 'BetRivers payouts are Instant via Play+. (Payout speed per RotoWire, as of Nov 17 2026.)');
+});
+
+test('gpt-oss gets room to reason before the JSON (live json_validate_failed on 2026-11-18)', async () => {
+  let sent;
+  const groq = (body) => {
+    sent = body;
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ known: false, answer: '', sources: [], nearest: '', nearest_sources: [] }) } }] }));
+  };
+  const { d } = deps({ ...KEY, GROQ_MODEL: 'openai/gpt-oss-120b' }, { groq });
+  await answerQuestion('How fast does BetRivers pay out?', d);
+  assert.equal(sent.max_tokens, 1200);
+  assert.equal(sent.reasoning_effort, 'low');
+  const { d: d2 } = deps(KEY, { groq });
+  await answerQuestion('How fast does BetRivers pay out?', d2);
+  assert.equal(sent.reasoning_effort, undefined, 'not sent to models that do not take it');
+});
