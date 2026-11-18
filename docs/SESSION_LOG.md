@@ -10,6 +10,10 @@
 - New intent `payout_speed_ranking` ("fastest payout casinos", "which casinos pay out instantly", "fastest cash out"): list ranked by speed tier, labeled as RotoWire data for regulated real-money casinos (CT, DE, MI, NJ, PA, RI, WV), with as-of date and source. Sweeps questions stay off it. No affiliate or promo links.
 - Router: "how long does X take to cash out" and "at/from X" now extract X; plain string checks for the new intent (ReDoS-safe).
 - Tests: intel-tools 46 pass, intel-agent 35 pass; promote-operator-facts and audit-us-operators pass.
+## 2026-11-18 — test(e2e): match the gated extension page; de-flake access_denied
+
+- extension-download.spec now checks the intended gated state (#693/#714): "Not public yet" notice and Discord link visible, no public .zip/.crx link, no sideload steps for anonymous visitors.
+- discord-login access_denied test waits for the client-side error text instead of reading the body once before hydration.
 
 ## 2026-11-18 — fix(security): ReDoS, sanitization, workflow permissions (CodeQL)
 
