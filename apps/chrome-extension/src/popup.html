@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1910,7 +1910,7 @@
         <div class="preset-name">Bag Securer</div>
         <span class="preset-pill pill-rec">Recommended</span>
       </div>
-      <div class="preset-desc">Deposit barrier on, PocketCheck payout lock active, 15% WinCheck profit floor.</div>
+      <div class="preset-desc">Deposit barrier on, PocketCheck payout hold active, 15% WinCheck profit floor.</div>
       <div class="preset-specs">
         <span>Drawdown: 55%</span>
         <span>PocketCheck: ON</span>
@@ -2211,23 +2211,44 @@
       <div style="margin-top:8px; border-top:1px solid #1e293b; padding-top:8px;">
         <label class="guard-opt-row" for="auto-lock-on-tilt-toggle" style="margin-bottom:4px; display:flex; align-items:center; gap:6px; font-size:11px; color:#cbd5e1; cursor:pointer;">
           <input type="checkbox" id="auto-lock-on-tilt-toggle" />
-          <span>Auto-lock on Level 3+ tilt (Score &ge; 75)</span>
+          <span>Opt-in: 24h auto-lock on Level 3+ tilt (Score &ge; 75)</span>
         </label>
         <div style="font-size:10px; color:#64748b; line-height:1.4;">
-          When active tilt reaches critical threshold, immediately triggers 24h deposit containment and prompts non-custodial on-chain lock.
+          Off by default. Tilt normally opens a private choices screen instead. Switch this on only if you want TiltCheck to start 24h deposit containment and prompt the on-chain lock for you.
         </div>
       </div>
     </div>
   </section>
 
-  <section class="guard-panel" id="reverse-withdrawal-shield-panel">
-    <h3>PocketCheck (Payout Lock)</h3>
+  <section class="guard-panel" id="walk-away-panel">
+    <h3>Walk-Away Number</h3>
     <p class="guard-policy">
-      Blocks "Cancel Withdrawal" and "Cancel Redemption" buttons while cashouts are pending so your winnings actually hit your pocket.
+      Pick your lines before the session talks you out of them. Hit one and you get a private prompt: Cash out, Lock half, Touch Grass 5 min, or keep playing (logged). No lockout. Private: stays on this device, never shared.
+    </p>
+    <div style="display:flex; gap:8px;">
+      <div class="form-row" style="flex:1;">
+        <label for="walk-away-up-input">Walk away when up ($)</label>
+        <input type="number" id="walk-away-up-input" min="1" step="1" placeholder="e.g. 200" style="background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-size:11px;" />
+      </div>
+      <div class="form-row" style="flex:1;">
+        <label for="walk-away-down-input">Walk away when down ($)</label>
+        <input type="number" id="walk-away-down-input" min="1" step="1" placeholder="e.g. 100" style="background:#080a0e; color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; font-size:11px;" />
+      </div>
+    </div>
+    <div style="margin-top:8px; display:flex; gap:6px;">
+      <button type="button" id="btn-save-walk-away" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;">Set lines</button>
+      <button type="button" id="btn-clear-walk-away" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;">Clear</button>
+    </div>
+  </section>
+
+  <section class="guard-panel" id="reverse-withdrawal-shield-panel">
+    <h3>PocketCheck (Payout Hold)</h3>
+    <p class="guard-policy">
+      Casinos stall payouts hoping you reverse them and play it back. Hitting "Cancel Withdrawal" or "Cancel Redemption" now asks "This is money you already won. Reverse it?" and holds the reverse for 10 seconds. Logged on this device only.
     </p>
     <label class="guard-opt-row" for="reverse-withdrawal-shield-toggle">
       <input type="checkbox" id="reverse-withdrawal-shield-toggle" />
-      <span>Disable cancel-cashout buttons while payouts are pending.</span>
+      <span>Confirm and 10-second hold before reversing a pending cashout.</span>
     </label>
   </section>
 
@@ -2592,7 +2613,7 @@
             </button>
             <button type="button" class="quiz-option-btn active" data-value="bag_securer">
               <span class="quiz-opt-title">Bag Securer &amp; Cashouts</span>
-              <span class="quiz-opt-desc">Cashier barrier on, PocketCheck payout lock, 15% WinCheck.</span>
+              <span class="quiz-opt-desc">Cashier barrier on, PocketCheck payout hold, 15% WinCheck.</span>
             </button>
             <button type="button" class="quiz-option-btn" data-value="hard_lockdown">
               <span class="quiz-opt-title">High Volatility / De-risking</span>

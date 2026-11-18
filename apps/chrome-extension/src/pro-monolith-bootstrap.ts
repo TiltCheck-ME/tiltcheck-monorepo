@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -55,6 +55,7 @@ import { installLocalGameBlocker, LocalGameBlocker } from './pro/local-game-bloc
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './pro/containment.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { checkAndTriggerAutoLock } from './tilt-auto-lock.js';
+import { computeLockHalfAmount, showChoicesScreen } from './choices-screen.js';
 import type { CasinoVerification } from './license-verifier.js';
 import {
   attachMarketingSiteStorageListener,
@@ -1136,6 +1137,22 @@ function checkBagFumble(balance: number | null, initialBalance: number | null) {
 }
 
 /**
+ * Tilt inferred from the score or interventions opens the private choices
+ * screen. No forced lockout; Touch Grass runs only if the player picks it.
+ */
+function offerProTiltChoices(reason: string): boolean {
+  return showChoicesScreen(document, {
+    trigger: 'tilt',
+    headline: 'Tilt check. Your call.',
+    reason,
+    lockHalfAmount: () => {
+      const summary = tiltDetector?.getSessionSummary();
+      return computeLockHalfAmount(summary?.initialBalance ?? null, summary?.currentBalance ?? null);
+    },
+  });
+}
+
+/**
  * Periodic tilt monitoring
  */
 function startTiltMonitoring() {
@@ -1155,7 +1172,7 @@ function startTiltMonitoring() {
     // Check for critical tilt (Touch Grass lockout owned by Core when shield is active)
     const coreOwnsTouchGrass = (window as TiltCheckWindow).__tiltcheckCoreShieldActive === true;
     if (tiltRisk >= 80 && !coreOwnsTouchGrass) {
-      triggerTouchGrassTimeout('Critical tilt detected.');
+      offerProTiltChoices('Critical tilt signals are stacking. Step back or keep going, it is your call.');
       notifySupportIntervention('critical_tilt', {
         message: 'Critical tilt detected from live extension telemetry.',
         risk: tiltRisk,
@@ -1163,7 +1180,8 @@ function startTiltMonitoring() {
       });
     }
 
-    // Automated on-chain lock trigger on high tilt (Level 3+ / score >= 75)
+    // 24h lock on high tilt. Opt-in only (DEFAULT_AUTO_LOCK_ON_TILT is false):
+    // runs only when the player switched it on themselves.
     void checkAndTriggerAutoLock({
       tiltRisk,
       indicators,
@@ -1196,7 +1214,8 @@ function handleInterventions(interventions: RuntimeIntervention[]) {
 
     switch (intervention.type) {
       case 'cooldown':
-        startCooldown(intervention.data.duration);
+        // Was a forced 5-minute betting lock. Now the player chooses.
+        offerProTiltChoices('Critical tilt signs detected. You might be chasing.');
         break;
 
       case 'vault_balance':
@@ -1379,7 +1398,7 @@ function showSpendingReminder(comparison: SpendingReminderData) {
  * Trigger stop loss
  */
 function triggerStopLoss(data: StopLossData) {
-  triggerTouchGrassTimeout(data.reason);
+  offerProTiltChoices(data.reason);
 }
 
 /**

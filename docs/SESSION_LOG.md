@@ -2,6 +2,14 @@
 
 # Session Log
 
+## 2026-11-18 — feat(extension): walk-away targets, choices instead of tilt lockouts, redemption hold (draft PR, feat/cashout-buddy)
+- Spec: docs/specs/cashout-buddy.md (flows, data/privacy, extension-to-worker buddy plan, tests, open questions). Discord buddy pairing is spec only; heater tip cap is a follow-up note.
+- New `walk-away.ts`: up/down session lines from the popup; crossing one opens the private choices screen. Local only.
+- New `choices-screen.ts`: Cash out / Lock half / Ping my buddy (hidden until the worker route exists) / Touch Grass 5 min / Keep playing (logged). Private log `tiltcheck_choice_log`, no amounts.
+- Tilt inferences (rapid clicks, tilt-signal events, loss chase, Pro score >= 80, Pro cooldown and stop-loss interventions) open choices instead of forcing Touch Grass or a betting lock. 24h tilt auto-lock now defaults off (opt-in). Self-set locks unchanged.
+- PocketCheck: cancel/reverse on a pending cashout now gets "This is money you already won. Reverse it?" with a 10-second hold, then one click through; outcome logged locally (`tiltcheck_redemption_guard_log`). Buttons are no longer disabled.
+- Tests: chrome-extension 46 files / 373 tests pass. Lint on the extension unchanged from main (119 errors, 100 warnings, all pre-existing: no-undef in background.js, auth-bridge.js, polyfills.js). Nothing deployed.
+
 ## 2026-11-18 — feat(ask): independent payout-speed benchmarks (RotoWire) for cash-out questions
 - Router recognizes known operators named anywhere in the question ("Does DraftKings pay out instantly?") from the facts data before falling back to the generic payout ranking.
 
