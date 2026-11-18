@@ -340,7 +340,7 @@ function extractPromoCode(rawEmail: string, intel: EmailIntelData): string | nul
     return intel.promoCode;
   }
 
-  const match = rawEmail.match(/(?:promo|bonus|offer|coupon)\s*code\s*[:\-]?\s*([A-Z0-9-]{4,20})/i);
+  const match = rawEmail.match(/(?:promo|bonus|offer|coupon)\s*code\s*(?:[:\-]\s*)?([A-Z0-9-]{4,20})/i);
   return match?.[1]?.toUpperCase() || null;
 }
 

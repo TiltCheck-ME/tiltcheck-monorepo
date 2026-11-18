@@ -55,7 +55,7 @@ function normalizeSlugValue(value?: string | null): string | null {
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-|-$/g, ''); // runs already collapsed to one '-' above; linear-time trim
   return normalized.length > 0 ? normalized : null;
 }
 

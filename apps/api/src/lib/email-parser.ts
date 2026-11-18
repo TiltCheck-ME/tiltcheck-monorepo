@@ -142,12 +142,13 @@ export function parseEmailIntel(raw: string): EmailIntelData {
   let senderEmail: string | null = null;
   let senderDomain: string | null = null;
 
-  const fromMatch = headerBlock.match(/^From:.*?([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/im)
-    || raw.match(/From:.*?([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/i);
-  const replyToMatch = headerBlock.match(/^Reply-To:.*?([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/im);
+  // Linear-time header scans (replaces `^From:.*?(local@domain)` regexes that
+  // backtracked polynomially on long header lines).
+  const fromEmail = findHeaderEmail(headerBlock, 'from:', true) || findHeaderEmail(raw, 'from:', false);
+  const replyToEmail = findHeaderEmail(headerBlock, 'reply-to:', true);
   const returnPathMatch = headerBlock.match(/^Return-Path:.*?<([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})>/im);
 
-  const rawEmail = fromMatch?.[1] || replyToMatch?.[1] || returnPathMatch?.[1] || null;
+  const rawEmail = fromEmail || replyToEmail || returnPathMatch?.[1] || null;
   if (rawEmail) {
     senderEmail = rawEmail;
     senderDomain = rawEmail.split('@')[1] ?? null;
@@ -178,7 +179,7 @@ export function parseEmailIntel(raw: string): EmailIntelData {
 
   // ── Embedded URLs ──
   const urlRegex = /https?:\/\/[^\s"'<>\]]+/gi;
-  const allUrls = [...new Set([...raw.matchAll(urlRegex)].map((m) => m[0].replace(/[.,;)]+$/, '')))];
+  const allUrls = [...new Set([...raw.matchAll(urlRegex)].map((m) => trimTrailingUrlPunctuation(m[0])))];
   const embeddedUrls = allUrls.filter((u) => {
     try {
       return new URL(u).hostname !== senderDomain;
@@ -193,7 +194,7 @@ export function parseEmailIntel(raw: string): EmailIntelData {
 
   // Match patterns like "$50 Free Play", "200 SC", "100% match up to $500", "5 SC No Deposit"
   const bonusPatterns = [
-    /(?:\$)?(\d[\d,.]*)\s*(sc|gc|usd|usdc|sol|free\s*play|free\s*spins?|free\s*coins?|sweep\s*coins?|gold\s*coins?)/gi,
+    /(?:\$)?(\d[\d,.]{0,24})\s*(sc|gc|usd|usdc|sol|free\s*play|free\s*spins?|free\s*coins?|sweep\s*coins?|gold\s*coins?)/gi,
     /(\d{1,3}%)\s*match(\s*bonus)?(\s*up\s*to\s*[\$\d,.]+)?/gi,
     /(no[- ]deposit\s*bonus(?:\s*of\s*[\$\d,.]+\s*(?:sc|gc))?)/gi,
     /(daily|weekly)\s*(bonus|reward|coins?|sc|gc)(\s*of\s*[\$\d,.]+)?/gi,
@@ -263,11 +264,9 @@ export function parseEmailIntel(raw: string): EmailIntelData {
 }
 
 function extractImageUrls(raw: string): string[] {
-  const htmlImageMatches = [...raw.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map((match) => match[1]);
-  const markdownImageMatches = [...raw.matchAll(/!\[[^\]]*]\((https?:\/\/[^)\s]+)\)/gi)].map((match) => match[1]);
-  const imageLikeUrls = [...raw.matchAll(/https?:\/\/[^\s"'<>)\]]+\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s"'<>)\]]+)?/gi)].map((match) =>
-    match[0].replace(/[.,;)]+$/, '')
-  );
+  const htmlImageMatches = extractHtmlImgSrcs(raw);
+  const markdownImageMatches = [...raw.matchAll(/!\[[^\]]{0,1000}]\((https?:\/\/[^)\s]{1,2048})\)/gi)].map((match) => match[1]);
+  const imageLikeUrls = extractImageLikeUrls(raw).map((url) => trimTrailingUrlPunctuation(url));
 
   return [...new Set([...htmlImageMatches, ...markdownImageMatches, ...imageLikeUrls])]
     .map((url) => url.trim())
@@ -275,6 +274,146 @@ function extractImageUrls(raw: string): string[] {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// The helpers below replace regexes that CodeQL flagged as polynomial ReDoS
+// (js/polynomial-redos). Each keeps the old regex's match semantics but runs
+// in linear time.
+
+const EMAIL_LOCAL_CHAR = /[a-zA-Z0-9._%+\-]/;
+const EMAIL_DOMAIN_CHAR = /[a-zA-Z0-9.\-]/;
+const ASCII_LETTER = /[a-zA-Z]/;
+
+/** Equivalent of `([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})` (leftmost match). */
+function findEmailInText(text: string): string | null {
+  let at = text.indexOf('@');
+  while (at !== -1) {
+    let start = at;
+    while (start > 0 && EMAIL_LOCAL_CHAR.test(text[start - 1])) start--;
+    if (start < at) {
+      let end = at + 1;
+      while (end < text.length && EMAIL_DOMAIN_CHAR.test(text[end])) end++;
+      // Greedy backtracking picks the last '.' (with >=1 char before it) followed by >=2 letters.
+      for (let dot = end - 3; dot >= at + 2; dot--) {
+        if (text[dot] === '.' && ASCII_LETTER.test(text[dot + 1]) && ASCII_LETTER.test(text[dot + 2])) {
+          let tld = dot + 3;
+          while (tld < end && ASCII_LETTER.test(text[tld])) tld++;
+          return text.slice(start, tld);
+        }
+      }
+    }
+    at = text.indexOf('@', at + 1);
+  }
+  return null;
+}
+
+/**
+ * Equivalent of `/^Header:.*?(email)/im` (anchored) or `/Header:.*?(email)/i`
+ * (unanchored): first header occurrence whose remaining line holds an email.
+ */
+function findHeaderEmail(text: string, headerLower: string, anchored: boolean): string | null {
+  for (const line of text.split(/[\n\r\u2028\u2029]/)) {
+    const lower = line.toLowerCase();
+    const idx = anchored ? (lower.startsWith(headerLower) ? 0 : -1) : lower.indexOf(headerLower);
+    if (idx === -1) continue;
+    const found = findEmailInText(line.slice(idx + headerLower.length));
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Equivalent of `.replace(/[.,;)]+$/, '')`. */
+function trimTrailingUrlPunctuation(url: string): string {
+  let end = url.length;
+  while (end > 0 && '.,;)'.includes(url[end - 1])) end--;
+  return url.slice(0, end);
+}
+
+/** Equivalent of `[...raw.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(m => m[1])`. */
+function extractHtmlImgSrcs(raw: string): string[] {
+  const lower = raw.toLowerCase();
+
+  // A `src=` candidate's validity does not depend on which <img> tag it sits
+  // in (the value may run past '>'), so evaluate every candidate exactly once.
+  const validSrcAt: number[] = [];
+  const valueEndAt = new Map<number, number>();
+  for (let k = lower.indexOf('src='); k !== -1; k = lower.indexOf('src=', k + 1)) {
+    const quote = raw[k + 4];
+    if (quote !== '"' && quote !== "'") continue;
+    let valueEnd = k + 5;
+    while (valueEnd < raw.length && raw[valueEnd] !== '"' && raw[valueEnd] !== "'") valueEnd++;
+    if (valueEnd > k + 5 && valueEnd < raw.length) {
+      validSrcAt.push(k);
+      valueEndAt.set(k, valueEnd);
+    }
+  }
+
+  // Last valid candidate <= limit (binary search), or -1.
+  const lastValidAtOrBefore = (limit: number): number => {
+    let lo = 0;
+    let hi = validSrcAt.length - 1;
+    let found = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (validSrcAt[mid] <= limit) {
+        found = validSrcAt[mid];
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    return found;
+  };
+
+  const results: string[] = [];
+  let from = 0;
+  let nextGt = -2; // cached index of the next '>' (-1 = none left, -2 = not computed)
+  while (true) {
+    const tagStart = lower.indexOf('<img', from);
+    if (tagStart === -1) break;
+    if (nextGt === -2 || (nextGt !== -1 && nextGt < tagStart + 4)) {
+      nextGt = lower.indexOf('>', tagStart + 4);
+    }
+    const tagEnd = nextGt === -1 ? raw.length : nextGt;
+    // `[^>]+` is greedy, so the regex took the last `src=` + quote inside the tag
+    // (at least one char after "<img") whose quoted value is non-empty and closed.
+    const srcAt = lastValidAtOrBefore(tagEnd - 4);
+    if (srcAt >= tagStart + 5) {
+      const valueEnd = valueEndAt.get(srcAt)!;
+      results.push(raw.slice(srcAt + 5, valueEnd));
+      from = valueEnd + 1;
+    } else {
+      from = tagStart + 1;
+    }
+  }
+  return results;
+}
+
+const IMAGE_EXTENSIONS = ['.png', '.jpeg', '.jpg', '.gif', '.webp', '.svg'];
+
+/**
+ * Equivalent of
+ * `/https?:\/\/[^\s"'<>)\]]+\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s"'<>)\]]+)?/gi`.
+ * Tokenizes URL runs first (each run consumed once), then finds the last image
+ * extension inside each run.
+ */
+function extractImageLikeUrls(raw: string): string[] {
+  const results: string[] = [];
+  for (const m of raw.matchAll(/https?:\/\/[^\s"'<>)\]]+/gi)) {
+    const token = m[0];
+    const lower = token.toLowerCase();
+    const minDot = lower.indexOf('//') + 3; // `[^...]+` needs at least one char after the scheme
+    for (let dot = token.length - 4; dot >= minDot; dot--) {
+      if (token[dot] !== '.') continue;
+      const ext = IMAGE_EXTENSIONS.find((candidate) => lower.startsWith(candidate, dot));
+      if (!ext) continue;
+      const extEnd = dot + ext.length;
+      const hasQuery = token[extEnd] === '?' && token.length > extEnd + 1;
+      results.push(hasQuery ? token : token.slice(0, extEnd));
+      break;
+    }
+  }
+  return results;
+}
 
 function extractWagering(body: string, nearIndex: number): string | null {
   const window = body.slice(Math.max(0, nearIndex - 50), nearIndex + 300);
@@ -298,7 +437,7 @@ function normalizeHeaderDate(rawDate: string | null): string | null {
 
 function extractPromoCode(text: string): string | null {
   const patterns = [
-    /(?:promo|bonus|offer|coupon)\s*code\s*[:\-]?\s*([A-Z0-9-]{4,20})/i,
+    /(?:promo|bonus|offer|coupon)\s*code\s*(?:[:\-]\s*)?([A-Z0-9-]{4,20})/i,
     /\buse\s+code\s+([A-Z0-9-]{4,20})\b/i,
     /\benter\s+code\s+([A-Z0-9-]{4,20})\b/i,
   ];

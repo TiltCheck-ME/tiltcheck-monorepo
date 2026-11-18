@@ -44,7 +44,7 @@ export async function getPriceUsd(token: string): Promise<number> {
     priceCache.set(symbol, { price, cachedAt: Date.now() });
     return price;
   } catch (error) {
-    console.error(`[Pricing] Failed to fetch price for ${symbol}:`, error);
+    console.error('[Pricing] Failed to fetch price for %s:', symbol, error);
     if (cached) {
       const ageSeconds = Math.round((Date.now() - cached.cachedAt) / 1000);
       console.warn(`[Pricing] Serving stale ${symbol} price $${cached.price} (${ageSeconds}s old) due to fetch failure.`);

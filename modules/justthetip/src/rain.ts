@@ -21,17 +21,31 @@ const COMMUNITY_WALLET = 'DLP9VYyuLze7VZ7oMG6S77YT3BxZZBDJniTFx1NeDcem';
 
 // ── Escrow keypair encryption ──────────────────────────────────────────────────
 
+// The password is stretched with scrypt and a per-ciphertext random salt
+// (previously a single unsalted SHA-256, which is brute-forceable).
+// Format: `s1:<saltHex>:<ivHex>:<cipherHex>`. The old unsalted `<iv>:<cipher>`
+// format is no longer accepted; nothing in this repo persisted it.
+const KEYPAIR_KDF_VERSION = 's1';
+
+function deriveKeypairKey(password: string, salt: Buffer): Buffer {
+  return crypto.scryptSync(password, salt, 32, { N: 16384, r: 8, p: 1 });
+}
+
 export function encryptKeypair(secretKeyHex: string, password: string): string {
-  const key = crypto.createHash('sha256').update(password).digest();
+  const salt = crypto.randomBytes(16);
+  const key = deriveKeypairKey(password, salt);
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   const enc = Buffer.concat([cipher.update(secretKeyHex, 'utf8'), cipher.final()]);
-  return iv.toString('hex') + ':' + enc.toString('hex');
+  return [KEYPAIR_KDF_VERSION, salt.toString('hex'), iv.toString('hex'), enc.toString('hex')].join(':');
 }
 
 export function decryptKeypair(encrypted: string, password: string): string {
-  const [ivHex, encHex] = encrypted.split(':');
-  const key = crypto.createHash('sha256').update(password).digest();
+  const [version, saltHex, ivHex, encHex] = encrypted.split(':');
+  if (version !== KEYPAIR_KDF_VERSION || !saltHex || !ivHex || !encHex) {
+    throw new Error('Unsupported encrypted keypair format');
+  }
+  const key = deriveKeypairKey(password, Buffer.from(saltHex, 'hex'));
   const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(ivHex, 'hex'));
   return Buffer.concat([decipher.update(Buffer.from(encHex, 'hex')), decipher.final()]).toString('utf8');
 }
