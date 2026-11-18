@@ -1,6 +1,14 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
-import type { CasinoSummary, DataSource, ListFilters, OperatorFactRecord, OperatorFactType } from '@tiltcheck/intel-tools';
+import type {
+  CasinoSummary,
+  DataSource,
+  ListFilters,
+  OperatorFactRecord,
+  OperatorFactType,
+  PayoutBenchmarkFact,
+  RankedPayoutBenchmark,
+} from '@tiltcheck/intel-tools';
 import type { IntelBlock } from './types.js';
 
 const OPERATOR_FACT_REFUSE_TEXT =
@@ -26,6 +34,9 @@ function formatFactTypeLabel(type: OperatorFactType): string {
   }
   if (type === 'redemption') {
     return 'redemption timing';
+  }
+  if (type === 'payout_benchmark') {
+    return 'independent payout speed';
   }
   return 'welcome bonus';
 }
@@ -205,4 +216,121 @@ export function resolveDataSource(casinos: CasinoSummary[]): DataSource {
     return 'live';
   }
   return 'snapshot';
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+/** "2026-11-17" -> "Nov 17 2026"; anything else is returned unchanged. */
+export function formatAsOfDate(asOf: string): string {
+  const parts = asOf.split('-');
+  if (parts.length !== 3) {
+    return asOf;
+  }
+  const [year, month, day] = parts.map((part) => Number(part));
+  const label = MONTHS[(month ?? 0) - 1];
+  if (!year || !label || !day) {
+    return asOf;
+  }
+  return `${label} ${day} ${year}`;
+}
+
+export const PAYOUT_BENCHMARK_METHOD_TEXT =
+  'Benchmark times run from casino approval until funds land, for a verified account. A first withdrawal can take 24-48 hours while KYC is checked.';
+
+export const PAYOUT_BENCHMARK_SCOPE_TEXT =
+  'Covers regulated real-money casinos in the 7 states RotoWire tracks (CT, DE, MI, NJ, PA, RI, WV). Florida is not one of them. Availability varies by state.';
+
+function speedWithMethods(benchmark: PayoutBenchmarkFact): string {
+  const methods = benchmark.topMethods.filter(Boolean);
+  return methods.length > 0 ? `${benchmark.fastestSpeed} via ${methods.join(', ')}` : benchmark.fastestSpeed;
+}
+
+export function formatPayoutBenchmarkLine(benchmark: PayoutBenchmarkFact): string {
+  return `Independent check (${benchmark.source}, ${formatAsOfDate(benchmark.asOf)}): ${speedWithMethods(benchmark)}.`;
+}
+
+function payoutBenchmarkSourceBlock(benchmark: PayoutBenchmarkFact): IntelBlock {
+  return {
+    type: 'text',
+    content: `Source: ${benchmark.source} · ${benchmark.sourceUrl} · As of ${benchmark.asOf}`,
+    citations: [{ label: benchmark.source, href: benchmark.sourceUrl, source: 'snapshot' }],
+  };
+}
+
+export interface RedemptionAnswerInput {
+  name: string;
+  slug?: string;
+  operatorClaim?: OperatorFactHitBlockEntry;
+  operatorClaimStale?: boolean;
+  benchmark?: PayoutBenchmarkFact;
+  benchmarkStale?: boolean;
+}
+
+/**
+ * Operator's own redemption claim first (unchanged), then the third-party benchmark as a
+ * separate, labeled line. Benchmark-only answers say the figure is third-party.
+ */
+export function buildRedemptionAnswerBlocks(input: RedemptionAnswerInput): IntelBlock[] {
+  const blocks: IntelBlock[] = [];
+
+  if (input.operatorClaim) {
+    blocks.push({ type: 'text', content: input.operatorClaim.content });
+    blocks.push({
+      type: 'text',
+      content: `Source: ${input.operatorClaim.sourceUrl} · As of ${input.operatorClaim.asOf}`,
+      citations: [{ label: 'Source', href: input.operatorClaim.sourceUrl, source: 'snapshot' }],
+    });
+  }
+
+  if (input.benchmark) {
+    if (!input.operatorClaim) {
+      blocks.push({
+        type: 'text',
+        content: `No operator-sourced redemption terms on file for ${input.name}. The figure below is third-party, not the casino's own terms.`,
+      });
+    }
+    blocks.push({ type: 'text', content: formatPayoutBenchmarkLine(input.benchmark) });
+    if (input.benchmark.note) {
+      blocks.push({ type: 'text', content: input.benchmark.note });
+    }
+    blocks.push({ type: 'text', content: PAYOUT_BENCHMARK_METHOD_TEXT });
+    blocks.push(payoutBenchmarkSourceBlock(input.benchmark));
+  }
+
+  if (input.operatorClaimStale || input.benchmarkStale) {
+    blocks.push({ type: 'text', content: 'Stale — verify on source' });
+  }
+
+  // Proof pages exist for audited operators (the ones with operator-sourced terms).
+  return input.operatorClaim ? [...blocks, ...buildProofPageCta(input.slug)] : blocks;
+}
+
+export function buildPayoutRankingBlocks(ranked: RankedPayoutBenchmark[]): IntelBlock[] {
+  if (ranked.length === 0) {
+    return [{ type: 'text', content: 'No sourced payout-speed benchmarks on file. Not guessing cash-out times.' }];
+  }
+
+  const first = ranked[0]!.benchmark;
+  const asOf = ranked.reduce((latest, entry) => (entry.benchmark.asOf > latest ? entry.benchmark.asOf : latest), first.asOf);
+
+  const blocks: IntelBlock[] = [
+    {
+      type: 'text',
+      content: `Fastest cash-out times at regulated real-money casinos, ranked from ${first.source}'s data (as of ${formatAsOfDate(asOf)}). Third-party figures, not TiltCheck tests or the casinos' own terms.`,
+    },
+    { type: 'text', content: PAYOUT_BENCHMARK_SCOPE_TEXT },
+  ];
+
+  ranked.forEach((entry, index) => {
+    blocks.push({ type: 'text', content: `${index + 1}. ${entry.record.name} — ${speedWithMethods(entry.benchmark)}` });
+  });
+
+  blocks.push({ type: 'text', content: PAYOUT_BENCHMARK_METHOD_TEXT });
+  blocks.push(payoutBenchmarkSourceBlock({ ...first, asOf }));
+
+  if (ranked.some((entry) => entry.stale)) {
+    blocks.push({ type: 'text', content: 'Stale — verify on source' });
+  }
+
+  return blocks;
 }

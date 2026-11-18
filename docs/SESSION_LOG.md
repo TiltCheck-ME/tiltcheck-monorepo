@@ -1,7 +1,16 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-14 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
 
 # Session Log
 
+## 2026-11-18 — feat(ask): independent payout-speed benchmarks (RotoWire) for cash-out questions
+- Router recognizes known operators named anywhere in the question ("Does DraftKings pay out instantly?") from the facts data before falling back to the generic payout ranking.
+
+- `OperatorFactRecord.payoutBenchmark` (new `PayoutBenchmarkFact`: fastestSpeed, topMethods, source `RotoWire`, sourceUrl, asOf, note). Separate from `redemptionTime`, which stays the operator's own claim.
+- operator-facts.live.json: benchmarks from RotoWire's Fast Payout Online Casinos page (https://www.rotowire.com/betting/casinos/instant-withdrawals, asOf 2026-11-17) on 5 existing records (betrivers, caesars-casino, fanduel-casino, draftkings-casino, betmgm) and 13 new Regulated records with no redemptionTime. Per-casino table figures used where they differ from RotoWire's summary table (FanDuel, Caesars, DraftKings); both figures in `note`.
+- /ask: operator_redemption_fact shows the operator claim, then "Independent check (RotoWire, <date>): <speed> via <methods>." with its source; benchmark-only operators answer from it, labeled third-party.
+- New intent `payout_speed_ranking` ("fastest payout casinos", "which casinos pay out instantly", "fastest cash out"): list ranked by speed tier, labeled as RotoWire data for regulated real-money casinos (CT, DE, MI, NJ, PA, RI, WV), with as-of date and source. Sweeps questions stay off it. No affiliate or promo links.
+- Router: "how long does X take to cash out" and "at/from X" now extract X; plain string checks for the new intent (ReDoS-safe).
+- Tests: intel-tools 46 pass, intel-agent 35 pass; promote-operator-facts and audit-us-operators pass.
 ## 2026-11-18 — test(e2e): match the gated extension page; de-flake access_denied
 
 - extension-download.spec now checks the intended gated state (#693/#714): "Not public yet" notice and Discord link visible, no public .zip/.crx link, no sideload steps for anonymous visitors.

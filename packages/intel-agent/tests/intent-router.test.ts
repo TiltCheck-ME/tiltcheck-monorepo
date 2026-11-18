@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import { describe, expect, it } from 'vitest';
 import { routeIntelIntent } from '../src/intent-router.js';
@@ -71,5 +71,69 @@ describe('routeIntelIntent', () => {
 
   it('routes vague VIP deal questions to fact lookup', () => {
     expect(routeIntelIntent('what is the VIP deal on Stake').kind).toBe('operator_fact_lookup');
+  });
+
+  it('routes cash-out timing questions with "take to cash out" to the operator', () => {
+    expect(routeIntelIntent('how long does BetRivers take to cash out')).toEqual({
+      kind: 'operator_redemption_fact',
+      name: 'BetRivers',
+    });
+  });
+
+  it('routes "how long does it take to withdraw from X" to X, not "it"', () => {
+    expect(routeIntelIntent('how long does it take to withdraw from FanDuel?')).toEqual({
+      kind: 'operator_redemption_fact',
+      name: 'FanDuel',
+    });
+  });
+
+  it('routes withdrawals at a named casino to the redemption fact', () => {
+    expect(routeIntelIntent('how long do withdrawals take at Caesars Palace?')).toEqual({
+      kind: 'operator_redemption_fact',
+      name: 'Caesars Palace',
+    });
+  });
+
+  it.each([
+    'fastest payout casinos',
+    'fastest payout casino',
+    'which casinos pay out instantly',
+    'fastest cash out',
+    'What are the quickest withdrawal casinos?',
+    'best same day payout sites',
+  ])('routes "%s" to the payout speed ranking', (message) => {
+    expect(routeIntelIntent(message)).toEqual({ kind: 'payout_speed_ranking' });
+  });
+
+  it('keeps a named operator on the redemption fact even with a speed word', () => {
+    expect(routeIntelIntent("what's the fastest way to cash out on BetRivers?")).toEqual({
+      kind: 'operator_redemption_fact',
+      name: 'BetRivers',
+    });
+  });
+
+  it('routes a named operator in subject position to its own redemption fact', () => {
+    const findKnownOperator = (text: string) => (/draftkings/i.test(text) ? 'DraftKings Casino' : null);
+    expect(routeIntelIntent('Does DraftKings pay out instantly?', { findKnownOperator })).toEqual({
+      kind: 'operator_redemption_fact',
+      name: 'DraftKings Casino',
+    });
+    expect(routeIntelIntent('fastest payout casinos', { findKnownOperator })).toEqual({ kind: 'payout_speed_ranking' });
+  });
+
+  it('does not send sweeps questions to the real-money payout ranking', () => {
+    expect(routeIntelIntent('fastest redemption sweeps casinos').kind).not.toBe('payout_speed_ranking');
+    expect(routeIntelIntent('fastest payout sweepstakes casinos').kind).not.toBe('payout_speed_ranking');
+  });
+
+  it('does not route speed words without a payout term', () => {
+    expect(routeIntelIntent('fastest loading casinos').kind).not.toBe('payout_speed_ranking');
+  });
+
+  it('routes long hostile payout input in linear time', () => {
+    const message = `fastest ${'cash out '.repeat(5_000)}casinos`;
+    const started = Date.now();
+    expect(routeIntelIntent(message).kind).toBe('payout_speed_ranking');
+    expect(Date.now() - started).toBeLessThan(500);
   });
 });

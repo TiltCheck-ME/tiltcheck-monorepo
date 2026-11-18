@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { existsSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,13 +9,18 @@ import {
 } from '../src/load-operator-facts.js';
 import { IntelTools } from '../src/tools.js';
 import {
+  findMentionedOperator,
+  getPayoutBenchmarkAnswer,
   getRedemptionAnswer,
   getVipCurrencyAnswer,
   getWelcomeBonusAnswer,
   isFactStale,
   listAvailableFactTypesAnswer,
+  payoutSpeedTier,
+  rankPayoutBenchmarks,
   resolveOperatorFacts,
 } from '../src/operator-facts.js';
+import type { OperatorFactRecord } from '../src/operator-facts-types.js';
 
 describe('filterLiveOperatorFacts', () => {
   it('keeps only status live', () => {
@@ -422,9 +427,165 @@ describe('live operator facts coverage gate', () => {
       const hasRedemption = Boolean(record.redemptionTime?.claim && record.redemptionTime?.sourceUrl);
       const hasWelcome = Boolean(record.welcomeBonusSummary?.summary && record.welcomeBonusSummary?.sourceUrl);
       const hasVip = Boolean(record.vipCurrencyRules && record.vipCurrencyRules.length > 0);
+      const hasPayoutBenchmark = Boolean(record.payoutBenchmark?.fastestSpeed && record.payoutBenchmark?.sourceUrl);
 
-      expect(hasRedemption || hasWelcome || hasVip).toBe(true);
+      expect(hasRedemption || hasWelcome || hasVip || hasPayoutBenchmark).toBe(true);
     }
   });
 });
 
+
+const ROTOWIRE_PAYOUT_URL = 'https://www.rotowire.com/betting/casinos/instant-withdrawals';
+
+function benchmarkFixture(slug: string, name: string, fastestSpeed: string, asOf = '2026-11-17'): OperatorFactRecord {
+  return {
+    slug,
+    name,
+    status: 'live',
+    lastVerifiedAt: '2026-11-18',
+    payoutBenchmark: {
+      fastestSpeed,
+      topMethods: ['Play+'],
+      source: 'RotoWire',
+      sourceUrl: ROTOWIRE_PAYOUT_URL,
+      asOf,
+    },
+  };
+}
+
+describe('payoutSpeedTier', () => {
+  it('orders instant, minutes, one hour, hours, 24 hours, business days, unknown', () => {
+    expect(payoutSpeedTier('Instant')).toBe(0);
+    expect(payoutSpeedTier('>5 Minutes')).toBe(1);
+    expect(payoutSpeedTier('Up to 1 hour')).toBe(2);
+    expect(payoutSpeedTier('1-4 hours')).toBe(3);
+    expect(payoutSpeedTier('Within 24 hours')).toBe(4);
+    expect(payoutSpeedTier('Up to 24 hours (sometimes under 1 hour)')).toBe(4);
+    expect(payoutSpeedTier('1 business day')).toBe(5);
+    expect(payoutSpeedTier('varies')).toBe(6);
+  });
+
+  it('stays fast on long hostile input (plain string checks)', () => {
+    const input = 'up to '.repeat(20_000) + '!';
+    const started = Date.now();
+    expect(payoutSpeedTier(input)).toBe(6);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+});
+
+describe('rankPayoutBenchmarks', () => {
+  it('ranks by speed tier, then name, and skips records without a benchmark', () => {
+    const records: OperatorFactRecord[] = [
+      benchmarkFixture('slow-casino', 'Slow Casino', '1 business day'),
+      benchmarkFixture('b-instant', 'B Instant', 'Instant'),
+      { slug: 'no-benchmark', name: 'No Benchmark', status: 'live', lastVerifiedAt: '2026-11-18' },
+      benchmarkFixture('a-instant', 'A Instant', 'Instant'),
+      benchmarkFixture('day-casino', 'Day Casino', 'Within 24 hours'),
+    ];
+    const ranked = rankPayoutBenchmarks(records, new Date('2026-11-18'));
+    expect(ranked.map((entry) => entry.record.slug)).toEqual(['a-instant', 'b-instant', 'day-casino', 'slow-casino']);
+    expect(ranked.every((entry) => entry.stale === false)).toBe(true);
+  });
+
+  it('flags benchmarks older than the stale window', () => {
+    const ranked = rankPayoutBenchmarks([benchmarkFixture('old', 'Old', 'Instant', '2026-01-01')], new Date('2026-11-18'));
+    expect(ranked[0]?.stale).toBe(true);
+  });
+});
+
+describe('getPayoutBenchmarkAnswer', () => {
+  const records: OperatorFactRecord[] = [
+    benchmarkFixture('bench-casino', 'Bench Casino', 'Instant'),
+    { slug: 'plain-casino', name: 'Plain Casino', status: 'live', lastVerifiedAt: '2026-11-18' },
+  ];
+
+  it('returns the benchmark for a matched operator', () => {
+    const answer = getPayoutBenchmarkAnswer(records, 'Bench Casino', new Date('2026-11-18'));
+    expect(answer.kind).toBe('hit');
+    if (answer.kind === 'hit') {
+      expect(answer.payload.fastestSpeed).toBe('Instant');
+      expect(answer.payload.source).toBe('RotoWire');
+    }
+  });
+
+  it('returns miss when the operator has no benchmark, none when unknown', () => {
+    expect(getPayoutBenchmarkAnswer(records, 'plain-casino').kind).toBe('miss');
+    expect(getPayoutBenchmarkAnswer(records, 'nowhere-casino').kind).toBe('none');
+  });
+
+  it('lists payout_benchmark as an available fact type', () => {
+    const answer = listAvailableFactTypesAnswer(records, 'bench-casino', new Date('2026-11-18'));
+    expect(answer.kind).toBe('hit');
+    if (answer.kind === 'hit') {
+      expect(answer.payload).toEqual(['payout_benchmark']);
+    }
+  });
+});
+
+describe('live payout benchmarks (RotoWire)', () => {
+  const candidates = [
+    join(process.cwd(), 'data/trust-engine/operator-facts.live.json'),
+    join(process.cwd(), '../../data/trust-engine/operator-facts.live.json'),
+  ];
+  const livePath = candidates.find((p) => existsSync(p)) ?? candidates[0];
+  const records = loadOperatorFactsFromPath(livePath);
+  const withBenchmark = records.filter((record) => record.payoutBenchmark);
+
+  it.each([
+    ['Does DraftKings pay out instantly?', 'draftkings-casino'],
+    ['Is Hard Rock Bet fast to cash out?', 'hard-rock-bet-casino'],
+    ['does wheel of fortune pay out same day', 'wheel-of-fortune-casino'],
+    ['BetMGM withdrawals instant?', 'betmgm'],
+    ['Does Stake.us pay out fast?', 'stake-us'],
+  ])('finds the operator named in "%s"', (text, slug) => {
+    expect(findMentionedOperator(records, text)?.slug).toBe(slug);
+  });
+
+  it('finds no operator in generic payout questions', () => {
+    for (const text of ['fastest payout casinos', 'which casinos pay out instantly', 'fastest cash out', 'best real money casino payouts']) {
+      expect(findMentionedOperator(records, text)).toBeNull();
+    }
+  });
+
+  it('needs a whole-word match', () => {
+    expect(findMentionedOperator(records, 'draftkingsx payout speed')).toBeNull();
+  });
+
+  it('has one benchmark per casino on the RotoWire page', () => {
+    expect(withBenchmark).toHaveLength(18);
+  });
+
+  it('cites only the RotoWire payout page with a dated, labeled figure', () => {
+    for (const record of withBenchmark) {
+      const benchmark = record.payoutBenchmark!;
+      expect(benchmark.source).toBe('RotoWire');
+      expect(benchmark.sourceUrl).toBe(ROTOWIRE_PAYOUT_URL);
+      expect(benchmark.asOf).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(benchmark.fastestSpeed.trim().length).toBeGreaterThan(0);
+      expect(benchmark.topMethods.length).toBeGreaterThan(0);
+      expect(record.category).toBe('Regulated');
+    }
+  });
+
+  it('keeps the operator claim separate: benchmark-only records carry no redemptionTime', () => {
+    const added = withBenchmark.filter((record) => record.verifiedBy?.startsWith('rotowire-payout-benchmark'));
+    expect(added.length).toBeGreaterThan(0);
+    for (const record of added) {
+      expect(record.redemptionTime).toBeUndefined();
+    }
+  });
+
+  it('uses the per-casino table figures where they differ from the summary table', () => {
+    const bySlug = new Map(records.map((record) => [record.slug, record]));
+    expect(bySlug.get('fanduel-casino')?.payoutBenchmark?.fastestSpeed).toBe('Up to 24 hours (sometimes under 1 hour)');
+    expect(bySlug.get('caesars-casino')?.payoutBenchmark?.fastestSpeed).toBe('Up to 1 hour');
+    expect(bySlug.get('betrivers')?.payoutBenchmark?.fastestSpeed).toBe('Instant');
+  });
+
+  it('resolves every benchmark operator by name without ambiguity', () => {
+    const live = filterLiveOperatorFacts(records);
+    for (const record of withBenchmark) {
+      expect(resolveOperatorFacts(live, record.name).map((match) => match.slug)).toEqual([record.slug]);
+    }
+  });
+});

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 export type {
   CasinoRecord,
@@ -14,6 +14,7 @@ export type {
   OperatorFactStatus,
   OperatorFactRecord,
   OperatorFactsFile,
+  PayoutBenchmarkFact,
   RedemptionFact,
   VipCurrencyRule,
   WelcomeBonusFact,
@@ -36,16 +37,21 @@ export {
 export {
   filterLiveOperatorFacts,
   STALE_AFTER_DAYS,
+  findMentionedOperator,
+  getPayoutBenchmarkAnswer,
   getRedemptionAnswer,
   getVipCurrencyAnswer,
   getWelcomeBonusAnswer,
   isFactStale,
   listAvailableFactTypesAnswer,
+  payoutSpeedTier,
+  rankPayoutBenchmarks,
   resolveOperatorFacts,
 } from './operator-facts.js';
 export type {
   FactAnswer,
   OperatorFactType,
+  RankedPayoutBenchmark,
   VipCurrencyAnswer,
 } from './operator-facts.js';
 export {

@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import type {
   OperatorFactRecord,
+  PayoutBenchmarkFact,
   RedemptionFact,
   VipCurrencyRule,
   WelcomeBonusFact,
@@ -25,7 +26,7 @@ export type VipCurrencyAnswer =
   | { kind: 'none' }
   | { kind: 'ambiguous'; matches: OperatorFactRecord[] };
 
-export type OperatorFactType = 'vip' | 'redemption' | 'welcome';
+export type OperatorFactType = 'vip' | 'redemption' | 'welcome' | 'payout_benchmark';
 
 function normalizeFactQuery(query: string): string {
   return query
@@ -106,6 +107,67 @@ export function isFactStale(asOf: string, now: Date = new Date()): boolean {
   const ageMs = now.getTime() - asOfDate.getTime();
   const staleMs = STALE_AFTER_DAYS * 24 * 60 * 60 * 1000;
   return ageMs > staleMs;
+}
+
+const MENTION_STOPWORDS = new Set(['casino', 'casinos', 'online', 'real', 'play', 'bet', 'slots', 'poker', 'coins', 'prize']);
+
+function isWordChar(ch: string | undefined): boolean {
+  if (!ch) return false;
+  const code = ch.charCodeAt(0);
+  return (code >= 48 && code <= 57) || (code >= 97 && code <= 122);
+}
+
+/** Index of `needle` in `haystack` with word boundaries on both sides, or -1. Plain string search (ReDoS-safe). */
+function indexOfWord(haystack: string, needle: string): number {
+  let from = 0;
+  while (from <= haystack.length - needle.length) {
+    const idx = haystack.indexOf(needle, from);
+    if (idx === -1) return -1;
+    if (!isWordChar(haystack[idx - 1]) && !isWordChar(haystack[idx + needle.length])) {
+      return idx;
+    }
+    from = idx + 1;
+  }
+  return -1;
+}
+
+function mentionCandidates(record: OperatorFactRecord): string[] {
+  const out = new Set<string>();
+  const add = (value: string | undefined) => {
+    const v = (value ?? '').toLowerCase().trim();
+    if (v.length >= 3 && !MENTION_STOPWORDS.has(v)) out.add(v);
+  };
+  add(record.name);
+  for (const alias of record.aliases ?? []) add(alias);
+  add(record.slug.split('-').join(' '));
+  const lowerName = record.name.toLowerCase().trim();
+  if (lowerName.endsWith(' casino')) {
+    const base = lowerName.slice(0, -' casino'.length).trim();
+    if (base.length >= 4) add(base);
+  }
+  return [...out];
+}
+
+/**
+ * Find a known operator named anywhere in free text ("Does DraftKings pay out instantly?").
+ * Longest matching name wins, so "Hard Rock Bet" beats "Hard Rock". Returns null when none is named.
+ */
+export function findMentionedOperator(
+  records: OperatorFactRecord[],
+  text: string,
+): OperatorFactRecord | null {
+  const lower = (text ?? '').toLowerCase();
+  if (!lower) return null;
+  let best: { record: OperatorFactRecord; length: number } | null = null;
+  for (const record of records) {
+    for (const candidate of mentionCandidates(record)) {
+      if (best && candidate.length <= best.length) continue;
+      if (indexOfWord(lower, candidate) !== -1) {
+        best = { record, length: candidate.length };
+      }
+    }
+  }
+  return best?.record ?? null;
 }
 
 export function resolveOperatorFacts(
@@ -248,6 +310,9 @@ function availableFactTypesForRecord(record: OperatorFactRecord): OperatorFactTy
   if (record.welcomeBonusSummary) {
     types.push('welcome');
   }
+  if (record.payoutBenchmark) {
+    types.push('payout_benchmark');
+  }
   return types;
 }
 
@@ -262,6 +327,9 @@ function availableFactTypesAreStale(record: OperatorFactRecord, now?: Date): boo
   }
   if (record.welcomeBonusSummary?.asOf) {
     asOfValues.push(record.welcomeBonusSummary.asOf);
+  }
+  if (record.payoutBenchmark?.asOf) {
+    asOfValues.push(record.payoutBenchmark.asOf);
   }
 
   return asOfValues.some((asOf) => isFactStale(asOf, now));
@@ -291,4 +359,87 @@ export function listAvailableFactTypesAnswer(
     payload: types,
     stale: availableFactTypesAreStale(resolved.record, now),
   };
+}
+
+export function getPayoutBenchmarkAnswer(
+  records: OperatorFactRecord[],
+  query: string,
+  now?: Date,
+): FactAnswer<PayoutBenchmarkFact> {
+  const resolved = resolveSingleMatch(records, query);
+  if (resolved.kind === 'none') {
+    return { kind: 'none' };
+  }
+  if (resolved.kind === 'ambiguous') {
+    return { kind: 'ambiguous', matches: resolved.matches };
+  }
+
+  const benchmark = resolved.record.payoutBenchmark;
+  if (!benchmark) {
+    return { kind: 'miss', record: resolved.record };
+  }
+
+  return {
+    kind: 'hit',
+    record: resolved.record,
+    payload: benchmark,
+    stale: isFactStale(benchmark.asOf, now),
+  };
+}
+
+/**
+ * Coarse speed tier for a third-party payout figure, lower is faster.
+ * Plain string checks only (no regex), so input length cannot cause backtracking.
+ * 0 instant · 1 minutes · 2 up to 1 hour · 3 a few hours · 4 within 24 hours · 5 business days · 6 unknown
+ */
+export function payoutSpeedTier(speed: string): number {
+  const value = speed.trim().toLowerCase();
+  if (value.startsWith('instant')) {
+    return 0;
+  }
+  if (value.includes('minute')) {
+    return 1;
+  }
+  if (value.startsWith('up to 1 hour') || value.startsWith('under 1 hour') || value.startsWith('within 1 hour')) {
+    return 2;
+  }
+  if (value.includes('business day')) {
+    return 5;
+  }
+  if (value.includes('24')) {
+    return 4;
+  }
+  if (value.includes('hour')) {
+    return 3;
+  }
+  return 6;
+}
+
+export interface RankedPayoutBenchmark {
+  record: OperatorFactRecord;
+  benchmark: PayoutBenchmarkFact;
+  tier: number;
+  stale: boolean;
+}
+
+/** Records with a payout benchmark, fastest tier first, then by name. */
+export function rankPayoutBenchmarks(
+  records: OperatorFactRecord[],
+  now?: Date,
+): RankedPayoutBenchmark[] {
+  const ranked: RankedPayoutBenchmark[] = [];
+  for (const record of records) {
+    const benchmark = record.payoutBenchmark;
+    if (!benchmark) {
+      continue;
+    }
+    ranked.push({
+      record,
+      benchmark,
+      tier: payoutSpeedTier(benchmark.fastestSpeed),
+      stale: isFactStale(benchmark.asOf, now),
+    });
+  }
+
+  return ranked.sort((a, b) => a.tier - b.tier || a.record.name.localeCompare(b.record.name));
 }
