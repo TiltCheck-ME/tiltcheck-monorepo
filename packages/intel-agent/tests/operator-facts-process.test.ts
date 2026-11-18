@@ -307,3 +307,47 @@ describe('processMessage operator facts', () => {
     });
   });
 });
+
+describe('processMessage named operator payout question', () => {
+  it('answers "Does DraftKings pay out instantly?" with DraftKings facts, not the ranking', async () => {
+    const tools = createIntelTools({
+      apiBase: 'http://127.0.0.1:9',
+      casinos: [],
+      operatorFacts: [
+        {
+          slug: 'draftkings-casino',
+          name: 'DraftKings Casino',
+          aliases: ['DraftKings'],
+          status: 'live' as const,
+          lastVerifiedAt: '2026-11-18',
+          redemptionTime: {
+            claim: 'ACH and debit withdrawals approve and process within 1-24 hours.',
+            sourceUrl: 'https://casino.draftkings.com',
+            asOf: '2026-11-04',
+          },
+        },
+        {
+          slug: 'betrivers',
+          name: 'BetRivers',
+          status: 'live' as const,
+          lastVerifiedAt: '2026-11-18',
+          payoutBenchmark: {
+            fastestSpeed: 'Instant',
+            topMethods: ['Play+'],
+            source: 'RotoWire' as const,
+            sourceUrl: 'https://www.rotowire.com/betting/casinos/instant-withdrawals',
+            asOf: '2026-11-17',
+          },
+        },
+      ],
+    });
+    const agent = createIntelAgent({ tools });
+    const result = await agent.processMessage({
+      message: 'Does DraftKings pay out instantly?',
+      context: { isAuthenticated: false },
+    });
+    const text = result.blocks.filter((b) => b.type === 'text').map((b) => (b as { content: string }).content).join('\n');
+    expect(text).toMatch(/1-24 hours/);
+    expect(text).not.toMatch(/ranked from RotoWire/i);
+  });
+});

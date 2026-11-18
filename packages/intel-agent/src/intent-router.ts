@@ -164,8 +164,12 @@ const GENERIC_CASINO_TERMS = [
 ] as const;
 
 /** "fastest payout casinos", "which casinos pay out instantly", "fastest cash out". Plain string checks (ReDoS-safe). */
-function matchesPayoutSpeedRanking(lower: string, trimmed: string): boolean {
+function matchesPayoutSpeedRanking(lower: string, trimmed: string, knownOperator: string | null): boolean {
   if (!includesAny(lower, PAYOUT_TERMS) || !includesAny(lower, SPEED_RANKING_TERMS)) {
+    return false;
+  }
+  // A named operator ("Does DraftKings pay out instantly?") gets its own sourced answer, not the ranking.
+  if (knownOperator) {
     return false;
   }
   // The benchmark covers regulated real-money casinos only; sweeps questions stay on their own path.
@@ -196,13 +200,23 @@ function matchesOperatorFactLookup(lower: string): boolean {
   );
 }
 
-export function routeIntelIntent(message: string): RoutedIntent {
+export interface RouteIntelIntentOptions {
+  /** Returns the name of a known operator mentioned anywhere in the text, or null. */
+  findKnownOperator?: (text: string) => string | null;
+}
+
+export function routeIntelIntent(message: string, options: RouteIntelIntentOptions = {}): RoutedIntent {
   const trimmed = message.trim();
   const lower = trimmed.toLowerCase();
 
   if (!trimmed) {
     return { kind: 'unknown' };
   }
+
+  // Known operators are matched against the facts data first, so names in plain
+  // subject position ("Does DraftKings pay out instantly?") are not missed.
+  const knownOperator = options.findKnownOperator?.(trimmed) ?? null;
+  const operatorName = (): string | null => knownOperator ?? extractOperatorName(trimmed);
 
   if (/\b(my bonus|reload|re-up|collectclock)\b/.test(lower)) {
     return { kind: 'personal', topic: 'bonus' };
@@ -215,26 +229,26 @@ export function routeIntelIntent(message: string): RoutedIntent {
   }
 
   if (matchesVipCurrencyFact(lower)) {
-    const name = extractOperatorName(trimmed);
+    const name = operatorName();
     if (name) {
       const currencyHint = extractCurrencyHint(trimmed);
       return { kind: 'operator_vip_fact', name, ...(currencyHint ? { currencyHint } : {}) };
     }
   }
 
-  if (matchesPayoutSpeedRanking(lower, trimmed)) {
+  if (matchesPayoutSpeedRanking(lower, trimmed, knownOperator)) {
     return { kind: 'payout_speed_ranking' };
   }
 
   if (matchesRedemptionFact(lower)) {
-    const name = extractOperatorName(trimmed);
+    const name = operatorName();
     if (name) {
       return { kind: 'operator_redemption_fact', name };
     }
   }
 
   if (matchesWelcomeBonusFact(lower)) {
-    const name = extractOperatorName(trimmed);
+    const name = operatorName();
     if (name) {
       const geoTag = extractGeoTag(trimmed);
       return { kind: 'operator_welcome_bonus_fact', name, ...(geoTag ? { geoTag } : {}) };
@@ -242,7 +256,7 @@ export function routeIntelIntent(message: string): RoutedIntent {
   }
 
   if (matchesOperatorFactLookup(lower)) {
-    const name = extractOperatorName(trimmed);
+    const name = operatorName();
     if (name) {
       return { kind: 'operator_fact_lookup', name };
     }

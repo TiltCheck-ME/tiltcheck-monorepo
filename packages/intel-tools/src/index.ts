@@ -37,6 +37,7 @@ export {
 export {
   filterLiveOperatorFacts,
   STALE_AFTER_DAYS,
+  findMentionedOperator,
   getPayoutBenchmarkAnswer,
   getRedemptionAnswer,
   getVipCurrencyAnswer,

@@ -9,6 +9,7 @@ import {
 } from '../src/load-operator-facts.js';
 import { IntelTools } from '../src/tools.js';
 import {
+  findMentionedOperator,
   getPayoutBenchmarkAnswer,
   getRedemptionAnswer,
   getVipCurrencyAnswer,
@@ -529,6 +530,26 @@ describe('live payout benchmarks (RotoWire)', () => {
   const livePath = candidates.find((p) => existsSync(p)) ?? candidates[0];
   const records = loadOperatorFactsFromPath(livePath);
   const withBenchmark = records.filter((record) => record.payoutBenchmark);
+
+  it.each([
+    ['Does DraftKings pay out instantly?', 'draftkings-casino'],
+    ['Is Hard Rock Bet fast to cash out?', 'hard-rock-bet-casino'],
+    ['does wheel of fortune pay out same day', 'wheel-of-fortune-casino'],
+    ['BetMGM withdrawals instant?', 'betmgm'],
+    ['Does Stake.us pay out fast?', 'stake-us'],
+  ])('finds the operator named in "%s"', (text, slug) => {
+    expect(findMentionedOperator(records, text)?.slug).toBe(slug);
+  });
+
+  it('finds no operator in generic payout questions', () => {
+    for (const text of ['fastest payout casinos', 'which casinos pay out instantly', 'fastest cash out', 'best real money casino payouts']) {
+      expect(findMentionedOperator(records, text)).toBeNull();
+    }
+  });
+
+  it('needs a whole-word match', () => {
+    expect(findMentionedOperator(records, 'draftkingsx payout speed')).toBeNull();
+  });
 
   it('has one benchmark per casino on the RotoWire page', () => {
     expect(withBenchmark).toHaveLength(18);

@@ -109,6 +109,67 @@ export function isFactStale(asOf: string, now: Date = new Date()): boolean {
   return ageMs > staleMs;
 }
 
+const MENTION_STOPWORDS = new Set(['casino', 'casinos', 'online', 'real', 'play', 'bet', 'slots', 'poker', 'coins', 'prize']);
+
+function isWordChar(ch: string | undefined): boolean {
+  if (!ch) return false;
+  const code = ch.charCodeAt(0);
+  return (code >= 48 && code <= 57) || (code >= 97 && code <= 122);
+}
+
+/** Index of `needle` in `haystack` with word boundaries on both sides, or -1. Plain string search (ReDoS-safe). */
+function indexOfWord(haystack: string, needle: string): number {
+  let from = 0;
+  while (from <= haystack.length - needle.length) {
+    const idx = haystack.indexOf(needle, from);
+    if (idx === -1) return -1;
+    if (!isWordChar(haystack[idx - 1]) && !isWordChar(haystack[idx + needle.length])) {
+      return idx;
+    }
+    from = idx + 1;
+  }
+  return -1;
+}
+
+function mentionCandidates(record: OperatorFactRecord): string[] {
+  const out = new Set<string>();
+  const add = (value: string | undefined) => {
+    const v = (value ?? '').toLowerCase().trim();
+    if (v.length >= 3 && !MENTION_STOPWORDS.has(v)) out.add(v);
+  };
+  add(record.name);
+  for (const alias of record.aliases ?? []) add(alias);
+  add(record.slug.split('-').join(' '));
+  const lowerName = record.name.toLowerCase().trim();
+  if (lowerName.endsWith(' casino')) {
+    const base = lowerName.slice(0, -' casino'.length).trim();
+    if (base.length >= 4) add(base);
+  }
+  return [...out];
+}
+
+/**
+ * Find a known operator named anywhere in free text ("Does DraftKings pay out instantly?").
+ * Longest matching name wins, so "Hard Rock Bet" beats "Hard Rock". Returns null when none is named.
+ */
+export function findMentionedOperator(
+  records: OperatorFactRecord[],
+  text: string,
+): OperatorFactRecord | null {
+  const lower = (text ?? '').toLowerCase();
+  if (!lower) return null;
+  let best: { record: OperatorFactRecord; length: number } | null = null;
+  for (const record of records) {
+    for (const candidate of mentionCandidates(record)) {
+      if (best && candidate.length <= best.length) continue;
+      if (indexOfWord(lower, candidate) !== -1) {
+        best = { record, length: candidate.length };
+      }
+    }
+  }
+  return best?.record ?? null;
+}
+
 export function resolveOperatorFacts(
   records: OperatorFactRecord[],
   query: string,

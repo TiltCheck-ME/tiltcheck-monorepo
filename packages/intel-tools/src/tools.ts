@@ -1,7 +1,7 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 import { applyListFilters, findCasinoByName } from './filters.js';
-import { filterLiveOperatorFacts } from './operator-facts.js';
+import { filterLiveOperatorFacts, findMentionedOperator } from './operator-facts.js';
 import {
   getPayoutBenchmarkAnswer,
   getRedemptionAnswer,
@@ -74,6 +74,11 @@ export class IntelTools {
 
   getOperatorRedemptionFacts(query: string) {
     return getRedemptionAnswer(this.operatorFacts, query);
+  }
+
+  /** Name of a known operator mentioned anywhere in the text, or null. */
+  findMentionedOperatorName(text: string): string | null {
+    return findMentionedOperator(this.operatorFacts, text)?.name ?? null;
   }
 
   getOperatorPayoutBenchmark(query: string) {

@@ -3,6 +3,7 @@
 # Session Log
 
 ## 2026-11-18 — feat(ask): independent payout-speed benchmarks (RotoWire) for cash-out questions
+- Router recognizes known operators named anywhere in the question ("Does DraftKings pay out instantly?") from the facts data before falling back to the generic payout ranking.
 
 - `OperatorFactRecord.payoutBenchmark` (new `PayoutBenchmarkFact`: fastestSpeed, topMethods, source `RotoWire`, sourceUrl, asOf, note). Separate from `redemptionTime`, which stays the operator's own claim.
 - operator-facts.live.json: benchmarks from RotoWire's Fast Payout Online Casinos page (https://www.rotowire.com/betting/casinos/instant-withdrawals, asOf 2026-11-17) on 5 existing records (betrivers, caesars-casino, fanduel-casino, draftkings-casino, betmgm) and 13 new Regulated records with no redemptionTime. Per-casino table figures used where they differ from RotoWire's summary table (FanDuel, Caesars, DraftKings); both figures in `note`.

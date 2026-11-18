@@ -122,7 +122,10 @@ export function createIntelAgent(options: IntelAgentOptions) {
   const { tools } = options;
 
   async function processMessage(input: ProcessIntelMessageInput): Promise<IntelChatResponse> {
-    const intent = routeIntelIntent(input.message);
+    const intent = routeIntelIntent(input.message, {
+      findKnownOperator: (text) =>
+        typeof tools.findMentionedOperatorName === 'function' ? tools.findMentionedOperatorName(text) : null,
+    });
     const { context } = input;
 
     if (intent.kind === 'personal') {

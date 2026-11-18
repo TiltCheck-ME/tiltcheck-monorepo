@@ -11,6 +11,7 @@ export type {
 
 export type { RedemptionAnswerInput } from './block-builder.js';
 export { routeIntelIntent } from './intent-router.js';
+export type { RouteIntelIntentOptions } from './intent-router.js';
 export {
   buildListBlocks,
   buildLookupBlocks,

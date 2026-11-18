@@ -112,6 +112,15 @@ describe('routeIntelIntent', () => {
     });
   });
 
+  it('routes a named operator in subject position to its own redemption fact', () => {
+    const findKnownOperator = (text: string) => (/draftkings/i.test(text) ? 'DraftKings Casino' : null);
+    expect(routeIntelIntent('Does DraftKings pay out instantly?', { findKnownOperator })).toEqual({
+      kind: 'operator_redemption_fact',
+      name: 'DraftKings Casino',
+    });
+    expect(routeIntelIntent('fastest payout casinos', { findKnownOperator })).toEqual({ kind: 'payout_speed_ranking' });
+  });
+
   it('does not send sweeps questions to the real-money payout ranking', () => {
     expect(routeIntelIntent('fastest redemption sweeps casinos').kind).not.toBe('payout_speed_ranking');
     expect(routeIntelIntent('fastest payout sweepstakes casinos').kind).not.toBe('payout_speed_ranking');
