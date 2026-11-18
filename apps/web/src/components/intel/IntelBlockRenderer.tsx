@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { IntelBlock } from '@tiltcheck/intel-agent';
 import IntelCasinoCard from '@/components/intel/IntelCasinoCard';
 import IntelCasinoList from '@/components/intel/IntelCasinoList';
+import { safeHref } from '@/lib/safe-url';
 
 export default function IntelBlockRenderer({
   blocks,
@@ -60,10 +61,11 @@ export default function IntelBlockRenderer({
         }
 
         if (block.type === 'cta') {
+          const href = safeHref(block.href);
           return (
             <Link
-              key={`cta-${block.href}-${index}`}
-              href={block.href}
+              key={`cta-${index}`}
+              href={href}
               className="inline-flex rounded-xl border border-[#17c3b2]/30 px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#17c3b2] hover:bg-[#17c3b2]/10"
             >
               {block.label}

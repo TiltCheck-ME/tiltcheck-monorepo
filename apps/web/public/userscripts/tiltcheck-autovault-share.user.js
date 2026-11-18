@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         TiltCheck AutoVault — Share Edition
 // @namespace    https://tiltcheck.me/userscripts
-// @version      1.1.1
+// @version      1.1.2
 // @description  One link for Stake.us + nuts.gg. Mobile-first big toggle. Skims wins to vault. Non-custodial.
 // @author       TiltCheck
 // @homepage     https://tiltcheck.me/tools/auto-vault/share
@@ -61,8 +61,14 @@
     const SITE = detectSite();
     if (!SITE) return;
 
-    const SCRIPT_VERSION = '1.1.1';
+    const SCRIPT_VERSION = '1.1.2';
     const INSTALL_PING_KEY = `${STORAGE_PREFIX}-install-pinged`;
+
+    function secureRandomHex(length) {
+        const bytes = new Uint8Array(Math.ceil(length / 2));
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, length);
+    }
 
     function pingFirstInstall() {
         try {
@@ -74,7 +80,7 @@
                 source: SITE.mode,
                 label: SITE.name,
                 path: window.location.pathname || '/',
-                sessionId: `script_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`,
+                sessionId: `script_${Date.now()}_${secureRandomHex(8)}`,
                 metadata: {
                     site: SITE.mode,
                     version: SCRIPT_VERSION,
@@ -1437,7 +1443,15 @@
             const msgEl = line.querySelector('.tc-msg');
             if (timeEl) timeEl.textContent = formatStatusTime() + ' ';
             if (msgEl) msgEl.textContent = msg;
-            else line.innerHTML = `<span class="tc-time">${formatStatusTime()} </span><span class="tc-msg">${msg}</span>`;
+            else {
+                const newTime = document.createElement('span');
+                newTime.className = 'tc-time';
+                newTime.textContent = formatStatusTime() + ' ';
+                const newMsg = document.createElement('span');
+                newMsg.className = 'tc-msg';
+                newMsg.textContent = msg;
+                line.replaceChildren(newTime, newMsg);
+            }
         };
 
         function render() {

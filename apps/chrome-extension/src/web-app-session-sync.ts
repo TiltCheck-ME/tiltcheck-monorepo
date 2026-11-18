@@ -28,14 +28,23 @@ export function isTiltCheckMarketingSite(hostname: string): boolean {
   return marketingSiteHosts().includes(hostname.toLowerCase());
 }
 
+const INJECTED_STORAGE_SYNC_SCRIPT =
+  '(function(){try{var s=document.currentScript;if(!s)return;var d=s.dataset;var k=d.tcKey;' +
+  'if(typeof k!=="string")return;if(!Object.prototype.hasOwnProperty.call(d,"tcValue")){localStorage.removeItem(k);}' +
+  'else{localStorage.setItem(k,d.tcValue);}window.dispatchEvent(new CustomEvent("tiltcheck-ext-session-sync"));}catch(_){}})();';
+
 /**
  * Runs in page context so tokens land in site localStorage (isolated world cannot).
  */
 function injectLocalStorageSet(key: string, value: string | null): void {
-  const keyLit = JSON.stringify(key);
-  const valLit = value === null ? 'null' : JSON.stringify(value);
+  // Pass key/value as data attributes so the injected code is a constant string
+  // (no user/storage values are ever concatenated into executable code).
   const script = document.createElement('script');
-  script.textContent = `(function(){try{var k=${keyLit};var v=${valLit};if(v===null){localStorage.removeItem(k);}else{localStorage.setItem(k,v);}window.dispatchEvent(new CustomEvent("tiltcheck-ext-session-sync"));}catch(_){}})();`;
+  script.dataset.tcKey = key;
+  if (value !== null) {
+    script.dataset.tcValue = value;
+  }
+  script.textContent = INJECTED_STORAGE_SYNC_SCRIPT;
   (document.documentElement || document.head).appendChild(script);
   script.remove();
 }

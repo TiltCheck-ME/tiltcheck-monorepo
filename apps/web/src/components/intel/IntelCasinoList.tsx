@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import type { CasinoSummary, ListFilters } from '@tiltcheck/intel-tools';
 import { getScoreColor } from '@/lib/casino-trust';
+import { safeHref } from '@/lib/safe-url';
 
 function filterLabel(filters: ListFilters): string {
   const parts: string[] = [];
@@ -49,7 +50,7 @@ export default function IntelCasinoList({
           return (
             <li key={casino.slug}>
               <Link
-                href={casino.auditHref}
+                href={safeHref(casino.auditHref)}
                 className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-3 py-2 transition-colors hover:border-[#17c3b2]/30"
               >
                 <div>

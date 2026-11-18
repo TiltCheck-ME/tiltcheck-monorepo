@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import type { CasinoSummary } from '@tiltcheck/intel-tools';
+import { safeHref } from '@/lib/safe-url';
 import { formatRiskLabel, getRiskBadgeStyle, getScoreColor } from '@/lib/casino-trust';
 
 export default function IntelCasinoCard({ casino }: { casino: CasinoSummary }) {
@@ -36,7 +37,7 @@ export default function IntelCasinoCard({ casino }: { casino: CasinoSummary }) {
         </span>
       </div>
       <Link
-        href={casino.auditHref}
+        href={safeHref(casino.auditHref)}
         className="mt-4 inline-flex text-[11px] font-black uppercase tracking-[0.16em] text-[#17c3b2] hover:underline"
       >
         Open full audit
