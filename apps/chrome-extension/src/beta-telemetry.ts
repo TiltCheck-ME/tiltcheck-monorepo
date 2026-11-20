@@ -215,7 +215,28 @@ export type BetaFlushResult =
   | 'empty'
   | 'sent'
   | 'dropped'
-  | 'failed';
+  | 'failed'
+  | 'busy';
+
+/** Shared by the popup and the service worker (same extension origin). */
+export const BETA_FLUSH_LOCK_NAME = 'tiltcheck_beta_telemetry_flush';
+
+type LockManagerLike = {
+  request: (
+    name: string,
+    options: { ifAvailable: boolean },
+    callback: (lock: unknown) => Promise<BetaFlushResult>,
+  ) => Promise<BetaFlushResult>;
+};
+
+function lockManager(): LockManagerLike | null {
+  try {
+    const locks = (globalThis as { navigator?: { locks?: unknown } }).navigator?.locks as LockManagerLike | undefined;
+    return locks && typeof locks.request === 'function' ? locks : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Send the batch at most once a day. Makes no network call unless the user
@@ -225,6 +246,21 @@ export type BetaFlushResult =
  * keep the counts and wait 1h, 2h, 4h ... (max a day) before trying again.
  */
 export async function flushBetaTelemetry(now: number = Date.now()): Promise<BetaFlushResult> {
+  // The popup and the daily service-worker alarm can both try to flush. A Web
+  // Lock shared across extension contexts lets only one run at a time; the
+  // other returns 'busy', and the 24h last-sent check stops a second send.
+  const locks = lockManager();
+  if (!locks) return flushBetaTelemetryUnlocked(now);
+  try {
+    return await locks.request(BETA_FLUSH_LOCK_NAME, { ifAvailable: true }, async (lock) =>
+      lock ? flushBetaTelemetryUnlocked(now) : 'busy',
+    );
+  } catch {
+    return 'failed';
+  }
+}
+
+async function flushBetaTelemetryUnlocked(now: number): Promise<BetaFlushResult> {
   if (!(await isBetaTelemetryOptedIn())) return 'opted-out';
   if (!isBetaSenderConfigured()) return 'not-configured';
   const stored = await readStore([BETA_TELEMETRY_LAST_SENT_KEY, BETA_TELEMETRY_RETRY_KEY]);

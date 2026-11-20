@@ -118,6 +118,18 @@ async function build() {
     },
   });
 
+  // Build service-worker beta counts alarm (loaded by background.js via importScripts)
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/beta-telemetry-alarm-entry.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/beta-telemetry-alarm.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: false,
+    minify: true,
+  });
+
   // Build MAIN-world page bridge (manifest + native/web communication).
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],

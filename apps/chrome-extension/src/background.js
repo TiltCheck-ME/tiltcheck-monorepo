@@ -1,8 +1,20 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19
 /**
  * MV3 service worker.
  * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
  */
+
+// Opt-in beta counts: daily background send (chrome.alarms + browser startup).
+// Built from src/beta-telemetry-alarm-entry.ts. Must load synchronously at top
+// level so its onStartup/onAlarm listeners register on every service-worker wake.
+// Sends nothing unless the user opted in; see beta-telemetry.ts for the rules.
+if (typeof importScripts === 'function') {
+  try {
+    importScripts('beta-telemetry-alarm.js');
+  } catch (err) {
+    console.warn('[TiltCheck] Beta counts alarm unavailable:', err?.message || err);
+  }
+}
 
 const VAULT_URL_BASE = 'https://tiltcheck.me/autovault';
 const ALLOWED_AUTH_ORIGINS = new Set([
