@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 export function getGatePageBody(staffOnlyHtml) {
   return `
@@ -43,7 +43,7 @@ export function getGatePageBody(staffOnlyHtml) {
       </button>
 
       <button type="button" class="cooldown-quick-btn" id="btn-emergency-lock">
-        Need a Break? Touch Grass for 24 Hours
+        Need a Break? Lock the Cashier for 24 Hours
       </button>
     </div>
 
@@ -211,10 +211,10 @@ export function getGatePageBody(staffOnlyHtml) {
     });
 
     document.getElementById('btn-emergency-lock').addEventListener('click', function() {
-      if (confirm('Activate 24-hour Touch Grass cooldown? This locks cashier buttons across supported rooms.')) {
+      if (confirm('Start a 24-hour cooldown? This locks cashier buttons across supported rooms.')) {
         var lockEnd = Date.now() + 24 * 60 * 60 * 1000;
         localStorage.setItem('tiltcheck_cooldown_active_until', String(lockEnd));
-        alert('Touch Grass active. Cashier buttons are locked until ' + new Date(lockEnd).toLocaleTimeString());
+        alert('Cooldown active. Cashier buttons are locked until ' + new Date(lockEnd).toLocaleTimeString());
         window.location.href = '/cooldown/';
       }
     });

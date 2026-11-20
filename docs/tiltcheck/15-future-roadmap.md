@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 
 # 15. Future Roadmap
 This roadmap outlines the phased evolution of the TiltCheck ecosystem.  
@@ -210,7 +210,7 @@ Across recent development sprints, TiltCheck completed five core deliverable pha
 ### Phase 3 — Extension Spotter Architecture Realignment
 - Alignment of Manifest V3 browser extension to peer-level spotter posture ("Made for Degens. By Degens.").
 - Stake.us AutoVault GraphQL endpoint fix (`https://stake.us/_api/graphql`) utilizing session cookies directly without external API bridge.
-- Rapid-click and loss-chasing Touch Grass timeouts (60-second interactive freeze).
+- Rapid-click and loss-chasing detection. Originally a 60-second interaction freeze; since Nov 2026 it opens a private choices screen (Cash out / Lock half / Touch Grass 5 min / Keep playing), and the 24h tilt auto-lock is opt-in.
 - Pruned intrusive legacy telemetry and sidebar bloat in default core build.
 
 ### Phase 4 — Sideload Ungating & Release

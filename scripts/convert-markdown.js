@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -6,7 +6,8 @@
  * - `/` is the brakes homepage
  * - `/cooldown`, `/casinos`, `/nudges`, `/autovault` are real Pages routes
  * - `/tools/auto-vault` redirects to `/autovault` so the old footer href still lands
- * - `/touch-grass` redirects to `/nudges` so old links and the Pro overlay still land
+ * - `/touch-grass` redirects to the Touch Grass 5-minute break on `/extension` (old links and the break overlay)
+ * - `/wincheck` redirects to `/autovault` (Auto Vaulter, canonical)
  * - `/docs/*` specs from markdown
  *
  * Project Pages require relative asset paths — never "/styles/...".
@@ -239,7 +240,7 @@ function footerHtml(depth) {
       <a href="${dirHref(depth, 'verify')}">Fairness Verifier</a>
       <a href="${dirHref(depth, 'rtp-scanner')}">RTP Scanner</a>
       <a href="${dirHref(depth, 'house-edge-scanner')}">House Edge Scanner</a>
-      <a href="${dirHref(depth, 'wincheck')}">Win Skim</a>
+      <a href="${dirHref(depth, 'autovault')}">Auto Vaulter</a>
       <a href="${href(depth, 'extension.html')}">Extension</a>
       <a href="${DISCORD_INVITE_URL}" target="_blank" rel="noopener noreferrer">Discord server</a>
       <a href="${dirHref(depth, 'login')}" data-tc-footer-auth data-signed-in-href="${dirHref(depth, 'dashboard')}" data-signed-in-text="Your dashboard">Discord Sign In</a>
@@ -610,7 +611,7 @@ function buildHomeRedirect(fileName) {
 
 function buildExtensionPage() {
   const signals = EXTENSION_SIGNALS.map(
-    (s) => `<article class="public-page-card">
+    (s) => `<article class="public-page-card"${s.id ? ` id="${escapeHtml(s.id)}"` : ''}>
   <h2 class="public-page-card__title">${escapeHtml(s.title)}</h2>
   <p class="public-page-card__copy">${escapeHtml(s.body)}</p>
 </article>`,
@@ -955,7 +956,7 @@ function buildCooldownPage() {
 
     <div id="auto-tilt-alert-banner" class="cooldown-banner" style="display:none;">
       <p class="cooldown-banner__title">Tilt check</p>
-      <p class="cooldown-banner__text">Fast spins and faster losses. The extension slowed things down. Want a real break? Pick a length below.</p>
+      <p class="cooldown-banner__text">Fast spins and faster losses. You switched on the 24h auto-lock, so the extension started it. (With it off, tilt opens a private choices screen instead: Cash out, Lock half, Touch Grass 5 min, or Keep playing.) Want a longer break? Pick a length below.</p>
       <div id="auto-tilt-wallet" class="cooldown-banner__wallet"></div>
     </div>
     <script>
@@ -1080,7 +1081,7 @@ function buildCooldownPage() {
           durBtns.forEach(function(x) { x.disabled = true; });
           refreshLockButton();
           if (lockStatus) {
-            lockStatus.textContent = 'Locked until ' + fmtDate(endMs) + '. Go touch grass.';
+            lockStatus.textContent = 'Locked until ' + fmtDate(endMs) + '. Enjoy the break.';
             lockStatus.hidden = false;
           }
           if (btnWallet && currentWallet) btnWallet.textContent = 'Sign lock';
@@ -1222,7 +1223,7 @@ function buildCooldownPage() {
           var endTimeSec = lockedUntilMs > nowMs ? Math.floor(lockedUntilMs / 1000) : Math.floor(nowMs / 1000) + (selectedHours * 3600);
           var hours = Math.max(1, Math.round((endTimeSec * 1000 - nowMs) / 3600000));
           var expiryDateStr = new Date(endTimeSec * 1000).toUTCString();
-          var messageText = 'TiltCheck Voluntary Touch Grass Lock\\n' +
+          var messageText = 'TiltCheck Voluntary Cooldown Lock\\n' +
             'Wallet: ' + currentWallet + '\\n' +
             'Duration: ' + hours + ' Hours\\n' +
             'Expires: ' + expiryDateStr + '\\n' +
@@ -1313,8 +1314,8 @@ function buildCooldownPage() {
           <p class="cooldown-how__small">Saves a break receipt on your machine. No wallet, no account.</p>
         </div>`, 'Staff only: CLI')}
         <div class="cooldown-how__card">
-          <h3>2. Cancel-withdrawal blocker</h3>
-          <p>Cashing out on Stake, Roobet, or a sweeps site? The extension hides 'Cancel Withdrawal' while the payout clears, so undoing it takes real effort.</p>
+          <h3>2. Keep the Win</h3>
+          <p>Cashing out on Stake, Roobet, or a sweeps site? Hit 'Cancel Withdrawal' on a pending payout and the extension asks "This is money you already won. Reverse it?", then holds the reverse for 10 seconds. Your call after that.</p>
         </div>
         <div class="cooldown-how__card">
           <h3>3. The fine print</h3>
@@ -1413,10 +1414,11 @@ function buildAutovaultPage() {
 </main>`;
 
   return shell({
-    title: 'Win Skim | Profit Skimmer | TiltCheck',
+    title: 'Auto Vaulter | Profit Skimmer | TiltCheck',
     description: AUTOVAULT_PAGE.punch,
     depth: 'docs',
-    current: 'wincheck',
+    current: 'autovault',
+    extraHead: `<link rel="canonical" href="${SITE_URL}/autovault/"/>`,
     body: content,
   });
 }
@@ -1436,8 +1438,10 @@ function buildDashboardPage() {
     { id: 'clickcheck', name: 'ClickCheck', body: 'Settings tab: switch the 2-second spin pause on or off.' },
     { id: 'nope-list', name: 'Nope List', body: 'Settings tab: pick the game types and titles that stop clicking.' },
     { id: 'sneaky-bet-alert', name: 'Sneaky Bet Alert', body: 'Settings tab: switch it on and set the stake that counts as sneaky.' },
-    { id: 'keep-the-win', name: 'Keep the Win', body: 'Settings tab: switch the cancel-withdrawal blocker on or off.' },
-    { id: 'win-skim', name: 'Win Skim', body: 'Settings tab: pick how much of a win to keep.' },
+    { id: 'walk-away', name: 'Walk-Away Number', body: 'Settings tab: set your up $X / down $Y lines. Crossing one opens your choices.' },
+    { id: 'auto-lock', name: '24h Auto-Lock', body: 'Settings tab: opt in to a 24h lock on severe tilt. Off by default.' },
+    { id: 'keep-the-win', name: 'Keep the Win', body: 'Settings tab: switch the Payout Hold (confirm step plus 10-second hold before reversing a cashout) on or off.' },
+    { id: 'win-skim', name: 'Auto Vaulter', body: 'Settings tab: pick how much of a win to keep.' },
   ];
   const webCards = webTools
     .map((t) => `<a class="dash-card dash-card--link" href="${t.href}">
@@ -2046,7 +2050,7 @@ function buildHouseEdgePage() {
         </div>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
           <a class="btn btn-primary" href="${href(depth, "extension.html")}">The Extension</a>
-          <a class="btn btn-secondary" href="${dirHref(depth, "cooldown")}">Touch Grass</a>
+          <a class="btn btn-secondary" href="${dirHref(depth, "cooldown")}">RealityCheck</a>
         </div>
       </div>
     </div>
@@ -2218,17 +2222,32 @@ function buildHouseEdgeRedirect() {
 </html>`;
 }
 
-function buildNudgesRedirect() {
+function buildTouchGrassRedirect() {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="refresh" content="0; url=../nudges/"/>
-<link rel="canonical" href="${SITE_URL}/nudges/"/>
-<title>Nudges | TiltCheck</title>
+<meta http-equiv="refresh" content="0; url=../extension.html#touch-grass"/>
+<link rel="canonical" href="${SITE_URL}/extension"/>
+<title>Touch Grass: the 5-minute break | TiltCheck</title>
 </head>
 <body>
-<p><a href="../nudges/">The toasts live here now</a></p>
+<p><a href="../extension.html#touch-grass">Touch Grass is the 5-minute break</a></p>
+</body>
+</html>`;
+}
+
+function buildWincheckRedirect() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="refresh" content="0; url=../autovault/"/>
+<link rel="canonical" href="${SITE_URL}/autovault/"/>
+<title>Auto Vaulter | TiltCheck</title>
+</head>
+<body>
+<p><a href="../autovault/">Auto Vaulter lives here</a></p>
 </body>
 </html>`;
 }
@@ -2266,7 +2285,7 @@ function buildToolsPage() {
 
   return shell({
     title: 'Tools | The Anti-Tilt Toolkit | TiltCheck',
-    description: 'Every TiltCheck tool: two-second spin pause, cancel-withdrawal blocker, loss speed meter, RTP downgrade scanner, and bet verifier.',
+    description: 'Every TiltCheck tool: two-second spin pause, walk-away number, Keep the Win payout hold, Auto Vaulter, RTP downgrade scanner, and bet verifier.',
     depth: 'docs',
     current: 'tools',
     body: content,
@@ -2415,7 +2434,8 @@ function buildPrivacyPage() {
         <h2 class="public-page-card__title">03. Chrome Extension Sandbox & Single Purpose</h2>
         <div class="public-page-card__copy">
           <p>The TiltCheck browser extension operates strictly within the browser sandbox with zero external local daemons or terminal requirements.</p>
-          <p>Its single purpose is responsible gaming harm reduction: enforcing a configurable 2-second spin delay, providing client-side entropy verification for provably fair seeds, blocking accidental withdrawal cancellations, and enforcing voluntary cooldown timelocks.</p>
+          <p>Its single purpose is responsible gaming harm reduction: enforcing a configurable 2-second spin delay, providing client-side entropy verification for provably fair seeds, adding a confirm step and a 10-second hold before a pending withdrawal is reversed (Keep the Win), and enforcing voluntary cooldown timelocks.</p>
+          <p>Your walk-away lines, the tilt choices you pick, and Keep the Win events (time, site, outcome; no amounts) are stored in the extension on your device only and never sent.</p>
           <p>All bet pacing and tilt analysis run locally on-device. No gameplay session logs are sold, rented, or transmitted to third parties.</p>
         </div>
       </div>
@@ -2551,7 +2571,6 @@ function buildPagesSitemapXml() {
     { loc: `${SITE_URL}/rtp-scanner/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/house-edge-scanner/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/verify/`, changefreq: 'weekly', priority: '0.8' },
-    { loc: `${SITE_URL}/wincheck/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/autovault/`, changefreq: 'weekly', priority: '0.7' },
     { loc: `${SITE_URL}/tip/`, changefreq: 'weekly', priority: '0.8' },
     { loc: `${SITE_URL}/nudges/`, changefreq: 'weekly', priority: '0.7' },
@@ -2716,13 +2735,13 @@ function run() {
   fs.writeFileSync(path.join(autovaultDir, 'index.html'), buildAutovaultPage());
   const wincheckDir = path.join(siteRoot, 'wincheck');
   fs.mkdirSync(wincheckDir, { recursive: true });
-  fs.writeFileSync(path.join(wincheckDir, 'index.html'), buildAutovaultPage());
+  fs.writeFileSync(path.join(wincheckDir, 'index.html'), buildWincheckRedirect());
   const legacyVaultDir = path.join(siteRoot, 'tools', 'auto-vault');
   fs.mkdirSync(legacyVaultDir, { recursive: true });
   fs.writeFileSync(path.join(legacyVaultDir, 'index.html'), buildAutovaultRedirect());
   const grassDir = path.join(siteRoot, 'touch-grass');
   fs.mkdirSync(grassDir, { recursive: true });
-  fs.writeFileSync(path.join(grassDir, 'index.html'), buildNudgesRedirect());
+  fs.writeFileSync(path.join(grassDir, 'index.html'), buildTouchGrassRedirect());
   fs.writeFileSync(
     path.join(siteRoot, 'casinos.html'),
     `<!DOCTYPE html>

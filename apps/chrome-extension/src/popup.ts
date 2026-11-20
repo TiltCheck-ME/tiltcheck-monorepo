@@ -1699,7 +1699,7 @@ function initGuardSettingsPanel(): void {
     reverseShieldToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveReverseWithdrawalShieldEnabled(enabled);
-      toast(enabled ? 'PocketCheck payout hold on.' : 'PocketCheck payout hold off.');
+      toast(enabled ? 'Keep the Win payout hold on.' : 'Keep the Win payout hold off.');
     });
   }
 

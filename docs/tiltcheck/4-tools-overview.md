@@ -1,4 +1,4 @@
-© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 
 # 4. TiltCheck Tools Overview
 
@@ -220,10 +220,10 @@ The lightweight Manifest V3 browser extension delivers real-time client-side int
 2. **Strategic Game Filters**: Identifies trap conditions in Mines, Chicken, Plinko, and high-volatility slots, displaying immediate mathematical house-edge awareness.
 3. **Reality-Grounding Wage-Hour HUD**: Injects a clean session drawdown counter converting credits directly into equivalent real-world working hours ($25/hr baseline default, fully customizable in settings).
 4. **DOM Deposit Barrier**: Intercepts and blocks cashier and deposit button clicks during active cooldowns and Touch Grass timeouts to eliminate reflexive reload impulses.
-5. **Payout Lock**: Neutralizes "Cancel Withdrawal" and "Cancel Redemption" buttons on cashier and transaction history tables to prevent players on tilt from undoing cashouts back into playable balance.
+5. **Keep the Win (Payout Hold)**: Clicking "Cancel Withdrawal" or "Cancel Redemption" on a pending cashout opens a confirm step ("This is money you already won. Reverse it?") with a 10-second hold before the reverse can go through. The player still decides; the buttons are no longer disabled. Each event is logged on-device only (time, site, outcome; no amounts).
 6. **Profit-Lock Ratchet**: Locks in a trailing profit floor (50% default) when session balance climbs. Escalates from an in-page soft warning to a 60-second hard brake if unacted upon.
 7. **Reality Cashout Goals**: Connects casino chip thresholds directly to tangible bills and essentials (Power bill $250, groceries $120, tank of gas $50, trash bags $14, Spotify $11) with one-click payment links.
-8. **Touch Grass Timeout**: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.
+8. **Walk-Away Number & Tilt Choices**: The player sets "up $X" and/or "down $Y" for the session. Crossing a line, rapid-click tilt bursts, or sharp loss escalation open a private choices screen (Cash out / Lock half / Touch Grass 5 min / Keep playing, logged) instead of freezing the site. Touch Grass is the 5-minute break, and it runs only when the player picks it. The 24h tilt auto-lock is opt-in (off by default).
 9. **Stake.us AutoVault**: Performs direct non-custodial vaulting via `https://stake.us/_api/graphql` using existing browser session cookies without third-party API exposure.
 10. **Bonus Playthrough Tracker & Max-Bet Trap Alarm**: Real-time HUD tracking promotional rollover wagering progress, with instant alerts and optional bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit) to prevent bonus forfeiture.
 

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 export const SITE_URL = 'https://tiltcheck.me';
 export const API_URL = 'https://collectclock-api.j-chapman7.workers.dev';
@@ -27,7 +27,7 @@ export const CTA_GATED_HINT = 'Free manual sideload for Chrome, Brave, and Edge.
 
 export const SECONDARY_CTAS = [
   { label: 'TIMECHECK (TIMER)', href: 'gate/', primary: true },
-  { label: 'REALITYCHECK (TOUCH GRASS)', href: 'cooldown/', primary: false },
+  { label: 'REALITYCHECK (CASHIER LOCK)', href: 'cooldown/', primary: false },
 ];
 
 export const TERTIARY_LINK = {
@@ -58,6 +58,14 @@ export const HOME_DOES = [
     ],
   },
   {
+    title: 'Your call when you tilt',
+    body: 'Set a walk-away line: up $X or down $Y. Cross it, or start tilting, and the extension gives you a private choice: Cash out, Lock half, Touch Grass 5 min, or Keep playing. Want a hard stop instead? The 24h auto-lock is opt-in and off by default. Coming soon: Cash-out Buddy, a private ping to a friend you pair with. No amounts shared.',
+    links: [
+      { label: 'Tilt choices', href: 'extension.html#tilt-choices' },
+      { label: '24h auto-lock', href: 'extension.html#auto-lock' },
+    ],
+  },
+  {
     title: 'Touch grass with friends',
     body: 'Trivia, Bluff and Degens Against Decency in a Discord voice channel. Points are bragging rights. Nothing to bet.',
     links: [{ label: 'Join the Discord', href: 'DISCORD', external: true }],
@@ -83,17 +91,17 @@ export const HOME_FINE_PRINT =
   'No passwords, no keys, no deposits. TiltCheck never holds your money, and every limit runs in your own browser.';
 
 export const VAULT = {
-  title: 'Win Skim — Skim your wins.',
+  title: 'Auto Vaulter — Skim your wins.',
   body: 'Auto-skims a cut of big hits into your casino vault before you give it back.',
-  ctaLabel: 'WIN SKIM',
-  href: 'wincheck/',
+  ctaLabel: 'AUTO VAULTER',
+  href: 'autovault/',
 };
 
 export const AUTOVAULT_PAGE = {
   eyebrow: 'Profit Skimmer',
-  title: 'Win Skim',
+  title: 'Auto Vaulter',
   punch:
-    'Hit a heater? Win Skim stashes a percentage into your casino vault so it is off the table before your next spin.',
+    'Hit a heater? Auto Vaulter stashes a percentage into your casino vault so it is off the table before your next spin.',
   steps: [
     'Download the TiltCheck extension for your desktop browser.',
     'Set your skim percentage (e.g. 10%) and win threshold.',
@@ -137,16 +145,37 @@ export const EXTENSION_SIGNALS = [
     body: 'Spots slots that sneakily open at $1.00–$2.00 a spin instead of $0.10 and catches it before spin one.',
   },
   {
-    title: 'Keep the Win (Payout Lock)',
-    body: 'Disables "Cancel Withdrawal" buttons so pending cashouts actually hit your pocket.',
+    id: 'keep-the-win',
+    title: 'Keep the Win (Payout Hold)',
+    body: 'Hit "Cancel Withdrawal" on a pending cashout and you get a confirm step ("This is money you already won. Reverse it?") plus a 10-second Payout Hold before the reverse goes through. Your call after that. Logged on this device only, no amounts.',
   },
   {
-    title: 'Win Skim (Profit Skimmer)',
+    id: 'tilt-choices',
+    title: 'Walk-Away Number & Tilt Choices',
+    body: 'Set a walk-away line for the session: up $X or down $Y. Cross it, or start tilting (rapid clicks, chasing losses), and you get a private choices screen: Cash out, Lock half, Touch Grass 5 min, or Keep playing (logged). Nothing locks unless you pick it. Your lines and choices stay on this device.',
+  },
+  {
+    id: 'auto-lock',
+    title: '24h Auto-Lock (Opt-In)',
+    body: 'Rather have tilt lock you out? Switch on the 24h auto-lock in Settings and a severe tilt reading (score 75+) blocks cashier and deposit buttons for 24 hours. Off by default.',
+  },
+  {
+    id: 'touch-grass',
+    title: 'Touch Grass (5-Minute Break)',
+    body: 'One of the tilt choices. Pick it and the casino tab pauses for 5 minutes. Stand up, get water. Want company? The Touch Grass games run in the TiltCheck Discord: trivia and party games, nothing to bet.',
+  },
+  {
+    title: 'Auto Vaulter (Profit Skimmer)',
     body: 'Skims a configurable percentage of heater wins straight into your vault before you give it back.',
   },
   {
-    title: 'RealityCheck (Touch Grass)',
+    title: 'RealityCheck (Cashier Lock)',
     body: 'Locks cashier and spin buttons for 24 hours, 3, 7 or 30 days when you need a hard reset.',
+  },
+  {
+    id: 'cashout-buddy',
+    title: 'Cash-out Buddy (Coming Soon)',
+    body: 'A private ping to a friend you pair with. No amounts shared.',
   },
 ];
 
@@ -188,7 +217,7 @@ export const TOOL_REGISTRY = [
     href: '/cooldown/',
     label: 'REALITYCHECK',
     title: 'RealityCheck',
-    description: 'Lock your cashier and spin buttons for 24 hours, 3, 7 or 30 days. Go touch grass.',
+    description: 'Lock your cashier and spin buttons for 24 hours, 3, 7 or 30 days.',
     status: 'live',
   },
   {
@@ -244,13 +273,20 @@ export const TOOL_REGISTRY = [
     href: '/extension',
     label: 'KEEP THE WIN',
     title: 'Keep the Win',
-    description: 'Kills the cancel button on pending withdrawals so cashouts hit your pocket.',
+    description: 'A confirm step plus a 10-second Payout Hold before you can reverse a pending cashout.',
     status: 'live',
   },
   {
-    href: '/wincheck/',
-    label: 'WIN SKIM',
-    title: 'Win Skim',
+    href: '/extension',
+    label: 'WALK-AWAY NUMBER',
+    title: 'Walk-Away Number',
+    description: 'Set up $X / down $Y. Cross a line or start tilting and pick: Cash out, Lock half, Touch Grass 5 min, or Keep playing. The 24h auto-lock is opt-in.',
+    status: 'live',
+  },
+  {
+    href: '/autovault/',
+    label: 'AUTO VAULTER',
+    title: 'Auto Vaulter',
     description: 'Auto-skims a cut of heater wins straight into your casino vault.',
     status: 'live',
   },

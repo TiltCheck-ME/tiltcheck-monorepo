@@ -107,5 +107,5 @@ Browser extension for Chrome. Injects a sidebar HUD on casino sites. Features: s
 
 - All tools are informational only. Not financial or legal advice.
 - Non-custodial throughout — no fund custody.
-- Touch Grass Protocol: built-in responsible gambling resources and hard-stop tools.
+- Touch Grass: the 5-minute break a player can pick from the extension's tilt choices. Hard stops are self-set: RealityCheck cashier locks (/cooldown) and the opt-in 24h tilt auto-lock.
 - License registry: public data aggregated from regulatory bodies. Not a guarantee of legitimacy.
