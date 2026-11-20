@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 
 /**
  * cashout-router.ts
@@ -13,6 +13,7 @@
 
 import { type CashoutGoal } from './profit-lock.js';
 import { getAdapterForHost } from './casino-vault-adapters.js';
+import { countBetaEvent } from './beta-telemetry.js';
 
 export interface CasinoCashoutRoute {
   id: string;
@@ -460,6 +461,15 @@ export interface NavigationResult {
 }
 
 export function triggerCashoutNavigation(
+  doc: Document,
+  hostnameOverride?: string,
+): NavigationResult {
+  const result = navigateToCashout(doc, hostnameOverride);
+  if (result.navigated) countBetaEvent('cash_out');
+  return result;
+}
+
+function navigateToCashout(
   doc: Document,
   hostnameOverride?: string,
 ): NavigationResult {

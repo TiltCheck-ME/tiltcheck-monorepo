@@ -2,6 +2,14 @@
 
 # Session Log
 
+## 2026-11-19 — feat(extension): opt-in anonymous beta counts, Send feedback, beta install guide (draft PR, feat/beta-telemetry)
+- New `beta-telemetry.ts`: OFF by default; Settings > Beta toggle opts in. Fixed counters only (install, nudge_shown, break_taken, keep_win_hold, cash_out; ask_question and protection_turned_off reserved, not wired). No ids, wallet, username, URL, casino or amounts; payload is { schema, version, day, counts }. Opting out deletes local counts.
+- Hooks: heater + chase toasts, profit-lock goal toast + soft warning (nudge_shown), Touch Grass start (break_taken), Keep the Win block (keep_win_hold, once per press), triggerCashoutNavigation success (cash_out). Install is counted once, on first opt-in.
+- Sender is a stub: needs `BACKEND_FEATURES.betaTelemetry = true` and `BETA_TELEMETRY_ENDPOINT` (no worker route yet). Optional `BETA_UNINSTALL_URL` (empty) sets an uninstall page for opted-in users.
+- New `beta-panel.ts`: Send feedback form posts { kind: 'feedback', message } to the live worker `/support` route (Bearer workerSession; worker relays to staff; no webhook in the extension). Signed-out users are told to log in; optional `FEEDBACK_FALLBACK_URL` link (empty).
+- docs/beta-install.md: sideload guide with screenshot placeholders.
+- Tests: chrome-extension 45 files / 362 pass (main baseline 344 + 18 new); build OK.
+
 ## 2026-11-19 — chore(collectclock-api): clear Brand Law Enforcer flags from #758
 
 - src/index.js: decorative emojis removed from Discord webhook/embed text and the sign-in handoff page; the two Discord reaction lookups and the staff "tap to verify" hint keep the same check-mark via a `\u2705` escape, so reactions and verification work as before. Add-casino 400 error reworded to neutral wording ("Casino name and a full http(s) URL are required").

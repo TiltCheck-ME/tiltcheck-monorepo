@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -2418,6 +2418,30 @@
           <option value="0.80">Loud (80%)</option>
         </select>
         <button type="button" id="btn-test-sound" class="icon-btn" style="width:auto; padding:4px 8px; font-size:11px; font-weight:700; background:rgba(23,195,178,0.15); color:#17c3b2; border:1px solid #17c3b2;" title="Play test audio cue">Test Sound</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="guard-panel" id="beta-panel">
+    <h3>Beta</h3>
+    <label class="guard-opt-row" for="beta-telemetry-toggle">
+      <input type="checkbox" id="beta-telemetry-toggle" />
+      <span>Share anonymous beta counts (off by default)</span>
+    </label>
+    <p class="guard-policy" id="beta-telemetry-explainer">
+      Counts only: installs, nudges shown, Touch Grass breaks, Keep the Win holds and cash-outs. No account, wallet, username, site, link or bet amount. Turning this off deletes the counts on this device.
+    </p>
+    <p class="guard-policy" id="beta-telemetry-counts" style="display:none;"></p>
+    <div style="margin-top:8px; border-top:1px solid #1e293b; padding-top:8px;">
+      <button type="button" id="btn-send-feedback" class="btn btn-ghost" style="padding:5px 10px; font-size:11px">Send feedback</button>
+      <div id="feedback-form" style="display:none; margin-top:8px;">
+        <label for="feedback-message" style="display:block; font-size:11px; color:#cbd5e1; margin-bottom:4px;">What worked, what broke, what you want next</label>
+        <textarea id="feedback-message" maxlength="1000" rows="4" style="width:100%; box-sizing:border-box; background:#080a0e; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:6px; font-family:inherit; font-size:11px;"></textarea>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <button type="button" id="btn-feedback-submit" class="btn btn-ghost" style="padding:5px 10px; font-size:11px">Send</button>
+          <span id="feedback-status" role="status" aria-live="polite" style="font-size:11px; color:var(--muted);"></span>
+        </div>
+        <a id="feedback-fallback-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none; font-size:11px; margin-top:6px;">Send feedback another way</a>
       </div>
     </div>
   </section>

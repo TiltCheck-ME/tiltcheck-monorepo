@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 
 const WORKER_ORIGIN = 'https://collectclock-api.j-chapman7.workers.dev';
 
@@ -28,6 +28,10 @@ export const WORKER_ROUTES = Object.freeze({
     ME: '/me',
     /** POST with Bearer session -> deletes that session. */
     LOGOUT: '/logout',
+    /** POST with Bearer session, { kind: 'feedback', message } -> relayed to staff by the worker. 401 when signed out. */
+    SUPPORT: '/support',
+    /** POST { schema: 1, version, day, counts } (JSON, <= 1 KB, no auth) -> { ok: true }; 400 bad batch, 429 day full. */
+    BETA_COUNTS: '/beta/counts',
 });
 
 /**
@@ -43,7 +47,8 @@ type BackendFeatureName =
     | 'telemetry'
     | 'cooldownApi'
     | 'linkScan'
-    | 'lounge';
+    | 'lounge'
+    | 'betaTelemetry';
 
 export const BACKEND_FEATURES: Readonly<Record<BackendFeatureName, boolean>> = Object.freeze({
     /** Tilt score, P/L and live session from the server. */
@@ -64,6 +69,12 @@ export const BACKEND_FEATURES: Readonly<Record<BackendFeatureName, boolean>> = O
     linkScan: false,
     /** Lounge chat panel on casino tabs (activity.tiltcheck.me does not resolve). */
     lounge: false,
+    /**
+     * Opt-in anonymous beta counts (beta-telemetry.ts) to WORKER_ROUTES.BETA_COUNTS.
+     * On at build time so sending works once a user opts in; the Settings
+     * toggle stays off by default and nothing is counted or sent before it.
+     */
+    betaTelemetry: true,
 });
 
 export type BackendFeature = BackendFeatureName;
@@ -76,6 +87,27 @@ export function getWorkerEndpoint(route: string): string {
     const normalizedPath = route.startsWith('/') ? route : `/${route}`;
     return `${normalizeBaseUrl(EXT_CONFIG.WORKER_API_URL)}${normalizedPath}`;
 }
+
+/**
+ * Where opt-in beta counts are POSTed: a worker path (resolved against
+ * WORKER_API_URL) or a full https URL. Empty means the sender stays a stub.
+ */
+export const BETA_TELEMETRY_ENDPOINT: string = WORKER_ROUTES.BETA_COUNTS;
+
+/**
+ * Page Chrome opens when an opted-in user removes the extension (counts
+ * removals; only ?v=<version> is added). Empty means no uninstall page.
+ */
+export const BETA_UNINSTALL_URL = '';
+
+/**
+ * Feedback: signed-in users post to WORKER_ROUTES.SUPPORT (the worker relays
+ * it to staff, so no Discord webhook lives in the extension). Signed-out users
+ * see FEEDBACK_FALLBACK_URL as a link when it is set (for example a Discord
+ * invite or a form). Empty means the button asks them to sign in.
+ */
+export const FEEDBACK_FALLBACK_URL = '';
+export const FEEDBACK_MAX_LENGTH = 1000;
 
 export const TELEMETRY_BASE_PATH = '/v1/telemetry';
 export const TELEMETRY_PATH = `${TELEMETRY_BASE_PATH}/round`;

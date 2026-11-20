@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 
 /**
  * Touch Grass Timeout — fullscreen, non-dismissible pause until duration elapses.
@@ -12,6 +12,7 @@
  */
 
 import { playAudioCue } from './audio-alerts.js';
+import { countBetaEvent } from './beta-telemetry.js';
 
 export const TOUCH_GRASS_DURATION_MS = 120_000;
 
@@ -291,6 +292,7 @@ export function triggerTouchGrassTimeout(reason: string, durationMs: number = TO
     return;
   }
   overlayActive = true;
+  countBetaEvent('break_taken');
   playAudioCue('cooldown_chime');
 
   blockBettingUI(true);

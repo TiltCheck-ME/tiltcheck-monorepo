@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 /**
  * chase-warning.ts
  * Real-time spotter alert for loss chasing.
@@ -7,6 +7,7 @@
 
 import { CASINO_SELECTORS } from './extractor.js';
 import { PACE_HOST_ID, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
+import { countBetaEvent } from './beta-telemetry.js';
 
 export const CHASE_SETTLE_MS = 5000;
 export const CHASE_TOAST_TEXT = "Last spin lost and you raised the stake. You're chasing, not on a heater. Step back.";
@@ -135,6 +136,7 @@ export function installChaseWarning(
     const balance = readField(doc, 'balance');
     if (stake === null || balance === null) return;
     if (typeof lastLosingStake === 'number' && stake > lastLosingStake) {
+      if (toast.style.display !== 'block') countBetaEvent('nudge_shown');
       toast.style.display = 'block';
       onChaseEscalation?.(stake, lastLosingStake);
     }

@@ -118,6 +118,18 @@ async function build() {
     },
   });
 
+  // Build service-worker beta counts alarm (loaded by background.js via importScripts)
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/beta-telemetry-alarm-entry.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/beta-telemetry-alarm.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: false,
+    minify: true,
+  });
+
   // Build MAIN-world page bridge (manifest + native/web communication).
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],
@@ -157,7 +169,7 @@ async function build() {
   } catch {
     // Create icons directory and add placeholder info
     await fs.mkdir(destIconsDir, { recursive: true });
-    console.log('Icons directory created - please add icon16.png, icon48.png, icon128.png to src/icons');
+    console.log('Icons directory created. Add icon16.png, icon48.png, icon128.png to src/icons');
   }
 
   console.log('Build complete. Extension ready in ./dist');
