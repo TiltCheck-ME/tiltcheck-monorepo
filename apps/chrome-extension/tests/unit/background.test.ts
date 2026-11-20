@@ -79,6 +79,18 @@ describe('background service worker', () => {
     vi.restoreAllMocks();
   });
 
+  it('loads the beta counts alarm bundle via importScripts when available', async () => {
+    setupChromeMock();
+    const importScripts = vi.fn();
+    (globalThis as any).importScripts = importScripts;
+    try {
+      await import('../../src/background.js');
+      expect(importScripts).toHaveBeenCalledWith('beta-telemetry-alarm.js');
+    } finally {
+      delete (globalThis as any).importScripts;
+    }
+  });
+
   it('registers listeners and toggles sidebar from action click', async () => {
     const { chromeMock, actionListeners, installListeners, runtimeListeners } = setupChromeMock();
     await import('../../src/background.js');
