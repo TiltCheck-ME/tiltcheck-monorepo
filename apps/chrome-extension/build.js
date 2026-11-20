@@ -169,7 +169,7 @@ async function build() {
   } catch {
     // Create icons directory and add placeholder info
     await fs.mkdir(destIconsDir, { recursive: true });
-    console.log('Icons directory created - please add icon16.png, icon48.png, icon128.png to src/icons');
+    console.log('Icons directory created. Add icon16.png, icon48.png, icon128.png to src/icons');
   }
 
   console.log('Build complete. Extension ready in ./dist');
