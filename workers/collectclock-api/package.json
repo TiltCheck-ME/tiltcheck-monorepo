@@ -1,0 +1,14 @@
+{
+  "name": "@tiltcheck/collectclock-api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "CollectClock API Cloudflare Worker (collectclock-api). Deployed by hand with deploy.sh; never connect a Git build.",
+  "scripts": {
+    "build": "./build.sh",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
