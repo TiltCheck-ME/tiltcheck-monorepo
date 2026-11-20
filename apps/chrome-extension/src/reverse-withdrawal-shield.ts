@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 /**
  * reverse-withdrawal-shield.ts
  * DOM Reverse-Withdrawal Shield (Cashier Protection).
@@ -10,6 +10,8 @@
  *
  * Non-custodial: operates entirely client-side with zero custody of player funds.
  */
+
+import { countBetaEvent } from './beta-telemetry.js';
 
 export const TILTCHECK_REVERSE_WITHDRAWAL_SHIELD_ENABLED_KEY =
   'tiltcheck_reverse_withdrawal_shield_enabled';
@@ -214,6 +216,15 @@ export function installReverseWithdrawalShield(
 
   void loadReverseWithdrawalShieldEnabled();
 
+  // pointerdown, mousedown and click all fire for one press: count it once.
+  let lastHoldCountedAt = 0;
+  const countHold = () => {
+    const now = Date.now();
+    if (now - lastHoldCountedAt < 1500) return;
+    lastHoldCountedAt = now;
+    countBetaEvent('keep_win_hold');
+  };
+
   const showAlert = (message: string) => {
     let alertEl = doc.getElementById(ALERT_ID);
     if (!alertEl) {
@@ -297,6 +308,7 @@ export function installReverseWithdrawalShield(
     event.stopImmediatePropagation();
 
     neutralizeCancelElement(target);
+    countHold();
 
     showAlert(
       'TiltCheck Payout Lock is on. Do not donate your hit back to the house. Let the cashout clear.'
@@ -317,6 +329,7 @@ export function installReverseWithdrawalShield(
     event.stopImmediatePropagation();
 
     neutralizeCancelElement(target);
+    countHold();
 
     showAlert(
       'TiltCheck Payout Lock is on. Do not donate your hit back to the house. Let the cashout clear.'

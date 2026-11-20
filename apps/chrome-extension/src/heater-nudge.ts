@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 /**
  * heater-nudge.ts
  * Real-time spotter nudge during win streaks.
@@ -6,6 +6,7 @@
  */
 
 import { PACE_HOST_ID, SPIN_CONTROL_SELECTOR } from './spin-pace-lock.js';
+import { countBetaEvent } from './beta-telemetry.js';
 
 export const HEATER_TOAST_TEXT = "You're up right now. Lock half this win before the house claws it back. Skip anytime.";
 export const HEATER_CAP_TEXT = "Spotter check: lock half your profit before volatility reverses. Opt-in. Skip anytime.";
@@ -58,6 +59,7 @@ export function installHeaterNudge(doc: Document = document): HeaterHandle {
     const next = raw ? Number(String(raw).replace(/[^0-9.]/g, '')) : null;
     if (detectHeater(previous, Number.isFinite(next) ? next : null)) {
       armed = true;
+      if (toast.style.display !== 'block') countBetaEvent('nudge_shown');
       toast.style.display = 'block';
     }
     if (Number.isFinite(next)) previous = next;

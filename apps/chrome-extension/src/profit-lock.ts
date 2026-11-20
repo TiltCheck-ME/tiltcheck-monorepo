@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 */
 /**
  * profit-lock.ts
  * Profit-Lock & Step-Ladder Ratchet with Reality Cashout Goals.
@@ -26,6 +26,7 @@
 import { readBalance } from './reality-hud.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { triggerCashoutNavigation } from './cashout-router.js';
+import { countBetaEvent } from './beta-telemetry.js';
 import { playAudioCue } from './audio-alerts.js';
 import { recordActivityFeedEvent } from './activity-feed.js';
 import { getGoalRealityCheck } from './degen-reality-copy.js';
@@ -430,6 +431,7 @@ function startBelowMinimumBreak(): void {
 }
 
 function showGoalToast(doc: Document, goal: CashoutGoal, balance: number, hostnameOverride?: string): void {
+  countBetaEvent('nudge_shown');
   ensureStyles(doc);
   playAudioCue('heater_alert');
   let container = doc.getElementById(GOAL_TOAST_CONTAINER_ID);
@@ -516,6 +518,7 @@ export function showSoftWarningModal(
 ): void {
   ensureStyles(doc);
   if (doc.getElementById(PROFIT_LOCK_MODAL_ID)) return;
+  countBetaEvent('nudge_shown');
   playAudioCue('due_trap');
 
   const modal = doc.createElement('div');

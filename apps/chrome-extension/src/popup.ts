@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19
 import {
   EXT_CONFIG,
   WORKER_ROUTES,
@@ -7,6 +7,8 @@ import {
   isBackendFeatureEnabled,
 } from './config.js';
 import { applyBackendAvailability } from './backend-availability.js';
+import { initBetaPanel } from './beta-panel.js';
+import { flushBetaTelemetry } from './beta-telemetry.js';
 import {
   addCustomSlug,
   clampRisk,
@@ -2452,6 +2454,8 @@ async function detachToStandaloneWindow(size?: PopupSize): Promise<void> {
 
 async function init() {
   applyBackendAvailability();
+  void initBetaPanel().catch(() => undefined);
+  void flushBetaTelemetry().catch(() => undefined);
   await loadAuth();
   renderAuthState();
   attachAuthStorageSync();

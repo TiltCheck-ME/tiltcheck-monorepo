@@ -28,7 +28,7 @@ describe('extension backend config', () => {
   });
 
   it('builds worker endpoints only for the routes the worker serves', () => {
-    expect(WORKER_ROUTES).toEqual({ AUTH_TOKEN: '/auth/token', ME: '/me', LOGOUT: '/logout' });
+    expect(WORKER_ROUTES).toEqual({ AUTH_TOKEN: '/auth/token', ME: '/me', LOGOUT: '/logout', SUPPORT: '/support' });
     expect(getWorkerEndpoint(WORKER_ROUTES.LOGOUT)).toBe(`${WORKER}/logout`);
     expect(getWorkerEndpoint('me')).toBe(`${WORKER}/me`);
   });

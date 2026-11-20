@@ -1,6 +1,14 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
 
 # Session Log
+
+## 2026-11-19 — feat(extension): opt-in anonymous beta counts, Send feedback, beta install guide (draft PR, feat/beta-telemetry)
+- New `beta-telemetry.ts`: OFF by default; Settings > Beta toggle opts in. Fixed counters only (install, nudge_shown, break_taken, keep_win_hold, cash_out; ask_question and protection_turned_off reserved, not wired). No ids, wallet, username, URL, casino or amounts; payload is { schema, version, day, counts }. Opting out deletes local counts.
+- Hooks: heater + chase toasts, profit-lock goal toast + soft warning (nudge_shown), Touch Grass start (break_taken), Keep the Win block (keep_win_hold, once per press), triggerCashoutNavigation success (cash_out). Install is counted once, on first opt-in.
+- Sender is a stub: needs `BACKEND_FEATURES.betaTelemetry = true` and `BETA_TELEMETRY_ENDPOINT` (no worker route yet). Optional `BETA_UNINSTALL_URL` (empty) sets an uninstall page for opted-in users.
+- New `beta-panel.ts`: Send feedback form posts { kind: 'feedback', message } to the live worker `/support` route (Bearer workerSession; worker relays to staff; no webhook in the extension). Signed-out users are told to log in; optional `FEEDBACK_FALLBACK_URL` link (empty).
+- docs/beta-install.md: sideload guide with screenshot placeholders.
+- Tests: chrome-extension 45 files / 362 pass (main baseline 344 + 18 new); build OK.
 
 ## 2026-11-18 — feat(ask): independent payout-speed benchmarks (RotoWire) for cash-out questions
 - Router recognizes known operators named anywhere in the question ("Does DraftKings pay out instantly?") from the facts data before falling back to the generic payout ranking.
