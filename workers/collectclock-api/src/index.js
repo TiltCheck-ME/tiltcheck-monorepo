@@ -142,7 +142,7 @@ function crSummary(list, now = Date.now()) {
   return Object.entries(by).filter(([, w]) => w.size >= MIN_REPORTERS).map(([c, w]) => ({ category: c, label: CR_CATS[c].label, reporters: w.size }));
 }
 
-// ---- Verified rug flags: 3+ players or a staff ✅ in #reports. Persist until replaced or cleared. ----
+// ---- Verified rug flags: 3+ players or a staff check-mark reaction in #reports. Persist until replaced or cleared. ----
 async function getRug(env) { return JSON.parse((await env.CC.get('rug:live')) || '{}'); }
 async function verifyRug(env, cs, casino, category, how) {
   const rug = await getRug(env);
@@ -156,7 +156,7 @@ async function verifyRug(env, cs, casino, category, how) {
     const c = CR_CATS[category];
     const why = how.staff ? `verified by staff (${txt(how.staff, 40)})` : `${how.reporters} players reported it`;
     try { await fetch(env.TRUST_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'TiltCheck Trust Alerts',
-      embeds: [{ title: `🚩 ${txt(casino, 60)}: ${c.label}`, description: `${why}. Showing on CollectClock now. Trust hit: ${c.engine} ${c.delta}.`, color: 0xff3d8b, url: 'https://tiltcheck-me.github.io/CollectClock/', timestamp: new Date().toISOString() }],
+      embeds: [{ title: `Flag: ${txt(casino, 60)}: ${c.label}`, description: `${why}. Showing on CollectClock now. Trust hit: ${c.engine} ${c.delta}.`, color: 0xff3d8b, url: 'https://tiltcheck-me.github.io/CollectClock/', timestamp: new Date().toISOString() }],
       allowed_mentions: { parse: [] } }) }); } catch {}
   }
   return true;
@@ -175,7 +175,7 @@ async function trustSweep(env) {
         if (!r.msg || r.withdrawn || r.staffOk || Date.now() - r.at > 14 * 86400000 || checks >= 25) continue;
         if (rug[cs] && rug[cs].flags[r.category]) continue;
         checks++;
-        const rr = await fetch(`https://discord.com/api/v10/channels/${r.ch}/messages/${r.msg}/reactions/${encodeURIComponent('✅')}?limit=25`, { headers: { Authorization: 'Bot ' + env.BOT_TOKEN } });
+        const rr = await fetch(`https://discord.com/api/v10/channels/${r.ch}/messages/${r.msg}/reactions/${encodeURIComponent('\u2705')}?limit=25`, { headers: { Authorization: 'Bot ' + env.BOT_TOKEN } });
         if (!rr.ok) continue;
         const users = (await rr.json()).filter(u => !u.bot);
         for (const u of users) {
@@ -341,14 +341,14 @@ export default {
       if (env.REPORTS_WEBHOOK) {
         const rw = await whoIs(env, uid);
         const bits = [CR_CATS[cat] && CR_CATS[cat].label ? CR_CATS[cat].label : cat, r.amount ? `$${r.amount}` : '', r.days ? `${r.days} days waiting` : '', r.ticket ? `ticket ${txt(r.ticket, 40)}` : ''].filter(Boolean).join(' · ');
-        const content = [`🚩 Got rugged: **${txt(r.casino, 60)}** · ${bits}`, `From **${txt((rw && rw.name) || '', 40) || 'a signed-in user'}**`, r.details ? `> ${txt(r.details, 300)}` : ''].filter(Boolean).join('\n');
+        const content = [`Got rugged: **${txt(r.casino, 60)}** · ${bits}`, `From **${txt((rw && rw.name) || '', 40) || 'a signed-in user'}**`, r.details ? `> ${txt(r.details, 300)}` : ''].filter(Boolean).join('\n');
         try {
-          const wr = await fetch(env.REPORTS_WEBHOOK + '?wait=true', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'CollectClock Reports', content: content + '\nStaff: tap ✅ to verify, it goes live on CollectClock and #trust-alerts.', allowed_mentions: { parse: [] } }) });
+          const wr = await fetch(env.REPORTS_WEBHOOK + '?wait=true', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'CollectClock Reports', content: content + '\nStaff: tap \u2705 to verify, it goes live on CollectClock and #trust-alerts.', allowed_mentions: { parse: [] } }) });
           if (wr.ok) {
             const m = await wr.json();
             r.msg = m.id; r.ch = m.channel_id;
             const l2 = await crList(env, cs); const t = l2.find(x => x.id === r.id); if (t) { t.msg = m.id; t.ch = m.channel_id; await env.CC.put('cr:' + cs, JSON.stringify(l2)); }
-            await fetch(`https://discord.com/api/v10/channels/${m.channel_id}/messages/${m.id}/reactions/${encodeURIComponent('✅')}/@me`, { method: 'PUT', headers: { Authorization: 'Bot ' + env.BOT_TOKEN } });
+            await fetch(`https://discord.com/api/v10/channels/${m.channel_id}/messages/${m.id}/reactions/${encodeURIComponent('\u2705')}/@me`, { method: 'PUT', headers: { Authorization: 'Bot ' + env.BOT_TOKEN } });
           }
         } catch {}
       }
@@ -466,13 +466,13 @@ export default {
       const e = { slug: cs, casino: txt(b.casino, 60), claim, bonus: txt(b.bonus, 200), note: txt(b.note, 200), hours: hrs || '', logo };
       const who = { id: await hashId(uid), name: txt(w.name || '', 40) || null };
       const det = [e.bonus && `Amount: ${e.bonus}`, e.claim && `Collect page: <${e.claim}>`, e.hours && `Every: ${e.hours}h`, e.logo && 'Logo: updated', e.note && `Notes: ${e.note}`].filter(Boolean).join('\n');
-      if (w.staff) { const item = await applyOv(env, e, { ...who, staff: true }); await hook(env, `★ **${e.casino}** info updated (live) · by **${who.name || 'staff'}**` + (det ? '\n' + det : '')); return json({ ok: true, live: true, item }); }
+      if (w.staff) { const item = await applyOv(env, e, { ...who, staff: true }); await hook(env, `**${e.casino}** info updated (live) · by **${who.name || 'staff'}**` + (det ? '\n' + det : '')); return json({ ok: true, live: true, item }); }
       const pend = JSON.parse((await env.CC.get('ov:pending')) || '[]');
       if (pend.filter(p => p.by.id === who.id).length >= 20) return json({ error: 'You have a lot waiting for review already' }, 429);
       const p = { id: crypto.randomUUID(), ...e, by: who, at: Date.now() };
       pend.unshift(p);
       await env.CC.put('ov:pending', JSON.stringify(pend.slice(0, 200)));
-      await hook(env, `📝 **${e.casino}** edit waiting for review · from **${who.name || 'a beta tester'}**` + (det ? '\n' + det : ''));
+      await hook(env, `**${e.casino}** edit waiting for review · from **${who.name || 'a beta tester'}**` + (det ? '\n' + det : ''));
       return json({ ok: true, live: false, pending: true, id: p.id });
     }
     if (url.pathname === '/support' && req.method === 'POST') {
@@ -484,7 +484,7 @@ export default {
       let item;
       if (b.kind === 'casino') {
         const name = txt(b.name, 60), link = httpUrl(b.url), ref = httpUrl(b.ref);
-        if (!name || !link) return json({ error: 'Casino name and a full http(s) URL, please' }, 400);
+        if (!name || !link) return json({ error: 'Casino name and a full http(s) URL are required' }, 400);
         if (ref === null) return json({ error: 'Referral link must be a full http(s) URL' }, 400);
         item = { kind: 'casino', name, url: link, ref: ref || null, note: txt(b.note, 300) };
       } else if (b.kind === 'contact' || b.kind === 'feedback') {
@@ -499,7 +499,7 @@ export default {
       const list = JSON.parse((await env.CC.get('sup:list')) || '[]');
       list.unshift(item);
       await env.CC.put('sup:list', JSON.stringify(list.slice(0, 300)));
-      await hook(env, item.kind === 'casino' ? `➕ Casino suggestion: **${item.name}** <${item.url}> · from **${item.byName || 'someone'}**` : item.kind === 'feedback' ? `💡 Feedback · from **${item.byName || 'someone'}**\n${item.message.slice(0, 600)}` : `📬 New contact message · from **${item.byName || 'someone'}** (see admin page)`);
+      await hook(env, item.kind === 'casino' ? `Casino suggestion: **${item.name}** <${item.url}> · from **${item.byName || 'someone'}**` : item.kind === 'feedback' ? `Feedback · from **${item.byName || 'someone'}**\n${item.message.slice(0, 600)}` : `New contact message · from **${item.byName || 'someone'}** (see admin page)`);
       return json({ ok: true });
     }
     if (url.pathname === '/admin/stats' && req.method === 'GET') {
@@ -551,8 +551,8 @@ export default {
       const rw = ruid ? await whoIs(env, ruid) : null;
       const by = ruid ? ` · from **${txt((rw && rw.name) || '', 40) || 'a signed-in user'}**` : ' · from a signed-out user';
       const lines0 = b.type === 'confirm'
-        ? [`✅ **${brand}** confirmed: ${clean(b.listed, 120) || '(no amount listed)'}${by}`]
-        : [`✏️ **${brand}** update`, `Listed: ${clean(b.listed, 120) || '(none)'}`, `Got: ${clean(b.got, 120)}`,
+        ? [`**${brand}** confirmed: ${clean(b.listed, 120) || '(no amount listed)'}${by}`]
+        : [`**${brand}** update`, `Listed: ${clean(b.listed, 120) || '(none)'}`, `Got: ${clean(b.got, 120)}`,
            b.hours ? `Reset: ${Number(b.hours) || '?'}h` : '', b.note ? `Note: ${clean(b.note, 200)}` : ''].filter(Boolean);
       const lines = b.type === 'confirm' ? lines0 : [lines0[0] + by, ...lines0.slice(1)];
       const r = await fetch(env.WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -575,7 +575,7 @@ export default {
 var p=new URLSearchParams(location.hash.slice(1));var t=p.get('access_token');var st=p.get('state')||'';
 if(st==='h.web'||st==='tc'){location.replace(t?'https://tiltcheck.me/login/#access_token='+encodeURIComponent(t):'https://tiltcheck.me/login/?error=1');}else
 if(st.indexOf('h.')===0){history.replaceState(null,'',location.pathname);var m=function(h,x){document.body.innerHTML='<div style="font:600 20px system-ui;text-align:center;padding:60px 24px"><div style="font-size:48px">'+h+'</div><p>'+x+'</p></div>'};
-if(!t)m('😬','Sign-in did not finish. Go back to CollectClock and try again.');else fetch('/auth/handoff',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nonce:st.slice(2),access_token:t})}).then(function(r){return r.json()}).then(function(d){d.ok?m('✅','Signed in'+(d.name?' as '+d.name:'')+'. Head back to CollectClock, it will pick you up.'):m('😬','Sign-in failed. Go back to CollectClock and try again.')}).catch(function(){m('😬','Sign-in failed. Go back to CollectClock and try again.')});}
+if(!t)m('!','Sign-in did not finish. Go back to CollectClock and try again.');else fetch('/auth/handoff',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nonce:st.slice(2),access_token:t})}).then(function(r){return r.json()}).then(function(d){d.ok?m('OK','Signed in'+(d.name?' as '+d.name:'')+'. Head back to CollectClock, it will pick you up.'):m('!','Sign-in failed. Go back to CollectClock and try again.')}).catch(function(){m('!','Sign-in failed. Go back to CollectClock and try again.')});}
 else location.replace('${SITE}${SITE_PATH}#'+(t?'cc_dtoken='+encodeURIComponent(t):'cc_login=failed'));
 </script><body>Signing in…`;
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Referrer-Policy': 'no-referrer' } });

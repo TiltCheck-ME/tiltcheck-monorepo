@@ -1,4 +1,5 @@
 #!/bin/sh
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 # Bundle src/push.js + src/beta.js + src/index.js into one module (dist/index.js), so deploy keeps the single-file
 # upload that is known to work with the code-only content endpoint.
 set -e

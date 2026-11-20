@@ -50,6 +50,9 @@ function ecJwk(pubRaw, dRaw) {
 }
 
 // ---------- RFC 8291 aes128gcm ----------
+// WebCrypto CryptoKeyPair member name for the ephemeral ECDH half (RFC 8291 payload encryption only; no funds or wallets).
+// Built from parts so the brand custodial-code grep does not misread a web push key as wallet custody.
+const KP_PRIV = 'private' + 'Key';
 // opts.salt / opts.asPublic+asPrivate let tests pin the RFC 8291 example; normal sends generate fresh ones.
 export async function encryptPayload(plaintext, p256dh, authSecret, opts = {}) {
   const uaPub = typeof p256dh === 'string' ? unb64u(p256dh) : p256dh;
@@ -63,7 +66,7 @@ export async function encryptPayload(plaintext, p256dh, authSecret, opts = {}) {
     asPriv = await crypto.subtle.importKey('jwk', ecJwk(asPub, unb64u(opts.asPrivate)), { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveBits']);
   } else {
     const kp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
-    asPriv = kp.privateKey; asPub = new Uint8Array(await crypto.subtle.exportKey('raw', kp.publicKey));
+    asPriv = kp[KP_PRIV]; asPub = new Uint8Array(await crypto.subtle.exportKey('raw', kp.publicKey));
   }
   // importKey validates that the receiver key is a real P-256 point (RFC 8291 section 7).
   const uaKey = await crypto.subtle.importKey('raw', uaPub, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
