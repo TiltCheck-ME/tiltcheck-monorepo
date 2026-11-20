@@ -1,8 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * Gathers the source documents for the casinos named in a question and picks the
  * excerpts the model is allowed to read.
  */
+import { benchmarkText } from './payout.js';
 import { REPORTS_SUMMARY_URL, SITE_CASINOS_URL, auditText, slugify } from './sources.js';
 import { chunkText, expandQuery, scoreChunk, stem, termIn, tokenize } from './text.js';
 
@@ -29,6 +30,10 @@ export async function gatherDocs(casinos, io) {
     }
     if (c.audit) {
       docs.push({ title: `TiltCheck audit: ${c.name}`, url: SITE_CASINOS_URL, kind: 'tiltcheck', casino: c.name, text: auditText(c.audit) });
+    }
+    if (c.benchmark) {
+      const b = c.benchmark;
+      docs.push({ title: `${b.source} payout speed: ${c.name}`, url: b.sourceUrl, kind: 'benchmark', casino: c.name, asOf: b.asOf, source: b.source, text: benchmarkText(c.name, b) });
     }
   }
   let summary = null;
@@ -109,6 +114,8 @@ export function selectExcerpts(question, casinos, docs, { maxExcerpts = 6, maxCh
     e.id = `S${k + 1}`;
     e.title = docs[e.doc].title;
     e.url = docs[e.doc].url;
+    e.kind = docs[e.doc].kind;
+    if (docs[e.doc].asOf) e.asOf = docs[e.doc].asOf;
   });
   return { terms: terms.filter((t) => !t.soft).map((t) => t.term), missing, excerpts };
 }

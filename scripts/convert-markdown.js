@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08
  *
@@ -21,6 +21,7 @@ import { fileURLToPath } from 'url';
 import { getGatePageBody } from './build-gate-page.mjs';
 import {
   CASINO_ASK,
+  PAYOUT_SPEED,
   SITE_URL,
   API_URL,
   DISCORD_URL,
@@ -770,6 +771,56 @@ function buildCasinoAsk() {
   </section>`;
 }
 
+/** RotoWire payout benchmarks from PR #751, as the data gives them. Alphabetical, no ranking. */
+function loadPayoutBenchmarks(root = repoRoot) {
+  const facts = JSON.parse(fs.readFileSync(path.join(root, 'data/trust-engine/operator-facts.live.json'), 'utf8'));
+  return (facts.operators || [])
+    .filter((o) => o && o.name && o.payoutBenchmark && o.payoutBenchmark.fastestSpeed)
+    .map((o) => ({ name: o.name, ...o.payoutBenchmark }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+}
+
+function formatAsOfDate(asOf) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const [y, m, d] = String(asOf || '').split('-').map(Number);
+  return y && months[m - 1] && d ? months[m - 1] + ' ' + d + ' ' + y : String(asOf || '');
+}
+
+function buildPayoutSpeed(rows = loadPayoutBenchmarks()) {
+  if (!rows.length) return '';
+  const p = PAYOUT_SPEED;
+  const asOf = rows.reduce((latest, r) => (r.asOf > latest ? r.asOf : latest), rows[0].asOf);
+  const sources = [...new Map(rows.map((r) => [r.sourceUrl, r.source])).entries()];
+  const body = rows
+    .map(
+      (r) =>
+        '          <tr><td>' + escapeHtml(r.name) + '</td><td>' + escapeHtml(r.fastestSpeed) + '</td><td>' + escapeHtml((r.topMethods || []).join(', ')) + '</td></tr>',
+    )
+    .join('\n');
+  const credit = sources
+    .map(([url, name]) => '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(name) + '</a>')
+    .join(', ');
+  return `<section class="public-page-section payout-speed" id="payout-speed" aria-labelledby="payout-speed-title">
+    <div class="landing-shell">
+      <div class="public-page-section-heading">
+        <span class="brand-eyebrow">${escapeHtml(p.eyebrow)}</span>
+        <h2 class="public-page-section-heading__title" id="payout-speed-title">${escapeHtml(p.title)}</h2>
+      </div>
+      <p class="payout-speed__lede">${escapeHtml(p.lede)}</p>
+      <div class="payout-speed__scroll">
+        <table class="payout-speed__table">
+          <thead><tr>${p.columns.map((c) => '<th scope="col">' + escapeHtml(c) + '</th>').join('')}</tr></thead>
+          <tbody>
+${body}
+          </tbody>
+        </table>
+      </div>
+      <p class="payout-speed__note">${escapeHtml(p.method)} ${escapeHtml(p.scope)}</p>
+      <p class="payout-speed__source">Source: ${credit}. As of ${escapeHtml(formatAsOfDate(asOf))}.</p>
+    </div>
+  </section>`;
+}
+
 const CASINO_ASK_SCRIPT = `<script>
 (function () {
   var form = document.getElementById('casino-ask-form');
@@ -897,6 +948,7 @@ function buildCasinosPage(casinos) {
   })}
 <main class="product-main">
   ${buildCasinoAsk()}
+  ${buildPayoutSpeed()}
   ${buildAuditedShowcase(auditedCasinos, `      <div class="casino-toolbar">
         <label class="casino-search">
           <span class="sr-only">Search casinos</span>

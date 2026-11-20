@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 /**
  * The answer pipeline: find the casino, gather its sources, pick excerpts, ask Groq,
  * then check the reply against the excerpts before anyone sees it.
@@ -8,6 +8,7 @@
  *  - every number in the reply appears in the excerpts it cites;
  *  - if the question names something none of the sources mention, the answer is "I don't know".
  */
+import { formatAsOf, isPayoutRankingQuestion, payoutRankingAnswer } from './payout.js';
 import { CATALOG, findCasinos } from './sources.js';
 import { gatherDocs, selectExcerpts } from './retrieve.js';
 import { numberSet, numbersIn } from './text.js';
@@ -18,11 +19,12 @@ export const MAX_QUESTION = 300;
 
 export const SYSTEM_PROMPT = [
   'You answer questions about online casinos for TiltCheck.',
-  'Use only the numbered excerpts in the user message. They come from the casino\'s own published pages and TiltCheck\'s own records.',
+  'Use only the numbered excerpts in the user message. They come from the casino\'s own published pages, TiltCheck\'s own records, and third-party payout-speed benchmarks (RotoWire), each labeled in its title.',
   'Never use outside knowledge. Never guess, estimate, round, or convert a number, time, fee, or limit.',
   'Every number you write must appear in an excerpt you cite.',
   'If the excerpts do not answer the exact question, set known to false. That includes a question about a product, card, method, or rule the excerpts never name.',
   'Say who says it, for example: Acebet\'s Promotional Play Rules say redemptions can take up to 30 days.',
+  'A RotoWire figure is third-party: name RotoWire and its as-of date, and never present it as the casino\'s own terms.',
   'Plain, dry sentences. At most 3 sentences. No exclamation marks. No advice.',
   'Return JSON only, in this shape:',
   '{"known": true or false, "answer": "...", "sources": ["S1"], "nearest": "...", "nearest_sources": ["S2"]}',
@@ -52,7 +54,10 @@ export async function callGroq({ apiKey, model, question, casinos, excerpts, fet
       body: JSON.stringify({
         model: model || DEFAULT_MODEL,
         temperature: 0,
-        max_tokens: 400,
+        // Reasoning models (gpt-oss) spend completion tokens thinking; 400 ran out before the JSON
+        // when two sources disagreed (Groq json_validate_failed), so allow more and keep effort low.
+        max_tokens: 1200,
+        ...(String(model || DEFAULT_MODEL).startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}),
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
@@ -88,7 +93,15 @@ export function checkClaim(text, ids, excerpts) {
   for (const n of numbersIn(claim)) {
     if (!allowed.has(n) && !allowed.has(n.replace(/%$/, ''))) return null;
   }
-  return { text: claim, excerpts: cited };
+  return { text: withThirdPartyCredit(claim, cited), excerpts: cited };
+}
+
+/** A claim that cites a RotoWire excerpt always names RotoWire and its date, even if the model left it out. */
+export function withThirdPartyCredit(text, cited) {
+  const bench = cited.find((e) => e.kind === 'benchmark');
+  if (!bench || /rotowire/i.test(text)) return text;
+  const date = bench.asOf ? `, as of ${formatAsOf(bench.asOf)}` : '';
+  return `${text.replace(/\s*$/, '')} (Payout speed per RotoWire${date}.)`;
 }
 
 function linksFor(excerpts) {
@@ -138,6 +151,11 @@ export async function answerQuestion(rawQuestion, deps) {
     return { status: 'invalid', answer: 'Ask a question about a casino, like: How long does Acebet take to redeem?', sources: [], checked: [] };
   }
   const casinos = findCasinos(question, catalog);
+  // "Which casino pays out fastest?": answered straight from the RotoWire benchmark data, no model.
+  if (!casinos.length && isPayoutRankingQuestion(question)) {
+    const ranking = payoutRankingAnswer(deps.benchmarks);
+    if (ranking) return ranking;
+  }
   if (!casinos.length) {
     return {
       status: 'no_casino',
@@ -179,5 +197,7 @@ export async function answerQuestion(rawQuestion, deps) {
 export function coveredList(catalog = CATALOG) {
   const official = catalog.filter((c) => c.pages.length).map((c) => c.name);
   const audited = catalog.filter((c) => !c.pages.length && c.audit).length;
-  return `${official.join(', ')} (its own pages), plus the ${audited} casinos TiltCheck has audited`;
+  const benchmarked = catalog.filter((c) => c.benchmark).length;
+  const bench = benchmarked ? `, and RotoWire payout speeds for ${benchmarked} regulated casinos` : '';
+  return `${official.join(', ')} (its own pages), plus the ${audited} casinos TiltCheck has audited${bench}`;
 }
