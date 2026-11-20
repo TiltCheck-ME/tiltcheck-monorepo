@@ -21,6 +21,10 @@ import {
   BETA_EVENTS,
   BETA_TELEMETRY_COUNTS_KEY,
   BETA_TELEMETRY_OPT_IN_KEY,
+  BETA_TELEMETRY_RETRY_KEY,
+  BETA_MAX_BATCH_COUNT,
+  BETA_RETRY_BASE_MS,
+  BETA_SEND_INTERVAL_MS,
   buildBetaPayload,
   flushBetaTelemetry,
   getBetaCounts,
@@ -32,13 +36,43 @@ import {
 import { formatBetaCounts, initBetaPanel, sendFeedback } from '../../src/beta-panel.ts';
 
 let store: Record<string, unknown>;
+let manifestVersion = '1.2.3';
+
+function okResponse(body: unknown = { ok: true }, status = 200) {
+  return { ok: status >= 200 && status < 300, status, json: async () => body };
+}
+
+/**
+ * Mirror of the worker's validator (workers/collectclock-api/src/beta.js, PR #758).
+ * Keep in sync: every payload the extension sends must pass it.
+ */
+const WORKER_BETA_EVENTS = ['install', 'nudge_shown', 'break_taken', 'keep_win_hold', 'cash_out', 'ask_question', 'protection_turned_off'];
+function workerAccepts(b: any, now = Date.now()): boolean {
+  const DAY = 86400000;
+  const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return false;
+  const keys = Object.keys(b);
+  if (keys.length !== 4 || !['schema', 'version', 'day', 'counts'].every((k) => keys.includes(k))) return false;
+  if (b.schema !== 1) return false;
+  if (typeof b.version !== 'string' || b.version.length > 20 || !/^(?:\d{1,4}(?:\.\d{1,4}){0,3}|unknown)$/.test(b.version)) return false;
+  if (typeof b.day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(b.day)) return false;
+  const t = Date.parse(b.day + 'T00:00:00Z');
+  if (!Number.isFinite(t) || iso(t) !== b.day) return false;
+  const today = Date.parse(iso(now) + 'T00:00:00Z');
+  if (t < today - 2 * DAY || t > today + DAY) return false;
+  const c = b.counts;
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+  const names = Object.keys(c);
+  if (names.length === 0 || names.length > WORKER_BETA_EVENTS.length) return false;
+  return names.every((n) => WORKER_BETA_EVENTS.includes(n) && Number.isInteger(c[n]) && c[n] >= 0 && c[n] <= 10000);
+}
 let setUninstallURL: ReturnType<typeof vi.fn>;
 
 function installChrome(): void {
   store = {};
   setUninstallURL = vi.fn().mockResolvedValue(undefined);
   vi.stubGlobal('chrome', {
-    runtime: { getManifest: () => ({ version: '1.2.3' }), setUninstallURL },
+    runtime: { getManifest: () => ({ version: manifestVersion }), setUninstallURL },
     storage: {
       local: {
         get: vi.fn(async (keys: string[]) => Object.fromEntries(keys.filter((k) => k in store).map((k) => [k, store[k]]))),
@@ -49,6 +83,7 @@ function installChrome(): void {
 }
 
 beforeEach(() => {
+  manifestVersion = '1.2.3';
   Object.assign(configState, { enabled: false, endpoint: '', uninstall: '', fallback: '' });
   installChrome();
 });
@@ -135,7 +170,7 @@ describe('beta telemetry: sender is a stub until configured', () => {
 
   it('when configured, posts counts without cookies once a day and subtracts what was sent', async () => {
     Object.assign(configState, { enabled: true, endpoint: '/beta/counts' });
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 202 });
+    const fetchMock = vi.fn().mockResolvedValue(okResponse());
     vi.stubGlobal('fetch', fetchMock);
     await setBetaTelemetryOptIn(true);
     await recordBetaEvent('break_taken');
@@ -155,7 +190,7 @@ describe('beta telemetry: sender is a stub until configured', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps counts when the send fails', async () => {
+  it('keeps counts when the send fails (and backs off)', async () => {
     Object.assign(configState, { enabled: true, endpoint: 'https://example.invalid/counts' });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }));
     await setBetaTelemetryOptIn(true);
@@ -262,5 +297,135 @@ describe('guards feed the counters (only when opted in)', () => {
     vi.useRealTimers();
     await vi.waitFor(async () => expect((await getBetaCounts()).keep_win_hold).toBe(1));
     handle.stop?.();
+  });
+});
+
+describe('beta telemetry: live worker contract', () => {
+  const NOW = Date.parse('2026-11-20T02:30:00Z');
+  async function optInWith(counts: Record<string, number>) {
+    Object.assign(configState, { enabled: true, endpoint: '/beta/counts' });
+    await setBetaTelemetryOptIn(true);
+    store[BETA_TELEMETRY_COUNTS_KEY] = counts;
+  }
+
+  it('uses the same event keys the worker accepts', () => {
+    expect([...BETA_EVENTS]).toEqual(WORKER_BETA_EVENTS);
+  });
+
+  it('sends JSON the worker validator accepts, with only Content-Type, under 1 KB', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse());
+    vi.stubGlobal('fetch', fetchMock);
+    await optInWith(Object.fromEntries(WORKER_BETA_EVENTS.map((e) => [e, 9999])));
+    expect(await flushBetaTelemetry(NOW)).toBe('sent');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('https://collectclock-api.j-chapman7.workers.dev/beta/counts');
+    expect(init.method).toBe('POST');
+    expect(init.headers).toEqual({ 'Content-Type': 'application/json' });
+    expect(new TextEncoder().encode(init.body).byteLength).toBeLessThanOrEqual(1024);
+    const body = JSON.parse(init.body);
+    expect(workerAccepts(body, NOW)).toBe(true);
+    expect(body.day).toBe('2026-11-20'); // UTC day, not Central
+  });
+
+  it('caps each count at 10,000 per batch and keeps the rest for the next one', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse());
+    vi.stubGlobal('fetch', fetchMock);
+    await optInWith({ nudge_shown: 25_000 });
+    expect(await flushBetaTelemetry(NOW)).toBe('sent');
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.counts).toEqual({ nudge_shown: BETA_MAX_BATCH_COUNT });
+    expect(workerAccepts(body, NOW)).toBe(true);
+    expect(await getBetaCounts()).toEqual({ nudge_shown: 15_000 });
+  });
+
+  it('sends "unknown" when the manifest version is not 1-4 short numbers', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse());
+    vi.stubGlobal('fetch', fetchMock);
+    for (const v of ['1.2.3.4.5', '1.2.3-beta', '12345.0', '']) {
+      manifestVersion = v;
+      expect(buildBetaPayload({ cash_out: 1 }).version, v).toBe('unknown');
+    }
+    manifestVersion = '9999.0.0.1';
+    expect(buildBetaPayload({ cash_out: 1 }).version).toBe('9999.0.0.1');
+  });
+
+  it('never sends an empty batch', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await optInWith({});
+    expect(await flushBetaTelemetry(NOW)).toBe('empty');
+    store[BETA_TELEMETRY_COUNTS_KEY] = { nudge_shown: 0, junk: 4 };
+    expect(await flushBetaTelemetry(NOW)).toBe('empty');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('drops the batch on 400 instead of retrying it', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse({ error: 'bad request' }, 400));
+    vi.stubGlobal('fetch', fetchMock);
+    await optInWith({ cash_out: 2 });
+    expect(await flushBetaTelemetry(NOW)).toBe('dropped');
+    expect(await getBetaCounts()).toEqual({});
+    expect(store[BETA_TELEMETRY_RETRY_KEY]).toEqual({ at: 0, attempts: 0 });
+    await recordBetaEvent('cash_out');
+    expect(await flushBetaTelemetry(NOW + 60_000)).toBe('too-soon');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps counts and backs off 1h, 2h, 4h on 429 and network errors, then sends', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(okResponse({ error: 'try again tomorrow' }, 429))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(okResponse({ error: 'x' }, 503))
+      .mockResolvedValueOnce(okResponse());
+    vi.stubGlobal('fetch', fetchMock);
+    await optInWith({ break_taken: 3 });
+
+    expect(await flushBetaTelemetry(NOW)).toBe('failed');
+    expect(store[BETA_TELEMETRY_RETRY_KEY]).toEqual({ at: NOW + BETA_RETRY_BASE_MS, attempts: 1 });
+    expect(await flushBetaTelemetry(NOW + BETA_RETRY_BASE_MS - 1)).toBe('backing-off');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    let t = NOW + BETA_RETRY_BASE_MS;
+    expect(await flushBetaTelemetry(t)).toBe('failed');
+    expect(store[BETA_TELEMETRY_RETRY_KEY]).toEqual({ at: t + 2 * BETA_RETRY_BASE_MS, attempts: 2 });
+    t += 2 * BETA_RETRY_BASE_MS;
+    expect(await flushBetaTelemetry(t)).toBe('failed');
+    expect(store[BETA_TELEMETRY_RETRY_KEY]).toEqual({ at: t + 4 * BETA_RETRY_BASE_MS, attempts: 3 });
+    expect(await getBetaCounts()).toEqual({ break_taken: 3 });
+
+    t += 4 * BETA_RETRY_BASE_MS;
+    expect(await flushBetaTelemetry(t)).toBe('sent');
+    expect(await getBetaCounts()).toEqual({});
+    expect(store[BETA_TELEMETRY_RETRY_KEY]).toEqual({ at: 0, attempts: 0 });
+    expect(await flushBetaTelemetry(t + BETA_SEND_INTERVAL_MS - 1)).toBe('too-soon');
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('caps backoff at a day', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse({}, 429)));
+    await optInWith({ cash_out: 1 });
+    store[BETA_TELEMETRY_RETRY_KEY] = { at: 0, attempts: 10 };
+    expect(await flushBetaTelemetry(NOW)).toBe('failed');
+    expect(store[BETA_TELEMETRY_RETRY_KEY]).toEqual({ at: NOW + BETA_SEND_INTERVAL_MS, attempts: 11 });
+  });
+
+  it('treats the worker health JSON (route missing) as a failure, not a send', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse({ ok: true, service: 'collectclock-api' })));
+    await optInWith({ cash_out: 1 });
+    expect(await flushBetaTelemetry(NOW)).toBe('failed');
+    expect(await getBetaCounts()).toEqual({ cash_out: 1 });
+  });
+
+  it('with the real config, sends nothing before opt-in and the toggle starts off', async () => {
+    const real = await vi.importActual<typeof import('../../src/config.ts')>('../../src/config.ts');
+    expect(real.BACKEND_FEATURES.betaTelemetry).toBe(true);
+    expect(real.BETA_TELEMETRY_ENDPOINT).toBe('/beta/counts');
+    Object.assign(configState, { enabled: true, endpoint: real.BETA_TELEMETRY_ENDPOINT });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await recordBetaEvent('nudge_shown');
+    expect(await flushBetaTelemetry(NOW)).toBe('opted-out');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(await isBetaTelemetryOptedIn()).toBe(false);
   });
 });

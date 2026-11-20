@@ -9,16 +9,18 @@
  * - Only whole-number counters for a fixed list of event names. No user id,
  *   install id, wallet address, username, URL, casino, game, or bet amount is
  *   ever recorded: recordBetaEvent() takes an event name and nothing else.
- * - Counts live in chrome.storage.local. The sender is a stub until a backend
- *   exists: it makes no network call unless BACKEND_FEATURES.betaTelemetry is
- *   on AND BETA_TELEMETRY_ENDPOINT is set (see config.ts).
+ * - Counts live in chrome.storage.local. At most once a day, an opted-in
+ *   install POSTs them to the collectclock-api worker's /beta/counts route
+ *   (BACKEND_FEATURES.betaTelemetry + BETA_TELEMETRY_ENDPOINT in config.ts).
+ *   The body matches the worker contract (workers/collectclock-api/src/beta.js):
+ *   { schema: 1, version, day, counts }, JSON, <= 1 KB. A 400 drops the batch;
+ *   a 429, server or network error retries later with backoff.
  */
 
 import {
   BETA_TELEMETRY_ENDPOINT,
   BETA_UNINSTALL_URL,
-  TELEMETRY_REQUEST_HEADERS,
-  getHubEndpoint,
+  getWorkerEndpoint,
   isBackendFeatureEnabled,
 } from './config.js';
 
@@ -26,6 +28,8 @@ export const BETA_TELEMETRY_OPT_IN_KEY = 'tiltcheck_beta_telemetry_opt_in';
 export const BETA_TELEMETRY_COUNTS_KEY = 'tiltcheck_beta_telemetry_counts';
 export const BETA_TELEMETRY_LAST_SENT_KEY = 'tiltcheck_beta_telemetry_last_sent';
 export const BETA_TELEMETRY_INSTALL_COUNTED_KEY = 'tiltcheck_beta_telemetry_install_counted';
+/** { at: number, attempts: number }: no send before `at` after a 429 or network error. */
+export const BETA_TELEMETRY_RETRY_KEY = 'tiltcheck_beta_telemetry_retry';
 
 /** The only events that can ever be counted. */
 export const BETA_EVENTS = [
@@ -50,6 +54,14 @@ export type BetaCounts = Partial<Record<BetaEvent, number>>;
 
 export const BETA_SEND_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const MAX_COUNT = 1_000_000;
+/** Worker limits (workers/collectclock-api/src/beta.js). */
+export const BETA_MAX_BATCH_COUNT = 10_000;
+export const BETA_MAX_BODY_BYTES = 1024;
+const VERSION_RE = /^(?:\d{1,4}(?:\.\d{1,4}){0,3}|unknown)$/;
+/** Retry after a 429 or network error: 1h, 2h, 4h ... capped at a day. */
+export const BETA_RETRY_BASE_MS = 60 * 60 * 1000;
+export const BETA_RETRY_MAX_MS = 24 * 60 * 60 * 1000;
+const BETA_REQUEST_HEADERS = Object.freeze({ 'Content-Type': 'application/json' });
 
 function isBetaEvent(name: unknown): name is BetaEvent {
   return typeof name === 'string' && (BETA_EVENTS as readonly string[]).includes(name);
@@ -134,7 +146,8 @@ export function countBetaEvent(event: BetaEvent): void {
 function extensionVersion(): string {
   try {
     const v = chrome?.runtime?.getManifest?.()?.version;
-    return typeof v === 'string' ? v.slice(0, 20) : 'unknown';
+    // The worker accepts 1-4 dot-separated numbers (up to 4 digits each) or "unknown".
+    return typeof v === 'string' && v.length <= 20 && VERSION_RE.test(v) ? v : 'unknown';
   } catch {
     return 'unknown';
   }
@@ -149,12 +162,21 @@ export interface BetaTelemetryPayload {
   counts: BetaCounts;
 }
 
+/** Counts for one batch: known events, whole numbers 1..BETA_MAX_BATCH_COUNT (the rest waits for the next batch). */
+function batchCounts(counts: BetaCounts): BetaCounts {
+  const out: BetaCounts = {};
+  for (const [name, n] of Object.entries(sanitizeBetaCounts(counts)) as [BetaEvent, number][]) {
+    out[name] = Math.min(n, BETA_MAX_BATCH_COUNT);
+  }
+  return out;
+}
+
 export function buildBetaPayload(counts: BetaCounts, now: Date = new Date()): BetaTelemetryPayload {
   return {
     schema: 1,
     version: extensionVersion(),
     day: now.toISOString().slice(0, 10),
-    counts: sanitizeBetaCounts(counts),
+    counts: batchCounts(counts),
   };
 }
 
@@ -164,47 +186,113 @@ export function isBetaSenderConfigured(): boolean {
 
 function resolveEndpoint(): string {
   const raw = BETA_TELEMETRY_ENDPOINT.trim();
-  return /^https:\/\//i.test(raw) ? raw : getHubEndpoint(raw);
+  return /^https:\/\//i.test(raw) ? raw : getWorkerEndpoint(raw);
 }
 
+function readRetry(raw: unknown): { at: number; attempts: number } {
+  const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const at = typeof r.at === 'number' && Number.isFinite(r.at) ? r.at : 0;
+  const attempts = typeof r.attempts === 'number' && Number.isFinite(r.attempts) ? Math.max(0, Math.floor(r.attempts)) : 0;
+  return { at, attempts };
+}
+
+/** The live route answers { ok: true }; any other worker path answers 200 with its health JSON, so check the body. */
+async function isAccepted(res: Response): Promise<boolean> {
+  if (!res.ok) return false;
+  try {
+    const body = (await res.json()) as Record<string, unknown> | null;
+    return !!body && body.ok === true && !('service' in body);
+  } catch {
+    return false;
+  }
+}
+
+export type BetaFlushResult =
+  | 'opted-out'
+  | 'not-configured'
+  | 'too-soon'
+  | 'backing-off'
+  | 'empty'
+  | 'sent'
+  | 'dropped'
+  | 'failed';
+
 /**
- * Send the batch at most once a day. Stubbed: returns 'not-configured' with no
- * network call until the backend flag and endpoint are both set.
+ * Send the batch at most once a day. Makes no network call unless the user
+ * opted in and the backend flag and endpoint are both set, and never sends an
+ * empty batch. 2xx { ok: true } subtracts what was sent; 400 (or a body the
+ * worker would refuse) drops the batch; 429, other errors and network failures
+ * keep the counts and wait 1h, 2h, 4h ... (max a day) before trying again.
  */
-export async function flushBetaTelemetry(
-  now: number = Date.now(),
-): Promise<'opted-out' | 'not-configured' | 'too-soon' | 'empty' | 'sent' | 'failed'> {
+export async function flushBetaTelemetry(now: number = Date.now()): Promise<BetaFlushResult> {
   if (!(await isBetaTelemetryOptedIn())) return 'opted-out';
   if (!isBetaSenderConfigured()) return 'not-configured';
-  const stored = await readStore([BETA_TELEMETRY_LAST_SENT_KEY]);
+  const stored = await readStore([BETA_TELEMETRY_LAST_SENT_KEY, BETA_TELEMETRY_RETRY_KEY]);
   const last = typeof stored[BETA_TELEMETRY_LAST_SENT_KEY] === 'number' ? (stored[BETA_TELEMETRY_LAST_SENT_KEY] as number) : 0;
   if (now - last < BETA_SEND_INTERVAL_MS) return 'too-soon';
+  const retry = readRetry(stored[BETA_TELEMETRY_RETRY_KEY]);
+  if (now < retry.at) return 'backing-off';
   const counts = await getBetaCounts();
   if (Object.keys(counts).length === 0) return 'empty';
+
+  const payload = buildBetaPayload(counts, new Date(now));
+  const sent = payload.counts;
+  const body = JSON.stringify(payload);
+
+  // Forget the sent batch: subtract it so counts recorded meanwhile are kept.
+  const settle = async () => {
+    queue = queue.then(async () => {
+      const current = await getBetaCounts();
+      for (const [name, n] of Object.entries(sent) as [BetaEvent, number][]) {
+        const left = (current[name] ?? 0) - n;
+        if (left > 0) current[name] = left;
+        else delete current[name];
+      }
+      await writeStore({
+        [BETA_TELEMETRY_COUNTS_KEY]: current,
+        [BETA_TELEMETRY_LAST_SENT_KEY]: now,
+        [BETA_TELEMETRY_RETRY_KEY]: { at: 0, attempts: 0 },
+      });
+    }).catch(() => undefined);
+    await queue;
+  };
+
+  if (Object.keys(sent).length === 0) return 'empty';
+  if (new TextEncoder().encode(body).byteLength > BETA_MAX_BODY_BYTES) {
+    await settle();
+    return 'dropped';
+  }
+
+  const backOff = async () => {
+    const attempts = retry.attempts + 1;
+    const wait = Math.min(BETA_RETRY_BASE_MS * 2 ** (attempts - 1), BETA_RETRY_MAX_MS);
+    await writeStore({ [BETA_TELEMETRY_RETRY_KEY]: { at: now + wait, attempts } });
+  };
+
+  let res: Response;
   try {
-    const res = await fetch(resolveEndpoint(), {
+    res = await fetch(resolveEndpoint(), {
       method: 'POST',
-      headers: TELEMETRY_REQUEST_HEADERS,
+      headers: BETA_REQUEST_HEADERS,
       credentials: 'omit',
       cache: 'no-store',
       referrerPolicy: 'no-referrer',
-      body: JSON.stringify(buildBetaPayload(counts, new Date(now))),
+      body,
     });
-    if (!res.ok) return 'failed';
   } catch {
+    await backOff();
     return 'failed';
   }
-  // Subtract what was sent so counts recorded during the request are kept.
-  queue = queue.then(async () => {
-    const current = await getBetaCounts();
-    for (const [name, sent] of Object.entries(counts) as [BetaEvent, number][]) {
-      const left = (current[name] ?? 0) - sent;
-      if (left > 0) current[name] = left;
-      else delete current[name];
-    }
-    await writeStore({ [BETA_TELEMETRY_COUNTS_KEY]: current, [BETA_TELEMETRY_LAST_SENT_KEY]: now });
-  }).catch(() => undefined);
-  await queue;
+  if (res.status === 400) {
+    // The worker refused this batch; resending it would fail the same way.
+    await settle();
+    return 'dropped';
+  }
+  if (!(await isAccepted(res))) {
+    await backOff();
+    return 'failed';
+  }
+  await settle();
   return 'sent';
 }
 
@@ -241,6 +329,7 @@ export async function setBetaTelemetryOptIn(optedIn: boolean): Promise<void> {
       [BETA_TELEMETRY_OPT_IN_KEY]: false,
       [BETA_TELEMETRY_COUNTS_KEY]: {},
       [BETA_TELEMETRY_LAST_SENT_KEY]: 0,
+      [BETA_TELEMETRY_RETRY_KEY]: { at: 0, attempts: 0 },
     });
   }
   applyUninstallUrl(optedIn);
