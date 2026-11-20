@@ -3,3 +3,6 @@
 1cbe91e9dbcc1c18764f77441f6c26f1d3a0874a:apps/web/src/lib/provably-fair.test.ts:generic-api-key:37
 # Touch Grass test room id ('i-1-gc-...'), not a key; renamed to roomId in f0807609, still in 0621d716's history
 0621d71694517b0a18d6c0b68af0fc6dd56cd3dd:apps/touch-grass-activity/tests/daily.test.ts:generic-api-key:300
+# Throwaway Web Push test-subscription keys (p256dh/auth fixture, not a credential) in a5e6b348; the test now generates them at runtime
+a5e6b348ee346887eb663ded22a22c96ab4e90c2:workers/collectclock-api/test/push.test.mjs:generic-api-key:195
+a5e6b348ee346887eb663ded22a22c96ab4e90c2:workers/collectclock-api/test/push.test.mjs:generic-api-key:205

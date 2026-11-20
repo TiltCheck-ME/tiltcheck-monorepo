@@ -6,6 +6,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as P from '../src/push.js';
 
+// Throwaway push-subscription keys made fresh each run (no key material committed; keeps Gitleaks quiet).
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
+const fixtureJwk = generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).publicKey.export({ format: 'jwk' });
+const FIXTURE_P256DH = Buffer.concat([Buffer.from([4]), Buffer.from(fixtureJwk.x, 'base64url'), Buffer.from(fixtureJwk.y, 'base64url')]).toString('base64url');
+const FIXTURE_AUTH = randomBytes(16).toString('base64url');
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 function kv(init = {}) {
@@ -192,7 +198,7 @@ test('prefs are sanitized: bad intervals, times, zones and custom entries withou
 });
 
 test('subscriptions are only accepted for real push services with valid keys', () => {
-  const keys = { p256dh: 'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4', auth: 'BTBZMqHH6r4Tts7J_aSIgg' };
+  const keys = { p256dh: FIXTURE_P256DH, auth: FIXTURE_AUTH };
   assert.ok(P.cleanSub({ endpoint: 'https://web.push.apple.com/abc', keys }));
   assert.ok(P.cleanSub({ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', keys }));
   assert.ok(P.cleanSub({ endpoint: 'https://updates.push.services.mozilla.com/wpush/v2/abc', keys }));
@@ -202,7 +208,7 @@ test('subscriptions are only accepted for real push services with valid keys', (
 });
 
 // ---------------- cron path with fake KV ----------------
-const SUB_OK = { endpoint: 'https://web.push.apple.com/ok', p256dh: 'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4', auth: 'BTBZMqHH6r4Tts7J_aSIgg' };
+const SUB_OK = { endpoint: 'https://web.push.apple.com/ok', p256dh: FIXTURE_P256DH, auth: FIXTURE_AUTH };
 const SUB_GONE = { ...SUB_OK, endpoint: 'https://fcm.googleapis.com/fcm/send/gone' };
 
 test('cron: sends due alerts, deletes 404/410 subscriptions, and does not resend in the next minute', async () => {
