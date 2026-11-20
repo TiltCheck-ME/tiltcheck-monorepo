@@ -124,14 +124,14 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
       const syncWrap = page.locator("#cooldown-wallet-sync-wrap");
       await expect(syncWrap).toBeVisible();
 
-      // Verify auto-lock toggle exists and is checked by default.
+      // Verify auto-lock toggle exists and is OFF by default (24h auto-lock is opt-in since Cash-out Buddy).
       const autoLockToggle = page.locator("#auto-lock-on-tilt-toggle");
       await expect(autoLockToggle).toBeVisible();
-      await expect(autoLockToggle).toBeChecked();
+      await expect(autoLockToggle).not.toBeChecked();
 
       // Verify descriptive text for auto-lock rule.
       const toggleLabel = page.locator("label[for='auto-lock-on-tilt-toggle']");
-      await expect(toggleLabel).toContainText("Auto-lock on Level 3+ tilt");
+      await expect(toggleLabel).toContainText(/auto-lock on Level 3\+ tilt/i);
 
       // Verify Solana wallet input and sync button are visible.
       const walletInput = page.locator("#cooldown-wallet-input");
@@ -151,6 +151,9 @@ test.describe("Chrome Extension In-Browser Flow & Popup Controls", () => {
       await openSettingsPanel(page);
 
       const autoLockToggle = page.locator("#auto-lock-on-tilt-toggle");
+      // Opt-in: starts off. Switch it on first so the off/on round-trip below is meaningful.
+      await expect(autoLockToggle).not.toBeChecked();
+      await autoLockToggle.check();
       await expect(autoLockToggle).toBeChecked();
 
       // Toggle off.

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 const WORKER_ORIGIN = 'https://collectclock-api.j-chapman7.workers.dev';
 
@@ -28,11 +28,21 @@ export const WORKER_ROUTES = Object.freeze({
     ME: '/me',
     /** POST with Bearer session -> deletes that session. */
     LOGOUT: '/logout',
+    /** Cash-out Buddy (Bearer session). GET -> { paired, count, max, buddies: [{ id, name, since }], invite }. */
+    BUDDY_STATUS: '/buddy/status',
+    /** POST -> { code, expiresAt }: one-time code, 24 h. */
+    BUDDY_INVITE: '/buddy/invite',
+    /** POST { code } -> { ok, buddy: { id, name } }. */
+    BUDDY_ACCEPT: '/buddy/accept',
+    /** POST { buddy?: id } -> ends that pair (or all) on both sides. */
+    BUDDY_UNPAIR: '/buddy/unpair',
+    /** POST { type: 'buddy_ping', reason: 'walk_away' | 'tilt' } and nothing else. No amounts, ever. */
+    BUDDY_PING: '/buddy/ping',
 });
 
 /**
- * Features whose backend does not exist yet. Each one stays off (no network
- * call, UI hidden) until the worker grows a route for it.
+ * Features gated on a backend. Each one stays off (no network call, UI hidden)
+ * until the worker grows a route for it.
  */
 type BackendFeatureName =
     | 'serverStatus'
@@ -43,7 +53,8 @@ type BackendFeatureName =
     | 'telemetry'
     | 'cooldownApi'
     | 'linkScan'
-    | 'lounge';
+    | 'lounge'
+    | 'buddyPing';
 
 export const BACKEND_FEATURES: Readonly<Record<BackendFeatureName, boolean>> = Object.freeze({
     /** Tilt score, P/L and live session from the server. */
@@ -64,6 +75,13 @@ export const BACKEND_FEATURES: Readonly<Record<BackendFeatureName, boolean>> = O
     linkScan: false,
     /** Lounge chat panel on casino tabs (activity.tiltcheck.me does not resolve). */
     lounge: false,
+    /**
+     * Cash-out Buddy pairing + ping (collectclock-api /buddy/*). On: the routes
+     * exist in the worker source. Until that worker version is deployed the
+     * worker answers /buddy/* with its health JSON, which the background
+     * treats as "not live yet", so the UI stays quiet.
+     */
+    buddyPing: true,
 });
 
 export type BackendFeature = BackendFeatureName;

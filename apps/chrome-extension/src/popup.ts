@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18
 import {
   EXT_CONFIG,
   WORKER_ROUTES,
@@ -59,6 +59,8 @@ import {
   type PopupSize,
 } from './popup-settings.js';
 import { DEFAULT_CASHOUT_GOALS } from './profit-lock.js';
+import { loadWalkAwayTargets, saveWalkAwayTargets } from './walk-away.js';
+import { initBuddyPanel } from './buddy-panel.js';
 import { playAudioCue } from './audio-alerts.js';
 import { GAME_EXCLUSION_CATEGORY_LABELS, type GameCategory } from './exclusion-taxonomy.js';
 import {
@@ -355,6 +357,7 @@ async function performLogout(): Promise<void> {
       {
         authToken: null,
         workerSession: null,
+        tiltcheck_buddy_paired: false,
         userData: null,
         tiltguard_user_id: null,
       },
@@ -1500,6 +1503,12 @@ async function refreshGuardSettingsUi(): Promise<void> {
     reverseShieldToggle.checked = touch.reverseWithdrawalShieldEnabled;
   }
 
+  const walkAway = await loadWalkAwayTargets();
+  const walkUpInput = document.getElementById('walk-away-up-input') as HTMLInputElement | null;
+  const walkDownInput = document.getElementById('walk-away-down-input') as HTMLInputElement | null;
+  if (walkUpInput) walkUpInput.value = walkAway.up !== null ? String(walkAway.up) : '';
+  if (walkDownInput) walkDownInput.value = walkAway.down !== null ? String(walkAway.down) : '';
+
   const profitLockToggle = document.getElementById('profit-lock-toggle') as HTMLInputElement | null;
   if (profitLockToggle) {
     profitLockToggle.checked = touch.profitLockEnabled;
@@ -1690,7 +1699,35 @@ function initGuardSettingsPanel(): void {
     reverseShieldToggle.addEventListener('change', async (e) => {
       const enabled = (e.target as HTMLInputElement).checked;
       await saveReverseWithdrawalShieldEnabled(enabled);
-      toast(enabled ? 'PocketCheck payout lock enabled.' : 'PocketCheck payout lock disabled.');
+      toast(enabled ? 'PocketCheck payout hold on.' : 'PocketCheck payout hold off.');
+    });
+  }
+
+  const saveWalkAwayBtn = document.getElementById('btn-save-walk-away');
+  if (saveWalkAwayBtn) {
+    saveWalkAwayBtn.addEventListener('click', async () => {
+      const upInput = document.getElementById('walk-away-up-input') as HTMLInputElement | null;
+      const downInput = document.getElementById('walk-away-down-input') as HTMLInputElement | null;
+      const saved = await saveWalkAwayTargets(upInput?.value ?? '', downInput?.value ?? '');
+      if (upInput) upInput.value = saved.up !== null ? String(saved.up) : '';
+      if (downInput) downInput.value = saved.down !== null ? String(saved.down) : '';
+      if (saved.up === null && saved.down === null) {
+        toast('No walk-away lines set. Enter an amount above $0.');
+        return;
+      }
+      toast('Walk-away lines set. Private to this device.');
+    });
+  }
+
+  const clearWalkAwayBtn = document.getElementById('btn-clear-walk-away');
+  if (clearWalkAwayBtn) {
+    clearWalkAwayBtn.addEventListener('click', async () => {
+      await saveWalkAwayTargets(null, null);
+      const upInput = document.getElementById('walk-away-up-input') as HTMLInputElement | null;
+      const downInput = document.getElementById('walk-away-down-input') as HTMLInputElement | null;
+      if (upInput) upInput.value = '';
+      if (downInput) downInput.value = '';
+      toast('Walk-away lines cleared.');
     });
   }
 
@@ -2589,6 +2626,7 @@ async function init() {
   });
 
   initGuardSettingsPanel();
+  initBuddyPanel(document);
   initSessionRadarListeners();
   initCashoutRouterListeners();
   initStreakVolatilityListeners();

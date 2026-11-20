@@ -1,10 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * @vitest-environment jsdom
- * Core content script — pace lock and event-driven Touch Grass timeouts.
+ * Core content script — pace lock, tilt choices screen, and explicit Touch Grass timeouts.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetTouchGrassTimeoutForTests } from '../../src/touch-grass-timeout.js';
+import { resetChoicesScreenForTests } from '../../src/choices-screen.js';
 
 type OnMessageHandler = (message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void;
 
@@ -75,6 +76,7 @@ describe('core content script contracts', () => {
     document.head.innerHTML = '';
     document.body.innerHTML = '';
     resetTouchGrassTimeoutForTests();
+    resetChoicesScreenForTests();
   });
 
   it('registers a runtime message handler', async () => {
@@ -133,6 +135,7 @@ describe('core content script contracts', () => {
       fs.readFile(new nodeUrl.URL('../../src/content.ts', import.meta.url), 'utf8')
     );
     expect(source).toContain('triggerTouchGrassTimeout');
+    expect(source).toContain('offerTiltChoices');
     expect(source).toContain('installEventDrivenTiltWatcher');
     expect(source).toContain('handleRapidClickTilt');
   });
@@ -152,7 +155,7 @@ describe('core content script contracts', () => {
     expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
   });
 
-  it('triggers Touch Grass timeout on rapid clicking bursts', async () => {
+  it('offers the choices screen (not a lockout) on rapid clicking bursts', async () => {
     const { handleRapidClickTilt } = await import('../../src/content.ts');
     const btn = document.createElement('button');
     btn.className = 'spin-button';
@@ -162,10 +165,11 @@ describe('core content script contracts', () => {
       expect(handleRapidClickTilt(btn)).toBe(false);
     }
     expect(handleRapidClickTilt(btn)).toBe(true);
-    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+    expect(document.getElementById('tiltcheck-choices-root')).toBeTruthy();
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeNull();
   });
 
-  it('triggers Touch Grass timeout when clicking rapidly on nested child elements inside a button', async () => {
+  it('offers the choices screen when clicking rapidly on nested child elements inside a button', async () => {
     const { handleRapidClickTilt } = await import('../../src/content.ts');
     const btn = document.createElement('button');
     btn.className = 'game-action-btn';
@@ -178,10 +182,11 @@ describe('core content script contracts', () => {
       expect(handleRapidClickTilt(span)).toBe(false);
     }
     expect(handleRapidClickTilt(span)).toBe(true);
-    expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
+    expect(document.getElementById('tiltcheck-choices-root')).toBeTruthy();
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeNull();
   });
 
-  it('responds to window-level tilt signal and trigger timeout events', async () => {
+  it('tilt signals open choices; Touch Grass runs only when picked; explicit trigger event still pauses', async () => {
     createChromeMock();
     const { TILTCHECK_TILT_SIGNAL_EVENT, TILTCHECK_TRIGGER_TIMEOUT_EVENT } = await import(
       '../../src/content.ts'
@@ -196,10 +201,14 @@ describe('core content script contracts', () => {
         detail: { signal: 'loss_chasing' },
       })
     );
+    const choices = document.getElementById('tiltcheck-choices-root');
+    expect(choices).toBeTruthy();
+    expect(choices?.textContent).toContain('You are down on consecutive spins and ramping stake size');
+    expect(document.getElementById('tiltcheck-lockdown-root')).toBeNull();
+
+    (choices?.querySelector('button[data-choice="touch_grass"]') as HTMLButtonElement).click();
+    expect(document.getElementById('tiltcheck-choices-root')).toBeNull();
     expect(document.getElementById('tiltcheck-lockdown-root')).toBeTruthy();
-    expect(document.querySelector('.tiltcheck-lockdown-reason')?.textContent).toContain(
-      "You are down on consecutive spins and ramping stake size"
-    );
 
     document.getElementById('tiltcheck-lockdown-root')?.remove();
     resetTimeout();

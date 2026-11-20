@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-03 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * decoupled-sidebar.ts
  * Lightweight, non-custodial spotter sidebar interface.
@@ -18,6 +18,16 @@ export interface SessionStats {
   currentBalance: number;
 }
 
+/** The only payload a buddy notification may carry. */
+export interface BuddySafeEvent {
+  type: string;
+}
+
+/** Reduce an intervention to its kind. Anything else (balances, risk, wallet, indicators) is dropped. */
+export function toBuddySafeEvent(type: unknown): BuddySafeEvent {
+  return { type: String(type ?? '').replace(/[^a-z0-9_]/gi, '').slice(0, 40) };
+}
+
 export interface SidebarUI {
   syncAccountUi(): void;
   showMainContent(): void;
@@ -29,7 +39,8 @@ export interface SidebarUI {
   updateLicense(data: CasinoVerification | null): void;
   updateTilt(score: number, indicators: string[]): void;
   updateStats(stats: Partial<SessionStats>): void;
-  notifyBuddy(event: string, data: any): void;
+  /** Buddy-facing event. Carries the event kind only: no amounts, balances, scores, wallets, games or sites. */
+  notifyBuddy(event: string, data: BuddySafeEvent): void;
   openPremium?(): Promise<void>;
 }
 

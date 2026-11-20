@@ -1,7 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 /**
- * Core content script — pace-locks spins and provides event-driven Touch Grass timeouts.
+ * Core content script — pace-locks spins, walk-away numbers, and the private
+ * choices screen on tilt signals (no automatic full-site lockout; the player picks).
  *
  * Non-custodial: operates entirely client-side with zero custody of player funds.
  * Pro monolith (extractor, strategic filters) lazy-loads when
@@ -72,6 +73,13 @@ import {
   normalizeSiteKey,
 } from './seed-manager-extension.js';
 import { recordActivityFeedEvent } from './activity-feed.js';
+import { computeLockHalfAmount, showChoicesScreen, syncBuddyPingAvailability } from './choices-screen.js';
+import { readBalance } from './reality-hud.js';
+import {
+  installWalkAwayWatcher,
+  hasWalkAwayTarget,
+  type WalkAwayHandle,
+} from './walk-away.js';
 
 /** When `true`, loads the legacy full extension (`pro-monolith-bootstrap.js`). */
 export const TILTCHECK_PRO_MONOLITH_KEY = 'tiltcheck_pro_monolith_enabled';
@@ -97,6 +105,7 @@ let realityHud: RealityHudHandle | null = null;
 let depositBarrier: DepositBarrierHandle | null = null;
 let reverseWithdrawalShield: ReverseWithdrawalShieldHandle | null = null;
 let profitLock: ProfitLockHandle | null = null;
+let walkAway: WalkAwayHandle | null = null;
 let bonusTracker: BonusTrackerHandle | null = null;
 let sessionRadar: SessionVelocityHandle | null = null;
 let streakTracker: StreakVolatilityHandle | null = null;
@@ -104,6 +113,19 @@ let defaultBetBreaker: DefaultBetBreakerHandle | null = null;
 let coreOptions: CoreCircuitBreakerOptions | null = null;
 let proModulePromise: Promise<ProMonolithModule> | null = null;
 let proActive = false;
+
+/**
+ * Tilt signals open the private choices screen instead of a forced lockout.
+ * Touch Grass only runs if the player picks it there.
+ */
+export function offerTiltChoices(reason: string): boolean {
+  return showChoicesScreen(document, {
+    trigger: 'tilt',
+    headline: 'Tilt check. Your call.',
+    reason,
+    lockHalfAmount: () => computeLockHalfAmount(walkAway?.getBaseline() ?? null, readBalance(document)),
+  });
+}
 
 // Rapid click velocity tracking for tilt signals
 let clickTimestamps: number[] = [];
@@ -125,11 +147,7 @@ export function handleRapidClickTilt(target: Element): boolean {
   if (clickTimestamps.length >= RAPID_CLICK_BURST_COUNT) {
     clickTimestamps = [];
     void recordActivityFeedEvent('Rapid clicking burst detected: pacing advisory', 'warn');
-    const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
-    triggerTouchGrassTimeout(
-      "Rapid clicking detected. Turbo mashing only speeds up the house edge. Step back and breathe.",
-      duration
-    );
+    offerTiltChoices("Rapid clicking detected. Turbo mashing only speeds up the house edge.");
     return true;
   }
   return false;
@@ -145,10 +163,10 @@ export function installEventDrivenTiltWatcher(): () => void {
         : custom.detail?.signal === 'loss_chasing'
         ? "You are down on consecutive spins and ramping stake size. You're chasing, not on a heater. Step back."
         : "Tilt signal detected. Step back and recalibrate.");
-    const duration = custom.detail?.durationMs ?? coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
-    triggerTouchGrassTimeout(reason, duration);
+    offerTiltChoices(reason);
   };
 
+  // Explicit "pause me now" request (not a tilt-score inference), so it stays a direct Touch Grass.
   const onTrigger = (event: Event) => {
     const custom = event as CustomEvent<{ reason?: string; durationMs?: number }>;
     const reason = custom.detail?.reason || "Hold up. Recalibrate.";
@@ -321,6 +339,7 @@ function installCoreOptionsListener(): void {
           syncDepositBarrier(opts);
           syncReverseWithdrawalShield(opts);
           syncProfitLock(opts);
+          syncWalkAway(opts);
           syncBonusTracker(opts);
           syncDefaultBetBreaker(opts);
 
@@ -425,6 +444,24 @@ function syncReverseWithdrawalShield(opts: CoreCircuitBreakerOptions): void {
   }
 }
 
+function syncWalkAway(opts: CoreCircuitBreakerOptions): void {
+  const shouldRun = opts.enforcementEnabled && hasWalkAwayTarget(opts.walkAwayTargets);
+  if (shouldRun) {
+    if (!walkAway) {
+      try {
+        walkAway = installWalkAwayWatcher(document, opts.walkAwayTargets);
+      } catch {
+        walkAway = null;
+      }
+    } else {
+      walkAway.updateTargets(opts.walkAwayTargets);
+    }
+  } else if (walkAway) {
+    walkAway.stop();
+    walkAway = null;
+  }
+}
+
 function syncProfitLock(opts: CoreCircuitBreakerOptions): void {
   const shouldRun = opts.enforcementEnabled && (opts.profitLockEnabled || opts.goalsEnabled);
   if (shouldRun) {
@@ -491,10 +528,8 @@ function syncPaceLock(enabled: boolean): void {
           (stake, lastLossStake) => {
             if (stake >= lastLossStake * 1.5) {
               void recordActivityFeedEvent('Loss chasing detected: stake ramped after loss', 'danger');
-    const duration = coreOptions?.touchGrassDurationMs ?? TOUCH_GRASS_DURATION_MS;
-              triggerTouchGrassTimeout(
-                "You are down on consecutive spins and ramping stake size. You're chasing, not on a heater. Step back.",
-                duration
+              offerTiltChoices(
+                "You are down on consecutive spins and ramping stake size. You're chasing, not on a heater."
               );
             }
           }
@@ -531,6 +566,8 @@ async function startCoreCircuitBreaker(): Promise<void> {
   syncDepositBarrier(opts);
   syncReverseWithdrawalShield(opts);
   syncProfitLock(opts);
+  syncWalkAway(opts);
+  syncBuddyPingAvailability();
   syncBonusTracker(opts);
   syncDefaultBetBreaker(opts);
   if (!sessionRadar) {
@@ -699,6 +736,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     case 'get_reverse_withdrawal_shield_state':
       sendResponse({
         active: reverseWithdrawalShield !== null,
+      });
+      return true;
+
+    case 'get_walk_away_state':
+      // Targets the player set and whether each fired. No balances leave the tab.
+      sendResponse({
+        active: walkAway !== null,
+        targets: walkAway ? walkAway.getTargets() : null,
+        upFired: walkAway ? walkAway.hasFired('up') : false,
+        downFired: walkAway ? walkAway.hasFired('down') : false,
       });
       return true;
 

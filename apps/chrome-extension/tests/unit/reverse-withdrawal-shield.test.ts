@@ -1,16 +1,19 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 /**
  * @vitest-environment jsdom
- * DOM Reverse-Withdrawal Shield tests.
+ * Redemption guard (PocketCheck): detection, confirm step, 10-second hold, private log.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  ALERT_ID,
   CANCEL_WITHDRAWAL_SELECTORS,
+  GUARD_DIALOG_ID,
+  REDEMPTION_GUARD_LOG_KEY,
+  REDEMPTION_GUARD_QUESTION,
+  REDEMPTION_HOLD_MS,
   installReverseWithdrawalShield,
   isCancelWithdrawalTarget,
-  neutralizeCancelElement,
+  markGuardedCancelElement,
   setInMemoryShieldEnabled,
 } from '../../src/reverse-withdrawal-shield.js';
 
@@ -110,28 +113,38 @@ describe('isCancelWithdrawalTarget detection and scoping', () => {
   });
 });
 
-describe('neutralizeCancelElement', () => {
-  it('disables button and applies pointer-events none and tooltip', () => {
+describe('markGuardedCancelElement', () => {
+  it('tags the control but leaves it clickable', () => {
     const btn = document.createElement('button');
     btn.textContent = 'Cancel Withdrawal';
-    neutralizeCancelElement(btn);
+    markGuardedCancelElement(btn);
 
-    expect(btn.getAttribute('data-tiltcheck-shield')).toBe('blocked');
-    expect(btn.disabled).toBe(true);
-    expect(btn.getAttribute('style')).toContain('pointer-events: none');
-    expect(btn.getAttribute('title')).toContain('TiltCheck Payout Lock is on');
+    expect(btn.getAttribute('data-tiltcheck-shield')).toBe('guarded');
+    expect(btn.disabled).toBe(false);
+    expect(btn.getAttribute('style') ?? '').not.toContain('pointer-events');
+    expect(btn.getAttribute('title')).toContain('10-second hold');
   });
 });
 
-describe('installReverseWithdrawalShield interception and lifecycle', () => {
+describe('installReverseWithdrawalShield confirm step and hold', () => {
+  let storage: Record<string, unknown>;
+
   beforeEach(() => {
+    vi.useFakeTimers();
     setInMemoryShieldEnabled(true);
     document.body.innerHTML = '';
+    storage = { tiltcheck_reverse_withdrawal_shield_enabled: true };
     vi.stubGlobal('chrome', {
       storage: {
         local: {
-          get: vi.fn().mockResolvedValue({ tiltcheck_reverse_withdrawal_shield_enabled: true }),
-          set: vi.fn().mockResolvedValue(undefined),
+          get: vi.fn(async (keys: string[]) => {
+            const out: Record<string, unknown> = {};
+            for (const k of keys) if (k in storage) out[k] = storage[k];
+            return out;
+          }),
+          set: vi.fn(async (data: Record<string, unknown>) => {
+            Object.assign(storage, data);
+          }),
         },
         onChanged: {
           addListener: vi.fn(),
@@ -142,13 +155,13 @@ describe('installReverseWithdrawalShield interception and lifecycle', () => {
   });
 
   afterEach(() => {
-    const alertEl = document.getElementById(ALERT_ID);
-    alertEl?.remove();
+    document.getElementById(GUARD_DIALOG_ID)?.remove();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
-  it('intercepts click on cancel withdrawal target and shows HUD alert', () => {
+  it('blocks the first click and opens the confirm step', () => {
     const shield = installReverseWithdrawalShield(document);
-
     const btn = document.createElement('button');
     btn.textContent = 'Cancel Withdrawal';
     document.body.appendChild(btn);
@@ -157,18 +170,73 @@ describe('installReverseWithdrawalShield interception and lifecycle', () => {
     btn.dispatchEvent(clickEvent);
 
     expect(clickEvent.defaultPrevented).toBe(true);
-    expect(btn.getAttribute('data-tiltcheck-shield')).toBe('blocked');
+    const dialog = document.getElementById(GUARD_DIALOG_ID);
+    expect(dialog).not.toBeNull();
+    expect(dialog?.textContent).toContain(REDEMPTION_GUARD_QUESTION);
+    expect(dialog?.textContent).not.toMatch(/\$\d/);
+    shield.stop();
+  });
 
-    const alertEl = document.getElementById(ALERT_ID);
-    expect(alertEl).not.toBeNull();
-    expect(alertEl?.textContent).toContain('TiltCheck Payout Lock is on');
+  it('keeps "Reverse it" disabled for the 10-second hold, then lets the original click through once', async () => {
+    const shield = installReverseWithdrawalShield(document);
+    const btn = document.createElement('button');
+    btn.textContent = 'Cancel Redemption';
+    const siteHandler = vi.fn();
+    btn.addEventListener('click', siteHandler);
+    document.body.appendChild(btn);
 
+    btn.click();
+    expect(siteHandler).not.toHaveBeenCalled();
+
+    const reverse = document.querySelector<HTMLButtonElement>(`#${GUARD_DIALOG_ID} button[data-guard="reverse"]`)!;
+    expect(reverse.disabled).toBe(true);
+    reverse.click();
+    expect(siteHandler).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(REDEMPTION_HOLD_MS - 1_000);
+    expect(reverse.disabled).toBe(true);
+
+    vi.advanceTimersByTime(1_250);
+    expect(reverse.disabled).toBe(false);
+    reverse.click();
+
+    expect(siteHandler).toHaveBeenCalledTimes(1);
+    expect(document.getElementById(GUARD_DIALOG_ID)).toBeNull();
+
+    await vi.runOnlyPendingTimersAsync();
+    const log = storage[REDEMPTION_GUARD_LOG_KEY] as Array<Record<string, unknown>>;
+    expect(log).toHaveLength(1);
+    expect(log[0]).toMatchObject({ outcome: 'reversed' });
+    expect(Object.keys(log[0]!).sort()).toEqual(['host', 'outcome', 'ts']);
+
+    // Next click is guarded again.
+    btn.click();
+    expect(siteHandler).toHaveBeenCalledTimes(1);
+    expect(document.getElementById(GUARD_DIALOG_ID)).not.toBeNull();
+    shield.stop();
+  });
+
+  it('"Keep my cashout" closes the step, logs privately, and never fires the site handler', async () => {
+    const shield = installReverseWithdrawalShield(document);
+    const btn = document.createElement('button');
+    btn.textContent = 'Cancel Withdrawal';
+    const siteHandler = vi.fn();
+    btn.addEventListener('click', siteHandler);
+    document.body.appendChild(btn);
+
+    btn.click();
+    document.querySelector<HTMLButtonElement>(`#${GUARD_DIALOG_ID} button[data-guard="keep"]`)!.click();
+
+    expect(document.getElementById(GUARD_DIALOG_ID)).toBeNull();
+    expect(siteHandler).not.toHaveBeenCalled();
+    await vi.runOnlyPendingTimersAsync();
+    const log = storage[REDEMPTION_GUARD_LOG_KEY] as Array<Record<string, unknown>>;
+    expect(log[0]).toMatchObject({ outcome: 'kept' });
     shield.stop();
   });
 
   it('intercepts Enter keydown on focused cancel target', () => {
     const shield = installReverseWithdrawalShield(document);
-
     const btn = document.createElement('button');
     btn.textContent = 'Cancel Cashout';
     document.body.appendChild(btn);
@@ -177,16 +245,12 @@ describe('installReverseWithdrawalShield interception and lifecycle', () => {
     btn.dispatchEvent(keyEvent);
 
     expect(keyEvent.defaultPrevented).toBe(true);
-
-    const alertEl = document.getElementById(ALERT_ID);
-    expect(alertEl).not.toBeNull();
-
+    expect(document.getElementById(GUARD_DIALOG_ID)).not.toBeNull();
     shield.stop();
   });
 
-  it('scans and neutralizes dynamically rendered pending cancel buttons', () => {
+  it('tags dynamically rendered pending cancel buttons without disabling them', () => {
     const shield = installReverseWithdrawalShield(document);
-
     const dynamicContainer = document.createElement('div');
     dynamicContainer.className = 'transactions-list';
     document.body.appendChild(dynamicContainer);
@@ -196,28 +260,24 @@ describe('installReverseWithdrawalShield interception and lifecycle', () => {
     newBtn.textContent = 'Cancel';
     dynamicContainer.appendChild(newBtn);
 
-    const neutralized = shield.scanNow();
-    expect(neutralized).toBeGreaterThanOrEqual(1);
-    expect(newBtn.getAttribute('data-tiltcheck-shield')).toBe('blocked');
-    expect(newBtn.disabled).toBe(true);
-
+    expect(shield.scanNow()).toBeGreaterThanOrEqual(1);
+    expect(newBtn.getAttribute('data-tiltcheck-shield')).toBe('guarded');
+    expect(newBtn.disabled).toBe(false);
     shield.stop();
   });
 
   it('honors updateEnabled toggle', () => {
     const shield = installReverseWithdrawalShield(document);
-
     const btn = document.createElement('button');
     btn.textContent = 'Cancel Withdrawal';
     document.body.appendChild(btn);
 
     shield.updateEnabled(false);
-
     const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
     btn.dispatchEvent(clickEvent);
 
     expect(clickEvent.defaultPrevented).toBe(false);
-
+    expect(document.getElementById(GUARD_DIALOG_ID)).toBeNull();
     shield.stop();
   });
 });

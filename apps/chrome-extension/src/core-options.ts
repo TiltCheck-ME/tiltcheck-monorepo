@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 /**
  * Core circuit-breaker settings (chrome.storage.local).
@@ -17,6 +17,13 @@ import {
   type CashoutGoal,
   sanitizeCashoutGoals,
 } from './profit-lock.js';
+import {
+  TILTCHECK_WALKAWAY_UP_KEY,
+  TILTCHECK_WALKAWAY_DOWN_KEY,
+  EMPTY_WALKAWAY_TARGETS,
+  sanitizeWalkAwayTargets,
+  type WalkAwayTargets,
+} from './walk-away.js';
 
 export const TILTCHECK_RISK_THRESHOLD_KEY = 'tiltcheck_risk_threshold';
 export const TILTCHECK_TOUCH_GRASS_DURATION_MS_KEY = 'tiltcheck_touch_grass_duration_ms';
@@ -42,6 +49,7 @@ export const TILTCHECK_COOLDOWN_SOURCE_KEY = 'tiltcheck_cooldown_source';
 export const TILTCHECK_AUTO_LOCK_ON_TILT_KEY = 'tiltcheck_auto_lock_on_tilt';
 export const TILTCHECK_AUTO_LOCK_THRESHOLD_KEY = 'tiltcheck_auto_lock_threshold';
 export const TILTCHECK_AUTO_LOCK_DURATION_KEY = 'tiltcheck_auto_lock_duration';
+export { TILTCHECK_WALKAWAY_UP_KEY, TILTCHECK_WALKAWAY_DOWN_KEY };
 export const TILTCHECK_AUDIO_ALERTS_ENABLED_KEY = 'tiltcheck_audio_alerts_enabled';
 export const TILTCHECK_AUDIO_ALERTS_VOLUME_KEY = 'tiltcheck_audio_alerts_volume';
 export const TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY = 'tiltcheck_default_bet_breaker_enabled';
@@ -92,6 +100,8 @@ export const CORE_CIRCUIT_BREAKER_STORAGE_KEYS = [
   TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
   TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
   TILTCHECK_AUTO_LOCK_DURATION_KEY,
+  TILTCHECK_WALKAWAY_UP_KEY,
+  TILTCHECK_WALKAWAY_DOWN_KEY,
   TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
   TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
   TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY,
@@ -142,7 +152,12 @@ export const DEFAULT_BASE_STAKE_THRESHOLD = 0.50;
 export const MIN_BASE_STAKE_THRESHOLD = 0.01;
 export const MAX_BASE_STAKE_THRESHOLD = 1000.0;
 
-export const DEFAULT_AUTO_LOCK_ON_TILT = true;
+/**
+ * Off by default (2026-11-18): tilt no longer locks the whole site on its own.
+ * Tilt opens the choices screen; the 24h lock runs only for players who
+ * explicitly switch this on in the popup.
+ */
+export const DEFAULT_AUTO_LOCK_ON_TILT = false;
 export const DEFAULT_AUTO_LOCK_THRESHOLD = 75;
 export const DEFAULT_AUTO_LOCK_DURATION = 86400;
 export const MIN_AUTO_LOCK_THRESHOLD = 50;
@@ -181,6 +196,8 @@ export interface CoreCircuitBreakerOptions {
   autoLockOnTilt: boolean;
   autoLockThreshold: number;
   autoLockDuration: number;
+  /** Walk-away number (session up/down lines). Local only. */
+  walkAwayTargets: WalkAwayTargets;
   audioAlertsEnabled: boolean;
   audioAlertsVolume: number;
   defaultBetBreakerEnabled: boolean;
@@ -229,6 +246,8 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       TILTCHECK_AUTO_LOCK_ON_TILT_KEY,
       TILTCHECK_AUTO_LOCK_THRESHOLD_KEY,
       TILTCHECK_AUTO_LOCK_DURATION_KEY,
+      TILTCHECK_WALKAWAY_UP_KEY,
+      TILTCHECK_WALKAWAY_DOWN_KEY,
       TILTCHECK_AUDIO_ALERTS_ENABLED_KEY,
       TILTCHECK_AUDIO_ALERTS_VOLUME_KEY,
       TILTCHECK_DEFAULT_BET_BREAKER_ENABLED_KEY,
@@ -380,6 +399,10 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       autoLockOnTilt,
       autoLockThreshold,
       autoLockDuration,
+      walkAwayTargets: sanitizeWalkAwayTargets(
+        stored[TILTCHECK_WALKAWAY_UP_KEY],
+        stored[TILTCHECK_WALKAWAY_DOWN_KEY]
+      ),
       audioAlertsEnabled,
       audioAlertsVolume,
       defaultBetBreakerEnabled,
@@ -411,6 +434,7 @@ export async function loadCoreCircuitBreakerOptions(): Promise<CoreCircuitBreake
       autoLockOnTilt: DEFAULT_AUTO_LOCK_ON_TILT,
       autoLockThreshold: DEFAULT_AUTO_LOCK_THRESHOLD,
       autoLockDuration: DEFAULT_AUTO_LOCK_DURATION,
+      walkAwayTargets: { ...EMPTY_WALKAWAY_TARGETS },
       audioAlertsEnabled: DEFAULT_AUDIO_ALERTS_ENABLED,
       audioAlertsVolume: DEFAULT_AUDIO_ALERTS_VOLUME,
       defaultBetBreakerEnabled: DEFAULT_DEFAULT_BET_BREAKER_ENABLED,

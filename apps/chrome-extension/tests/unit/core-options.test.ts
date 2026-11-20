@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_CASHOUT_GOALS_ENABLED,
@@ -54,7 +54,9 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.cooldownActiveUntil).toBe(0);
     expect(opts.cooldownWallet).toBeNull();
     expect(opts.cooldownSource).toBeNull();
-    expect(opts.autoLockOnTilt).toBe(true);
+    // Tilt no longer auto-locks unless the player opts in.
+    expect(opts.autoLockOnTilt).toBe(false);
+    expect(opts.walkAwayTargets).toEqual({ up: null, down: null });
     expect(opts.autoLockThreshold).toBe(75);
     expect(opts.autoLockDuration).toBe(86400);
     expect(opts.audioAlertsEnabled).toBe(true);
@@ -91,6 +93,8 @@ describe('loadCoreCircuitBreakerOptions', () => {
       tiltcheck_auto_lock_on_tilt: true,
       tiltcheck_auto_lock_threshold: 80,
       tiltcheck_auto_lock_duration: 172800,
+      tiltcheck_walkaway_up: '250',
+      tiltcheck_walkaway_down: -5,
     });
     const opts = await loadCoreCircuitBreakerOptions();
     expect(opts.riskThreshold).toBe(100);
@@ -113,6 +117,7 @@ describe('loadCoreCircuitBreakerOptions', () => {
     expect(opts.autoLockOnTilt).toBe(true);
     expect(opts.autoLockThreshold).toBe(80);
     expect(opts.autoLockDuration).toBe(172800);
+    expect(opts.walkAwayTargets).toEqual({ up: 250, down: null });
   });
 
   it('disables enforcement when opt-in is explicitly false', async () => {

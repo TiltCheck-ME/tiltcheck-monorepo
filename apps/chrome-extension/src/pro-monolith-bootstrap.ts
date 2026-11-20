@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -55,6 +55,7 @@ import { installLocalGameBlocker, LocalGameBlocker } from './pro/local-game-bloc
 import { isInsideTiltcheckSafetyRoot, mutationsOnlyTouchSafetyRoots } from './pro/containment.js';
 import { triggerTouchGrassTimeout } from './touch-grass-timeout.js';
 import { checkAndTriggerAutoLock } from './tilt-auto-lock.js';
+import { computeLockHalfAmount, showChoicesScreen, syncBuddyPingAvailability } from './choices-screen.js';
 import type { CasinoVerification } from './license-verifier.js';
 import {
   attachMarketingSiteStorageListener,
@@ -65,6 +66,7 @@ import {
   initSidebar,
   type SidebarUI,
   type SessionStats,
+  toBuddySafeEvent,
 } from './decoupled-sidebar.js';
 
 export const INJECTION_DISABLED_KEY = 'tiltcheck_injection_disabled';
@@ -176,14 +178,6 @@ let lastRedeemNudgeBalance: number | null = null;
 let lastRedeemNudgeThreshold = 0;
 const lastSupportInterventionByType: Record<string, number> = {};
 
-function normalizeInterventionData(data: unknown): Record<string, unknown> {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return {};
-  }
-
-  return data as Record<string, unknown>;
-}
-
 function isFairnessCommitment(value: unknown): value is FairnessCommitment {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return false;
@@ -292,14 +286,18 @@ function applyAnalysisGate(verification: CasinoVerification) {
   }
 }
 
-function notifySupportIntervention(type: string, data: Record<string, unknown>): boolean {
+/**
+ * Buddy-facing intervention notice. Takes the intervention kind only: no
+ * balances, peaks, risk scores, indicators, wallets or games can reach a buddy.
+ */
+export function notifySupportIntervention(type: string): boolean {
   const lastSentAt = lastSupportInterventionByType[type] || 0;
   if (Date.now() - lastSentAt < SUPPORT_INTERVENTION_COOLDOWN_MS) {
     return false;
   }
 
   lastSupportInterventionByType[type] = Date.now();
-  sidebar?.notifyBuddy('intervention', { type, data });
+  sidebar?.notifyBuddy('intervention', toBuddySafeEvent(type));
   return true;
 }
 
@@ -1120,19 +1118,28 @@ function checkBagFumble(balance: number | null, initialBalance: number | null) {
         ]
       );
       
-      notifySupportIntervention('phone_friend_discord', {
-        message: 'Repeated fumble detected. Get them into the accountability voice room.',
-        supportActions: ['tell them to stop depositing', 'tell them to cash out', 'pull them into voice'],
-        balance,
-        initialBalance,
-        peakBalance,
-        strikeCount: fumbleStrikes,
-      });
+      notifySupportIntervention('phone_friend_discord');
     }
   } else if (balance >= initialBalance * 1.2 && !isBlowingIt) {
     // Reset trigger if they actually recover (Strikes persist)
     zeroTriggered = false;
   }
+}
+
+/**
+ * Tilt inferred from the score or interventions opens the private choices
+ * screen. No forced lockout; Touch Grass runs only if the player picks it.
+ */
+function offerProTiltChoices(reason: string): boolean {
+  return showChoicesScreen(document, {
+    trigger: 'tilt',
+    headline: 'Tilt check. Your call.',
+    reason,
+    lockHalfAmount: () => {
+      const summary = tiltDetector?.getSessionSummary();
+      return computeLockHalfAmount(summary?.initialBalance ?? null, summary?.currentBalance ?? null);
+    },
+  });
 }
 
 /**
@@ -1155,28 +1162,19 @@ function startTiltMonitoring() {
     // Check for critical tilt (Touch Grass lockout owned by Core when shield is active)
     const coreOwnsTouchGrass = (window as TiltCheckWindow).__tiltcheckCoreShieldActive === true;
     if (tiltRisk >= 80 && !coreOwnsTouchGrass) {
-      triggerTouchGrassTimeout('Critical tilt detected.');
-      notifySupportIntervention('critical_tilt', {
-        message: 'Critical tilt detected from live extension telemetry.',
-        risk: tiltRisk,
-        indicators,
-      });
+      offerProTiltChoices('Critical tilt signals are stacking. Step back or keep going, it is your call.');
+      notifySupportIntervention('critical_tilt');
     }
 
-    // Automated on-chain lock trigger on high tilt (Level 3+ / score >= 75)
+    // 24h lock on high tilt. Opt-in only (DEFAULT_AUTO_LOCK_ON_TILT is false):
+    // runs only when the player switched it on themselves.
     void checkAndTriggerAutoLock({
       tiltRisk,
       indicators,
     }).then((result) => {
       if (result?.triggered) {
         triggerTouchGrassTimeout(`High Tilt Auto-Lock Engaged: Score ${tiltRisk}/100. 24h deposit barrier active.`);
-        notifySupportIntervention('tilt_auto_lock', {
-          message: `High tilt auto-lock engaged at score ${tiltRisk}/100.`,
-          risk: tiltRisk,
-          indicators,
-          duration: result.duration,
-          wallet: result.wallet,
-        });
+        notifySupportIntervention('tilt_auto_lock');
       }
     });
 
@@ -1196,7 +1194,8 @@ function handleInterventions(interventions: RuntimeIntervention[]) {
 
     switch (intervention.type) {
       case 'cooldown':
-        startCooldown(intervention.data.duration);
+        // Was a forced 5-minute betting lock. Now the player chooses.
+        offerProTiltChoices('Critical tilt signs detected. You might be chasing.');
         break;
 
       case 'vault_balance':
@@ -1224,7 +1223,7 @@ function handleInterventions(interventions: RuntimeIntervention[]) {
         break;
     }
 
-    notifySupportIntervention(intervention.type, normalizeInterventionData(intervention.data));
+    notifySupportIntervention(intervention.type);
   }
 }
 
@@ -1379,7 +1378,7 @@ function showSpendingReminder(comparison: SpendingReminderData) {
  * Trigger stop loss
  */
 function triggerStopLoss(data: StopLossData) {
-  triggerTouchGrassTimeout(data.reason);
+  offerProTiltChoices(data.reason);
 }
 
 /**
@@ -1955,6 +1954,7 @@ export function deactivateProMonolith(): void {
  * Loaded only when `tiltcheck_pro_monolith_enabled` is true in chrome.storage.local.
  */
 export async function startProMonolith(): Promise<void> {
+  syncBuddyPingAvailability();
   if (proMonolithActive) {
     await startRuntimeAtDocumentEnd();
     return;

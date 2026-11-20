@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -16,14 +16,16 @@ Default **Core** install (what players get from the web zip at `https://tiltchec
 - **Strategic Game Filters**: Real-time risk badges and house-edge awareness for high-variance formats (Chicken, Mines, Plinko, and low-RTP slots).
 - **Reality-Grounding Wage-Hour HUD**: Injects a clean session drawdown tracker converting losses directly into equivalent real-world working hours ($25/hr baseline default, customizable in settings) so credits feel like actual labor.
 - **DOM Deposit Barrier**: Intercepts and blocks cashier and deposit button clicks across casino frontends when a player is in an active cooldown or Touch Grass timeout, preventing reflexive tilt re-ups.
-- **Reverse-Withdrawal Shield**: Neutralizes cancel cashout and reverse payout triggers while withdrawals are pending. Locks your hit in place so you cannot feed settled wins back to the house.
+- **PocketCheck (redemption hold)**: Clicking cancel/reverse on a pending withdrawal or redemption opens a confirm step ("This is money you already won. Reverse it?") with a 10-second hold before the reverse can go through. Each event is logged on-device only (time, site, outcome; no amounts).
+- **Walk-Away Number**: Set "up $X" and/or "down $Y" in the popup. Cross a line and you get a private prompt: Cash out / Lock half / Ping my buddy (when paired) / Touch Grass 5 min / Keep playing (logged). Targets and the choice log stay on this device.
+- **Cash-out Buddy**: Pair with a friend by invite code in the popup (Discord sign-in). "Ping my buddy" sends them a Discord DM that only says you hit your walk-away or could use a nudge. Never amounts, balances, games or sites. Backend: `workers/collectclock-api` `/buddy/*`.
 - **Profit-Lock & Reality Goals**: Trailing profit floor with 2-stage intervention (soft warning escalating to 60s hard brake) plus real-world goal toasts (power bills, groceries, gas) to remind you what credits are worth.
 - **Bonus Playthrough & Max-Bet Traps**: Tracks promotional rollover wagering in real time with an in-page HUD and triggers alarms or bet-interception if a single stake violates operator max-bet limits (e.g. $5.00 limit).
 - **Session Velocity Radar & Sparkline**: Calculates rolling loss velocity ($/min) with status bands (Steady, Drain, Bleed, Cliff-Dive) and displays vector momentum sparklines directly in the popup.
 - **One-Click Cashout Router & Goal Bars**: Deep-links straight to native cashier and redemption portals across 21+ crypto and sweeps casinos, backed by visual progress bars towards tangible bills and life goals.
 - **In-Session Auto-Vaulting**: Executes non-custodial in-casino safe deposits (e.g. Stake Vault) directly from your browser session when cashout goals and profit ratchets are unlocked.
 - **Session Win-Streak & Volatility Spotter**: Monitors dead-spin runs, personal hit rates, and consecutive heater streaks in real time. Flags Gambler's Fallacy ("I'm Due") stake escalations with immediate Cashier exit ramps before tilt sets in.
-- **Touch Grass Timeout**: Automatically triggers a 60-second interaction freeze upon detecting rapid-click tilt bursts or sharp loss escalation, delivering blunt countdown spotter messaging.
+- **Tilt choices, not lockouts**: Rapid-click bursts, loss chasing, and critical tilt open the same private choices screen instead of freezing the site. Touch Grass (5 min) runs only when the player picks it. Self-set locks (per-game exclusions, the opt-in 24h tilt lock, on-chain cooldowns) are unchanged.
 - **Stake.us AutoVault**: Non-custodial vaulting with direct GraphQL routing (`https://stake.us/_api/graphql`) utilizing browser session cookies without third-party API exposure.
 - **SusLink URL Protection**: Bounces critically suspicious casino URLs and phishing domains before page execution.
 - **Zero Custody & Privacy**: 100% client-side DOM execution. Never touches private keys, never holds player funds, and operates with zero remote API dependencies in core mode.

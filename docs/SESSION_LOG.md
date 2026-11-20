@@ -1,6 +1,24 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
 
 # Session Log
+
+## 2026-11-19 — ci(#753): clear failing checks on feat/cashout-buddy
+- E2E (Playwright + extension packaging): `tests/e2e/extension-e2e.spec.ts` still expected the 24h auto-lock toggle checked by default; this PR made it opt-in (`DEFAULT_AUTO_LOCK_ON_TILT = false`). Test now expects off, switches it on before the off/on round-trip, and matches the new "Opt-in: 24h auto-lock on Level 3+ tilt" label case-insensitively.
+- Gitleaks: throwaway Web Push p256dh/auth fixtures in `workers/collectclock-api/test/push.test.mjs` were flagged as generic-api-key. Test now generates them at runtime; the two a5e6b348 fingerprints are in `.gitleaksignore`.
+- Brand Compliance: custodial heuristic flagged WebCrypto `kp.privateKey` (ephemeral ECDH key for push encryption) and the provably-fair client seed setter in `content.ts` (`seed-manager-extension`, `message.seed`). Added those exact tokens to the workflow's allowlist; no product code changed.
+
+## 2026-11-18 — feat(buddy): Cash-out Buddy pairing + ping wired to collectclock-api (draft PR #753, feat/cashout-buddy)
+- `workers/collectclock-api/`: worker source now versioned (deployed version + new `src/buddy.js`). Routes `/buddy/invite|accept|status|unpair|ping`, Bearer `workerSession`, KV `CC`, bot DM via `BOT_TOKEN`. Ping is plain text ("<name> hit their walk-away." / "<name> could use a nudge."), 1 per 10 min per pair, amount-like fields refused. Deploy by hand with `deploy.sh`; Git build must stay disconnected. Not deployed.
+- Extension: background `buddy_*` messages, popup Cash-out Buddy section (invite/accept/status/unpair), "Ping my buddy" shows only when paired. `notifySupportIntervention`/`notifyBuddy` now carry the intervention kind only (balances, risk, wallet stripped).
+- Tests: chrome-extension 48 files / 386 pass; worker `node --test` 34 pass; extension build OK. Open product questions listed in docs/specs/cashout-buddy.md section 7.
+
+## 2026-11-18 — feat(extension): walk-away targets, choices instead of tilt lockouts, redemption hold (draft PR, feat/cashout-buddy)
+- Spec: docs/specs/cashout-buddy.md (flows, data/privacy, extension-to-worker buddy plan, tests, open questions). Discord buddy pairing is spec only; heater tip cap is a follow-up note.
+- New `walk-away.ts`: up/down session lines from the popup; crossing one opens the private choices screen. Local only.
+- New `choices-screen.ts`: Cash out / Lock half / Ping my buddy (hidden until the worker route exists) / Touch Grass 5 min / Keep playing (logged). Private log `tiltcheck_choice_log`, no amounts.
+- Tilt inferences (rapid clicks, tilt-signal events, loss chase, Pro score >= 80, Pro cooldown and stop-loss interventions) open choices instead of forcing Touch Grass or a betting lock. 24h tilt auto-lock now defaults off (opt-in). Self-set locks unchanged.
+- PocketCheck: cancel/reverse on a pending cashout now gets "This is money you already won. Reverse it?" with a 10-second hold, then one click through; outcome logged locally (`tiltcheck_redemption_guard_log`). Buttons are no longer disabled.
+- Tests: chrome-extension 46 files / 373 tests pass. Lint on the extension unchanged from main (119 errors, 100 warnings, all pre-existing: no-undef in background.js, auth-bridge.js, polyfills.js). Nothing deployed.
 
 ## 2026-11-18 — feat(ask): independent payout-speed benchmarks (RotoWire) for cash-out questions
 - Router recognizes known operators named anywhere in the question ("Does DraftKings pay out instantly?") from the facts data before falling back to the generic payout ranking.
