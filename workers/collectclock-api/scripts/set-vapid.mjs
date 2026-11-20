@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 // One-time: generate a VAPID key pair and store it as Worker secrets VAPID_PUBLIC / VAPID_PRIVATE.
 // The private key goes straight to Cloudflare and is never printed or written to disk.
 // Refuses to run if VAPID_PUBLIC already exists (rotating keys silently breaks every subscription).

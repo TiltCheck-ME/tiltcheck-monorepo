@@ -1,6 +1,13 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
 
 # Session Log
+
+## 2026-11-19 — chore(collectclock-api): clear Brand Law Enforcer flags from #758
+
+- src/index.js: decorative emojis removed from Discord webhook/embed text and the sign-in handoff page; the two Discord reaction lookups and the staff "tap to verify" hint keep the same check-mark via a `\u2705` escape, so reactions and verification work as before. Add-casino 400 error reworded to neutral wording ("Casino name and a full http(s) URL are required").
+- src/push.js: the custodial-keyword grep matched the WebCrypto `CryptoKeyPair` member on the ephemeral ECDH key used for RFC 8291 payload encryption (web push, no funds or wallets). Same property, now read through a named constant; no behavior change. VAPID env/secret names and bindings untouched.
+- Copyright header added to build.sh, deploy.sh, scripts/set-crons.sh, scripts/set-vapid.mjs, test/beta.test.mjs, test/push.test.mjs.
+- No deploy. Worker tests: node --test test/*.test.mjs.
 
 ## 2026-11-18 — feat(ask): independent payout-speed benchmarks (RotoWire) for cash-out questions
 - Router recognizes known operators named anywhere in the question ("Does DraftKings pay out instantly?") from the facts data before falling back to the generic payout ranking.

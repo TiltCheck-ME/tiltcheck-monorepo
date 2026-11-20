@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 // node --test test/   (Node 20+: WebCrypto is global)
 import test from 'node:test';
 import assert from 'node:assert/strict';

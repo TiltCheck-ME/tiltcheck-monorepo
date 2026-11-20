@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 // node --test test/   Beta counts route: strict validation, daily totals per version, no identifiers stored.
 import test from 'node:test';
 import assert from 'node:assert/strict';

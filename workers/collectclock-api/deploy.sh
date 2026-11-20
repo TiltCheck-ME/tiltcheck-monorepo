@@ -1,4 +1,5 @@
 #!/bin/sh
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
 # Code-only deploy: replaces script content, leaves bindings/secrets/vars untouched.
 # Never connect a Git build to this Worker. Run ./build.sh first (this script does it).
 set -e
