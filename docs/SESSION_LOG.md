@@ -1,6 +1,11 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-18 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
 
 # Session Log
+
+## 2026-11-19 — ci(#753): clear failing checks on feat/cashout-buddy
+- E2E (Playwright + extension packaging): `tests/e2e/extension-e2e.spec.ts` still expected the 24h auto-lock toggle checked by default; this PR made it opt-in (`DEFAULT_AUTO_LOCK_ON_TILT = false`). Test now expects off, switches it on before the off/on round-trip, and matches the new "Opt-in: 24h auto-lock on Level 3+ tilt" label case-insensitively.
+- Gitleaks: throwaway Web Push p256dh/auth fixtures in `workers/collectclock-api/test/push.test.mjs` were flagged as generic-api-key. Test now generates them at runtime; the two a5e6b348 fingerprints are in `.gitleaksignore`.
+- Brand Compliance: custodial heuristic flagged WebCrypto `kp.privateKey` (ephemeral ECDH key for push encryption) and the provably-fair client seed setter in `content.ts` (`seed-manager-extension`, `message.seed`). Added those exact tokens to the workflow's allowlist; no product code changed.
 
 ## 2026-11-18 — feat(buddy): Cash-out Buddy pairing + ping wired to collectclock-api (draft PR #753, feat/cashout-buddy)
 - `workers/collectclock-api/`: worker source now versioned (deployed version + new `src/buddy.js`). Routes `/buddy/invite|accept|status|unpair|ping`, Bearer `workerSession`, KV `CC`, bot DM via `BOT_TOKEN`. Ping is plain text ("<name> hit their walk-away." / "<name> could use a nudge."), 1 per 10 min per pair, amount-like fields refused. Deploy by hand with `deploy.sh`; Git build must stay disconnected. Not deployed.
