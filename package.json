@@ -73,7 +73,7 @@
     "docs:pages": "node scripts/convert-markdown.js docs/tiltcheck out/docs && mkdir -p out/styles && cp scripts/pages-assets/styles/base.css out/styles/base.css"
   },
   "devDependencies": {
-    "@google-cloud/secret-manager": "^6.1.1",
+    "@google-cloud/secret-manager": "^8.0.0",
     "@playwright/test": "^1.61.1",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^22.0.0",
