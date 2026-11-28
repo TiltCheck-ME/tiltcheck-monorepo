@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -61,6 +61,18 @@
       max-width: 100% !important;
       min-height: 100vh !important;
       max-height: 100vh !important;
+    }
+
+    html.side-panel,
+    body.side-panel {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-height: 100vh !important;
+      max-height: none !important;
+      height: auto;
+    }
+    body.side-panel {
+      overflow-y: auto;
     }
     body.standalone-window .panel,
     body.standalone-window .header,
@@ -1594,6 +1606,21 @@
       background: rgba(255,255,255,0.1);
       color: var(--text);
     }
+    .side-panel-bar {
+      display: none;
+      align-items: center;
+      padding: 6px 14px;
+      background: rgba(23,195,178,0.08);
+      border-bottom: 1px solid rgba(23,195,178,0.22);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    body.side-panel .side-panel-bar {
+      display: flex;
+    }
+
     .win-size-btn.active {
       background: var(--teal);
       border-color: var(--teal);
@@ -1804,7 +1831,7 @@
         <line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
     </button>
-    <button class="icon-btn" id="btn-detach-window" title="Stay on Screen: Pop out into persistent resizable window that stays open while clicking behind it">
+    <button class="icon-btn" id="btn-detach-window" title="Pop out into a floating window. The docked panel already stays up when you swap tabs.">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
         <polyline points="15 3 21 3 21 9"/>
@@ -1835,6 +1862,8 @@
     <button type="button" class="win-size-btn" id="btn-win-expanded" data-size="expanded" title="Expanded size (560x780)">Expanded</button>
   </div>
 </div>
+
+<div id="side-panel-bar" class="side-panel-bar">Docked across tabs. Swap all you want, this stays put.</div>
 
 <!-- Discord Account Subheader (Visible across all tabs and window modes) -->
 <div id="discord-account-bar" class="discord-account-bar">
@@ -1975,7 +2004,7 @@
       </button>
     </div>
     <p style="font-size:11px; color:var(--muted); line-height:1.35; margin:6px 0 10px 0;">
-      Keep TiltCheck open while playing games or clicking behind it. Resizable with compact, standard, and wide layouts.
+      Toolbar click docks this panel. Swap tabs all you want, it stays put. Pop out only if you want a float over the game.
     </p>
     <div class="display-size-row">
       <span style="font-size:11px; color:var(--muted); font-weight:600;">Window Size:</span>

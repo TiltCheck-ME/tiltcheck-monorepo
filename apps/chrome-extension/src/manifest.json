@@ -8,7 +8,8 @@
     "tabs",
     "activeTab",
     "alarms",
-    "webNavigation"
+    "webNavigation",
+    "sidePanel"
   ],
   "host_permissions": [
     "https://*.stake.com/*",
@@ -41,8 +42,10 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "TiltCheck",
-    "default_popup": "popup.html"
+    "default_title": "TiltCheck"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
   },
   "content_scripts": [
     {

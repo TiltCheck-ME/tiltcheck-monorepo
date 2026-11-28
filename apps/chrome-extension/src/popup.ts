@@ -1,4 +1,5 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27
+import { resolveExtensionSurface, type ExtensionSurface } from './extension-surface.js';
 import {
   EXT_CONFIG,
   WORKER_ROUTES,
@@ -2452,7 +2453,68 @@ async function detachToStandaloneWindow(size?: PopupSize): Promise<void> {
 // Init
 // ---------------------------------------------------------------------------
 
+let activeSurface: ExtensionSurface = 'popup';
+let crossTabWatchAttached = false;
+let crossTabRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function applyExtensionSurface(surface: ExtensionSurface): void {
+  activeSurface = surface;
+  document.documentElement.classList.toggle('side-panel', surface === 'sidepanel');
+  document.body.classList.toggle('side-panel', surface === 'sidepanel');
+  document.documentElement.classList.toggle('standalone-window', surface === 'window');
+  document.body.classList.toggle('standalone-window', surface === 'window');
+  if (surface !== 'window') return;
+
+  const winBar = document.getElementById('standalone-window-bar');
+  if (winBar) winBar.style.display = 'flex';
+  const detachBtn = document.getElementById('btn-detach-window');
+  if (detachBtn) detachBtn.style.display = 'none';
+  const easyDetachBtn = document.getElementById('btn-easy-detach');
+  if (easyDetachBtn) {
+    easyDetachBtn.textContent = 'Floating Window Active';
+    (easyDetachBtn as HTMLButtonElement).disabled = true;
+    (easyDetachBtn as HTMLElement).style.opacity = '0.6';
+  }
+}
+
+function scheduleCrossTabRefresh(): void {
+  if (activeSurface !== 'sidepanel') return;
+  if (crossTabRefreshTimer) clearTimeout(crossTabRefreshTimer);
+  crossTabRefreshTimer = setTimeout(() => {
+    crossTabRefreshTimer = null;
+    void updateSessionStatusPill();
+    loadSessionRadar();
+    loadStreakVolatility();
+    loadCashoutGoalsProgress();
+  }, 150);
+}
+
+function watchCrossTabSurface(surface: ExtensionSurface): void {
+  if (surface !== 'sidepanel' || crossTabWatchAttached) return;
+  if (!chrome.tabs?.onActivated || !chrome.tabs?.onUpdated) return;
+  crossTabWatchAttached = true;
+  chrome.tabs.onActivated.addListener(() => scheduleCrossTabRefresh());
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.status !== 'complete' && !changeInfo.url) return;
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id === tabId) scheduleCrossTabRefresh();
+    });
+  });
+}
+
 async function init() {
+  const runtimeWithContexts = chrome.runtime as typeof chrome.runtime & {
+    getContexts?: (filter: { contextTypes: string[] }) => Promise<Array<{ documentUrl?: string }>>;
+  };
+  const surface = await resolveExtensionSurface(
+    window.location.search,
+    window.location.href,
+    runtimeWithContexts.getContexts
+      ? (filter) => runtimeWithContexts.getContexts!.call(chrome.runtime, filter)
+      : undefined,
+  );
+  applyExtensionSurface(surface);
+  watchCrossTabSurface(surface);
   applyBackendAvailability();
   void initBetaPanel().catch(() => undefined);
   void flushBetaTelemetry().catch(() => undefined);
@@ -2481,23 +2543,6 @@ async function init() {
       document.getElementById(`btn-win-${s}`)?.classList.remove('active');
     }
   });
-
-  // Detach window listener
-  const isStandaloneWindow = new URLSearchParams(window.location.search).get('mode') === 'window';
-  if (isStandaloneWindow) {
-    document.documentElement.classList.add('standalone-window');
-    document.body.classList.add('standalone-window');
-    const winBar = document.getElementById('standalone-window-bar');
-    if (winBar) winBar.style.display = 'flex';
-    const detachBtn = document.getElementById('btn-detach-window');
-    if (detachBtn) detachBtn.style.display = 'none';
-    const easyDetachBtn = document.getElementById('btn-easy-detach');
-    if (easyDetachBtn) {
-      easyDetachBtn.textContent = 'Floating Window Active';
-      (easyDetachBtn as HTMLButtonElement).disabled = true;
-      (easyDetachBtn as HTMLElement).style.opacity = '0.6';
-    }
-  }
 
   const detachBtn = document.getElementById('btn-detach-window');
   if (detachBtn) {

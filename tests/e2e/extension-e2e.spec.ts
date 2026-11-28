@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27
 // E2E test: Chrome extension packaging, unpacked loading, popup settings, and cooldown auto-lock deep-link.
 
 import { test, expect, chromium, type BrowserContext, type Page } from "@playwright/test";
@@ -91,7 +91,9 @@ test.describe("Chrome Extension Packaging & Distribution Verification", () => {
     const manifest = JSON.parse(manifestRaw);
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.name).toBe("TiltCheck");
-    expect(manifest.action?.default_popup).toBe("popup.html");
+    expect(manifest.permissions).toContain("sidePanel");
+    expect(manifest.side_panel?.default_path).toBe("popup.html");
+    expect(manifest.action?.default_popup).toBeUndefined();
     expect(manifest.background?.service_worker).toBe("background.js");
 
     // Assert zip packages exist and are greater than 50KB.

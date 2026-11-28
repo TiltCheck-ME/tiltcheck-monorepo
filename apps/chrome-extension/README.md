@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-10-09 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 
 # TiltCheck Chrome Extension (TiltGuard)
 
@@ -30,6 +30,10 @@ Default **Core** install (what players get from the web zip at `https://tiltchec
 
 Pro features (sidebar, historical extractors, advanced telemetry) remain storage-flag gated for advanced users; the default build ships lean, reactive harm reduction.
 
+### Cross-tab dock
+
+The toolbar icon opens a side panel, not a popup that vanishes when you change tabs. The panel stays in the window chrome while you swap tabs and refreshes against the active tab. Session PnL follows the visible casino tab: a hidden tab stops writing the shared session, and another tab on the same host picks that session up instead of zeroing the radar. A different casino does not inherit the other site's baseline. The pop-out control is still there if you want a floating window over the game.
+
 ### Package for web download
 
 ```bash
@@ -44,7 +48,7 @@ Builds `dist/`, then zips it to `apps/web/public/downloads/tiltcheck-extension.z
 
 Two runtime modes:
 
-- **Discord-linked account** (primary): user clicks **Log in with Discord** in the sidebar (toolbar icon on supported casino pages). OAuth runs in a small API-driven flow; the API callback page `postMessage`s a JWT plus user payload to `auth-bridge.html` (packaged inside the extension). The bridge writes **`chrome.storage.local`** (`authToken`, `userData`, and `tiltguard_user_id`). That storage is origin-scoped to the extension, persists across browser restarts, and is what the sidebar polls after login. The API also sets an **httpOnly session cookie** on `api.tiltcheck.me` during the OAuth round-trip in the browser; the extension does not read that cookie. API calls from the extension send **`Authorization: Bearer <authToken>`** where required. The built `popup.html` flow matches the same storage contract for builds that set `action.default_popup` in the manifest.
+- **Discord-linked account** (primary): user clicks **Log in with Discord** in the sidebar (toolbar icon on supported casino pages). OAuth runs in a small API-driven flow; the API callback page `postMessage`s a JWT plus user payload to `auth-bridge.html` (packaged inside the extension). The bridge writes **`chrome.storage.local`** (`authToken`, `userData`, and `tiltguard_user_id`). That storage is origin-scoped to the extension, persists across browser restarts, and is what the sidebar polls after login. The API also sets an **httpOnly session cookie** on `api.tiltcheck.me` during the OAuth round-trip in the browser; the extension does not read that cookie. API calls from the extension send **`Authorization: Bearer <authToken>`** where required. The side panel loads `popup.html`, which uses the same storage contract.
 - **Demo / guest mode** (sidebar): no token; mock-friendly paths until the user logs in.
 - **Magic Link** (popup only): optional email sign-in stores the same `chrome.storage.local` keys; Discord-only tools stay gated until `userData.discordId` exists.
 
@@ -147,7 +151,7 @@ Full redirect URI list, popup wiring, and failure cases: [docs/discord-oauth.md]
 
 ## Known Gaps
 
-- Toolbar icon behavior follows `src/manifest.json`. Rebuild (`pnpm build` in this package) so `dist/` matches source before loading unpacked in Chrome.
+- Toolbar click opens the side panel (`side_panel.default_path` in `src/manifest.json`). Rebuild (`pnpm build` in this package) so `dist/` matches source before loading unpacked in Chrome. Reload the extension after that build. The old action popup closed on every tab switch.
 
 ---
 

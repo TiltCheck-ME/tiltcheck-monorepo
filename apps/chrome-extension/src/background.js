@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27
 /**
  * MV3 service worker.
  * Sidebar-first controls, shared tab actions, and real-time on-chain cooldown sync.
@@ -69,11 +69,59 @@ function isAllowedAuthUrl(value) {
   }
 }
 
+// Docked panel. No tabId: a per-tab panel closes when you swap tabs.
+// The panel is an extension page. It does not gain host access. Casino reads
+// stay in content scripts on matched hosts.
+// Rollback: restore action.default_popup, delete side_panel and the sidePanel permission.
+const SIDE_PANEL_PATH = 'popup.html';
+
+function enableCrossTabPanel() {
+  const panel = chrome.sidePanel;
+  if (panel && typeof panel.setPanelBehavior === 'function') {
+    try {
+      if (typeof panel.setOptions === 'function') {
+        const optionsResult = panel.setOptions({ path: SIDE_PANEL_PATH, enabled: true });
+        if (optionsResult && typeof optionsResult.catch === 'function') {
+          optionsResult.catch((err) => {
+            console.warn('[TiltCheck] Side panel options failed:', err?.message || err);
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[TiltCheck] Side panel options failed:', err?.message || err);
+    }
+    try {
+      const behaviorResult = panel.setPanelBehavior({ openPanelOnActionClick: true });
+      if (behaviorResult && typeof behaviorResult.catch === 'function') {
+        behaviorResult.catch((err) => {
+          console.warn('[TiltCheck] Side panel behavior failed:', err?.message || err);
+        });
+      }
+    } catch (err) {
+      console.warn('[TiltCheck] Side panel behavior failed:', err?.message || err);
+    }
+    return;
+  }
+
+  if (typeof chrome.action?.setPopup === 'function') {
+    try {
+      chrome.action.setPopup({ popup: 'popup.html' });
+    } catch (err) {
+      console.warn('[TiltCheck] Popup fallback failed:', err?.message || err);
+    }
+  }
+}
+
+enableCrossTabPanel();
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[TiltCheck] Extension installed');
+  enableCrossTabPanel();
 });
 
 chrome.action.onClicked.addListener((tab) => {
+  // Side panel owns the toolbar click. This listener only matters when that API is missing.
+  if (chrome.sidePanel?.setPanelBehavior) return;
   if (!tab?.id) return;
 
   chrome.tabs.sendMessage(tab.id, { type: 'toggle_sidebar' }, () => {
