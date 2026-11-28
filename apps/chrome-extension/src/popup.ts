@@ -2512,6 +2512,16 @@ async function init() {
     runtimeWithContexts.getContexts
       ? (filter) => runtimeWithContexts.getContexts!.call(chrome.runtime, filter)
       : undefined,
+    () => new Promise((resolve) => {
+      if (!chrome.windows?.getCurrent) {
+        resolve(undefined);
+        return;
+      }
+      chrome.windows.getCurrent((win) => {
+        if (chrome.runtime.lastError || !win) resolve(undefined);
+        else resolve({ type: win.type });
+      });
+    }),
   );
   applyExtensionSurface(surface);
   watchCrossTabSurface(surface);

@@ -30,10 +30,47 @@ describe('extension surface', () => {
     expect(surface).toBe('window');
   });
 
-  it('falls back to the popup when context lookup throws', async () => {
-    const surface = await resolveExtensionSurface('', 'chrome-extension://test/popup.html', async () => {
-      throw new Error('unavailable');
-    });
+  it('falls back to the popup when context lookup throws and the window is a popup', async () => {
+    const surface = await resolveExtensionSurface(
+      '',
+      'chrome-extension://test/popup.html',
+      async () => {
+        throw new Error('unavailable');
+      },
+      async () => ({ type: 'popup' }),
+    );
     expect(surface).toBe('popup');
+  });
+
+  it('treats a normal browser window as the dock when getContexts is missing', async () => {
+    const surface = await resolveExtensionSurface(
+      '',
+      'chrome-extension://test/popup.html',
+      undefined,
+      async () => ({ type: 'normal' }),
+    );
+    expect(surface).toBe('sidepanel');
+  });
+
+  it('keeps an action popup classified as a popup without getContexts', async () => {
+    const surface = await resolveExtensionSurface(
+      '',
+      'chrome-extension://test/popup.html',
+      undefined,
+      async () => ({ type: 'popup' }),
+    );
+    expect(surface).toBe('popup');
+  });
+
+  it('uses the window type when getContexts throws on Chrome 114-115', async () => {
+    const surface = await resolveExtensionSurface(
+      '',
+      'chrome-extension://test/popup.html',
+      async () => {
+        throw new Error('getContexts missing');
+      },
+      async () => ({ type: 'normal' }),
+    );
+    expect(surface).toBe('sidepanel');
   });
 });
