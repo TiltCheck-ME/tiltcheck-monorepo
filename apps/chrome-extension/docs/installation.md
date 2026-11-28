@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 
 # TiltGuard Chrome Extension — Installation Guide
 
@@ -43,7 +43,7 @@ After loading, you should see:
 1. **Extension Icon**: TiltGuard icon in the Chrome toolbar.
 2. **Sidebar**: On supported casino sites, the TiltGuard sidebar appears on the right side of the page.
 
-Note: Clicking the toolbar icon currently does not open a popup — there is no popup.html implemented yet. The sidebar is toggled from within the casino page itself. This is a known gap tracked in the repository.
+Click the toolbar icon to dock the TiltCheck panel. It stays open when you swap tabs. Casino guardrails still run inside supported casino pages.
 
 ---
 
@@ -72,6 +72,7 @@ The extension requests the following permissions:
 - **identity**: Discord OAuth flow support.
 - **notifications**: Alert delivery for tilt interventions.
 - **alarms**: Periodic background tasks (cooldown timers, session checks).
+- **sidePanel**: Docks the TiltCheck panel so it stays open across tab switches.
 - **host permissions (all URLs)**: Broad casino site support.
 
 ---

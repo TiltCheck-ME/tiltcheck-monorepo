@@ -1,6 +1,13 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-19 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 
 # Session Log
+
+## 2026-11-27 — feat(extension): keep the panel open across tab switches
+- Toolbar click docks `popup.html` as a window-level side panel (`sidePanel` permission, `openPanelOnActionClick`, no `tabId`). `default_popup` is omitted because Chrome closes an action popup on every tab switch.
+- The docked panel refreshes session, streak, and cash-out state when the active tab changes. Browsers without the side panel API fall back to the action popup. In-page sidebar toggle stays only for that fallback.
+- Session PnL writes only from the visible top document. A new tab on the same host adopts that session. A different casino does not inherit it. Stored sessions older than 12 hours are not adopted.
+- Sideload zips rebuilt. Tests: chrome-extension vitest for session-velocity, background, extension-surface, popup-copy, easy-mode (5 files, 50 pass); packaging e2e assertion passed. In-browser extension load was not run here (Playwright Chromium build missing).
+- Chrome 114-115 has the side panel but not `runtime.getContexts`. The dock is detected with `chrome.windows.getCurrent()` (`type === "normal"`). An action popup stays `type === "popup"` and still closes on a tab switch.
 
 ## 2026-11-19 — feat(extension): opt-in anonymous beta counts, Send feedback, beta install guide (draft PR, feat/beta-telemetry)
 - New `beta-telemetry.ts`: OFF by default; Settings > Beta toggle opts in. Fixed counters only (install, nudge_shown, break_taken, keep_win_hold, cash_out; ask_question and protection_turned_off reserved, not wired). No ids, wallet, username, URL, casino or amounts; payload is { schema, version, day, counts }. Opting out deletes local counts.

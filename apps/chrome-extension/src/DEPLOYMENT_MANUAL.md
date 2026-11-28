@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 
 # TiltCheck Deployment and Operations Manual
 
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS users (
    ```powershell
    Compress-Archive -Path apps\chrome-extension\dist\* -DestinationPath tiltcheck-extension.zip
    ```
-4. **Known Gap**: `manifest.json` declares `"default_popup": "popup.html"` but that file does not exist. Resolve this before submitting to the Chrome Web Store. See `apps/chrome-extension/README.md` Known Gaps section.
+4. **Toolbar**: The manifest omits `default_popup` and sets `side_panel.default_path` to `popup.html`. Chrome closes an action popup on tab switch. The side panel is the cross-tab dock.
 5. **Manual Distribution**: Host the `.zip` on the TiltCheck website for developer-mode installs.
 6. **Store Distribution**: When popup.html is implemented and the review blockers are resolved, upload the package to the Chrome Web Store Developer Dashboard ($5 one-time fee).
 

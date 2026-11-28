@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-04 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 */
 /**
  * @vitest-environment jsdom
  * Unit tests for Session Net PnL Mini-Sparkline & Velocity Radar.
@@ -10,9 +10,13 @@ import {
   calculateVelocityPerMin,
   determineVelocityStatus,
   generateSparklineSvg,
+  canAdoptStoredSession,
   installSessionVelocityRadar,
+  isCrossTabSessionOwner,
   recordBalanceSample,
   resetSessionPnl,
+  SESSION_CROSS_TAB_MAX_AGE_MS,
+  TILTCHECK_SESSION_PNL_KEY,
   DEFAULT_SESSION_PNL_STATE,
   type BalanceSample,
   type SessionPnlState,
@@ -213,6 +217,93 @@ describe('installSessionVelocityRadar', () => {
     expect(resetState.netPnl).toBe(0);
     expect(resetState.samples.length).toBe(1);
 
+    radar.stop();
+  });
+});
+
+describe('cross-tab session', () => {
+  afterEach(() => {
+    delete (globalThis as { chrome?: unknown }).chrome;
+    document.body.innerHTML = '';
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    });
+  });
+
+  function mockStorage(initial: Record<string, unknown> = {}) {
+    const store: Record<string, unknown> = { ...initial };
+    const writes: unknown[] = [];
+    (globalThis as { chrome?: unknown }).chrome = {
+      storage: {
+        local: {
+          get: (keys: string[], cb: (res: Record<string, unknown>) => void) => {
+            const res: Record<string, unknown> = {};
+            for (const key of keys) res[key] = store[key];
+            cb(res);
+          },
+          set: (items: Record<string, unknown>) => {
+            writes.push(items);
+            Object.assign(store, items);
+          },
+        },
+      },
+    };
+    return { store, writes };
+  }
+
+  it('rejects a stale session and a different casino host', () => {
+    const fresh = recordBalanceSample(resetSessionPnl(100, Date.now()), 80, Date.now());
+    expect(canAdoptStoredSession({ ...fresh, host: 'stake.com' }, 'stake.com')).toBe(true);
+    expect(canAdoptStoredSession({ ...fresh, host: 'roobet.com' }, 'stake.com')).toBe(false);
+    expect(canAdoptStoredSession({ ...fresh, host: 'stake.com', lastUpdated: Date.now() - SESSION_CROSS_TAB_MAX_AGE_MS - 1000 }, 'stake.com')).toBe(false);
+    expect(canAdoptStoredSession({ ...fresh, host: '' }, 'stake.com')).toBe(true);
+  });
+
+  it('ignores hidden documents and nested frames', () => {
+    expect(isCrossTabSessionOwner({ visibilityState: 'hidden', defaultView: null } as Document)).toBe(false);
+    const view = { top: null as Window | null };
+    view.top = {} as Window;
+    expect(isCrossTabSessionOwner({ visibilityState: 'visible', defaultView: view } as unknown as Document)).toBe(false);
+    expect(isCrossTabSessionOwner({ visibilityState: 'visible', defaultView: null } as Document)).toBe(true);
+  });
+
+  it('continues the same-host session when another tab opens', () => {
+    const saved = recordBalanceSample(resetSessionPnl(200, Date.now() - 20_000), 150, Date.now() - 5_000);
+    saved.host = window.location.hostname;
+    mockStorage({ [TILTCHECK_SESSION_PNL_KEY]: saved });
+    document.body.innerHTML = '<div class="user-balance" data-value="100.00">$100.00</div>';
+
+    const radar = installSessionVelocityRadar(document);
+    expect(radar.getState().startingBalance).toBe(200);
+    expect(radar.getState().host).toBe(window.location.hostname);
+    radar.stop();
+  });
+
+  it('starts fresh on a different casino instead of stealing the other session', () => {
+    const saved = recordBalanceSample(resetSessionPnl(200, Date.now() - 20_000), 150, Date.now() - 5_000);
+    saved.host = 'stake.com';
+    const { store } = mockStorage({ [TILTCHECK_SESSION_PNL_KEY]: saved });
+    document.body.innerHTML = '<div class="user-balance" data-value="100.00">$100.00</div>';
+
+    const radar = installSessionVelocityRadar(document);
+    expect(radar.getState().startingBalance).toBe(100);
+    expect((store[TILTCHECK_SESSION_PNL_KEY] as SessionPnlState).host).toBe(window.location.hostname);
+    radar.stop();
+  });
+
+  it('does not write the shared session while the tab is hidden', () => {
+    const { writes } = mockStorage();
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'hidden',
+    });
+    document.body.innerHTML = '<div class="user-balance" data-value="100.00">$100.00</div>';
+
+    const radar = installSessionVelocityRadar(document, { initialBalance: 80 });
+    radar.sample(40);
+    expect(writes).toHaveLength(0);
+    expect(radar.getState().currentBalance).toBe(80);
     radar.stop();
   });
 });

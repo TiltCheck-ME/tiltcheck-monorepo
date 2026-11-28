@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-08 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 
 # Chrome Web Store Publishing & Submission Guide
 
@@ -108,6 +108,10 @@ To provide real-time responsible gaming brakes, session tilt detection, deposit 
 * **`webNavigation`:**
   ```text
   Required to intercept navigations to supported casino domains in order to mount guardrails immediately upon page transition and block confirmed phishing mirrors.
+  ```
+* **`sidePanel`:**
+  ```text
+  Required to dock the extension panel in the browser window so it stays open when the player switches tabs. The panel does not read page content. Casino guardrails still run only on supported casino hosts.
   ```
 
 ### Host Permissions Justification

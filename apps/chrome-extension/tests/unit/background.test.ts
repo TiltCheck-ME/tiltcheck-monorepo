@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RuntimeListener = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;
@@ -105,6 +105,32 @@ describe('background service worker', () => {
       { type: 'toggle_sidebar' },
       expect.any(Function),
     );
+  });
+
+  it('docks a window-level side panel on the toolbar click', async () => {
+    const { chromeMock, actionListeners } = setupChromeMock();
+    const setOptions = vi.fn(() => Promise.resolve());
+    const setPanelBehavior = vi.fn(() => Promise.resolve());
+    (chromeMock as any).sidePanel = { setOptions, setPanelBehavior };
+
+    await import('../../src/background.js');
+
+    expect(setOptions).toHaveBeenCalledWith({ path: 'popup.html', enabled: true });
+    expect(setOptions.mock.calls[0]?.[0]).not.toHaveProperty('tabId');
+    expect(setPanelBehavior).toHaveBeenCalledWith({ openPanelOnActionClick: true });
+
+    actionListeners[0]!({ id: 42 });
+    expect(chromeMock.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the action popup when the side panel API is missing', async () => {
+    const { chromeMock } = setupChromeMock();
+    const setPopup = vi.fn();
+    (chromeMock.action as any).setPopup = setPopup;
+
+    await import('../../src/background.js');
+
+    expect(setPopup).toHaveBeenCalledWith({ popup: 'popup.html' });
   });
 
   it('handles open_auth bridge/tab and open_vault messages', async () => {

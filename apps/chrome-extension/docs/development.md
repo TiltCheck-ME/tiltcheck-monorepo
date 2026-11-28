@@ -1,4 +1,4 @@
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 -->
 
 # TiltGuard Chrome Extension — Development Guide
 
@@ -187,7 +187,7 @@ Shared primitives for modules that run inside the extension content-script runti
 
 Service worker:
 
-- Toggles the sidebar on toolbar icon click via `chrome.tabs.sendMessage`.
+- Docks `popup.html` as a window-level side panel on toolbar click (`chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })`, no `tabId`). Browsers without the side panel API fall back to `action.setPopup`. `action.onClicked` still toggles the in-page sidebar only when the side panel API is missing.
 - Opens the Discord OAuth flow in a normal browser tab when it receives an `open_auth_tab` message.
 
 ### config.ts
@@ -271,7 +271,7 @@ Compress-Archive -Path dist\* -DestinationPath tiltcheck-extension.zip
 
 ## Known Gaps
 
-- `manifest.json` declares `"default_popup": "popup.html"` but that file does not exist. The toolbar icon click is handled by `background.js` toggling the sidebar. Until `popup.html` is created, Chrome will display an error when the toolbar icon is clicked in some configurations.
+- Toolbar click opens the side panel (`popup.html`). `default_popup` is omitted on purpose: Chrome closes an action popup as soon as you swap tabs, and a popup also blocks `openPanelOnActionClick`.
 
 ---
 

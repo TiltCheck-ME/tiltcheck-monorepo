@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-11-27 */
 
 /**
  * Session Net PnL Mini-Sparkline & Velocity Radar
@@ -37,6 +37,8 @@ export interface SessionPnlState {
   statusReason: string;
   startTime: number;
   lastUpdated: number;
+  /** Casino host that owns this session. Empty on legacy rows. */
+  host?: string;
 }
 
 export const TILTCHECK_SESSION_PNL_KEY = 'tiltcheck_session_pnl_state';
@@ -168,7 +170,50 @@ export function recordBalanceSample(
     statusReason: statusInfo.reason,
     startTime,
     lastUpdated: timestamp,
+    host: state.host,
   };
+}
+
+/** How long a backgrounded casino tab can rejoin the same session. */
+export const SESSION_CROSS_TAB_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+export function sessionHostKey(doc: Document): string {
+  try {
+    return (doc.location?.hostname || '').toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Only the visible top document writes the shared session.
+ * Hidden tabs and game iframes stay quiet so they cannot zero the radar
+ * the moment you swap tabs.
+ */
+export function isCrossTabSessionOwner(doc: Document): boolean {
+  if (doc.visibilityState === 'hidden') return false;
+  const view = doc.defaultView;
+  if (!view) return true;
+  try {
+    if (view.top && view.top !== view) return false;
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+export function canAdoptStoredSession(
+  saved: SessionPnlState | null | undefined,
+  host: string,
+  now = Date.now(),
+  maxAgeMs = SESSION_CROSS_TAB_MAX_AGE_MS,
+): boolean {
+  if (!saved || !Array.isArray(saved.samples)) return false;
+  if (typeof saved.lastUpdated === 'number' && saved.lastUpdated > 0 && now - saved.lastUpdated > maxAgeMs) {
+    return false;
+  }
+  if (saved.host && host && saved.host !== host) return false;
+  return true;
 }
 
 export function resetSessionPnl(
@@ -271,6 +316,18 @@ const SPIN_CONTROL_SELECTOR = [
   '.spin-btn',
 ].join(', ');
 
+function persistSessionState(doc: Document, next: SessionPnlState, force = false): void {
+  if (!force && !isCrossTabSessionOwner(doc)) return;
+  const payload: SessionPnlState = { ...next, host: next.host || sessionHostKey(doc) };
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.set({ [TILTCHECK_SESSION_PNL_KEY]: payload });
+    }
+  } catch {
+    // Storage unavailable in tests
+  }
+}
+
 export function installSessionVelocityRadar(
   doc: Document,
   options?: {
@@ -278,30 +335,53 @@ export function installSessionVelocityRadar(
     initialBalance?: number | null;
   },
 ): SessionVelocityHandle {
-  let state = resetSessionPnl(options?.initialBalance ?? null);
+  const host = sessionHostKey(doc);
+  let state: SessionPnlState = { ...resetSessionPnl(options?.initialBalance ?? null), host };
   let stopped = false;
   const isEnabled = options?.enabled ?? DEFAULT_SESSION_RADAR_ENABLED;
 
   function doSample(balanceOverride?: number): SessionPnlState {
     if (stopped) return state;
+    if (!isCrossTabSessionOwner(doc)) return state;
     const balance = balanceOverride !== undefined ? balanceOverride : readBalance(doc);
     if (balance !== null) {
-      state = recordBalanceSample(state, balance);
-      try {
-        if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-          chrome.storage.local.set({ [TILTCHECK_SESSION_PNL_KEY]: state });
-        }
-      } catch {
-        // Storage unavailable in tests
-      }
+      state = { ...recordBalanceSample(state, balance), host: state.host || host };
+      persistSessionState(doc, state);
     }
     return state;
   }
 
-  // Initial read
-  doSample();
+  function adoptStored(saved: SessionPnlState | undefined): void {
+    if (!saved || !canAdoptStoredSession(saved, host)) return;
+    state = { ...saved, host: saved.host || host };
+  }
 
-  // Listen to spin button clicks
+  function hydrateThenSample(): void {
+    const storage = typeof chrome !== 'undefined' ? chrome.storage?.local : undefined;
+    if (!storage?.get) {
+      doSample();
+      return;
+    }
+    try {
+      storage.get([TILTCHECK_SESSION_PNL_KEY], (res) => {
+        if (stopped) return;
+        const bucket = res as Record<string, SessionPnlState | undefined> | undefined;
+        adoptStored(bucket?.[TILTCHECK_SESSION_PNL_KEY]);
+        doSample();
+      });
+    } catch {
+      doSample();
+    }
+  }
+
+  hydrateThenSample();
+
+  const onVisibility = () => {
+    if (stopped || doc.visibilityState === 'hidden') return;
+    hydrateThenSample();
+  };
+  doc.addEventListener('visibilitychange', onVisibility);
+
   const onSpinClick = () => {
     if (stopped) return;
     setTimeout(() => doSample(), 600);
@@ -317,7 +397,6 @@ export function installSessionVelocityRadar(
     }, true);
   }
 
-  // Polling interval
   const intervalId = setInterval(() => {
     if (stopped) return;
     doSample();
@@ -327,19 +406,14 @@ export function installSessionVelocityRadar(
     getState: () => state,
     sample: (balanceOverride?: number) => doSample(balanceOverride),
     reset: (startingBalance?: number | null) => {
-      state = resetSessionPnl(startingBalance);
-      try {
-        if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-          chrome.storage.local.set({ [TILTCHECK_SESSION_PNL_KEY]: state });
-        }
-      } catch {
-        // Ignored in test environment
-      }
+      state = { ...resetSessionPnl(startingBalance), host };
+      persistSessionState(doc, state, true);
       return state;
     },
     stop: () => {
       stopped = true;
       clearInterval(intervalId);
+      doc.removeEventListener('visibilitychange', onVisibility);
     },
   };
 }
